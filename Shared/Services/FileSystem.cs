@@ -23,12 +23,12 @@ public sealed class FileSystem : IFileSystem
 	/// </summary>
 	private const string TemporaryFileExtension = ".tmp";
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 	#endregion
 
 	#region Constructors
-	public FileSystem(IJsonSerializerWrapper jsonSerializer) => _jsonSerializer = jsonSerializer;
+	public FileSystem(IJsonSerializer jsonSerializer) => _jsonSerializer = jsonSerializer;
 	#endregion
 
 	#region Methods
@@ -60,6 +60,40 @@ public sealed class FileSystem : IFileSystem
 	public void DeleteDirectory(string directoryPath, bool recursive = true)
 	{
 		Directory.Delete(directoryPath, recursive);
+	}
+
+	/// <inheritdoc />
+	public bool DirectoryExists([NotNullWhen(true)] string? directoryPath)
+	{
+		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
+		{
+			return false;
+		}
+
+		if (Path.GetDirectoryName(directoryPath) is not { } parentPath)
+		{
+			return true;
+		}
+
+		try
+		{
+			string directoryName = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+			if (string.IsNullOrEmpty(directoryName))
+			{
+				return true;
+			}
+
+			return Directory
+				.EnumerateDirectories(parentPath)
+				.Any(x => string.Equals(Path.GetFileName(x), directoryName, StringComparison.Ordinal));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+
+			return false;
+		}
 	}
 
 	/// <inheritdoc />
@@ -109,9 +143,9 @@ public sealed class FileSystem : IFileSystem
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount)
+		in int passCount = IFileSystem.DefaultPassCount)
 	{
-		EraseFile(filePath, bufferSize, passes);
+		EraseFile(filePath, bufferSize, passCount);
 
 		File.Delete(filePath);
 	}
@@ -120,7 +154,7 @@ public sealed class FileSystem : IFileSystem
 	public void EraseFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount)
+		in int passCount = IFileSystem.DefaultPassCount)
 	{
 		using RandomNumberGenerator generator = RandomNumberGenerator.Create();
 
@@ -128,7 +162,7 @@ public sealed class FileSystem : IFileSystem
 
 		long fileLength = new FileInfo(filePath).Length;
 
-		for (int i = 0; i < passes; i++)
+		for (int i = 0; i < passCount; i++)
 		{
 			using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Write);
 
@@ -146,65 +180,30 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	[return: NotNullIfNotNull(nameof(directoryPath))]
-	public bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath)
-	{
-		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
-		{
-			return false;
-		}
-
-		if (Path.GetDirectoryName(directoryPath) is not { } parent)
-		{
-			return true;
-		}
-
-		try
-		{
-			string name = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
-			if (string.IsNullOrEmpty(name))
-			{
-				return true;
-			}
-
-			return Directory
-				.EnumerateDirectories(parent)
-				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
-		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex);
-
-			return false;
-		}
-	}
-
-	/// <inheritdoc />
-	public bool IsFileExists([NotNullWhen(true)] string? filePath)
+	public bool FileExists([NotNullWhen(true)] string? filePath)
 	{
 		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
 		{
 			return false;
 		}
 
-		if (Path.GetDirectoryName(filePath) is not { } parent)
+		if (Path.GetDirectoryName(filePath) is not { } parentPath)
 		{
 			return true;
 		}
 
 		try
 		{
-			string name = Path.GetFileName(filePath);
+			string fileName = Path.GetFileName(filePath);
 
-			if (string.IsNullOrEmpty(name))
+			if (string.IsNullOrEmpty(fileName))
 			{
 				return false;
 			}
 
 			return Directory
-				.EnumerateFiles(parent)
-				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
+				.EnumerateFiles(parentPath)
+				.Any(x => string.Equals(Path.GetFileName(x), fileName, StringComparison.Ordinal));
 		}
 		catch (Exception ex)
 		{
@@ -271,9 +270,9 @@ public sealed class FileSystem : IFileSystem
 	public void SerializeToJsonFile<T>(
 		T value,
 		string filePath,
-		bool isHide)
+		bool isHidden)
 	{
-		if (IsFileExists(filePath))
+		if (FileExists(filePath))
 		{
 			SetFileHidden(filePath, false);
 		}
@@ -283,9 +282,9 @@ public sealed class FileSystem : IFileSystem
 			Directory.CreateDirectory(parentDirectory);
 		}
 
-		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, AppUtils.JsonOptions));
+		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, JsonDefaults.Options));
 
-		if (!isHide)
+		if (!isHidden)
 		{
 			return;
 		}
@@ -294,11 +293,11 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void SetFileHidden(string filePath, bool value)
+	public void SetFileHidden(string filePath, bool isHidden)
 	{
 		const FileAttributes attribute = FileAttributes.Hidden;
 
-		if (value)
+		if (isHidden)
 		{
 			AddFileAttributes(filePath, attribute);
 		}
@@ -309,11 +308,11 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void SetFileReadOnly(string filePath, bool value)
+	public void SetFileReadOnly(string filePath, bool isReadOnly)
 	{
 		const FileAttributes attribute = FileAttributes.ReadOnly;
 
-		if (value)
+		if (isReadOnly)
 		{
 			AddFileAttributes(filePath, attribute);
 		}
@@ -324,12 +323,12 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public async ValueTask<bool> WaitFileUnlockedAsync(
+	public async ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default)
 	{
-		while (IsFileExists(filePath) && IsFileLocked(filePath))
+		while (FileExists(filePath) && IsFileLocked(filePath))
 		{
 			if (token.IsCancellationRequested)
 			{
@@ -397,35 +396,35 @@ public sealed class FileSystem : IFileSystem
 	/// <summary>
 	/// Adds attributes <see cref="FileAttributes" /> to a file.
 	/// </summary>
-	private static void AddFileAttributes(string filePath, FileAttributes value)
+	private static void AddFileAttributes(string filePath, FileAttributes attributes)
 	{
-		FileAttributes attributes = File.GetAttributes(filePath);
+		FileAttributes current = File.GetAttributes(filePath);
 
-		attributes |= value;
+		current |= attributes;
 
-		File.SetAttributes(filePath, attributes);
+		File.SetAttributes(filePath, current);
 	}
 
 	/// <summary>
 	/// Removes the <see cref="FileAttributes" /> attribute from a file.
 	/// </summary>
-	private static void RemoveFileAttributes(string filePath, FileAttributes value)
+	private static void RemoveFileAttributes(string filePath, FileAttributes attributes)
 	{
-		FileAttributes attributes = File.GetAttributes(filePath);
+		FileAttributes current = File.GetAttributes(filePath);
 
-		attributes &= ~value;
+		current &= ~attributes;
 
-		File.SetAttributes(filePath, attributes);
+		File.SetAttributes(filePath, current);
 	}
 
 	/// <summary>
 	/// Removes the file an atomic write was prepared in.
 	/// </summary>
-	private static void TryDeleteTemporaryFile(string filePath)
+	private static void TryDeleteTemporaryFile(string temporaryFilePath)
 	{
 		try
 		{
-			File.Delete(filePath);
+			File.Delete(temporaryFilePath);
 		}
 		catch
 		{

@@ -1,7 +1,6 @@
 //using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.Helpers;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
@@ -13,7 +12,7 @@ public sealed partial class EditorWindow : Window
 
 	/// <inheritdoc cref="EditorViewModel" />
 	public EditorViewModel ViewModel { get; } = null!;
-	#endregion Properties
+	#endregion
 
 	#region Constructors
 	public EditorWindow()

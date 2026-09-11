@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
+public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 {
 	#region Constructors
 	public FileRepository(SqliteDbContext context) : base(context)
@@ -23,73 +23,73 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default)
+	public Task<FileEntity[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default)
 	{
-		bool includeContents = optionalProperties.HasFlag(OptionalFileProperty.Contents);
+		bool includeContents = optionalProperties.HasFlag(OptionalFileProperties.Contents);
 
-		bool includeProperties = optionalProperties.HasFlag(OptionalFileProperty.Properties);
+		bool includeEditorState = optionalProperties.HasFlag(OptionalFileProperties.EditorState);
 
-		return (includeContents, includeProperties) switch
+		return (includeContents, includeEditorState) switch
 		{
-			(false, false) => FindAll().Select(x => new FileModel
+			(false, false) => FindAll().Select(x => new FileEntity
 			{
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
-			(true, false) => FindAll().Select(x => new FileModel
+			(true, false) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
-			(false, true) => FindAll().Select(x => new FileModel
+			(false, true) => FindAll().Select(x => new FileEntity
 			{
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				Properties = x.Properties, // ← Include.
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
-			(true, true) => FindAll().Select(x => new FileModel
+			(true, true) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				Properties = x.Properties, // ← Include.
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token)
 		};
 	}
@@ -103,19 +103,19 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 	}
 
 	/// <inheritdoc />
+	public Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id)
+			.Select(x => x.EditorState)
+			.FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
 	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
 	{
 		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
 			.Select(x => x.Id)
 			.ToArrayAsync(token);
-	}
-
-	/// <inheritdoc />
-	public Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default)
-	{
-		return FindBy(x => x.Id == id)
-			.Select(x => x.Properties)
-			.FirstOrDefaultAsync(token);
 	}
 
 	/// <inheritdoc />
@@ -133,7 +133,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
@@ -141,16 +141,16 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
 
-		static KeyValuePair<Expression<Func<FileModel, bool>>, Action<UpdateSettersBuilder<FileModel>>[]> ToFilter(
-			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> entry)
+		static KeyValuePair<Expression<Func<FileEntity, bool>>, Action<UpdateSettersBuilder<FileEntity>>[]> ToFilter(
+			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> entry)
 		{
 			return new(x => x.Id == entry.Key, entry.Value);
 		}
 	}
-	#endregion Methods
+	#endregion
 }

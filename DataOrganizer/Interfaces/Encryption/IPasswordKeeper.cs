@@ -9,10 +9,10 @@ namespace DataOrganizer.Interfaces.Encryption;
 public interface IPasswordKeeper
 {
 	#region Properties
-	/// <inheritdoc cref="FolderModel.EncryptedDek" />
+	/// <inheritdoc cref="FolderEntity.EncryptedDek" />
 	byte[]? EncryptedDek { get; set; }
 
-	/// <inheritdoc cref="EntityModelBase.Id" />
+	/// <inheritdoc cref="EntityBase.Id" />
 	Guid Id { get; }
 	#endregion
 }

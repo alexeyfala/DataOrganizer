@@ -86,7 +86,7 @@ internal static class ClipboardSensitivityMarkerWriter
 	private static (DataFormat<byte[]> Format, byte[] Value)[] BuildMarkersToWrite()
 	{
 		// Presence is enough for most markers; the Cloud Clipboard ones expect a DWORD 0.
-		byte[] present = [0];
+		byte[] presenceMarker = [0];
 
 		byte[] dwordZero = [0, 0, 0, 0];
 
@@ -94,21 +94,21 @@ internal static class ClipboardSensitivityMarkerWriter
 		{
 			return
 			[
-				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing), present),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing), presenceMarker),
 				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory), dwordZero),
 				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanUploadToCloudClipboard), dwordZero),
-				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardViewerIgnore), present)
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardViewerIgnore), presenceMarker)
 			];
 		}
 
 		if (OperatingSystem.IsLinux())
 		{
-			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextHelper.Utf8Encoding.GetBytes("secret"))];
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextDefaults.Encoding.GetBytes("secret"))];
 		}
 
 		if (OperatingSystem.IsMacOS())
 		{
-			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.NsPasteboardConcealedType), present)];
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.NsPasteboardConcealedType), presenceMarker)];
 		}
 
 		return [];

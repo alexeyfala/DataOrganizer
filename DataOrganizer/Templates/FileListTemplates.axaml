@@ -1,0 +1,137 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
+	xmlns:markup="using:DataOrganizer.Markup"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels">
+
+	<!-- FileInListTemplate -->
+	<DataTemplate
+		x:Key="FileInListTemplate"
+		x:DataType="entities:FileDto">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,Auto,*,Auto">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Button
+				Grid.Column="0"
+				Classes="primary"
+				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).CopyContentCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
+				<Button.CommandParameter>
+					<MultiBinding>
+						<Binding />
+
+						<Binding Path="$parent[SelectingItemsControl]" />
+					</MultiBinding>
+				</Button.CommandParameter>
+			</Button>
+
+			<materialIcons:MaterialIcon
+				x:Name="PreviewIcon"
+				Grid.Column="1"
+				Margin="2.0,0.0,8.0,0.0"
+				Background="Transparent"
+				Cursor="Help"
+				Foreground="{StaticResource MaterialBodyBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}">
+				<materialIcons:MaterialIcon.IsEnabled>
+					<MultiBinding Converter="{x:Static BoolConverters.And}">
+						<Binding
+							Mode="OneWay"
+							Path="!IsEditing" />
+
+						<Binding
+							Mode="OneWay"
+							Path="!IsExecuting" />
+					</MultiBinding>
+				</materialIcons:MaterialIcon.IsEnabled>
+
+				<materialIcons:MaterialIcon.Styles>
+					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
+						<Setter Property="Kind" Value="EyeOutline" />
+					</Style>
+
+					<Style Selector="materialIcons|MaterialIcon:disabled">
+						<Setter Property="Kind" Value="EyeOffOutline" />
+					</Style>
+				</materialIcons:MaterialIcon.Styles>
+
+				<Interaction.Behaviors>
+					<input:PointerHoverCommandBehavior
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
+						CommandParameter="{Binding #PreviewIcon}" />
+
+					<EventTriggerBehavior EventName="PointerExited">
+						<InvokeCommandAction
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
+							CommandParameter="{Binding #PreviewIcon}" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</materialIcons:MaterialIcon>
+
+			<TextBlock
+				Grid.Column="2"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}">
+				<Interaction.Behaviors>
+					<text:TextBlockAutoToolTipBehavior />
+				</Interaction.Behaviors>
+			</TextBlock>
+
+			<views:IconsBlock
+				Grid.Column="3"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
+				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
+				IsEditing="{Binding IsEditing, Mode=OneWay}"
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
+				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
+				NoteItem="{Binding Mode=OneWay}"
+				NoteName="{Binding Name, Mode=OneWay}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
+
+			<Interaction.Behaviors>
+				<input:DisableRightClickSelectionBehavior />
+
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInListContextMenuTemplate}" />
+
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- CopyHistoryTemplate -->
+	<DataTemplate x:Key="CopyHistoryTemplate">
+		<views:CopyHistoryView
+			x:Name="View"
+			DataContext="{markup:Resolve {x:Type vm:CopyHistoryViewModel}}">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:CopyHistoryView>
+	</DataTemplate>
+</ResourceDictionary>

@@ -1,12 +1,13 @@
-using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Clipboard.Persistence;
+using DataOrganizer.Dto.Clipboard;
+using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Models.Clipboard;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Extensions;
@@ -26,10 +27,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(_historyKeyId);
+	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(HistoryKeyId);
 
 	/// <inheritdoc />
-	public bool KeyFileExists => _fileSystem.IsFileExists(_keyFilePath);
+	public bool KeyFileExists => _fileSystem.FileExists(_keyFilePath);
 	#endregion
 
 	#region Data
@@ -51,7 +52,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Identifier the data encryption key is held under in the session key store.
 	/// </summary>
-	private static readonly Guid _historyKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
+	private static readonly Guid HistoryKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -100,7 +101,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose() => _sessionKeyStore.Lock(_historyKeyId);
+	public void Dispose() => _sessionKeyStore.Lock(HistoryKeyId);
 
 	/// <inheritdoc />
 	public void EraseAll()
@@ -130,8 +131,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			byte[] ciphertext = _sessionKeyStore.Encrypt(
-				_historyKeyId,
-				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				HistoryKeyId,
+				ContentIdentity.ForClipboardLog(HistoryKeyId),
 				plaintext);
 
 			EnsureDirectory();
@@ -142,7 +143,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -154,7 +155,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
-		bool hasKey = _fileSystem.IsFileExists(_keyFilePath);
+		bool hasKey = _fileSystem.FileExists(_keyFilePath);
 
 		try
 		{
@@ -171,13 +172,13 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		catch (CryptographicException ex) when (hasKey)
 		{
 			// Opening an existing key rejects the password on its own, so this is the data behind it.
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return new(ClipboardLogStatus.Damaged, []);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return new(ClipboardLogStatus.Failed, []);
 		}
@@ -188,7 +189,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(CancellationToken token)
 	{
-		if (!_fileSystem.IsFileExists(_historyFilePath))
+		if (!_fileSystem.FileExists(_historyFilePath))
 		{
 			return [];
 		}
@@ -202,8 +203,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			plaintext = _sessionKeyStore.Decrypt(
-				_historyKeyId,
-				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				HistoryKeyId,
+				ContentIdentity.ForClipboardLog(HistoryKeyId),
 				ciphertext);
 		}
 		catch (CryptographicException ex)
@@ -252,18 +253,18 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-		byte[] wrapped = _encryption.Encrypt(
+		byte[] wrappedDek = _encryption.Encrypt(
 			dek,
 			password,
-			ContentIdentity.ForClipboardDek(_historyKeyId));
+			ContentIdentity.ForClipboardDek(HistoryKeyId));
 
 		EnsureDirectory();
 
 		await _fileSystem
-			.WriteAllBytesAtomicAsync(_keyFilePath, wrapped, token)
+			.WriteAllBytesAtomicAsync(_keyFilePath, wrappedDek, token)
 			.ConfigureAwait(false);
 
-		return _sessionKeyStore.Unlock(_historyKeyId, dek)
+		return _sessionKeyStore.Unlock(HistoryKeyId, dek)
 			? new(ClipboardLogStatus.Unlocked, [])
 			: new(ClipboardLogStatus.Failed, []);
 	}
@@ -286,7 +287,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// file is replaced in one step, so a failure leaves a key the same password still opens.
 	/// </summary>
 	private async Task RewrapKeyAsync(
-		byte[] wrapped,
+		byte[] wrappedDek,
 		PinnedBuffer dek,
 		PinnedBuffer password,
 		CancellationToken token)
@@ -294,10 +295,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			if (_encryption.RewrapIfOutdated(
-				wrapped,
+				wrappedDek,
 				dek,
 				password,
-				ContentIdentity.ForClipboardDek(_historyKeyId)) is not { } rewrapped)
+				ContentIdentity.ForClipboardDek(HistoryKeyId)) is not { } rewrapped)
 			{
 				return;
 			}
@@ -312,7 +313,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -323,14 +324,14 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.IsDirectoryExists(directory))
+			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.DirectoryExists(directory))
 			{
 				_fileSystem.DeleteDirectory(directory);
 			}
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -341,14 +342,14 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (_fileSystem.IsFileExists(filePath))
+			if (_fileSystem.FileExists(filePath))
 			{
 				_fileSystem.EraseAndDeleteFile(filePath);
 			}
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -357,22 +358,22 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(PinnedBuffer password, CancellationToken token)
 	{
-		byte[] wrapped = await _fileSystem
+		byte[] wrappedDek = await _fileSystem
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
 		using PinnedBuffer dek = _encryption.Decrypt(
-			wrapped,
+			wrappedDek,
 			password,
-			ContentIdentity.ForClipboardDek(_historyKeyId));
+			ContentIdentity.ForClipboardDek(HistoryKeyId));
 
-		if (!_sessionKeyStore.Unlock(_historyKeyId, dek))
+		if (!_sessionKeyStore.Unlock(HistoryKeyId, dek))
 		{
 			return new(ClipboardLogStatus.Failed, []);
 		}
 
 		await RewrapKeyAsync(
-			wrapped,
+			wrappedDek,
 			dek,
 			password,
 			token).ConfigureAwait(false);

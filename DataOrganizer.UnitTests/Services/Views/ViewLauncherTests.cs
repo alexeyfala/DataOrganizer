@@ -1,0 +1,781 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Headless.NUnit;
+using AwesomeAssertions;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Views;
+using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Windows;
+using NSubstitute;
+using Shared.Interfaces;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using TestSupport.Common;
+
+namespace DataOrganizer.UnitTests.Services.Views;
+
+[TestFixture(Description = $@"Tests of ""{nameof(ViewLauncher)}"" type")]
+internal class ViewLauncherTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: saved size and position settings are applied to the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateClipboardLogWindow_Applies_Saved_Settings()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		ClipboardLogWindowSettings settings = new()
+		{
+			ActiveFilter = ClipboardLogEntryFilter.Image,
+			KeepOpen = true,
+			Size = new(positiveValue, positiveValue),
+			X = 10,
+			Y = 10
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			windowMock.Mock<IClipboardLogService>()
+				.SetupGet(x => x.Entries)
+				.Returns([]);
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		ClipboardLogWindow window = sut.CreateClipboardLogWindow(new Window());
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(positiveValue);
+
+		window.Height
+			.Should()
+			.Be(positiveValue);
+
+		window.Position
+			.Should()
+			.Be(new PixelPoint(settings.X, settings.Y));
+
+		window.ViewModel
+			.KeepOpen
+			.Should()
+			.BeTrue();
+
+		window.ViewModel
+			.ActiveFilter
+			.Should()
+			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: default size, centered location and navigation column width are used on first launch.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], [], []);
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Width);
+
+		window.Height
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Height);
+
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+
+		window.ViewModel.NavigationColumnWidth.Value
+			.Should()
+			.Be(window.Width / 3.0);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor view model is initialized from saved settings.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_ViewModel_Should_Be_Initialized()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = true,
+			NavigationColumnWidth = positiveValue - 20,
+			Size = new(positiveValue, positiveValue),
+			WindowState = WindowState.Normal,
+			X = positiveValue,
+			Y = positiveValue
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], [], []);
+
+		// Assert
+		window.ViewModel.IsInitialized
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		FavoritesWindow window = sut.CreateFavoritesWindow([], [], []);
+
+		// Assert
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+
+		window.ViewModel.PopupHeight
+			.Should()
+			.Be(250.0);
+
+		window.ViewModel.PopupWidth
+			.Should()
+			.Be(window.ViewModel.PopupHeight * 2.0);
+
+		window.ViewModel.FavoritesSettings.NavigationColumnWidth
+			.Should()
+			.Be(window.ViewModel.PopupWidth / 2.0);
+
+		window.ViewModel.FavoritesSettings.SelectedCategoryId
+			.Should()
+			.Be(Guid.Empty);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites view model is initialized from saved settings.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_ViewModel_Should_Be_Initialized()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		FavoritesWindowSettings settings = new()
+		{
+			PopupHeight = positiveValue,
+			PopupWidth = positiveValue,
+			X = positiveValue,
+			Y = positiveValue
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		FavoritesWindow window = sut.CreateFavoritesWindow([], [], []);
+
+		// Assert
+		window.ViewModel.IsInitialized
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created as the main window.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateMainWindow_Configures_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		Window window = sut.CreateMainWindow([]);
+
+		// Assert
+		window
+			.Should()
+			.BeOfType<EditorWindow>();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created when no saved window setting exists.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateMainWindow_Configures_Editor_If_No_Settings()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		Window window = sut.CreateMainWindow([]);
+
+		// Assert
+		window
+			.Should()
+			.BeOfType<EditorWindow>();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateMainWindow" />: a favorites window is created when the saved window setting is Favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateMainWindow_Configures_Favorites()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
+				.Returns(WindowKind.Favorites);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		Window window = sut.CreateMainWindow([]);
+
+		// Assert
+		window
+			.Should()
+			.BeOfType<FavoritesWindow>();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the active type filter is persisted.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
+	{
+		// Arrange
+		ClipboardLogWindowSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<ClipboardLogWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		mock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
+
+		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
+
+		// Act
+		sut.SaveClipboardLogSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.NotBeNull();
+
+		captured.ActiveFilter
+			.Should()
+			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the keep-open flag is persisted.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	{
+		// Arrange
+		ClipboardLogWindowSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<ClipboardLogWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		mock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
+
+		window.ViewModel.KeepOpen = true;
+
+		// Act
+		sut.SaveClipboardLogSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.NotBeNull();
+
+		captured.KeepOpen
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: clipboard window settings are serialized to a JSON file.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		mock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ViewLauncher sut = mock.Create<ViewLauncher>(
+			TypedParameter.From(fileSystem));
+
+		// Act
+		sut.SaveClipboardLogSettings(mock.Create<ClipboardLogWindow>());
+
+		// Assert
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<ClipboardLogWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: editor settings and the current window kind are serialized to JSON files.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ViewLauncher sut = mock.Create<ViewLauncher>(
+			TypedParameter.From(fileSystem));
+
+		// Act
+		await sut.SaveEditorSettingsAsync(mock.Create<EditorWindow>());
+
+		// Assert
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<EditorWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+
+		fileSystem.Received().SerializeToJsonFile(
+			WindowKind.Editor,
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveFavoritesSettingsAsync" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveFavoritesSettingsAsync_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ViewLauncher sut = mock.Create<ViewLauncher>(
+			TypedParameter.From(fileSystem));
+
+		FavoritesWindow window = mock.Create<FavoritesWindow>();
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.Categories
+			.AddRange(FavoriteFactory.CreateFavoriteCategories(5));
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.SelectedPairs
+			.AddRange(FavoriteFactory.CreateFavoriteSelections(5));
+
+		// Act
+		await sut.SaveFavoritesSettingsAsync(window);
+
+		// Assert
+		window.ViewModel.FavoritesSettings.Categories
+			.Should()
+			.BeEmpty();
+
+		window.ViewModel.FavoritesSettings.OrderedCategoryIds
+			.Should()
+			.BeEmpty();
+
+		window.ViewModel.FavoritesSettings.SelectedPairs
+			.Should()
+			.BeEmpty();
+
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<FavoritesWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+
+		fileSystem.Received().SerializeToJsonFile(
+			WindowKind.Favorites,
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the first password of the saved
+	/// history is created with a confirmation, a later one is only checked.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(false, PasswordPromptMode.Create)]
+	[TestCase(true, PasswordPromptMode.Verify)]
+	public async Task ShowClipboardLogWindowAsync_Asks_For_The_History_Password(bool hasPassword, PasswordPromptMode expected)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			windowMock.Mock<IClipboardLogService>()
+				.SetupGet(x => x.Entries)
+				.Returns([]);
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			IClipboardLogPersistenceCoordinator persistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+			persistence
+				.RequiresUnlock
+				.Returns(true);
+
+			persistence
+				.HasPassword
+				.Returns(hasPassword);
+
+			// A cancelled prompt leaves the session in memory, which is enough to reach the assert.
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(persistence);
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Assert
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			expected,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: an already-open window is focused instead of opening a duplicate.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		windowMock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+		lifetime
+			.Windows
+			.Returns([existing]);
+
+		Application app = Substitute.For<Application>();
+
+		app.ApplicationLifetime = lifetime;
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Assert
+		viewFactory
+			.DidNotReceive()
+			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
+	}
+	#endregion
+}

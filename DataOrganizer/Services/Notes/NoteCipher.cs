@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
@@ -22,7 +22,7 @@ public sealed class NoteCipher : INoteCipher
 
 	#region Methods
 	/// <inheritdoc />
-	public string? Decode(ExplorerModelBaseDto item)
+	public string? Decode(ExplorerItemDtoBase item)
 	{
 		if (item.Note is not { } note || note.IsEmpty())
 		{
@@ -60,15 +60,15 @@ public sealed class NoteCipher : INoteCipher
 	}
 
 	/// <inheritdoc />
-	public byte[]? Encode(ExplorerModelBaseDto item, string? note)
+	public byte[]? Encode(ExplorerItemDtoBase item, string? note)
 	{
 		if (string.IsNullOrWhiteSpace(note))
 		{
 			return null;
 		}
 
-		byte[] decoded = TextHelper
-			.Utf8Encoding
+		byte[] decoded = TextDefaults
+			.Encoding
 			.GetBytes(note);
 
 		if (item.EncryptionStatus == EncryptionStatus.None)
@@ -97,8 +97,8 @@ public sealed class NoteCipher : INoteCipher
 	/// </summary>
 	private static string ToText(byte[] note)
 	{
-		return TextHelper
-			.Utf8Encoding
+		return TextDefaults
+			.Encoding
 			.GetString(note);
 	}
 	#endregion

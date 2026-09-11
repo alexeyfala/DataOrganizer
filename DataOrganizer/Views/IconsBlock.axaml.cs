@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Notes;
 
 namespace DataOrganizer.Views;
@@ -9,7 +9,7 @@ namespace DataOrganizer.Views;
 internal sealed partial class IconsBlock : UserControl
 {
 	#region Properties
-	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
 	public EncryptionStatus EncryptionStatus
 	{
 		get => GetValue(EncryptionStatusProperty);
@@ -62,7 +62,7 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <inheritdoc cref="NoteView.NoteItem" />
-	public ExplorerModelBaseDto? NoteItem
+	public ExplorerItemDtoBase? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -123,8 +123,8 @@ internal sealed partial class IconsBlock : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
-		.Register<IconsBlock, ExplorerModelBaseDto?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerItemDtoBase?> NoteItemProperty = AvaloniaProperty
+		.Register<IconsBlock, ExplorerItemDtoBase?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.

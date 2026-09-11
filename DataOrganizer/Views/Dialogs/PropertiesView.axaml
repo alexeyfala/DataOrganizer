@@ -1,0 +1,45 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Dialogs.PropertiesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	x:DataType="dialogs:PropertiesViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Grid
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Classes="HeaderTextBlockStyle"
+			Text="{x:Static prop:Strings.Properties}" />
+
+		<ScrollViewer
+			Grid.Row="1"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto">
+			<ItemsControl
+				ItemTemplate="{StaticResource ObjectPropertyTemplate}"
+				ItemsSource="{Binding Properties, Mode=OneTime}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel
+							Orientation="Vertical"
+							Spacing="{StaticResource ElementSpacing}" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+			</ItemsControl>
+		</ScrollViewer>
+
+		<Button
+			Grid.Row="2"
+			HorizontalAlignment="Right"
+			Classes="primary"
+			Command="{Binding CloseCommand}"
+			Content="{x:Static prop:Strings.OK}"
+			Theme="{StaticResource MaterialFlatButton}" />
+	</Grid>
+</UserControl>

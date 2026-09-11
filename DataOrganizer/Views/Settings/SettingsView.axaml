@@ -2,16 +2,16 @@
 	x:Class="DataOrganizer.Views.Settings.SettingsView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:settings="using:DataOrganizer.Views.Settings"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	MaxWidth="620.0"
 	Padding="{StaticResource DialogIndent}"
-	x:DataType="vm:SettingsViewModel"
+	x:DataType="dialogs:SettingsViewModel"
 	mc:Ignorable="d">
 
 	<Grid
@@ -75,7 +75,7 @@
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
 				<ListBox
-					Name="CategoriesListBox"
+					x:Name="CategoriesList"
 					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
 					SelectionMode="AlwaysSelected">
 					<ListBoxItem>
@@ -138,7 +138,7 @@
 				Grid.Column="1"
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
-				<wrappers:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesListBox.SelectedIndex, Mode=OneWay}">
+				<controls:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesList.SelectedIndex, Mode=OneWay}">
 					<settings:SettingsGeneralView />
 
 					<settings:SettingsAppearanceView />
@@ -148,7 +148,7 @@
 					<settings:SettingsClipboardView />
 
 					<settings:SettingsSecurityView />
-				</wrappers:MaxSizeSwitchPanel>
+				</controls:MaxSizeSwitchPanel>
 			</ScrollViewer>
 		</Grid>
 

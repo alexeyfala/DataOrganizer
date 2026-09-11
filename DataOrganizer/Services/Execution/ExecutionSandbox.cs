@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -67,7 +67,7 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	{
 		for (int attempt = 1; attempt <= MaxAttemptCount; attempt++)
 		{
-			if (!_fileSystem.IsDirectoryExists(DirectoryPath))
+			if (!_fileSystem.DirectoryExists(DirectoryPath))
 			{
 				return;
 			}
@@ -89,7 +89,7 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 			}
 			catch (Exception ex)
 			{
-				_logger.LogException(ex, assertDebug: false);
+				_logger.LogException(ex, breakInDebugger: false);
 			}
 		}
 

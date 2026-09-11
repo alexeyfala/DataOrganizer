@@ -1,0 +1,527 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using Avalonia.Controls;
+using Avalonia.Headless.NUnit;
+using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Encryption;
+using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
+using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Windows;
+using NSubstitute;
+using Shared.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TestSupport.Common;
+
+namespace DataOrganizer.UnitTests.ViewModels.Windows;
+
+[TestFixture(Description = $@"Tests of ""{nameof(FavoritesViewModel)}"" type")]
+internal class FavoritesViewModelTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="FavoritesViewModel.AddHierarchy" />: adds the given objects to the hierarchy.
+	/// </summary>
+	[Test]
+	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
+
+		// Act
+		sut.AddHierarchy(hierarchy);
+
+		// Assert
+		sut.Hierarchy
+			.Should()
+			.Contain(hierarchy);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ClosePopupByEsc" />: unfixes and closes the popup.
+	/// </summary>
+	[Test]
+	public void ClosePopupByEsc_Closes_Popup()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.IsPopupFixed = true;
+
+		sut.IsPopupOpen = true;
+
+		// Act
+		sut.ClosePopupByEsc();
+
+		// Assert
+		sut.IsPopupFixed
+			.Should()
+			.BeFalse();
+
+		sut.IsPopupOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears favorites and copy-history settings collections.
+	/// </summary>
+	[Test]
+	public void Dispose_Clears_Properties()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.PopupContent = new();
+
+		const int count = 5;
+
+		sut
+			.FavoritesSettings
+			.Categories
+			.AddRange(FavoriteFactory.CreateFavoriteCategories(count));
+
+		sut
+			.FavoritesSettings
+			.OrderedCategoryIds
+			.AddRange(RandomValues.CreateGuids(count));
+
+		sut
+			.FavoritesSettings
+			.SelectedPairs
+			.AddRange(FavoriteFactory.CreateFavoriteSelections(count));
+
+		sut
+			.CopyHistorySettings
+			.ItemIds
+			.AddRange(RandomValues.CreateGuids(count));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		sut.FavoritesSettings.Categories
+			.Should()
+			.BeEmpty();
+
+		sut.FavoritesSettings.OrderedCategoryIds
+			.Should()
+			.BeEmpty();
+
+		sut.FavoritesSettings.SelectedPairs
+			.Should()
+			.BeEmpty();
+
+		sut.CopyHistorySettings.ItemIds
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.Initialize" />: applies window, favorites and copy-history settings.
+	/// </summary>
+	[AvaloniaTest]
+	public void Initialize_Initializes_Properties()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		FavoritesWindowSettings windowSettings = new()
+		{
+			PopupHeight = positiveValue,
+			PopupWidth = positiveValue,
+			X = positiveValue,
+			Y = positiveValue
+		};
+
+		FavoritesViewSettings favoritesSettings = new()
+		{
+			NavigationColumnWidth = positiveValue - 20,
+			OrderedCategoryIds = [.. RandomValues.CreateGuids(5)],
+			SelectedCategoryId = Guid.NewGuid(),
+			SelectedPairs = [.. FavoriteFactory.CreateFavoriteSelections(5)]
+		};
+
+		FileDto[] historyFiles = [.. ItemDtoFactory.CreateFileDtos(5)];
+
+		CopyHistoryViewSettings copyHistorySettings = new()
+		{
+			ItemIds = [.. historyFiles.Select(x => x.Id)],
+			SelectedItemId = Guid.NewGuid()
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.AddHierarchy(historyFiles);
+
+		Window window = new();
+
+		// Act
+		sut.Initialize(
+			window,
+			windowSettings,
+			favoritesSettings,
+			copyHistorySettings);
+
+		// Assert
+		window.Position.X
+			.Should()
+			.Be(windowSettings.X);
+
+		window.Position.Y
+			.Should()
+			.Be(windowSettings.Y);
+
+		sut.PopupWidth
+			.Should()
+			.Be(windowSettings.PopupWidth);
+
+		sut.PopupHeight
+			.Should()
+			.Be(windowSettings.PopupHeight);
+
+		sut.FavoritesSettings.NavigationColumnWidth
+			.Should()
+			.Be(favoritesSettings.NavigationColumnWidth);
+
+		sut.FavoritesSettings.SelectedCategoryId
+			.Should()
+			.Be(favoritesSettings.SelectedCategoryId);
+
+		sut.FavoritesSettings.SelectedPairs
+			.Should()
+			.Contain(favoritesSettings.SelectedPairs);
+
+		sut.FavoritesSettings.OrderedCategoryIds
+			.Should()
+			.Contain(favoritesSettings.OrderedCategoryIds);
+
+		sut.CopyHistorySettings.SelectedItemId
+			.Should()
+			.Be(copyHistorySettings.SelectedItemId);
+
+		sut.CopyHistorySettings.ItemIds
+			.Should()
+			.Contain(copyHistorySettings.ItemIds);
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.InsertIntoCopyHistory" />: inserts the new value at the top of copy history.
+	/// </summary>
+	[Test]
+	public void InsertIntoCopyHistory_Inserts_New_Value_To_Top()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.CopyHistorySettings
+			.ItemIds
+			.AddRange(RandomValues.CreateGuids(5));
+
+		// Act
+		sut.InsertIntoCopyHistory(file, false);
+
+		// Assert
+		sut.CopyHistorySettings.ItemIds[0]
+			.Should()
+			.Be(file.Id);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
+	/// </summary>
+	[Test]
+	public void IsShowOnHoverEnabled_Is_Initialized_From_The_Settings()
+	{
+		// Arrange
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		settings.ShowFavoritesOnHover = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		// Act
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		sut.IsShowOnHoverEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the favorites window hides the contents as well.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Hides_Contents()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		sut
+			.OpenedInEditorFiles
+			.Add(file);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeFalse();
+
+		sut.OpenedInEditorFiles
+			.Should()
+			.BeEmpty();
+
+		contentVisibility
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: configures and shows the editor window.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowInEditorAsync_Shows_Editor_Window()
+	{
+		// Arrange
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		EditorWindow? editorWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			editorWindow = windowMock.Create<EditorWindow>();
+
+			viewLauncher.CreateEditorWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(editorWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		await sut.ShowInEditorAsync(default, new());
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		editorWindow?.Close();
+
+		// Assert
+		sut.IsShutdown
+			.Should()
+			.BeFalse();
+
+		viewLauncher.Received().CreateEditorWindow(
+			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<IEnumerable<FileDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHover" />: opens the popup with the restored content
+	/// without fixing it.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHover_Opens_Popup()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.IsShowOnHoverEnabled = true;
+
+		// Act
+		sut.ShowPopupOnHover();
+
+		// Assert
+		sut.IsPopupOpen
+			.Should()
+			.BeTrue();
+
+		sut.PopupContent
+			.Should()
+			.Be(FavoritesPopupContentKind.Favorites);
+
+		sut.IsPopupFixed
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Disabled_In_Settings()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Fixed()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.IsShowOnHoverEnabled = true;
+
+		// Act
+		sut.IsPopupFixed = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Opened()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.IsShowOnHoverEnabled = true;
+
+		// Act
+		sut.IsPopupOpen = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_True_When_Enabled_And_Popup_Closed()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		sut.IsShowOnHoverEnabled = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeTrue();
+	}
+	#endregion
+}

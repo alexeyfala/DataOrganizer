@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using System;
 
 namespace DataOrganizer.Helpers.Security;
@@ -35,7 +35,7 @@ public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 	/// <summary>
 	/// Identity of the journal of the clipboard history.
 	/// </summary>
-	public static ContentIdentity ForClipboardJournal(Guid id) => new(id, ContentPurpose.ClipboardJournal);
+	public static ContentIdentity ForClipboardLog(Guid id) => new(id, ContentPurpose.ClipboardLog);
 
 	/// <summary>
 	/// Identity of the contents of a file.

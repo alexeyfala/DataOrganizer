@@ -1,6 +1,6 @@
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 
 namespace DataOrganizer.Services.Clipboard;
 

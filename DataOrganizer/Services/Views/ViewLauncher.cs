@@ -1,0 +1,789 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Windows;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using Shared.Common;
+using Shared.Extensions;
+using Shared.Interfaces;
+using Shared.Properties;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Size = System.Drawing.Size;
+
+namespace DataOrganizer.Services.Views;
+
+/// <inheritdoc cref="IViewLauncher" />
+public class ViewLauncher : IViewLauncher
+{
+	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IAutoLockService" />
+	private readonly IAutoLockService _autoLock;
+
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
+
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <inheritdoc cref="IExecutionEngine" />
+	private readonly IExecutionEngine _executionEngine;
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
+
+	/// <inheritdoc cref="IKeyboardInputHook" />
+	private readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="IExecutionSandbox" />
+	private readonly IExecutionSandbox _sandbox;
+
+	/// <inheritdoc cref="ServiceProvider" />
+	private readonly IServiceProvider _serviceProvider;
+
+	/// <inheritdoc cref="IViewFactory" />
+	private readonly IViewFactory _viewFactory;
+	#endregion
+
+	#region Constructors
+	public ViewLauncher(
+		Application app,
+		IAppEnvironment appEnvironment,
+		IAutoLockService autoLock,
+		IClipboardLogService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IDialogService dialogService,
+		IExecutionEngine executionEngine,
+		IFileSystem fileSystem,
+		IJsonSerializer jsonSerializer,
+		ILogger logger,
+		IExecutionSandbox sandbox,
+		INotificationService notification,
+		IServiceProvider serviceProvider,
+		ITaskExceptionHandler exceptionHandler,
+		IViewFactory viewFactory,
+		Lazy<IKeyboardInputHook> keyboardInputHook)
+	{
+		_app = app;
+
+		_appEnvironment = appEnvironment;
+
+		_autoLock = autoLock;
+
+		_clipboardLog = clipboardLog;
+
+		_clipboardLogPersistence = clipboardLogPersistence;
+
+		_dialogService = dialogService;
+
+		_exceptionHandler = exceptionHandler;
+
+		_executionEngine = executionEngine;
+
+		_fileSystem = fileSystem;
+
+		_jsonSerializer = jsonSerializer;
+
+		_keyboardInputHook = keyboardInputHook;
+
+		_logger = logger;
+
+		_notification = notification;
+
+		_sandbox = sandbox;
+
+		_serviceProvider = serviceProvider;
+
+		_viewFactory = viewFactory;
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="ClipboardLogWindow" />.
+	/// </summary>
+	private void ClipboardLogWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not ClipboardLogWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= ClipboardLogWindow_Closing;
+
+		SaveClipboardLogSettings(window);
+
+		window
+			.ViewModel
+			.Dispose();
+	}
+
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
+	/// </summary>
+	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not EditorWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= EditorWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
+
+		_exceptionHandler.Watch(SaveEditorSettingsAsync(window));
+	}
+
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="FavoritesWindow" />.
+	/// </summary>
+	private void FavoritesWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not FavoritesWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= FavoritesWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(FavoritesWindow)}"" and saving ""{nameof(FavoritesWindowSettings)}""");
+
+		if (window.ViewModel.IsShutdown && window
+			.ViewModel
+			.IsPopupFixed)
+		{
+			window
+				.ViewModel
+				.SaveContent();
+		}
+
+		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public ClipboardLogWindow CreateClipboardLogWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
+
+		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
+
+		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
+
+		if (_jsonSerializer.DeserializeFromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
+		{
+			viewModel.ActiveFilter = settings.ActiveFilter;
+
+			viewModel.KeepOpen = settings.KeepOpen;
+
+			if (settings.Size.Width > 0 && settings.Size.Height > 0)
+			{
+				window.Width = settings.Size.Width;
+
+				window.Height = settings.Size.Height;
+			}
+
+			PixelPoint candidate = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
+			{
+				window.Position = candidate;
+			}
+			else
+			{
+				PositionAtScreenBottomRight(window, owner);
+			}
+		}
+		else
+		{
+			PositionAtScreenBottomRight(window, owner);
+		}
+
+		window.Closing += ClipboardLogWindow_Closing;
+
+		return window;
+	}
+
+	/// <inheritdoc />
+	public EditorWindow CreateEditorWindow(
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles,
+		in Guid showObjectId = default)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
+
+		EditorViewModel viewModel = _viewFactory.CreateViewModel<EditorViewModel>();
+
+		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
+
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
+
+		viewModel.AddHierarchy(hierarchy);
+
+		viewModel
+			.OpenedInEditorFiles
+			.AddRange(editingFiles);
+
+		viewModel
+			.ExecutingFiles
+			.AddRange(executingFiles);
+
+		viewModel.NotifyDecryptedContentsChanged();
+
+		if (showObjectId.IsNotDefault())
+		{
+			_exceptionHandler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
+		}
+		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
+		{
+			bool isReadOnly = viewModel.IsReadOnly;
+
+			try
+			{
+				// To avoid saving the "IsSelected" object property in the database.
+				viewModel.IsReadOnly = true;
+
+				viewModel.SetSelectedObject(selected);
+			}
+			finally
+			{
+				viewModel.IsReadOnly = isReadOnly;
+			}
+		}
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings));
+
+		if (_jsonSerializer.DeserializeFromFile<EditorWindowSettings>(filePath) is { } windowSettings)
+		{
+			viewModel.Initialize(
+				window,
+				windowSettings,
+				GetHistorySettingsFromFile());
+		}
+		else
+		{
+			IViewLauncher.SetDefaultSize(window);
+
+			IViewLauncher.SetDefaultLocation(window);
+
+			IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
+		}
+
+		window.Closing += EditorWindow_Closing;
+
+		return window;
+	}
+
+	/// <inheritdoc />
+	public FavoritesWindow CreateFavoritesWindow(
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
+
+		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
+
+		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
+
+		viewModel.AddHierarchy(hierarchy);
+
+		viewModel
+			.OpenedInEditorFiles
+			.AddRange(editingFiles);
+
+		viewModel
+			.ExecutingFiles
+			.AddRange(executingFiles);
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
+
+		if (_jsonSerializer.DeserializeFromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
+		{
+			viewModel.Initialize(
+				window,
+				windowSettings,
+				GetFavoritesSettingsFromFile(),
+				GetHistorySettingsFromFile());
+		}
+		else
+		{
+			IViewLauncher.SetDefaultLocation(window);
+
+			IViewLauncher.SetDefaultPopupSize(viewModel);
+
+			IViewLauncher.SetDefaultNavigationColumnWidth(viewModel);
+		}
+
+		window.Closing += FavoritesWindow_Closing;
+
+		return window;
+	}
+
+	/// <inheritdoc />
+	public Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
+
+		if (_jsonSerializer.DeserializeFromFile<WindowKind>(filePath) is { } settings)
+		{
+			return settings switch
+			{
+				WindowKind.Editor => CreateEditorWindow(hierarchy, [], []),
+				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], []),
+				_ => throw new NotImplementedException()
+			};
+		}
+
+		return CreateEditorWindow(hierarchy, [], []);
+	}
+
+	/// <inheritdoc />
+	public void SaveClipboardLogSettings(ClipboardLogWindow window)
+	{
+		try
+		{
+			ClipboardLogWindowSettings settings = new()
+			{
+				ActiveFilter = window.ViewModel.ActiveFilter,
+				KeepOpen = window.ViewModel.KeepOpen,
+				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y,
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings)),
+				false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task SaveEditorSettingsAsync(EditorWindow window)
+	{
+		try
+		{
+			Size size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height);
+
+			EditorWindowSettings settings = new()
+			{
+				IsReadOnly = window.ViewModel.IsReadOnly,
+				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
+				Size = size,
+				WindowState = window.Placement.WindowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings)),
+				false);
+
+			_fileSystem.SerializeToJsonFile(
+				window.ViewModel.CopyHistorySettings,
+				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
+				false);
+
+			_fileSystem.SerializeToJsonFile(
+				WindowKind.Editor,
+				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
+				false);
+
+			if (!window
+				.ViewModel
+				.IsShutdown)
+			{
+				return;
+			}
+
+			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window)
+	{
+		try
+		{
+			FavoritesWindowSettings settings = new()
+			{
+				PopupHeight = window.ViewModel.PopupHeight,
+				PopupWidth = window.ViewModel.PopupWidth,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings)),
+				false);
+
+			_fileSystem.SerializeToJsonFile(
+				window.ViewModel.FavoritesSettings,
+				_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings)),
+				false);
+
+			_fileSystem.SerializeToJsonFile(
+				window.ViewModel.CopyHistorySettings,
+				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
+				false);
+
+			_fileSystem.SerializeToJsonFile(
+				WindowKind.Favorites,
+				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
+				false);
+
+			if (!window
+				.ViewModel
+				.IsShutdown)
+			{
+				return;
+			}
+
+			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task ShowClipboardLogWindowAsync(Window owner)
+	{
+		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
+		{
+			PositionAtScreenBottomRight(existing, owner);
+
+			existing.Activate();
+
+			return;
+		}
+
+		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
+
+		CreateClipboardLogWindow(owner).Show();
+	}
+
+	/// <inheritdoc />
+	public Task ShowNoticeAsync(NoticeParameters parameters)
+	{
+		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
+
+		viewModel.ActionCaption = parameters.ActionCaption;
+
+		viewModel.FilePath = parameters.FilePath;
+
+		viewModel.IsTopmost = parameters.IsTopmost;
+
+		viewModel.Message = parameters.Message;
+
+		viewModel.Title = parameters.Title;
+
+		NoticeWindow window = _viewFactory.CreateWindow<NoticeWindow>(viewModel);
+
+		TaskCompletionSource closed = new();
+
+		window.Closed += (_, _) => closed.TrySetResult();
+
+		window.Show();
+
+		return closed.Task;
+	}
+
+	/// <inheritdoc />
+	public async Task ShowStartupErrorAsync(string databaseFilePath)
+	{
+		try
+		{
+			await ShowNoticeAsync(new()
+			{
+				ActionCaption = Strings.OpenDatabaseFolder,
+				FilePath = databaseFilePath,
+				IsTopmost = true,
+				Message = Strings.DatabaseSchemaMismatch
+			}).ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			// There is no window left to keep the application alive, and nothing to save.
+			if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+			{
+				desktop.Shutdown();
+			}
+			else if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Places <paramref name="target" /> at the bottom-right corner of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	private static void PositionAtScreenBottomRight(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// 16 device-independent pixels of padding from the screen edge.
+		const int marginDip = 16;
+
+		PixelRect workingArea = screen.WorkingArea;
+
+		int widthPx = (int)(target.Width * screen.Scaling);
+
+		int heightPx = (int)(target.Height * screen.Scaling);
+
+		int marginPx = (int)(marginDip * screen.Scaling);
+
+		target.Position = new PixelPoint(
+			workingArea.X + workingArea.Width - widthPx - marginPx,
+			workingArea.Y + workingArea.Height - heightPx - marginPx);
+	}
+
+	/// <summary>
+	/// Returns <see cref="FavoritesViewSettings" /> settings from a file.
+	/// </summary>
+	private FavoritesViewSettings GetFavoritesSettingsFromFile()
+	{
+		return _jsonSerializer.DeserializeFromFile<FavoritesViewSettings>(
+			_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
+	}
+
+	/// <summary>
+	/// Returns <see cref="CopyHistoryViewSettings" /> settings from a file.
+	/// </summary>
+	private CopyHistoryViewSettings GetHistorySettingsFromFile()
+	{
+		return _jsonSerializer.DeserializeFromFile<CopyHistoryViewSettings>(
+				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
+	}
+
+	/// <summary>
+	/// Shutdowns the application.
+	/// </summary>
+	private async Task ShutdownAppAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		_autoLock.Stop();
+
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
+		{
+			await _keyboardInputHook
+				.Value
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
+		}
+
+		if (_clipboardLog.IsRunning)
+		{
+			_clipboardLog.Stop();
+		}
+
+		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		{
+			await ShutdownAsync(hierarchy);
+
+			desktop.Shutdown();
+		}
+		else
+		{
+			await ShutdownAsync(hierarchy);
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
+		}
+
+		async Task ShutdownAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
+		{
+			if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
+			{
+				console.Close();
+
+				while (_app.HasWindow<ConsoleWindow>())
+				{
+					await Task
+						.Delay(300)
+						.ConfigureAwait(true);
+				}
+			}
+
+			Guid[] executingFiles = [.. hierarchy
+				.GetFilesBy(x => x.IsExecuting)
+				.Select(x => x.Id)];
+
+			if (executingFiles.IsNotEmpty())
+			{
+				await executingFiles
+					.ForEachAsync(x => _executionEngine.CloseAsync(x))
+					.ConfigureAwait(false);
+			}
+
+			await _sandbox
+				.EraseAsync()
+				.ConfigureAwait(false);
+
+			if (_app is App app)
+			{
+				app
+					.AppLifetimeTimer
+					.Stop();
+
+				_logger.LogInformationWithTemplate(
+					$"App life time is: {app.AppLifetimeTimer.GetElapsedTime()}{Environment.NewLine}{Environment.NewLine}");
+			}
+
+			if (_serviceProvider is not IAsyncDisposable asyncDisposable)
+			{
+				return;
+			}
+
+			await asyncDisposable
+				.DisposeAsync()
+				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
+	/// saved history. Cancelling the prompt leaves the session in-memory only.
+	/// </summary>
+	private async Task UnlockClipboardHistoryIfRequiredAsync()
+	{
+		string? label = null;
+
+		while (_clipboardLogPersistence.RequiresUnlock)
+		{
+			// The first password of the history is created here, every later one is only checked.
+			bool hasPassword = _clipboardLogPersistence.HasPassword;
+
+			label ??= hasPassword
+				? Strings.Password
+				: Strings.NewPassword;
+
+			using PinnedSecret password = await _dialogService.RequestPasswordAsync(
+				header: Strings.ClipboardHistory,
+				label: label,
+				description: hasPassword
+					? Strings.SavedHistoryPasswordDescription
+					: Strings.NewSavedHistoryPasswordDescription,
+				mode: hasPassword
+					? PasswordPromptMode.Verify
+					: PasswordPromptMode.Create).ConfigureAwait(true);
+
+			if (password.IsEmpty)
+			{
+				return;
+			}
+
+			using PinnedBuffer passwordBytes = password.ToUtf8Buffer();
+
+			ClipboardLogStatus status = await _clipboardLogPersistence
+				.TryUnlockAndMergeAsync(passwordBytes)
+				.ConfigureAwait(true);
+
+			if (status == ClipboardLogStatus.Unlocked)
+			{
+				return;
+			}
+
+			// Only a wrong password is worth asking again; the rest no password can fix.
+			if (status != ClipboardLogStatus.WrongPassword)
+			{
+				string text = status == ClipboardLogStatus.Damaged
+					? Strings.EncryptedDataIsDamaged
+					: Strings.FailedToUnlockClipboardHistory;
+
+				_notification.ShowErrorSnackbar(text);
+
+				return;
+			}
+
+			label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
+		}
+	}
+	#endregion
+}

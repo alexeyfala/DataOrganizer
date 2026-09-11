@@ -3,16 +3,19 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Favorites;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -42,9 +45,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public partial string? CategorySearch { get; set; }
 
 	/// <summary>
-	/// A sequence of <see cref="FileModelDto" />.
+	/// A sequence of <see cref="FileDto" />.
 	/// </summary>
-	public ReadOnlyObservableCollection<FileModelDto> Favorites => _favoritesFilter.Visible;
+	public ReadOnlyObservableCollection<FileDto> Favorites => _favoritesFilter.Visible;
 
 	/// <summary>
 	/// Search value within <see cref="Favorites" />.
@@ -66,8 +69,8 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	[ObservableProperty]
 	public partial GridLength NavigationColumnWidth { get; set; }
 
-	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
-	public List<Guid> OrderedCategories { get; } = [];
+	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategoryIds" />
+	public List<Guid> OrderedCategoryIds { get; } = [];
 
 	/// <summary>
 	/// The selected object in the <see cref="Categories" />.
@@ -79,10 +82,10 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// The selected object in the <see cref="Favorites" />.
 	/// </summary>
 	[ObservableProperty]
-	public partial FileModelDto? SelectedFavorite { get; set; }
+	public partial FileDto? SelectedFavorite { get; set; }
 
 	/// <inheritdoc cref="FavoritesViewSettings.SelectedPairs" />
-	public List<CategoryFavoritePair> SelectedPairs { get; } = [];
+	public List<FavoriteSelection> SelectedPairs { get; } = [];
 	#endregion
 
 	#region Partial
@@ -120,7 +123,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Called when <see cref="SelectedFavorite" /> changes.
 	/// </summary>
-	partial void OnSelectedFavoriteChanged(FileModelDto? oldValue, FileModelDto? newValue)
+	partial void OnSelectedFavoriteChanged(FileDto? oldValue, FileDto? newValue)
 	{
 		_previousSelectedFavorite = oldValue;
 
@@ -138,7 +141,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// Handles when item in <see cref="Categories" /> has dragged.
 	/// </summary>
 	[RelayCommand]
-	private void CategoryDragged(DraggedIndexTargetIndexPair pair)
+	private void CategoryDragged(IndexMove pair)
 	{
 		FavoriteCategory selected = Categories[pair.DraggedIndex];
 
@@ -146,7 +149,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 
-		OrderedCategories.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
+		OrderedCategoryIds.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
 	}
 
 	/// <summary>
@@ -172,14 +175,14 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" />
+	/// <inheritdoc cref="FilteredCollection{T}" />
 	/// </summary>
-	private readonly FilterEngine<FavoriteCategory> _categoriesFilter;
+	private readonly FilteredCollection<FavoriteCategory> _categoriesFilter;
 
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" />
+	/// <inheritdoc cref="FilteredCollection{T}" />
 	/// </summary>
-	private readonly FilterEngine<FileModelDto> _favoritesFilter;
+	private readonly FilteredCollection<FileDto> _favoritesFilter;
 
 	/// <summary>
 	/// Previous <see cref="SelectedCategory" /> value.
@@ -189,7 +192,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Previous <see cref="SelectedFavorite" /> value.
 	/// </summary>
-	private FileModelDto? _previousSelectedFavorite;
+	private FileDto? _previousSelectedFavorite;
 	#endregion
 
 	#region Constructors
@@ -243,7 +246,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
+	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
 	/// </summary>
 	private void CategoriesNotifier_CollectionChanged(
 		object? sender,
@@ -260,7 +263,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
+	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
 	/// </summary>
 	private void FavoritesNotifier_CollectionChanged(
 		object? sender,
@@ -279,34 +282,34 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Fills the categories and the favorites from the stored settings.
 	/// </summary>
 	public void Initialize(
 		double navigationColumnWidth,
 		Guid selectedCategoryId,
 		List<FavoriteCategory> categories,
-		List<Guid> orderedCategories,
-		List<CategoryFavoritePair> selectedPairs)
+		List<Guid> orderedCategoryIds,
+		List<FavoriteSelection> selectedPairs)
 	{
 		NavigationColumnWidth = new(navigationColumnWidth);
 
-		if (orderedCategories.Count > 0)
+		if (orderedCategoryIds.Count > 0)
 		{
 			Guid[] identifiers = [.. categories.Select(x => x.Id)];
 
-			for (int i = 0; i < orderedCategories.Count; i++)
+			for (int i = 0; i < orderedCategoryIds.Count; i++)
 			{
-				if (!identifiers.Contains(orderedCategories[i]))
+				if (!identifiers.Contains(orderedCategoryIds[i]))
 				{
-					orderedCategories.RemoveAt(i);
+					orderedCategoryIds.RemoveAt(i);
 				}
 			}
 
-			if (orderedCategories.Count > 0)
+			if (orderedCategoryIds.Count > 0)
 			{
-				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategories, x => x.Id)]);
+				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategoryIds, x => x.Id)]);
 
-				OrderedCategories.AddRange(orderedCategories);
+				OrderedCategoryIds.AddRange(orderedCategoryIds);
 			}
 		}
 
@@ -320,7 +323,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Adds <see cref="FavoriteCategory" /> objects to the source.
 	/// </summary>
-	internal void AddTestCategories(IEnumerable<FavoriteCategory> items)
+	internal void SeedCategories(IEnumerable<FavoriteCategory> items)
 	{
 		if (!AppDomain
 			.CurrentDomain
@@ -333,9 +336,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 
 	/// <summary>
-	/// Adds <see cref="FileModelDto" /> objects to the source.
+	/// Adds <see cref="FileDto" /> objects to the source.
 	/// </summary>
-	internal void AddTestFavorites(IEnumerable<FileModelDto> items)
+	internal void SeedFavorites(IEnumerable<FileDto> items)
 	{
 		if (!AppDomain
 			.CurrentDomain
@@ -360,7 +363,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_previousSelectedFavorite = null;
 
-		OrderedCategories.Clear();
+		OrderedCategoryIds.Clear();
 
 		SelectedCategory = null;
 

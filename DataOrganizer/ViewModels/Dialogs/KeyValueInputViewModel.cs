@@ -1,0 +1,132 @@
+using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Interfaces.Diagnostics;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.ViewModels.Dialogs;
+
+/// <summary>
+/// View model for <c>KeyValueInputView</c>.
+/// </summary>
+public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
+{
+	#region Properties
+	/// <summary>
+	/// Text for default button.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? DefaultButtonText { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Key" /> holds something other than whitespace.
+	/// </summary>
+	public bool IsKeyAccepted => !string.IsNullOrWhiteSpace(Key);
+
+	/// <summary>
+	/// <c>True</c> when the <see cref="Key" /> input field is masked with a reveal button.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsKeyMasked { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsSensitive { get; set; }
+
+	/// <summary>
+	/// Specifies the visibility of the <see cref="Value" /> input field.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsValueInputVisible { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when the <see cref="Value" /> input field is masked with a reveal button.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsValueMasked { get; set; }
+
+	/// <summary>
+	/// The key being entered.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
+	[NotifyPropertyChangedFor(nameof(IsKeyAccepted))]
+	public partial string? Key { get; set; }
+
+	/// <summary>
+	/// Hint for the input field <see cref="Key" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? KeyHint { get; set; }
+
+	/// <summary>
+	/// The value being entered.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Value { get; set; }
+
+	/// <summary>
+	/// Hint for the input field <see cref="Value" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? ValueHint { get; set; }
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Closes the dialog and discards the input.
+	/// </summary>
+	[RelayCommand]
+	private Task Cancel() => SetResultAsync(false);
+
+	/// <summary>
+	/// Closes the dialog and keeps the input.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanConfirm))]
+	private Task Confirm() => SetResultAsync(true);
+	#endregion
+
+	#region Constructors
+	public KeyValueInputViewModel(
+		Application app,
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+	{
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Fills the dialog from the given parameters.
+	/// </summary>
+	public void Initialize(KeyValueInputParameters parameters)
+	{
+		DefaultButtonText = parameters.DefaultButtonText;
+
+		IsKeyMasked = parameters.MaskKeyInput;
+
+		IsSensitive = parameters.IsSensitive;
+
+		IsValueMasked = parameters.MaskValueInput;
+
+		Key = parameters.Key;
+
+		KeyHint = parameters.KeyHint;
+
+		Value = parameters.Value;
+
+		ValueHint = parameters.ValueHint;
+
+		IsValueInputVisible = !string.IsNullOrEmpty(parameters.ValueHint);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="ConfirmCommand" />.
+	/// </summary>
+	private bool CanConfirm() => !string.IsNullOrWhiteSpace(Key);
+	#endregion
+}

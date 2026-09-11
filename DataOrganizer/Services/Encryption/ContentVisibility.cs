@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -60,19 +60,19 @@ public sealed class ContentVisibility : IContentVisibility
 	public void DiscardAllKeys() => _sessionKeyStore.LockAll();
 
 	/// <inheritdoc />
-	public void DiscardKeys(FolderModelDto folder)
+	public void DiscardKeys(FolderDto folder)
 	{
 		// A folder that keeps no key is simply not in the store, so being a keeper is not worth a test.
 		_sessionKeyStore.Lock(folder.Id);
 
 		folder
 			.GetAllChildren()
-			.OfType<FolderModelDto>()
+			.OfType<FolderDto>()
 			.ForEach(x => _sessionKeyStore.Lock(x.Id));
 	}
 
 	/// <inheritdoc />
-	public void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public void HideAllContents(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		hierarchy
 			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
@@ -82,7 +82,7 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <inheritdoc />
-	public void HideFileContents(FileModelDto file)
+	public void HideFileContents(FileDto file)
 	{
 		file.EncryptionStatus = EncryptionStatus.Encrypted;
 
@@ -90,7 +90,7 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <inheritdoc />
-	public void HideFolderContents(FolderModelDto folder)
+	public void HideFolderContents(FolderDto folder)
 	{
 		folder
 			.ToEnumerable()
@@ -101,7 +101,7 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
+	public async Task<bool> ShowFileContentsAsync(FileDto file, CancellationToken token = default)
 	{
 		if (file.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
 		{
@@ -142,7 +142,7 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
+	public async Task ShowFolderContentsAsync(FolderDto folder, CancellationToken token = default)
 	{
 		if (folder.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
 		{
@@ -181,9 +181,9 @@ public sealed class ContentVisibility : IContentVisibility
 	/// <summary>
 	/// Drops the key of the keeper the object belongs to, but only once nothing under that keeper is shown.
 	/// </summary>
-	private void LockKeeperOf(ExplorerModelBaseDto item)
+	private void LockKeeperOf(ExplorerItemDtoBase item)
 	{
-		FolderModelDto? keeper = item.FindPasswordKeeper();
+		FolderDto? keeper = item.FindPasswordKeeper();
 
 		if (keeper?
 			.ToEnumerable()
@@ -197,10 +197,10 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <summary>
-	/// Shows file contents in folder.
+	/// Shows the file contents in a folder.
 	/// </summary>
 	private bool ShowFolderContents(
-		FolderModelDto folder,
+		FolderDto folder,
 		Guid keeperId,
 		PinnedBuffer dek)
 	{

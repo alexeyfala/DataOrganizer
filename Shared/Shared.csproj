@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<AssemblyMetadata Include="AppName" Value="$(AppName)" />
-		<AssemblyMetadata Include="AppNameParted" Value="$(AppNameParted)" />
+		<AssemblyMetadata Include="AppDisplayName" Value="$(AppDisplayName)" />
 	</ItemGroup>
 
 	<ItemGroup>

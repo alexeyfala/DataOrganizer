@@ -5,13 +5,14 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -34,32 +35,32 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
-	/// <inheritdoc cref="FileProperties.FontSize" />
+	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
-	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
-	public partial bool IsWordWrap { get; set; }
+	public partial bool WordWrap { get; set; }
 	#endregion
 
 	#region Commands
-	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanCopy);
+	/// <inheritdoc cref="TextEditorOperations.Copy" />
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorOperations.Copy, TextEditorOperations.CanCopy);
 
-	/// <inheritdoc cref="TextEditorHelper.Find" />
-	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
+	/// <inheritdoc cref="TextEditorOperations.Find" />
+	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorOperations.Find);
 
-	/// <inheritdoc cref="TextEditorHelper.ScrollToEnd" />
-	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorHelper.ScrollToEnd);
+	/// <inheritdoc cref="TextEditorOperations.ScrollToEnd" />
+	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorOperations.ScrollToEnd);
 
-	/// <inheritdoc cref="TextEditorHelper.ScrollToTop" />
-	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
+	/// <inheritdoc cref="TextEditorOperations.ScrollToTop" />
+	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorOperations.ScrollToTop);
 
-	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanSelectAll);
+	/// <inheritdoc cref="TextEditorOperations.SelectAll" />
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorOperations.SelectAll, TextEditorOperations.CanSelectAll);
 
-	/// <inheritdoc cref="TextEditorHelper.Spin" />
+	/// <inheritdoc cref="TextEditorOperations.Spin" />
 	public RelayCommand<SpinEventArgs> SpinCommand { get; }
 	#endregion
 
@@ -82,13 +83,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		_editor = editor;
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(true);
 
 		try
 		{
-			if (!result.IsValid || TryToDecrypt(result.Contents) is not { } output)
+			if (!result.IsValid || TryDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 
@@ -96,27 +97,27 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
-					assertDebug: false);
+					breakInDebugger: false);
 
 				return;
 			}
 
-			editor.Text = TextHelper
-				.Utf8Encoding
+			editor.Text = TextDefaults
+				.Encoding
 				.GetString(output);
 
 			_lastSavedContentHash = SHA256.HashData(output);
 
 			try
 			{
-				TextEditorHelper.SubscribePointerWheelChanged(
+				TextEditorOperations.SubscribePointerWheelChanged(
 					editor,
 					() => FontSize,
 					() => FontSize);
 
 				ApplyEditorSettings(editor);
 
-				await InitializePropertiesAsync(editor).ConfigureAwait(true);
+				await InitializeEditorStateAsync(editor).ConfigureAwait(true);
 
 				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
@@ -176,7 +177,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		TextEditorHelper.UnsubscribePointerWheelChanged(
+		TextEditorOperations.UnsubscribePointerWheelChanged(
 			editor,
 			() => FontSize,
 			() => FontSize);
@@ -223,7 +224,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -237,7 +238,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			notification,
 			exceptionHandler)
 	{
-		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
+		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
 
@@ -254,7 +255,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_exceptionHandler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySaveEditorStateAsync());
 		}
 	}
 
@@ -278,12 +279,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Called when <see cref="FontSize" /> changes.
 	/// </summary>
-	partial void OnFontSizeChanged(double value) => TrySavePersistentProperties();
+	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
 
 	/// <summary>
-	/// Called when <see cref="IsWordWrap" /> changes.
+	/// Called when <see cref="WordWrap" /> changes.
 	/// </summary>
-	partial void OnIsWordWrapChanged(bool value) => TrySavePersistentProperties();
+	partial void OnWordWrapChanged(bool value) => TrySavePersistentEditorState();
 	#endregion
 
 	#region Methods
@@ -320,7 +321,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
 		return await isDrained
-			.WaitAsync(millisecondsDelay: 100, maxRepeat: 50, token)
+			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
 			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed);
 	}
 	#endregion
@@ -345,9 +346,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Creates <see cref="FileProperties" /> from <see cref="EmbeddedFileEditorViewModel" /> and <see cref="TextEditor" /> properties.
+	/// Creates <see cref="FileEditorState" /> from the view model and the editor.
 	/// </summary>
-	private FileProperties CreateProperties()
+	private FileEditorState CreateEditorState()
 	{
 		if (_editor is not { } editor)
 		{
@@ -358,7 +359,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		{
 			CaretPosition = editor.TextArea.Caret.Position,
 			FontSize = FontSize,
-			IsWordWrap = IsWordWrap,
+			WordWrap = WordWrap,
 			ScrollOffset = new((int)editor.HorizontalOffset, (int)editor.VerticalOffset),
 			SelectionLength = editor.SelectionLength,
 			SelectionStart = editor.SelectionStart
@@ -370,8 +371,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void EnqueueSave(TextEditor editor)
 	{
-		byte[] contents = TextHelper
-			.Utf8Encoding
+		byte[] contents = TextDefaults
+			.Encoding
 			.GetBytes(editor.Text);
 
 		if (_saveChannel
@@ -387,12 +388,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Initializes <see cref="EmbeddedFileEditorViewModel" /> properties from database.
+	/// Restores the editor state from the database.
 	/// </summary>
-	private async Task InitializePropertiesAsync(TextEditor editor, CancellationToken token = default)
+	private async Task InitializeEditorStateAsync(TextEditor editor, CancellationToken token = default)
 	{
-		string? value = InitialProperties ?? await _dbAccess
-			.GetFilePropertiesAsync(FileId, token)
+		string? value = InitialEditorState ?? await _dbAccess
+			.GetFileEditorStateAsync(FileId, token)
 			.ConfigureAwait(false);
 
 		if (value is null)
@@ -402,40 +403,40 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			FileProperties properties = _jsonSerializer.Deserialize<FileProperties>(value);
+			FileEditorState state = _jsonSerializer.Deserialize<FileEditorState>(value);
 
-			FontSize = properties.FontSize;
+			FontSize = state.FontSize;
 
-			IsWordWrap = properties.IsWordWrap;
+			WordWrap = state.WordWrap;
 
-			editor.SelectionStart = properties.SelectionStart;
+			editor.SelectionStart = state.SelectionStart;
 
-			editor.SelectionLength = properties.SelectionLength;
-
-			// Not implemented in TextEditor.
-			editor.ScrollToVerticalOffset(properties.ScrollOffset.Y);
+			editor.SelectionLength = state.SelectionLength;
 
 			// Not implemented in TextEditor.
-			editor.ScrollToHorizontalOffset(properties.ScrollOffset.X);
+			editor.ScrollToVerticalOffset(state.ScrollOffset.Y);
 
-			editor.ScrollToLine(properties.CaretPosition.Line);
+			// Not implemented in TextEditor.
+			editor.ScrollToHorizontalOffset(state.ScrollOffset.X);
+
+			editor.ScrollToLine(state.CaretPosition.Line);
 
 			editor
 				.TextArea
 				.Caret
-				.Position = properties.CaretPosition;
+				.Position = state.CaretPosition;
 
 			_logger.LogDebug(
-				$@"Properties ""{FileId}"" for editor are initialized:{properties.GetPropertyValues(true)}");
+				$@"Editor state of ""{FileId}"" is initialized:{state.GetPropertyValues(true)}");
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			if (!IsReadOnly)
 			{
-				await SavePropertiesAsync(
-					_jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions),
+				await SaveEditorStateAsync(
+					_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options),
 					token);
 			}
 		}
@@ -457,7 +458,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			byte[] latest = contents;
 
 			// Counted, not decremented yet: the batch stays pending until it has been persisted.
-			int taken = 1;
+			int takenCount = 1;
 
 			try
 			{
@@ -467,7 +468,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
 				while (reader.TryRead(out byte[]? newer))
 				{
-					taken++;
+					takenCount++;
 
 					latest.ZeroMemory();
 
@@ -485,7 +486,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					continue;
 				}
 
-				if (TryToEncrypt(latest) is not { } output)
+				if (TryEncrypt(latest) is not { } output)
 				{
 					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
@@ -516,15 +517,34 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			}
 			finally
 			{
-				Interlocked.Add(ref _pendingSaves, -taken);
+				Interlocked.Add(ref _pendingSaves, -takenCount);
 			}
 		}
 	}
 
 	/// <summary>
-	/// Persists view-model properties once the editor is ready.
+	/// Tries to save the editor state.
 	/// </summary>
-	private void TrySavePersistentProperties()
+	private Task TrySaveEditorStateAsync(CancellationToken token = default)
+	{
+		string json = _jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options);
+
+		SetEditorStateCallback?.Invoke(json);
+
+		if (IsReadOnly || IsLastEditorStateEqualTo(json))
+		{
+			return Task.CompletedTask;
+		}
+
+		_lastSavedEditorState = json;
+
+		return SaveEditorStateAsync(json, token);
+	}
+
+	/// <summary>
+	/// Persists the editor state once the editor is ready.
+	/// </summary>
+	private void TrySavePersistentEditorState()
 	{
 		lock (_mutex)
 		{
@@ -533,27 +553,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_exceptionHandler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySaveEditorStateAsync());
 		}
-	}
-
-	/// <summary>
-	/// Tries to save properties.
-	/// </summary>
-	private Task TrySavePropertiesAsync(CancellationToken token = default)
-	{
-		string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
-
-		SetPropertiesCallback?.Invoke(json);
-
-		if (IsReadOnly || IsLastPropertiesEqualTo(json))
-		{
-			return Task.CompletedTask;
-		}
-
-		_lastSavedProperties = json;
-
-		return SavePropertiesAsync(json, token);
 	}
 	#endregion
 }

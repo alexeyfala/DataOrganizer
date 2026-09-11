@@ -4,7 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:encEnums="using:DataOrganizer.Enums"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -24,8 +24,8 @@
 		</StackPanel.Styles>
 
 		<views:NoteView
-			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}"
-			IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
+			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}"
+			IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
 			IsVisible="{Binding HasNote, Mode=OneWay}"
 			NoteItem="{Binding NoteItem, Mode=OneWay}"
 			NoteName="{Binding NoteName, Mode=OneWay}"
@@ -59,7 +59,7 @@
 
 		<materialIcons:MaterialIcon
 			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconBrush}}"
-			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
 			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconKind}}"
 			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconDescription}}" />
 	</StackPanel>

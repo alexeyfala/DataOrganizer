@@ -5,15 +5,19 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto.Dataset;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Models.Dataset;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -40,7 +44,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
 	/// <summary>
-	/// Records.
+	/// The records of the dataset being edited.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Records { get; } = [];
 	#endregion
@@ -57,7 +61,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(true);
 
@@ -83,7 +87,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			if (TryToDecrypt(result.Contents) is not { } output)
+			if (TryDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 
@@ -103,9 +107,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					return;
 				}
 
-				await WaitItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
+				await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
-				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
+				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
 
 				SetupScrollSubscription(scrollViewer);
 			}
@@ -118,7 +122,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			IsContentCorrupted = true;
 
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 		}
@@ -169,7 +173,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -192,7 +196,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -220,7 +224,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -280,7 +284,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="RecordsGroup" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -294,7 +298,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="KeyValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteKeyValueRecord(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -308,7 +312,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="ValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteValueRecord(ValueRecord? record)
 	{
 		if (record is null)
@@ -322,7 +326,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditKeyValue(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -357,7 +361,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits <see cref="DatasetRecordBase.Note" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditNote(DatasetRecordBase? record)
 	{
 		if (record is null)
@@ -373,13 +377,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => null
 		};
 
-		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
 			record.Note,
 			header,
 			isSensitive: IsEncrypted)
 			.ConfigureAwait(false);
 
-		if (!result.IsValid)
+		if (!result.IsConfirmed)
 		{
 			return;
 		}
@@ -390,7 +394,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditValue(ValueRecord? record)
 	{
 		if (record is null)
@@ -432,7 +436,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Handles the <see cref="Expander.Expanded" />, <see cref="Expander.Collapsed" /> events by user.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
 	{
 		if (e?.Source is not Expander expander || !expander.IsPointerOver)
@@ -455,7 +459,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Renames a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task RenameGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -535,7 +539,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private async Task SortAscending(RecordsGroup? group)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(Strings.SortAscending + "?")
+			.RequestYesNoAsync(Strings.SortAscending + "?")
 			.ConfigureAwait(false))
 		{
 			return;
@@ -547,7 +551,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsAnyRecords))]
+	[RelayCommand(CanExecute = nameof(HasRecords))]
 	private async Task SortAscendingDescending(ListSortDirection direction)
 	{
 		string text = string.Concat(direction switch
@@ -558,7 +562,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}, "?");
 
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(text)
+			.RequestYesNoAsync(text)
 			.ConfigureAwait(false))
 		{
 			return;
@@ -574,7 +578,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private async Task SortDescending(RecordsGroup? group)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(Strings.SortDescending + "?")
+			.RequestYesNoAsync(Strings.SortDescending + "?")
 			.ConfigureAwait(false))
 		{
 			return;
@@ -608,7 +612,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -652,24 +656,24 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		DatasetProperties properties = new()
+		DatasetEditorState state = new()
 		{
 			TopRecordIndex = anchor.Index,
 			WithinRecordOffset = anchor.WithinRecordOffset
 		};
 
-		string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
+		string json = _jsonSerializer.Serialize(state, JsonDefaults.Options);
 
-		SetPropertiesCallback?.Invoke(json);
+		SetEditorStateCallback?.Invoke(json);
 
-		if (IsReadOnly || IsLastPropertiesEqualTo(json))
+		if (IsReadOnly || IsLastEditorStateEqualTo(json))
 		{
 			return;
 		}
 
-		_lastSavedProperties = json;
+		_lastSavedEditorState = json;
 
-		_exceptionHandler.Watch(SavePropertiesAsync(json));
+		_exceptionHandler.Watch(SaveEditorStateAsync(json));
 	}
 	#endregion
 
@@ -1036,22 +1040,22 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Shared step-loop for the <see cref="SmoothScrollAsync" /> overloads.
+	/// Shared step-loop for the <c>SmoothScrollAsync</c> overloads.
 	/// <paramref name="getRemainingDelta" /> returns signed pixels still to move
 	/// (positive scrolls down).
 	/// </summary>
 	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
 	{
 		// Pixels moved per step. Smaller = more reliable realization, slower travel.
-		const double StepPx = 100;
+		const double stepPx = 100;
 
 		// Pause between steps. Larger = more time for the layout pass to materialize items.
-		const int DelayMs = 16;
+		const int delayMs = 16;
 
 		// Safety cap against runaway loops if the offset never converges (e.g. extent keeps growing).
-		const int MaxIterations = 1000;
+		const int maxIterations = 1000;
 
-		for (int i = 0; i < MaxIterations; i++)
+		for (int i = 0; i < maxIterations; i++)
 		{
 			double delta = getRemainingDelta();
 
@@ -1062,7 +1066,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			double currentY = scrollViewer.Offset.Y;
 
-			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), StepPx);
+			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), stepPx);
 
 			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
 
@@ -1076,7 +1080,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
 			await Task
-				.Delay(DelayMs)
+				.Delay(delayMs)
 				.ConfigureAwait(true);
 		}
 	}
@@ -1124,7 +1128,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Waits until <paramref name="container" /> has realized at least one child.
 	/// </summary>
-	private static async Task<bool> WaitItemsRepeaterRealizedAsync(
+	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(
 		ItemsRepeater container,
 		CancellationToken token = default)
 	{
@@ -1162,6 +1166,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
+	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
+	/// </summary>
+	private bool CanEdit() => !IsReadOnly && !IsContentCorrupted;
+
+	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.
 	/// </summary>
 	private bool CanScrollToEnd() => !ScrollToTopCommand.IsRunning;
@@ -1178,7 +1187,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		CancellationToken token = default)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{questionText}""?", token)
+			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token)
 			.ConfigureAwait(false))
 		{
 			return;
@@ -1188,15 +1197,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Initializes <see cref="DatasetEditorViewModel" /> properties from database.
+	/// <c>True</c> when <see cref="Records" /> has elements.
 	/// </summary>
-	private async Task InitializePropertiesAsync(
+	private bool HasRecords() => Records.Any();
+
+	/// <summary>
+	/// Restores the editor state from the database.
+	/// </summary>
+	private async Task InitializeEditorStateAsync(
 		ScrollViewer scrollViewer,
 		ItemsRepeater container,
 		CancellationToken token = default)
 	{
-		string? value = InitialProperties ?? await _dbAccess
-			.GetFilePropertiesAsync(FileId, token)
+		string? value = InitialEditorState ?? await _dbAccess
+			.GetFileEditorStateAsync(FileId, token)
 			.ConfigureAwait(false);
 
 		if (value is null)
@@ -1206,9 +1220,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
+			DatasetEditorState state = _jsonSerializer.Deserialize<DatasetEditorState>(value);
 
-			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
+			if (state.TopRecordIndex < 0 || state.TopRecordIndex >= Records.Count)
 			{
 				return;
 			}
@@ -1216,15 +1230,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			await SmoothScrollAsync(
 				scrollViewer,
 				container,
-				properties.TopRecordIndex,
+				state.TopRecordIndex,
 				Records.Count,
-				properties.WithinRecordOffset).ConfigureAwait(false);
+				state.WithinRecordOffset).ConfigureAwait(false);
 
 			// Just in case.
 #pragma warning disable CS8321 // Local function is declared but never used
 			void RestoreScroll()
 			{
-				Control? child = container.TryGetElement(properties.TopRecordIndex) ?? container.GetOrCreateElement(properties.TopRecordIndex);
+				Control? child = container.TryGetElement(state.TopRecordIndex) ?? container.GetOrCreateElement(state.TopRecordIndex);
 
 				if (child is null)
 				{
@@ -1237,7 +1251,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				{
 					return;
 				}
-				double targetViewportY = -properties.WithinRecordOffset;
+				double targetViewportY = -state.WithinRecordOffset;
 
 				double delta = pointInViewport.Y - targetViewportY;
 
@@ -1255,22 +1269,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 	}
 
-	/// <summary>
-	/// <c>True</c> when <see cref="Records" /> has elements.
-	/// </summary>
-	private bool IsAnyRecords() => Records.Any();
-
-	/// <summary>
-	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
-	/// </summary>
-	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
-
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private async Task<bool> SaveContentsAsync(CancellationToken token = default)
 	{
 		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
-		if (TryToEncrypt(contents) is not { } output)
+		if (TryEncrypt(contents) is not { } output)
 		{
 			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
 

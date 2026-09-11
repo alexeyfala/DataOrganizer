@@ -18,9 +18,9 @@ public static class ExpressionExtensions
 	{
 		PropertyInfo? propertyInfo = expression.GetPropertyInfo();
 
-		object? entity = expression.GetEntityReference();
+		object? owner = expression.GetOwnerReference();
 
-		propertyInfo?.SetValue(entity, value);
+		propertyInfo?.SetValue(owner, value);
 	}
 	#endregion
 
@@ -30,13 +30,13 @@ public static class ExpressionExtensions
 	/// </summary>
 	/// <typeparam name="T">Property type.</typeparam>
 	/// <param name="expression">Property in the form of a lambda expression.</param>
-	private static object? GetEntityReference<T>(this Expression<Func<T>> expression)
+	private static object? GetOwnerReference<T>(this Expression<Func<T>> expression)
 	{
-		MemberExpression? pExpression;
+		MemberExpression? propertyExpression;
 
 		if (expression.Body is MemberExpression memberExpression)
 		{
-			pExpression = memberExpression;
+			propertyExpression = memberExpression;
 		}
 		else
 		{
@@ -44,17 +44,17 @@ public static class ExpressionExtensions
 
 			Expression? operand = unaryExpression?.Operand;
 
-			pExpression = operand as MemberExpression;
+			propertyExpression = operand as MemberExpression;
 		}
 
-		Expression? body = pExpression?.Expression switch
+		Expression? owner = propertyExpression?.Expression switch
 		{
 			MemberExpression member => member,
 			ConstantExpression constantExpression => constantExpression,
 			_ => null
 		};
 
-		return Evaluate(body);
+		return Evaluate(owner);
 	}
 
 	/// <summary>
@@ -97,9 +97,9 @@ public static class ExpressionExtensions
 			return propertyBody.Member as PropertyInfo;
 		}
 
-		UnaryExpression? body = expression.Body as UnaryExpression;
+		UnaryExpression? conversion = expression.Body as UnaryExpression;
 
-		Expression? operand = body?.Operand;
+		Expression? operand = conversion?.Operand;
 
 		MemberExpression? memberExpression = operand as MemberExpression;
 

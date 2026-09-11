@@ -1,20 +1,22 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:encEnums="using:DataOrganizer.Enums"
-	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers">
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- ExecutingFileTemplate -->
 	<DataTemplate
 		x:Key="ExecutingFileTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -26,7 +28,7 @@
 			</Grid.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:DisableRightClickSelectionBehavior />
+				<input:DisableRightClickSelectionBehavior />
 			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
@@ -36,8 +38,8 @@
 							Classes="NameInFlyoutTextBlockStyle"
 							Text="{Binding Name, Mode=OneWay}" />
 
-						<wrappers:FlyoutButton
-							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+						<controls:FlyoutButton
+							Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
 							CommandParameter="{Binding Id}"
 							Foreground="{StaticResource MaterialBodyBrush}"
 							Header="{x:Static prop:Strings.ShowInList}"
@@ -52,7 +54,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
@@ -60,7 +62,7 @@
 				Grid.Column="2"
 				Padding="0.0"
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CloseExecutingFileCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource SmallButtonIconSize}}"
@@ -71,7 +73,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -81,7 +83,7 @@
 	<!-- EditingFileTabControlHeaderTemplate -->
 	<DataTemplate
 		x:Key="EditingFileTabControlHeaderTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel
 			Background="Transparent"
 			Orientation="Horizontal"
@@ -93,14 +95,14 @@
 				VerticalAlignment="Center"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
 			<materialIcons:MaterialIcon
 				Background="Transparent"
 				Foreground="{StaticResource WarningBrush}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
 				Kind="LockOpenVariantOutline"
 				ToolTip.Tip="{x:Static prop:Strings.ContentIsDecrypted}" />
 
@@ -126,7 +128,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

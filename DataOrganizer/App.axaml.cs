@@ -5,27 +5,47 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Explorer;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Updates;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Diagnostics;
+using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Explorer;
+using DataOrganizer.Services.Hierarchy;
+using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.Services.Notifications;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
+using DataOrganizer.Services.Storage;
 using DataOrganizer.Services.Updates;
+using DataOrganizer.Services.Views;
+using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
+using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
 using DataOrganizer.Windows;
 using Mapster;
@@ -35,7 +55,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Repository.DbContexts;
 using Repository.Interceptors;
 using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Repository.Services;
+using Repository.Services.Database;
 using Serilog;
 using Serilog.Core;
 using Serilog.Exceptions;
@@ -92,11 +114,11 @@ public sealed class App : Application
 		// The theme reads Application.Styles, therefore it is applied only after the XAML tree is loaded.
 		serviceProvider
 			.GetRequiredService<IAppThemeService>()
-			.ApplyMaterialTheme();
+			.ApplyFromSettings();
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
-		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
+		DataTemplates.Add(serviceProvider.GetRequiredService<EditingFileTemplate>());
 
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
@@ -131,7 +153,7 @@ public sealed class App : Application
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
-		services.AddTransient<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
+		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
@@ -142,13 +164,13 @@ public sealed class App : Application
 		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
-		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INoteReader, NoteReader>();
-		services.AddTransient<IProcessUtils, ProcessUtils>();
+		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
@@ -157,12 +179,12 @@ public sealed class App : Application
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
-		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
+		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 
-		#region View locator
-		services.AddSingleton<ViewLocator>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
+		#region View Locator
+		services.AddSingleton<EditingFileTemplate>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<EditingFileTemplate>());
 		#endregion
 
 		#region Singletons
@@ -238,11 +260,11 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<PasswordBox>();
+		services.AddTransient<PasswordBoxView>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
-		services.AddTransient<YesNoCancelBox>();
+		services.AddTransient<YesNoCancelBoxView>();
 		#endregion
 	}
 	#endregion
@@ -253,7 +275,7 @@ public sealed class App : Application
 	/// </summary>
 	private static string[] AddDebugCommandLineArgs(string[] args)
 	{
-		if (AppUtils.IsDebug)
+		if (AppInfo.IsDebug)
 		{
 			return args
 				//.AddHelpArg()
@@ -301,13 +323,13 @@ public sealed class App : Application
 
 			Directory.CreateDirectory(directoryPath);
 
-			string dataSource = Path.Combine(
+			string databaseFilePath = Path.Combine(
 				directoryPath,
-				AppUtils.AppName + AppUtils.SQLiteExtension);
+				AppInfo.AppName + KnownFileExtensions.Sqlite);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{
-				DataSource = dataSource,
+				DataSource = databaseFilePath,
 				Mode = SqliteOpenMode.ReadWriteCreate,
 				RecursiveTriggers = false,
 				DefaultTimeout = 30,
@@ -342,7 +364,7 @@ public sealed class App : Application
 		client
 			.DefaultRequestHeaders
 			.UserAgent
-			.ParseAdd($"{AppUtils.AppName}/{AppUtils.AppVersion}");
+			.ParseAdd($"{AppInfo.AppName}/{AppInfo.AppVersion}");
 
 		client
 			.DefaultRequestHeaders
@@ -363,7 +385,7 @@ public sealed class App : Application
 
 		string filePath = Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-			$"{AppUtils.AppName}_Critical_Errors{AppUtils.TxtExtension}");
+			$"{AppInfo.AppName}_Critical_Errors{KnownFileExtensions.Txt}");
 
 		File.AppendAllText(
 			filePath,
@@ -430,21 +452,21 @@ public sealed class App : Application
 				string path = Path.Combine(
 					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
 					"Logs",
-					AppUtils.TxtExtension);
+					KnownFileExtensions.Txt);
 
 				configure.FileEx(
 					path: path,
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
-					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
+					outputTemplate: $"[{{Timestamp:{LogDefaults.TimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
 					rollingInterval: RollingInterval.Day,
 					retainedFileCountLimit: 10,
-					encoding: TextHelper.Utf8Encoding,
+					encoding: TextDefaults.Encoding,
 					preserveLogFileName: false,
 					rollOnEachProcessRun: false);
 			});
 
-		if (options.IsConsoleNeeded)
+		if (options.ShowConsole)
 		{
 			ConsoleViewModel viewModel = provider
 				.GetRequiredService<IConsoleWindowHost>()

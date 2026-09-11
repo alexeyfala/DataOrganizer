@@ -3,23 +3,24 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
-	xmlns:entities="using:DataOrganizer.DTO.Entities"
-	xmlns:interfaces="using:DataOrganizer.Interfaces"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
-	x:DataType="vm:EditorViewModel"
+	x:DataType="windows:EditorViewModel"
 	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
 	mc:Ignorable="d">
@@ -46,7 +47,7 @@
 			HostName="{Binding $self.Name}"
 			SnackbarHorizontalAlignment="Center">
 			<Interaction.Behaviors>
-				<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
+				<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}}" />
 			</Interaction.Behaviors>
 
 			<materialControls:NavigationDrawer
@@ -211,7 +212,6 @@
 							<Panel Classes="VerticalSeparatorPanelStyle" />
 
 							<Button
-								Name="CustomClipboardButton"
 								Classes="primary"
 								Command="{Binding ShowCustomClipboardCommand}"
 								CommandParameter="{Binding $parent[Window]}"
@@ -257,12 +257,12 @@
 												</Style>
 											</StackPanel.Styles>
 
-											<wrappers:FlyoutButton
+											<controls:FlyoutButton
 												Command="{Binding ImportCommand}"
 												Header="{x:Static prop:Strings.ImportList}"
 												Icon="Import" />
 
-											<wrappers:FlyoutButton
+											<controls:FlyoutButton
 												Command="{Binding ExportCommand}"
 												Header="{x:Static prop:Strings.ExportList}"
 												Icon="Export" />
@@ -305,7 +305,7 @@
 
 								<TextBlock
 									Classes="CountTextBlockStyle"
-									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+									Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
 							</Panel>
 						</StackPanel>
 					</Grid>
@@ -329,7 +329,7 @@
 
 							<TreeView.Styles>
 								<Style
-									x:DataType="entities:ExplorerModelBaseDto"
+									x:DataType="entities:ExplorerItemDtoBase"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -337,7 +337,7 @@
 							</TreeView.Styles>
 
 							<Interaction.Behaviors>
-								<behaviors:DisableRightClickSelectionBehavior />
+								<input:DisableRightClickSelectionBehavior />
 							</Interaction.Behaviors>
 
 							<TreeView.DataTemplates>
@@ -365,13 +365,13 @@
 							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
 							SideSheetPadding="4.0"
-							Theme="{StaticResource ScrollableSideSheet}">
+							Theme="{StaticResource ScrollableSideSheetTheme}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
-								<templateSelectors:RightSideSheetContentTemplateSelector>
+								<selectors:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 									<StaticResource ResourceKey="ExecutingFilesTemplate" />
-								</templateSelectors:RightSideSheetContentTemplateSelector>
+								</selectors:RightSideSheetContentTemplateSelector>
 							</materialControls:SideSheet.SideSheetContentTemplate>
 						</materialControls:SideSheet>
 
@@ -387,7 +387,7 @@
 								Grid.Column="0"
 								FontWeight="SemiBold"
 								Foreground="{StaticResource MaterialBodyBrush}"
-								Text="{Binding BottomLeftCornerInfo, Mode=OneWay}" />
+								Text="{Binding HierarchySummary, Mode=OneWay}" />
 
 							<StackPanel
 								Grid.Column="2"

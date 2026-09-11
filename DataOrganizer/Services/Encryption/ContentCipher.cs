@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using Serilog;
@@ -51,7 +51,7 @@ public sealed class ContentCipher : IContentCipher
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] Decrypt(FileModelDto file, byte[] input)
+	public byte[] Decrypt(FileDto file, byte[] input)
 	{
 		// Empty content is written without encryption, so there is nothing to open here.
 		if (input.IsEmpty())
@@ -88,24 +88,8 @@ public sealed class ContentCipher : IContentCipher
 	}
 
 	/// <inheritdoc />
-	public byte[]? TryEncrypt(Guid keeperId, ContentIdentity identity, byte[] input)
-	{
-		try
-		{
-			return _sessionKeyStore.Encrypt(keeperId, identity, input);
-		}
-		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
-		{
-			// The caller renders or saves content, so the failure only reaches the log.
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<byte[]?> TryToDecryptContentsAsync(
-		FileModelDto file,
+	public async Task<byte[]?> TryDecryptContentsAsync(
+		FileDto file,
 		byte[] contents,
 		string header,
 		CancellationToken token = default)
@@ -163,5 +147,22 @@ public sealed class ContentCipher : IContentCipher
 
 		return contents;
 	}
+
+	/// <inheritdoc />
+	public byte[]? TryEncrypt(Guid keeperId, ContentIdentity identity, byte[] input)
+	{
+		try
+		{
+			return _sessionKeyStore.Encrypt(keeperId, identity, input);
+		}
+		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
+		{
+			// The caller renders or saves content, so the failure only reaches the log.
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
 	#endregion
 }

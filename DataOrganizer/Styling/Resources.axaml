@@ -25,7 +25,7 @@
 
 	<Brush x:Key="FolderBrush">Peru</Brush>
 
-	<Brush x:Key="LightForeground">#FFFAFAFA</Brush>
+	<Brush x:Key="LightForegroundBrush">#FFFAFAFA</Brush>
 
 	<Brush x:Key="WarningBrush">OrangeRed</Brush>
 
@@ -37,7 +37,7 @@
 
 	<system:Double x:Key="ElementSpacing">10.0</system:Double>
 
-	<system:Double x:Key="EntityTypeIconSize">28.0</system:Double>
+	<system:Double x:Key="EntityKindIconSize">28.0</system:Double>
 
 	<!-- Height of a combo box inside a settings group box. -->
 	<system:Double x:Key="SettingsComboBoxHeight">18.0</system:Double>

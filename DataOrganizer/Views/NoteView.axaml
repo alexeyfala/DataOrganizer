@@ -2,14 +2,16 @@
 	x:Class="DataOrganizer.Views.NoteView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:security="using:DataOrganizer.Behaviors.Security"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	mc:Ignorable="d">
 
@@ -39,13 +41,13 @@
 
 		<!-- Readable -->
 		<materialIcons:MaterialIcon
-			x:Name="Icon"
+			x:Name="ReadableIcon"
 			Grid.Row="0"
 			Classes="NoteIconStyle"
 			IsVisible="{Binding !IsLocked, Mode=OneWay}">
 
 			<Interaction.Behaviors>
-				<behaviors:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
+				<input:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
 			</Interaction.Behaviors>
 		</materialIcons:MaterialIcon>
 
@@ -54,9 +56,9 @@
 			MaxWidth="500.0"
 			MaxHeight="500.0"
 			IsLightDismissEnabled="True"
-			IsOpen="{Binding ShowNote, Mode=TwoWay}"
+			IsOpen="{Binding IsNoteOpen, Mode=TwoWay}"
 			Placement="Bottom"
-			PlacementTarget="{Binding #Icon}"
+			PlacementTarget="{Binding #ReadableIcon}"
 			VerticalOffset="8.0">
 
 			<Interaction.Behaviors>
@@ -100,7 +102,7 @@
 						                                            IconSize={StaticResource ToolBarIconSize}}"
 						Cursor="Arrow"
 						Foreground="{StaticResource MaterialPaperBrush}"
-						IsChecked="{Binding !ShowNote, Mode=TwoWay}"
+						IsChecked="{Binding !IsNoteOpen, Mode=TwoWay}"
 						Theme="{StaticResource MaterialFlatButton}"
 						ToolTip.Tip="{x:Static prop:Strings.Close}" />
 
@@ -111,7 +113,7 @@
 						HorizontalScrollBarVisibility="Disabled"
 						VerticalScrollBarVisibility="Auto">
 						<SelectableTextBlock
-							x:Name="NoteTextBlock"
+							x:Name="NoteText"
 							FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 							FontSize="14.0"
 							Foreground="{StaticResource MaterialPaperBrush}"
@@ -127,7 +129,7 @@
 								<MenuFlyout>
 									<MenuItem
 										Command="{Binding CopySelectedNoteCommand}"
-										CommandParameter="{Binding #NoteTextBlock}"
+										CommandParameter="{Binding #NoteText}"
 										Header="{x:Static prop:Strings.Copy}"
 										InputGesture="{OnPlatform Default='Ctrl+C',
 										                          macOS='⌘+C'}" />
@@ -135,9 +137,9 @@
 							</SelectableTextBlock.ContextFlyout>
 
 							<Interaction.Behaviors>
-								<behaviors:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
+								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<behaviors:SensitiveCopyBehavior
+								<security:SensitiveCopyBehavior
 									IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 									Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 							</Interaction.Behaviors>

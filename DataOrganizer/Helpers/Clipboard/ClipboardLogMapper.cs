@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Clipboard.Persistence;
+using DataOrganizer.Dto.Clipboard.Persistence;
+using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;

@@ -3,15 +3,15 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
-	<wrappers:RightClickSelectableTabControl
+	<controls:RightClickSelectableTabControl
 		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
 		AutoScrollToSelectedItem="True"
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
@@ -20,14 +20,14 @@
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
 		Theme="{StaticResource ContentSizedTabControlTheme}">
 
-		<wrappers:RightClickSelectableTabControl.KeyBindings>
+		<controls:RightClickSelectableTabControl.KeyBindings>
 			<KeyBinding
 				Command="{Binding SwitchToPreviousTabCommand}"
 				Gesture="Ctrl+Tab" />
-		</wrappers:RightClickSelectableTabControl.KeyBindings>
+		</controls:RightClickSelectableTabControl.KeyBindings>
 
 		<Interaction.Behaviors>
-			<behaviors:MiddleClickTabCommandBehavior Command="{Binding CloseTabCommand}" />
+			<input:MiddleClickTabCommandBehavior Command="{Binding CloseTabCommand}" />
 
 			<EventTriggerBehavior EventName="SelectionChanged">
 				<InvokeCommandAction
@@ -36,16 +36,16 @@
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
 
-		<wrappers:RightClickSelectableTabControl.Styles>
+		<controls:RightClickSelectableTabControl.Styles>
 			<Style Selector="TabItem">
 				<Setter Property="(Interaction.Behaviors)">
 					<BehaviorCollectionTemplate>
 						<BehaviorCollection>
-							<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
+							<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
 						</BehaviorCollection>
 					</BehaviorCollectionTemplate>
 				</Setter>
 			</Style>
-		</wrappers:RightClickSelectableTabControl.Styles>
-	</wrappers:RightClickSelectableTabControl>
+		</controls:RightClickSelectableTabControl.Styles>
+	</controls:RightClickSelectableTabControl>
 </UserControl>

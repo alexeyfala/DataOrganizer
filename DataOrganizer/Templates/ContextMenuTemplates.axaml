@@ -1,15 +1,16 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
-	xmlns:encEnums="using:DataOrganizer.Enums"
-	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:dataset="using:DataOrganizer.Models.Dataset"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:entityEnums="using:Entities.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers">
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- KeyValueRecordContextMenuTemplate -->
 	<DataTemplate
@@ -27,19 +28,19 @@
 				Classes="NameInFlyoutTextBlockStyle"
 				Text="{Binding Key, Mode=OneTime}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Edit}"
 				Icon="PencilOutline" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CopyKeyValueToClipboardCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyKeyAndValue}"
@@ -47,7 +48,7 @@
 
 			<Separator />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteKeyValueRecordCommand}"
 				CommandParameter="{Binding}"
 				Foreground="{StaticResource WarningBrush}"
@@ -72,13 +73,13 @@
 				Classes="NameInFlyoutTextBlockStyle"
 				Text="{Binding Value, Mode=OneTime}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Edit}"
 				Icon="PencilOutline" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Note}"
@@ -86,7 +87,7 @@
 
 			<Separator />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteValueRecordCommand}"
 				CommandParameter="{Binding}"
 				Foreground="{StaticResource WarningBrush}"
@@ -116,13 +117,13 @@
 				Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
-				<wrappers:FlyoutButton
+				<controls:FlyoutButton
 					Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RenameGroupCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
 					ToolTip.Tip="{x:Static prop:Strings.Rename}" />
 
-				<wrappers:FlyoutButton
+				<controls:FlyoutButton
 					Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteGroupCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
@@ -132,7 +133,7 @@
 
 			<Separator />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Header="{x:Static prop:Strings.Add}"
 				Icon="Plus">
 				<Button.Flyout>
@@ -140,19 +141,19 @@
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddKeyValueCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.AddKeyAndValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddValueCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.AddValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddGroupCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.AddGroup}"
@@ -160,15 +161,15 @@
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
-			</wrappers:FlyoutButton>
+			</controls:FlyoutButton>
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Header="{x:Static prop:Strings.Options}"
 				Icon="CogOutline">
 				<Button.Flyout>
@@ -176,13 +177,13 @@
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.CollapseAll}"
 								Icon="ChevronDoubleUp" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.ExpandAll}"
@@ -190,13 +191,13 @@
 
 							<Separator />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).HideCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.HideAll}"
 								Icon="EyeOffOutline" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ShowCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.ShowAll}"
@@ -204,13 +205,13 @@
 
 							<Separator />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortAscendingCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.SortAscending}"
 								Icon="SortAlphabeticalAscending" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortDescendingCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.SortDescending}"
@@ -218,14 +219,14 @@
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
-			</wrappers:FlyoutButton>
+			</controls:FlyoutButton>
 		</StackPanel>
 	</DataTemplate>
 
 	<!-- FolderInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FolderInTreeViewContextMenuTemplate"
-		x:DataType="entities:FolderModelDto">
+		x:DataType="entities:FolderDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -238,14 +239,14 @@
 				Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
-				<wrappers:FlyoutButton
-					Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RenameCommand}"
+				<controls:FlyoutButton
+					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).RenameCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
 					ToolTip.Tip="{x:Static prop:Strings.Rename}" />
 
-				<wrappers:FlyoutButton
-					Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DeleteCommand}"
+				<controls:FlyoutButton
+					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DeleteCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
 					Foreground="{StaticResource WarningBrush}"
@@ -254,29 +255,29 @@
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).AddCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).AddCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.AddToFolder}"
 				Icon="Plus" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyNameCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CopyNameCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyName}"
 				Icon="ContentCopy" />
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditNoteCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EditNoteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
 			<Separator />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Header="{x:Static prop:Strings.Encryption}"
 				Icon="LockOutline">
 				<Button.Flyout>
@@ -284,15 +285,15 @@
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFolderContentsCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFolderContentsCommand}"
 								CommandParameter="{Binding}"
 								Foreground="{StaticResource WarningBrush}"
 								Header="{x:Static prop:Strings.ShowContents}"
 								Icon="LockOpenVariantOutline" />
 
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFolderContentsCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFolderContentsCommand}"
 								CommandParameter="{Binding}"
 								Foreground="ForestGreen"
 								Header="{x:Static prop:Strings.HideContents}"
@@ -300,14 +301,14 @@
 
 							<Separator />
 
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EncryptFolderCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EncryptFolderCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.EncryptFiles}"
 								Icon="LockOutline" />
 
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFolderCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DecryptFolderCommand}"
 								CommandParameter="{Binding}"
 								Foreground="{StaticResource WarningBrush}"
 								Header="{x:Static prop:Strings.DecryptFiles}"
@@ -315,20 +316,20 @@
 
 							<Separator />
 
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ChangePasswordCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ChangePasswordCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.ChangePassword}"
 								Icon="LockReset" />
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
-			</wrappers:FlyoutButton>
+			</controls:FlyoutButton>
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowPropertiesCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Properties}"
 				Icon="WrenchOutline" />
@@ -338,7 +339,7 @@
 	<!-- FileInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -351,14 +352,14 @@
 				Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
-				<wrappers:FlyoutButton
-					Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RenameCommand}"
+				<controls:FlyoutButton
+					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).RenameCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
 					ToolTip.Tip="{x:Static prop:Strings.Rename}" />
 
-				<wrappers:FlyoutButton
-					Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DeleteCommand}"
+				<controls:FlyoutButton
+					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DeleteCommand}"
 					CommandParameter="{Binding}"
 					Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
 					Foreground="{StaticResource WarningBrush}"
@@ -367,78 +368,78 @@
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditFileCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EditFileCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.OpenInEditor}"
 				Icon="TextBoxEditOutline" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecuteFileCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ExecuteFileCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.OpenInOS}"
 				Icon="{OnPlatform Default=MicrosoftWindows,
 				                  macOS=Apple,
 				                  Linux=Linux}"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityType.DataSet}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityKind.Dataset}}" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseOpenedFileCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CloseOpenedFileCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Close}"
 				Icon="Close"
 				IconForeground="{StaticResource WarningBrush}">
-				<wrappers:FlyoutButton.IsVisible>
+				<controls:FlyoutButton.IsVisible>
 					<MultiBinding Converter="{x:Static BoolConverters.Or}">
 						<Binding Path="IsExecuting" />
 						<Binding Path="IsEditing" />
 					</MultiBinding>
-				</wrappers:FlyoutButton.IsVisible>
-			</wrappers:FlyoutButton>
+				</controls:FlyoutButton.IsVisible>
+			</controls:FlyoutButton>
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyNameCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CopyNameCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyName}"
 				Icon="ContentCopy" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentByContextMenuCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CopyContentByContextMenuCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyContent}"
 				Icon="ContentCopy"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditNoteCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EditNoteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}" />
+			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Header="{x:Static prop:Strings.Encryption}"
 				Icon="LockOutline"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}">
 				<Button.Flyout>
 					<Flyout
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFileContentsCommand}"
 								CommandParameter="{Binding}"
 								Foreground="{StaticResource WarningBrush}"
 								Header="{x:Static prop:Strings.ShowContents}"
 								Icon="LockOpenVariantOutline" />
 
-							<wrappers:FlyoutButton
-								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFileContentsCommand}"
 								CommandParameter="{Binding}"
 								Foreground="ForestGreen"
 								Header="{x:Static prop:Strings.HideContents}"
@@ -446,28 +447,28 @@
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
-			</wrappers:FlyoutButton>
+			</controls:FlyoutButton>
 
-			<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
+			<Separator IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).SetFavoriteCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).SetFavoriteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Favorite}"
 				Icon="StarOutline"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowHotkeysEditorCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowHotkeysEditorCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Hotkeys}"
 				Icon="KeyboardVariant"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<Separator />
 
-			<wrappers:FlyoutButton
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+			<controls:FlyoutButton
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowPropertiesCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Properties}"
 				Icon="WrenchOutline" />
@@ -477,7 +478,7 @@
 	<!-- EditingFileTabContextMenuTemplate -->
 	<DataTemplate
 		x:Key="EditingFileTabContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -486,21 +487,21 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Close}"
 				Icon="Close"
 				IconForeground="{StaticResource WarningBrush}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseOtherTabsCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CloseOtherTabs}"
 				Icon="CloseBoxMultipleOutline"
 				IconForeground="{StaticResource WarningBrush}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseAllTabsCommand}"
 				Header="{x:Static prop:Strings.CloseAllTabs}"
 				Icon="CloseBoxMultiple"
@@ -511,7 +512,7 @@
 	<!-- FileInListContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInListContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -524,7 +525,7 @@
 				Classes="NameInFlyoutTextBlockStyle"
 				Text="{Binding Name, Mode=OneTime}" />
 
-			<wrappers:FlyoutButton
+			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 				CommandParameter="{Binding Id}"
 				Header="{x:Static prop:Strings.ShowInEditor}"

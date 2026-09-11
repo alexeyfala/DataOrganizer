@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Editor;
 
 namespace DataOrganizer.Extensions;
 

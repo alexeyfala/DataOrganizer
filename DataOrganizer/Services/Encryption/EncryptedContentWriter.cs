@@ -1,12 +1,12 @@
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -47,29 +47,29 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+	public async Task<UpdateDatabaseOutcome> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default)
 	{
 		try
 		{
-			DateTime updatedDate = DateTime.Now;
+			DateTime updatedAt = DateTime.Now;
 
-			Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = parameters
+			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
 				.Contents
 				.ToDictionary(x => x.Id, pair =>
 			{
-				return new Action<UpdateSettersBuilder<FileModel>>[]
+				return new Action<UpdateSettersBuilder<FileEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Contents, pair.Contents),
-					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
+					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
 				};
 			});
 
 			// A note of a file is stored in the same transaction as its contents.
 			foreach (NoteUpdate note in parameters.Notes.Where(x => !x.IsFolderNote()))
 			{
-				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileModel>>[]? setters))
+				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileEntity>>[]? setters))
 				{
 					continue;
 				}
@@ -77,19 +77,19 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
 			}
 
-			Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates = parameters
+			Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = parameters
 				.Notes
 				.Where(x => x.IsFolderNote())
 				.ToDictionary(x => x.Id, note =>
 			{
-				return new Action<UpdateSettersBuilder<FolderModel>>[]
+				return new Action<UpdateSettersBuilder<FolderEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Note, note.Note),
-					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
+					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
 				};
 			});
 
-			Action<UpdateSettersBuilder<FolderModel>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
+			Action<UpdateSettersBuilder<FolderEntity>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
 
 			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
 
@@ -97,11 +97,11 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
 				.ConfigureAwait(false))
 			{
-				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseResult.FailedToSaveInDb)
+				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
 					.ConfigureAwait(false);
 			}
 
-			ExplorerModelBaseDto[] objects =
+			ExplorerItemDtoBase[] objects =
 			[
 				.. parameters.Folder.WithSubfolders(),
 				.. parameters.Files
@@ -115,9 +115,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.Folder
 				.EncryptedDek = parameters.EncryptedDek;
 
-			return UpdateDatabaseResult.Done;
+			return UpdateDatabaseOutcome.Saved;
 
-			void SetDek(UpdateSettersBuilder<FolderModel> builder)
+			void SetDek(UpdateSettersBuilder<FolderEntity> builder)
 			{
 				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
 			}
@@ -128,7 +128,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 			return await RestoreAsync(
 				parameters.BackupFilePath,
-				UpdateDatabaseResult.ExceptionThrown).ConfigureAwait(false);
+				UpdateDatabaseOutcome.ExceptionThrown).ConfigureAwait(false);
 		}
 	}
 	#endregion
@@ -137,7 +137,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <summary>
 	/// Applies the processed notes to the objects, wiping the replaced buffers.
 	/// </summary>
-	private static void ApplyNotes(ExplorerModelBaseDto[] objects, NoteUpdate[] notes)
+	private static void ApplyNotes(ExplorerItemDtoBase[] objects, NoteUpdate[] notes)
 	{
 		if (notes.Length == 0)
 		{
@@ -146,7 +146,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 		Dictionary<Guid, byte[]> processed = notes.ToDictionary(x => x.Id, x => x.Note);
 
-		foreach (ExplorerModelBaseDto item in objects)
+		foreach (ExplorerItemDtoBase item in objects)
 		{
 			if (!processed.TryGetValue(item.Id, out byte[]? note))
 			{
@@ -165,7 +165,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <summary>
 	/// Reports the failure and rolls the database back to the copy taken before the conversion.
 	/// </summary>
-	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
+	private async Task<UpdateDatabaseOutcome> RestoreAsync(string backupFilePath, UpdateDatabaseOutcome result)
 	{
 		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 

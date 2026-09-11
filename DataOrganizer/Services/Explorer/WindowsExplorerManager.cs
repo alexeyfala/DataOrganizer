@@ -3,9 +3,11 @@ using Interop.UIAutomationClient;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace DataOrganizer.Services.Explorer;
 
+[SupportedOSPlatform("windows")]
 public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 {
 	#region Data
@@ -121,7 +123,7 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Brings the window to the front.
 	/// <see cref="SetForegroundWindow" /> only works if the calling thread is - foreground.
@@ -191,12 +193,12 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 	{
 		try
 		{
-			CUIAutomation uia = new();
+			CUIAutomation automation = new();
 
-			IUIAutomationElement element = uia.ElementFromHandle(hwnd);
+			IUIAutomationElement element = automation.ElementFromHandle(hwnd);
 
 			// UIA_ControlTypePropertyId = 30003, UIA_TabItemControlTypeId = 50019
-			IUIAutomationCondition tabCondition = uia.CreatePropertyCondition(30003, 50019);
+			IUIAutomationCondition tabCondition = automation.CreatePropertyCondition(30003, 50019);
 
 			IUIAutomationElementArray tabs = element.FindAll(TreeScope.TreeScope_Descendants, tabCondition);
 
@@ -211,18 +213,18 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 					// SelectionItemPattern ID = 10010
 					try
 					{
-						IUIAutomationSelectionItemPattern pattern = (IUIAutomationSelectionItemPattern)tab.GetCurrentPattern(10010);
+						IUIAutomationSelectionItemPattern selectionPattern = (IUIAutomationSelectionItemPattern)tab.GetCurrentPattern(10010);
 
-						pattern.Select();
+						selectionPattern.Select();
 					}
 					catch
 					{
 						// Fallback: InvokePattern ID = 10000
 						try
 						{
-							IUIAutomationInvokePattern invoke = (IUIAutomationInvokePattern)tab.GetCurrentPattern(10000);
+							IUIAutomationInvokePattern invokePattern = (IUIAutomationInvokePattern)tab.GetCurrentPattern(10000);
 
-							invoke.Invoke();
+							invokePattern.Invoke();
 						}
 						catch
 						{

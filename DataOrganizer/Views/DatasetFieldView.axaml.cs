@@ -35,7 +35,17 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Color sample.
+	/// <c>True</c> when the user can hide <see cref="Text" />.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public bool CanHide
+	{
+		get => GetValue(CanHideProperty);
+		set => SetValue(CanHideProperty, value);
+	}
+
+	/// <summary>
+	/// A brush filled with the colour parsed from the text.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public Brush? ColorSampleBrush
@@ -93,16 +103,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// <c>True</c> when the user can hide <see cref="Text" />.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public bool IsHideEnabled
-	{
-		get => GetValue(IsHideEnabledProperty);
-		set => SetValue(IsHideEnabledProperty, value);
-	}
-
-	/// <summary>
 	/// <c>True</c> when the value in <see cref="Text" /> is a hyperlink.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
@@ -133,7 +133,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Note.
+	/// The note attached to the record.
 	/// </summary>
 	public string? Note
 	{
@@ -149,7 +149,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Text.
+	/// The value shown in the field.
 	/// </summary>
 	public string? Text
 	{
@@ -173,6 +173,12 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// </summary>
 	public static readonly StyledProperty<Brush?> AreaBrushProperty = AvaloniaProperty
 		.Register<DatasetFieldView, Brush?>(name: nameof(AreaBrush));
+
+	/// <summary>
+	/// Identifies the <see cref="CanHide" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> CanHideProperty = AvaloniaProperty
+		.Register<DatasetFieldView, bool>(name: nameof(CanHide));
 
 	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.
@@ -209,12 +215,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHiddenProperty = AvaloniaProperty
 		.Register<DatasetFieldView, bool>(name: nameof(IsHidden));
-
-	/// <summary>
-	/// Identifies the <see cref="IsHideEnabled" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsHideEnabledProperty = AvaloniaProperty
-		.Register<DatasetFieldView, bool>(name: nameof(IsHideEnabled));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHyperlink" /> avalonia property.
@@ -263,7 +263,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
+	[RelayCommand(CanExecute = nameof(HasText))]
 	private async Task CopyToClipboard()
 	{
 		if (string.IsNullOrWhiteSpace(Text) || TopLevel
@@ -282,7 +282,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		}
 		finally
 		{
-			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+			_ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
 		}
 	}
 	#endregion
@@ -300,7 +300,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// <see cref="HighlightSignal" /> <see cref="IObserver{T}.OnNext" /> handler.
 	/// </summary>
-	private void HighlightSignal_OnNext(Unit signal) => _ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+	private void HighlightSignal_OnNext(Unit signal) => _ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
 
 	/// <summary>
 	/// <see cref="IsHiddenProperty" /> changed handler.
@@ -338,14 +338,14 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Plays a single highlight pulse on <see cref="AreaBrush" />.
 	/// </summary>
-	public void PulseHighlight() => _ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+	public void PulseHighlight() => _ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
 
 	/// <inheritdoc />
 	protected override void OnLoaded(RoutedEventArgs e)
 	{
 		base.OnLoaded(e);
 
-		IsHideEnabled = BindingOperations.GetBindingExpressionBase(this, IsHiddenProperty) is not null;
+		CanHide = BindingOperations.GetBindingExpressionBase(this, IsHiddenProperty) is not null;
 
 		this
 			.GetObservable(IsHiddenProperty)
@@ -385,7 +385,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Text" /> is not null.
 	/// </summary>
-	private bool IsTextNotNull() => !string.IsNullOrWhiteSpace(Text);
+	private bool HasText() => !string.IsNullOrWhiteSpace(Text);
 
 	/// <summary>
 	/// Sets <see cref="ColorSampleBrush" /> from string value.

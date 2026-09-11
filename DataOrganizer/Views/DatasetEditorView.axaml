@@ -2,14 +2,14 @@
 	x:Class="DataOrganizer.Views.DatasetEditorView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:componentModel="using:System.ComponentModel"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	x:DataType="vm:DatasetEditorViewModel"
 	mc:Ignorable="d">
 
@@ -41,17 +41,17 @@
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddKeyValueCommand}"
 								Header="{x:Static prop:Strings.AddKeyAndValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddValueCommand}"
 								Header="{x:Static prop:Strings.AddValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddGroupCommand}"
 								Header="{x:Static prop:Strings.AddGroup}"
 								Icon="ShapeRectanglePlus" />
@@ -65,7 +65,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToTopCommand}"
-				CommandParameter="{Binding #ScrollViewer}"
+				CommandParameter="{Binding #RecordsScroller}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
@@ -73,7 +73,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToEndCommand}"
-				CommandParameter="{Binding #ScrollViewer}"
+				CommandParameter="{Binding #RecordsScroller}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
@@ -132,13 +132,13 @@
 								</Style>
 							</StackPanel.Styles>
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding SortAscendingDescendingCommand}"
 								CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"
 								Header="{x:Static prop:Strings.SortAscending}"
 								Icon="SortAlphabeticalAscending" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding SortAscendingDescendingCommand}"
 								CommandParameter="{x:Static componentModel:ListSortDirection.Descending}"
 								Header="{x:Static prop:Strings.SortDescending}"
@@ -160,7 +160,7 @@
 		</StackPanel>
 
 		<ScrollViewer
-			x:Name="ScrollViewer"
+			x:Name="RecordsScroller"
 			Grid.Row="1"
 			Padding="0.0,0.0,10.0,0.0"
 			Classes="no-auto-hide"
@@ -169,18 +169,18 @@
 			VerticalScrollBarVisibility="Auto">
 
 			<Interaction.Behaviors>
-				<behaviors:DatasetAutoScrollOnDragBehavior />
+				<dragAndDrop:DatasetAutoScrollOnDragBehavior />
 			</Interaction.Behaviors>
 
 			<ItemsRepeater
-				x:Name="RecordsItemsControl"
+				x:Name="RecordsHost"
 				ItemsSource="{Binding Records, Mode=OneTime}">
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="Loaded">
 						<InvokeCommandAction
 							Command="{Binding ContainerLoadedCommand}"
-							CommandParameter="{Binding #RecordsItemsControl}" />
+							CommandParameter="{Binding #RecordsHost}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 
@@ -193,6 +193,9 @@
 				<ItemsRepeater.ItemTemplate>
 					<RecyclingElementFactory SelectTemplateKey="OnSelectRecordTemplateKey">
 						<RecyclingElementFactory.Templates>
+							<!--
+								The keys carry no suffix on purpose: OnSelectRecordTemplateKey hands the factory the record's type name, so each key has to match it.
+							-->
 							<StaticResource
 								x:Key="KeyValueRecord"
 								ResourceKey="KeyValueRecordTemplate" />

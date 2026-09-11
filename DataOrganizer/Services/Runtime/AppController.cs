@@ -1,0 +1,306 @@
+using Avalonia.Controls;
+using Cysharp.Text;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Updates;
+using DataOrganizer.Interfaces.Views;
+using Repository.Enums;
+using Repository.Interfaces.Database;
+using Serilog;
+using Shared.Common;
+using Shared.Extensions;
+using Shared.Interfaces;
+using Shared.Properties;
+using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using OSVersion = OSVersionExtension.OSVersion;
+
+namespace DataOrganizer.Services.Runtime;
+
+public sealed class AppController : IAppController
+{
+	#region Data
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
+
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+
+	/// <inheritdoc cref="IConsoleWindowHost" />
+	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
+
+	/// <inheritdoc cref="IDbAccess" />
+	private readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IEntityLoader" />
+	private readonly IEntityLoader _entityLoader;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="ICommandLineOptions" />
+	private readonly ICommandLineOptions _options;
+
+	/// <inheritdoc cref="IExecutionSandbox" />
+	private readonly IExecutionSandbox _sandbox;
+
+	/// <inheritdoc cref="IAppSettingsStore" />
+	private readonly IAppSettingsStore _settingsStore;
+
+	/// <inheritdoc cref="IUpdateNotifier" />
+	private readonly IUpdateNotifier _updateNotifier;
+
+	/// <inheritdoc cref="IViewLauncher" />
+	private readonly IViewLauncher _viewLauncher;
+	#endregion
+
+	#region Constructors
+	public AppController(
+		IAppEnvironment appEnvironment,
+		IAppSettingsStore settingsStore,
+		IClipboardLogService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		ICommandLineOptions options,
+		IDbAccess dbAccess,
+		IEntityLoader entityLoader,
+		IExecutionSandbox sandbox,
+		IFileSystem fileSystem,
+		IGlobalExceptionHandler globalExceptionHandler,
+		ILogger logger,
+		INotificationService notification,
+		ITaskExceptionHandler exceptionHandler,
+		IUpdateNotifier updateNotifier,
+		IViewLauncher viewLauncher,
+		Lazy<IConsoleWindowHost> consoleWindowHost)
+	{
+		_appEnvironment = appEnvironment;
+
+		_clipboardLog = clipboardLog;
+
+		_clipboardLogPersistence = clipboardLogPersistence;
+
+		_consoleWindowHost = consoleWindowHost;
+
+		_dbAccess = dbAccess;
+
+		_entityLoader = entityLoader;
+
+		_fileSystem = fileSystem;
+
+		_exceptionHandler = exceptionHandler;
+
+		_logger = logger;
+
+		_notification = notification;
+
+		_options = options;
+
+		_sandbox = sandbox;
+
+		_settingsStore = settingsStore;
+
+		_updateNotifier = updateNotifier;
+
+		_viewLauncher = viewLauncher;
+
+		globalExceptionHandler.StartMonitoring();
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public async Task LaunchAppAsync(CancellationToken token = default)
+	{
+		try
+		{
+			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
+
+			await _sandbox
+				.EraseAsync(token)
+				.ConfigureAwait(true);
+
+			if (_options.ShowConsole)
+			{
+				await _consoleWindowHost
+					.Value
+					.ConfigureAndShowAsync()
+					.ConfigureAwait(true);
+			}
+
+			InitialPrint();
+
+			// TODO: Display a splash screen while connecting to database.
+
+			DbConnectionStatus status = await _dbAccess
+				.ConnectAsync(token)
+				.ConfigureAwait(true);
+
+			if (status is DbConnectionStatus.SchemaTooOld or DbConnectionStatus.SchemaTooNew)
+			{
+				// The data is intact, and an empty hierarchy would read as a loss worth undoing.
+				_logger.LogError($"The schema of the database is {status}, the launch ends.", breakInDebugger: false);
+
+				await _viewLauncher
+					.ShowStartupErrorAsync(_dbAccess.GetDbFilePath())
+					.ConfigureAwait(true);
+
+				return;
+			}
+
+			bool isConnected = status is DbConnectionStatus.Connected;
+
+			if (!isConnected)
+			{
+				_logger.LogError("The database is unavailable, the launch continues without it.", breakInDebugger: false);
+
+				_notification.ShowToast(Strings.DatabaseIsUnavailable);
+			}
+
+			if (isConnected && _options.FillObjects)
+			{
+				const int total = 3;
+
+				await _dbAccess.AddRandomObjectsAsync(
+					folders: total,
+					files: total,
+					datasets: total,
+					levels: total).ConfigureAwait(true);
+			}
+
+			// Nothing is read from a database that is not there: the toast above has already said so.
+			ExplorerItemDtoBase[]? hierarchy = isConnected
+				? await _entityLoader
+					.LoadHierarchyAsync(token)
+					.ConfigureAwait(true)
+				: [];
+
+			if (hierarchy is null)
+			{
+				_logger.LogError(
+					"The database could not be read, the launch continues with an empty hierarchy.",
+					breakInDebugger: false);
+
+				_notification.ShowToast(Strings.FailedToReadDatabase);
+			}
+			else
+			{
+				FileDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+				if (unreadable.IsNotEmpty())
+				{
+					unreadable.ForEach(x =>
+					{
+						_logger.LogError(
+							$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
+							breakInDebugger: false);
+					});
+
+					_notification.ShowToast(
+						unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
+				}
+			}
+
+			// TODO: Close splash screen here.
+
+			_clipboardLogPersistence.Start();
+
+			if (_settingsStore
+				.Settings
+				.TrackClipboardHistory)
+			{
+				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
+			}
+
+			Window? mainWindow = _viewLauncher.CreateMainWindow(hierarchy ?? []);
+
+			mainWindow?.Show();
+
+			if (mainWindow?.DataContext is not IUpdatePrompt updatePrompt)
+			{
+				return;
+			}
+
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(updatePrompt, token));
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Writes initial data to log.
+	/// </summary>
+	private void InitialPrint()
+	{
+		if (_options.PrintHelp)
+		{
+			_logger.LogInformationWithTemplate(_options.GetHelp());
+		}
+
+		_logger.LogInformationWithTemplate(
+			$"{AppInfo.AppDisplayName} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
+
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		builder.AppendLine("System specifications:");
+
+		const string os = "OS";
+
+		builder.AppendLine($"{os} platform - {Environment.OSVersion.Platform}");
+
+		if (OperatingSystem.IsMacOS())
+		{
+			builder.AppendLine($"{os} type - macOS {Environment.OSVersion.Version}");
+		}
+
+		if (OperatingSystem.IsLinux())
+		{
+			builder.AppendLine($"{os} type - Linux {Environment.OSVersion.Version}");
+		}
+
+		if (OperatingSystem.IsWindows())
+		{
+			builder.AppendLine($"{os} type - {OSVersion.GetOperatingSystem()} {OSVersion.GetOSVersion().Version}");
+		}
+
+		builder.AppendLine($"{os} architecture - {RuntimeInformation.OSArchitecture}");
+
+		builder.AppendLine($"Process architecture - {RuntimeInformation.ProcessArchitecture}");
+
+		builder.AppendLine($"Runtime identifier - {RuntimeInformation.RuntimeIdentifier}");
+
+		builder.Append($".NET version - {RuntimeInformation.FrameworkDescription}");
+
+		_logger.LogInformationWithTemplate(builder.ToString());
+
+		_logger.LogInformationWithTemplate($"Application settings:{_settingsStore
+			.Settings
+			.GetPropertyValues(true)}");
+	}
+	#endregion
+}

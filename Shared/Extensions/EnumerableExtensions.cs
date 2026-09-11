@@ -79,7 +79,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Performs the specified action on each element of a sequence, providing both the element and its index.
 	/// </summary>
-	public static void ForEachFor<T>(this IEnumerable<T> sequence, Action<T, int> action)
+	public static void ForEachWithIndex<T>(this IEnumerable<T> sequence, Action<T, int> action)
 	{
 		T[] array = [.. sequence.AsNotNull()];
 
@@ -90,61 +90,9 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a sequence by a specific type, ignoring the base type.
-	/// </summary>
-	public static IEnumerable<TResult> OfSpecificType<TSource, TResult>(this IEnumerable<TSource> sequence) where TSource : class
-	{
-		return sequence
-			.Where(x => x.GetType() == typeof(TResult))
-			.OfType<TResult>();
-	}
-
-	/// <summary>
-	/// Orders the source sequence by the properties of another.
-	/// </summary>
-	/// <typeparam name="T">Type of the original sequence.</typeparam>
-	/// <typeparam name="TOrdered">Type of ordered sequence.</typeparam>
-	/// <param name="source">Original sequence.</param>
-	/// <param name="ordered">Ordered sequence.</param>
-	/// <param name="selector">Property - selector.</param>
-	/// <returns>An ordered sequence in which elements from the original are present and were not found in the other.</returns>
-	public static IEnumerable<T> OrderBySequenceKeepSource<T, TOrdered>(
-		this IEnumerable<T> source,
-		IEnumerable<TOrdered> ordered,
-		Func<T, TOrdered> selector)
-	{
-		ILookup<TOrdered, T> lookup = source.ToLookup(selector, x => x);
-
-		HashSet<TOrdered> included = [];
-
-		foreach (TOrdered orderedItem in ordered)
-		{
-			if (!lookup.Contains(orderedItem))
-			{
-				continue;
-			}
-
-			foreach (T lookupItem in lookup[orderedItem])
-			{
-				yield return lookupItem;
-
-				included.Add(orderedItem);
-			}
-		}
-
-		foreach (T item in source)
-		{
-			if (!included.Contains(selector(item)))
-			{
-				yield return item;
-			}
-		}
-	}
-
-	/// <summary>
 	/// Converts a sequence to a delimited string.
 	/// </summary>
-	public static string SplitAsString<T>(
+	public static string JoinAsString<T>(
 		this IEnumerable<T> sequence,
 		string separator,
 		bool addSeparatorToEnd = false)
@@ -167,6 +115,58 @@ public static class EnumerableExtensions
 		}
 
 		return builder.ToString();
+	}
+
+	/// <summary>
+	/// Filters a sequence by a specific type, ignoring the base type.
+	/// </summary>
+	public static IEnumerable<TResult> OfSpecificType<TSource, TResult>(this IEnumerable<TSource> sequence) where TSource : class
+	{
+		return sequence
+			.Where(x => x.GetType() == typeof(TResult))
+			.OfType<TResult>();
+	}
+
+	/// <summary>
+	/// Orders the source sequence by the properties of another.
+	/// </summary>
+	/// <typeparam name="T">Type of the original sequence.</typeparam>
+	/// <typeparam name="TOrdered">Type of ordered sequence.</typeparam>
+	/// <param name="source">Original sequence.</param>
+	/// <param name="ordered">Ordered sequence.</param>
+	/// <param name="keySelector">Key selector.</param>
+	/// <returns>An ordered sequence in which elements from the original are present and were not found in the other.</returns>
+	public static IEnumerable<T> OrderBySequenceKeepSource<T, TOrdered>(
+		this IEnumerable<T> source,
+		IEnumerable<TOrdered> ordered,
+		Func<T, TOrdered> keySelector)
+	{
+		ILookup<TOrdered, T> lookup = source.ToLookup(keySelector, x => x);
+
+		HashSet<TOrdered> included = [];
+
+		foreach (TOrdered orderedItem in ordered)
+		{
+			if (!lookup.Contains(orderedItem))
+			{
+				continue;
+			}
+
+			foreach (T lookupItem in lookup[orderedItem])
+			{
+				yield return lookupItem;
+
+				included.Add(orderedItem);
+			}
+		}
+
+		foreach (T item in source)
+		{
+			if (!included.Contains(keySelector(item)))
+			{
+				yield return item;
+			}
+		}
 	}
 	#endregion
 }

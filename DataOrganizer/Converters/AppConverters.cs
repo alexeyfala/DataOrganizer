@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Favorites;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
 using Entities.Enums;
@@ -85,12 +85,12 @@ internal static class AppConverters
 			_ => default
 		});
 
-	public static FuncValueConverter<EntityType, MaterialIconKind> EntityTypeToIconKind { get; } =
-		new(type => type switch
+	public static FuncValueConverter<EntityKind, MaterialIconKind> EntityKindToIconKind { get; } =
+		new(kind => kind switch
 		{
-			EntityType.Folder => MaterialIconKind.Folder,
-			EntityType.File => MaterialIconKind.FileOutline,
-			EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
+			EntityKind.Folder => MaterialIconKind.Folder,
+			EntityKind.File => MaterialIconKind.FileOutline,
+			EntityKind.Dataset => MaterialIconKind.ViewSplitHorizontal,
 			_ => default
 		});
 
@@ -106,7 +106,7 @@ internal static class AppConverters
 	/// <summary>
 	/// The folder a favorites category is built from; <c>null</c> for the category of the root objects.
 	/// </summary>
-	public static FuncValueConverter<FavoriteCategory?, FolderModelDto?> FavoriteCategoryToFolder { get; } =
+	public static FuncValueConverter<FavoriteCategory?, FolderDto?> FavoriteCategoryToFolder { get; } =
 		new(GetFolder);
 
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
@@ -117,8 +117,8 @@ internal static class AppConverters
 			_ => Brushes.Transparent
 		});
 
-	/// <inheritdoc cref="NoteHelper.BuildHeader" />
-	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHelper.BuildHeader);
+	/// <inheritdoc cref="NoteHeaderBuilder.Build" />
+	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHeaderBuilder.Build);
 
 	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.
@@ -165,7 +165,7 @@ internal static class AppConverters
 	/// <summary>
 	/// The parent folder of the objects of a favorites category; a category always has children.
 	/// </summary>
-	private static FolderModelDto? GetFolder(FavoriteCategory? category)
+	private static FolderDto? GetFolder(FavoriteCategory? category)
 	{
 		return category
 			?.Children

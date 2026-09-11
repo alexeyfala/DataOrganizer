@@ -85,12 +85,12 @@ public sealed class PinnedSecret : IDisposable
 	{
 		ReadOnlySpan<char> characters = AsReadOnlySpan();
 
-		PinnedBuffer buffer = new(TextHelper
-			.Utf8Encoding
+		PinnedBuffer buffer = new(TextDefaults
+			.Encoding
 			.GetByteCount(characters));
 
-		TextHelper
-			.Utf8Encoding
+		TextDefaults
+			.Encoding
 			.GetBytes(characters, buffer.AsSpan());
 
 		return buffer;

@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Editor;
 using System;
 using System.Threading;
 

@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Updates;
+using DataOrganizer.Dto.Updates;
 using System.Threading;
 using System.Threading.Tasks;
 

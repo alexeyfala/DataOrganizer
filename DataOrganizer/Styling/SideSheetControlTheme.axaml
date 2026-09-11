@@ -27,7 +27,7 @@
 	<converters:MarginMultiplyConverter x:Key="DataOrganizerSideSheetMarginCreator" />
 
 	<ControlTheme
-		x:Key="ScrollableSideSheet"
+		x:Key="ScrollableSideSheetTheme"
 		TargetType="materialControls:SideSheet">
 		<Setter Property="SideSheetWidth" Value="320" />
 		<Setter Property="SideSheetPadding" Value="16" />

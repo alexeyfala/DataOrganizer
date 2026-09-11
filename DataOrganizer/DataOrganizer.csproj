@@ -25,10 +25,14 @@
 		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\DataTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FileListTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\NotificationTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\SettingsTemplates.axaml" />
 		<AvaloniaXaml Remove="Styling\Resources.axaml" />
 		<AvaloniaXaml Remove="Styling\SideSheetControlTheme.axaml" />
 		<AvaloniaXaml Remove="Styling\Styles.axaml" />
@@ -43,10 +47,14 @@
 		<AvaloniaResource Include="Templates\ClipboardLogTemplates.axaml" />
 		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
-		<AvaloniaResource Include="Templates\DataTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTemplates.axaml" />
 		<AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
 		<AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FileListTemplates.axaml" />
+		<AvaloniaResource Include="Templates\NotificationTemplates.axaml" />
 		<AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\SettingsTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -64,8 +72,8 @@
 		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.12" />
 		<PackageReference Include="Material.Avalonia" Version="3.20.0" />
 		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
 		<PackageReference Include="NSec.Cryptography" Version="26.4.0" />
 		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
 		<PackageReference Include="ProItemsRepeater" Version="12.0.0" />
@@ -73,7 +81,7 @@
 		<PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
 		<PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
 		<PackageReference Include="Serilog.Sinks.FileEx" Version="5.1.8" />
-		<PackageReference Include="System.Drawing.Common" Version="10.0.11" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.12" />
 		<PackageReference Include="System.Reactive" Version="7.0.0" />
 		<PackageReference Include="Xaml.Behaviors" Version="12.0.7" />
 	</ItemGroup>

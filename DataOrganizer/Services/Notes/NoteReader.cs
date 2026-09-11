@@ -1,7 +1,7 @@
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -38,7 +38,7 @@ public sealed class NoteReader : INoteReader
 
 	#region Methods
 	/// <inheritdoc />
-	public string? ReadNote(ExplorerModelBaseDto? item)
+	public string? ReadNote(ExplorerItemDtoBase? item)
 	{
 		// An encrypted note is not a failure: the object is shown with a tooltip instead of the popup.
 		if (item is not { } dto
@@ -58,9 +58,9 @@ public sealed class NoteReader : INoteReader
 
 			_logger.LogError($"{Strings.FailedToReadNote}:{dto.GetPropertyValues(
 				true,
-				nameof(ExplorerModelBaseDto.Id),
-				nameof(ExplorerModelBaseDto.Name),
-				nameof(ExplorerModelBaseDto.EncryptionStatus))}");
+				nameof(ExplorerItemDtoBase.Id),
+				nameof(ExplorerItemDtoBase.Name),
+				nameof(ExplorerItemDtoBase.EncryptionStatus))}");
 		}
 		catch (Exception ex)
 		{

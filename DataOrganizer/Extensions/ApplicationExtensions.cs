@@ -75,7 +75,7 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Searches for a <see cref="DialogHost" /> in window among those already running in the application.
+	/// Searches for a <see cref="DialogHost" /> in a window among those already running in the application.
 	/// </summary>
 	public static DialogHost? FindDialogHost(this Application target)
 	{
@@ -147,21 +147,21 @@ internal static class ApplicationExtensions
 	/// <summary>
 	/// Returns the current application theme.
 	/// </summary>
-	public static CurrentTheme GetCurrentTheme(this Application target)
+	public static AppTheme GetCurrentTheme(this Application target)
 	{
 		object key = target
 			.ActualThemeVariant
 			.Key;
 
 		return key is "Dark"
-			? CurrentTheme.Dark
-			: CurrentTheme.Light;
+			? AppTheme.Dark
+			: AppTheme.Light;
 	}
 
 	/// <summary>
 	/// Determines whether a window of a certain type that meets a condition is running in the application.
 	/// </summary>
-	public static bool IsAnyWindow<T>(this Application target, Predicate<T> condition) where T : Window
+	public static bool HasWindow<T>(this Application target, Predicate<T> condition) where T : Window
 	{
 		return HasWindows(target, out IReadOnlyList<Window> windows) && windows
 			.OfType<T>()
@@ -171,7 +171,7 @@ internal static class ApplicationExtensions
 	/// <summary>
 	/// Determines whether a window of a certain type is running in the application.
 	/// </summary>
-	public static bool IsAnyWindow<T>(this Application target) where T : Window
+	public static bool HasWindow<T>(this Application target) where T : Window
 	{
 		return HasWindows(target, out IReadOnlyList<Window> windows) && windows
 			.OfType<T>()

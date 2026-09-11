@@ -13,12 +13,12 @@ public interface IAppThemeService
 	/// <summary>
 	/// Applies material theme from the application settings.
 	/// </summary>
-	void ApplyMaterialTheme();
+	void ApplyFromSettings();
 
 	/// <summary>
 	/// Sets the application theme <see cref="MaterialTheme" />.
 	/// </summary>
-	void SetAppMaterialTheme(
+	void SetTheme(
 		BaseThemeMode mode,
 		PrimaryColor primaryColor,
 		SecondaryColor secondaryColor);

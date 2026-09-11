@@ -1,5 +1,5 @@
 using DataOrganizer.Helpers.Security;
-using Repository.DTO;
+using Repository.Dto;
 using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
@@ -34,7 +34,7 @@ public interface IEncryptionService
 	/// <summary>
 	/// Decrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
 	/// </summary>
-	IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek);
+	IEnumerable<ValidatedContents> DecryptContents(ValidatedContents[] contents, PinnedBuffer dek);
 
 	/// <summary>
 	/// Decrypts data using a DEK directly (no KDF). For content encryption.
@@ -72,7 +72,7 @@ public interface IEncryptionService
 	/// <summary>
 	/// Encrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
 	/// </summary>
-	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek);
+	IEnumerable<ValidatedContents> EncryptContents(ValidatedContents[] contents, PinnedBuffer dek);
 
 	/// <summary>
 	/// Encrypts data using a DEK directly (no KDF). For content encryption.

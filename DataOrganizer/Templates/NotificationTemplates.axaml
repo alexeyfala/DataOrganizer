@@ -1,0 +1,21 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:dto="using:DataOrganizer.Dto"
+	xmlns:enums="using:DataOrganizer.Enums">
+
+	<!-- SnackbarMessageTemplate -->
+	<DataTemplate
+		x:Key="SnackbarMessageTemplate"
+		x:DataType="dto:SnackbarContent"
+		DataType="dto:SnackbarContent">
+		
+		<!-- The default text menu is a popup: opening it takes the pointer off the message, and the message closes with the menu still on it. -->
+		<SelectableTextBlock
+			Classes="SnackbarTextBlockStyle"
+			Classes.Error="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Error}}"
+			Classes.Warning="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Warning}}"
+			ContextFlyout="{x:Null}"
+			Text="{Binding Text, Mode=OneTime}" />
+	</DataTemplate>
+</ResourceDictionary>

@@ -1,0 +1,34 @@
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.Markup.Xaml.Templates;
+using DataOrganizer.Models.Dataset;
+using System.Linq;
+
+namespace DataOrganizer.Templates.Selectors;
+
+/// <summary>
+/// Picks the template for a dataset record by the record's runtime type.
+/// </summary>
+internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDataTemplate
+{
+	#region Methods
+	/// <inheritdoc />
+	public Control? Build(object? param)
+	{
+		string? typeName = param?
+			.GetType()
+			.Name;
+
+		if (typeName is not null
+			&& DataTemplates.FirstOrDefault(x => x is DataTemplate y && y.DataType?.Name == typeName) is { } template)
+		{
+			return template.Build(param);
+		}
+
+		return MissingViewPlaceholder.Create(typeName);
+	}
+
+	/// <inheritdoc />
+	public bool Match(object? data) => data is DatasetRecordBase;
+	#endregion
+}

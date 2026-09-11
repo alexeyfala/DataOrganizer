@@ -1,15 +1,17 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
-using Repository.Interfaces;
-using Repository.Services;
+using DataOrganizer.Interfaces.Notifications;
+using Repository.Dto;
+using Repository.Interfaces.Database;
+using Repository.Services.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -92,7 +94,7 @@ public sealed class FolderProtection : IFolderProtection
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
+	public async Task ChangePasswordAsync(FolderDto folder, CancellationToken token = default)
 	{
 		if (folder.EncryptedDek is null)
 		{
@@ -150,8 +152,8 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc />
 	public async Task DecryptFolderAsync(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		CancellationToken token = default)
 	{
 		if (folder.EncryptedDek is null)
@@ -170,7 +172,7 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
-		ContentsIsValidPair[] result = [];
+		ValidatedContents[] result = [];
 
 		NoteUpdate[] notes = [];
 
@@ -181,8 +183,8 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ContentsIsValidPair[] contents = await _dbAccess
-				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+			ValidatedContents[] contents = await _dbAccess
+				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
@@ -211,7 +213,7 @@ public sealed class FolderProtection : IFolderProtection
 				encrypt: false);
 
 			using DatabaseBackup? backup = await _dbAccess
-				.BackupDatabaseAsync(token)
+				.CreateBackupAsync(token)
 				.ConfigureAwait(false);
 
 			if (backup is null)
@@ -234,7 +236,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (await _contentWriter
 				.UpdateDatabaseAsync(parameters, token)
-				.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+				.ConfigureAwait(false) is not UpdateDatabaseOutcome.Saved)
 			{
 				return;
 			}
@@ -261,8 +263,8 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc />
 	public async Task EncryptFolderAsync(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		CancellationToken token = default)
 	{
 		using PinnedSecret password = await _dialogService.RequestPasswordAsync(
@@ -279,8 +281,8 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ContentsIsValidPair[] contents = await _dbAccess
-				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+			ValidatedContents[] contents = await _dbAccess
+				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
@@ -295,7 +297,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+				ValidatedContents[] result = [.. _encryption.EncryptContents(contents, dek)];
 
 				if (!AreContentsValid(result, contents.Length))
 				{
@@ -322,7 +324,7 @@ public sealed class FolderProtection : IFolderProtection
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.
 				using DatabaseBackup? backup = await _dbAccess
-					.BackupDatabaseAsync(token)
+					.CreateBackupAsync(token)
 					.ConfigureAwait(false);
 
 				if (backup is null)
@@ -345,7 +347,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				if (await _contentWriter
 					.UpdateDatabaseAsync(parameters, token)
-					.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+					.ConfigureAwait(false) is not UpdateDatabaseOutcome.Saved)
 				{
 					return;
 				}
@@ -367,7 +369,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <c>True</c> when every content is readable, carries an identifier, and there are as many of
 	/// them as expected.
 	/// </summary>
-	private static bool AreContentsValid(ContentsIsValidPair[] contents, int expectedCount)
+	private static bool AreContentsValid(ValidatedContents[] contents, int expectedCount)
 	{
 		return contents.Length == expectedCount
 			&& contents.All(x => x.IsValid && x.Id.IsNotDefault());
@@ -376,7 +378,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <summary>
 	/// Overwrites the buffers of the given contents.
 	/// </summary>
-	private static void WipeContents(ContentsIsValidPair[] contents)
+	private static void WipeContents(ValidatedContents[] contents)
 	{
 		contents.ForEach(x => x.Contents.ZeroMemory());
 	}
@@ -389,7 +391,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <summary>
 	/// Writes the identifiers of the contents that could not be converted to the log.
 	/// </summary>
-	private void LogInvalidContents(ContentsIsValidPair[] contents)
+	private void LogInvalidContents(ValidatedContents[] contents)
 	{
 		string identifiers = string.Join(", ", contents
 			.Where(x => !x.IsValid)
@@ -397,7 +399,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		_logger.LogError(
 			$"The contents of these files cannot be converted: {identifiers}",
-			assertDebug: false);
+			breakInDebugger: false);
 	}
 
 	/// <summary>
@@ -405,14 +407,14 @@ public sealed class FolderProtection : IFolderProtection
 	/// A note that cannot be converted throws, so the result is never partial.
 	/// </summary>
 	private NoteUpdate[] ProcessNotes(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		PinnedBuffer dek,
 		bool encrypt)
 	{
 		List<NoteUpdate> notes = [];
 
-		ExplorerModelBaseDto[] objects =
+		ExplorerItemDtoBase[] objects =
 		[
 			.. folder.WithSubfolders(),
 			.. files
@@ -420,7 +422,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			foreach (ExplorerModelBaseDto item in objects)
+			foreach (ExplorerItemDtoBase item in objects)
 			{
 				if (item.Note is not { } note || note.IsEmpty())
 				{
@@ -435,7 +437,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				notes.Add(new NoteUpdate(
 					item.Id,
-					item.EntityType,
+					item.Kind,
 					processed));
 			}
 		}

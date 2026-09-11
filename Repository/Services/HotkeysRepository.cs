@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class HotkeysRepository : RepositoryBase<HotkeyModel>, IHotkeysRepository
+public sealed class HotkeysRepository : RepositoryBase<HotkeyEntity>, IHotkeysRepository
 {
 	#region Constructors
 	public HotkeysRepository(SqliteDbContext context) : base(context)

@@ -1,7 +1,15 @@
 <Project>
+	<!--
+		Runs the IDE code-style analyzers during the build, so a naming rule from
+		.editorconfig is reported by the compiler and not only inside the IDE.
+	-->
+	<PropertyGroup>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
 	<PropertyGroup>
 		<AppName>DataOrganizer</AppName>
-		<AppNameParted>Data Organizer</AppNameParted>
+		<AppDisplayName>Data Organizer</AppDisplayName>
 		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.3.0</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
@@ -17,8 +25,8 @@
 		(Authors and PackageLicenseExpression apply to NuGet packages only).
 	-->
 	<PropertyGroup>
-		<Product>$(AppNameParted)</Product>
-		<AssemblyTitle>$(AppNameParted)</AssemblyTitle>
+		<Product>$(AppDisplayName)</Product>
+		<AssemblyTitle>$(AppDisplayName)</AssemblyTitle>
 		<Authors>$(Manufacturer)</Authors>
 		<Company>$(Manufacturer)</Company>
 		<Copyright>Copyright (c) 2026 $(Manufacturer)</Copyright>

@@ -3,11 +3,11 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:AvaloniaEdit="using:AvaloniaEdit"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EmbeddedFileEditorViewModel"
 	mc:Ignorable="d">
@@ -32,7 +32,7 @@
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
+				IsChecked="{Binding WordWrap, Mode=TwoWay}"
 				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -87,7 +87,7 @@
 
 		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
 		<AvaloniaEdit:TextEditor
-			Name="Editor"
+			x:Name="Editor"
 			Grid.Row="2"
 			Focusable="True"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
@@ -96,10 +96,10 @@
 			HorizontalScrollBarVisibility="Auto"
 			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
 			ShowLineNumbers="True"
-			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
+			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
-				<behaviors:StyledElementAddFluentThemeBehavior />
+				<styling:FluentThemeBehavior />
 
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction

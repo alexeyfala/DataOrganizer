@@ -1,0 +1,552 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Updates;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Windows;
+using DynamicData;
+using Repository.Interfaces.Database;
+using Serilog;
+using Shared.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.ViewModels.Windows;
+
+/// <summary>
+/// View model for <c>FavoritesWindow</c>.
+/// </summary>
+public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUpdatePrompt
+{
+	#region Properties
+	/// <inheritdoc cref="FavoritesViewSettings" />
+	public FavoritesViewSettings FavoritesSettings { get; } = new();
+
+	/// <summary>
+	/// <c>True</c> when the popup should be fixed.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
+	public partial bool IsPopupFixed { get; set; }
+
+	/// <summary>
+	/// Controls the display of the popup panel.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
+	public partial bool IsPopupOpen { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when opening the popup on hover is enabled in settings.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
+	public partial bool IsShowOnHoverEnabled { get; set; }
+
+	/// <inheritdoc cref="FavoritesPopupContentKind" />
+	[ObservableProperty]
+	public partial FavoritesPopupContentKind PopupContent { get; set; }
+
+	/// <inheritdoc cref="FavoritesWindowSettings.PopupHeight" />
+	[ObservableProperty]
+	public partial double PopupHeight { get; set; }
+
+	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
+	[ObservableProperty]
+	public partial double PopupWidth { get; set; }
+	#endregion
+
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="IsPopupFixed" /> changes.
+	/// </summary>
+	partial void OnIsPopupFixedChanged(bool value)
+	{
+		if (!value)
+		{
+			IsPopupOpen = false;
+
+			return;
+		}
+
+		// The RestorePopupContent method must be executed in DispatcherPriority.Background
+		// otherwise the UI will freeze.
+		_dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
+	}
+
+	/// <summary>
+	/// Called when <see cref="IsPopupOpen" /> changes.
+	/// </summary>
+	partial void OnIsPopupOpenChanged(bool value)
+	{
+		if (value)
+		{
+			return;
+		}
+
+		SaveContent();
+
+		PopupContent = FavoritesPopupContentKind.None;
+
+		UpdateCommands();
+
+		if (_app.FindDialogHost() is not { } dialogHost || !dialogHost.IsOpen)
+		{
+			return;
+		}
+
+		dialogHost.IsOpen = false;
+	}
+
+	/// <summary>
+	/// Called when <see cref="PopupContent" /> changes.
+	/// </summary>
+	partial void OnPopupContentChanged(
+		FavoritesPopupContentKind oldValue,
+		FavoritesPopupContentKind newValue) => _previousPopupContent = oldValue;
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Closes the popup by Esc key.
+	/// </summary>
+	[RelayCommand]
+	internal void ClosePopupByEsc()
+	{
+		IsPopupFixed = false;
+
+		IsPopupOpen = false;
+	}
+
+	/// <summary>
+	/// Displays the favorites in the popup panel.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
+	internal void ShowFavorites()
+	{
+		_logger.LogInformation("Show favorites");
+
+		SaveContent();
+
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
+	}
+
+	/// <summary>
+	/// Opens the popup with the restored content on hovering over the fix toggle.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanShowPopupOnHover))]
+	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
+
+	/// <summary>
+	/// Handles the display of the favorites.
+	/// </summary>
+	[RelayCommand]
+	private void FavoritesDisplayed(SelectedFavoritesViewModel? viewModel)
+	{
+		_favorites = viewModel;
+
+		viewModel?.Initialize(
+			FavoritesSettings.NavigationColumnWidth,
+			FavoritesSettings.SelectedCategoryId,
+			FavoritesSettings.Categories,
+			FavoritesSettings.OrderedCategoryIds,
+			FavoritesSettings.SelectedPairs);
+	}
+
+	/// <summary>
+	/// Displays the copy history in the popup panel.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanShowCopyHistory))]
+	private void ShowCopyHistory()
+	{
+		_logger.LogInformation("Show copy history");
+
+		SaveContent();
+
+		ShowContentInPopup(FavoritesPopupContentKind.CopyHistory);
+	}
+
+	/// <summary>
+	/// Displays the "Editor" window.
+	/// </summary>
+	[RelayCommand]
+	private Task ShowEditor(FavoritesWindow? window)
+	{
+		if (window is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return ShowInEditorAsync(default, window);
+	}
+	#endregion
+
+	#region Data
+	/// <inheritdoc cref="SelectedFavoritesViewModel" />
+	private SelectedFavoritesViewModel? _favorites;
+
+	/// <summary>
+	/// Previous <see cref="PopupContent" /> value.
+	/// </summary>
+	private FavoritesPopupContentKind _previousPopupContent;
+	#endregion
+
+	#region Constructors
+	public FavoritesViewModel(
+		Application app,
+		IAppSettingsStore settingsStore,
+		IClipboardAccessor clipboard,
+		IContentCipher contentCipher,
+		IContentVisibility contentVisibility,
+		IDbAccess dbAccess,
+		IDialogService dialogService,
+		IDispatcherAccessor dispatcher,
+		IExecutionEngine executionEngine,
+		ILogger logger,
+		IMessenger messenger,
+		INotificationService notification,
+		ITaskExceptionHandler exceptionHandler,
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
+			app,
+			settingsStore,
+			clipboard,
+			contentCipher,
+			contentVisibility,
+			dbAccess,
+			dialogService,
+			dispatcher,
+			executionEngine,
+			logger,
+			messenger,
+			notification,
+			exceptionHandler,
+			viewLauncher,
+			keyboardInputHook)
+	{
+		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		Hierarchy.AddRange(hierarchy);
+
+		FavoritesSettings
+			.Categories
+			.AddRange(GetCategories(hierarchy));
+	}
+
+	/// <inheritdoc />
+	public Task<bool> ConfirmUpdateAsync(string text, CancellationToken token = default)
+	{
+		bool wasPopupOpen = IsPopupOpen;
+
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
+
+		return _dispatcher.PostAsync(async () =>
+		{
+			try
+			{
+				return await _dialogService
+					.RequestYesNoAsync(text, token)
+					.ConfigureAwait(true);
+			}
+			finally
+			{
+				if (!wasPopupOpen)
+				{
+					IsPopupOpen = false;
+				}
+			}
+		}, DispatcherPriority.Background);
+	}
+
+	/// <summary>
+	/// Restores the window placement, the favorites and the copy history from the stored settings.
+	/// </summary>
+	public void Initialize(
+		Window window,
+		FavoritesWindowSettings windowSettings,
+		FavoritesViewSettings favoritesSettings,
+		CopyHistoryViewSettings copyHistorySettings)
+	{
+		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
+
+		if (windowSettings.X > 0
+			&& windowSettings.Y > 0
+			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
+		{
+			window.Position = savedPosition;
+		}
+		else
+		{
+			IViewLauncher.SetDefaultLocation(window);
+		}
+
+		if (windowSettings.PopupWidth > 0.0 && windowSettings.PopupHeight > 0.0)
+		{
+			PopupWidth = windowSettings.PopupWidth;
+
+			PopupHeight = windowSettings.PopupHeight;
+		}
+		else
+		{
+			IViewLauncher.SetDefaultPopupSize(this);
+		}
+
+		if (favoritesSettings.NavigationColumnWidth > default(double))
+		{
+			FavoritesSettings.NavigationColumnWidth = favoritesSettings.NavigationColumnWidth;
+		}
+		else
+		{
+			IViewLauncher.SetDefaultNavigationColumnWidth(this);
+		}
+
+		FavoritesSettings.SelectedCategoryId = favoritesSettings.SelectedCategoryId;
+
+		FavoritesSettings.SelectedPairs = favoritesSettings.SelectedPairs;
+
+		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
+
+		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
+
+		if (CopyHistorySettings
+			.ItemIds
+			.Count > 0)
+		{
+			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		}
+
+		IsInitialized = true;
+	}
+
+	/// <summary>
+	/// Saves current content in popup.
+	/// </summary>
+	public void SaveContent()
+	{
+		if (PopupContent == FavoritesPopupContentKind.None)
+		{
+			return;
+		}
+
+		if (PopupContent == FavoritesPopupContentKind.Favorites)
+		{
+			SaveFavorites();
+		}
+		else if (PopupContent == FavoritesPopupContentKind.CopyHistory)
+		{
+			SaveCopyHistory();
+		}
+	}
+
+	/// <inheritdoc />
+	public override Task ShowInEditorAsync(
+		Guid id,
+		Window window,
+		CancellationToken _ = default)
+	{
+		IsShutdown = false;
+
+		if (IsPopupFixed)
+		{
+			SaveContent();
+		}
+
+		window.Close();
+
+		_viewLauncher.CreateEditorWindow(
+			Hierarchy,
+			OpenedInEditorFiles,
+			ExecutingFiles,
+			id).Show();
+
+		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		FavoritesSettings
+			.Categories
+			.ForEach(x => x.Children.Clear());
+
+		FavoritesSettings
+			.Categories
+			.Clear();
+
+		FavoritesSettings
+			.OrderedCategoryIds
+			.Clear();
+
+		FavoritesSettings
+			.SelectedPairs
+			.Clear();
+
+		CopyHistorySettings
+			.ItemIds
+			.Clear();
+
+		PopupContent = FavoritesPopupContentKind.None;
+
+		_copyHistory?.Dispose();
+
+		_favorites?.Dispose();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="ShowCopyHistoryCommand" />.
+	/// </summary>
+	private bool CanShowCopyHistory() => PopupContent != FavoritesPopupContentKind.CopyHistory;
+
+	/// <summary>
+	/// Validates <see cref="ShowFavoritesCommand" />.
+	/// </summary>
+	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentKind.Favorites;
+
+	/// <summary>
+	/// Validates <see cref="ShowPopupOnHoverCommand" />.
+	/// </summary>
+	private bool CanShowPopupOnHover() => IsShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
+
+	/// <summary>
+	/// Returns a flat sequence of <see cref="FavoriteCategory" />.
+	/// </summary>
+	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		List<FileDto> files = [.. hierarchy
+			.OfType<FileDto>()
+			.Where(x => x.IsFavorite)];
+
+		if (files.Count > 0)
+		{
+			FolderDto? parent = files[0].Parent;
+
+			yield return new()
+			{
+				Children = files,
+				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
+				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
+				Index = FavoritesSettings.Categories.Count,
+				Name = parent?.Name ?? "Root"
+			};
+		}
+
+		foreach (FolderDto folder in hierarchy.OfType<FolderDto>())
+		{
+			foreach (FavoriteCategory category in GetCategories(folder.Children))
+			{
+				yield return category;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Restores the content for popup.
+	/// </summary>
+	private void RestorePopupContent()
+	{
+		if (_previousPopupContent != FavoritesPopupContentKind.None)
+		{
+			switch (_previousPopupContent)
+			{
+				case FavoritesPopupContentKind.CopyHistory:
+					ShowCopyHistory();
+					break;
+
+				case FavoritesPopupContentKind.Favorites:
+					ShowFavorites();
+					break;
+			}
+		}
+		else
+		{
+			ShowFavorites();
+		}
+	}
+
+	/// <summary>
+	/// Stores the current state of the favorites view in <see cref="FavoritesSettings" />.
+	/// </summary>
+	private void SaveFavorites()
+	{
+		if (_favorites is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Save favorites");
+
+		FavoritesSettings.NavigationColumnWidth = _favorites
+			.NavigationColumnWidth
+			.Value;
+
+		if (_favorites.SelectedCategory is { } category)
+		{
+			FavoritesSettings.SelectedCategoryId = category.Id;
+		}
+
+		FavoritesSettings
+			.SelectedPairs
+			.ClearAddRange(_favorites.SelectedPairs);
+
+		FavoritesSettings
+			.OrderedCategoryIds
+			.ClearAddRange(_favorites.OrderedCategoryIds);
+
+		_favorites.Dispose();
+	}
+
+	/// <summary>
+	/// Sets <see cref="PopupContent" /> from <paramref name="content"/>,
+	/// <see cref="IsPopupOpen" /> to <c>True</c> and updates commands.
+	/// </summary>
+	private void ShowContentInPopup(FavoritesPopupContentKind content)
+	{
+		PopupContent = content;
+
+		IsPopupOpen = true;
+
+		UpdateCommands();
+	}
+
+	/// <summary>
+	/// Re-evaluates the commands that switch the popup content.
+	/// </summary>
+	private void UpdateCommands()
+	{
+		ShowFavoritesCommand.NotifyCanExecuteChanged();
+
+		ShowCopyHistoryCommand.NotifyCanExecuteChanged();
+	}
+	#endregion
+}

@@ -50,6 +50,15 @@ public interface IFileSystem
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
+	/// <summary>
+	/// Determines whether a folder exists in the file system, taking into account the case of the path.
+	/// </summary>
+	/// <remarks>
+	/// The case-sensitivity of the path parameter corresponds to that of the file system on which the code is running.
+	/// For example, it's case-insensitive on NTFS (the default Windows file system) and case-sensitive on Linux file systems.
+	/// </remarks>
+	bool DirectoryExists([NotNullWhen(true)] string? directoryPath);
+
 	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
 	IEnumerable<string> EnumerateFiles(string directoryPath);
 
@@ -64,12 +73,12 @@ public interface IFileSystem
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />
-	/// <inheritdoc cref="DeleteFile(string)" />
+	/// <inheritdoc cref="File.Delete(string)" />
 	/// </summary>
 	void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = DefaultBufferSize,
-		in int passes = DefaultPassCount);
+		in int passCount = DefaultPassCount);
 
 	/// <summary>
 	/// Overwrites the file contents with random values.
@@ -77,17 +86,7 @@ public interface IFileSystem
 	void EraseFile(
 		string filePath,
 		in int bufferSize = DefaultBufferSize,
-		in int passes = DefaultPassCount);
-
-	/// <summary>
-	/// Determines whether a folder exists in the file system, taking into account the case of the path.
-	/// </summary>
-	/// <remarks>
-	/// The case-sensitivity of the path parameter corresponds to that of the file system on which the code is running.
-	/// For example, it's case-insensitive on NTFS (the default Windows file system) and case-sensitive on Linux file systems.
-	/// </remarks>
-	[return: NotNullIfNotNull(nameof(directoryPath))]
-	bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath);
+		in int passCount = DefaultPassCount);
 
 	/// <summary>
 	/// Determines whether a file exists in the file system, taking into account the case of the path.
@@ -95,7 +94,7 @@ public interface IFileSystem
 	/// <remarks>
 	/// The case-sensitivity of the path parameter corresponds to that of the file system on which the code is running. For example, it's case-insensitive on NTFS (the default Windows file system) and case-sensitive on Linux file systems.
 	/// </remarks>
-	bool IsFileExists([NotNullWhen(true)] string? filePath);
+	bool FileExists([NotNullWhen(true)] string? filePath);
 
 	/// <summary>
 	/// <c>True</c> when the file is locked by another process. <br />
@@ -130,17 +129,17 @@ public interface IFileSystem
 	/// <summary>
 	/// Serializes an object into a Json string, saving it to a file using <see cref="System.Text.Json" />.
 	/// </summary>
-	void SerializeToJsonFile<T>(T value, string filePath, bool isHide);
+	void SerializeToJsonFile<T>(T value, string filePath, bool isHidden);
 
 	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.Hidden" /> attribute to a file.
 	/// </summary>
-	void SetFileHidden(string filePath, bool value);
+	void SetFileHidden(string filePath, bool isHidden);
 
 	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.ReadOnly" /> attribute to a file.
 	/// </summary>
-	void SetFileReadOnly(string filePath, bool value);
+	void SetFileReadOnly(string filePath, bool isReadOnly);
 
 	/// <summary>
 	/// Waits until <paramref name="filePath" /> is no longer locked by another
@@ -148,7 +147,7 @@ public interface IFileSystem
 	/// <c>False</c> if <paramref name="token" /> was cancelled while the file
 	/// was still locked. Never throws on cancellation.
 	/// </summary>
-	ValueTask<bool> WaitFileUnlockedAsync(
+	ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default);

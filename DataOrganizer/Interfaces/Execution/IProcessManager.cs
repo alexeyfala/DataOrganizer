@@ -1,0 +1,42 @@
+using System.Diagnostics;
+
+namespace DataOrganizer.Interfaces.Execution;
+
+/// <summary>
+/// Provides a means of interacting with <see cref="Process" />.
+/// </summary>
+public interface IProcessManager
+{
+	#region Methods
+	/// <summary>
+	/// Returns a list of child processes.
+	/// </summary>
+	Process[] GetChildProcesses(int parentProcessId);
+
+	/// <inheritdoc cref="Process.Kill()" />
+	void KillProcess(int processId);
+
+	/// <summary>
+	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
+	/// </summary>
+	bool ProcessExists(int processId);
+
+	/// <summary>
+	/// Launches a file process depending on the operating system.<br />
+	/// When running a file without an extension, or when the system has no application
+	/// associated with the file, <paramref name="processId"/> will have the default value.
+	/// </summary>
+	bool StartProcess(string filePath, out int processId);
+
+	/// <summary>
+	/// Launches <paramref name="appPath" /> with <paramref name="fileArgument" /> passed
+	/// as a single command-line argument. Returns <c>True</c> and the PID of the new
+	/// process on success; <c>False</c> with default <paramref name="processId" /> when
+	/// the process did not start.
+	/// </summary>
+	bool StartProcess(string appPath, string fileArgument, out int processId);
+
+	/// <inheritdoc cref="Process.Start(string)" />
+	Process StartProcess(string fileName);
+	#endregion
+}

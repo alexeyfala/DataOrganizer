@@ -1,14 +1,16 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
+	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
 	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
+	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
@@ -36,10 +38,10 @@
 				TextTrimming="CharacterEllipsis"
 				TextWrapping="Wrap">
 				<Interaction.Behaviors>
-					<behaviors:SearchHighlightBehavior
+					<text:SearchHighlightBehavior
 						HighlightBrush="{StaticResource SearchHighlightBrush}"
 						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
-						Query="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).SearchText}"
+						Query="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>
 			</TextBlock>
@@ -78,7 +80,7 @@
 			HorizontalContentAlignment="Stretch"
 			Background="{StaticResource MaterialDividerBrush}"
 			Classes.active="{Binding IsActive}"
-			Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
+			Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
 			CommandParameter="{Binding}"
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
@@ -92,8 +94,8 @@
 			</Button.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:CloseWindowOnClickBehavior
-					KeepOpen="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).KeepOpen}"
+				<windowBehaviors:CloseWindowOnClickBehavior
+					KeepOpen="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).KeepOpen}"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 
@@ -111,13 +113,13 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<templateSelectors:ClipboardLogEntryTemplateSelector>
+						<selectors:ClipboardLogEntryTemplateSelector>
 							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
-						</templateSelectors:ClipboardLogEntryTemplateSelector>
+						</selectors:ClipboardLogEntryTemplateSelector>
 					</ContentControl.ContentTemplate>
 				</ContentControl>
 
@@ -159,11 +161,11 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RemoveEntryCommand}"
+										Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RemoveEntryCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:HandleClickBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<materialIcons:MaterialIcon
@@ -193,11 +195,11 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).TogglePinCommand}"
+										Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).TogglePinCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:HandleClickBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>
@@ -226,7 +228,7 @@
 						<Button
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
+							Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
 							CommandParameter="{Binding}"
 							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
 							Cursor="Hand"
@@ -265,7 +267,7 @@
 							</ToggleButton.IsVisible>
 
 							<Interaction.Behaviors>
-								<behaviors:HandleClickBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>

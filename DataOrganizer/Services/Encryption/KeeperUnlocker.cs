@@ -1,7 +1,7 @@
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -145,7 +145,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 	#endregion

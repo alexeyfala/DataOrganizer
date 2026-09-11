@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Notes;
 using System.ComponentModel;
 
@@ -32,6 +32,16 @@ internal sealed partial class NoteView : UserControl
 	}
 
 	/// <summary>
+	/// Controls the display of the note popup.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public bool IsNoteOpen
+	{
+		get => GetValue(IsNoteOpenProperty);
+		set => SetValue(IsNoteOpenProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when the note is sensitive: a copy of it carries the clipboard sensitivity markers.
 	/// </summary>
 	public bool IsSensitive
@@ -52,7 +62,7 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// An object the note belongs to, passed to <see cref="NoteReader" />.
 	/// </summary>
-	public ExplorerModelBaseDto? NoteItem
+	public ExplorerItemDtoBase? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -73,16 +83,6 @@ internal sealed partial class NoteView : UserControl
 		get => GetValue(NoteReaderProperty);
 		set => SetValue(NoteReaderProperty, value);
 	}
-
-	/// <summary>
-	/// Controls the display of popup for note.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public bool ShowNote
-	{
-		get => GetValue(ShowNoteProperty);
-		set => SetValue(ShowNoteProperty, value);
-	}
 	#endregion
 
 	#region Styled Properties
@@ -99,6 +99,12 @@ internal sealed partial class NoteView : UserControl
 		.Register<NoteView, bool>(name: nameof(IsLocked));
 
 	/// <summary>
+	/// Identifies the <see cref="IsNoteOpen" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsNoteOpenProperty = AvaloniaProperty
+		.Register<NoteView, bool>(name: nameof(IsNoteOpen));
+
+	/// <summary>
 	/// Identifies the <see cref="IsSensitive" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
@@ -107,8 +113,8 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
-		.Register<NoteView, ExplorerModelBaseDto?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerItemDtoBase?> NoteItemProperty = AvaloniaProperty
+		.Register<NoteView, ExplorerItemDtoBase?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.
@@ -127,17 +133,11 @@ internal sealed partial class NoteView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<INoteReader?> NoteReaderProperty = AvaloniaProperty
 		.Register<NoteView, INoteReader?>(name: nameof(NoteReader));
-
-	/// <summary>
-	/// Identifies the <see cref="ShowNote" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> ShowNoteProperty = AvaloniaProperty
-		.Register<NoteView, bool>(name: nameof(ShowNote));
 	#endregion
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to clipboard.
+	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to the clipboard.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
 	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();
@@ -174,7 +174,7 @@ internal sealed partial class NoteView : UserControl
 			return;
 		}
 
-		ShowNote = true;
+		IsNoteOpen = true;
 	}
 	#endregion
 

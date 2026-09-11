@@ -1,8 +1,8 @@
-using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Models.Dataset;
 using Entities.Enums;
-using Repository.DTO;
-using Repository.Interfaces;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using System;
@@ -28,13 +28,13 @@ internal static class DbAccessExtensions
 			.CountOfAsync(x => x.ParentId == null)
 			.ConfigureAwait(false);
 
-		string fileText = TextHelper
+		string fileText = SampleText
 			.LoremIpsum
 			.Repeat(5, Environment.NewLine + Environment.NewLine);
 
 		string records = JsonSerializer.Serialize(Enumerable
 			.Repeat(CreateRandomRecords(levels: levels), 20)
-			.SelectMany(x => x), AppUtils.JsonOptions);
+			.SelectMany(x => x), JsonDefaults.Options);
 
 		await AddRandomObjectsAsync(
 			dbAccess,
@@ -43,8 +43,8 @@ internal static class DbAccessExtensions
 			levels: levels,
 			datasets: datasets,
 			startIndex: total,
-			fileContents: TextHelper.Utf8Encoding.GetBytes(fileText),
-			datasetContents: TextHelper.Utf8Encoding.GetBytes(records)).ConfigureAwait(false);
+			fileContents: TextDefaults.Encoding.GetBytes(fileText),
+			datasetContents: TextDefaults.Encoding.GetBytes(records)).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -52,7 +52,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<RecordsGroup> CreateGroups(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 
@@ -60,7 +60,7 @@ internal static class DbAccessExtensions
 		{
 			yield return new RecordsGroup()
 			{
-				Name = $"Group_{AppUtils.CreateRandomString(10)}",
+				Name = $"Group_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -71,7 +71,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<KeyValueRecord> CreateKeyValueRecords(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 
@@ -79,8 +79,8 @@ internal static class DbAccessExtensions
 		{
 			yield return new KeyValueRecord()
 			{
-				Key = $"Key_{AppUtils.CreateRandomString(10)}",
-				Value = $"Value_{AppUtils.CreateRandomString(10)}",
+				Key = $"Key_{RandomString.Create(10)}",
+				Value = $"Value_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -124,7 +124,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<ValueRecord> CreateValueRecords(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 
@@ -132,7 +132,7 @@ internal static class DbAccessExtensions
 		{
 			yield return new ValueRecord()
 			{
-				Value = $"Value_{AppUtils.CreateRandomString(10)}",
+				Value = $"Value_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -141,7 +141,7 @@ internal static class DbAccessExtensions
 
 	#region Helpers
 	/// <summary>
-	/// Adds random entities to database.
+	/// Adds random entities to the database.
 	/// </summary>
 	private static async Task AddRandomObjectsAsync(
 		IDbAccess dbAccess,
@@ -165,9 +165,9 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.Folder,
 				Index = startIndex++,
-				Name = $"{i + 1}_Folder_{AppUtils.CreateRandomString(6)}",
+				Kind = EntityKind.Folder,
+				Name = $"{i + 1}_Folder_{RandomString.Create(6)}",
 				ParentId = parentId
 			};
 
@@ -192,10 +192,10 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.File,
 				FileContents = fileContents,
 				Index = startIndex++,
-				Name = $"{i + 1}_File_{AppUtils.CreateRandomString(6)}.{AppUtils.CreateRandomString(3).ToLower()}",
+				Kind = EntityKind.File,
+				Name = $"{i + 1}_File_{RandomString.Create(6)}.{RandomString.Create(3).ToLower()}",
 				ParentId = parentId
 			};
 
@@ -208,10 +208,10 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.DataSet,
 				FileContents = datasetContents,
 				Index = startIndex++,
-				Name = $"{i + 1}_Dataset_{AppUtils.CreateRandomString(6)}",
+				Kind = EntityKind.Dataset,
+				Name = $"{i + 1}_Dataset_{RandomString.Create(6)}",
 				ParentId = parentId
 			};
 

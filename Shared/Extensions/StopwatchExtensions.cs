@@ -8,11 +8,11 @@ public static class StopwatchExtensions
 	/// <summary>
 	/// Returns the elapsed time as a string.
 	/// </summary>
-	public static string GetElapsedTime(this Stopwatch timer, bool includeHours = true)
+	public static string GetElapsedTime(this Stopwatch stopwatch, bool includeHours = true)
 	{
 		return includeHours
-			? $@"{timer.Elapsed:hh\:mm\:ss}.{timer.Elapsed.Milliseconds.TakeDigits(3):000}"
-			: $@"{timer.Elapsed:mm\:ss}.{timer.Elapsed.Milliseconds.TakeDigits(3):000}";
+			? $@"{stopwatch.Elapsed:hh\:mm\:ss}.{stopwatch.Elapsed.Milliseconds.TakeDigits(3):000}"
+			: $@"{stopwatch.Elapsed:mm\:ss}.{stopwatch.Elapsed.Milliseconds.TakeDigits(3):000}";
 	}
 	#endregion
 }

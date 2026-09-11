@@ -4,16 +4,18 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using Material.Icons.Avalonia;
-using Repository.DTO;
-using Repository.Interfaces;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -49,14 +51,14 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	{
 		object[] values = [.. multiBindings.AsNotNull()];
 
-		if (!GetFile(
+		if (!TryGetFile(
 			values,
-			out FileModelDto? file))
+			out FileDto? file))
 		{
 			return;
 		}
 
-		if (!GetContainer(
+		if (!TryGetContainer(
 			values,
 			out SelectingItemsControl? container))
 		{
@@ -78,12 +80,12 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	[RelayCommand]
 	private async Task PreviewPointerEntered(MaterialIcon? icon)
 	{
-		if (icon?.DataContext is not FileModelDto file)
+		if (icon?.DataContext is not FileDto file)
 		{
 			return;
 		}
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(file.Id)
 			.ConfigureAwait(false);
 
@@ -113,8 +115,8 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		try
 		{
-			string text = TextHelper
-				.Utf8Encoding
+			string text = TextDefaults
+				.Encoding
 				.GetString(contents);
 
 			if (string.IsNullOrEmpty(text))
@@ -184,9 +186,9 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// </summary>
 	private static bool CanCopyContent(IEnumerable<object>? multiBindings)
 	{
-		if (GetFile(
+		if (TryGetFile(
 			multiBindings?.ToArray() ?? [],
-			out FileModelDto? file))
+			out FileDto? file))
 		{
 			return !file.IsOpened();
 		}
@@ -197,7 +199,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Tries to get reference to container from multi bindings.
 	/// </summary>
-	private static bool GetContainer(
+	private static bool TryGetContainer(
 		object[] values,
 		[NotNullWhen(true)] out SelectingItemsControl? container)
 	{
@@ -214,15 +216,15 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 
 	/// <summary>
-	/// Tries to get reference to file from multi bindings.
+	/// Tries to get a reference to a file from multi bindings.
 	/// </summary>
-	private static bool GetFile(
+	private static bool TryGetFile(
 		object[] values,
-		[NotNullWhen(true)] out FileModelDto? file)
+		[NotNullWhen(true)] out FileDto? file)
 	{
 		file = null;
 
-		if (values.Length < 2 || values[0] is not FileModelDto dto)
+		if (values.Length < 2 || values[0] is not FileDto dto)
 		{
 			return false;
 		}

@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Execution;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Messages;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Messages.Execution;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -109,7 +109,7 @@ public class FileChangeTracker : IFileChangeTracker
 		// <c>False</c> asks the caller to stop tracking.
 		async Task<bool> CheckOnceAsync(CancellationToken checkToken)
 		{
-			if (!_fileSystem.IsFileExists(parameters.FilePath))
+			if (!_fileSystem.FileExists(parameters.FilePath))
 			{
 				PublishFailure($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 
@@ -180,12 +180,12 @@ public class FileChangeTracker : IFileChangeTracker
 							bytes = encrypted;
 						}
 
-						DateTime updatedDate = DateTime.Now;
+						DateTime updatedAt = DateTime.Now;
 
 						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
 							[
 								x => x.SetProperty(x => x.Contents, bytes),
-								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+								x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 							], checkToken).ConfigureAwait(false))
 						{
 							_logger.LogDebug(
@@ -195,7 +195,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 							parameters
 								.File
-								.UpdatedDate = updatedDate;
+								.UpdatedAt = updatedAt;
 						}
 					}
 					finally

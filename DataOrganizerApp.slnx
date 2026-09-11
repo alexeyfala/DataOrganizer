@@ -91,11 +91,11 @@
     <File Path="tools/gen-third-party-notices.ps1" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
+    <Project Path="TestSupport/TestSupport.csproj" />
   </Folder>
   <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>

@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Models.Clipboard;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,7 +9,7 @@ namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
 /// Tracks the system clipboard in the background and exposes an in-memory
-/// log (newest first) capped at <see cref="HistoryLimit" /> entries.
+/// log (newest first) capped at a fixed number of entries.
 /// </summary>
 public interface IClipboardLogService : IAsyncDisposable
 {
@@ -30,7 +30,7 @@ public interface IClipboardLogService : IAsyncDisposable
 	/// Clears <see cref="Entries" />, forgets the last observed payload and empties the
 	/// system clipboard, so cleared content is not re-captured until a new copy occurs.
 	/// </summary>
-	Task ClearAsync();
+	Task ClearAllAsync();
 
 	/// <summary>
 	/// Clears <see cref="Entries" /> and forgets the last observed payload, without

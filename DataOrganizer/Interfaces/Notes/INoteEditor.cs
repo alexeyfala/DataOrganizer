@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +15,9 @@ public interface INoteEditor
 	/// Overwrites the note of <paramref name="item" />; blank <paramref name="note" /> removes it.
 	/// </summary>
 	Task<bool> EditAsync(
-		ExplorerModelBaseDto item,
+		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default);
 	#endregion
 }

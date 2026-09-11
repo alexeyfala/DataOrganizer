@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Enums.Encryption;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +14,7 @@ public interface IEncryptedContentWriter
 	/// <summary>
 	/// Writes the processed contents, notes and the wrapped key, and applies the new status to the objects.
 	/// </summary>
-	Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+	Task<UpdateDatabaseOutcome> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default);
 	#endregion

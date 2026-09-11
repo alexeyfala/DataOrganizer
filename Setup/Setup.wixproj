@@ -7,9 +7,9 @@
 		<Cultures>$(SetupCulture)</Cultures>
 	</PropertyGroup>
 	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);AppDisplayName=$(AppDisplayName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameParted=$(AppNameParted)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>

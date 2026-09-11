@@ -7,7 +7,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:system="using:System"
 	xmlns:themes="using:Material.Styles.Themes"
-	Name="{x:Static common:AppUtils.AppNameParted}">
+	Name="{x:Static common:AppInfo.AppDisplayName}">
 
 	<Application.Resources>
 		<ResourceDictionary>
@@ -22,17 +22,25 @@
 
 				<ResourceInclude Source="/Templates/DatasetTemplates.axaml" />
 
-				<ResourceInclude Source="/Templates/DataTemplates.axaml" />
+				<ResourceInclude Source="/Templates/EditorTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/EditorTreeViewTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/FavoritesTemplates.axaml" />
 
+				<ResourceInclude Source="/Templates/FileListTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/NotificationTemplates.axaml" />
+
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/PropertiesTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/SettingsTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 
-		<!--#region Necessary for DataOrganizer.Behaviors.StyledElementAddFluentThemeBehavior-->
+		<!--#region Necessary for DataOrganizer.Behaviors.Styling.FluentThemeBehavior-->
 		<system:Double x:Key="ControlContentThemeFontSize">14</system:Double>
 
 		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>

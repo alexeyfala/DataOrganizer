@@ -1,7 +1,7 @@
 using Avalonia.Input;
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -80,25 +80,25 @@ public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 
 	#region Helpers
 	/// <summary>
-	/// Cancels and disposes <paramref name="cts" />, tolerating an already-disposed source.
+	/// Cancels and disposes <paramref name="cancellation" />, tolerating an already-disposed source.
 	/// </summary>
-	private static void Cancel(CancellationTokenSource? cts)
+	private static void Cancel(CancellationTokenSource? cancellation)
 	{
-		if (cts is null)
+		if (cancellation is null)
 		{
 			return;
 		}
 
 		try
 		{
-			cts.Cancel();
+			cancellation.Cancel();
 		}
 		catch (ObjectDisposedException)
 		{
 			// Already disposed by a concurrent arm — nothing to do.
 		}
 
-		cts.Dispose();
+		cancellation.Dispose();
 	}
 
 	/// <summary>

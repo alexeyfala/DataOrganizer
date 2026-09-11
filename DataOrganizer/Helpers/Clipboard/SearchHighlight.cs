@@ -54,7 +54,7 @@ internal static class SearchHighlight
 	}
 	#endregion
 
-	#region Types
+	#region Nested Types
 	/// <summary>
 	/// A contiguous run of text flagged as a query match or as plain text.
 	/// </summary>

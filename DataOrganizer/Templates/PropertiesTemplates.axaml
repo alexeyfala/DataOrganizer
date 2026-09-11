@@ -1,0 +1,21 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:repositoryDto="using:Repository.Dto">
+
+	<!-- ObjectPropertyTemplate -->
+	<DataTemplate
+		x:Key="ObjectPropertyTemplate"
+		x:DataType="repositoryDto:PropertyDescription">
+		<Grid ColumnDefinitions="Auto,*,Auto">
+			<SelectableTextBlock Grid.Column="0">
+				<Run Text="{Binding Name, Mode=OneTime}" />
+				<Run Text=":" />
+			</SelectableTextBlock>
+
+			<SelectableTextBlock
+				Grid.Column="2"
+				Text="{Binding Value, Mode=OneTime}" />
+		</Grid>
+	</DataTemplate>
+</ResourceDictionary>

@@ -1,19 +1,21 @@
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Repository.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace Repository.Interfaces;
 
 /// <summary>
-/// Repository for <see cref="HotkeyModel" />.
+/// Repository for <see cref="HotkeyEntity" />.
 /// </summary>
 public interface IHotkeysRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
-	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token = default);
+	ValueTask<EntityEntry<HotkeyEntity>> AddAsync(HotkeyEntity entity, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entities from the database by owner ID.

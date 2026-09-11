@@ -3,16 +3,18 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -110,7 +112,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
 	protected async Task CopyContentAsync(
-		FileModelDto file,
+		FileDto file,
 		ItemsControl container,
 		bool updateView,
 		CancellationToken token = default)
@@ -118,7 +120,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		try
 		{
 			if (!await _dbAccess
-				.IsExistsAsync(file.Id, token)
+				.ExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
 				_notification.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}");
@@ -126,7 +128,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			ContentsIsValidPair result = await _dbAccess
+			ValidatedContents result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
 
@@ -138,7 +140,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 			}
 
 			if (await _contentCipher
-				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
+				.TryDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{
 				return;
@@ -146,8 +148,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			try
 			{
-				string text = TextHelper
-					.Utf8Encoding
+				string text = TextDefaults
+					.Encoding
 					.GetString(contents);
 
 				if (string.IsNullOrEmpty(text))
@@ -159,7 +161,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (this is ViewModelBase viewModel)
 				{
-					viewModel.InsertToCopyHistory(file, updateView);
+					viewModel.InsertIntoCopyHistory(file, updateView);
 				}
 
 				try
@@ -174,11 +176,11 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					_logger.LogException(ex);
 				}
 
-				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
+				FolderDto[] parents = [.. file.GetAllParents().Reverse()];
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					_exceptionHandler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
+					_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
 				}
 			}
 			finally

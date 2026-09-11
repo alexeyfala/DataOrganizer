@@ -3,17 +3,24 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Messages;
-using Repository.Interfaces;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Execution;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -41,12 +48,12 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> ExecutingFiles { get; } = [];
+	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
 
 	/// <summary>
 	/// Hierarchical sequence of objects.
 	/// </summary>
-	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
+	public ObservableCollection<ExplorerItemDtoBase> Hierarchy { get; } = [];
 
 	/// <summary>
 	/// <c>True</c> when clipboard history tracking is enabled in settings.
@@ -65,9 +72,9 @@ public abstract partial class ViewModelBase :
 	public bool IsShutdown { get; protected set; } = true;
 
 	/// <summary>
-	/// Opened in editor files.
+	/// The files currently open in the editor.
 	/// </summary>
-	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
+	public List<FileDto> OpenedInEditorFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Commands
@@ -75,7 +82,7 @@ public abstract partial class ViewModelBase :
 	/// Closes a file executing in the operating system.
 	/// </summary>
 	[RelayCommand]
-	internal void CloseExecutingFile(FileModelDto? dto)
+	internal void CloseExecutingFile(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -84,9 +91,9 @@ public abstract partial class ViewModelBase :
 
 		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name),
-			nameof(FileModelDto.EntityType))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name),
+			nameof(FileDto.Kind))}");
 
 		_dispatcher.Post(() =>
 		{
@@ -105,7 +112,7 @@ public abstract partial class ViewModelBase :
 	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
 	{
 		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.Items),
+			Hierarchy.FilterFilesById(CopyHistorySettings.ItemIds),
 			CopyHistorySettings.SelectedItemId);
 
 		_copyHistory = viewModel;
@@ -210,25 +217,25 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Adds objects to <see cref="Hierarchy" />.
 	/// </summary>
-	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
+	public abstract void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
 	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void InsertToCopyHistory(FileModelDto file, bool updateView)
+	public void InsertIntoCopyHistory(FileDto file, bool updateView)
 	{
 		if (CopyHistorySettings
-			.Items
+			.ItemIds
 			.Contains(file.Id))
 		{
 			CopyHistorySettings
-				.Items
-				.MoveToTop(CopyHistorySettings.Items.IndexOf(file.Id));
+				.ItemIds
+				.MoveToTop(CopyHistorySettings.ItemIds.IndexOf(file.Id));
 		}
 		else
 		{
 			CopyHistorySettings
-				.Items
+				.ItemIds
 				.Insert(0, file.Id);
 		}
 
@@ -264,15 +271,15 @@ public abstract partial class ViewModelBase :
 	/// Closes editing and executing files.
 	/// </summary>
 	internal void CloseFiles(
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles)
 	{
-		foreach (FileModelDto file in editingFiles)
+		foreach (FileDto file in editingFiles)
 		{
 			CloseEditingFile(file);
 		}
 
-		foreach (FileModelDto file in executingFiles)
+		foreach (FileDto file in executingFiles)
 		{
 			CloseExecutingFile(file);
 		}
@@ -290,7 +297,7 @@ public abstract partial class ViewModelBase :
 	{
 		base.AfterDispose();
 
-		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		if (MessengerSubscriptions.FormatUnsubscriptionLog(this) is { } logLine)
 		{
 			_logger.LogDebug(logLine);
 		}
@@ -299,14 +306,14 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Closes editing file.
+	/// Marks the file as no longer being edited.
 	/// </summary>
-	protected virtual void CloseEditingFile(FileModelDto file) => file.IsEditing = false;
+	protected virtual void CloseEditingFile(FileDto file) => file.IsEditing = false;
 
 	/// <summary>
 	/// Closes file that is being edited or executed;
 	/// </summary>
-	protected void CloseFile(FileModelDto file)
+	protected void CloseFile(FileDto file)
 	{
 		if (file.IsEditing)
 		{
@@ -362,7 +369,7 @@ public abstract partial class ViewModelBase :
 		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
 		await FlushEditorsAsync().ConfigureAwait(true);
 
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
+		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
 
 		CloseFiles(
 			openedFiles.Where(x => x.IsEditing),
@@ -389,10 +396,10 @@ public abstract partial class ViewModelBase :
 			CopyHistorySettings.SelectedItemId = default;
 		}
 
-		Guid[] identifiers = [.. viewModel.GetIdentifiers()];
+		Guid[] identifiers = [.. viewModel.GetItemIds()];
 
 		foreach (Guid item in CopyHistorySettings
-			.Items
+			.ItemIds
 			.ToArray())
 		{
 			if (identifiers.Contains(item))
@@ -401,7 +408,7 @@ public abstract partial class ViewModelBase :
 			}
 
 			CopyHistorySettings
-				.Items
+				.ItemIds
 				.Remove(item);
 		}
 	}

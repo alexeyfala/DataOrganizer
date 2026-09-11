@@ -53,9 +53,9 @@ $appLicense = Get-PropsValue 'License'
 if (-not $appLicense) {
     throw "No <License> property found in Directory.Build.props; cannot determine the application license."
 }
-$appName = Get-PropsValue 'AppNameParted'
+$appName = Get-PropsValue 'AppDisplayName'
 if (-not $appName) {
-    throw "No <AppNameParted> property found in Directory.Build.props; cannot determine the application name."
+    throw "No <AppDisplayName> property found in Directory.Build.props; cannot determine the application name."
 }
 
 if (-not $AssetsFile) {

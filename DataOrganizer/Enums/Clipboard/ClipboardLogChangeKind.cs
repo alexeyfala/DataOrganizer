@@ -19,5 +19,5 @@ public enum ClipboardLogChangeKind
 	/// <summary>
 	/// The log was cleared because tracking was turned off (not a user-initiated clear).
 	/// </summary>
-	ClearedForStop
+	ClearedOnStop
 }

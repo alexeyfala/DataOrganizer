@@ -1,6 +1,5 @@
 using Avalonia.Controls;
-using DataOrganizer.Helpers;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
@@ -12,7 +11,7 @@ public sealed partial class ConsoleWindow : Window
 
 	/// <inheritdoc cref="ConsoleViewModel" />
 	public ConsoleViewModel ViewModel { get; } = null!;
-	#endregion Properties
+	#endregion
 
 	#region Constructors
 	public ConsoleWindow()

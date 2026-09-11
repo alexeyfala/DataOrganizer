@@ -1,19 +1,20 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
-		x:DataType="entities:FolderModelDto"
+		x:DataType="entities:FolderDto"
 		ItemsSource="{ReflectionBinding Children,
 		                                Mode=OneTime}">
 		<Grid
@@ -27,7 +28,7 @@
 			</Grid.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
 			</Interaction.Behaviors>
 
 			<Grid Grid.Column="0">
@@ -44,7 +45,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
@@ -61,16 +62,16 @@
 	<!-- FileInTreeViewTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Interaction.Behaviors>
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
 						CommandParameter="{Binding $parent[Grid]}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -83,17 +84,17 @@
 
 			<materialIcons:MaterialIcon
 				Grid.Column="0"
-				Width="{StaticResource EntityTypeIconSize}"
-				Height="{StaticResource EntityTypeIconSize}"
+				Width="{StaticResource EntityKindIconSize}"
+				Height="{StaticResource EntityKindIconSize}"
 				Foreground="{StaticResource FileBrush}"
-				Kind="{Binding EntityType, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityTypeToIconKind}}" />
+				Kind="{Binding Kind, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityKindToIconKind}}" />
 
 			<TextBlock
 				Grid.Column="1"
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 

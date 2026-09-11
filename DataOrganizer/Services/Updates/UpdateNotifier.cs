@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Updates;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Dto.Updates;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Updates;
 using Shared.Properties;
 using System.Globalization;
@@ -11,8 +11,8 @@ namespace DataOrganizer.Services.Updates;
 public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processManager;
 
 	/// <inheritdoc cref="IUpdateCheckService" />
 	private readonly IUpdateCheckService _updateCheckService;
@@ -20,10 +20,10 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Constructors
 	public UpdateNotifier(
-		IProcessUtils processUtils,
+		IProcessManager processManager,
 		IUpdateCheckService updateCheckService)
 	{
-		_processUtils = processUtils;
+		_processManager = processManager;
 
 		_updateCheckService = updateCheckService;
 	}
@@ -39,7 +39,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			.CheckAsync(token)
 			.ConfigureAwait(true);
 
-		if (!result.UpdateAvailable || result.ReleaseUrl is not { } url)
+		if (!result.IsUpdateAvailable || result.ReleaseUrl is not { } url)
 		{
 			return;
 		}
@@ -56,7 +56,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			return;
 		}
 
-		_processUtils.StartProcess(url, out _);
+		_processManager.StartProcess(url, out _);
 	}
 	#endregion
 }

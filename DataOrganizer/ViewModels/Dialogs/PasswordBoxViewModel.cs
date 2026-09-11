@@ -1,0 +1,107 @@
+using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Interfaces.Diagnostics;
+using Shared.Properties;
+using System.Globalization;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.ViewModels.Dialogs;
+
+/// <summary>
+/// View model for <c>PasswordBoxView</c>.
+/// </summary>
+public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
+{
+	#region Data
+	/// <summary>
+	/// Least number of characters a new password is accepted with.
+	/// </summary>
+	public const int MinimumPasswordLength = 8;
+	#endregion
+
+	#region Properties
+	/// <summary>
+	/// Explanation shown under the header; hidden when empty.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Description { get; set; }
+
+	/// <summary>
+	/// Text shown above the password field.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Header { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when a new password is being set, so it is confirmed in a second input.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(PasswordHint))]
+	public partial bool IsConfirmationVisible { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when the password input alone satisfies the policy, the confirmation aside.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsPasswordAccepted { get; set; }
+
+	/// <summary>
+	/// Validity flag driven by the view's code-behind so the password string itself
+	/// is never bound into a managed property on this view model.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
+	public partial bool IsPasswordValid { get; set; }
+
+	/// <summary>
+	/// Floating placeholder shown above the password input.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Label { get; set; }
+
+	/// <summary>
+	/// Assistive text under the password input; <c>null</c> while an existing password is entered.
+	/// </summary>
+	public string? PasswordHint => IsConfirmationVisible
+		? string.Format(CultureInfo.CurrentCulture, Strings.PasswordMinimumLength, MinimumPasswordLength)
+		: null;
+
+	/// <summary>
+	/// Rating of the password being set, driven by the view's behavior; the password string
+	/// itself never reaches this view model.
+	/// </summary>
+	[ObservableProperty]
+	public partial PasswordStrength Strength { get; set; }
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Closes the dialog and accepts the password.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanApply))]
+	private Task Apply() => SetResultAsync(true);
+
+	/// <summary>
+	/// Closes the dialog without a password.
+	/// </summary>
+	[RelayCommand]
+	private Task Cancel() => SetResultAsync(false);
+	#endregion
+
+	#region Constructors
+	public PasswordBoxViewModel(
+		Application app,
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+	{
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="ApplyCommand" />.
+	/// </summary>
+	private bool CanApply() => IsPasswordValid;
+	#endregion
+}

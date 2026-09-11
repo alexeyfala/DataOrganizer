@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using System;
 using System.Security.Cryptography;
@@ -20,7 +20,7 @@ public interface IContentCipher
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
 	/// <exception cref="AuthenticationTagMismatchException">The key or the purpose does not fit the content, or the content has been altered.</exception>
-	byte[] Decrypt(FileModelDto file, byte[] input);
+	byte[] Decrypt(FileDto file, byte[] input);
 
 	/// <summary>
 	/// Decrypts contents held under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
@@ -28,18 +28,19 @@ public interface IContentCipher
 	byte[]? TryDecrypt(Guid keeperId, ContentIdentity identity, byte[] input);
 
 	/// <summary>
+	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
+	/// Empty content is handed back untouched, without asking for a password.
+	/// </summary>
+	Task<byte[]?> TryDecryptContentsAsync(
+		FileDto file,
+		byte[] contents,
+		string header,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Encrypts contents under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
 	/// </summary>
 	byte[]? TryEncrypt(Guid keeperId, ContentIdentity identity, byte[] input);
 
-	/// <summary>
-	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
-	/// Empty content is handed back untouched, without asking for a password.
-	/// </summary>
-	Task<byte[]?> TryToDecryptContentsAsync(
-		FileModelDto file,
-		byte[] contents,
-		string header,
-		CancellationToken token = default);
 	#endregion
 }

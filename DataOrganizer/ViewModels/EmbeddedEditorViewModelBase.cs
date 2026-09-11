@@ -4,14 +4,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
 using Entities.Models;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -30,14 +31,14 @@ public abstract partial class EmbeddedEditorViewModelBase :
 {
 	#region Properties
 	/// <summary>
-	/// File identifier.
+	/// The identifier of the file being edited.
 	/// </summary>
 	public Guid FileId { get; set; }
 
 	/// <summary>
-	/// Initial properties.
+	/// Editor state to start from.
 	/// </summary>
-	public string? InitialProperties { get; set; }
+	public string? InitialEditorState { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the initialization process revealed that the file contents were corrupted.
@@ -55,7 +56,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public bool IsInitialized { get; protected set; }
 
 	/// <summary>
-	/// Read-only mode.
+	/// <c>True</c> when the contents cannot be edited.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsReadOnly { get; set; }
@@ -66,14 +67,14 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public Guid? KeeperId { get; set; }
 
 	/// <summary>
-	/// Callback to set object's properties.
+	/// Callback that reports the editor state.
 	/// </summary>
-	public Action<string>? SetPropertiesCallback { get; set; }
+	public Action<string>? SetEditorStateCallback { get; set; }
 
 	/// <summary>
-	/// Callback to set object's updated date.
+	/// Callback that reports when the object was changed.
 	/// </summary>
-	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
+	public Action<DateTime>? SetUpdatedAtCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -99,8 +100,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	protected readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	protected readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
@@ -109,10 +110,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected readonly INotificationService _notification;
 
 	/// <summary>
-	/// Last properties persisted to the database.
-	/// Intended to skip persistence when properties match what is already stored.
+	/// The editor state last persisted to the database.
+	/// Intended to skip persistence when the state matches what is already stored.
 	/// </summary>
-	protected string? _lastSavedProperties;
+	protected string? _lastSavedEditorState;
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -129,7 +130,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -157,7 +158,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Takes the read-only mode over from the editor window.
 	/// </summary>
 	public void Initialize()
 	{
@@ -185,7 +186,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	{
 		base.AfterDispose();
 
-		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		if (MessengerSubscriptions.FormatUnsubscriptionLog(this) is { } logLine)
 		{
 			_logger.LogDebug(logLine);
 		}
@@ -202,18 +203,18 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
-	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.
+	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedEditorState" />.
 	/// </summary>
-	protected bool IsLastPropertiesEqualTo(string current)
+	protected bool IsLastEditorStateEqualTo(string current)
 	{
 		return string.Equals(
-			_lastSavedProperties,
+			_lastSavedEditorState,
 			current,
 			StringComparison.Ordinal);
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Contents" /> in the database.
+	/// Saves <see cref="FileEntity.Contents" /> in the database.
 	/// </summary>
 	/// <returns><c>true</c> when the row was updated.</returns>
 	protected Task<bool> SaveContentsAsync(byte[] contents, CancellationToken token = default)
@@ -227,25 +228,25 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Properties" /> in the database.
+	/// Saves <see cref="FileEntity.EditorState" /> in the database.
 	/// </summary>
-	protected Task SavePropertiesAsync(
+	protected Task SaveEditorStateAsync(
 		[StringSyntax(StringSyntaxAttribute.Json)] string json,
 		CancellationToken token = default)
 	{
 		_logger.LogDebug(
-			$@"Saving properties of ""{FileId}"" in the database:{json}");
+			$@"Saving the editor state of ""{FileId}"" in the database:{json}");
 
 		return _dbAccess.UpdateFilePropertiesAsync(FileId,
 		[
-			x => x.SetProperty(x => x.Properties, json)
+			x => x.SetProperty(x => x.EditorState, json)
 		], token);
 	}
 
 	/// <summary>
 	/// Decrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
-	protected byte[]? TryToDecrypt(byte[] input)
+	protected byte[]? TryDecrypt(byte[] input)
 	{
 		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{
@@ -261,7 +262,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// Encrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
-	protected byte[]? TryToEncrypt(byte[] input)
+	protected byte[]? TryEncrypt(byte[] input)
 	{
 		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{

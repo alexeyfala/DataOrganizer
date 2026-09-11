@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using System;
 
 namespace DataOrganizer.Helpers.Security;
@@ -62,7 +62,7 @@ internal static class PasswordStrengthEstimator
 	/// <summary>
 	/// Words every leaked-credential list opens with; they are tried before anything else.
 	/// </summary>
-	private static readonly string[] _commonWords =
+	private static readonly string[] CommonWords =
 	[
 		"000000",
 		"111111",
@@ -245,7 +245,7 @@ internal static class PasswordStrengthEstimator
 	{
 		int longest = 0;
 
-		foreach (string word in _commonWords)
+		foreach (string word in CommonWords)
 		{
 			if (word.Length > longest && password.Contains(word, StringComparison.OrdinalIgnoreCase))
 			{

@@ -1,9 +1,9 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -49,9 +49,9 @@ public sealed class NoteEditor : INoteEditor
 	#region Methods
 	/// <inheritdoc />
 	public async Task<bool> EditAsync(
-		ExplorerModelBaseDto item,
+		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation("Editing a note of an object");
@@ -77,17 +77,17 @@ public sealed class NoteEditor : INoteEditor
 			return Fail(item);
 		}
 
-		Task<bool> task = item.EntityType switch
+		Task<bool> task = item.Kind switch
 		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
+			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(item.Id,
+			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
 			_ => throw new NotImplementedException()
 		};
@@ -101,7 +101,7 @@ public sealed class NoteEditor : INoteEditor
 
 		item.Note = encoded;
 
-		item.UpdatedDate = updatedDate;
+		item.UpdatedAt = updatedAt;
 
 		// The replaced buffer holds the note itself as long as the object is not encrypted.
 		replaced?.ZeroMemory();
@@ -122,13 +122,13 @@ public sealed class NoteEditor : INoteEditor
 	/// <summary>
 	/// Reports a note that could not be stored.
 	/// </summary>
-	private bool Fail(ExplorerModelBaseDto item)
+	private bool Fail(ExplorerItemDtoBase item)
 	{
 		_logger.LogError($"{Strings.FailedToSaveNote}:{item.GetPropertyValues(
 			true,
-			nameof(ExplorerModelBaseDto.Id),
-			nameof(ExplorerModelBaseDto.Name),
-			nameof(ExplorerModelBaseDto.EncryptionStatus))}");
+			nameof(ExplorerItemDtoBase.Id),
+			nameof(ExplorerItemDtoBase.Name),
+			nameof(ExplorerItemDtoBase.EncryptionStatus))}");
 
 		_notification.ShowErrorSnackbar(Strings.FailedToSaveNote);
 

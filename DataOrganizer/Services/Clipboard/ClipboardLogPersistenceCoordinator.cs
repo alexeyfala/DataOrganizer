@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Clipboard;
+using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -171,7 +173,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 				}
 				break;
 
-			case ClipboardLogChangeKind.ClearedForStop:
+			case ClipboardLogChangeKind.ClearedOnStop:
 				// Tracking toggled off: drop the pending save but keep the saved history on disk.
 				CancelPendingSave();
 				break;
@@ -270,7 +272,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{

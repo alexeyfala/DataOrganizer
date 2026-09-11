@@ -16,7 +16,7 @@ public sealed partial class FileSystemPathSelector : UserControl
 {
 	#region Properties
 	/// <summary>
-	/// A path to file system entry.
+	/// A path to a file system entry.
 	/// </summary>
 	public string? Path
 	{
@@ -41,7 +41,7 @@ public sealed partial class FileSystemPathSelector : UserControl
 	private void Clear() => Path = null;
 
 	/// <summary>
-	/// Selects a path to file system entry.
+	/// Selects a path to a file system entry.
 	/// </summary>
 	[RelayCommand]
 	private async Task Select()

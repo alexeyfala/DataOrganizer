@@ -3,19 +3,19 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:AvaloniaEdit="using:AvaloniaEdit"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:ConsoleViewModel"
+	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	x:DataType="windows:ConsoleViewModel"
 	Icon="/Assets/Logo.ico"
 	mc:Ignorable="d">
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Interaction.Behaviors>
-			<behaviors:StyledElementAddFluentThemeBehavior />
+			<styling:FluentThemeBehavior />
 		</Interaction.Behaviors>
 
 		<Separator
@@ -44,7 +44,7 @@
 
 			<ToggleButton
 				Content="{materialIcons:MaterialIconTextExt Kind=Wrap}"
-				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
+				IsChecked="{Binding WordWrap, Mode=TwoWay}"
 				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
 
 			<ToggleButton
@@ -117,14 +117,14 @@
 
 		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
 		<AvaloniaEdit:TextEditor
-			Name="Editor"
+			x:Name="Editor"
 			Grid.Row="3"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 			FontSize="{Binding FontSize, Mode=OneWay}"
 			HorizontalScrollBarVisibility="Auto"
 			IsReadOnly="True"
 			ShowLineNumbers="True"
-			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
+			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">

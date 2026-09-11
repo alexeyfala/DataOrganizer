@@ -2,20 +2,22 @@
 	x:Class="DataOrganizer.Windows.FavoritesWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:interfaces="using:DataOrganizer.Interfaces"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:FavoritesViewModel"
+	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	x:DataType="windows:FavoritesViewModel"
 	Background="Transparent"
 	CanResize="False"
 	ShowInTaskbar="False"
@@ -55,8 +57,8 @@
 					Margin="4.0,0.0"
 					VerticalAlignment="Center"
 					FontWeight="SemiBold"
-					Foreground="{StaticResource LightForeground}"
-					Text="{x:Static common:AppUtils.AppNameParted}" />
+					Foreground="{StaticResource LightForegroundBrush}"
+					Text="{x:Static common:AppInfo.AppDisplayName}" />
 
 				<ToggleSwitch
 					Grid.Column="3"
@@ -66,7 +68,7 @@
 					ToolTip.Tip="{x:Static prop:Strings.Fix}">
 
 					<Interaction.Behaviors>
-						<behaviors:PointerHoverCommandBehavior
+						<input:PointerHoverCommandBehavior
 							Command="{Binding ShowPopupOnHoverCommand}"
 							Delay="300" />
 					</Interaction.Behaviors>
@@ -78,7 +80,7 @@
 					Padding="0.0"
 					CommandParameter="{Binding $parent[Window]}"
 					Content="{materialIcons:MaterialIconTextExt Kind=Close}"
-					Foreground="{StaticResource LightForeground}"
+					Foreground="{StaticResource LightForegroundBrush}"
 					Theme="{StaticResource MaterialFlatButton}"
 					ToolTip.Tip="{x:Static prop:Strings.Close}">
 					<Interaction.Behaviors>
@@ -149,16 +151,16 @@
 									HostName="{Binding $self.Name}"
 									SnackbarHorizontalAlignment="Center">
 									<Interaction.Behaviors>
-										<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
+										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}}" />
 									</Interaction.Behaviors>
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
-											<templateSelectors:FavoritesPopupContentTemplateSelector>
+											<selectors:FavoritesPopupContentTemplateSelector>
 												<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
-											</templateSelectors:FavoritesPopupContentTemplateSelector>
+											</selectors:FavoritesPopupContentTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>
@@ -180,7 +182,7 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="West" />
 						</Interaction.Behaviors>
@@ -195,7 +197,7 @@
 						Cursor="TopLeftCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthWest" />
@@ -210,7 +212,7 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Height="{Binding PopupHeight}"
 								Edge="North" />
 						</Interaction.Behaviors>
@@ -225,7 +227,7 @@
 						Cursor="TopRightCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthEast" />
@@ -240,7 +242,7 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="East" />
 						</Interaction.Behaviors>
@@ -292,7 +294,7 @@
 
 						<TextBlock
 							Classes="CountTextBlockStyle"
-							Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+							Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
 					</Panel>
 				</StackPanel>
 			</Border>

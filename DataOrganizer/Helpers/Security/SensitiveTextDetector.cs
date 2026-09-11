@@ -175,21 +175,21 @@ internal static partial class SensitiveTextDetector
 	private static partial Regex EnvironmentVariableRegex();
 
 	/// <summary>
-	/// Classifies <paramref name="c" /> as 0 = lower, 1 = upper, 2 = digit, 3 = other.
+	/// Classifies <paramref name="character" /> as 0 = lower, 1 = upper, 2 = digit, 3 = other.
 	/// </summary>
-	private static int GetCharClass(char c)
+	private static int GetCharClass(char character)
 	{
-		if (char.IsLower(c))
+		if (char.IsLower(character))
 		{
 			return 0;
 		}
 
-		if (char.IsUpper(c))
+		if (char.IsUpper(character))
 		{
 			return 1;
 		}
 
-		if (char.IsDigit(c))
+		if (char.IsDigit(character))
 		{
 			return 2;
 		}

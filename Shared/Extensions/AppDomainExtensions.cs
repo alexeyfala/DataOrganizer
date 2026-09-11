@@ -9,11 +9,11 @@ public static class AppDomainExtensions
 	/// <summary>
 	/// Determines whether code is executed during NUnit unit tests.
 	/// </summary>
-	public static bool IsRunningFromNUnit(this AppDomain target)
+	public static bool IsRunningFromNUnit(this AppDomain appDomain)
 	{
-		return target
+		return appDomain
 			.GetAssemblies()
-			.Any(a => a.FullName?.StartsWith("nunit.framework", StringComparison.InvariantCultureIgnoreCase) == true);
+			.Any(x => x.FullName?.StartsWith("nunit.framework", StringComparison.InvariantCultureIgnoreCase) == true);
 	}
-	#endregion Methods
+	#endregion
 }

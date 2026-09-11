@@ -1,6 +1,6 @@
-using DataOrganizer.DTO.Settings;
-using DataOrganizer.DTO.Updates;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Dto.Updates;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Serilog;
@@ -37,8 +37,8 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	/// <inheritdoc cref="IHttpClientFactory" />
 	private readonly IHttpClientFactory _httpClientFactory;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -57,7 +57,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	public UpdateCheckService(
 		IHttpClientFactory httpClientFactory,
 		IAppSettingsStore settingsStore,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		TimeProvider timeProvider,
 		ILogger logger,
 		IAppVersionProvider versionProvider)
@@ -89,7 +89,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 
 		DateTimeOffset now = _timeProvider.GetUtcNow();
 
-		if (settings.LastUpdateCheckUtc is { } last && now - last < CheckInterval)
+		if (settings.LastUpdateCheckAt is { } last && now - last < CheckInterval)
 		{
 			return UpdateCheckResult.None;
 		}
@@ -102,12 +102,12 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return UpdateCheckResult.None;
 		}
 
-		settings.LastUpdateCheckUtc = now;
+		settings.LastUpdateCheckAt = now;
 
 		string? latest = null;
 
@@ -126,7 +126,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		return updateAvailable
 			? new UpdateCheckResult
 			{
-				UpdateAvailable = true,
+				IsUpdateAvailable = true,
 				LatestVersion = latest,
 				ReleaseUrl = release?.HtmlUrl
 			}

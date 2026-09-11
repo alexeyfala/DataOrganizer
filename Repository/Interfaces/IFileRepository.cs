@@ -2,6 +2,7 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.Enums;
+using Repository.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,39 +11,39 @@ using System.Threading.Tasks;
 namespace Repository.Interfaces;
 
 /// <summary>
-/// Repository for <see cref="FileModel" />.
+/// Repository for <see cref="FileEntity" />.
 /// </summary>
 public interface IFileRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
-	ValueTask<EntityEntry<FileModel>> AddAsync(FileModel entity, CancellationToken token = default);
+	ValueTask<EntityEntry<FileEntity>> AddAsync(FileEntity entity, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
-	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token = default);
+	Task AddRangeAsync(IEnumerable<FileEntity> entities, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database,
+	/// Returns a complete flat list of <see cref="FileEntity" /> entities from the database,
 	/// additionally loading the optional (heavy) properties specified in <paramref name="optionalProperties" />.
 	/// </summary>
 	/// <param name="optionalProperties">Bitwise combination of optional properties to include in the result.</param>
 	/// <param name="token">Cancellation token.</param>
-	Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default);
+	Task<FileEntity[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns value from <see cref="FileModel.Contents" />.
+	/// Returns value from <see cref="FileEntity.Contents" />.
 	/// </summary>
 	Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default);
+
+	/// <summary>
+	/// Returns the stored editor state of a file.
+	/// </summary>
+	Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns file IDs by parent IDs.
 	/// </summary>
 	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
-
-	/// <summary>
-	/// Returns value from <see cref="FileModel.Properties" />.
-	/// </summary>
-	Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entity from the database by Id.
@@ -63,7 +64,7 @@ public interface IFileRepository
 	/// <returns>The number of rows affected (0 if the entity does not exist, otherwise 1).</returns>
 	Task<int> UpdatePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -74,7 +75,7 @@ public interface IFileRepository
 	/// <param name="token">Cancellation token.</param>
 	/// <returns>The total number of rows affected across all updates.</returns>
 	Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default);
-	#endregion Methods
+	#endregion
 }

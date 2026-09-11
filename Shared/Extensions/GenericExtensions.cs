@@ -14,7 +14,7 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into an array along with other objects.
 	/// </summary>
-	public static T[] AsArray<T>(this T entity, params T[] others) => [.. entity.ToEnumerable(others)];
+	public static T[] AsArray<T>(this T value, params T[] others) => [.. value.ToEnumerable(others)];
 
 	/// <summary>
 	/// Copies the values ​​of writable passed properties in objects of different types via reflection.
@@ -36,7 +36,7 @@ public static class GenericExtensions
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			.Where(x => propertyNames.Contains(x.Name)))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -64,7 +64,7 @@ public static class GenericExtensions
 			.GetType()
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -81,9 +81,9 @@ public static class GenericExtensions
 	/// </summary>
 	public static T CopyPropertiesTo<T>(
 		this T source,
-		params string[] ignored) where T : class, new()
+		params string[] ignoredProperties) where T : class, new()
 	{
-		return CopyPropertiesTo(source, x => !ignored.Contains(x));
+		return CopyPropertiesTo(source, x => !ignoredProperties.Contains(x));
 	}
 
 	/// <summary>
@@ -91,9 +91,9 @@ public static class GenericExtensions
 	/// </summary>
 	public static T CopyPropertiesTo<T>(
 		this T source,
-		string ignored) where T : class, new()
+		string ignoredProperty) where T : class, new()
 	{
-		return CopyPropertiesTo(source, x => !string.Equals(x, ignored));
+		return CopyPropertiesTo(source, x => !string.Equals(x, ignoredProperty));
 	}
 
 	/// <summary>
@@ -102,7 +102,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// If property names are not passed, all public properties of the object are used.
 	/// </remarks>
-	public static string GetPropertyValues<T>(this T target,
+	public static string GetPropertyValues<T>(this T source,
 		bool insertNewLine,
 		params string[] propertyNames)
 	{
@@ -110,7 +110,7 @@ public static class GenericExtensions
 
 		try
 		{
-			if (target?.GetType() is not { } type)
+			if (source?.GetType() is not { } type)
 			{
 				return string.Empty;
 			}
@@ -129,7 +129,7 @@ public static class GenericExtensions
 				builder.AppendLine();
 			}
 
-			properties.ForEachFor((property, i) =>
+			properties.ForEachWithIndex((property, i) =>
 			{
 				try
 				{
@@ -137,7 +137,7 @@ public static class GenericExtensions
 
 					try
 					{
-						value = property.GetValue(target);
+						value = property.GetValue(source);
 					}
 					catch (Exception ex)
 					{
@@ -218,7 +218,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
-	public static bool IsDefault<T>([NotNullWhen(false)] this T argument) => EqualityComparer<T>.Default.Equals(argument, default);
+	public static bool IsDefault<T>([NotNullWhen(false)] this T value) => EqualityComparer<T>.Default.Equals(value, default);
 
 	/// <summary>
 	/// <c>True</c> when the value is not the default value for its type.
@@ -226,7 +226,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
-	public static bool IsNotDefault<T>([NotNullWhen(true)] this T argument) => !argument.IsDefault();
+	public static bool IsNotDefault<T>([NotNullWhen(true)] this T value) => !value.IsDefault();
 
 	/// <summary>
 	/// Sets the value of a property via reflection.
@@ -247,9 +247,9 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
 	/// </summary>
-	public static IEnumerable<T> ToEnumerable<T>(this T entity, params T[] others)
+	public static IEnumerable<T> ToEnumerable<T>(this T value, params T[] others)
 	{
-		yield return entity;
+		yield return value;
 
 		foreach (T item in others)
 		{
@@ -260,9 +260,9 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
 	/// </summary>
-	public static IEnumerable<T> ToEnumerable<T>(this T entity, IEnumerable<T> others)
+	public static IEnumerable<T> ToEnumerable<T>(this T value, IEnumerable<T> others)
 	{
-		yield return entity;
+		yield return value;
 
 		foreach (T item in others)
 		{
@@ -298,7 +298,7 @@ public static class GenericExtensions
 	/// <summary>
 	/// Creates object and copies the values ​​of writable properties to it from source via reflection.
 	/// </summary>
-	private static T CopyPropertiesTo<T>(T source, Predicate<string> condition) where T : class, new()
+	private static T CopyPropertiesTo<T>(T source, Predicate<string> isIncluded) where T : class, new()
 	{
 		T target = new();
 
@@ -307,9 +307,9 @@ public static class GenericExtensions
 		foreach (PropertyInfo sourceProperty in source
 			.GetType()
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			.Where(x => condition(x.Name)))
+			.Where(x => isIncluded(x.Name)))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -324,9 +324,9 @@ public static class GenericExtensions
 	}
 
 	/// <summary>
-	/// Returns a writable property <see cref="PropertyInfo" /> with the specified name.
+	/// <c>True</c> when a writable property with the given name was found.
 	/// </summary>
-	private static bool GetWritableProperty(
+	private static bool TryGetWritableProperty(
 		Type targetType,
 		string propertyName,
 		[NotNullWhen(true)] out PropertyInfo? targetProperty)

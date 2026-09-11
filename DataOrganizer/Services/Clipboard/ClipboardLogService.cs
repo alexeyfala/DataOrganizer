@@ -3,13 +3,14 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Text;
-using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages;
+using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Messages.Clipboard;
+using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -163,7 +164,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync()
+	public Task ClearAllAsync()
 	{
 		return ClearCoreAsync(
 			clearSystem: true,
@@ -177,7 +178,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		return ClearCoreAsync(
 			clearSystem: false,
 			preservePinned: false,
-			ClipboardLogChangeKind.ClearedForStop);
+			ClipboardLogChangeKind.ClearedOnStop);
 	}
 
 	/// <inheritdoc />
@@ -324,7 +325,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -430,16 +431,16 @@ public sealed class ClipboardLogService : IClipboardLogService
 	{
 		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(Stop)} requested.");
 
-		CancellationTokenSource? local = Interlocked.Exchange(ref _stopCts, null);
+		CancellationTokenSource? cancellation = Interlocked.Exchange(ref _stopCts, null);
 
-		if (local is null)
+		if (cancellation is null)
 		{
 			return;
 		}
 
 		try
 		{
-			local.Cancel();
+			cancellation.Cancel();
 		}
 		catch (ObjectDisposedException)
 		{
@@ -447,7 +448,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		finally
 		{
-			local.Dispose();
+			cancellation.Dispose();
 		}
 	}
 
@@ -527,8 +528,8 @@ public sealed class ClipboardLogService : IClipboardLogService
 	{
 		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
-		hash.AppendData(TextHelper
-			.Utf8Encoding
+		hash.AppendData(TextDefaults
+			.Encoding
 			.GetBytes(text));
 
 		// Only the presence of companion formats — not their payloads, which Office can re-render
@@ -557,7 +558,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			builder.Append('\0');
 		}
 
-		return ComputeHash(TextHelper.Utf8Encoding.GetBytes(builder.ToString()));
+		return ComputeHash(TextDefaults.Encoding.GetBytes(builder.ToString()));
 	}
 
 	/// <summary>
@@ -683,7 +684,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			return;
 		}
 
-		item.Set(format, TextHelper.Utf8Encoding.GetBytes(payload));
+		item.Set(format, TextDefaults.Encoding.GetBytes(payload));
 	}
 
 	/// <summary>
@@ -847,7 +848,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -891,7 +892,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return false;
 		}
@@ -1160,7 +1161,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 				}
 				catch (Exception ex)
 				{
-					_logger.LogException(ex, assertDebug: false);
+					_logger.LogException(ex, breakInDebugger: false);
 				}
 			}
 
@@ -1183,7 +1184,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			{
 				DataTransferItem gnomeItem = new();
 
-				gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
+				gnomeItem.Set(gnomeFormat, TextDefaults.Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
 
 				transfer.Add(gnomeItem);
 			}
@@ -1194,7 +1195,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1218,7 +1219,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1271,7 +1272,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1291,7 +1292,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1356,11 +1357,11 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 			return bytes is null
 				? null
-				: TextHelper.Utf8Encoding.GetString(bytes);
+				: TextDefaults.Encoding.GetString(bytes);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1381,7 +1382,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1401,7 +1402,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1424,7 +1425,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}

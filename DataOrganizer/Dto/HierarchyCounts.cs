@@ -1,0 +1,64 @@
+using Cysharp.Text;
+using Shared.Properties;
+using System.Diagnostics;
+
+namespace DataOrganizer.Dto;
+
+/// <summary>
+/// The number of files and folders in a hierarchy.
+/// </summary>
+[DebuggerDisplay($"{nameof(Files)} = {{{nameof(Files)}}}, {nameof(Folders)} = {{{nameof(Folders)}}}")]
+internal readonly struct HierarchyCounts
+{
+	#region Properties
+	/// <summary>
+	/// Number of files.
+	/// </summary>
+	public required uint Files { get; init; }
+
+	/// <summary>
+	/// Number of folders.
+	/// </summary>
+	public required uint Folders { get; init; }
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Creates a string with information about the number of objects.
+	/// </summary>
+	public string AsString()
+	{
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		builder.Append(Strings.Folders);
+
+		builder.Append(':');
+
+		builder.Append(' ');
+
+		builder.Append(Folders);
+
+		builder.Append("  ");
+
+		builder.Append(Strings.Files);
+
+		builder.Append(':');
+
+		builder.Append(' ');
+
+		builder.Append(Files);
+
+		builder.Append("  ");
+
+		builder.Append('Σ');
+
+		builder.Append(':');
+
+		builder.Append(' ');
+
+		builder.Append(Folders + Files);
+
+		return builder.ToString();
+	}
+	#endregion
+}

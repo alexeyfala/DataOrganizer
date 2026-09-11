@@ -1,18 +1,21 @@
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Windows;
-using Entities.Helpers;
 using Entities.Models;
-using Repository.DTO;
+using Entities.Serialization;
+using Repository.Dto;
 using Repository.Enums;
-using Repository.Interfaces;
-using Repository.Services;
+using Repository.Interfaces.Database;
+using Repository.Services.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -32,16 +35,6 @@ namespace DataOrganizer.Services;
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data
-	/// <summary>
-	/// JSON file extension.
-	/// </summary>
-	internal const string JsonExt = ".json";
-
-	/// <summary>
-	/// XML file extension.
-	/// </summary>
-	internal const string XmlExt = ".xml";
-
 	/// <summary>
 	/// MIME type for JSON files.
 	/// </summary>
@@ -79,8 +72,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -94,8 +87,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
-	/// <inheritdoc cref="IXmlSerializerWrapper" />
-	private readonly IXmlSerializerWrapper _xmlSerializer;
+	/// <inheritdoc cref="IXmlSerializer" />
+	private readonly IXmlSerializer _xmlSerializer;
 	#endregion
 
 	#region Constructors
@@ -105,7 +98,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		[
 			new("All Supported Files")
 			{
-				Patterns = [$"*{JsonExt}", $"*{XmlExt}", $"*{AppUtils.SQLiteExtension}"],
+				Patterns = [$"*{KnownFileExtensions.Json}", $"*{KnownFileExtensions.Xml}", $"*{KnownFileExtensions.Sqlite}"],
 				MimeTypes = [JsonMime, XmlMime, SqliteMime]
 			}
 		];
@@ -114,17 +107,17 @@ public sealed class DataExchangeService : IDataExchangeService
 		[
 			new("JSON File")
 			{
-				Patterns = [$"*{JsonExt}"],
+				Patterns = [$"*{KnownFileExtensions.Json}"],
 				MimeTypes = [JsonMime]
 			},
 			new("XML File")
 			{
-				Patterns = [$"*{XmlExt}"],
+				Patterns = [$"*{KnownFileExtensions.Xml}"],
 				MimeTypes = [XmlMime]
 			},
 			new("SQLite Database File")
 			{
-				Patterns = [$"*{AppUtils.SQLiteExtension}"],
+				Patterns = [$"*{KnownFileExtensions.Sqlite}"],
 				MimeTypes = [SqliteMime]
 			}
 		];
@@ -140,11 +133,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
 		IFileSystemPicker picker,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		IXmlSerializerWrapper xmlSerializer)
+		IXmlSerializer xmlSerializer)
 	{
 		_dbAccess = dbAccess;
 
@@ -174,10 +167,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = JsonExt.TrimStart('.'),
+			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
 			FileTypeChoices = ExportFilePickerTypes,
 			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppName,
+			SuggestedFileName = AppInfo.AppName,
 			Title = Strings.SaveAs
 		};
 
@@ -194,16 +187,16 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case JsonExt:
+				case KnownFileExtensions.Json:
 					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case XmlExt:
+				case KnownFileExtensions.Xml:
 					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case AppUtils.SQLiteExtension:
-					await ExportToSQLiteAsync(filePath, token).ConfigureAwait(false);
+				case KnownFileExtensions.Sqlite:
+					await ExportToSqliteAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				default:
@@ -222,18 +215,18 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc />
 	public async Task<ImportDataResult?> ImportDataAsync(
-		Collection<ExplorerModelBaseDto> hierarchy,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		ImportListVariant variant = ImportListVariant.Replace;
+		ImportMode variant = ImportMode.Replace;
 
 		if (hierarchy.Count != 0)
 		{
 			variant = await _dialogService
-				.SelectImportVariantAsync(token)
+				.SelectImportModeAsync(token)
 				.ConfigureAwait(true);
 
-			if (variant == ImportListVariant.None)
+			if (variant == ImportMode.None)
 			{
 				return null;
 			}
@@ -256,7 +249,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 
 		using DatabaseBackup? backup = await _dbAccess
-			.BackupDatabaseAsync(token)
+			.CreateBackupAsync(token)
 			.ConfigureAwait(false);
 
 		if (backup is null)
@@ -272,15 +265,15 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			string filePath = filePaths[0];
 
-			List<ExplorerModelBaseDto> objects = [];
+			List<ExplorerItemDtoBase> imported = [];
 
 			switch (Path.GetExtension(filePath))
 			{
-				case JsonExt:
+				case KnownFileExtensions.Json:
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -294,11 +287,11 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case XmlExt:
+				case KnownFileExtensions.Xml:
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -312,11 +305,11 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case AppUtils.SQLiteExtension:
-					if (!_dbAccess.IsValidSQLiteDatabase(filePath) || !await ImportFromSQLiteAsync(
+				case KnownFileExtensions.Sqlite:
+					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSqliteAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -334,7 +327,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			FileModelDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
+			FileDto[] unreadable = [.. imported.GetFilesWithUnreadableHotkeys()];
 
 			if (unreadable.IsNotEmpty())
 			{
@@ -342,7 +335,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				{
 					_logger.LogError(
 						$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
-						assertDebug: false);
+						breakInDebugger: false);
 				});
 
 				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
@@ -351,11 +344,11 @@ public sealed class DataExchangeService : IDataExchangeService
 					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
 			}
 
-			return new(objects, variant);
+			return new(imported, variant);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
@@ -370,13 +363,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Appends data from SQLite database.
 	/// </summary>
-	internal async Task<bool> AppendFromSQLiteAsync(
+	internal async Task<bool> AppendFromSqliteAsync(
 		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
+		LoadedEntities result = _dbAccess.LoadEntities(filePath);
 
 		RegenerateId(result.Folders, result.Files);
 
@@ -396,7 +389,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
+		imported.AddRange(_entityLoader.Map(result.Folders, result.Files));
 
 		return true;
 	}
@@ -405,13 +398,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// Imports entities.
 	/// </summary>
 	internal async Task<bool> ImportEntitiesAsync(
-		ExplorerModelBase[] entities,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ExplorerItemBase[] entities,
+		ImportMode variant,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportListVariant.Replace && !await _dbAccess
+		if (variant == ImportMode.Replace && !await _dbAccess
 			.ClearDatabaseAsync(token)
 			.ConfigureAwait(false))
 		{
@@ -420,15 +413,15 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		DateTime now = DateTime.Now;
 
-		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = now);
+		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
 
-		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+		FolderEntity[] folders = [.. entities.OfType<FolderEntity>()];
 
-		FileModel[] files = [.. entities.OfType<FileModel>()];
+		FileEntity[] files = [.. entities.OfType<FileEntity>()];
 
 		RegenerateId(folders, files);
 
-		if (variant == ImportListVariant.Append)
+		if (variant == ImportMode.Append)
 		{
 			SetupIndex(hierarchy, folders, files);
 		}
@@ -447,11 +440,11 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		objects.AddRange(_entityLoader.Map(
+		imported.AddRange(_entityLoader.Map(
 			folders,
 			files));
 
-		if (variant == ImportListVariant.Replace)
+		if (variant == ImportMode.Replace)
 		{
 			hierarchy.Clear();
 		}
@@ -462,10 +455,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Replaces with data from SQLite database.
 	/// </summary>
-	internal async Task<bool> ReplaceFromSQLiteAsync(
+	internal async Task<bool> ReplaceFromSqliteAsync(
 		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		if (!await _dbAccess
@@ -476,14 +469,14 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 
 		if (await _entityLoader
-			.LoadFromEmbeddedDbAsync(token)
+			.LoadHierarchyAsync(token)
 			.ConfigureAwait(false) is not { } result)
 		{
 			// The imported database is in place but unreadable, so the caller restores the copy it took.
 			return false;
 		}
 
-		objects.AddRange(result);
+		imported.AddRange(result);
 
 		hierarchy.Clear();
 
@@ -495,7 +488,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Regenerates identifiers.
 	/// </summary>
-	private static void RegenerateId(FolderModel[] folders, FileModel[] files)
+	private static void RegenerateId(FolderEntity[] folders, FileEntity[] files)
 	{
 		files.ForEach(file =>
 		{
@@ -511,9 +504,9 @@ public sealed class DataExchangeService : IDataExchangeService
 			});
 		});
 
-		ILookup<Guid?, FolderModel> foldersByParent = folders.ToLookup(x => x.ParentId);
+		ILookup<Guid?, FolderEntity> foldersByParent = folders.ToLookup(x => x.ParentId);
 
-		ILookup<Guid?, FileModel> filesByParent = files.ToLookup(x => x.ParentId);
+		ILookup<Guid?, FileEntity> filesByParent = files.ToLookup(x => x.ParentId);
 
 		folders.ForEach(folder =>
 		{
@@ -530,13 +523,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Sets <see cref="EntityModelBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
+	/// Sets <see cref="EntityBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
 	/// from <paramref name="hierarchy"/> max element index.
 	/// </summary>
 	private static void SetupIndex(
-		Collection<ExplorerModelBaseDto> hierarchy,
-		FolderModel[] folders,
-		FileModel[] files)
+		Collection<ExplorerItemDtoBase> hierarchy,
+		FolderEntity[] folders,
+		FileEntity[] files)
 	{
 		if (hierarchy.Count == 0)
 		{
@@ -546,7 +539,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		int startIndex = hierarchy.Max(x => x.Index) + 1;
 
 		folders
-		   .OfType<ExplorerModelBase>()
+		   .OfType<ExplorerItemBase>()
 		   .Concat(files)
 		   .Where(x => x.ParentId is null)
 		   .OrderBy(x => x.Index)
@@ -561,9 +554,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Removes the hotkeys of the files whose sequence could not be read.
 	/// </summary>
-	private async Task DropUnreadableHotkeysAsync(FileModelDto[] files, CancellationToken token)
+	private async Task DropUnreadableHotkeysAsync(FileDto[] files, CancellationToken token)
 	{
-		foreach (FileModelDto file in files)
+		foreach (FileDto file in files)
 		{
 			if (!await _dbAccess
 				.DeleteHotkeysAsync(file.Id, token)
@@ -571,7 +564,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			{
 				_logger.LogError(
 					$@"Hotkeys of file ""{file.Name}"" ({file.Id}) could not be removed.",
-					assertDebug: false);
+					breakInDebugger: false);
 
 				continue;
 			}
@@ -589,31 +582,31 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task ExportToJsonAsync(string filePath, CancellationToken token)
 	{
-		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
 		// Streaming serialization: writes Json directly to the file without
 		// materializing the whole document as a string in memory.
 		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
 
 		await _jsonSerializer
-			.SerializeAsync(stream, entities, AppUtils.JsonOptions, token)
+			.SerializeAsync(stream, entities, JsonDefaults.Options, token)
 			.ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Exports data to SQLite database.
 	/// </summary>
-	private Task ExportToSQLiteAsync(string filePath, CancellationToken token)
+	private Task ExportToSqliteAsync(string filePath, CancellationToken token)
 	{
-		BackupSqliteParameters parameters = new()
+		CopyDatabaseParameters parameters = new()
 		{
-			ClearDestPool = true,
+			ClearDestinationPool = true,
 			ClearSourcePool = false,
-			DestFilePath = filePath,
+			DestinationFilePath = filePath,
 			SourceFilePath = _dbAccess.GetDbFilePath()
 		};
 
-		return _dbAccess.BackupSqliteDatabaseAsync(parameters, token);
+		return _dbAccess.CopyDatabaseAsync(parameters, token);
 	}
 
 	/// <summary>
@@ -621,7 +614,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task ExportToXmlAsync(string filePath, CancellationToken token)
 	{
-		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
 		// Streaming serialization: XmlSerializer writes directly to the file
 		// without materializing the whole document as a string in memory.
@@ -631,19 +624,19 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Load all entities from database.
+	/// Loads all entities from the database.
 	/// </summary>
-	private async Task<ExplorerModelBase[]> GetEntitiesFromDbAsync(CancellationToken token)
+	private async Task<ExplorerItemBase[]> GetEntitiesFromDbAsync(CancellationToken token)
 	{
-		FolderModel[] dbFolders = await _dbAccess
+		FolderEntity[] folders = await _dbAccess
 			.GetAllFoldersAsync(token)
 			.ConfigureAwait(false);
 
-		FileModel[] dbFiles = await _dbAccess
-			.GetAllFilesAsync(OptionalFileProperty.Contents | OptionalFileProperty.Properties, token)
+		FileEntity[] files = await _dbAccess
+			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
 			.ConfigureAwait(false);
 
-		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
+		return [.. folders.Concat<ExplorerItemBase>(files)];
 	}
 
 	/// <summary>
@@ -651,18 +644,18 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ImportMode variant,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		// Streaming deserialization: avoids loading the entire file into a string before parsing.
-		ExplorerModelBase[]? entities;
+		ExplorerItemBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
 			entities = await _jsonSerializer
-				.DeserializeAsync<ExplorerModelBase[]>(stream, token)
+				.DeserializeAsync<ExplorerItemBase[]>(stream, token)
 				.ConfigureAwait(false);
 		}
 
@@ -674,7 +667,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		return await ImportEntitiesAsync(
 			entities,
 			variant,
-			objects,
+			imported,
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
@@ -682,23 +675,23 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from SQLite database.
 	/// </summary>
-	private Task<bool> ImportFromSQLiteAsync(
+	private Task<bool> ImportFromSqliteAsync(
 		string filePath,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ImportMode variant,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		return variant switch
 		{
-			ImportListVariant.Replace => ReplaceFromSQLiteAsync(
+			ImportMode.Replace => ReplaceFromSqliteAsync(
 				filePath,
-				objects,
+				imported,
 				hierarchy,
 				token),
-			ImportListVariant.Append => AppendFromSQLiteAsync(
+			ImportMode.Append => AppendFromSqliteAsync(
 				filePath,
-				objects,
+				imported,
 				hierarchy,
 				token),
 			_ => throw new NotImplementedException()
@@ -710,14 +703,14 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<bool> ImportFromXmlAsync(
 		string filePath,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ImportMode variant,
+		List<ExplorerItemDtoBase> imported,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		// The document is read as a whole, so that hotkey names the library no longer knows
 		// can be replaced before the serializer rejects the whole file because of them.
-		ExplorerModelBase[]? entities;
+		ExplorerItemBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
@@ -727,7 +720,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			HotkeyXmlSanitizer.Sanitize(document);
 
-			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(document);
+			entities = _xmlSerializer.Deserialize<ExplorerItemBase[]>(document);
 		}
 
 		if (entities is null)
@@ -738,7 +731,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		return await ImportEntitiesAsync(
 			entities,
 			variant,
-			objects,
+			imported,
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
