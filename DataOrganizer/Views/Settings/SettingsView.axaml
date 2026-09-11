@@ -75,7 +75,7 @@
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
 				<ListBox
-					Name="CategoriesListBox"
+					x:Name="CategoriesListBox"
 					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
 					SelectionMode="AlwaysSelected">
 					<ListBoxItem>

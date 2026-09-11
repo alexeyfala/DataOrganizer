@@ -87,7 +87,7 @@
 
 		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
 		<AvaloniaEdit:TextEditor
-			Name="Editor"
+			x:Name="Editor"
 			Grid.Row="2"
 			Focusable="True"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"

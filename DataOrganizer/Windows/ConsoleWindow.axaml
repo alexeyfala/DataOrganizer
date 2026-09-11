@@ -117,7 +117,7 @@
 
 		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
 		<AvaloniaEdit:TextEditor
-			Name="Editor"
+			x:Name="Editor"
 			Grid.Row="3"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 			FontSize="{Binding FontSize, Mode=OneWay}"
