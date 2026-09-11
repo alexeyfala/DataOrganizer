@@ -12,13 +12,13 @@ public static class EnumNameReader
 	/// Reads a stored name, accepting only the exact text that a written name has,
 	/// and returns <paramref name="fallback"/> for anything else.
 	/// </summary>
-	public static T Read<T>(string? value, T fallback) where T : struct, Enum
+	public static T Read<T>(string? name, T fallback) where T : struct, Enum
 	{
-		return value is { Length: > 0 }
-			&& !char.IsAsciiDigit(value[0])
-			&& value[0] is not ('-' or '+')
-			&& Enum.TryParse(value, out T result)
-			&& string.Equals(result.ToString(), value, StringComparison.Ordinal)
+		return name is { Length: > 0 }
+			&& !char.IsAsciiDigit(name[0])
+			&& name[0] is not ('-' or '+')
+			&& Enum.TryParse(name, out T result)
+			&& string.Equals(result.ToString(), name, StringComparison.Ordinal)
 				? result
 				: fallback;
 	}

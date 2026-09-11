@@ -211,12 +211,12 @@ internal class HotkeyXmlSanitizerTests
 	/// <summary>
 	/// Returns the value of the given element of the single hotkey of a document.
 	/// </summary>
-	private static string ReadHotkey(XDocument document, string element)
+	private static string ReadHotkey(XDocument document, string elementName)
 	{
 		return document
 			.Descendants(HotkeyEntity.HotkeyElementName)
 			.Single()
-			.Element(element)!
+			.Element(elementName)!
 			.Value;
 	}
 
@@ -237,12 +237,12 @@ internal class HotkeyXmlSanitizerTests
 	/// <summary>
 	/// Sets the value of the given element of the single hotkey of a document.
 	/// </summary>
-	private static void WriteHotkey(XDocument document, string element, string value)
+	private static void WriteHotkey(XDocument document, string elementName, string value)
 	{
 		document
 			.Descendants(HotkeyEntity.HotkeyElementName)
 			.Single()
-			.Element(element)!
+			.Element(elementName)!
 			.Value = value;
 	}
 	#endregion

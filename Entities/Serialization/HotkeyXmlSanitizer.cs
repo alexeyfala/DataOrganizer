@@ -38,9 +38,9 @@ public static class HotkeyXmlSanitizer
 	/// <summary>
 	/// Tells whether every flag of a mask is a name that the library still has.
 	/// </summary>
-	private static bool IsKnownMask(string value)
+	private static bool IsKnownMask(string mask)
 	{
-		string[] names = value.Split(
+		string[] names = mask.Split(
 			Separators,
 			StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
