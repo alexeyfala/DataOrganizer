@@ -193,6 +193,9 @@
 				<ItemsRepeater.ItemTemplate>
 					<RecyclingElementFactory SelectTemplateKey="OnSelectRecordTemplateKey">
 						<RecyclingElementFactory.Templates>
+							<!--
+								The keys carry no suffix on purpose: OnSelectRecordTemplateKey hands the factory the record's type name, so each key has to match it.
+							-->
 							<StaticResource
 								x:Key="KeyValueRecord"
 								ResourceKey="KeyValueRecordTemplate" />

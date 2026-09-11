@@ -57,7 +57,7 @@
 					Margin="4.0,0.0"
 					VerticalAlignment="Center"
 					FontWeight="SemiBold"
-					Foreground="{StaticResource LightForeground}"
+					Foreground="{StaticResource LightForegroundBrush}"
 					Text="{x:Static common:AppInfo.AppDisplayName}" />
 
 				<ToggleSwitch
@@ -80,7 +80,7 @@
 					Padding="0.0"
 					CommandParameter="{Binding $parent[Window]}"
 					Content="{materialIcons:MaterialIconTextExt Kind=Close}"
-					Foreground="{StaticResource LightForeground}"
+					Foreground="{StaticResource LightForegroundBrush}"
 					Theme="{StaticResource MaterialFlatButton}"
 					ToolTip.Tip="{x:Static prop:Strings.Close}">
 					<Interaction.Behaviors>

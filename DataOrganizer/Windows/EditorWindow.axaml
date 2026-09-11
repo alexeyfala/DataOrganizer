@@ -366,7 +366,7 @@
 							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
 							SideSheetPadding="4.0"
-							Theme="{StaticResource ScrollableSideSheet}">
+							Theme="{StaticResource ScrollableSideSheetTheme}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
 								<selectors:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
