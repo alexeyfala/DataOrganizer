@@ -81,7 +81,6 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>());
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.ChangePasswordAsync" />: a wrong old password is reported before a new one is asked for.
 	/// </summary>
@@ -127,12 +126,11 @@ internal class FolderProtectionTests
 			.BeSameAs(encryptedDek);
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.ChangePasswordAsync" />: rewraps the DEK with the new password.
 	/// </summary>
 	[Test]
-	public async Task ChangePasswordAsync_Does_Work()
+	public async Task ChangePasswordAsync_Rewraps_The_Dek()
 	{
 		// Arrange
 		FolderDto folder = TestData.CreateFolderDto();
@@ -180,7 +178,6 @@ internal class FolderProtectionTests
 			.Should()
 			.NotBeEquivalentTo(encryptedDek);
 	}
-
 
 	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: the notes of the whole subtree are decrypted and persisted.
@@ -280,7 +277,6 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>());
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: a wrong password never pulls the contents of the files into memory.
 	/// </summary>
@@ -325,71 +321,6 @@ internal class FolderProtectionTests
 		dbAccess
 			.DidNotReceive()
 			.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>());
-	}
-
-
-	/// <summary>
-	/// <see cref="FolderProtection.DecryptFolderAsync" />: decrypts the folder and persists the updated file properties.
-	/// </summary>
-	[Test]
-	public async Task DecryptFolderAsync_Does_Work()
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		FolderDto folder = TestData.CreateFolderDto();
-
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
-
-		FileDto[] files = [.. TestData.CreateFileDtos(5)];
-
-		IEncryptedContentWriter contentWriter = null!;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			contentWriter = RegisterContentWriter(builder);
-
-			IDialogService dialogService = Substitute.For<IDialogService>();
-
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
-
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
-
-			encryption
-				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
-				.Returns([.. TestData.CreateValidatedContents(files.Length, isValid: true)]);
-
-			dbAccess
-				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestData.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			dbAccess
-				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
-
-			builder.RegisterInstance(dialogService);
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		FolderProtection sut = mock.Create<FolderProtection>();
-
-		// Act
-		await sut.DecryptFolderAsync(folder, files);
-
-		// Assert
-		await contentWriter.Received(1).UpdateDatabaseAsync(
-			Arg.Is<UpdateDatabaseParameters>(x =>
-				x.EncryptedDek == null
-				&& x.NewStatus == EncryptionStatus.None
-				&& x.Contents.Length == files.Length),
-			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -568,7 +499,6 @@ internal class FolderProtectionTests
 			.UpdateDatabaseAsync(default!);
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: contents that the database reports as unreadable,
 	/// or that arrive without an identifier, stop the operation before anything is written.
@@ -625,6 +555,70 @@ internal class FolderProtectionTests
 		await contentWriter
 			.DidNotReceiveWithAnyArgs()
 			.UpdateDatabaseAsync(default!);
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: decrypts the folder and persists the updated file properties.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Saves_The_Decrypted_Contents()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderDto folder = TestData.CreateFolderDto();
+
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+
+		FileDto[] files = [.. TestData.CreateFileDtos(5)];
+
+		IEncryptedContentWriter contentWriter = null!;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			contentWriter = RegisterContentWriter(builder);
+
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+
+			encryption
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
+				.Returns([.. TestData.CreateValidatedContents(files.Length, isValid: true)]);
+
+			dbAccess
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestData.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.CreateBackupAsync()
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		await contentWriter.Received(1).UpdateDatabaseAsync(
+			Arg.Is<UpdateDatabaseParameters>(x =>
+				x.EncryptedDek == null
+				&& x.NewStatus == EncryptionStatus.None
+				&& x.Contents.Length == files.Length),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -816,7 +810,6 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>());
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.EncryptFolderAsync" />: nothing is persisted when a note cannot be encrypted.
 	/// </summary>
@@ -879,71 +872,6 @@ internal class FolderProtectionTests
 			.DidNotReceive()
 			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>());
 	}
-
-
-	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: encrypts the folder and persists the updated file properties.
-	/// </summary>
-	[Test]
-	public async Task EncryptFolderAsync_Does_Work()
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		FolderDto folder = TestData.CreateFolderDto();
-
-		FileDto[] files = [.. TestData.CreateFileDtos(5)];
-
-		IEncryptedContentWriter contentWriter = null!;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			contentWriter = RegisterContentWriter(builder);
-
-			IDialogService dialogService = Substitute.For<IDialogService>();
-
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
-
-			dbAccess
-				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestData.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
-				.Returns([.. TestData.CreateValidatedContents(files.Length, isValid: true)]);
-
-			encryption
-				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns([]);
-
-			dbAccess
-				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(dialogService);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		FolderProtection sut = mock.Create<FolderProtection>();
-
-		// Act
-		await sut.EncryptFolderAsync(folder, files);
-
-		// Assert
-		await contentWriter.Received(1).UpdateDatabaseAsync(
-			Arg.Is<UpdateDatabaseParameters>(x =>
-				x.NewStatus == EncryptionStatus.Encrypted
-				&& x.Contents.Length == files.Length),
-			Arg.Any<CancellationToken>());
-	}
-
 
 	/// <summary>
 	/// <see cref="FolderProtection.EncryptFolderAsync" />: the note of an object is encrypted with the DEK of the folder.
@@ -1027,7 +955,6 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>());
 	}
 
-
 	/// <summary>
 	/// <see cref="FolderProtection.EncryptFolderAsync" />: the copy of the database is erased when the operation ends.
 	/// </summary>
@@ -1101,6 +1028,69 @@ internal class FolderProtectionTests
 		fileSystem
 			.Received()
 			.EraseAndDeleteFile(backup.FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync" />: encrypts the folder and persists the updated file properties.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Saves_The_Encrypted_Contents()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderDto folder = TestData.CreateFolderDto();
+
+		FileDto[] files = [.. TestData.CreateFileDtos(5)];
+
+		IEncryptedContentWriter contentWriter = null!;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			contentWriter = RegisterContentWriter(builder);
+
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			dbAccess
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestData.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
+				.Returns([.. TestData.CreateValidatedContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns([]);
+
+			dbAccess
+				.CreateBackupAsync()
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		await contentWriter.Received(1).UpdateDatabaseAsync(
+			Arg.Is<UpdateDatabaseParameters>(x =>
+				x.NewStatus == EncryptionStatus.Encrypted
+				&& x.Contents.Length == files.Length),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

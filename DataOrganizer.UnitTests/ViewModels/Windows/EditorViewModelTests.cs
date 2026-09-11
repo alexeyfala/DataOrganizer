@@ -127,7 +127,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
 	/// </summary>
 	[Test]
-	public async Task ChangePassword_Does_Work()
+	public async Task ChangePassword_Closes_Open_Files_And_Changes_The_Password()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -254,32 +254,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DecryptFolder" />: nothing happens when the folder has no files to close.
-	/// </summary>
-	[Test]
-	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
-
-		// Act
-		await sut.DecryptFolder(TestData.CreateFolderDto());
-
-		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.DecryptFolder" />: open files are closed and the folder is decrypted.
 	/// </summary>
 	[Test]
-	public async Task DecryptFolder_Does_Work()
+	public async Task DecryptFolder_Closes_Open_Files_And_Decrypts_The_Folder()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -330,6 +308,28 @@ internal class EditorViewModelTests
 		await folderProtection
 			.Received()
 			.DecryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DecryptFolder" />: nothing happens when the folder has no files to close.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.DecryptFolder(TestData.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.DidNotReceive()
+			.RequestCloseFilesAsync();
 	}
 
 	/// <summary>
@@ -748,32 +748,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.EncryptFolder" />: nothing happens when the folder has no files to close.
-	/// </summary>
-	[Test]
-	public async Task EncryptFolder_Does_Nothing_If_Missing_Files()
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
-
-		// Act
-		await sut.EncryptFolder(TestData.CreateFolderDto());
-
-		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.EncryptFolder" />: open files are closed and the folder is encrypted.
 	/// </summary>
 	[Test]
-	public async Task EncryptFolder_Does_Work()
+	public async Task EncryptFolder_Closes_Open_Files_And_Encrypts_The_Folder()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -827,6 +805,28 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.EncryptFolder" />: nothing happens when the folder has no files to close.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolder_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.EncryptFolder(TestData.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.DidNotReceive()
+			.RequestCloseFilesAsync();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ExecuteFile" />: contents are not loaded when the file is already executing.
 	/// </summary>
 	[Test]
@@ -863,7 +863,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.ExecuteFile" />: the file is marked executing, added to executing files, and executed by the engine.
 	/// </summary>
 	[Test]
-	public async Task ExecuteFile_Does_Work()
+	public async Task ExecuteFile_Marks_The_File_Executing_And_Runs_It()
 	{
 		// Arrange
 		FileDto dto = TestData.CreateFileDto();
@@ -1145,7 +1145,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.HideAllFileContents" />: all open files are closed and their contents re-encrypted.
 	/// </summary>
 	[Test]
-	public async Task HideAllFileContents_Does_Work()
+	public async Task HideAllFileContents_Closes_Open_Files_And_Hides_All_Contents()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -1247,7 +1247,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.HideFileContents" />: the file is closed and its contents marked encrypted.
 	/// </summary>
 	[Test]
-	public async Task HideFileContents_Does_Work([Values] bool isEditing)
+	public async Task HideFileContents_Closes_The_File_And_Hides_Its_Contents([Values] bool isEditing)
 	{
 		// Arrange
 		FileDto file = isEditing
@@ -1342,7 +1342,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.HideFolderContents" />: the folder's open files are closed and its contents hidden.
 	/// </summary>
 	[Test]
-	public async Task HideFolderContents_Does_Work()
+	public async Task HideFolderContents_Closes_Open_Files_And_Hides_The_Contents()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -1445,55 +1445,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: the current hierarchy is passed to the data exchange service for import.
-	/// </summary>
-	[Test]
-	public async Task Import_Does_Work()
-	{
-		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
-			count: 5,
-			isEditing: true)];
-
-		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
-			count: 5,
-			isExecuting: true)];
-
-		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
-
-			dialogService
-				.RequestCloseFilesAsync()
-				.Returns(true);
-
-			builder.RegisterInstance(dialogService);
-
-			builder.RegisterInstance(dataExchange);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut
-			.Hierarchy
-			.AddRange(editingFiles);
-
-		sut
-			.Hierarchy
-			.AddRange(executingFiles);
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		await dataExchange
-			.Received()
-			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>());
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
 	/// </summary>
 	[Test]
@@ -1557,6 +1508,55 @@ internal class EditorViewModelTests
 		contentVisibility
 			.DidNotReceive()
 			.DiscardAllKeys();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: the current hierarchy is passed to the data exchange service for import.
+	/// </summary>
+	[Test]
+	public async Task Import_Passes_The_Hierarchy_To_The_Data_Exchange()
+	{
+		// Arrange
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
+			count: 5,
+			isEditing: true)];
+
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
+			count: 5,
+			isExecuting: true)];
+
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dataExchange);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.Hierarchy
+			.AddRange(editingFiles);
+
+		sut
+			.Hierarchy
+			.AddRange(executingFiles);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		await dataExchange
+			.Received()
+			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -2024,32 +2024,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowFolderContents" />: nothing happens when the folder has no files to close.
-	/// </summary>
-	[Test]
-	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
-
-		// Act
-		await sut.ShowFolderContents(TestData.CreateFolderDto());
-
-		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.ShowFolderContents" />: open files are closed and the folder's contents are shown.
 	/// </summary>
 	[Test]
-	public async Task ShowFolderContents_Does_Work()
+	public async Task ShowFolderContents_Closes_Open_Files_And_Shows_The_Contents()
 	{
 		// Arrange
 		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
@@ -2100,6 +2078,28 @@ internal class EditorViewModelTests
 		await contentVisibility
 			.Received()
 			.ShowFolderContentsAsync(Arg.Any<FolderDto>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowFolderContents" />: nothing happens when the folder has no files to close.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.ShowFolderContents(TestData.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.DidNotReceive()
+			.RequestCloseFilesAsync();
 	}
 	#endregion
 }

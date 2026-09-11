@@ -27,7 +27,7 @@ internal class ContentVisibilityTests
 	/// <see cref="ContentVisibility.DiscardAllKeys" />: drops every held key.
 	/// </summary>
 	[Test]
-	public void DiscardAllKeys_Does_Work()
+	public void DiscardAllKeys_Locks_Every_Keeper()
 	{
 		// Arrange
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
@@ -50,7 +50,7 @@ internal class ContentVisibilityTests
 	/// even while their contents are shown.
 	/// </summary>
 	[Test]
-	public void DiscardKeys_Does_Work()
+	public void DiscardKeys_Locks_The_Folder_And_Its_Nested_Keepers()
 	{
 		// Arrange
 		FolderDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
@@ -97,45 +97,6 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentVisibility.HideFolderContents" />: locks the keeper and marks the folder and all children as encrypted.
-	/// </summary>
-	[Test]
-	public void HideFolderContents_Does_Work()
-	{
-		// Arrange
-		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		folder
-			.Children
-			.AddRange(TestData.CreateFileDtos(5));
-
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
-
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
-
-		ContentVisibility sut = mock.Create<ContentVisibility>();
-
-		// Act
-		sut.HideFolderContents(folder);
-
-		// Assert
-		sessionKeyStore
-			.Received(1)
-			.Lock(folder.Id);
-
-		folder.EncryptionStatus
-			.Should()
-			.Be(EncryptionStatus.Encrypted);
-
-		folder.GetAllChildren()
-			.Should()
-			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
-	}
-
-
-	/// <summary>
 	/// <see cref="ContentVisibility.HideFolderContents" />: hiding a nested folder keeps the key of the keeper
 	/// while anything else under it is still shown.
 	/// </summary>
@@ -178,12 +139,96 @@ internal class ContentVisibilityTests
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
 
+	/// <summary>
+	/// <see cref="ContentVisibility.HideFolderContents" />: locks the keeper and marks the folder and all children as encrypted.
+	/// </summary>
+	[Test]
+	public void HideFolderContents_Locks_The_Keeper_And_Marks_The_Subtree_Encrypted()
+	{
+		// Arrange
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder
+			.Children
+			.AddRange(TestData.CreateFileDtos(5));
+
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.HideFolderContents(folder);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Lock(folder.Id);
+
+		folder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		folder.GetAllChildren()
+			.Should()
+			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: reports a refused key instead of returning silently.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
+	{
+		// Arrange
+		FolderDto folder = TestData.CreateFolderDto();
+
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
+				.Returns(false);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		bool result = await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+	}
 
 	/// <summary>
 	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: unlocks the keeper and marks the file as decrypted, returning true.
 	/// </summary>
 	[Test]
-	public async Task ShowFileContentsAsync_Does_Work()
+	public async Task ShowFileContentsAsync_Unlocks_The_Keeper_And_Marks_The_File_Decrypted()
 	{
 		// Arrange
 		FolderDto folder = TestData.CreateFolderDto();
@@ -243,23 +288,16 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: reports a refused key instead of returning silently.
+	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: a key store that refuses the key is
+	/// reported as a failure to show the contents.
 	/// </summary>
 	[Test]
-	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
+	public async Task ShowFolderContentsAsync_Reports_A_Refused_Key()
 	{
 		// Arrange
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
-
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		folder
-			.Children
-			.Add(file);
-
-		file.Parent = folder;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -277,24 +315,14 @@ internal class ContentVisibilityTests
 		ContentVisibility sut = mock.Create<ContentVisibility>();
 
 		// Act
-		bool result = await sut.ShowFileContentsAsync(file);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		file.EncryptionStatus
-			.Should()
-			.Be(EncryptionStatus.Encrypted);
+		await sut.ShowFolderContentsAsync(folder);
 	}
 
 	/// <summary>
 	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: unlocks the keeper and marks the folder and all children as decrypted.
 	/// </summary>
-
 	[Test]
-	public async Task ShowFolderContentsAsync_Does_Work()
+	public async Task ShowFolderContentsAsync_Unlocks_The_Keeper_And_Marks_The_Subtree_Decrypted()
 	{
 		// Arrange
 		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
@@ -348,38 +376,6 @@ internal class ContentVisibilityTests
 			.Received(1)
 			.Unlock(folder.Id, Arg.Any<PinnedBuffer>());
 	}
-
-	/// <summary>
-	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: a key store that refuses the key is
-	/// reported as a failure to show the contents.
-	/// </summary>
-	[Test]
-	public async Task ShowFolderContentsAsync_Reports_A_Refused_Key()
-	{
-		// Arrange
-		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
-
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-			sessionKeyStore
-				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
-				.Returns(false);
-
-			builder.RegisterInstance(sessionKeyStore);
-		});
-
-		ContentVisibility sut = mock.Create<ContentVisibility>();
-
-		// Act
-		await sut.ShowFolderContentsAsync(folder);
-	}
-
 	#endregion
 
 	#region Helpers

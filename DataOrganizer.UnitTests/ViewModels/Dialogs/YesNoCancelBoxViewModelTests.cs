@@ -73,7 +73,7 @@ internal class YesNoCancelBoxViewModelTests
 	/// <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: the pressed button determines the returned result.
 	/// </summary>
 	[Test]
-	public async Task GetResultAsync_Does_Work([Values] YesNoCancelAnswer expected)
+	public async Task GetResultAsync_Returns_The_Answer_Of_The_Pressed_Button([Values] YesNoCancelAnswer expected)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();

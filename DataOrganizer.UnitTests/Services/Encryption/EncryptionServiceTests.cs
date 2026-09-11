@@ -646,7 +646,7 @@ internal class EncryptionServiceTests
 	/// <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.Decrypt" />: a round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
-	public void Encrypt_Decrypt_Checking_Functionality()
+	public void Encrypt_Decrypt_Round_Trip_Restores_The_Plaintext()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -758,7 +758,7 @@ internal class EncryptionServiceTests
 	/// an empty content stays unencrypted and survives a folder round-trip next to a normal one.
 	/// </summary>
 	[Test]
-	public void EncryptContents_DecryptContents_Checking_Functionality()
+	public void EncryptContents_DecryptContents_Round_Trip_Leaves_An_Empty_Content_Empty()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -884,7 +884,7 @@ internal class EncryptionServiceTests
 	/// <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />: a DEK round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
-	public void EncryptWithDek_DecryptWithDek_Checking_Functionality()
+	public void EncryptWithDek_DecryptWithDek_Round_Trip_Restores_The_Plaintext()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -953,7 +953,7 @@ internal class EncryptionServiceTests
 	/// <see cref="EncryptionService.EncryptWithSessionId" />, <see cref="EncryptionService.DecryptWithSessionId" />: a session round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
-	public void EncryptWithSessionId_DecryptWithSessionId_Checking_Functionality()
+	public void EncryptWithSessionId_DecryptWithSessionId_Round_Trip_Restores_The_Plaintext()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();

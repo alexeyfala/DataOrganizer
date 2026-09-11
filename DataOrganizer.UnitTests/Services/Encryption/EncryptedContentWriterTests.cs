@@ -26,47 +26,10 @@ internal class EncryptedContentWriterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the conversion cannot be saved.
-	/// </summary>
-	[Test]
-	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
-	{
-		// Arrange
-		UpdateDatabaseParameters parameters = new()
-		{
-			BackupFilePath = TestData.CreateRandomFileName(10),
-			Contents = [],
-			EncryptedDek = null,
-			Files = [],
-			Folder = TestData.CreateFolderDto(),
-			NewStatus = default,
-			Notes = []
-		};
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>(TypedParameter.From(dbAccess));
-
-		// Act
-		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
-
-		// Assert
-		result
-			.Should()
-			.Be(UpdateDatabaseOutcome.SaveFailed);
-
-		await dbAccess
-			.Received()
-			.RestoreFromBackupAsync(Arg.Any<string>());
-	}
-
-	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns Done and applies the new status to the folder and all files.
 	/// </summary>
 	[Test]
-	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)
+	public async Task UpdateDatabaseAsync_Applies_The_New_Status_To_Folder_And_Files([Values] EncryptionStatus newStatus)
 	{
 		// Arrange
 		EncryptionStatus randomStatus = TestData.CreateRandomEnumValueExcept(newStatus);
@@ -118,6 +81,42 @@ internal class EncryptedContentWriterTests
 			.OnlyContain(x => x == newStatus);
 	}
 
+	/// <summary>
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the conversion cannot be saved.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
+	{
+		// Arrange
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = TestData.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = null,
+			Files = [],
+			Folder = TestData.CreateFolderDto(),
+			NewStatus = default,
+			Notes = []
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>(TypedParameter.From(dbAccess));
+
+		// Act
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseOutcome.SaveFailed);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
 
 	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns ExceptionThrown and restores the backup when the write throws.
@@ -164,7 +163,6 @@ internal class EncryptedContentWriterTests
 			.Received()
 			.RestoreFromBackupAsync(parameters.BackupFilePath);
 	}
-
 
 	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: the processed notes are persisted and applied to the objects.

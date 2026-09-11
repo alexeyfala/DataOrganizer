@@ -24,59 +24,6 @@ internal class EntityLoaderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EntityLoader.LoadHierarchyAsync" />: loads folders and files and returns a hierarchy containing all of them.
-	/// </summary>
-	[Test]
-	public async Task LoadHierarchyAsync_Does_Work()
-	{
-		// Arrange
-		const int folderCount = 5;
-
-		const int fileCount = 5;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetAllFoldersAsync()
-				.Returns([.. TestData.CreateFolders(folderCount)]);
-
-			dbAccess
-				.GetAllFilesAsync(OptionalFileProperties.None)
-				.Returns([.. TestData.CreateFiles(fileCount)]);
-
-			IMapper mapper = Substitute.For<IMapper>();
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
-
-			mapper
-				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
-				.Returns([.. TestData.CreateFileDtos(fileCount)]);
-
-			mapper
-				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
-				.Returns([.. TestData.CreateFolderDtos(folderCount)]);
-
-			builder.RegisterInstance(mapper);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EntityLoader sut = mock.Create<EntityLoader>();
-
-		// Act
-		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
-
-		// Assert
-		hierarchy?.Length
-			.Should()
-			.Be(folderCount + fileCount);
-	}
-
-	/// <summary>
 	/// <see cref="EntityLoader.LoadHierarchyAsync" />: a cancelled load is the caller giving up,
 	/// so it leaves as a cancellation.
 	/// </summary>
@@ -138,6 +85,59 @@ internal class EntityLoaderTests
 		hierarchy
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.LoadHierarchyAsync" />: loads folders and files and returns a hierarchy containing all of them.
+	/// </summary>
+	[Test]
+	public async Task LoadHierarchyAsync_Returns_All_Folders_And_Files()
+	{
+		// Arrange
+		const int folderCount = 5;
+
+		const int fileCount = 5;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetAllFoldersAsync()
+				.Returns([.. TestData.CreateFolders(folderCount)]);
+
+			dbAccess
+				.GetAllFilesAsync(OptionalFileProperties.None)
+				.Returns([.. TestData.CreateFiles(fileCount)]);
+
+			IMapper mapper = Substitute.For<IMapper>();
+
+			mapper
+				.Config
+				.Returns(Substitute.For<TypeAdapterConfig>());
+
+			mapper
+				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
+				.Returns([.. TestData.CreateFileDtos(fileCount)]);
+
+			mapper
+				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
+				.Returns([.. TestData.CreateFolderDtos(folderCount)]);
+
+			builder.RegisterInstance(mapper);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
+
+		// Assert
+		hierarchy?.Length
+			.Should()
+			.Be(folderCount + fileCount);
 	}
 
 	/// <summary>

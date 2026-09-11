@@ -38,7 +38,7 @@ internal class DataExchangeServiceTests
 	/// <see cref="DataExchangeService.AppendFromSqliteAsync" />: appends entities from a SQLite source and maps them via the entity loader.
 	/// </summary>
 	[Test]
-	public async Task AppendFromSqliteAsync_Does_Work()
+	public async Task AppendFromSqliteAsync_Maps_The_Appended_Entities()
 	{
 		// Arrange
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
@@ -625,7 +625,7 @@ internal class DataExchangeServiceTests
 	/// </summary>
 	[TestCase(ImportMode.Append)]
 	[TestCase(ImportMode.Replace)]
-	public async Task ImportEntitiesAsync_Does_Work(ImportMode variant)
+	public async Task ImportEntitiesAsync_Stamps_Dates_And_Maps_Entities(ImportMode variant)
 	{
 		// Arrange
 		ExplorerItemBase[] entities = [.. TestData
@@ -687,7 +687,7 @@ internal class DataExchangeServiceTests
 	/// <see cref="DataExchangeService.ReplaceFromSqliteAsync" />: replaces data from an embedded SQLite source, clearing the hierarchy.
 	/// </summary>
 	[Test]
-	public async Task ReplaceFromSqliteAsync_Does_Work()
+	public async Task ReplaceFromSqliteAsync_Clears_The_Hierarchy_And_Reloads_It()
 	{
 		// Arrange
 		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData
