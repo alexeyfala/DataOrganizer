@@ -76,7 +76,7 @@ public sealed class EntityLoader : IEntityLoader
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}

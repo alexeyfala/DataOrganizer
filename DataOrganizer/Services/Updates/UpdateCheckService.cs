@@ -102,7 +102,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return UpdateCheckResult.None;
 		}

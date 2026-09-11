@@ -92,7 +92,7 @@ public sealed partial class ClipboardLogViewModel :
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 

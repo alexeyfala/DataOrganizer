@@ -48,7 +48,7 @@ internal class GenericExtensionsTests
 		Source source = new() { Name = "alpha", Number = 42, Note = "secret" };
 
 		// Act
-		Source result = source.CopyPropertiesTo(ignored: nameof(Source.Number));
+		Source result = source.CopyPropertiesTo(ignoredProperty: nameof(Source.Number));
 
 		// Assert
 		result.Name

@@ -143,7 +143,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -172,13 +172,13 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		catch (CryptographicException ex) when (hasKey)
 		{
 			// Opening an existing key rejects the password on its own, so this is the data behind it.
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return new(ClipboardLogStatus.Damaged, []);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return new(ClipboardLogStatus.Failed, []);
 		}
@@ -313,7 +313,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -331,7 +331,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -349,7 +349,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 

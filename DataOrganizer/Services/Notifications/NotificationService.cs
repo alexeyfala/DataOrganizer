@@ -100,7 +100,7 @@ public sealed class NotificationService : INotificationService
 				break;
 
 			case SnackbarMessageLevel.Error:
-				_logger.LogError(message, assertDebug: false);
+				_logger.LogError(message, breakInDebugger: false);
 				break;
 
 			default:

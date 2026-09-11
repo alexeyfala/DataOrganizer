@@ -43,7 +43,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			return;
 		}
 
-		_logger.LogException(exception, assertDebug: false);
+		_logger.LogException(exception, breakInDebugger: false);
 
 		string text = exception is CryptographicException
 			? Strings.EncryptedDataIsDamaged

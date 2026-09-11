@@ -399,7 +399,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		_logger.LogError(
 			$"The contents of these files cannot be converted: {identifiers}",
-			assertDebug: false);
+			breakInDebugger: false);
 	}
 
 	/// <summary>

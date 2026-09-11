@@ -117,11 +117,11 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public string ReadAllText(string filePath) => throw new NotSupportedException();
 
-	public void SerializeToJsonFile<T>(T value, string filePath, bool hide) => throw new NotSupportedException();
+	public void SerializeToJsonFile<T>(T value, string filePath, bool isHidden) => throw new NotSupportedException();
 
-	public void SetFileHidden(string filePath, bool value) => throw new NotSupportedException();
+	public void SetFileHidden(string filePath, bool isHidden) => throw new NotSupportedException();
 
-	public void SetFileReadOnly(string filePath, bool value) => throw new NotSupportedException();
+	public void SetFileReadOnly(string filePath, bool isReadOnly) => throw new NotSupportedException();
 
 	public ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,

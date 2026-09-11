@@ -10,41 +10,41 @@ public static class CollectionExtensions
 	/// <summary>
 	/// Adds elements to the end of <see cref="ICollection{T}" />.
 	/// </summary>
-	public static void AddRange<T>(this ICollection<T> sequence, IEnumerable<T> items)
+	public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
 	{
 		foreach (T item in items)
 		{
-			sequence.Add(item);
+			collection.Add(item);
 		}
 	}
 
 	/// <summary>
 	/// Clears, then adds elements to <see cref="ICollection{T}" />.
 	/// </summary>
-	public static void ClearAddRange<T>(this ICollection<T> sequence, IEnumerable<T> items)
+	public static void ClearAddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
 	{
-		sequence.Clear();
+		collection.Clear();
 
-		sequence.AddRange(items);
+		collection.AddRange(items);
 	}
 
 	/// <summary>
 	/// Sorts the elements in <see cref="ICollection{T}" />.
 	/// </summary>
-	public static void SortBy<TSource, TKey>(this ICollection<TSource> sequence, Func<TSource, TKey> keySelector)
+	public static void SortBy<TSource, TKey>(this ICollection<TSource> collection, Func<TSource, TKey> keySelector)
 	{
-		if (sequence.Count == 0)
+		if (collection.Count == 0)
 		{
 			return;
 		}
 
-		TSource[] temp = [.. sequence.OrderBy(keySelector)];
+		TSource[] ordered = [.. collection.OrderBy(keySelector)];
 
-		sequence.Clear();
+		collection.Clear();
 
-		foreach (TSource item in temp)
+		foreach (TSource item in ordered)
 		{
-			sequence.Add(item);
+			collection.Add(item);
 		}
 	}
 	#endregion

@@ -129,17 +129,17 @@ public interface IFileSystem
 	/// <summary>
 	/// Serializes an object into a Json string, saving it to a file using <see cref="System.Text.Json" />.
 	/// </summary>
-	void SerializeToJsonFile<T>(T value, string filePath, bool hide);
+	void SerializeToJsonFile<T>(T value, string filePath, bool isHidden);
 
 	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.Hidden" /> attribute to a file.
 	/// </summary>
-	void SetFileHidden(string filePath, bool value);
+	void SetFileHidden(string filePath, bool isHidden);
 
 	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.ReadOnly" /> attribute to a file.
 	/// </summary>
-	void SetFileReadOnly(string filePath, bool value);
+	void SetFileReadOnly(string filePath, bool isReadOnly);
 
 	/// <summary>
 	/// Waits until <paramref name="filePath" /> is no longer locked by another

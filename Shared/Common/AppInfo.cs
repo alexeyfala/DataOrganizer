@@ -58,14 +58,14 @@ public static class AppInfo
 	/// </summary>
 	private static bool IsDebugMode()
 	{
-		bool value = false;
+		bool isDebug = false;
 
-		Determine(ref value);
+		Determine(ref isDebug);
 
-		return value;
+		return isDebug;
 
 		[Conditional("DEBUG")]
-		static void Determine(ref bool value) => value = true;
+		static void Determine(ref bool isDebug) => isDebug = true;
 	}
 
 	/// <summary>
@@ -73,14 +73,14 @@ public static class AppInfo
 	/// </summary>
 	private static bool IsReleaseMode()
 	{
-		bool value = false;
+		bool isRelease = false;
 
-		Determine(ref value);
+		Determine(ref isRelease);
 
-		return value;
+		return isRelease;
 
 		[Conditional("RELEASE")]
-		static void Determine(ref bool value) => value = true;
+		static void Determine(ref bool isRelease) => isRelease = true;
 	}
 	#endregion
 }

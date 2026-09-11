@@ -9,8 +9,8 @@ public static class Int32Extensions
 	/// Returns the initial part of a number.
 	/// </summary>
 	/// <param name="value">Initial number.</param>
-	/// <param name="count">The required number of digits.</param>
-	public static int TakeDigits(this int value, int count)
+	/// <param name="digitCount">The required number of digits.</param>
+	public static int TakeDigits(this int value, int digitCount)
 	{
 		value = Math.Abs(value);
 
@@ -21,8 +21,8 @@ public static class Int32Extensions
 
 		int digits = (int)Math.Floor(Math.Log10(value) + 1);
 
-		return digits >= count
-			? (int)Math.Truncate(value / Math.Pow(10, digits - count))
+		return digits >= digitCount
+			? (int)Math.Truncate(value / Math.Pow(10, digits - digitCount))
 			: value;
 	}
 	#endregion

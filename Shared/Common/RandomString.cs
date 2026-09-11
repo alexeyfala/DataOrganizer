@@ -16,11 +16,11 @@ public static class RandomString
 	{
 		const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		char[] output = [.. Enumerable
+		char[] characters = [.. Enumerable
 			.Repeat(alphabet, length)
 			.Select(x => x[Random.Shared.Next(x.Length)])];
 
-		return new string(output);
+		return new string(characters);
 	}
 	#endregion
 }

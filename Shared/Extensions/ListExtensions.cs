@@ -6,18 +6,18 @@ public static class ListExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Moves an element of a sequence to the beginning of a list.
+	/// Moves an element to the beginning of a list.
 	/// </summary>
-	public static void MoveToTop<T>(this IList<T> sequence, int index)
+	public static void MoveToTop<T>(this IList<T> list, int index)
 	{
-		T item = sequence[index];
+		T item = list[index];
 
 		for (int i = index; i > 0; i--)
 		{
-			sequence[i] = sequence[i - 1];
+			list[i] = list[i - 1];
 		}
 
-		sequence[0] = item;
+		list[0] = item;
 	}
 	#endregion
 }

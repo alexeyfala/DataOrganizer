@@ -134,14 +134,14 @@ public static class EnumerableExtensions
 	/// <typeparam name="TOrdered">Type of ordered sequence.</typeparam>
 	/// <param name="source">Original sequence.</param>
 	/// <param name="ordered">Ordered sequence.</param>
-	/// <param name="selector">Property - selector.</param>
+	/// <param name="keySelector">Key selector.</param>
 	/// <returns>An ordered sequence in which elements from the original are present and were not found in the other.</returns>
 	public static IEnumerable<T> OrderBySequenceKeepSource<T, TOrdered>(
 		this IEnumerable<T> source,
 		IEnumerable<TOrdered> ordered,
-		Func<T, TOrdered> selector)
+		Func<T, TOrdered> keySelector)
 	{
-		ILookup<TOrdered, T> lookup = source.ToLookup(selector, x => x);
+		ILookup<TOrdered, T> lookup = source.ToLookup(keySelector, x => x);
 
 		HashSet<TOrdered> included = [];
 
@@ -162,7 +162,7 @@ public static class EnumerableExtensions
 
 		foreach (T item in source)
 		{
-			if (!included.Contains(selector(item)))
+			if (!included.Contains(keySelector(item)))
 			{
 				yield return item;
 			}

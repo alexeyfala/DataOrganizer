@@ -335,7 +335,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				{
 					_logger.LogError(
 						$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
-						assertDebug: false);
+						breakInDebugger: false);
 				});
 
 				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
@@ -348,7 +348,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
@@ -564,7 +564,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			{
 				_logger.LogError(
 					$@"Hotkeys of file ""{file.Name}"" ({file.Id}) could not be removed.",
-					assertDebug: false);
+					breakInDebugger: false);
 
 				continue;
 			}

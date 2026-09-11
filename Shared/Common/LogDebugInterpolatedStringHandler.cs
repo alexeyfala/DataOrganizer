@@ -24,10 +24,10 @@ public ref struct LogDebugInterpolatedStringHandler
 	public LogDebugInterpolatedStringHandler(
 		int literalLength,
 		int formattedCount,
-		ILogger target,
+		ILogger logger,
 		out bool handlerIsValid)
 	{
-		_isEnabled = target.IsEnabled(LogEventLevel.Debug);
+		_isEnabled = logger.IsEnabled(LogEventLevel.Debug);
 
 		handlerIsValid = _isEnabled;
 

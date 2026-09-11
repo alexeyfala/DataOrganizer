@@ -360,7 +360,7 @@ public sealed class DbAccess : IDbAccess
 
 			if (status is not DbConnectionStatus.Connected)
 			{
-				_logger.LogError($"The database cannot be worked with: {status}.", assertDebug: false);
+				_logger.LogError($"The database cannot be worked with: {status}.", breakInDebugger: false);
 
 				return status;
 			}
@@ -371,7 +371,7 @@ public sealed class DbAccess : IDbAccess
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			ConnectionStatus = DbConnectionStatus.FileUnreadable;
 
@@ -1389,7 +1389,7 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
-		_logger.LogError($"{caller} is refused: the database is {ConnectionStatus}.", assertDebug: false);
+		_logger.LogError($"{caller} is refused: the database is {ConnectionStatus}.", breakInDebugger: false);
 
 		return true;
 	}
@@ -1448,7 +1448,7 @@ public sealed class DbAccess : IDbAccess
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return failure;
 		}

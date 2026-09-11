@@ -325,7 +325,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -848,7 +848,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 		finally
 		{
@@ -892,7 +892,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return false;
 		}
@@ -1161,7 +1161,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 				}
 				catch (Exception ex)
 				{
-					_logger.LogException(ex, assertDebug: false);
+					_logger.LogException(ex, breakInDebugger: false);
 				}
 			}
 
@@ -1195,7 +1195,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1219,7 +1219,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1272,7 +1272,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 
@@ -1292,7 +1292,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1361,7 +1361,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1382,7 +1382,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1402,7 +1402,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}
@@ -1425,7 +1425,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}

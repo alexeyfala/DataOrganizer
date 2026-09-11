@@ -32,21 +32,21 @@ public static partial class SerilogExtensions
 	/// Logs a <see cref="LogEventLevel.Debug" /> level entry, building the interpolated message only when Debug logging is enabled.
 	/// </summary>
 	public static void LogDebug(
-		this ILogger target,
-		[InterpolatedStringHandlerArgument(nameof(target))]
+		this ILogger logger,
+		[InterpolatedStringHandlerArgument(nameof(logger))]
 		LogDebugInterpolatedStringHandler message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		if (!target.IsEnabled(LogEventLevel.Debug))
+		if (!logger.IsEnabled(LogEventLevel.Debug))
 		{
 			return;
 		}
 
-		target.Debug(
+		logger.Debug(
 			MessageSourceTemplate,
-			DecodeUnicode(message.ToStringAndClear(), target),
+			DecodeUnicode(message.ToStringAndClear(), logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 
@@ -54,20 +54,20 @@ public static partial class SerilogExtensions
 	/// Logs a <see cref="LogEventLevel.Debug" /> level entry from an already-computed message.
 	/// </summary>
 	public static void LogDebug(
-		this ILogger target,
+		this ILogger logger,
 		string? message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		if (!target.IsEnabled(LogEventLevel.Debug))
+		if (!logger.IsEnabled(LogEventLevel.Debug))
 		{
 			return;
 		}
 
-		target.Debug(
+		logger.Debug(
 			MessageSourceTemplate,
-			DecodeUnicode(message, target),
+			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 
@@ -76,16 +76,16 @@ public static partial class SerilogExtensions
 	/// without any information about the calling code.
 	/// </summary>
 	public static void LogDebugWithTemplate(
-		this ILogger target,
-		[InterpolatedStringHandlerArgument(nameof(target))]
+		this ILogger logger,
+		[InterpolatedStringHandlerArgument(nameof(logger))]
 		LogDebugInterpolatedStringHandler message)
 	{
-		if (!target.IsEnabled(LogEventLevel.Debug))
+		if (!logger.IsEnabled(LogEventLevel.Debug))
 		{
 			return;
 		}
 
-		target.Debug("{0}", message.ToStringAndClear());
+		logger.Debug("{0}", message.ToStringAndClear());
 	}
 
 	/// <summary>
@@ -93,34 +93,34 @@ public static partial class SerilogExtensions
 	/// without any information about the calling code.
 	/// </summary>
 	public static void LogDebugWithTemplate(
-		this ILogger target,
+		this ILogger logger,
 		string message)
 	{
-		if (!target.IsEnabled(LogEventLevel.Debug))
+		if (!logger.IsEnabled(LogEventLevel.Debug))
 		{
 			return;
 		}
 
-		target.Debug("{0}", message);
+		logger.Debug("{0}", message);
 	}
 
 	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Error" /> level entry.
 	/// </summary>
 	public static void LogError(
-		this ILogger target,
+		this ILogger logger,
 		string message,
-		bool assertDebug = true,
+		bool breakInDebugger = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		target.Error(
+		logger.Error(
 			MessageSourceTemplate,
-			DecodeUnicode(message, target),
+			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
-		if (!assertDebug || AppDomain
+		if (!breakInDebugger || AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
@@ -134,19 +134,19 @@ public static partial class SerilogExtensions
 	/// Logs a <see cref="Exception" /> level entry.
 	/// </summary>
 	public static void LogException(
-		this ILogger target,
+		this ILogger logger,
 		Exception exception,
-		bool assertDebug = true,
+		bool breakInDebugger = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		target.Error(
+		logger.Error(
 			exception,
 			"{Source}",
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
-		if (!assertDebug || AppDomain
+		if (!breakInDebugger || AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
@@ -160,17 +160,17 @@ public static partial class SerilogExtensions
 	/// Logs a <see cref="Exception" /> level entry.
 	/// </summary>
 	public static void LogException(
-		this ILogger target,
+		this ILogger logger,
 		string message,
 		Exception exception,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		target.Error(
+		logger.Error(
 			exception,
 			MessageSourceTemplate,
-			DecodeUnicode(message, target),
+			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
 		if (AppDomain
@@ -187,39 +187,39 @@ public static partial class SerilogExtensions
 	/// Logs a <see cref="LogEventLevel.Information" /> level entry.
 	/// </summary>
 	public static void LogInformation(
-		this ILogger target,
+		this ILogger logger,
 		string? message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		target.Information(
+		logger.Information(
 			MessageSourceTemplate,
-			DecodeUnicode(message, target),
+			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 
 	/// <summary>
 	/// Logs an entry of level <see cref="LogEventLevel.Information" /> using a template, without any information about the calling code.
 	/// </summary>
-	public static void LogInformationWithTemplate(this ILogger target, string message)
+	public static void LogInformationWithTemplate(this ILogger logger, string message)
 	{
-		target.Information("{0}", message);
+		logger.Information("{0}", message);
 	}
 
 	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Warning" /> level entry.
 	/// </summary>
 	public static void LogWarning(
-		this ILogger target,
+		this ILogger logger,
 		string message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
-		target.Warning(
+		logger.Warning(
 			MessageSourceTemplate,
-			DecodeUnicode(message, target),
+			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 

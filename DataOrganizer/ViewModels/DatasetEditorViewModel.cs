@@ -122,7 +122,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			IsContentCorrupted = true;
 
-			_logger.LogException(ex, assertDebug: false);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 		}

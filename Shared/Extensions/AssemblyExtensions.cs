@@ -8,9 +8,9 @@ public static class AssemblyExtensions
 	/// <summary>
 	/// Returns the assembly version, including an optional suffix.
 	/// </summary>
-	public static string? GetVersionWithSuffix(this Assembly? target)
+	public static string? GetVersionWithSuffix(this Assembly? assembly)
 	{
-		return target?
+		return assembly?
 			.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
 			.InformationalVersion;
 	}

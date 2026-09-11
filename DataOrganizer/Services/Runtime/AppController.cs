@@ -160,7 +160,7 @@ public sealed class AppController : IAppController
 			if (status is DbConnectionStatus.SchemaTooOld or DbConnectionStatus.SchemaTooNew)
 			{
 				// The data is intact, and an empty hierarchy would read as a loss worth undoing.
-				_logger.LogError($"The schema of the database is {status}, the launch ends.", assertDebug: false);
+				_logger.LogError($"The schema of the database is {status}, the launch ends.", breakInDebugger: false);
 
 				await _viewLauncher
 					.ShowStartupErrorAsync(_dbAccess.GetDbFilePath())
@@ -173,7 +173,7 @@ public sealed class AppController : IAppController
 
 			if (!isConnected)
 			{
-				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
+				_logger.LogError("The database is unavailable, the launch continues without it.", breakInDebugger: false);
 
 				_notification.ShowToast(Strings.DatabaseIsUnavailable);
 			}
@@ -200,7 +200,7 @@ public sealed class AppController : IAppController
 			{
 				_logger.LogError(
 					"The database could not be read, the launch continues with an empty hierarchy.",
-					assertDebug: false);
+					breakInDebugger: false);
 
 				_notification.ShowToast(Strings.FailedToReadDatabase);
 			}
@@ -214,7 +214,7 @@ public sealed class AppController : IAppController
 					{
 						_logger.LogError(
 							$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
-							assertDebug: false);
+							breakInDebugger: false);
 					});
 
 					_notification.ShowToast(
