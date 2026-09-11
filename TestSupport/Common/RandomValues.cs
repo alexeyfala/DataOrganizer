@@ -42,11 +42,11 @@ public static class RandomValues
 	/// </remarks>
 	public static double CreateDouble(double minValue, double maxValue)
 	{
-		double value = Random
+		double fraction = Random
 			.Shared
 			.NextDouble();
 
-		return minValue + (value * (maxValue - minValue));
+		return minValue + (fraction * (maxValue - minValue));
 	}
 
 	/// <summary>
@@ -56,11 +56,11 @@ public static class RandomValues
 	{
 		T[] values = Enum.GetValues<T>();
 
-		int randomIndex = Random
+		int index = Random
 			.Shared
 			.Next(values.Length);
 
-		return (T)values.GetValue(randomIndex)!;
+		return (T)values.GetValue(index)!;
 	}
 
 	/// <summary>
@@ -68,21 +68,21 @@ public static class RandomValues
 	/// </summary>
 	public static T CreateEnumValueExcept<T>(T excluded) where T : Enum
 	{
-		T[] filtered = [.. Enum
+		T[] remaining = [.. Enum
 			.GetValues(typeof(T))
 			.Cast<T>()
 			.Where(value => !EqualityComparer<T>.Default.Equals(value, excluded))];
 
-		if (filtered.IsEmpty())
+		if (remaining.IsEmpty())
 		{
 			throw new InvalidOperationException("No enum values available to select after exclusion.");
 		}
 
 		int index = Random
 			.Shared
-			.Next(0, filtered.Length);
+			.Next(0, remaining.Length);
 
-		return filtered[index];
+		return remaining[index];
 	}
 
 	/// <summary>

@@ -358,13 +358,13 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// Returns a string representation of the sequence <see cref="HotkeyDto" />.
 	/// </summary>
-	public static string GetHotkeysPresentation(this KeyStroke[] hotKeys)
+	public static string GetHotkeysPresentation(this KeyStroke[] hotkeys)
 	{
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 
-		if (hotKeys.Length != 0 && hotKeys[0].Mask.IsNotDefault())
+		if (hotkeys.Length != 0 && hotkeys[0].Mask.IsNotDefault())
 		{
-			builder.Append(hotKeys[0].Mask);
+			builder.Append(hotkeys[0].Mask);
 
 			builder.Append(' ');
 
@@ -373,11 +373,11 @@ internal static class EnumerableExtensions
 			builder.Append(' ');
 		}
 
-		for (int i = 0; i < hotKeys.Length; i++)
+		for (int i = 0; i < hotkeys.Length; i++)
 		{
-			builder.Append(hotKeys[i].GetKeyName());
+			builder.Append(hotkeys[i].GetKeyName());
 
-			if (i == hotKeys.Length - 1)
+			if (i == hotkeys.Length - 1)
 			{
 				continue;
 			}
