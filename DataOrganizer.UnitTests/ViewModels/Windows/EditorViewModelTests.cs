@@ -1995,15 +1995,19 @@ internal class EditorViewModelTests
 		// Arrange
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
+		FavoritesWindow? favoritesWindow = null;
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
 			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 				Arg.Any<IEnumerable<FileDto>>(),
 				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(windowMock.Create<FavoritesWindow>());
+			.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
 		});
@@ -2012,6 +2016,9 @@ internal class EditorViewModelTests
 
 		// Act
 		sut.ShowFavorites(null);
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		favoritesWindow?.Close();
 
 		// Assert
 		sut.IsShutdown
