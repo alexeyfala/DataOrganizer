@@ -8,6 +8,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Services;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Windows;
 using Entities.Models;
 using NSubstitute;
@@ -28,7 +29,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using TestSupport.Common;
 using TestSupport.Database;
-using TestSupport.Dto;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services;

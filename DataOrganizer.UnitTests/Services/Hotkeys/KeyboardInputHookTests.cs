@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
+using DataOrganizer.UnitTests.Factories;
 using Moq;
 using NSubstitute;
 using Repository.Dto;
@@ -55,7 +56,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -264,7 +265,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
 
 		await runner.StartAsync();
 

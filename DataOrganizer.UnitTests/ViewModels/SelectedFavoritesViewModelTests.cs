@@ -1,12 +1,12 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Favorites;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

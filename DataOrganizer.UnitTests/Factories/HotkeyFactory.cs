@@ -1,11 +1,10 @@
 using DataOrganizer.Dto.Entities;
-using Repository.Dto;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
 using TestSupport.Common;
 
-namespace TestSupport.Dto;
+namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
 /// Factory methods that build hotkey objects filled with random values.
@@ -27,21 +26,6 @@ public static class HotkeyFactory
 				Index = default,
 				Mask = RandomValues.CreateEnumValue<EventMask>(),
 				OwnerId = Guid.NewGuid()
-			};
-		}
-	}
-
-	/// <summary>
-	/// Creates the required number of random <see cref="KeyStroke" /> objects.
-	/// </summary>
-	public static IEnumerable<KeyStroke> CreateKeyStrokes(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return new()
-			{
-				Code = RandomValues.CreateEnumValue<KeyCode>(),
-				Mask = RandomValues.CreateEnumValue<EventMask>()
 			};
 		}
 	}

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using TestSupport.Common;
 
-namespace TestSupport.Dto;
+namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
 /// Factory methods that build explorer item transfer objects filled with random values.

@@ -1,11 +1,11 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers;
+using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Helpers;
 

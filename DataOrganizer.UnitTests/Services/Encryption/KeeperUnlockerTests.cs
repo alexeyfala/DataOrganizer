@@ -8,6 +8,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces.Database;
@@ -17,7 +18,6 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

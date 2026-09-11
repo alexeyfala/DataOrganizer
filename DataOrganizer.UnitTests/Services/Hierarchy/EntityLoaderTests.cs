@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Services.Hierarchy;
+using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;
@@ -16,7 +17,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;

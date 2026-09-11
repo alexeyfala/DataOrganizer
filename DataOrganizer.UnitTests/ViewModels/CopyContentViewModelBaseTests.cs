@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Dto;
@@ -22,7 +23,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

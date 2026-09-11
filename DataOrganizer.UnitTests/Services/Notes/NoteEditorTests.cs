@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -14,7 +15,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Notes;
 

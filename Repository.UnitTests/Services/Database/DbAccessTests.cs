@@ -196,7 +196,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		KeyStroke[] keyStrokes = [.. HotkeyFactory.CreateKeyStrokes(5)];
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
 
 		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 

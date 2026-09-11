@@ -5,10 +5,10 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Shared.Interfaces;
 using System.IO;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 

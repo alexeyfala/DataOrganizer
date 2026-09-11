@@ -7,6 +7,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
@@ -16,7 +17,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

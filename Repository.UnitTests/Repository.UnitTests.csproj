@@ -28,7 +28,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\TestSupport\TestSupport.csproj" />
-		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 		<ProjectReference Include="..\Repository\Repository.csproj" />
 	</ItemGroup>
 

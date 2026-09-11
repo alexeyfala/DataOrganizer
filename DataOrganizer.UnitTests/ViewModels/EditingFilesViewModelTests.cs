@@ -1,9 +1,9 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Shared.Extensions;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

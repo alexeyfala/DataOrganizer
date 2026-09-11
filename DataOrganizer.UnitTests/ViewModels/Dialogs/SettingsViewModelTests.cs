@@ -5,12 +5,12 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
 using System;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 

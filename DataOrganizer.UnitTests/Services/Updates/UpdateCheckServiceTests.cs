@@ -6,6 +6,7 @@ using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Updates;
+using DataOrganizer.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Interfaces;
@@ -17,7 +18,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Updates;
 

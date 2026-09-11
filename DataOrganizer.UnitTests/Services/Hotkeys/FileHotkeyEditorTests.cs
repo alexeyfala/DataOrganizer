@@ -5,6 +5,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Services.Hotkeys;
+using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using MapsterMapper;
 using NSubstitute;
@@ -64,7 +65,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_AlreadyInUse()
 	{
 		// Arrange
-		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
 
 		FileDto owner = ItemDtoFactory.CreateFileDto();
 
@@ -96,7 +97,7 @@ internal class FileHotkeyEditorTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto();
 
-		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -143,7 +144,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_SameHotkeys()
 	{
 		// Arrange
-		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
 
 		FileDto dto = ItemDtoFactory.CreateFileDto();
 

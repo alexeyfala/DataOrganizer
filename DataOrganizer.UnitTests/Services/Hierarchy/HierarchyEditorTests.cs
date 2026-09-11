@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services.Hierarchy;
+using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
@@ -14,7 +15,6 @@ using Shared.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 

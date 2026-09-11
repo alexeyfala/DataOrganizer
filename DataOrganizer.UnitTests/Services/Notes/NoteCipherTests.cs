@@ -6,12 +6,12 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Shared.Common;
 using System;
 using System.Text;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Notes;
 

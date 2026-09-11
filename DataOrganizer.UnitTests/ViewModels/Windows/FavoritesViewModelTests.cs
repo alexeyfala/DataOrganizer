@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
@@ -25,7 +26,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

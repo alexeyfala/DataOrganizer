@@ -5,10 +5,10 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Shared.Common;
 using TestSupport.Common;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Notes;
 

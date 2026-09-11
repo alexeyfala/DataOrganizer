@@ -9,6 +9,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -27,7 +28,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Database;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

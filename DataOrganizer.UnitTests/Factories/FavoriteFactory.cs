@@ -4,7 +4,7 @@ using Shared.Common;
 using System;
 using System.Collections.Generic;
 
-namespace TestSupport.Dto;
+namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
 /// Factory methods that build favorites transfer objects filled with random values.

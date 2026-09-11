@@ -2,7 +2,7 @@ using DataOrganizer.Dto.Settings;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 
-namespace TestSupport.Dto;
+namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
 /// Factory methods that build application settings.

@@ -39,7 +39,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Clear();
@@ -69,7 +69,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -301,7 +301,7 @@ internal class HotkeysEditorViewModelTests
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
 	{
 		// Arrange
-		KeyStroke[] keyStrokes = [.. HotkeyFactory.CreateKeyStrokes(5)];
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
 
 		using AutoMock mock = AutoMock.GetLoose();
 

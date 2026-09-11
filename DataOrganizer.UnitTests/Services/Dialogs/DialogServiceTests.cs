@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
@@ -20,7 +21,6 @@ using NSubstitute;
 using Shared.Properties;
 using System;
 using System.Threading.Tasks;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 

@@ -8,6 +8,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
@@ -18,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 

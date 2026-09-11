@@ -6,11 +6,11 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

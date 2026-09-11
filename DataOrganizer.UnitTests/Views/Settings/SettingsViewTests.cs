@@ -7,12 +7,12 @@ using DataOrganizer.Controls;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Settings;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Views.Settings;
 
