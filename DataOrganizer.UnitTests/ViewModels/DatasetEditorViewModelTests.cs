@@ -453,7 +453,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: does not attempt deserialization when the file contents are empty, but still marks the view model initialized.
 	/// </summary>
 	[Test]
-	public async Task ContainerLoaded_Shoud_Not_Tries_Add_Records_If_File_Content_Is_Empty()
+	public async Task ContainerLoaded_Skips_Empty_Contents_But_Marks_Initialized()
 	{
 		// Arrange
 		IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
@@ -1009,7 +1009,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
-	public async Task ExpandCollapseAsync_Tests(
+	public async Task ExpandCollapseAsync_Sets_The_Expanded_State_And_Persists_Only_When_Editable(
 		[Values] bool expand,
 		[Values] bool isReadOnly,
 		[Values] bool inGroup)
@@ -1113,7 +1113,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: persists the content only when not read-only.
 	/// </summary>
 	[Test]
-	public async Task IsHiddenChanged_Saves_Content_Or_Not([Values] bool isReadOnly)
+	public async Task IsHiddenChanged_Persists_Only_When_Editable([Values] bool isReadOnly)
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1248,7 +1248,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
-	public async Task ShowHideAsync_Tests(
+	public async Task ShowHideAsync_Sets_The_Hidden_State_And_Persists_Only_When_Editable(
 		[Values] bool hide,
 		[Values] bool isReadOnly,
 		[Values] bool inGroup)
@@ -1328,7 +1328,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts values, key-values and groups in the given direction (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
-	public async Task SortAsync(
+	public async Task SortAsync_Sorts_The_Records_And_Persists_Only_When_Editable(
 		[Values] ListSortDirection direction,
 		[Values] bool isReadOnly,
 		[Values] bool inGroup)

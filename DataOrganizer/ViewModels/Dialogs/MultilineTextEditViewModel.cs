@@ -2,7 +2,6 @@ using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Views.Dialogs;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Dialogs;

@@ -294,7 +294,6 @@ internal class FileChangeTrackerTests
 	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
-
 	[Test]
 	public async Task TrackChangesAsync_Shows_Error_And_Stops_When_Encryption_Fails()
 	{

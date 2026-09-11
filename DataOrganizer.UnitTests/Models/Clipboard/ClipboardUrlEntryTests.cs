@@ -3,7 +3,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
 using Shared.Properties;
 using System;
-using System.Linq;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
 

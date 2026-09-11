@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Views.Dialogs;
 using System.Threading;
 using System.Threading.Tasks;
 

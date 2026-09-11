@@ -830,7 +830,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.ExecuteFile" />: contents are not loaded when the file is already executing.
 	/// </summary>
 	[Test]
-	public async Task ExecuteFile_Contents_Should_Not_Be_Loaded_If_It_Is_Already_Opened()
+	public async Task ExecuteFile_Does_Not_Load_Contents_Of_An_Already_Executing_File()
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -936,7 +936,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />: all folders are expanded or collapsed, and the selection is kept on expand and reset on collapse.
 	/// </summary>
 	[Test]
-	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders([Values] bool isExpandAll)
+	public async Task ExpandCollapseAllFoldersAsync_Applies_To_All_Folders_And_Resets_Selection_On_Collapse([Values] bool isExpandAll)
 	{
 		// Arrange
 		FolderDto selectedFolder = TestData.CreateFolderDto();
@@ -1642,7 +1642,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width is clamped to less than the view width when the view shrinks.
 	/// </summary>
 	[Test]
-	public void NavigationColumnWidth_Should_Be_Less_Than_The_Window_Width()
+	public void NavigationColumnWidth_Is_Clamped_To_Less_Than_The_View_Width()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();

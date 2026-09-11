@@ -302,7 +302,7 @@ internal class SettingsViewModelTests
 	/// <see cref="SettingsViewModel.CurrentSettings" />: current settings are initialized from the settings manager values.
 	/// </summary>
 	[Test]
-	public void CurrentSettings_Initialization()
+	public void CurrentSettings_Is_Initialized_From_The_Settings_Manager()
 	{
 		// Arrange
 		AppSettings settings = TestData.CreateSettings();

@@ -382,7 +382,6 @@ internal class ContentVisibilityTests
 	/// <summary>
 	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
 	/// </summary>
-
 	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();

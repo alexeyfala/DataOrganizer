@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Views.Dialogs;
 using Shared.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;

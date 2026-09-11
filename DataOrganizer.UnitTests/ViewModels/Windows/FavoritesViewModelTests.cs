@@ -256,6 +256,37 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
+	/// </summary>
+	[Test]
+	public void IsShowOnHoverEnabled_Is_Initialized_From_The_Settings()
+	{
+		// Arrange
+		AppSettings settings = TestData.CreateSettings();
+
+		settings.ShowFavoritesOnHover = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		// Act
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		sut.IsShowOnHoverEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the favorites window hides the contents as well.
 	/// </summary>
 	[Test]
@@ -352,37 +383,6 @@ internal class FavoritesViewModelTests
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());
-	}
-
-	/// <summary>
-	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
-	/// </summary>
-	[Test]
-	public void IsShowOnHoverEnabled_Initialization()
-	{
-		// Arrange
-		AppSettings settings = TestData.CreateSettings();
-
-		settings.ShowFavoritesOnHover = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(settings);
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		// Act
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		// Assert
-		sut.IsShowOnHoverEnabled
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

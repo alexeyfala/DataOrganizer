@@ -161,7 +161,7 @@ internal class HierarchyEditorTests
 	/// </summary>
 	[TestCase(EntityKind.Folder)]
 	[TestCase(EntityKind.File)]
-	public async Task DeleteAsync_Should_Not_Delete_Entity_In_Database_And_In_Treeview(EntityKind type)
+	public async Task DeleteAsync_Keeps_The_Entity_When_The_Database_Delete_Fails(EntityKind type)
 	{
 		// Arrange
 		ExplorerItemDtoBase entity = type switch
@@ -211,6 +211,38 @@ internal class HierarchyEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyEditor.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
+	/// </summary>
+	[Test]
+	public async Task RenameAsync_Ignores_An_Unchanged_Name()
+	{
+		// Arrange
+		ExplorerItemDtoBase toBeRenamed = Substitute.For<ExplorerItemDtoBase>();
+
+		string newName = RandomString.Create(10);
+
+		toBeRenamed.Name = newName;
+
+		DateTime updatedAt = DateTime.Now;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedAt);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		toBeRenamed.UpdatedAt
+			.Should()
+			.NotBe(updatedAt);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyEditor.RenameAsync" />: the dto name and updated date are changed and persisted in the database.
 	/// </summary>
 	[Test]
@@ -254,38 +286,6 @@ internal class HierarchyEditorTests
 		dto.UpdatedAt
 			.Should()
 			.Be(updatedAt);
-	}
-
-	/// <summary>
-	/// <see cref="HierarchyEditor.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
-	/// </summary>
-	[Test]
-	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
-	{
-		// Arrange
-		ExplorerItemDtoBase toBeRenamed = Substitute.For<ExplorerItemDtoBase>();
-
-		string newName = RandomString.Create(10);
-
-		toBeRenamed.Name = newName;
-
-		DateTime updatedAt = DateTime.Now;
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HierarchyEditor sut = mock.Create<HierarchyEditor>();
-
-		// Act
-		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedAt);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		toBeRenamed.UpdatedAt
-			.Should()
-			.NotBe(updatedAt);
 	}
 	#endregion
 }

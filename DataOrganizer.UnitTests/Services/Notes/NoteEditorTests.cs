@@ -24,7 +24,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: blank text removes the note.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
@@ -76,7 +75,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: a note rejected by the database is reported and not applied.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Database_Update_Fails()
 	{
@@ -117,7 +115,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: a note that cannot be converted is reported and never reaches the database.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Encoding_Fails()
 	{
@@ -161,7 +158,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: an exception of the conversion is reported and never reaches the database.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Encoding_Throws()
 	{
@@ -205,7 +201,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the note of a file and of a dataset is stored through the file update.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
@@ -268,7 +263,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the note of a folder is stored through the folder update.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
@@ -325,7 +319,6 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the buffer of the replaced note is wiped.
 	/// </summary>
-
 	[Test]
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{

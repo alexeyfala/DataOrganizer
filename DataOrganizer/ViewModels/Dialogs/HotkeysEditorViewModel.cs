@@ -6,7 +6,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.Views.Dialogs;
 using DialogHostAvalonia;
 using Repository.Dto;
 using Shared.Extensions;

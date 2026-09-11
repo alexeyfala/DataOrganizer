@@ -7,10 +7,8 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Notes;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Shared.Common;
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using TestSupport;
 

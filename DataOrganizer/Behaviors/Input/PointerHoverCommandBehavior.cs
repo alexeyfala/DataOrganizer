@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers;
-using Shared.Common;
 using System.Threading.Tasks;
 using System.Windows.Input;
 

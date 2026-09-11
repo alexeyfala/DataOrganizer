@@ -18,7 +18,6 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: reports a snackbar when the note cannot be decoded.
 	/// </summary>
-
 	[Test]
 	public void ReadNote_Reports_Failure_When_Decoding_Fails()
 	{
@@ -52,7 +51,6 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: returns the note of an object as plain text.
 	/// </summary>
-
 	[Test]
 	public void ReadNote_Returns_Decoded_Note()
 	{
@@ -88,7 +86,6 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: an encrypted note is not a failure, so it is skipped silently.
 	/// </summary>
-
 	[Test]
 	public void ReadNote_Returns_Null_When_Encrypted()
 	{
@@ -119,7 +116,6 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: a missing object is ignored.
 	/// </summary>
-
 	[Test]
 	public void ReadNote_Returns_Null_When_Item_Is_Null()
 	{
@@ -146,7 +142,6 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: objects without a note are ignored.
 	/// </summary>
-
 	[Test]
 	public void ReadNote_Returns_Null_When_Note_Is_Absent([Values] bool isEmpty)
 	{
