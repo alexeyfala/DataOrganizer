@@ -97,7 +97,7 @@ internal class SnackbarTextColorTests
 			.Should()
 			.NotBeNull();
 
-		textBlock!
+		textBlock
 			.Classes
 			.Should()
 			.Contain("SnackbarTextBlockStyle");
@@ -111,13 +111,15 @@ internal class SnackbarTextColorTests
 			.Should()
 			.Be(ExpectedColor(level));
 
-		if (expectedClass.Length > 0)
+		if (expectedClass.Length == 0)
 		{
-			textBlock
-				.Classes
-				.Should()
-				.Contain(expectedClass);
+			return;
 		}
+
+		textBlock
+			.Classes
+			.Should()
+			.Contain(expectedClass);
 	}
 
 	/// <summary>
