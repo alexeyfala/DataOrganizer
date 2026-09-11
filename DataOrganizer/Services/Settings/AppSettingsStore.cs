@@ -56,7 +56,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	private string GetFilePath() => _appEnvironment.GetSettingsFilePath(nameof(AppSettings));
 
 	/// <summary>
-	/// Loads <see cref="AppSettings" /> data from file.
+	/// Loads <see cref="AppSettings" /> data from a file.
 	/// Falls back to the default settings when the file is missing or malformed.
 	/// </summary>
 	private AppSettings LoadFromFile(IJsonSerializer jsonSerializer)

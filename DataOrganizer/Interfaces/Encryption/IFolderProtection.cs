@@ -17,7 +17,7 @@ public interface IFolderProtection
 	Task ChangePasswordAsync(FolderDto folder, CancellationToken token = default);
 
 	/// <summary>
-	/// Decrypts files in folder.
+	/// Decrypts the files in a folder.
 	/// </summary>
 	Task DecryptFolderAsync(
 		FolderDto folder,
@@ -25,7 +25,7 @@ public interface IFolderProtection
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Encrypts files in folder.
+	/// Encrypts the files in a folder.
 	/// </summary>
 	Task EncryptFolderAsync(
 		FolderDto folder,

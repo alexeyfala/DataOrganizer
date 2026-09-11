@@ -75,7 +75,7 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Searches for a <see cref="DialogHost" /> in window among those already running in the application.
+	/// Searches for a <see cref="DialogHost" /> in a window among those already running in the application.
 	/// </summary>
 	public static DialogHost? FindDialogHost(this Application target)
 	{

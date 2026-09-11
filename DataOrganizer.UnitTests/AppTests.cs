@@ -18,7 +18,7 @@ internal class AppTests
 	/// <summary>
 	/// Assemblies whose types the application registers itself.
 	/// </summary>
-	private static readonly Assembly[] _ownAssemblies =
+	private static readonly Assembly[] OwnAssemblies =
 	[
 		typeof(App).Assembly,
 		typeof(DbAccess).Assembly,
@@ -145,7 +145,7 @@ internal class AppTests
 	private static bool IsOwnType(Type? type)
 	{
 		return type is { ContainsGenericParameters: false }
-			&& _ownAssemblies.Contains(type.Assembly);
+			&& OwnAssemblies.Contains(type.Assembly);
 	}
 	#endregion
 }

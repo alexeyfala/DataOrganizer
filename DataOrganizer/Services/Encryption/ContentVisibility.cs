@@ -197,7 +197,7 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <summary>
-	/// Shows file contents in folder.
+	/// Shows the file contents in a folder.
 	/// </summary>
 	private bool ShowFolderContents(
 		FolderDto folder,

@@ -20,7 +20,7 @@ internal class EncryptionServiceTests
 	/// <summary>
 	/// Purpose every round-trip of the fixture is bound to.
 	/// </summary>
-	private static readonly ContentIdentity _identity = ContentIdentity.ForContents(Guid.NewGuid());
+	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
 	#endregion
 
 	#region Methods
@@ -45,7 +45,7 @@ internal class EncryptionServiceTests
 		byte[]? encrypted = sut.Encrypt(
 			input,
 			password,
-			_identity);
+			Identity);
 
 		encrypted
 			.Should()
@@ -54,7 +54,7 @@ internal class EncryptionServiceTests
 		Action act = () => sut.Decrypt(
 			encrypted,
 			wrongPassword,
-			_identity);
+			Identity);
 
 		act
 			.Should()
@@ -90,7 +90,7 @@ internal class EncryptionServiceTests
 		byte[] encrypted = WriteWithCost(input, password, settings);
 
 		// Assert
-		using PinnedBuffer decrypted = sut.Decrypt(encrypted, password, _identity);
+		using PinnedBuffer decrypted = sut.Decrypt(encrypted, password, Identity);
 
 		BytesOf(decrypted)
 			.Should()
@@ -114,12 +114,12 @@ internal class EncryptionServiceTests
 		byte[] wrapped = sut.Encrypt(
 			sut.CreateRandomDek(),
 			password,
-			_identity);
+			Identity);
 
 		// Act
 		wrapped[1 + Argon2Settings.HeaderSize] ^= 0xFF;
 
-		Action act = () => sut.Decrypt(wrapped, password, _identity);
+		Action act = () => sut.Decrypt(wrapped, password, Identity);
 
 		// Assert
 		act
@@ -146,13 +146,13 @@ internal class EncryptionServiceTests
 		byte[] wrapped = sut.Encrypt(
 			sut.CreateRandomDek(),
 			password,
-			_identity);
+			Identity);
 
 		// Act
 		Action act = () => sut.Decrypt(
 			[.. wrapped.AsSpan(0, wrapped.Length + Math.Min(difference, 0)), .. new byte[Math.Max(difference, 0)]],
 			password,
-			_identity);
+			Identity);
 
 		// Assert
 		act
@@ -179,7 +179,7 @@ internal class EncryptionServiceTests
 		byte[]? encrypted = sut.Encrypt(
 			input,
 			password,
-			_identity);
+			Identity);
 
 		encrypted
 			.Should()
@@ -191,7 +191,7 @@ internal class EncryptionServiceTests
 		Action act = () => sut.Decrypt(
 			encrypted,
 			password,
-			_identity);
+			Identity);
 
 		// Assert
 		act
@@ -215,13 +215,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer secret = new(RandomValues.CreateBytes(32));
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithSessionId(input, secret, _identity);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, secret, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.Decrypt(encrypted, secret, _identity);
+		Action act = () => sut.Decrypt(encrypted, secret, Identity);
 
 		// Assert
 		act
@@ -246,12 +246,12 @@ internal class EncryptionServiceTests
 		byte[] wrapped = sut.Encrypt(
 			sut.CreateRandomDek(),
 			password,
-			_identity);
+			Identity);
 
 		// Act
 		wrapped[^1] ^= 0xFF;
 
-		Action act = () => sut.Decrypt(wrapped, password, _identity);
+		Action act = () => sut.Decrypt(wrapped, password, Identity);
 
 		// Assert
 		act
@@ -276,7 +276,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
 		// Act
-		Action act = () => sut.Decrypt(input, password, _identity);
+		Action act = () => sut.Decrypt(input, password, Identity);
 
 		// Assert
 		act
@@ -454,13 +454,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer wrongDek = sut.CreateRandomDek();
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithDek(input, dek, _identity);
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNull();
 
-		Action act = () => sut.DecryptWithDek(encrypted, wrongDek, _identity);
+		Action act = () => sut.DecryptWithDek(encrypted, wrongDek, Identity);
 
 		// Assert
 		act
@@ -514,10 +514,10 @@ internal class EncryptionServiceTests
 			.Encoding
 			.GetBytes(SampleText.LoremIpsum);
 
-		byte[] encrypted = sut.EncryptWithDek(input, sut.CreateRandomDek(), _identity);
+		byte[] encrypted = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
 
 		// Act
-		Action act = () => sut.DecryptWithDek(encrypted, SecretFactory.CreateRandomKey(16), _identity);
+		Action act = () => sut.DecryptWithDek(encrypted, SecretFactory.CreateRandomKey(16), Identity);
 
 		// Assert
 		act
@@ -547,7 +547,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer dek = sut.CreateRandomDek();
 
 		// Act
-		Action act = () => sut.DecryptWithDek(input, dek, _identity);
+		Action act = () => sut.DecryptWithDek(input, dek, Identity);
 
 		// Assert
 		act
@@ -573,13 +573,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer wrongSessionId = new(RandomValues.CreateBytes(32));
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.DecryptWithSessionId(encrypted, wrongSessionId, _identity);
+		Action act = () => sut.DecryptWithSessionId(encrypted, wrongSessionId, Identity);
 
 		// Assert
 		act
@@ -603,13 +603,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(input, password, _identity);
+		byte[]? encrypted = sut.Encrypt(input, password, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.DecryptWithSessionId(encrypted, password, _identity);
+		Action act = () => sut.DecryptWithSessionId(encrypted, password, Identity);
 
 		// Assert
 		act
@@ -634,7 +634,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer sessionId = new(RandomValues.CreateBytes(32));
 
 		// Act
-		Action act = () => sut.DecryptWithSessionId(input, sessionId, _identity);
+		Action act = () => sut.DecryptWithSessionId(input, sessionId, Identity);
 
 		// Assert
 		act
@@ -658,13 +658,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
 		// Act, Assert
-		byte[]? encrypted = sut.Encrypt(input, password, _identity);
+		byte[]? encrypted = sut.Encrypt(input, password, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		using PinnedBuffer decrypted = sut.Decrypt(encrypted, password, _identity);
+		using PinnedBuffer decrypted = sut.Decrypt(encrypted, password, Identity);
 
 		encrypted
 			.Should()
@@ -694,7 +694,7 @@ internal class EncryptionServiceTests
 		byte[]? encrypted = sut.Encrypt(
 			input,
 			password,
-			_identity);
+			Identity);
 
 		encrypted
 			.Should()
@@ -723,7 +723,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
 		// Act
-		Action act = () => sut.Encrypt(input, password, _identity);
+		Action act = () => sut.Encrypt(input, password, Identity);
 
 		// Assert
 		act
@@ -745,7 +745,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
 		// Act
-		Action act = () => sut.Encrypt(null!, password, _identity);
+		Action act = () => sut.Encrypt(null!, password, Identity);
 
 		// Assert
 		act
@@ -825,13 +825,13 @@ internal class EncryptionServiceTests
 	public void EncryptedBlobs_Keep_Their_Layout()
 	{
 		// Arrange
-		const int CheckSize = 16;
+		const int checkSize = 16;
 
-		const int NonceSize = 24;
+		const int nonceSize = 24;
 
-		const int SaltSize = 16;
+		const int saltSize = 16;
 
-		const int TagSize = 16;
+		const int tagSize = 16;
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -846,13 +846,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer secretBuffer = new(secret);
 
 		// Act
-		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, _identity);
+		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, Identity);
 
-		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), _identity);
+		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
 
 		using PinnedBuffer sessionDek = sut.CreateRandomDek();
 
-		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, _identity);
+		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, Identity);
 
 		// Assert
 		password
@@ -861,7 +861,7 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x01)
 			.And
-			.HaveCount(1 + Argon2Settings.HeaderSize + SaltSize + CheckSize + NonceSize + secret.Length + TagSize);
+			.HaveCount(1 + Argon2Settings.HeaderSize + saltSize + checkSize + nonceSize + secret.Length + tagSize);
 
 		dek
 			.Should()
@@ -869,7 +869,7 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x02)
 			.And
-			.HaveCount(1 + NonceSize + input.Length + TagSize);
+			.HaveCount(1 + nonceSize + input.Length + tagSize);
 
 		session
 			.Should()
@@ -877,7 +877,7 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x03)
 			.And
-			.HaveCount(1 + SaltSize + NonceSize + sessionDek.Length + TagSize);
+			.HaveCount(1 + saltSize + nonceSize + sessionDek.Length + tagSize);
 	}
 
 	/// <summary>
@@ -898,13 +898,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer dek = sut.CreateRandomDek();
 
 		// Act, Assert
-		byte[]? encrypted = sut.EncryptWithDek(input, dek, _identity);
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? decrypted = sut.DecryptWithDek(encrypted, dek, _identity);
+		byte[]? decrypted = sut.DecryptWithDek(encrypted, dek, Identity);
 
 		decrypted
 			.Should()
@@ -936,7 +936,7 @@ internal class EncryptionServiceTests
 			.GetBytes(SampleText.LoremIpsum);
 
 		// Act
-		Action act = () => sut.EncryptWithDek(input, SecretFactory.CreateRandomKey(16), _identity);
+		Action act = () => sut.EncryptWithDek(input, SecretFactory.CreateRandomKey(16), Identity);
 
 		// Assert
 		act
@@ -965,13 +965,13 @@ internal class EncryptionServiceTests
 		using PinnedBuffer sessionId = new(RandomValues.CreateBytes(32));
 
 		// Act, Assert
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, Identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		using PinnedBuffer decrypted = sut.DecryptWithSessionId(encrypted, sessionId, _identity);
+		using PinnedBuffer decrypted = sut.DecryptWithSessionId(encrypted, sessionId, Identity);
 
 		encrypted
 			.Should()
@@ -998,7 +998,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer sessionId = new(RandomValues.CreateBytes(32));
 
 		// Act
-		Action act = () => sut.EncryptWithSessionId(input, sessionId, _identity);
+		Action act = () => sut.EncryptWithSessionId(input, sessionId, Identity);
 
 		// Assert
 		act
@@ -1022,14 +1022,14 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
-		byte[] wrapped = sut.EncryptWithDek(BytesOf(dek), dek, _identity);
+		byte[] wrapped = sut.EncryptWithDek(BytesOf(dek), dek, Identity);
 
 		// Act
 		byte[]? rewrapped = sut.RewrapIfOutdated(
 			wrapped,
 			dek,
 			password,
-			_identity);
+			Identity);
 
 		// Assert
 		rewrapped
@@ -1052,14 +1052,14 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
-		byte[] wrapped = sut.Encrypt(dek, password, _identity);
+		byte[] wrapped = sut.Encrypt(dek, password, Identity);
 
 		// Act
 		byte[]? rewrapped = sut.RewrapIfOutdated(
 			wrapped,
 			dek,
 			password,
-			_identity);
+			Identity);
 
 		// Assert
 		rewrapped
@@ -1093,7 +1093,7 @@ internal class EncryptionServiceTests
 			wrapped,
 			dek,
 			password,
-			_identity);
+			Identity);
 
 		// Assert
 		rewrapped
@@ -1105,7 +1105,7 @@ internal class EncryptionServiceTests
 			.Should()
 			.Be(Argon2Settings.Current);
 
-		using PinnedBuffer decrypted = sut.Decrypt(rewrapped, password, _identity);
+		using PinnedBuffer decrypted = sut.Decrypt(rewrapped, password, Identity);
 
 		BytesOf(decrypted)
 			.Should()
@@ -1127,17 +1127,17 @@ internal class EncryptionServiceTests
 		PinnedBuffer password,
 		Argon2Settings settings)
 	{
-		const int CheckSize = 16;
+		const int checkSize = 16;
 
-		const int SaltSize = 16;
+		const int saltSize = 16;
 
 		AeadAlgorithm algorithm = AeadAlgorithm.XChaCha20Poly1305;
 
 		const int saltOffset = 1 + Argon2Settings.HeaderSize;
 
-		const int checkOffset = saltOffset + SaltSize;
+		const int checkOffset = saltOffset + saltSize;
 
-		const int nonceOffset = checkOffset + CheckSize;
+		const int nonceOffset = checkOffset + checkSize;
 
 		int prefixSize = nonceOffset + algorithm.NonceSize;
 
@@ -1147,7 +1147,7 @@ internal class EncryptionServiceTests
 
 		settings.Write(result.AsSpan(1, Argon2Settings.HeaderSize));
 
-		Span<byte> salt = result.AsSpan(saltOffset, SaltSize);
+		Span<byte> salt = result.AsSpan(saltOffset, saltSize);
 
 		RandomNumberGenerator.Fill(salt);
 
@@ -1165,18 +1165,18 @@ internal class EncryptionServiceTests
 		byte[] blob = kdf.DeriveBytes(
 			password: password.AsReadOnlySpan(),
 			salt: salt,
-			count: algorithm.KeySize + CheckSize);
+			count: algorithm.KeySize + checkSize);
 
 		blob
-			.AsSpan(algorithm.KeySize, CheckSize)
-			.CopyTo(result.AsSpan(checkOffset, CheckSize));
+			.AsSpan(algorithm.KeySize, checkSize)
+			.CopyTo(result.AsSpan(checkOffset, checkSize));
 
 		using Key key = Key.Import(
 			algorithm: algorithm,
 			blob: blob.AsSpan(0, algorithm.KeySize),
 			format: KeyBlobFormat.RawSymmetricKey);
 
-		byte[] purpose = _identity.ToAssociatedData();
+		byte[] purpose = Identity.ToAssociatedData();
 
 		byte[] associatedData = [.. purpose, .. result.AsSpan(0, nonceOffset)];
 

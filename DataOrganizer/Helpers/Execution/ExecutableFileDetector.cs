@@ -15,7 +15,7 @@ internal static class ExecutableFileDetector
 	/// action runs code on Windows, Linux or macOS. Covers direct executables,
 	/// shell / interpreted scripts, installers and shortcuts.
 	/// </summary>
-	private static readonly FrozenSet<string> _executableExtensions = new[]
+	private static readonly FrozenSet<string> ExecutableExtensions = new[]
 	{
 	#region Windows
 		".exe",         // Native executables
@@ -108,7 +108,7 @@ internal static class ExecutableFileDetector
 			return false;
 		}
 
-		return _executableExtensions.Contains(extension);
+		return ExecutableExtensions.Contains(extension);
 	}
 	#endregion
 }

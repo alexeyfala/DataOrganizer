@@ -439,7 +439,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	private bool CanShowPopupOnHover() => IsShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
 
 	/// <summary>
-	/// Return a flat sequence of <see cref="FavoriteCategory" />.
+	/// Returns a flat sequence of <see cref="FavoriteCategory" />.
 	/// </summary>
 	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{

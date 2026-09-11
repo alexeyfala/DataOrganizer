@@ -27,7 +27,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(_historyKeyId);
+	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(HistoryKeyId);
 
 	/// <inheritdoc />
 	public bool KeyFileExists => _fileSystem.FileExists(_keyFilePath);
@@ -52,7 +52,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Identifier the data encryption key is held under in the session key store.
 	/// </summary>
-	private static readonly Guid _historyKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
+	private static readonly Guid HistoryKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -101,7 +101,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose() => _sessionKeyStore.Lock(_historyKeyId);
+	public void Dispose() => _sessionKeyStore.Lock(HistoryKeyId);
 
 	/// <inheritdoc />
 	public void EraseAll()
@@ -131,8 +131,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			byte[] ciphertext = _sessionKeyStore.Encrypt(
-				_historyKeyId,
-				ContentIdentity.ForClipboardLog(_historyKeyId),
+				HistoryKeyId,
+				ContentIdentity.ForClipboardLog(HistoryKeyId),
 				plaintext);
 
 			EnsureDirectory();
@@ -203,8 +203,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			plaintext = _sessionKeyStore.Decrypt(
-				_historyKeyId,
-				ContentIdentity.ForClipboardLog(_historyKeyId),
+				HistoryKeyId,
+				ContentIdentity.ForClipboardLog(HistoryKeyId),
 				ciphertext);
 		}
 		catch (CryptographicException ex)
@@ -256,7 +256,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		byte[] wrappedDek = _encryption.Encrypt(
 			dek,
 			password,
-			ContentIdentity.ForClipboardDek(_historyKeyId));
+			ContentIdentity.ForClipboardDek(HistoryKeyId));
 
 		EnsureDirectory();
 
@@ -264,7 +264,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.WriteAllBytesAtomicAsync(_keyFilePath, wrappedDek, token)
 			.ConfigureAwait(false);
 
-		return _sessionKeyStore.Unlock(_historyKeyId, dek)
+		return _sessionKeyStore.Unlock(HistoryKeyId, dek)
 			? new(ClipboardLogStatus.Unlocked, [])
 			: new(ClipboardLogStatus.Failed, []);
 	}
@@ -298,7 +298,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				wrappedDek,
 				dek,
 				password,
-				ContentIdentity.ForClipboardDek(_historyKeyId)) is not { } rewrapped)
+				ContentIdentity.ForClipboardDek(HistoryKeyId)) is not { } rewrapped)
 			{
 				return;
 			}
@@ -365,9 +365,9 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		using PinnedBuffer dek = _encryption.Decrypt(
 			wrappedDek,
 			password,
-			ContentIdentity.ForClipboardDek(_historyKeyId));
+			ContentIdentity.ForClipboardDek(HistoryKeyId));
 
-		if (!_sessionKeyStore.Unlock(_historyKeyId, dek))
+		if (!_sessionKeyStore.Unlock(HistoryKeyId, dek))
 		{
 			return new(ClipboardLogStatus.Failed, []);
 		}

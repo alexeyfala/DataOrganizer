@@ -622,7 +622,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
-	/// Returns <see cref="FavoritesViewSettings" /> settings from file.
+	/// Returns <see cref="FavoritesViewSettings" /> settings from a file.
 	/// </summary>
 	private FavoritesViewSettings GetFavoritesSettingsFromFile()
 	{
@@ -631,7 +631,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
-	/// Returns <see cref="CopyHistoryViewSettings" /> settings from file.
+	/// Returns <see cref="CopyHistoryViewSettings" /> settings from a file.
 	/// </summary>
 	private CopyHistoryViewSettings GetHistorySettingsFromFile()
 	{

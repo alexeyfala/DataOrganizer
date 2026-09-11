@@ -216,7 +216,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 
 	/// <summary>
-	/// Tries to get reference to file from multi bindings.
+	/// Tries to get a reference to a file from multi bindings.
 	/// </summary>
 	private static bool TryGetFile(
 		object[] values,

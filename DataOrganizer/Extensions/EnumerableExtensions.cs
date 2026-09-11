@@ -264,7 +264,7 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Counts objects in hierarchy.
+	/// Counts objects in the hierarchy.
 	/// </summary>
 	public static int GetCount(this IEnumerable<DatasetRecordBase> hierarchy)
 	{
@@ -580,7 +580,7 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Counts files and folders in hierarchy.
+	/// Counts files and folders in the hierarchy.
 	/// </summary>
 	internal static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{

@@ -195,7 +195,7 @@ public partial class EditorViewModel :
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Changes password for folder.
+	/// Changes the password of a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanChangePassword))]
 	internal async Task ChangePassword(FolderDto? dto)
@@ -222,7 +222,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Decrypts files in folder.
+	/// Decrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
 	internal async Task DecryptFolder(FolderDto? dto)
@@ -287,7 +287,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Encrypts files in folder.
+	/// Encrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanEncryptFolder))]
 	internal async Task EncryptFolder(FolderDto? dto)
@@ -657,7 +657,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Shows file contents in folder.
+	/// Shows the file contents in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFolderContents))]
 	internal async Task ShowFolderContents(FolderDto? dto)
@@ -788,7 +788,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Copies object's name to clipboard.
+	/// Copies the name of an object to the clipboard.
 	/// </summary>
 	[RelayCommand]
 	private void CopyName(ExplorerItemDtoBase? dto)

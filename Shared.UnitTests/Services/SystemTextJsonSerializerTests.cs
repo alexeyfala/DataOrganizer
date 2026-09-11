@@ -19,7 +19,11 @@ internal class SystemTextJsonSerializerTests
 
 		SystemTextJsonSerializer sut = mock.Create<SystemTextJsonSerializer>();
 
-		Sample value = new() { Name = "epsilon", Number = 5 };
+		Sample value = new()
+		{
+			Name = "epsilon",
+			Number = 5
+		};
 
 		// Act
 		string result = sut.ToReadableJson(value);
@@ -27,7 +31,7 @@ internal class SystemTextJsonSerializerTests
 		// Assert
 		result
 			.Should()
-			.Contain(typeof(Sample).FullName!);
+			.Contain(typeof(Sample).FullName);
 
 		result
 			.Should()

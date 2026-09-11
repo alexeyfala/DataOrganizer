@@ -97,7 +97,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 	#region Methods
 	/// <summary>
-	/// Saves settings in file.
+	/// Saves the settings in a file.
 	/// </summary>
 	public void SaveSettingsToFile()
 	{
@@ -123,7 +123,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
 	/// <summary>
-	/// Initializes settings from file.
+	/// Initializes the settings from a file.
 	/// </summary>
 	private void LoadFromFile()
 	{

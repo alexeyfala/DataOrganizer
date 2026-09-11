@@ -624,7 +624,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Load all entities from database.
+	/// Loads all entities from the database.
 	/// </summary>
 	private async Task<ExplorerItemBase[]> GetEntitiesFromDbAsync(CancellationToken token)
 	{

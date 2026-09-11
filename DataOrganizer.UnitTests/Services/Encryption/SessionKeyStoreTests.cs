@@ -22,7 +22,7 @@ internal class SessionKeyStoreTests
 	/// <summary>
 	/// Place the contents of these tests belong to.
 	/// </summary>
-	private static readonly ContentIdentity _identity = ContentIdentity.ForContents(Guid.NewGuid());
+	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
 	#endregion
 
 	#region Methods
@@ -104,7 +104,7 @@ internal class SessionKeyStoreTests
 			.Should()
 			.BeTrue();
 
-		byte[]? encrypted = sut.Encrypt(keeperId, _identity, RandomValues.CreateBytes(64));
+		byte[]? encrypted = sut.Encrypt(keeperId, Identity, RandomValues.CreateBytes(64));
 
 		encrypted
 			.Should()
@@ -114,7 +114,7 @@ internal class SessionKeyStoreTests
 		sut.Lock(keeperId);
 
 		// Assert
-		Action act = () => sut.Decrypt(keeperId, _identity, encrypted!);
+		Action act = () => sut.Decrypt(keeperId, Identity, encrypted!);
 
 		act
 			.Should()
@@ -133,7 +133,7 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		Action act = () => sut.Decrypt(Guid.NewGuid(), _identity, RandomValues.CreateBytes(64));
+		Action act = () => sut.Decrypt(Guid.NewGuid(), Identity, RandomValues.CreateBytes(64));
 
 		act
 			.Should()
@@ -184,7 +184,7 @@ internal class SessionKeyStoreTests
 			.BeTrue();
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(keeperId, _identity, contents);
+		byte[]? encrypted = sut.Encrypt(keeperId, Identity, contents);
 
 		encrypted
 			.Should()
@@ -192,7 +192,7 @@ internal class SessionKeyStoreTests
 			.And
 			.NotEqual(contents);
 
-		byte[]? decrypted = sut.Decrypt(keeperId, _identity, encrypted);
+		byte[]? decrypted = sut.Decrypt(keeperId, Identity, encrypted);
 
 		// Assert
 		decrypted
@@ -212,7 +212,7 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		Action act = () => sut.Encrypt(Guid.NewGuid(), _identity, RandomValues.CreateBytes(64));
+		Action act = () => sut.Encrypt(Guid.NewGuid(), Identity, RandomValues.CreateBytes(64));
 
 		act
 			.Should()
@@ -270,10 +270,10 @@ internal class SessionKeyStoreTests
 		sut.Unlock(secondKeeperId, SecretFactory.CreateRandomKey(DekSize));
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(firstKeeperId, _identity, RandomValues.CreateBytes(64));
+		byte[]? encrypted = sut.Encrypt(firstKeeperId, Identity, RandomValues.CreateBytes(64));
 
 		// Assert
-		Action act = () => sut.Decrypt(secondKeeperId, _identity, encrypted!);
+		Action act = () => sut.Decrypt(secondKeeperId, Identity, encrypted!);
 
 		act
 			.Should()
@@ -301,13 +301,13 @@ internal class SessionKeyStoreTests
 
 		sut.Unlock(secondKeeperId, SecretFactory.CreateRandomKey(DekSize));
 
-		byte[]? encrypted = sut.Encrypt(secondKeeperId, _identity, contents);
+		byte[]? encrypted = sut.Encrypt(secondKeeperId, Identity, contents);
 
 		// Act
 		sut.Lock(firstKeeperId);
 
 		// Assert
-		sut.Decrypt(secondKeeperId, _identity, encrypted!)
+		sut.Decrypt(secondKeeperId, Identity, encrypted!)
 			.Should()
 			.Equal(contents);
 	}
@@ -384,7 +384,7 @@ internal class SessionKeyStoreTests
 
 		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize));
 
-		byte[]? staleEncrypted = sut.Encrypt(keeperId, _identity, contents);
+		byte[]? staleEncrypted = sut.Encrypt(keeperId, Identity, contents);
 
 		// Act
 		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize))
@@ -392,15 +392,15 @@ internal class SessionKeyStoreTests
 			.BeTrue();
 
 		// Assert
-		Action act = () => sut.Decrypt(keeperId, _identity, staleEncrypted!);
+		Action act = () => sut.Decrypt(keeperId, Identity, staleEncrypted!);
 
 		act
 			.Should()
 			.ThrowExactly<AuthenticationTagMismatchException>();
 
-		byte[]? encrypted = sut.Encrypt(keeperId, _identity, contents);
+		byte[]? encrypted = sut.Encrypt(keeperId, Identity, contents);
 
-		sut.Decrypt(keeperId, _identity, encrypted!)
+		sut.Decrypt(keeperId, Identity, encrypted!)
 			.Should()
 			.Equal(contents);
 	}

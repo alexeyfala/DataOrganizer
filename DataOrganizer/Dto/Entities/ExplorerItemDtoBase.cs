@@ -112,7 +112,7 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	public virtual FolderDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
 
 	/// <summary>
-	/// Return a sequence of <see cref="FolderDto" /> parent objects.
+	/// Returns a sequence of <see cref="FolderDto" /> parent objects.
 	/// </summary>
 	public IEnumerable<FolderDto> GetAllParents()
 	{

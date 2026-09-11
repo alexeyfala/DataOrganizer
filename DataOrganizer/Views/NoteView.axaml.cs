@@ -32,7 +32,7 @@ internal sealed partial class NoteView : UserControl
 	}
 
 	/// <summary>
-	/// Controls the display of popup for note.
+	/// Controls the display of the note popup.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public bool IsNoteOpen
@@ -137,7 +137,7 @@ internal sealed partial class NoteView : UserControl
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to clipboard.
+	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to the clipboard.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
 	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();

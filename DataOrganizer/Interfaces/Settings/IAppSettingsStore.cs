@@ -6,7 +6,7 @@ using System.Globalization;
 namespace DataOrganizer.Interfaces.Settings;
 
 /// <summary>
-/// Holds the application settings and persists them in file.
+/// Holds the application settings and persists them in a file.
 /// </summary>
 public interface IAppSettingsStore
 {
@@ -42,7 +42,7 @@ public interface IAppSettingsStore
 	void Overwrite(AppSettings value);
 
 	/// <summary>
-	/// Saves <see cref="Settings" /> in file.
+	/// Saves <see cref="Settings" /> in a file.
 	/// </summary>
 	void Save();
 	#endregion

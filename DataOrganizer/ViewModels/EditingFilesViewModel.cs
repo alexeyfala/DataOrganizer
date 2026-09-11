@@ -20,7 +20,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
-	/// Opened in editor files.
+	/// Files opened in the editor.
 	/// </summary>
 	public ObservableCollection<FileDto> Items { get; } = [];
 

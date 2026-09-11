@@ -141,7 +141,7 @@ internal static class DbAccessExtensions
 
 	#region Helpers
 	/// <summary>
-	/// Adds random entities to database.
+	/// Adds random entities to the database.
 	/// </summary>
 	private static async Task AddRandomObjectsAsync(
 		IDbAccess dbAccess,

@@ -1047,15 +1047,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
 	{
 		// Pixels moved per step. Smaller = more reliable realization, slower travel.
-		const double StepPx = 100;
+		const double stepPx = 100;
 
 		// Pause between steps. Larger = more time for the layout pass to materialize items.
-		const int DelayMs = 16;
+		const int delayMs = 16;
 
 		// Safety cap against runaway loops if the offset never converges (e.g. extent keeps growing).
-		const int MaxIterations = 1000;
+		const int maxIterations = 1000;
 
-		for (int i = 0; i < MaxIterations; i++)
+		for (int i = 0; i < maxIterations; i++)
 		{
 			double delta = getRemainingDelta();
 
@@ -1066,7 +1066,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			double currentY = scrollViewer.Offset.Y;
 
-			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), StepPx);
+			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), stepPx);
 
 			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
 
@@ -1080,7 +1080,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
 			await Task
-				.Delay(DelayMs)
+				.Delay(delayMs)
 				.ConfigureAwait(true);
 		}
 	}

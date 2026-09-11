@@ -28,11 +28,14 @@ namespace DataOrganizer.Services.Execution;
 public sealed partial class WindowsAppPickerService : IAppPickerService
 {
 	#region Data
+	// The native constants keep the spelling of the Windows headers.
+#pragma warning disable IDE1006
 	private const int S_OK = 0;
 
 	private const uint SHGFI_ICON = 0x000000100;
 
 	private const uint SHGFI_LARGEICON = 0x000000000;
+#pragma warning restore IDE1006
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;

@@ -28,17 +28,17 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// The encryption algorithm used.
 	/// </summary>
-	private static readonly AeadAlgorithm _algorithm = AeadAlgorithm.XChaCha20Poly1305;
+	private static readonly AeadAlgorithm Algorithm = AeadAlgorithm.XChaCha20Poly1305;
 
 	/// <summary>
 	/// The DEK-based format: the secret is the key itself, so there is neither a header, a salt
 	/// nor anything to prove.
 	/// </summary>
-	private static readonly BlobScheme _dekScheme = new()
+	private static readonly BlobScheme DekScheme = new()
 	{
 		Format = new()
 		{
-			NonceSize = _algorithm.NonceSize,
+			NonceSize = Algorithm.NonceSize,
 			Version = 0x02
 		},
 		KeyFactory = ImportDekAsKey
@@ -48,14 +48,14 @@ public sealed class EncryptionService : IEncryptionService
 	/// The password-based format: the header holds the cost of the derivation, the check value tells
 	/// a wrong password from damaged data, and the plaintext is a single key.
 	/// </summary>
-	private static readonly BlobScheme _passwordScheme = new()
+	private static readonly BlobScheme PasswordScheme = new()
 	{
 		Format = new()
 		{
 			CheckSize = CheckSize,
 			HeaderSize = Argon2Settings.HeaderSize,
-			NonceSize = _algorithm.NonceSize,
-			PlaintextSize = _algorithm.KeySize,
+			NonceSize = Algorithm.NonceSize,
+			PlaintextSize = Algorithm.KeySize,
 			SaltSize = SaltSize,
 			Version = 0x01
 		},
@@ -65,18 +65,18 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Domain separation label for the session key derivation.
 	/// </summary>
-	private static readonly byte[] _sessionKeyInfo = "DataOrganizer.SessionDek.v1"u8.ToArray();
+	private static readonly byte[] SessionKeyInfo = "DataOrganizer.SessionDek.v1"u8.ToArray();
 
 	/// <summary>
 	/// The session-based format: the derivation from a random secret has no cost to record,
 	/// a secret of the running session is never wrong, and the plaintext is a single key.
 	/// </summary>
-	private static readonly BlobScheme _sessionScheme = new()
+	private static readonly BlobScheme SessionScheme = new()
 	{
 		Format = new()
 		{
-			NonceSize = _algorithm.NonceSize,
-			PlaintextSize = _algorithm.KeySize,
+			NonceSize = Algorithm.NonceSize,
+			PlaintextSize = Algorithm.KeySize,
 			SaltSize = SaltSize,
 			Version = 0x03
 		},
@@ -88,7 +88,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public PinnedBuffer CreateRandomDek()
 	{
-		PinnedBuffer dek = new(_algorithm.KeySize);
+		PinnedBuffer dek = new(Algorithm.KeySize);
 
 		RandomNumberGenerator.Fill(dek.AsSpan());
 
@@ -107,7 +107,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_passwordScheme);
+			PasswordScheme);
 	}
 
 	/// <inheritdoc />
@@ -131,7 +131,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_dekScheme);
+			DekScheme);
 	}
 
 	/// <inheritdoc />
@@ -146,7 +146,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_sessionScheme);
+			SessionScheme);
 	}
 
 	/// <inheritdoc />
@@ -170,7 +170,7 @@ public sealed class EncryptionService : IEncryptionService
 			dek.AsReadOnlySpan(),
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_passwordScheme,
+			PasswordScheme,
 			header);
 	}
 
@@ -197,7 +197,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_dekScheme,
+			DekScheme,
 			header: default);
 	}
 
@@ -215,7 +215,7 @@ public sealed class EncryptionService : IEncryptionService
 			dek.AsReadOnlySpan(),
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_sessionScheme,
+			SessionScheme,
 			header: default);
 	}
 
@@ -358,7 +358,7 @@ public sealed class EncryptionService : IEncryptionService
 			DegreeOfParallelism = settings.DegreeOfParallelism
 		});
 
-		using PinnedBuffer blob = new(_algorithm.KeySize + CheckSize);
+		using PinnedBuffer blob = new(Algorithm.KeySize + CheckSize);
 
 		kdf.DeriveBytes(
 			password: password,
@@ -366,10 +366,10 @@ public sealed class EncryptionService : IEncryptionService
 			bytes: blob.AsSpan());
 
 		blob
-			.AsReadOnlySpan()[_algorithm.KeySize..]
+			.AsReadOnlySpan()[Algorithm.KeySize..]
 			.CopyTo(check);
 
-		return ImportKey(blob.AsReadOnlySpan()[.._algorithm.KeySize]);
+		return ImportKey(blob.AsReadOnlySpan()[..Algorithm.KeySize]);
 	}
 
 	/// <summary>
@@ -382,7 +382,7 @@ public sealed class EncryptionService : IEncryptionService
 		ReadOnlySpan<byte> salt,
 		Span<byte> check)
 	{
-		Span<byte> blob = stackalloc byte[_algorithm.KeySize];
+		Span<byte> blob = stackalloc byte[Algorithm.KeySize];
 
 		try
 		{
@@ -391,7 +391,7 @@ public sealed class EncryptionService : IEncryptionService
 				ikm: sessionId,
 				output: blob,
 				salt: salt,
-				info: _sessionKeyInfo);
+				info: SessionKeyInfo);
 
 			return ImportKey(blob);
 		}
@@ -420,7 +420,7 @@ public sealed class EncryptionService : IEncryptionService
 				$"The format {format.Version:X2} carries {format.PlaintextSize} bytes, not {input.Length}.");
 		}
 
-		byte[] result = new byte[format.PrefixSize + input.Length + _algorithm.TagSize];
+		byte[] result = new byte[format.PrefixSize + input.Length + Algorithm.TagSize];
 
 		result[0] = format.Version;
 
@@ -437,13 +437,13 @@ public sealed class EncryptionService : IEncryptionService
 			saltSpan,
 			result.AsSpan(format.CheckOffset, format.CheckSize));
 
-		Span<byte> nonceSpan = result.AsSpan(format.NonceOffset, _algorithm.NonceSize);
+		Span<byte> nonceSpan = result.AsSpan(format.NonceOffset, Algorithm.NonceSize);
 
 		RandomNumberGenerator.Fill(nonceSpan);
 
 		try
 		{
-			_algorithm.Encrypt(
+			Algorithm.Encrypt(
 				key: key,
 				nonce: nonceSpan,
 				associatedData: BuildAssociatedData(purpose, result.AsSpan(0, format.NonceOffset)),
@@ -466,7 +466,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		ArgumentNullException.ThrowIfNull(input);
 
-		if (input.Length < format.PrefixSize + _algorithm.TagSize)
+		if (input.Length < format.PrefixSize + Algorithm.TagSize)
 		{
 			throw new CryptographicException(
 				$"Encrypted data of {input.Length} bytes is too short for the format {format.Version:X2}.");
@@ -481,7 +481,7 @@ public sealed class EncryptionService : IEncryptionService
 		// A format carrying a plaintext of a fixed size has a single valid length, so any other
 		// length is damaged data rather than something a secret could open.
 		if (format.PlaintextSize != 0
-			&& input.Length != format.PrefixSize + format.PlaintextSize + _algorithm.TagSize)
+			&& input.Length != format.PrefixSize + format.PlaintextSize + Algorithm.TagSize)
 		{
 			throw new CryptographicException(
 				$"Encrypted data of {input.Length} bytes cannot hold the {format.PlaintextSize} bytes of the format {format.Version:X2}.");
@@ -504,7 +504,7 @@ public sealed class EncryptionService : IEncryptionService
 	private static Key ImportKey(ReadOnlySpan<byte> blob)
 	{
 		return Key.Import(
-			algorithm: _algorithm,
+			algorithm: Algorithm,
 			blob: blob,
 			format: KeyBlobFormat.RawSymmetricKey);
 	}
@@ -520,12 +520,12 @@ public sealed class EncryptionService : IEncryptionService
 		ReadOnlySpan<byte> associatedData,
 		Span<byte> plaintext)
 	{
-		if (ciphertext.Length < _algorithm.TagSize)
+		if (ciphertext.Length < Algorithm.TagSize)
 		{
 			return false;
 		}
 
-		return _algorithm.Decrypt(
+		return Algorithm.Decrypt(
 			key: key,
 			nonce: nonce,
 			associatedData: associatedData,
@@ -571,7 +571,7 @@ public sealed class EncryptionService : IEncryptionService
 		{
 			isOpened = OpenAead(
 				key,
-				input.AsSpan(format.NonceOffset, _algorithm.NonceSize),
+				input.AsSpan(format.NonceOffset, Algorithm.NonceSize),
 				input.AsSpan(format.PrefixSize),
 				BuildAssociatedData(purpose, input.AsSpan(0, format.NonceOffset)),
 				plaintext);
@@ -595,7 +595,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static int PlaintextSizeOf(byte[] input, BlobFormat format)
 	{
-		return input.Length - format.PrefixSize - _algorithm.TagSize;
+		return input.Length - format.PrefixSize - Algorithm.TagSize;
 	}
 
 	/// <summary>
@@ -603,7 +603,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static Argon2Settings? ReadCost(byte[] wrapped)
 	{
-		BlobFormat format = _passwordScheme.Format;
+		BlobFormat format = PasswordScheme.Format;
 
 		if (wrapped.Length < format.PrefixSize || wrapped[0] != format.Version)
 		{

@@ -32,7 +32,7 @@ public interface IContentVisibility
 	void HideFileContents(FileDto file);
 
 	/// <summary>
-	/// Hides file contents in folder.
+	/// Hides the file contents in a folder.
 	/// </summary>
 	void HideFolderContents(FolderDto folder);
 
@@ -42,7 +42,7 @@ public interface IContentVisibility
 	Task<bool> ShowFileContentsAsync(FileDto file, CancellationToken token = default);
 
 	/// <summary>
-	/// Shows file contents in folder.
+	/// Shows the file contents in a folder.
 	/// </summary>
 	Task ShowFolderContentsAsync(FolderDto folder, CancellationToken token = default);
 	#endregion

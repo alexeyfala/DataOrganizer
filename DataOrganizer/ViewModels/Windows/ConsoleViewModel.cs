@@ -129,7 +129,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <summary>
 	/// The caret position at the first line.
 	/// </summary>
-	private static readonly TextViewPosition _firstLinePosition = new();
+	private static readonly TextViewPosition FirstLinePosition = new();
 
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
@@ -247,7 +247,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 				editor
 					.TextArea
 					.Caret
-					.Position = _firstLinePosition;
+					.Position = FirstLinePosition;
 
 				AvaloniaEditCommands
 					.DeleteLine

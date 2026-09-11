@@ -23,8 +23,8 @@ public interface IProcessManager
 
 	/// <summary>
 	/// Launches a file process depending on the operating system.<br />
-	/// When running a file without an extension or when there is no application
-	/// in system associated with file <paramref name="processId"/> will have default value.
+	/// When running a file without an extension, or when the system has no application
+	/// associated with the file, <paramref name="processId"/> will have the default value.
 	/// </summary>
 	bool StartProcess(string filePath, out int processId);
 

@@ -75,7 +75,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 	/// <summary>
 	/// Known file-manager process names compared with <c>/proc/&lt;pid&gt;/comm</c>..
 	/// </summary>
-	private static readonly string[] _knownFileManagerComms =
+	private static readonly string[] KnownFileManagerComms =
 	[
 		// Fly Files.
 		"fly-fm-service",
@@ -332,7 +332,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 				.ReadAllText(commPath)
 				.Trim();
 
-			foreach (string knownComm in _knownFileManagerComms)
+			foreach (string knownComm in KnownFileManagerComms)
 			{
 				if (comm.Equals(knownComm, StringComparison.Ordinal))
 				{
