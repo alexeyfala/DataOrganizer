@@ -15,7 +15,7 @@
     - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — этап 3: что в [`app.metainfo.xml`](../app.metainfo.xml) заполняется руками.
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — этап 4: сборка `.deb`, `.rpm`, AppImage, Flatpak, zip и проверка пакета.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — разметка зашифрованных блобов и правило «новая разметка — новый байт версии». **Когда:** правка стека шифрования.
-  - 📄 [`GitHub_Release.md`](GitHub_Release.md) — чек-лист выпуска релиза на GitHub.
+  - 📄 [`GitHub_Release.md`](GitHub_Release.md) — чек-лист выпуска релиза на GitHub. **Когда:** артефакты собраны и пора публиковать тег.
   - 📄 [`Publish.md`](Publish.md) — рецепты сборки дистрибутивов для Windows, Linux, macOS.
   - 📄 [`release-notes.template.md`](release-notes.template.md) — шаблон описания релиза с подстановкой `{version}`. **Когда:** изменился набор артефактов релиза.
   - 📄 [`Solution_Files.md`](Solution_Files.md) — этот файл. **Когда:** в решении появился или исчез не-кодовый файл — иначе `SolutionFilesReferenceTests` уронит тесты: он сверяет справочник с `.slnx` и с содержимым `Docs/`.
