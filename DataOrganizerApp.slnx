@@ -21,9 +21,11 @@
     </Project>
   </Folder>
   <Folder Name="/Docs/">
+    <File Path="Docs/Encryption_Format.md" />
     <File Path="Docs/GitHub_Release.md" />
     <File Path="Docs/Publish.md" />
     <File Path="Docs/release-notes.template.md" />
+    <File Path="Docs/Solution_Files.md" />
   </Folder>
   <Folder Name="/Docs/Images/">
     <File Path="Docs/Images/clipboard-log.png" />
@@ -51,6 +53,8 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="README.md" />
   </Folder>
