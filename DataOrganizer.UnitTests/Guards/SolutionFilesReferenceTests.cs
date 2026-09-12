@@ -22,6 +22,11 @@ internal class SolutionFilesReferenceTests
 	private const string SolutionFileName = "DataOrganizerApp.slnx";
 
 	/// <summary>
+	/// Folders whose files are read from disk in addition to the solution file.
+	/// </summary>
+	private static readonly string[] CoveredDiskFolders = ["Docs"];
+
+	/// <summary>
 	/// Virtual folders of the solution file whose files the reference covers.
 	/// </summary>
 	private static readonly string[] CoveredSolutionFolders = ["/Deployment/", "/Docs/", "/Solution Items/"];
@@ -60,10 +65,24 @@ internal class SolutionFilesReferenceTests
 	{
 		string root = LocateRepositoryRoot();
 
+		IEnumerable<string> diskFiles = CoveredDiskFolders
+			.SelectMany(folder => EnumerateFolderFiles(root, folder));
+
 		return ReadSolutionFilePaths(root)
+			.Concat(diskFiles)
 			.Where(path => !IsDescribedAsGroup(path))
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.Order(StringComparer.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
+	/// Enumerates the files of a repository folder, including nested ones.
+	/// </summary>
+	private static IEnumerable<string> EnumerateFolderFiles(string root, string folder)
+	{
+		return Directory
+			.EnumerateFiles(Path.Combine(root, folder), "*", SearchOption.AllDirectories)
+			.Select(path => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '/'));
 	}
 
 	/// <summary>
