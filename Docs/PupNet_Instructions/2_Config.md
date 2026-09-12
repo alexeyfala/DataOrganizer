@@ -1,4 +1,4 @@
-# Stage 2 — Generate the PupNet configuration
+﻿# Stage 2 — Generate the PupNet configuration
 
 **1) Enter Ubuntu** — in Windows PowerShell:
 

@@ -1,4 +1,4 @@
-# Contributing to Data Organizer
+﻿# Contributing to Data Organizer
 
 Thanks for your interest in improving Data Organizer! Contributions of all
 kinds are welcome — bug reports, feature ideas, documentation, and code.

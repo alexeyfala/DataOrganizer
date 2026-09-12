@@ -1,4 +1,4 @@
-# Publishing Recipes
+﻿# Publishing Recipes
 
 Cheat-sheet for producing Data Organizer builds on each platform.
 

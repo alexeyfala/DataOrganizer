@@ -1,4 +1,4 @@
-# Encrypted blob formats
+﻿# Encrypted blob formats
 
 Reference for the on-the-wire layout of everything `EncryptionService` writes, and for the rule that
 keeps those layouts readable. Written for whoever edits the encryption stack; the user-facing security

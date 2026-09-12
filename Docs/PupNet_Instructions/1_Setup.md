@@ -1,4 +1,4 @@
-# Stage 1 — Prepare the Linux build environment (WSL)
+﻿# Stage 1 — Prepare the Linux build environment (WSL)
 
 **1) Check whether WSL/Ubuntu is already installed** — in Windows PowerShell:
 

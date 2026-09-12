@@ -1,4 +1,4 @@
-# Stage 4 — Build and verify Linux packages
+﻿# Stage 4 — Build and verify Linux packages
 
 > **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist in `IconFiles`. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 

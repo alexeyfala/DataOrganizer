@@ -1,4 +1,4 @@
-# Security Policy
+﻿# Security Policy
 
 Data Organizer handles password-protected, encrypted user data, so security
 reports are taken seriously and are always welcome.

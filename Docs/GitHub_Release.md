@@ -1,4 +1,4 @@
-# GitHub Release — checklist & notes template
+﻿# GitHub Release — checklist & notes template
 
 How to cut a release on GitHub. Pairs with [Publish.md](Publish.md) (which
 produces the artifacts this step uploads). The release description is rendered

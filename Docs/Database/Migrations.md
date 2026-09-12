@@ -1,4 +1,4 @@
-# Database migrations
+﻿# Database migrations
 
 ## Setup (once)
 
