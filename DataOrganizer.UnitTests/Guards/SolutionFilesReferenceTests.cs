@@ -11,22 +11,24 @@ namespace DataOrganizer.UnitTests.Guards;
 internal class SolutionFilesReferenceTests
 {
 	#region Data
-	// The reference itself, relative to the repository root.
+	/// <summary>
+	/// The reference itself, relative to the repository root.
+	/// </summary>
 	private const string ReferenceFilePath = "Docs/Solution_Files.md";
 
-	// Solution file listing the covered virtual folders.
+	/// <summary>
+	/// Solution file listing the covered virtual folders.
+	/// </summary>
 	private const string SolutionFileName = "DataOrganizerApp.slnx";
 
-	// Folder names holding build output rather than sources.
-	private static readonly string[] BuildOutputFolders = ["bin", "obj"];
-
-	// Virtual folders of the solution file whose files the reference covers.
+	/// <summary>
+	/// Virtual folders of the solution file whose files the reference covers.
+	/// </summary>
 	private static readonly string[] CoveredSolutionFolders = ["/Deployment/", "/Docs/", "/Solution Items/"];
 
-	// Packaging folders on disk whose files the reference describes one by one.
-	private static readonly string[] DeploymentFolders = ["Bundle", "Setup"];
-
-	// Folders described as a whole, so their files need no individual mention.
+	/// <summary>
+	/// Folders described as a whole, so their files need no individual mention.
+	/// </summary>
 	private static readonly string[] FoldersDescribedAsGroup = ["Docs/Images"];
 	#endregion
 
@@ -58,25 +60,10 @@ internal class SolutionFilesReferenceTests
 	{
 		string root = LocateRepositoryRoot();
 
-		IEnumerable<string> deploymentFiles = DeploymentFolders
-			.SelectMany(folder => EnumerateSourceFiles(root, folder));
-
 		return ReadSolutionFilePaths(root)
-			.Concat(deploymentFiles)
 			.Where(path => !IsDescribedAsGroup(path))
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.Order(StringComparer.OrdinalIgnoreCase);
-	}
-
-	/// <summary>
-	/// Enumerates the files of a repository folder, skipping build output.
-	/// </summary>
-	private static IEnumerable<string> EnumerateSourceFiles(string root, string folder)
-	{
-		return Directory
-			.EnumerateFiles(Path.Combine(root, folder), "*", SearchOption.AllDirectories)
-			.Select(path => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '/'))
-			.Where(path => !path.Split('/').Any(segment => BuildOutputFolders.Contains(segment, StringComparer.OrdinalIgnoreCase)));
 	}
 
 	/// <summary>

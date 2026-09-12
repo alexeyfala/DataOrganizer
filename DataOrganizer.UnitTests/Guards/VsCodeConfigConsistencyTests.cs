@@ -10,13 +10,19 @@ namespace DataOrganizer.UnitTests.Guards;
 internal class VsCodeConfigConsistencyTests
 {
 	#region Data
-	// Placeholder the .vscode configs must use instead of the literal app name.
+	/// <summary>
+	/// Placeholder the .vscode configs must use instead of the literal app name.
+	/// </summary>
 	private const string AppNameConfigReference = "${config:app.name}";
 
-	// MSBuild property holding the one-word app name, the canonical source of the name.
+	/// <summary>
+	/// MSBuild property holding the one-word app name, the canonical source of the name.
+	/// </summary>
 	private const string AppNamePropertyName = "AppName";
 
-	// Custom VS Code setting that mirrors the MSBuild property for ${config:app.name} references.
+	/// <summary>
+	/// Custom VS Code setting that mirrors the MSBuild property for ${config:app.name} references.
+	/// </summary>
 	private const string AppNameSettingKey = "app.name";
 	#endregion
 
