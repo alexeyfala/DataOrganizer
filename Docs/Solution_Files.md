@@ -53,7 +53,7 @@
   - ⚙️ [`.editorconfig`](../.editorconfig) — стиль кода и правила именования; вместе с `EnforceCodeStyleInBuild` нарушения идут в вывод компилятора. Секция `[*.{csproj,wixproj,props,targets,wxs,wxi}]` держит табы в MSBuild и WiX. **Когда:** меняется соглашение.
   - ⚙️ [`.gitattributes`](../.gitattributes) — нормализация окончаний строк (`* text=auto`); остальное — закомментированный шаблон Visual Studio. **Когда:** почти никогда.
   - ⚙️ [`.gitignore`](../.gitignore) — что не попадает в репозиторий: `bin/`, `obj/`, `.vs/`, `Publish/` (готовые установщики и архивы), `Setup/LICENSE.rtf`. **Когда:** появился новый генерируемый артефакт.
-  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — источник версии и имён: `AppVersion`, `AppName`, `AppDisplayName`, `Manufacturer`, `License`, иконка, имя MSI; плюс метаданные сборок. Читают все проекты, оба WiX-проекта, [`gen-release-notes.ps1`](../tools/gen-release-notes.ps1) и PupNet. **Когда:** перед релизом — поднять `AppVersion`.
+  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — общий источник версии, имён приложения и метаданных сборок. **Когда:** перед релизом — поднять версию.
   - 📄 [`README.md`](../README.md) — витрина на GitHub: возможности, скриншоты, требования, сборка, лицензия. **Когда:** изменились возможности или требования.
 
 ---
