@@ -10,11 +10,11 @@
   - 📁 **`Database/`**
     - 📄 [`Migrations.md`](Database/Migrations.md) — команды EF Core: создать и откатить миграцию, применить её к базе, сгенерировать SQL. **Когда:** изменилась модель данных.
   - 📁 **`Images/`**
-    - 🖼️ `*.png` — скриншоты для `README.md`.
+    - 🖼️ `*.png` — скриншоты для [`README.md`](../README.md).
   - 📁 **`PupNet_Instructions/`**
     - 📄 [`1_Setup.md`](PupNet_Instructions/1_Setup.md) — этап 1: окружение WSL с Ubuntu.
-    - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — этап 2: генерация и заполнение `app.pupnet.conf`.
-    - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — этап 3: что в `app.metainfo.xml` заполняется руками.
+    - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — этап 2: генерация и заполнение [`app.pupnet.conf`](../app.pupnet.conf).
+    - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — этап 3: что в [`app.metainfo.xml`](../app.metainfo.xml) заполняется руками.
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — этап 4: сборка `.deb`, `.rpm`, AppImage, Flatpak, zip и проверка пакета.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — разметка зашифрованных блобов и правило «новая разметка — новый байт версии». **Когда:** правка стека шифрования.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — чек-лист выпуска релиза на GitHub.
@@ -34,7 +34,7 @@
     - ⚙️ [`dependabot.yml`](../.github/dependabot.yml) — еженедельные обновления NuGet и GitHub Actions, minor и patch одним pull request. **Когда:** обновлений приходит слишком много или мало.
     - 📄 [`PULL_REQUEST_TEMPLATE.md`](../.github/PULL_REQUEST_TEMPLATE.md) — заготовка описания pull request с чек-листом.
     - ⚙️ [`release.yml`](../.github/release.yml) — категории и метки для кнопки «Generate release notes»; метка `ignore-for-release` прячет pull request. **Когда:** изменился набор меток.
-  - 📁 **`.vscode/`** — только для VS Code; `launch.json` и `tasks.json` берут имена из `settings.json` через `${config:...}`, согласованность проверяет `VsCodeConfigConsistencyTests`.
+  - 📁 **`.vscode/`** — только для VS Code; [`launch.json`](../.vscode/launch.json) и [`tasks.json`](../.vscode/tasks.json) берут имена из [`settings.json`](../.vscode/settings.json) через `${config:...}`, согласованность проверяет `VsCodeConfigConsistencyTests`.
     - ⚙️ [`launch.json`](../.vscode/launch.json) — запуск Debug и Release; на macOS запускается `.app`. **Когда:** меняются целевая платформа или пути.
     - ⚙️ [`settings.json`](../.vscode/settings.json) — `app.name`, аргументы сборки, скрытие `bin` и `obj`. **Когда:** переименование приложения — правится только здесь.
     - ⚙️ [`tasks.json`](../.vscode/tasks.json) — задачи `build-app` и `build-app-release`; на macOS собирается `.MacOS`. **Когда:** меняются конфигурации или аргументы сборки.
@@ -45,15 +45,15 @@
   - 📁 **`License/`** — виртуальная папка, файлы лежат в корне репозитория.
     - ⚖️ [`LICENSE`](../LICENSE) — Apache 2.0; единственная рукописная копия лицензии, не править.
     - ⚖️ [`NOTICE`](../NOTICE) — уведомление по Apache 2.0: копирайт, LGPL-компонент libuiohook, оговорка о названии продукта. **Когда:** сменился год копирайта или появился компонент с требованием уведомления.
-    - ⚖️ [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) — сторонние компоненты и их лицензии; генерируется `tools/gen-third-party-notices.ps1` из `project.assets.json`, руками не правится. **Когда:** перегенерировать перед релизом.
+    - ⚖️ [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) — сторонние компоненты и их лицензии; генерируется [`tools/gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) из `project.assets.json`, руками не правится. **Когда:** перегенерировать перед релизом.
   - 📁 **`tools/`** — PowerShell 5.1, запуск из корня репозитория.
-    - 💻 [`gen-license-rtf.ps1`](../tools/gen-license-rtf.ps1) — `LICENSE` → `Setup/LICENSE.rtf`; запускается сам из PreBuild проекта `Setup`.
+    - 💻 [`gen-license-rtf.ps1`](../tools/gen-license-rtf.ps1) — [`LICENSE`](../LICENSE) → `Setup/LICENSE.rtf`; запускается сам из PreBuild проекта `Setup`.
     - 💻 [`gen-release-notes.ps1`](../tools/gen-release-notes.ps1) — подставляет версию в шаблон, пишет `Publish/release-notes.md`, копирует текст в буфер обмена. **Когда:** выпуск релиза.
-    - 💻 [`gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) — пересобирает `THIRD-PARTY-NOTICES.txt` из `project.assets.json`. **Когда:** перед релизом и после смены зависимостей; нужен свежий `dotnet restore`, в выводе не должно быть `UNKNOWN`.
+    - 💻 [`gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) — пересобирает [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) из `project.assets.json`. **Когда:** перед релизом и после смены зависимостей; нужен свежий `dotnet restore`, в выводе не должно быть `UNKNOWN`.
   - ⚙️ [`.editorconfig`](../.editorconfig) — стиль кода и правила именования; вместе с `EnforceCodeStyleInBuild` нарушения идут в вывод компилятора. Секция `[*.{csproj,wixproj,props,targets,wxs,wxi}]` держит табы в MSBuild и WiX. **Когда:** меняется соглашение.
   - ⚙️ [`.gitattributes`](../.gitattributes) — нормализация окончаний строк (`* text=auto`); остальное — закомментированный шаблон Visual Studio. **Когда:** почти никогда.
   - ⚙️ [`.gitignore`](../.gitignore) — что не попадает в репозиторий: `bin/`, `obj/`, `.vs/`, `Publish/` (готовые установщики и архивы), `Setup/LICENSE.rtf`. **Когда:** появился новый генерируемый артефакт.
-  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — источник версии и имён: `AppVersion`, `AppName`, `AppDisplayName`, `Manufacturer`, `License`, иконка, имя MSI; плюс метаданные сборок. Читают все проекты, оба WiX-проекта, `gen-release-notes.ps1` и PupNet. **Когда:** перед релизом — поднять `AppVersion`.
+  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — источник версии и имён: `AppVersion`, `AppName`, `AppDisplayName`, `Manufacturer`, `License`, иконка, имя MSI; плюс метаданные сборок. Читают все проекты, оба WiX-проекта, [`gen-release-notes.ps1`](../tools/gen-release-notes.ps1) и PupNet. **Когда:** перед релизом — поднять `AppVersion`.
   - 📄 [`README.md`](../README.md) — витрина на GitHub: возможности, скриншоты, требования, сборка, лицензия. **Когда:** изменились возможности или требования.
 
 ---
