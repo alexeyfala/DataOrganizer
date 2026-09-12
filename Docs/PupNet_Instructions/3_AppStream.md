@@ -1,4 +1,4 @@
-# Stage 3 — AppStream metainfo (`.metainfo.xml`)
+﻿# Stage 3 — AppStream metainfo (`.metainfo.xml`)
 
 > **What it is:** a standard XML describing the app (summary, description, screenshots, categories, keywords, releases). Graphical *software centers* (GNOME Software, KDE Discover) read it.
 >

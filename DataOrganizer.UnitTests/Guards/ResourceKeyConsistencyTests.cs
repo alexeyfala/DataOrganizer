@@ -136,6 +136,9 @@ internal partial class ResourceKeyConsistencyTests
 			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
 	}
 
+	/// <summary>
+	/// Matches a StaticResource or DynamicResource reference and captures the key.
+	/// </summary>
 	[GeneratedRegex(@"\{(?:Static|Dynamic)Resource\s+(?<key>[^}\s]+)\s*\}")]
 	private static partial Regex ReferenceRegex();
 	#endregion

@@ -1,4 +1,4 @@
-# GitHub Release — checklist & notes template
+﻿# GitHub Release — checklist & notes template
 
 How to cut a release on GitHub. Pairs with [Publish.md](Publish.md) (which
 produces the artifacts this step uploads). The release description is rendered
@@ -21,8 +21,8 @@ It reads `AppVersion` from `Directory.Build.props`, fills the `{version}` placeh
 
 ```
 Wrote Publish/release-notes.md  (copied to clipboard)
-Tag:   v0.3.0
-Title: Data Organizer 0.3.0
+Tag:   v{version}
+Title: Data Organizer {version}
 ```
 
 3\. Open **Releases → Create a new release** (`https://github.com/alexeyfala/DataOrganizer/releases/new`).

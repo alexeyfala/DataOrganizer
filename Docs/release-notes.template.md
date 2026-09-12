@@ -1,4 +1,4 @@
-## Data Organizer {version}
+﻿## Data Organizer {version}
 
 <!-- 2–4 plain-language highlights of what changed in this release. -->
 

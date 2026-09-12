@@ -22,9 +22,14 @@ namespace DataOrganizer.UnitTests.Guards;
 internal class SnackbarTextColorTests
 {
 	#region Data
-	// Attribute that must not be set on SnackbarHost: it is inherited by the whole window subtree.
+	/// <summary>
+	/// Attribute that must not be set on SnackbarHost: it is inherited by the whole window subtree.
+	/// </summary>
 	private const string ForegroundAttributeName = "Foreground";
 
+	/// <summary>
+	/// Element name of the snackbar host in the markup.
+	/// </summary>
 	private const string SnackbarHostElementName = "SnackbarHost";
 	#endregion
 
