@@ -1,4 +1,4 @@
-# Repository.Migrations
+# Database migrations
 
 ## Setup (once)
 

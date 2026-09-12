@@ -7,6 +7,8 @@
     - [`app.metainfo.xml`](../app.metainfo.xml) — AppStream-метаданные для центров приложений; большую часть полей подставляет PupNet. **Когда:** руками заполняются категории, ключевые слова, рейтинг, скриншоты.
     - [`app.pupnet.conf`](../app.pupnet.conf) — конфигурация PupNet: идентификатор, описание, лицензия, иконки, аргументы `dotnet publish`, настройки `.deb`, `.rpm`, AppImage, Flatpak, zip. Версия передаётся через `--app-version`. **Когда:** меняются зависимости пакетов или аргументы публикации.
 - 📁 **`Docs/`**
+  - 📁 **`Database/`**
+    - [`Migrations.md`](Database/Migrations.md) — команды EF Core: создать и откатить миграцию, применить её к базе, сгенерировать SQL. **Когда:** изменилась модель данных.
   - 📁 **`Images/`**
     - `*.png` — скриншоты для `README.md`.
   - 📁 **`PupNet_Instructions/`**
@@ -21,7 +23,7 @@
   - [`Solution_Files.md`](Solution_Files.md) — этот файл. **Когда:** в решении появился или исчез не-кодовый файл.
 - 📁 **`Solution Items/`**
   - 📁 **`.config/`**
-    - [`dotnet-tools.json`](../.config/dotnet-tools.json) — локальные инструменты: `dotnet-ef`. Восстановление — `dotnet tool restore`. **Когда:** обновление EF Core, версия инструмента не ниже версии пакетов. Команды миграций — [Repository.Migrations/README.md](../Repository.Migrations/README.md).
+    - [`dotnet-tools.json`](../.config/dotnet-tools.json) — локальные инструменты: `dotnet-ef`. Восстановление — `dotnet tool restore`. **Когда:** обновление EF Core, версия инструмента не ниже версии пакетов. Команды миграций — [Database/Migrations.md](Database/Migrations.md).
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
       - [`bug_report.yml`](../.github/ISSUE_TEMPLATE/bug_report.yml) — форма отчёта об ошибке, метка `bug`.

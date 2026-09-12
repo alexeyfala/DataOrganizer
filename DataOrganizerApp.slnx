@@ -27,6 +27,9 @@
     <File Path="Docs/release-notes.template.md" />
     <File Path="Docs/Solution_Files.md" />
   </Folder>
+  <Folder Name="/Docs/Database/">
+    <File Path="Docs/Database/Migrations.md" />
+  </Folder>
   <Folder Name="/Docs/Images/">
     <File Path="Docs/Images/clipboard-log.png" />
     <File Path="Docs/Images/dataset-editor.png" />
