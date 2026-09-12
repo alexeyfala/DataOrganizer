@@ -2,7 +2,7 @@
 
 ## Setup (once)
 
-`dotnet ef` is registered as a local tool (`.config/dotnet-tools.json`, version 10.0.9).
+`dotnet ef` is registered as a local tool (`.config/dotnet-tools.json`).
 After cloning the repository, restore it from the solution root:
 
     dotnet tool restore
