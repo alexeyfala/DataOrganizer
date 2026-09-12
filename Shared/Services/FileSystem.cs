@@ -3,6 +3,7 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -156,26 +157,43 @@ public sealed class FileSystem : IFileSystem
 		in int bufferSize = IFileSystem.DefaultBufferSize,
 		in int passCount = IFileSystem.DefaultPassCount)
 	{
-		using RandomNumberGenerator generator = RandomNumberGenerator.Create();
-
-		byte[] buffer = new byte[bufferSize];
-
 		long fileLength = new FileInfo(filePath).Length;
 
-		for (int i = 0; i < passCount; i++)
+		// A buffer of the erase size is rented to keep it out of the large object heap.
+		byte[] buffer = ArrayPool<byte>
+			.Shared
+			.Rent((int)Math.Min(fileLength, bufferSize));
+
+		try
 		{
-			using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Write);
-
-			long position = 0;
-
-			while (position < fileLength)
+			for (int i = 0; i < passCount; i++)
 			{
-				generator.GetBytes(buffer);
+				using FileStream stream = File.Open(
+					filePath,
+					FileMode.Open,
+					FileAccess.Write);
 
-				stream.Write(buffer, 0, (int)Math.Min(buffer.Length, fileLength - position));
+				long position = 0;
 
-				position += buffer.Length;
+				while (position < fileLength)
+				{
+					int count = (int)Math.Min(buffer.Length, fileLength - position);
+
+					RandomNumberGenerator.Fill(buffer.AsSpan(0, count));
+
+					stream.Write(buffer, 0, count);
+
+					position += count;
+				}
+
+				// Without this the pass may never reach the medium: deleting the file afterwards
+				// lets the system drop the pending writes and leave the original content in place.
+				stream.Flush(flushToDisk: true);
 			}
+		}
+		finally
+		{
+			ArrayPool<byte>.Shared.Return(buffer);
 		}
 	}
 
