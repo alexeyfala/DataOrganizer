@@ -36,6 +36,7 @@ Please make sure the test suite passes before opening a pull request:
 
 ```bash
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
+dotnet test Entities.UnitTests/Entities.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
 ```
@@ -48,6 +49,9 @@ dotnet test Shared.UnitTests/Shared.UnitTests.csproj
 - Match the patterns already used in the surrounding code (naming, structure,
   MVVM conventions).
 - Keep changes focused; unrelated changes belong in separate pull requests.
+- Adding a non-code file — a config, a document, a packaging input? Describe it in
+  [`Docs/Solution_Files.md`](Docs/Solution_Files.md); a guard test fails the run when a file
+  from the solution or from `Docs/` is missing there.
 
 ## Pull Request Process
 
