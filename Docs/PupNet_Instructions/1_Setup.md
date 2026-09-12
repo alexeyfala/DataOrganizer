@@ -89,15 +89,15 @@ source ~/.bashrc
 pupnet --version
 ```
 
-**9) Define the repository path and version helper.** The build recipes in Stage 4 use `$DATAORG_REPO` (the repo path) and `$(dataorg_ver)` (the current `<AppVersion>`) instead of hardcoding them. The path is a fixed value; the version is a function so it is re-read from `Directory.Build.props` on every call and never goes stale. Adjust the path if the repository lives elsewhere:
+**9) Define the repository path and version helper.** The build recipes in Stage 4 use `$DATAORG_REPO` (the repo path) and `$(dataorg_ver)` (the current `<AppVersion>`) instead of hardcoding them. The path is a fixed value; the version is a function so it is re-read from `Directory.Build.props` on every call and never goes stale. Replace `<user-name>` with the Windows user name — drive `C:` is visible inside WSL as `/mnt/c` — and keep the `&&`: a wrong folder makes `cd` fail, and then nothing is appended to `~/.bashrc`:
 
 ```bash
-echo 'export DATAORG_REPO="/mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp"' >> ~/.bashrc
+cd /mnt/c/Users/<user-name>/source/repos/DataOrganizerAvaloniaApp && echo "export DATAORG_REPO=\"$PWD\"" >> ~/.bashrc
 echo "dataorg_ver() { grep -oP '(?<=<AppVersion>)[^<]+' \"\$DATAORG_REPO/Directory.Build.props\"; }" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-Confirm both resolve (expect the path, then the version, e.g. `0.0.1`):
+Confirm both resolve (expect the path, then the current `<AppVersion>`):
 
 ```bash
 echo "$DATAORG_REPO" && dataorg_ver

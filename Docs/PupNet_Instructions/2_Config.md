@@ -6,7 +6,7 @@
 wsl.exe -d Ubuntu
 ```
 
-Then, inside Ubuntu, go to the repository root and list it (you should see the `.sln` and the guide files):
+Then, inside Ubuntu, go to the repository root and list it (you should see the `.slnx` and the guide files):
 
 ```bash
 cd "$DATAORG_REPO"
