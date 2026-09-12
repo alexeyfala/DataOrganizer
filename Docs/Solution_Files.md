@@ -34,7 +34,7 @@
     - ⚙️ [`release.yml`](../.github/release.yml) — категории и метки для кнопки «Generate release notes»; метка `ignore-for-release` прячет pull request. **Править:** изменился набор меток.
   - 📁 **`.vscode/`** — только для VS Code; `launch.json` и `tasks.json` берут имена из `settings.json` через `${config:...}`, согласованность проверяет `VsCodeConfigConsistencyTests`.
     - ⚙️ [`launch.json`](../.vscode/launch.json) — запуск Debug и Release; на macOS запускается `.app`. **Править:** меняются целевая платформа или пути.
-    - ⚙️ [`settings.json`](../.vscode/settings.json) — `app.name`, аргументы сборки, скрытие `bin` и `obj`. **Править:** переименование приложения — только здесь.
+    - ⚙️ [`settings.json`](../.vscode/settings.json) — `app.name`, аргументы сборки, скрытие `bin` и `obj`, открытие `.md` сразу в предпросмотре. **Править:** переименование приложения — только здесь.
     - ⚙️ [`tasks.json`](../.vscode/tasks.json) — задачи `build-app` и `build-app-release`; на macOS собирается `.MacOS`. **Править:** меняются конфигурации или аргументы сборки.
   - 📁 **`Community/`** — виртуальная папка, файлы лежат в корне репозитория.
     - 📄 [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) — Contributor Covenant. **Править:** сменился контакт для жалоб.
