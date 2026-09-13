@@ -94,43 +94,46 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_container = container;
 
-			if (result
+			if (!result
 				.Contents
 				.IsEmpty())
 			{
-				return;
-			}
-
-			if (TryDecrypt(result.Contents) is not { } output)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return;
-			}
-
-			try
-			{
-				Records.AddRange(_jsonSerializer
-					.Deserialize<DatasetRecordBase[]>(output)
-					.AsNotNull());
-
-				if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+				if (TryDecrypt(result.Contents) is not { } output)
 				{
+					IsContentUnavailable = true;
+
+					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
 					return;
 				}
 
+				try
+				{
+					Records.AddRange(_jsonSerializer
+						.Deserialize<DatasetRecordBase[]>(output)
+						.AsNotNull());
+				}
+				finally
+				{
+					output.ZeroMemory();
+				}
+			}
+
+			if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+			{
+				return;
+			}
+
+			// A dataset that starts without records has nothing to realize and no position to restore,
+			// yet the position it gains once records are added still has to be kept.
+			if (Records.Count > 0)
+			{
 				await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
 				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
+			}
 
-				SetupScrollSubscription(scrollViewer);
-			}
-			finally
-			{
-				output.ZeroMemory();
-			}
+			SetupScrollSubscription(scrollViewer);
 		}
 		catch (Exception ex)
 		{
