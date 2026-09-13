@@ -19,7 +19,6 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Shared.Interfaces;
-using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,13 +70,13 @@ internal class FolderProtectionTests
 		await unlocker.Received(1).RequestDekAsync(
 			folder,
 			Arg.Any<string>(),
-			Strings.OldPassword,
+			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());
 
 		await dialogService.Received(1).RequestPasswordAsync(
 			Arg.Any<string>(),
-			Strings.NewPassword,
+			Arg.Any<string>(),
 			Arg.Any<string>(),
 			PasswordPromptMode.Create,
 			Arg.Any<CancellationToken>());

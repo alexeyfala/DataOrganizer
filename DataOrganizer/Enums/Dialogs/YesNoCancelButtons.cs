@@ -5,7 +5,18 @@ namespace DataOrganizer.Enums.Dialogs;
 /// </summary>
 public enum YesNoCancelButtons
 {
+	/// <summary>
+	/// "Yes" and "No".
+	/// </summary>
 	YesNo,
+
+	/// <summary>
+	/// "Yes" and "Cancel".
+	/// </summary>
 	YesCancel,
+
+	/// <summary>
+	/// "Yes", "No" and "Cancel".
+	/// </summary>
 	YesNoCancel
 }

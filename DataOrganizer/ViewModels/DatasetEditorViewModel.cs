@@ -61,66 +61,83 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(true);
-
 		try
 		{
+			ValidatedContents result;
+
+			try
+			{
+				result = await _dbAccess
+					.GetFileContentsAsync(FileId)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				IsContentUnavailable = true;
+
+				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
+
+				return;
+			}
+
 			if (!result.IsValid)
 			{
-				IsContentCorrupted = true;
+				IsContentUnavailable = true;
 
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
 
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+				_logger.LogError($@"{Strings.MissingFileContents} of file ""{FileId}""");
 
 				return;
 			}
 
 			_container = container;
 
-			if (result
+			if (!result
 				.Contents
 				.IsEmpty())
 			{
-				return;
-			}
-
-			if (TryDecrypt(result.Contents) is not { } output)
-			{
-				IsContentCorrupted = true;
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return;
-			}
-
-			try
-			{
-				Records.AddRange(_jsonSerializer
-					.Deserialize<DatasetRecordBase[]>(output)
-					.AsNotNull());
-
-				if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+				if (TryDecrypt(result.Contents) is not { } output)
 				{
+					IsContentUnavailable = true;
+
+					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
 					return;
 				}
 
+				try
+				{
+					Records.AddRange(_jsonSerializer
+						.Deserialize<DatasetRecordBase[]>(output)
+						.AsNotNull());
+				}
+				finally
+				{
+					output.ZeroMemory();
+				}
+			}
+
+			if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+			{
+				return;
+			}
+
+			// A dataset that starts without records has nothing to realize and no position to restore,
+			// yet the position it gains once records are added still has to be kept.
+			if (Records.Count > 0)
+			{
 				await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
 				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
+			}
 
-				SetupScrollSubscription(scrollViewer);
-			}
-			finally
-			{
-				output.ZeroMemory();
-			}
+			SetupScrollSubscription(scrollViewer);
 		}
 		catch (Exception ex)
 		{
-			IsContentCorrupted = true;
+			IsContentUnavailable = true;
 
 			_logger.LogException(ex, breakInDebugger: false);
 
@@ -158,7 +175,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	internal Task RecordMoved(DatasetRecordBase? record)
 	{
 		// Do not check "IsReadOnly" in "CanExecute", the gesture is already gated at the drag source.
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -592,6 +609,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardAccessor" />
 	private readonly IClipboardAccessor _clipboard;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
@@ -610,6 +630,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IClipboardAccessor clipboardService,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IJsonSerializer jsonSerializer,
@@ -628,6 +649,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		_clipboard = clipboardService;
 
+		_dbFailureReporter = dbFailureReporter;
+
 		_dialogService = dialogService;
 
 		_dispatcher = dispatcher;
@@ -640,7 +663,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
 	{
-		if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer || _container is null)
+		if (IsContentUnavailable || e.Sender is not ScrollViewer scrollViewer || _container is null)
 		{
 			return;
 		}
@@ -830,7 +853,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
 			.ConfigureAwait(false);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return;
 		}
@@ -880,7 +903,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.ForEach(x => x.IsHidden = hide);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -917,7 +940,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.AddRange(sorted);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -928,7 +951,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc />
 	protected override Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		return IsReadOnly || IsContentCorrupted
+		return IsReadOnly || IsContentUnavailable
 			? Task.FromResult(true)
 			: SaveContentsAsync(token);
 	}
@@ -1166,9 +1189,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
+	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentUnavailable" /> is <c>False</c>.
 	/// </summary>
-	private bool CanEdit() => !IsReadOnly && !IsContentCorrupted;
+	private bool CanEdit() => !IsReadOnly && !IsContentUnavailable;
 
 	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.
@@ -1285,9 +1308,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			return await SaveContentsAsync(
-				output,
-				token: token).ConfigureAwait(false);
+			return await SaveContentsAsync(output, token).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
+
+			return false;
 		}
 		finally
 		{

@@ -2,10 +2,12 @@ using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -24,6 +26,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -34,10 +39,13 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
@@ -93,13 +101,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
 
-			if (!await _dbAccess
+			await _dbAccess
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
-				.ConfigureAwait(false))
-			{
-				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
-					.ConfigureAwait(false);
-			}
+				.ConfigureAwait(false);
 
 			ExplorerItemDtoBase[] objects =
 			[
@@ -121,6 +125,14 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			{
 				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
 			}
+		}
+		catch (DatabaseNotWritableException ex)
+		{
+			// The database turned the transaction down, which is a refusal and not a bug.
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -169,10 +181,18 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-		// The rollback has to run even when the operation was cancelled.
-		await _dbAccess
-			.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
-			.ConfigureAwait(false);
+		try
+		{
+			// The rollback has to run even when the operation was cancelled.
+			await _dbAccess
+				.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// A rollback that did not happen leaves the conversion half-done, which has to be said out loud.
+			_dbFailureReporter.Report(ex, Strings.FailedToRestoreDatabase);
+		}
 
 		return result;
 	}

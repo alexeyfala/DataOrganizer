@@ -83,20 +83,47 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		_editor = editor;
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(true);
-
 		try
 		{
-			if (!result.IsValid || TryDecrypt(result.Contents) is not { } output)
+			ValidatedContents result;
+
+			try
 			{
-				IsContentCorrupted = true;
+				result = await _dbAccess
+					.GetFileContentsAsync(FileId)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				IsContentUnavailable = true;
+
+				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
+
+				return;
+			}
+
+			if (!result.IsValid)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
+
+				_logger.LogError(
+					$@"{Strings.MissingFileContents} of file ""{FileId}""",
+					breakInDebugger: false);
+
+				return;
+			}
+
+			if (TryDecrypt(result.Contents) is not { } output)
+			{
+				IsContentUnavailable = true;
 
 				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				_logger.LogError(
-					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
+					$@"{Strings.FailedToProcessContents} of file ""{FileId}""",
 					breakInDebugger: false);
 
 				return;
@@ -158,6 +185,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				output.ZeroMemory();
 			}
 		}
+		catch (Exception ex)
+		{
+			IsContentUnavailable = true;
+
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+		}
 		finally
 		{
 			editor.IsReadOnly = initialIsReadOnly;
@@ -185,6 +220,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
@@ -224,6 +262,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -238,6 +277,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			notification,
 			exceptionHandler)
 	{
+		_dbFailureReporter = dbFailureReporter;
+
 		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
@@ -250,7 +291,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted)
+			if (IsContentUnavailable)
 			{
 				return;
 			}
@@ -264,7 +305,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void Editor_TextChanged(EventPattern<EventArgs> e)
 	{
-		if (IsContentCorrupted
+		if (IsContentUnavailable
 			|| IsReadOnly
 			|| e.Sender is not TextEditor editor)
 		{
@@ -307,7 +348,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		if (IsContentCorrupted || IsReadOnly)
+		if (IsContentUnavailable || IsReadOnly)
 		{
 			return true;
 		}
@@ -508,6 +549,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 					Volatile.Write(ref _lastSaveFailed, !isSaved);
 				}
+				catch (Exception ex)
+				{
+					// The loop has to survive a failed save: the editor keeps the text and marks it unsaved.
+					_logger.LogException(ex, breakInDebugger: false);
+
+					Volatile.Write(ref _lastSaveFailed, true);
+				}
 				finally
 				{
 					latest.ZeroMemory();
@@ -548,7 +596,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || !IsInitialized)
+			if (IsContentUnavailable || !IsInitialized)
 			{
 				return;
 			}

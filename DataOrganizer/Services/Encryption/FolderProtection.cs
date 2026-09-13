@@ -6,6 +6,7 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
@@ -35,6 +36,9 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
@@ -42,7 +46,7 @@ public sealed class FolderProtection : IFolderProtection
 	private readonly IEncryptionService _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
-	private readonly IEncryptionFailureReporter _failureReporter;
+	private readonly IEncryptionFailureReporter _encryptionFailureReporter;
 
 	/// <inheritdoc cref="IKeeperUnlocker" />
 	private readonly IKeeperUnlocker _keeperUnlocker;
@@ -62,9 +66,10 @@ public sealed class FolderProtection : IFolderProtection
 		IContentVisibility contentVisibility,
 		IEncryptedContentWriter contentWriter,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IEncryptionService encryption,
-		IEncryptionFailureReporter failureReporter,
+		IEncryptionFailureReporter encryptionFailureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		ILogger logger,
 		IMessenger messenger,
@@ -76,11 +81,13 @@ public sealed class FolderProtection : IFolderProtection
 
 		_dbAccess = dbAccess;
 
+		_dbFailureReporter = dbFailureReporter;
+
 		_dialogService = dialogService;
 
 		_encryption = encryption;
 
-		_failureReporter = failureReporter;
+		_encryptionFailureReporter = encryptionFailureReporter;
 
 		_keeperUnlocker = keeperUnlocker;
 
@@ -146,7 +153,11 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
-			_failureReporter.Report(ex);
+			_encryptionFailureReporter.Report(ex);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToChangePassword);
 		}
 	}
 
@@ -247,7 +258,11 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
-			_failureReporter.Report(ex);
+			_encryptionFailureReporter.Report(ex);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -359,7 +374,11 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
-			_failureReporter.Report(ex);
+			_encryptionFailureReporter.Report(ex);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToProcessContents);
 		}
 	}
 	#endregion

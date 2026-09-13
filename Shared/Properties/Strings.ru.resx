@@ -699,6 +699,9 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>Не удалось прочитать базу данных</value>
   </data>
+  <data name="FailedToRestoreDatabase" xml:space="preserve">
+    <value>Не удалось восстановить базу данных из копии</value>
+  </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Не удалось прочитать горячие клавиши файлов</value>
   </data>
@@ -713,5 +716,17 @@
   </data>
   <data name="OpenDatabaseFolder" xml:space="preserve">
     <value>Открыть папку с базой</value>
+  </data>
+  <data name="FailedToSaveFileContents" xml:space="preserve">
+    <value>Не удалось сохранить содержимое файла</value>
+  </data>
+  <data name="FailedToChangePassword" xml:space="preserve">
+    <value>Не удалось сменить пароль</value>
+  </data>
+  <data name="FailedToChangeFavorite" xml:space="preserve">
+    <value>Не удалось изменить отметку избранного</value>
+  </data>
+  <data name="MissingFileContents" xml:space="preserve">
+    <value>Содержимое файла отсутствует</value>
   </data>
 </root>

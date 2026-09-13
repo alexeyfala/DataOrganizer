@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
@@ -28,6 +29,9 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -45,12 +49,15 @@ public class FileChangeTracker : IFileChangeTracker
 	public FileChangeTracker(
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_contentCipher = contentCipher;
 
@@ -74,10 +81,12 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			while (!token.IsCancellationRequested)
 			{
-				if (!await CheckOnceAsync(token).ConfigureAwait(false))
+				if (await CheckOnceAsync(parameters, previousHash, token).ConfigureAwait(false) is not { } currentHash)
 				{
 					return;
 				}
+
+				previousHash = currentHash;
 
 				await Task
 					.Delay(800, token)
@@ -85,7 +94,7 @@ public class FileChangeTracker : IFileChangeTracker
 			}
 
 			// Tracking is being stopped: persist what changed just before that, while the key is still available.
-			await CheckOnceAsync(CancellationToken.None).ConfigureAwait(false);
+			await CheckOnceAsync(parameters, previousHash, CancellationToken.None).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -95,98 +104,101 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
-			PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Compares the file against the previously seen state and persists it when it differs;
+	/// answers with the hash just seen, or <c>null</c> when tracking is to stop.
+	/// </summary>
+	private async Task<byte[]?> CheckOnceAsync(
+		TrackChangesParameters parameters,
+		byte[] previousHash,
+		CancellationToken token)
+	{
+		if (!_fileSystem.FileExists(parameters.FilePath))
+		{
+			PublishFailure(parameters, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+
+			return null;
 		}
 
-		void PublishFailure(string message)
-		{
-			_notification.ShowErrorSnackbar(message);
+		Stream fileStream;
 
-			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
+		try
+		{
+			fileStream = _fileSystem.OpenRead(parameters.FilePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+
+			return null;
 		}
 
-		// Compares the file against the previously seen state and persists it when it differs;
-		// <c>False</c> asks the caller to stop tracking.
-		async Task<bool> CheckOnceAsync(CancellationToken checkToken)
+		byte[] currentHash;
+
+		try
 		{
-			if (!_fileSystem.FileExists(parameters.FilePath))
+			currentHash = await _fileSystem
+				.ComputeStreamHashAsync(TrackChangesParameters.HashAlgorithm, fileStream, token)
+				.ConfigureAwait(false);
+
+			if (!currentHash.SequenceEqual(previousHash))
 			{
-				PublishFailure($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+				fileStream.Position = 0;
 
-				return false;
-			}
+				// 'checked' guards against silently truncating files larger than
+				// int.MaxValue (~2 GB). For text / editor files this branch is
+				// effectively unreachable, but if it ever is, we want a clear
+				// OverflowException instead of a corrupted partial read.
+				int length = checked((int)fileStream.Length);
 
-			Stream fileStream;
+				byte[] bytes = new byte[length];
 
-			try
-			{
-				fileStream = _fileSystem.OpenRead(parameters.FilePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
-
-				return false;
-			}
-
-			byte[] currentHash;
-
-			try
-			{
-				currentHash = await _fileSystem
-					.ComputeStreamHashAsync(TrackChangesParameters.HashAlgorithm, fileStream, checkToken)
+				await fileStream
+					.ReadExactlyAsync(bytes, token)
 					.ConfigureAwait(false);
 
-				if (!currentHash.SequenceEqual(previousHash))
+				byte[]? cleartext = null;
+
+				try
 				{
-					fileStream.Position = 0;
+					if (parameters.KeeperId is { } keeperId)
+					{
+						byte[] encrypted;
 
-					// 'checked' guards against silently truncating files larger than
-					// int.MaxValue (~2 GB). For text / editor files this branch is
-					// effectively unreachable, but if it ever is, we want a clear
-					// OverflowException instead of a corrupted partial read.
-					int length = checked((int)fileStream.Length);
+						if (_contentCipher.TryEncrypt(
+							keeperId,
+							ContentIdentity.ForContents(parameters.File.Id),
+							bytes) is not { } ciphertext)
+						{
+							PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
-					byte[] bytes = new byte[length];
+							return null;
+						}
 
-					await fileStream
-						.ReadExactlyAsync(bytes, checkToken)
-						.ConfigureAwait(false);
+						encrypted = ciphertext;
 
-					byte[]? cleartext = null;
+						cleartext = bytes;
+
+						bytes = encrypted;
+					}
+
+					DateTime updatedAt = DateTime.Now;
 
 					try
 					{
-						if (parameters.KeeperId is { } keeperId)
-						{
-							byte[] encrypted;
-
-							if (_contentCipher.TryEncrypt(
-								keeperId,
-								ContentIdentity.ForContents(parameters.File.Id),
-								bytes) is not { } ciphertext)
-							{
-								PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
-
-								return false;
-							}
-
-							encrypted = ciphertext;
-
-							cleartext = bytes;
-
-							bytes = encrypted;
-						}
-
-						DateTime updatedAt = DateTime.Now;
-
 						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
 							[
 								x => x.SetProperty(x => x.Contents, bytes),
 								x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-							], checkToken).ConfigureAwait(false))
+							], token).ConfigureAwait(false))
 						{
 							_logger.LogDebug(
 								"Contents of file is updated in database:" + Environment.NewLine +
@@ -198,23 +210,55 @@ public class FileChangeTracker : IFileChangeTracker
 								.UpdatedAt = updatedAt;
 						}
 					}
-					finally
+					catch (OperationCanceledException)
 					{
-						bytes.ZeroMemory();
+						// Cancellation stops the tracking on its own terms, so it is left to the outer handler.
+						throw;
+					}
+					catch (Exception ex)
+					{
+						// The changes have nowhere to go, so tracking them further would only lose more of them.
+						_dbFailureReporter.Report(
+							ex,
+							$@"{Strings.FailedToSaveFileContents} ""{parameters.FileName}""");
 
-						cleartext?.ZeroMemory();
+						CloseExecutingFile(parameters);
+
+						return null;
 					}
 				}
+				finally
+				{
+					bytes.ZeroMemory();
 
-				previousHash = currentHash;
+					cleartext?.ZeroMemory();
+				}
 			}
-			finally
-			{
-				fileStream.Dispose();
-			}
-
-			return true;
 		}
+		finally
+		{
+			fileStream.Dispose();
+		}
+
+		return currentHash;
+	}
+
+	/// <summary>
+	/// Asks for the file being executed to be closed.
+	/// </summary>
+	private void CloseExecutingFile(TrackChangesParameters parameters)
+	{
+		_messenger.Send(new CloseExecutingFileMessage(parameters.File));
+	}
+
+	/// <summary>
+	/// Shows the failure and closes the file being executed.
+	/// </summary>
+	private void PublishFailure(TrackChangesParameters parameters, string message)
+	{
+		_notification.ShowErrorSnackbar(message);
+
+		CloseExecutingFile(parameters);
 	}
 	#endregion
 }

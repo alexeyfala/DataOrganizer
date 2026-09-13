@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Execution;
@@ -12,8 +13,12 @@ using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Repository.Enums;
+using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -290,6 +295,88 @@ internal class FileChangeTrackerTests
 			parameters.File.Id,
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a failed save is reported, the file is closed and tracking stops.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Reports_A_Failed_Save_And_Stops()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		dbAccess
+			.UpdateFilePropertiesAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+				Arg.Any<CancellationToken>())
+			.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
+
+		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
+
+		StrongReferenceMessenger messenger = new();
+
+		FileDto? receivedClosedFile = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.File);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] previousContents = RandomValues.CreateBytes(32);
+
+			byte[] currentContents = RandomValues.CreateBytes(32);
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(
+					_ => new MemoryStream(previousContents),
+					_ => new MemoryStream(currentContents));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(RandomValues.CreateBytes(32));
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbFailureReporter);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		// Act
+		await sut.TrackChangesAsync(parameters);
+
+		// Assert
+		dbFailureReporter
+			.Received(1)
+			.Report(
+				Arg.Any<DatabaseNotWritableException>(),
+				Arg.Is<string>(x => x.StartsWith(Strings.FailedToSaveFileContents, StringComparison.Ordinal)));
+
+		receivedClosedFile
+			.Should()
+			.Be(parameters.File);
 	}
 
 	/// <summary>

@@ -679,6 +679,9 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>The database could not be read</value>
   </data>
+  <data name="FailedToRestoreDatabase" xml:space="preserve">
+    <value>The database could not be restored from the copy</value>
+  </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Hotkeys could not be read for the files</value>
   </data>
@@ -693,5 +696,17 @@
   </data>
   <data name="OpenDatabaseFolder" xml:space="preserve">
     <value>Open the database folder</value>
+  </data>
+  <data name="FailedToSaveFileContents" xml:space="preserve">
+    <value>Failed to save file contents</value>
+  </data>
+  <data name="FailedToChangePassword" xml:space="preserve">
+    <value>Failed to change the password</value>
+  </data>
+  <data name="FailedToChangeFavorite" xml:space="preserve">
+    <value>Failed to change the favorite mark</value>
+  </data>
+  <data name="MissingFileContents" xml:space="preserve">
+    <value>The file contents are missing</value>
   </data>
 </root>

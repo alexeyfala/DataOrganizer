@@ -6,6 +6,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
@@ -62,6 +63,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -129,6 +133,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	public DataExchangeService(
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
@@ -140,6 +145,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		IXmlSerializer xmlSerializer)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_dialogService = dialogService;
 
@@ -248,9 +255,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return null;
 		}
 
-		using DatabaseBackup? backup = await _dbAccess
-			.CreateBackupAsync(token)
-			.ConfigureAwait(false);
+		using DatabaseBackup? backup = await TryCreateBackupAsync(token).ConfigureAwait(false);
 
 		if (backup is null)
 		{
@@ -279,9 +284,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					{
 						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-						await _dbAccess
-							.RestoreFromBackupAsync(backup.FilePath, token)
-							.ConfigureAwait(false);
+						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
 
 						return null;
 					}
@@ -297,9 +300,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					{
 						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-						await _dbAccess
-							.RestoreFromBackupAsync(backup.FilePath, token)
-							.ConfigureAwait(false);
+						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
 
 						return null;
 					}
@@ -315,9 +316,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					{
 						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-						await _dbAccess
-							.RestoreFromBackupAsync(backup.FilePath, token)
-							.ConfigureAwait(false);
+						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
 
 						return null;
 					}
@@ -352,9 +351,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-			await _dbAccess
-				.RestoreFromBackupAsync(backup.FilePath, token)
-				.ConfigureAwait(false);
+			await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
 
 			return null;
 		}
@@ -375,18 +372,18 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		SetupIndex(hierarchy, result.Folders, result.Files);
 
-		if (result.Folders.IsNotEmpty() && !await _dbAccess
-			.AddFoldersAsync(result.Folders, token)
-			.ConfigureAwait(false))
+		if (result.Folders.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFoldersAsync(result.Folders, token)
+				.ConfigureAwait(false);
 		}
 
-		if (result.Files.IsNotEmpty() && !await _dbAccess
-			.AddFilesAsync(result.Files, token)
-			.ConfigureAwait(false))
+		if (result.Files.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFilesAsync(result.Files, token)
+				.ConfigureAwait(false);
 		}
 
 		imported.AddRange(_entityLoader.Map(result.Folders, result.Files));
@@ -404,11 +401,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportMode.Replace && !await _dbAccess
-			.ClearDatabaseAsync(token)
-			.ConfigureAwait(false))
+		if (variant == ImportMode.Replace)
 		{
-			return false;
+			await _dbAccess
+				.ClearDatabaseAsync(token)
+				.ConfigureAwait(false);
 		}
 
 		DateTime now = DateTime.Now;
@@ -426,18 +423,18 @@ public sealed class DataExchangeService : IDataExchangeService
 			SetupIndex(hierarchy, folders, files);
 		}
 
-		if (folders.IsNotEmpty() && !await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false))
+		if (folders.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFoldersAsync(folders, token)
+				.ConfigureAwait(false);
 		}
 
-		if (files.IsNotEmpty() && !await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false))
+		if (files.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFilesAsync(files, token)
+				.ConfigureAwait(false);
 		}
 
 		imported.AddRange(_entityLoader.Map(
@@ -461,12 +458,9 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		if (!await _dbAccess
+		await _dbAccess
 			.RestoreFromBackupAsync(filePath, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
+			.ConfigureAwait(false);
 
 		if (await _entityLoader
 			.LoadHierarchyAsync(token)
@@ -734,6 +728,43 @@ public sealed class DataExchangeService : IDataExchangeService
 			imported,
 			hierarchy,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Rolls the database back to the copy taken before the import.
+	/// </summary>
+	private async Task RestoreAsync(string backupFilePath, CancellationToken token)
+	{
+		try
+		{
+			await _dbAccess
+				.RestoreFromBackupAsync(backupFilePath, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// A rollback that did not happen leaves the import half-applied, which has to be said out loud.
+			_dbFailureReporter.Report(ex, Strings.FailedToRestoreDatabase);
+		}
+	}
+
+	/// <summary>
+	/// Makes a copy of the database; <c>null</c> when the copy could not be made.
+	/// </summary>
+	private async Task<DatabaseBackup?> TryCreateBackupAsync(CancellationToken token)
+	{
+		try
+		{
+			return await _dbAccess
+				.CreateBackupAsync(token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return null;
+		}
 	}
 	#endregion
 }

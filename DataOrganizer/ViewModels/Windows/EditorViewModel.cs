@@ -371,9 +371,22 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(dto.Id)
-			.ConfigureAwait(true);
+		ValidatedContents result;
+
+		try
+		{
+			result = await _dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{dto.Name}""");
+
+			return;
+		}
 
 		if (!result.IsValid)
 		{
@@ -617,16 +630,25 @@ public partial class EditorViewModel :
 	/// Sets <see cref="FileDto.IsFavorite" /> value.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSetFavorite))]
-	internal Task SetFavorite(FileDto? dto)
+	internal async Task SetFavorite(FileDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		dto.IsFavorite = !dto.IsFavorite;
 
-		return _propertyWriter.UpdateIsFavoriteAsync(dto);
+		try
+		{
+			await _propertyWriter
+				.UpdateIsFavoriteAsync(dto)
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToChangeFavorite);
+		}
 	}
 
 	/// <summary>
@@ -1102,6 +1124,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
 
@@ -1143,6 +1168,7 @@ public partial class EditorViewModel :
 		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
@@ -1184,6 +1210,8 @@ public partial class EditorViewModel :
 		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_dataExchange = dataExchange;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_fileHotkeyEditor = fileHotkeyEditor;
 

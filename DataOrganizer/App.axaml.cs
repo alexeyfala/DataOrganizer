@@ -206,6 +206,7 @@ public sealed class App : Application
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();

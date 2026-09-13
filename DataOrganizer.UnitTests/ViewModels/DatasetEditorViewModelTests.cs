@@ -6,6 +6,7 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Fakes;
@@ -13,7 +14,10 @@ using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
+using Repository.Enums;
+using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
@@ -450,6 +454,48 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer is handed
+	/// to the reporter and the editor is closed for changes.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	{
+		// Arrange
+		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbFailureReporter);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+
+		dbFailureReporter
+			.Received(1)
+			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: does not attempt deserialization when the file contents are empty, but still marks the view model initialized.
 	/// </summary>
 	[Test]
@@ -587,6 +633,55 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: a save the database turned down is handed to the reporter.
+	/// </summary>
+	[Test]
+	public async Task DeleteRecordAsync_Hands_A_Failed_Save_To_The_Reporter()
+	{
+		// Arrange
+		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
+
+		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
+				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbFailureReporter);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut
+			.Records
+			.AddRange(records);
+
+		// Act
+		await sut.DeleteRecordAsync(records[0]);
+
+		// Assert
+		dbFailureReporter
+			.Received(1)
+			.Report(Arg.Any<DatabaseNotWritableException>(), Arg.Any<string>());
 	}
 
 	/// <summary>

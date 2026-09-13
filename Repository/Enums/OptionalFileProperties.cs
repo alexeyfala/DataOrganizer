@@ -10,7 +10,18 @@ namespace Repository.Enums;
 [Flags]
 public enum OptionalFileProperties
 {
+	/// <summary>
+	/// Neither of the heavy properties is loaded.
+	/// </summary>
 	None = 0,
+
+	/// <summary>
+	/// <see cref="FileEntity.Contents" /> is loaded.
+	/// </summary>
 	Contents = 1 << 0,
+
+	/// <summary>
+	/// <see cref="FileEntity.EditorState" /> is loaded.
+	/// </summary>
 	EditorState = 1 << 1
 }

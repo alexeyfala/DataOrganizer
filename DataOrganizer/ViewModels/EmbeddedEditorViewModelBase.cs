@@ -41,9 +41,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public string? InitialEditorState { get; set; }
 
 	/// <summary>
-	/// <c>True</c> when the initialization process revealed that the file contents were corrupted.
+	/// <c>True</c> when the contents could not be obtained, which closes the editor for changes
+	/// so that nothing is written over what was not read.
 	/// </summary>
-	public bool IsContentCorrupted { get; protected set; }
+	public bool IsContentUnavailable { get; protected set; }
 
 	/// <summary>
 	/// <c>True</c> when the file contents are encrypted with a session key.

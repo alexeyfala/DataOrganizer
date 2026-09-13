@@ -163,6 +163,7 @@ public static partial class SerilogExtensions
 		this ILogger logger,
 		string message,
 		Exception exception,
+		bool breakInDebugger = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
@@ -173,7 +174,7 @@ public static partial class SerilogExtensions
 			DecodeUnicode(message, logger),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
-		if (AppDomain
+		if (!breakInDebugger || AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{

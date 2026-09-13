@@ -628,6 +628,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to change the favorite mark.
+        /// </summary>
+        public static string FailedToChangeFavorite {
+            get {
+                return ResourceManager.GetString("FailedToChangeFavorite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to change the password.
+        /// </summary>
+        public static string FailedToChangePassword {
+            get {
+                return ResourceManager.GetString("FailedToChangePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to delete.
         /// </summary>
         public static string FailedToDelete {
@@ -723,6 +741,24 @@ namespace Shared.Properties {
         public static string FailedToRename {
             get {
                 return ResourceManager.GetString("FailedToRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The database could not be restored from the copy.
+        /// </summary>
+        public static string FailedToRestoreDatabase {
+            get {
+                return ResourceManager.GetString("FailedToRestoreDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save file contents.
+        /// </summary>
+        public static string FailedToSaveFileContents {
+            get {
+                return ResourceManager.GetString("FailedToSaveFileContents", resourceCulture);
             }
         }
         
@@ -1056,6 +1092,15 @@ namespace Shared.Properties {
         public static string MinutesShortFormat {
             get {
                 return ResourceManager.GetString("MinutesShortFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file contents are missing.
+        /// </summary>
+        public static string MissingFileContents {
+            get {
+                return ResourceManager.GetString("MissingFileContents", resourceCulture);
             }
         }
         
