@@ -698,7 +698,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToReadDatabase", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Hotkeys could not be read for the files.
         /// </summary>
@@ -732,6 +732,15 @@ namespace Shared.Properties {
         public static string FailedToRestoreDatabase {
             get {
                 return ResourceManager.GetString("FailedToRestoreDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save file contents.
+        /// </summary>
+        public static string FailedToSaveFileContents {
+            get {
+                return ResourceManager.GetString("FailedToSaveFileContents", resourceCulture);
             }
         }
         

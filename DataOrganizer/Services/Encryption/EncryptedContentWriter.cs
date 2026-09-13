@@ -105,14 +105,6 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
 				.ConfigureAwait(false);
 
-			//if (!await _dbAccess
-			//	.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
-			//	.ConfigureAwait(false))
-			//{
-			//	return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
-			//		.ConfigureAwait(false);
-			//}
-
 			ExplorerItemDtoBase[] objects =
 			[
 				.. parameters.Folder.WithSubfolders(),

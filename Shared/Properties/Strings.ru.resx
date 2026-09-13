@@ -717,4 +717,7 @@
   <data name="OpenDatabaseFolder" xml:space="preserve">
     <value>Открыть папку с базой</value>
   </data>
+  <data name="FailedToSaveFileContents" xml:space="preserve">
+    <value>Не удалось сохранить содержимое файла</value>
+  </data>
 </root>

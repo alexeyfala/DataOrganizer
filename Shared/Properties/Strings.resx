@@ -697,4 +697,7 @@
   <data name="OpenDatabaseFolder" xml:space="preserve">
     <value>Open the database folder</value>
   </data>
+  <data name="FailedToSaveFileContents" xml:space="preserve">
+    <value>Failed to save file contents</value>
+  </data>
 </root>
