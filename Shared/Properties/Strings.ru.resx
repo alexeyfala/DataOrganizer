@@ -720,4 +720,10 @@
   <data name="FailedToSaveFileContents" xml:space="preserve">
     <value>Не удалось сохранить содержимое файла</value>
   </data>
+  <data name="FailedToChangePassword" xml:space="preserve">
+    <value>Не удалось сменить пароль</value>
+  </data>
+  <data name="FailedToChangeFavorite" xml:space="preserve">
+    <value>Не удалось изменить отметку избранного</value>
+  </data>
 </root>

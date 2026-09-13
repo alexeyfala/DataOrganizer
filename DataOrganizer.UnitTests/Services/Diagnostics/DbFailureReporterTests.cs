@@ -6,6 +6,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.UnitTests.Fakes;
+using NSubstitute;
 using Repository.Enums;
 using Repository.Exceptions;
 using Shared.Common;
@@ -31,6 +32,34 @@ internal class DbFailureReporterTests
 		received
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DbFailureReporter.Report" />: a refusal that holds for the session is shown to the user once.
+	/// </summary>
+	[Test]
+	public void Report_Shows_A_Refused_Write_Once()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(notification));
+
+		DbFailureReporter sut = mock.Create<DbFailureReporter>();
+
+		DatabaseNotWritableException refusal = new(DbConnectionStatus.FileUnreadable, RandomString.Create(10));
+
+		// Act
+		sut.Report(refusal, RandomString.Create(10));
+
+		sut.Report(refusal, RandomString.Create(10));
+
+		sut.Report(refusal, RandomString.Create(10));
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
 	}
 
 	/// <summary>

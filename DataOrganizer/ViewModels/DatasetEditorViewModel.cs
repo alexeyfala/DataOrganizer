@@ -592,6 +592,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardAccessor" />
 	private readonly IClipboardAccessor _clipboard;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
@@ -610,6 +613,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IClipboardAccessor clipboardService,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IJsonSerializer jsonSerializer,
@@ -627,6 +631,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_dialogService = dialogService;
 
@@ -1289,9 +1295,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
 
 			return false;
 		}

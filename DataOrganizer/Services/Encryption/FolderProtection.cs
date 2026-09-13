@@ -157,7 +157,7 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		catch (Exception ex)
 		{
-			_dbFailureReporter.Report(ex, Strings.DatabaseIsUnavailable);
+			_dbFailureReporter.Report(ex, Strings.FailedToChangePassword);
 		}
 	}
 

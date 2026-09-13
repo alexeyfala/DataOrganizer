@@ -5,6 +5,7 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
+using System.Threading;
 
 namespace DataOrganizer.Services.Diagnostics;
 
@@ -16,6 +17,11 @@ public sealed class DbFailureReporter : IDbFailureReporter
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <summary>
+	/// <c>True</c> once the user has been told that the database does not accept changes.
+	/// </summary>
+	private bool _isRefusalShown;
 	#endregion
 
 	#region Constructors
@@ -42,7 +48,11 @@ public sealed class DbFailureReporter : IDbFailureReporter
 			// A refusal is a state the database is in, not a failure of this operation.
 			_logger.LogWarning(exception.Message);
 
-			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+			if (!Interlocked.Exchange(ref _isRefusalShown, true))
+			{
+				// The refusal holds for the rest of the session, so saying it once says it enough.
+				_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+			}
 
 			return;
 		}

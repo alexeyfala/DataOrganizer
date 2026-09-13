@@ -9,8 +9,8 @@ public interface IDbFailureReporter
 {
 	#region Methods
 	/// <summary>
-	/// Reports the failure under the supplied text; a refused write speaks for itself
-	/// and a cancelled operation is passed over.
+	/// Reports the failure under the supplied text; a refused write speaks for itself and is
+	/// shown once a session, a cancelled operation is passed over.
 	/// </summary>
 	void Report(Exception exception, string text);
 	#endregion

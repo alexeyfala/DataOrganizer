@@ -628,6 +628,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to change the favorite mark.
+        /// </summary>
+        public static string FailedToChangeFavorite {
+            get {
+                return ResourceManager.GetString("FailedToChangeFavorite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to change the password.
+        /// </summary>
+        public static string FailedToChangePassword {
+            get {
+                return ResourceManager.GetString("FailedToChangePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to delete.
         /// </summary>
         public static string FailedToDelete {

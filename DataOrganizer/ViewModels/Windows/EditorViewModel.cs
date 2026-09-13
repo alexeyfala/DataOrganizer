@@ -647,9 +647,7 @@ public partial class EditorViewModel :
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+			_dbFailureReporter.Report(ex, Strings.FailedToChangeFavorite);
 		}
 	}
 
@@ -1126,6 +1124,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
 
@@ -1167,6 +1168,7 @@ public partial class EditorViewModel :
 		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
@@ -1208,6 +1210,8 @@ public partial class EditorViewModel :
 		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_dataExchange = dataExchange;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_fileHotkeyEditor = fileHotkeyEditor;
 

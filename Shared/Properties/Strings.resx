@@ -700,4 +700,10 @@
   <data name="FailedToSaveFileContents" xml:space="preserve">
     <value>Failed to save file contents</value>
   </data>
+  <data name="FailedToChangePassword" xml:space="preserve">
+    <value>Failed to change the password</value>
+  </data>
+  <data name="FailedToChangeFavorite" xml:space="preserve">
+    <value>Failed to change the favorite mark</value>
+  </data>
 </root>
