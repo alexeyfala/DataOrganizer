@@ -109,12 +109,12 @@ public sealed class DbAccess : IDbAccess
 			return null;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			ExplorerItemBase entity = parameters.Kind == EntityKind.Folder
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
@@ -152,12 +152,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			await _fileRepository
 				.AddRangeAsync(files, token)
 				.ConfigureAwait(false);
@@ -195,12 +195,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			await _folderRepository
 				.AddRangeAsync(folders, token)
 				.ConfigureAwait(false);
@@ -241,12 +241,12 @@ public sealed class DbAccess : IDbAccess
 			return [];
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			HotkeyEntity[] entities = [.. ToHotkeyEntities(hotkeys, fileId)];
 
 			foreach (HotkeyEntity item in entities)
@@ -289,12 +289,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			_dbContextService.EnsureDeleted();
 
 			if (_dbContextService.HasMigrations())
@@ -330,12 +330,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			_logger.LogInformation("Connecting to the database.");
 
 			TryErasePendingBackups();
@@ -395,12 +395,12 @@ public sealed class DbAccess : IDbAccess
 		CopyDatabaseParameters parameters,
 		CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			CopyDatabase(parameters);
 		}
 		finally
@@ -421,12 +421,12 @@ public sealed class DbAccess : IDbAccess
 		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			return await _explorerItemRepository
 				.CountOfAsync(condition, token)
 				.ConfigureAwait(false);
@@ -453,12 +453,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<DatabaseBackup?> CreateBackupAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			string dbFilePath = GetDbFilePath();
 
 			if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
@@ -517,12 +517,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			await _hotkeysRepository
 				.RemoveRangeByOwnerIdAsync(id, token)
 				.ConfigureAwait(false);
@@ -560,12 +560,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			Guid[] folderIds = await _folderRepository
 				.GetFolderSubtreeIdsAsync(id, token)
 				.ToArrayAsync(token)
@@ -619,12 +619,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			int count = await _hotkeysRepository
 				.RemoveRangeByOwnerIdAsync(fileId, token)
 				.ConfigureAwait(false);
@@ -664,12 +664,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> ExistsAsync(Guid id, CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			return await _explorerItemRepository
 				.ExistsAsync(x => x.Id == id, token)
 				.ConfigureAwait(false);
@@ -698,12 +698,12 @@ public sealed class DbAccess : IDbAccess
 		OptionalFileProperties optionalProperties,
 		CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			return await _fileRepository
 				.GetAllAsync(optionalProperties, token)
 				.ConfigureAwait(false);
@@ -730,12 +730,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<FolderEntity[]> GetAllFoldersAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			return await _folderRepository
 				.GetAllAsync(token)
 				.ConfigureAwait(false);
@@ -765,12 +765,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			if (await _fileRepository
 				.GetContentsAsync(id, token)
 				.ConfigureAwait(false) is not { } contents)
@@ -818,12 +818,12 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			return await _fileRepository
 				.GetEditorStateAsync(id, token)
 				.ConfigureAwait(false);
@@ -942,12 +942,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			DbConnection connection = _dbContextService.GetDbConnection();
 
 			if (connection.State != ConnectionState.Closed)
@@ -997,12 +997,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
 			{
 				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> update in fileUpdates)
@@ -1052,12 +1052,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			int count = await _fileRepository
 				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
@@ -1093,12 +1093,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			int count = await _fileRepository
 				.UpdatePropertiesAsync(updates, token)
 				.ConfigureAwait(false);
@@ -1135,12 +1135,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			int count = await _folderRepository
 				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
@@ -1176,12 +1176,12 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			int count = await _folderRepository
 				.UpdatePropertiesAsync(updates, token)
 				.ConfigureAwait(false);

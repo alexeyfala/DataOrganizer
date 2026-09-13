@@ -939,6 +939,45 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.ExistsAsync" />: reports a wait the token cancelled and stays usable afterwards.
+	/// </summary>
+	[Test]
+	public async Task ExistsAsync_Reports_A_Cancelled_Wait_And_Survives_It()
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
+
+			repository
+				.ExistsAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
+				.Returns(true);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		using CancellationTokenSource cancellation = new();
+
+		cancellation.Cancel();
+
+		// Act
+		Func<Task> act = () => sut.ExistsAsync(id, cancellation.Token);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<OperationCanceledException>();
+
+		(await sut.ExistsAsync(id))
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id.
 	/// </summary>
 	[Test]
