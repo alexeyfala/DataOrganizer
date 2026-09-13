@@ -61,12 +61,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(true);
-
 		try
 		{
+			ValidatedContents result = await _dbAccess
+				.GetFileContentsAsync(FileId)
+				.ConfigureAwait(true);
+
 			if (!result.IsValid)
 			{
 				IsContentCorrupted = true;
@@ -1285,9 +1285,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			return await SaveContentsAsync(
-				output,
-				token: token).ConfigureAwait(false);
+			return await SaveContentsAsync(output, token).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+
+			return false;
 		}
 		finally
 		{

@@ -5,7 +5,18 @@ namespace DataOrganizer.Enums;
 /// </summary>
 public enum DropPlacement
 {
+	/// <summary>
+	/// Above the target element, as its sibling.
+	/// </summary>
 	Before,
+
+	/// <summary>
+	/// Below the target element, as its sibling.
+	/// </summary>
 	After,
+
+	/// <summary>
+	/// Inside the target group, as its child.
+	/// </summary>
 	Into
 }

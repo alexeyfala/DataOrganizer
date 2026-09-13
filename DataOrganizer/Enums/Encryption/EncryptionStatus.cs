@@ -16,7 +16,7 @@ public enum EncryptionStatus
 	Decrypted,
 
 	/// <summary>
-	/// The data is encrypted
+	/// The data is encrypted.
 	/// </summary>
 	Encrypted
 }

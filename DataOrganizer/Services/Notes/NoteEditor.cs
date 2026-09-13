@@ -92,7 +92,20 @@ public sealed class NoteEditor : INoteEditor
 			_ => throw new NotImplementedException()
 		};
 
-		if (!await task.ConfigureAwait(false))
+		bool isSaved;
+
+		try
+		{
+			isSaved = await task.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return Fail(item);
+		}
+
+		if (!isSaved)
 		{
 			return Fail(item);
 		}

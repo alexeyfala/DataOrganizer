@@ -2,6 +2,7 @@ using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
@@ -24,6 +25,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -34,10 +38,13 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
@@ -169,10 +176,18 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-		// The rollback has to run even when the operation was cancelled.
-		await _dbAccess
-			.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
-			.ConfigureAwait(false);
+		try
+		{
+			// The rollback has to run even when the operation was cancelled.
+			await _dbAccess
+				.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// A rollback that did not happen leaves the conversion half-done, which has to be said out loud.
+			_dbFailureReporter.Report(ex, Strings.FailedToRestoreDatabase);
+		}
 
 		return result;
 	}

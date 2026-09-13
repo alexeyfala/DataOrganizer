@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
@@ -22,6 +23,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -35,11 +39,14 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	#region Constructors
 	public HierarchyEditor(
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		IMapper mapper,
 		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
@@ -74,12 +81,25 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			ParentId = parent?.Id
 		};
 
-		if (await _dbAccess
-			.AddEntityAsync(parameters, token)
-			.ConfigureAwait(false) is not { } entity)
-		{
-			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
+		string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
+		ExplorerItemBase? entity;
+
+		try
+		{
+			entity = await _dbAccess
+				.AddEntityAsync(parameters, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, errorText);
+
+			return null;
+		}
+
+		if (entity is null)
+		{
 			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);
@@ -134,16 +154,27 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		bool result = dto.Kind switch
+		string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
+
+		bool result;
+
+		try
 		{
-			EntityKind.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
-			_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
-		};
+			result = dto.Kind switch
+			{
+				EntityKind.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
+				_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
+			};
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, errorText);
+
+			return false;
+		}
 
 		if (!result)
 		{
-			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
-
 			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);
@@ -195,10 +226,23 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			_ => throw new NotImplementedException()
 		};
 
-		if (!await task.ConfigureAwait(false))
-		{
-			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
+		string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
+		bool result;
+
+		try
+		{
+			result = await task.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, errorText);
+
+			return false;
+		}
+
+		if (!result)
+		{
 			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);

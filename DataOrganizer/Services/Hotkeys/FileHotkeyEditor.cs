@@ -121,6 +121,12 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 				return OverwriteHotkeysOutcome.ExceptionThrown;
 			}
 		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return OverwriteHotkeysOutcome.ExceptionThrown;
+		}
 		finally
 		{
 			dto.SetHotkeysToolTip();

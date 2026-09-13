@@ -1184,10 +1184,11 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: returns false when a write inside the transaction throws.
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: a write that failed inside the transaction
+	/// reaches the caller.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Returns_False_When_A_Write_Throws()
+	public async Task UpdateFileAndFolderPropertiesAsync_Lets_A_Failed_Write_Out()
 	{
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
@@ -1214,12 +1215,14 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
+		Func<Task> act = () => sut.UpdateFileAndFolderPropertiesAsync(
+			fileUpdates,
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		// Assert
-		result
+		await act
 			.Should()
-			.BeFalse();
+			.ThrowAsync<InvalidOperationException>();
 	}
 
 	/// <summary>

@@ -83,12 +83,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		_editor = editor;
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(true);
-
 		try
 		{
+			ValidatedContents result = await _dbAccess
+				.GetFileContentsAsync(FileId)
+				.ConfigureAwait(true);
+
 			if (!result.IsValid || TryDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
@@ -157,6 +157,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				output.ZeroMemory();
 			}
+		}
+		catch (Exception ex)
+		{
+			IsContentCorrupted = true;
+
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -507,6 +515,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					}
 
 					Volatile.Write(ref _lastSaveFailed, !isSaved);
+				}
+				catch (Exception ex)
+				{
+					// The loop has to survive a failed save: the editor keeps the text and marks it unsaved.
+					_logger.LogException(ex, breakInDebugger: false);
+
+					Volatile.Write(ref _lastSaveFailed, true);
 				}
 				finally
 				{

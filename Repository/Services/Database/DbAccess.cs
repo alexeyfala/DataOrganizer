@@ -125,12 +125,6 @@ public sealed class DbAccess : IDbAccess
 
 			return entity;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
 		finally
 		{
 			try
@@ -168,12 +162,6 @@ public sealed class DbAccess : IDbAccess
 
 			return true;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -210,12 +198,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return true;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{
@@ -262,12 +244,6 @@ public sealed class DbAccess : IDbAccess
 
 			return entities;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return [];
-		}
 		finally
 		{
 			try
@@ -307,12 +283,6 @@ public sealed class DbAccess : IDbAccess
 			}
 
 			return true;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{
@@ -431,12 +401,6 @@ public sealed class DbAccess : IDbAccess
 				.CountOfAsync(condition, token)
 				.ConfigureAwait(false);
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return default;
-		}
 		finally
 		{
 			try
@@ -490,12 +454,6 @@ public sealed class DbAccess : IDbAccess
 				_fileSystem,
 				_logger);
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
 		finally
 		{
 			try
@@ -532,12 +490,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{
@@ -592,12 +544,6 @@ public sealed class DbAccess : IDbAccess
 
 			return count > 0;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -630,12 +576,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{
@@ -674,12 +614,6 @@ public sealed class DbAccess : IDbAccess
 				.ExistsAsync(x => x.Id == id, token)
 				.ConfigureAwait(false);
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -708,12 +642,6 @@ public sealed class DbAccess : IDbAccess
 				.GetAllAsync(optionalProperties, token)
 				.ConfigureAwait(false);
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return [];
-		}
 		finally
 		{
 			try
@@ -739,12 +667,6 @@ public sealed class DbAccess : IDbAccess
 			return await _folderRepository
 				.GetAllAsync(token)
 				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return [];
 		}
 		finally
 		{
@@ -785,12 +707,6 @@ public sealed class DbAccess : IDbAccess
 				IsValid = true
 			};
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return new();
-		}
 		finally
 		{
 			try
@@ -827,12 +743,6 @@ public sealed class DbAccess : IDbAccess
 			return await _fileRepository
 				.GetEditorStateAsync(id, token)
 				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
 		}
 		finally
 		{
@@ -967,12 +877,6 @@ public sealed class DbAccess : IDbAccess
 
 			return true;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -1022,12 +926,6 @@ public sealed class DbAccess : IDbAccess
 
 			return true;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -1064,12 +962,6 @@ public sealed class DbAccess : IDbAccess
 
 			return count > 0;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -1104,12 +996,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{
@@ -1147,12 +1033,6 @@ public sealed class DbAccess : IDbAccess
 
 			return count > 0;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
 		finally
 		{
 			try
@@ -1187,12 +1067,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
 		}
 		finally
 		{

@@ -371,9 +371,22 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(dto.Id)
-			.ConfigureAwait(true);
+		ValidatedContents result;
+
+		try
+		{
+			result = await _dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{dto.Name}""");
+
+			return;
+		}
 
 		if (!result.IsValid)
 		{
@@ -617,16 +630,27 @@ public partial class EditorViewModel :
 	/// Sets <see cref="FileDto.IsFavorite" /> value.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSetFavorite))]
-	internal Task SetFavorite(FileDto? dto)
+	internal async Task SetFavorite(FileDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		dto.IsFavorite = !dto.IsFavorite;
 
-		return _propertyWriter.UpdateIsFavoriteAsync(dto);
+		try
+		{
+			await _propertyWriter
+				.UpdateIsFavoriteAsync(dto)
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+		}
 	}
 
 	/// <summary>

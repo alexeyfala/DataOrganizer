@@ -191,9 +191,15 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				}
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			// The copy was given up on, which is normal flow.
+		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
 		}
 	}
 	#endregion

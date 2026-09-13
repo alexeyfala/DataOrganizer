@@ -85,9 +85,21 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(file.Id)
-			.ConfigureAwait(false);
+		ValidatedContents result;
+
+		try
+		{
+			result = await _dbAccess
+				.GetFileContentsAsync(file.Id)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// A preview is rendered on demand, so the failure only reaches the log.
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return;
+		}
 
 		if (!result.IsValid)
 		{
