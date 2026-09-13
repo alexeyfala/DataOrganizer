@@ -706,4 +706,7 @@
   <data name="FailedToChangeFavorite" xml:space="preserve">
     <value>Failed to change the favorite mark</value>
   </data>
+  <data name="MissingFileContents" xml:space="preserve">
+    <value>The file contents are missing</value>
+  </data>
 </root>

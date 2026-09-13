@@ -1096,6 +1096,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file contents are missing.
+        /// </summary>
+        public static string MissingFileContents {
+            get {
+                return ResourceManager.GetString("MissingFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing files.
         /// </summary>
         public static string MissingFiles {

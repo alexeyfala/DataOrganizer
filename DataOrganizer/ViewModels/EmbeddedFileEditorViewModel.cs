@@ -85,18 +85,45 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			ValidatedContents result = await _dbAccess
-				.GetFileContentsAsync(FileId)
-				.ConfigureAwait(true);
+			ValidatedContents result;
 
-			if (!result.IsValid || TryDecrypt(result.Contents) is not { } output)
+			try
 			{
-				IsContentCorrupted = true;
+				result = await _dbAccess
+					.GetFileContentsAsync(FileId)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				IsContentUnavailable = true;
+
+				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
+
+				return;
+			}
+
+			if (!result.IsValid)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
+
+				_logger.LogError(
+					$@"{Strings.MissingFileContents} of file ""{FileId}""",
+					breakInDebugger: false);
+
+				return;
+			}
+
+			if (TryDecrypt(result.Contents) is not { } output)
+			{
+				IsContentUnavailable = true;
 
 				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				_logger.LogError(
-					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
+					$@"{Strings.FailedToProcessContents} of file ""{FileId}""",
 					breakInDebugger: false);
 
 				return;
@@ -160,7 +187,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		catch (Exception ex)
 		{
-			IsContentCorrupted = true;
+			IsContentUnavailable = true;
 
 			_logger.LogException(ex, breakInDebugger: false);
 
@@ -193,6 +220,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
@@ -232,6 +262,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -246,6 +277,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			notification,
 			exceptionHandler)
 	{
+		_dbFailureReporter = dbFailureReporter;
+
 		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
@@ -258,7 +291,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted)
+			if (IsContentUnavailable)
 			{
 				return;
 			}
@@ -272,7 +305,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void Editor_TextChanged(EventPattern<EventArgs> e)
 	{
-		if (IsContentCorrupted
+		if (IsContentUnavailable
 			|| IsReadOnly
 			|| e.Sender is not TextEditor editor)
 		{
@@ -315,7 +348,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		if (IsContentCorrupted || IsReadOnly)
+		if (IsContentUnavailable || IsReadOnly)
 		{
 			return true;
 		}
@@ -563,7 +596,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || !IsInitialized)
+			if (IsContentUnavailable || !IsInitialized)
 			{
 				return;
 			}

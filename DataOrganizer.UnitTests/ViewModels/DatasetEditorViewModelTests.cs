@@ -454,6 +454,48 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer is handed
+	/// to the reporter and the editor is closed for changes.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	{
+		// Arrange
+		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbFailureReporter);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+
+		dbFailureReporter
+			.Received(1)
+			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: does not attempt deserialization when the file contents are empty, but still marks the view model initialized.
 	/// </summary>
 	[Test]

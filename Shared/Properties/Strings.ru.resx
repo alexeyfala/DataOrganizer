@@ -726,4 +726,7 @@
   <data name="FailedToChangeFavorite" xml:space="preserve">
     <value>Не удалось изменить отметку избранного</value>
   </data>
+  <data name="MissingFileContents" xml:space="preserve">
+    <value>Содержимое файла отсутствует</value>
+  </data>
 </root>

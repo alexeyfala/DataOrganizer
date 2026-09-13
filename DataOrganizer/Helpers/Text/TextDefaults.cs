@@ -8,7 +8,7 @@ namespace DataOrganizer.Helpers.Text;
 internal static class TextDefaults
 {
 	#region Data
-	/// <inheritdoc cref="System.Text.Encoding.UTF8" />
-	public static Encoding Encoding { get; } = System.Text.Encoding.UTF8;
+	/// <inheritdoc cref="Encoding.UTF8" />
+	public static Encoding Encoding { get; } = Encoding.UTF8;
 	#endregion
 }

@@ -63,17 +63,31 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			ValidatedContents result = await _dbAccess
-				.GetFileContentsAsync(FileId)
-				.ConfigureAwait(true);
+			ValidatedContents result;
+
+			try
+			{
+				result = await _dbAccess
+					.GetFileContentsAsync(FileId)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				IsContentUnavailable = true;
+
+				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
+
+				return;
+			}
 
 			if (!result.IsValid)
 			{
-				IsContentCorrupted = true;
+				IsContentUnavailable = true;
 
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
 
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+				_logger.LogError($@"{Strings.MissingFileContents} of file ""{FileId}""");
 
 				return;
 			}
@@ -89,7 +103,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			if (TryDecrypt(result.Contents) is not { } output)
 			{
-				IsContentCorrupted = true;
+				IsContentUnavailable = true;
 
 				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
@@ -120,7 +134,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 		catch (Exception ex)
 		{
-			IsContentCorrupted = true;
+			IsContentUnavailable = true;
 
 			_logger.LogException(ex, breakInDebugger: false);
 
@@ -158,7 +172,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	internal Task RecordMoved(DatasetRecordBase? record)
 	{
 		// Do not check "IsReadOnly" in "CanExecute", the gesture is already gated at the drag source.
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -646,7 +660,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
 	{
-		if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer || _container is null)
+		if (IsContentUnavailable || e.Sender is not ScrollViewer scrollViewer || _container is null)
 		{
 			return;
 		}
@@ -836,7 +850,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
 			.ConfigureAwait(false);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return;
 		}
@@ -886,7 +900,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.ForEach(x => x.IsHidden = hide);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -923,7 +937,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.AddRange(sorted);
 
-		if (IsReadOnly || IsContentCorrupted)
+		if (IsReadOnly || IsContentUnavailable)
 		{
 			return Task.CompletedTask;
 		}
@@ -934,7 +948,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc />
 	protected override Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		return IsReadOnly || IsContentCorrupted
+		return IsReadOnly || IsContentUnavailable
 			? Task.FromResult(true)
 			: SaveContentsAsync(token);
 	}
@@ -1172,9 +1186,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
+	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentUnavailable" /> is <c>False</c>.
 	/// </summary>
-	private bool CanEdit() => !IsReadOnly && !IsContentCorrupted;
+	private bool CanEdit() => !IsReadOnly && !IsContentUnavailable;
 
 	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.

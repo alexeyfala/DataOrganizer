@@ -5,8 +5,10 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.ViewModels;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
@@ -21,6 +23,46 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer is handed
+	/// to the reporter and the editor is closed for changes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	{
+		// Arrange
+		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbFailureReporter);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		TextEditor editor = Substitute.For<TextEditor>();
+
+		// Act
+		await sut.EditorLoaded(editor);
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		dbFailureReporter
+			.Received(1)
+			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
+	}
+
 	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored editor state (font size, word wrap).
 	/// </summary>
