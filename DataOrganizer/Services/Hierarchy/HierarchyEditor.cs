@@ -83,7 +83,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
-		ExplorerItemBase? entity;
+		ExplorerItemBase entity;
 
 		try
 		{
@@ -94,15 +94,6 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		catch (Exception ex)
 		{
 			_dbFailureReporter.Report(ex, errorText);
-
-			return null;
-		}
-
-		if (entity is null)
-		{
-			_notification.ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
 
 			return null;
 		}

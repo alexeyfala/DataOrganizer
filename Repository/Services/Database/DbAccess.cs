@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.Dto;
 using Repository.Enums;
+using Repository.Exceptions;
 using Repository.Interceptors;
 using Repository.Interfaces;
 using Repository.Interfaces.Database;
@@ -100,14 +101,11 @@ public sealed class DbAccess : IDbAccess
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerItemBase?> AddEntityAsync(
+	public async Task<ExplorerItemBase> AddEntityAsync(
 		AddEntityParameters parameters,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return null;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -139,12 +137,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default)
+	public async Task AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -159,8 +154,6 @@ public sealed class DbAccess : IDbAccess
 			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
-
-			return true;
 		}
 		finally
 		{
@@ -176,12 +169,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default)
+	public async Task AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -196,8 +186,6 @@ public sealed class DbAccess : IDbAccess
 			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
-
-			return true;
 		}
 		finally
 		{
@@ -218,10 +206,7 @@ public sealed class DbAccess : IDbAccess
 		KeyStroke[] hotkeys,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return [];
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -258,12 +243,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ClearDatabaseAsync(CancellationToken token = default)
+	public async Task ClearDatabaseAsync(CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -281,8 +263,6 @@ public sealed class DbAccess : IDbAccess
 			{
 				_dbContextService.EnsureCreated();
 			}
-
-			return true;
 		}
 		finally
 		{
@@ -470,10 +450,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteFileAsync(Guid id, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -507,10 +484,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteFolderAsync(Guid id, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -560,10 +534,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -845,12 +816,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
+	public async Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -874,8 +842,6 @@ public sealed class DbAccess : IDbAccess
 			};
 
 			CopyDatabase(parameters);
-
-			return true;
 		}
 		finally
 		{
@@ -891,15 +857,12 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> UpdateFileAndFolderPropertiesAsync(
+	public async Task UpdateFileAndFolderPropertiesAsync(
 		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -923,8 +886,6 @@ public sealed class DbAccess : IDbAccess
 						.ConfigureAwait(false);
 				}
 			}, token).ConfigureAwait(false);
-
-			return true;
 		}
 		finally
 		{
@@ -945,10 +906,7 @@ public sealed class DbAccess : IDbAccess
 		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -980,10 +938,7 @@ public sealed class DbAccess : IDbAccess
 		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -1016,10 +971,7 @@ public sealed class DbAccess : IDbAccess
 		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -1051,10 +1003,7 @@ public sealed class DbAccess : IDbAccess
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default)
 	{
-		if (IsWriteRefused())
-		{
-			return false;
-		}
+		ThrowIfWriteRefused();
 
 		await _semaphore
 			.WaitAsync(token)
@@ -1254,18 +1203,16 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// <c>True</c> when the database is closed for writing; the refusal is kept to the log.
+	/// Refuses a change when the database is closed for writing.
 	/// </summary>
-	private bool IsWriteRefused([CallerMemberName] string callerName = "")
+	private void ThrowIfWriteRefused([CallerMemberName] string callerName = "")
 	{
 		if (IsWritable)
 		{
-			return false;
+			return;
 		}
 
-		_logger.LogError($"{callerName} is refused: the database is {ConnectionStatus}.", breakInDebugger: false);
-
-		return true;
+		throw new DatabaseNotWritableException(ConnectionStatus, callerName);
 	}
 
 	/// <summary>

@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -100,13 +101,17 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
 
-			if (!await _dbAccess
+			await _dbAccess
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
-				.ConfigureAwait(false))
-			{
-				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
-					.ConfigureAwait(false);
-			}
+				.ConfigureAwait(false);
+
+			//if (!await _dbAccess
+			//	.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
+			//	.ConfigureAwait(false))
+			//{
+			//	return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
+			//		.ConfigureAwait(false);
+			//}
 
 			ExplorerItemDtoBase[] objects =
 			[
@@ -128,6 +133,14 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			{
 				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
 			}
+		}
+		catch (DatabaseNotWritableException ex)
+		{
+			// The database turned the transaction down, which is a refusal and not a bug.
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

@@ -6,7 +6,10 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.UnitTests.Fakes;
+using Repository.Enums;
+using Repository.Exceptions;
 using Shared.Common;
+using Shared.Properties;
 using System;
 
 namespace DataOrganizer.UnitTests.Services.Diagnostics;
@@ -51,6 +54,33 @@ internal class DbFailureReporterTests
 			.Text
 			.Should()
 			.Be(text);
+
+		received
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
+	}
+
+	/// <summary>
+	/// <see cref="DbFailureReporter.Report" />: a write the database turned down is reported in words of its own.
+	/// </summary>
+	[Test]
+	public void Report_Tells_About_A_Refused_Write_In_Its_Own_Words()
+	{
+		// Act
+		SnackbarContent? received = Report(
+			new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, RandomString.Create(10)),
+			RandomString.Create(10));
+
+		// Assert
+		received
+			.Should()
+			.NotBeNull();
+
+		received
+			.Text
+			.Should()
+			.Be(Strings.DatabaseIsUnavailable);
 
 		received
 			.Level

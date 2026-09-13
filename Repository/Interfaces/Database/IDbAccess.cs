@@ -32,19 +32,19 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Adds an entity to the database.
 	/// </summary>
-	Task<ExplorerItemBase?> AddEntityAsync(
+	Task<ExplorerItemBase> AddEntityAsync(
 		AddEntityParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Adds a file sequence to the database.
 	/// </summary>
-	Task<bool> AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default);
+	Task AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default);
 
 	/// <summary>
 	/// Adds a folder sequence to the database.
 	/// </summary>
-	Task<bool> AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default);
+	Task AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default);
 
 	/// <summary>
 	/// Adds <see cref="FileEntity.Hotkeys" /> to the entity.
@@ -57,7 +57,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Completely clears the database.
 	/// </summary>
-	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
+	Task ClearDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Establishes a connection to the database, creating or migrating it as needed.
@@ -144,13 +144,13 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Restores database from backup.
 	/// </summary>
-	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
+	Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
 	/// Updates properties of multiple <see cref="FileEntity" /> and <see cref="FolderEntity" /> entities
-	/// in a single transaction. An empty set of updates is not a failure.
+	/// in a single transaction.
 	/// </summary>
-	Task<bool> UpdateFileAndFolderPropertiesAsync(
+	Task UpdateFileAndFolderPropertiesAsync(
 		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
 		CancellationToken token = default);

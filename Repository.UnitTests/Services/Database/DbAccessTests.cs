@@ -9,6 +9,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Enums;
+using Repository.Exceptions;
 using Repository.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
@@ -116,7 +117,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository, saves changes and returns true.
+	/// <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository and saves changes.
 	/// </summary>
 	[Test]
 	public async Task AddFilesAsync_Adds_Files_To_Database()
@@ -135,13 +136,9 @@ internal class DbAccessTests
 			TypedParameter.From(repository));
 
 		// Act
-		bool result = await sut.AddFilesAsync(files);
+		await sut.AddFilesAsync(files);
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		await repository
 			.Received()
 			.AddRangeAsync(Arg.Any<IEnumerable<FileEntity>>());
@@ -152,7 +149,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository, saves changes and returns true.
+	/// <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository and saves changes.
 	/// </summary>
 	[Test]
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
@@ -171,13 +168,9 @@ internal class DbAccessTests
 			TypedParameter.From(dbContextService));
 
 		// Act
-		bool result = await sut.AddFoldersAsync(folders);
+		await sut.AddFoldersAsync(folders);
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		await repository
 			.Received()
 			.AddRangeAsync(Arg.Any<IEnumerable<FolderEntity>>());
@@ -250,13 +243,9 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ClearDatabaseAsync();
+		await sut.ClearDatabaseAsync();
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		dbContextService
 			.Received()
 			.EnsureDeleted();
@@ -507,35 +496,32 @@ internal class DbAccessTests
 			.Should()
 			.BeFalse();
 
-		(await sut.AddEntityAsync(new()
+		await AssertRefusedAsync(() => sut.AddEntityAsync(new()
 		{
 			Index = 0,
 			Kind = EntityKind.Folder,
 			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
-		}))
-			.Should()
-			.BeNull();
+		}));
 
-		(await sut.AddFilesAsync([]))
-			.Should()
-			.BeFalse();
+		await AssertRefusedAsync(() => sut.AddFilesAsync([]));
 
-		(await sut.AddHotkeysAsync(Guid.NewGuid(), []))
-			.Should()
-			.BeEmpty();
+		await AssertRefusedAsync(() => sut.AddHotkeysAsync(Guid.NewGuid(), []));
 
-		(await sut.ClearDatabaseAsync())
-			.Should()
-			.BeFalse();
+		await AssertRefusedAsync(() => sut.ClearDatabaseAsync());
 
-		(await sut.DeleteFileAsync(Guid.NewGuid()))
-			.Should()
-			.BeFalse();
+		await AssertRefusedAsync(() => sut.DeleteFileAsync(Guid.NewGuid()));
 
 		await dbContextService
 			.DidNotReceive()
 			.SaveChangesAsync(Arg.Any<CancellationToken>());
+
+		static async Task AssertRefusedAsync(Func<Task> write)
+		{
+			await write
+				.Should()
+				.ThrowAsync<DatabaseNotWritableException>();
+		}
 
 		await fileRepository
 			.DidNotReceiveWithAnyArgs()
@@ -1184,52 +1170,32 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: a write that failed inside the transaction
-	/// reaches the caller.
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: an empty set of updates is not a failure.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Lets_A_Failed_Write_Out()
+	public async Task UpdateFileAndFolderPropertiesAsync_Accepts_An_Empty_Set_Of_Updates()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository fileRepository = Substitute.For<IFileRepository>();
-
-			fileRepository
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-					Arg.Any<CancellationToken>())
-				.ThrowsAsync(new InvalidOperationException());
-
-			builder.RegisterInstance(fileRepository);
-
-			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateContextServiceRunningTheTransaction()));
 
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		Func<Task> act = () => sut.UpdateFileAndFolderPropertiesAsync(
-			fileUpdates,
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		// Assert
 		await act
 			.Should()
-			.ThrowAsync<InvalidOperationException>();
+			.NotThrowAsync();
 	}
 
 	/// <summary>
 	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: applies the updates of both entity types in one transaction.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Returns_True_And_Forwards_Every_Update()
+	public async Task UpdateFileAndFolderPropertiesAsync_Forwards_Every_Update()
 	{
 		// Arrange
 		Guid fileId = Guid.NewGuid();
@@ -1272,13 +1238,9 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, folderUpdates);
+		await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, folderUpdates);
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		await fileRepository
 			.Received(1)
 			.UpdatePropertiesAsync(fileId, fileSetters, Arg.Any<CancellationToken>());
@@ -1289,25 +1251,45 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: an empty set of updates is not a failure.
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: a write that failed inside the transaction
+	/// reaches the caller.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Returns_True_When_There_Is_Nothing_To_Update()
+	public async Task UpdateFileAndFolderPropertiesAsync_Lets_A_Failed_Write_Out()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateContextServiceRunningTheTransaction()));
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			fileRepository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.UpdateFileAndFolderPropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
+		Func<Task> act = () => sut.UpdateFileAndFolderPropertiesAsync(
+			fileUpdates,
 			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		// Assert
-		result
+		await act
 			.Should()
-			.BeTrue();
+			.ThrowAsync<InvalidOperationException>();
 	}
 
 	/// <summary>

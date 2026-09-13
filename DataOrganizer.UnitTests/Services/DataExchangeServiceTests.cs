@@ -60,11 +60,11 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.AddFoldersAsync(Arg.Any<IEnumerable<FolderEntity>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			dbAccess
 				.AddFilesAsync(Arg.Any<IEnumerable<FileEntity>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -418,7 +418,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -481,7 +481,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.ClearDatabaseAsync()
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -544,7 +544,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -585,7 +585,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.ClearDatabaseAsync()
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -647,16 +647,16 @@ internal class DataExchangeServiceTests
 			{
 				dbAccess
 					.ClearDatabaseAsync()
-					.Returns(true);
+					.Returns(Task.CompletedTask);
 			}
 
 			dbAccess
 				.AddFoldersAsync(Arg.Any<IEnumerable<FolderEntity>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			dbAccess
 				.AddFilesAsync(Arg.Any<IEnumerable<FileEntity>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -709,7 +709,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -762,7 +762,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 

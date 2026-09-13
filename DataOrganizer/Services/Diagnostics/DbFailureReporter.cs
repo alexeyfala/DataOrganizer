@@ -1,7 +1,9 @@
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notifications;
+using Repository.Exceptions;
 using Serilog;
 using Shared.Extensions;
+using Shared.Properties;
 using System;
 
 namespace DataOrganizer.Services.Diagnostics;
@@ -32,6 +34,16 @@ public sealed class DbFailureReporter : IDbFailureReporter
 		if (exception is OperationCanceledException)
 		{
 			// The caller gave up on its own, so nothing failed and nothing is worth saying.
+			return;
+		}
+
+		if (exception is DatabaseNotWritableException)
+		{
+			// A refusal is a state the database is in, not a failure of this operation.
+			_logger.LogWarning(exception.Message);
+
+			_notification.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+
 			return;
 		}
 

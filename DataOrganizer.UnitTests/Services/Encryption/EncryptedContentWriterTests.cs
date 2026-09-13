@@ -13,6 +13,8 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.Dto;
+using Repository.Enums;
+using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
@@ -58,7 +60,7 @@ internal class EncryptedContentWriterTests
 				.UpdateFileAndFolderPropertiesAsync(
 					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
 					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -83,7 +85,7 @@ internal class EncryptedContentWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the conversion cannot be saved.
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the database turns the write down.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
@@ -101,6 +103,12 @@ internal class EncryptedContentWriterTests
 		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		dbAccess
+			.UpdateFileAndFolderPropertiesAsync(
+				Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
+				Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
+			.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -220,7 +228,7 @@ internal class EncryptedContentWriterTests
 				.UpdateFileAndFolderPropertiesAsync(
 					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
 					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
-				.Returns(true);
+				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
 		});

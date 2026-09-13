@@ -372,18 +372,18 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		SetupIndex(hierarchy, result.Folders, result.Files);
 
-		if (result.Folders.IsNotEmpty() && !await _dbAccess
-			.AddFoldersAsync(result.Folders, token)
-			.ConfigureAwait(false))
+		if (result.Folders.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFoldersAsync(result.Folders, token)
+				.ConfigureAwait(false);
 		}
 
-		if (result.Files.IsNotEmpty() && !await _dbAccess
-			.AddFilesAsync(result.Files, token)
-			.ConfigureAwait(false))
+		if (result.Files.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFilesAsync(result.Files, token)
+				.ConfigureAwait(false);
 		}
 
 		imported.AddRange(_entityLoader.Map(result.Folders, result.Files));
@@ -401,11 +401,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportMode.Replace && !await _dbAccess
-			.ClearDatabaseAsync(token)
-			.ConfigureAwait(false))
+		if (variant == ImportMode.Replace)
 		{
-			return false;
+			await _dbAccess
+				.ClearDatabaseAsync(token)
+				.ConfigureAwait(false);
 		}
 
 		DateTime now = DateTime.Now;
@@ -423,18 +423,18 @@ public sealed class DataExchangeService : IDataExchangeService
 			SetupIndex(hierarchy, folders, files);
 		}
 
-		if (folders.IsNotEmpty() && !await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false))
+		if (folders.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFoldersAsync(folders, token)
+				.ConfigureAwait(false);
 		}
 
-		if (files.IsNotEmpty() && !await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false))
+		if (files.IsNotEmpty())
 		{
-			return false;
+			await _dbAccess
+				.AddFilesAsync(files, token)
+				.ConfigureAwait(false);
 		}
 
 		imported.AddRange(_entityLoader.Map(
@@ -458,12 +458,9 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		if (!await _dbAccess
+		await _dbAccess
 			.RestoreFromBackupAsync(filePath, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
+			.ConfigureAwait(false);
 
 		if (await _entityLoader
 			.LoadHierarchyAsync(token)
@@ -740,12 +737,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		try
 		{
-			if (!await _dbAccess
+			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath, token)
-				.ConfigureAwait(false))
-			{
-				_notification.ShowErrorSnackbar(Strings.FailedToRestoreDatabase);
-			}
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
