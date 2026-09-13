@@ -143,6 +143,7 @@ public sealed class App : Application
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
+		services.AddTransient<IDbFailureReporter, DbFailureReporter>();
 		services.AddTransient<IDbMaintenance, DbMaintenance>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
