@@ -8,7 +8,7 @@ using System.Text;
 
 namespace DataOrganizer.Services.Explorer;
 
-public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
+public sealed partial class LinuxExplorerManager : IExplorerManager
 {
 	#region Data
 	/// <summary>
@@ -113,7 +113,10 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 
 	#region Methods
 	/// <inheritdoc />
-	public bool TryForegroundFolder(string folderPath)
+	/// <remarks>
+	/// <paramref name="selectItemPath" /> is ignored: X11 cannot select an item inside an already opened window.
+	/// </remarks>
+	public bool TryForegroundFolder(string folderPath, string? selectItemPath = null)
 	{
 		IntPtr display = IntPtr.Zero;
 

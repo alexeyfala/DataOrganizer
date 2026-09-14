@@ -1,14 +1,20 @@
 using DataOrganizer.Interfaces.Explorer;
 using Interop.UIAutomationClient;
+using Shared.Common;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
 namespace DataOrganizer.Services.Explorer;
 
+/// <summary>
+/// Brings an already opened Explorer window to the front through Shell COM automation
+/// and reveals files through the "/select," switch.
+/// </summary>
 [SupportedOSPlatform("windows")]
-public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
+public sealed partial class WindowsExplorerManager : IExplorerManager
 {
 	#region Data
 	/// <summary>
@@ -120,6 +126,22 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 		}
 
 		return false;
+	}
+
+	/// <inheritdoc />
+	public bool TryRevealFile(string filePath)
+	{
+		try
+		{
+			Process.Start(PlatformInfo.FileOpener, "/select, " + filePath);
+
+			return true;
+		}
+		catch
+		{
+			// Explorer is missing or refused to start — the caller falls back to the folder.
+			return false;
+		}
 	}
 	#endregion
 

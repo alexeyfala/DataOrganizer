@@ -15,27 +15,19 @@ namespace DataOrganizer.Services.Storage;
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {
 	#region Data
+	/// <inheritdoc cref="IExplorerManager" />
+	private readonly IExplorerManager _explorerManager;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="ILinuxExplorerManager" />
-	private readonly ILinuxExplorerManager _linuxExplorerManager;
-
-	/// <inheritdoc cref="IWindowsExplorerManager" />
-	private readonly IWindowsExplorerManager _winExplorerManager;
 	#endregion
 
 	#region Constructors
-	public DirectoryAccessor(
-		IFileSystem fileSystem,
-		ILinuxExplorerManager linuxExplorerManager,
-		IWindowsExplorerManager winExplorerManager)
+	public DirectoryAccessor(IExplorerManager explorerManager, IFileSystem fileSystem)
 	{
+		_explorerManager = explorerManager;
+
 		_fileSystem = fileSystem;
-
-		_linuxExplorerManager = linuxExplorerManager;
-
-		_winExplorerManager = winExplorerManager;
 	}
 	#endregion
 
@@ -73,33 +65,16 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			if (OperatingSystem.IsWindows())
+			try
 			{
-				try
+				if (_explorerManager.TryForegroundFolder(directoryPath))
 				{
-					if (_winExplorerManager.TryForegroundFolder(directoryPath))
-					{
-						return;
-					}
-				}
-				catch (Exception ex)
-				{
-					logger?.LogException(ex);
+					return;
 				}
 			}
-			else if (OperatingSystem.IsLinux())
+			catch (Exception ex)
 			{
-				try
-				{
-					if (_linuxExplorerManager.TryForegroundFolder(directoryPath))
-					{
-						return;
-					}
-				}
-				catch (Exception ex)
-				{
-					logger?.LogException(ex);
-				}
+				logger?.LogException(ex);
 			}
 
 			Process.Start(
@@ -131,40 +106,19 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 			string directory = Path.GetDirectoryName(filePath)!;
 
-			switch (PlatformInfo.CurrentOS)
+			// Reuse an already-open window if possible.
+			if (_explorerManager.TryForegroundFolder(directory, filePath))
 			{
-				case OperatingSystemKind.Windows:
-					if (_winExplorerManager.TryForegroundFolder(directory, filePath))
-					{
-						return;
-					}
-
-					Process.Start(PlatformInfo.FileOpener, "/select, " + filePath);
-					break;
-
-				case OperatingSystemKind.Linux:
-					// Reuse an already-open window if possible (X11 cannot select the file inside it).
-					if (_linuxExplorerManager.TryForegroundFolder(directory))
-					{
-						return;
-					}
-
-					// Otherwise open a fresh window with the file selected.
-					if (_linuxExplorerManager.TryRevealFile(filePath))
-					{
-						return;
-					}
-
-					OpenDirectory(directory, logger);
-					break;
-
-				case OperatingSystemKind.MacOS:
-					Process.Start(PlatformInfo.FileOpener, GetMacOSReveal(filePath));
-					break;
-
-				default:
-					throw new NotImplementedException();
+				return;
 			}
+
+			// Otherwise open a fresh window with the file selected.
+			if (_explorerManager.TryRevealFile(filePath))
+			{
+				return;
+			}
+
+			OpenDirectory(directory, logger);
 		}
 		catch (Exception ex)
 		{
@@ -174,11 +128,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemKind.MacOS" />.
-	/// </summary>
-	private static string GetMacOSReveal(string argument) => $@"-R ""{argument}""";
-
 	/// <summary>
 	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
 	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
