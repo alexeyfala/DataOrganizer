@@ -134,9 +134,10 @@ public sealed class App : Application
 
 		services.AddMapster();
 
+		RegisterPlatformServices(services);
+
 		#region Transients
 		services.AddTransient<IAppController, AppController>();
-		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
@@ -166,7 +167,6 @@ public sealed class App : Application
 		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
-		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INoteReader, NoteReader>();
@@ -178,7 +178,6 @@ public sealed class App : Application
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
-		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 
@@ -375,6 +374,33 @@ public sealed class App : Application
 		client
 			.DefaultRequestHeaders
 			.Add("X-GitHub-Api-Version", "2022-11-28");
+	}
+
+	/// <summary>
+	/// Fills <paramref name="services" /> with the services whose implementation
+	/// depends on the operating system in use.
+	/// </summary>
+	private static void RegisterPlatformServices(IServiceCollection services)
+	{
+		if (OperatingSystem.IsWindows())
+		{
+			services.AddTransient<IAppPickerService, WindowsAppPickerService>();
+
+			services.AddTransient<IExplorerManager, WindowsExplorerManager>();
+
+			return;
+		}
+
+		services.AddTransient<IAppPickerService, UnsupportedAppPickerService>();
+
+		if (OperatingSystem.IsLinux())
+		{
+			services.AddTransient<IExplorerManager, LinuxExplorerManager>();
+
+			return;
+		}
+
+		services.AddTransient<IExplorerManager, MacOSExplorerManager>();
 	}
 
 	/// <summary>

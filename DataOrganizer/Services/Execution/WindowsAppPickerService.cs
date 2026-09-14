@@ -28,14 +28,21 @@ namespace DataOrganizer.Services.Execution;
 public sealed partial class WindowsAppPickerService : IAppPickerService
 {
 	#region Data
-	// The native constants keep the spelling of the Windows headers.
-#pragma warning disable IDE1006
-	private const int S_OK = 0;
+	/// <summary>
+	/// Success code of a COM call, <c>S_OK</c> in the Windows headers.
+	/// </summary>
+	private const int HResultOk = 0;
 
+	/// <summary>
+	/// <c>SHGetFileInfo</c> flag: fill in the icon handle of the file.
+	/// </summary>
 	private const uint SHGFI_ICON = 0x000000100;
 
+	/// <summary>
+	/// <c>SHGetFileInfo</c> flag: take the large icon rather than the small one.
+	/// Large is the default size, hence the zero.
+	/// </summary>
 	private const uint SHGFI_LARGEICON = 0x000000000;
-#pragma warning restore IDE1006
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -148,7 +155,11 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 		Span<char> buffer = stackalloc char[1024];
 
-		if (SHLoadIndirectString(friendly, buffer, buffer.Length, IntPtr.Zero) != S_OK)
+		if (SHLoadIndirectString(
+			friendly,
+			buffer,
+			buffer.Length,
+			IntPtr.Zero) != HResultOk)
 		{
 			return subkeyName;
 		}
@@ -167,14 +178,14 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	{
 		int hr = handler.GetName(out string? appPath);
 
-		if (hr != S_OK || string.IsNullOrEmpty(appPath))
+		if (hr != HResultOk || string.IsNullOrEmpty(appPath))
 		{
 			return null;
 		}
 
 		hr = handler.GetUIName(out string? uiName);
 
-		if (hr != S_OK || string.IsNullOrEmpty(uiName))
+		if (hr != HResultOk || string.IsNullOrEmpty(uiName))
 		{
 			uiName = Path.GetFileNameWithoutExtension(appPath);
 		}
@@ -404,7 +415,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 				filter,
 				out enumerator);
 
-			if (hr != S_OK || enumerator is null)
+			if (hr != HResultOk || enumerator is null)
 			{
 				_logger.LogWarning($"SHAssocEnumHandlers failed for extension \"{extension}\" with HRESULT 0x{hr:X8}.");
 
@@ -415,7 +426,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 			IAssocHandler[] buffer = new IAssocHandler[1];
 
-			while (enumerator.Next(1, buffer, out int fetched) == S_OK && fetched == 1)
+			while (enumerator.Next(1, buffer, out int fetched) == HResultOk && fetched == 1)
 			{
 				IAssocHandler handler = buffer[0];
 
@@ -453,6 +464,11 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool DestroyIcon(IntPtr hIcon);
 
+	/// <summary>
+	/// Enumerates the handlers registered for a file type. Stays <c>[DllImport]</c>: only the
+	/// built-in marshaller builds the wrapper for an <c>out</c> parameter of a <c>[ComImport]</c>
+	/// interface, so <c>[LibraryImport]</c> needs <see cref="IAssocHandler" /> converted first.
+	/// </summary>
 	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
 	private static extern int SHAssocEnumHandlers(
 		[MarshalAs(UnmanagedType.LPWStr)] string? pszExtra,
@@ -482,6 +498,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	private enum AssocFilter
 	{
 		None = 0,
+
 		Recommended = 1
 	}
 
@@ -489,6 +506,14 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// COM interface <c>IAssocHandler</c> — minimal binding (display name, executable
 	/// path; remaining methods are present only to preserve the v-table slot order).
 	/// </summary>
+	/// <remarks>
+	/// SYSLIB1096 proposes <c>[GeneratedComInterface]</c> here and on <see cref="IEnumAssocHandlers" />.
+	/// Both stay on built-in COM: the switch drags <see cref="SHAssocEnumHandlers" /> onto
+	/// <c>ComInterfaceMarshaller</c>, needs per-element marshalling for the array of
+	/// <see cref="IEnumAssocHandlers.Next" />, and replaces every <c>Marshal.ReleaseComObject</c>,
+	/// which ComWrappers objects reject. It pays off only once <c>WindowsExplorerManager</c>
+	/// leaves built-in COM too.
+	/// </remarks>
 	[ComImport]
 	[Guid("F04061AC-1659-4A3F-A954-775AA57FC083")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -522,6 +547,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// COM interface <c>IEnumAssocHandlers</c> — minimal binding (only the
 	/// <c>Next</c> method is used).
 	/// </summary>
+	/// <remarks>
+	/// Stays on built-in COM for the reason spelled out in <see cref="IAssocHandler" />.
+	/// </remarks>
 	[ComImport]
 	[Guid("973810AE-9599-4B88-9E4D-6EE98C9552DA")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

@@ -46,7 +46,20 @@
 			-->
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
 				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\e_sqlite3.dll" />
 			</Files>
+
+			<!--
+				The native SQLite library carries a version but no translation block. Declared on
+				its own to state the neutral language, which fills the File table and settles
+				ICE60; WIX1101 then notes the language was supplied instead of read.
+			-->
+			<Component>
+				<File
+					DefaultLanguage="0"
+					Name="e_sqlite3.dll"
+					Source="$(var.DotNetPublishPath)\" />
+			</Component>
 
 			<Component
 				Directory="ApplicationProgramsFolder"
