@@ -159,13 +159,14 @@ public sealed class EntityLoader : IEntityLoader
 
 		if (AppInfo.IsDebug)
 		{
-#pragma warning disable CS0168 // Variable is declared but never used
 			try
 			{
 				config.Compile();
 			}
 			catch (Exception ex)
 			{
+				Debug.WriteLine(ex.ToStringDemystified());
+
 				// A break under a test runner would stop a batch debug run.
 				if (!AppDomain
 					.CurrentDomain
@@ -178,7 +179,6 @@ public sealed class EntityLoader : IEntityLoader
 				// then remove one property at a time using .Map(dest => dest.PropertyName, src => src.PropertyName)
 				// until you find the one that breaks the compilation.
 			}
-#pragma warning restore CS0168 // Variable is declared but never used
 		}
 
 		return mapper;

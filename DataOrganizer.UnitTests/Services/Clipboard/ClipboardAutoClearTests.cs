@@ -158,9 +158,7 @@ internal class ClipboardAutoClearTests
 			Time = time
 		};
 
-		exceptionHandler
-			.When(static x => x.Watch(Arg.Any<Task>()))
-			.Do(callInfo => { context.Scheduled = callInfo.Arg<Task>(); });
+		exceptionHandler.Watch(Arg.Do<Task>(task => context.Scheduled = task));
 
 		return context;
 	}

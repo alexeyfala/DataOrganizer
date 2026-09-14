@@ -491,11 +491,9 @@ internal class DataExchangeServiceTests
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
-#pragma warning disable CA2012 // Use ValueTasks correctly
 			serializer
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(new ValueTask<ExplorerItemBase[]?>([]));
-#pragma warning restore CA2012 // Use ValueTasks correctly
+				.Returns([]);
 
 			builder.RegisterInstance(dbAccess);
 

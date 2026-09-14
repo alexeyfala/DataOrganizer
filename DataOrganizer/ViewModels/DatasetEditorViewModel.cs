@@ -1256,35 +1256,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				state.TopRecordIndex,
 				Records.Count,
 				state.WithinRecordOffset).ConfigureAwait(false);
-
-			// Just in case.
-#pragma warning disable CS8321 // Local function is declared but never used
-			void RestoreScroll()
-			{
-				Control? child = container.TryGetElement(state.TopRecordIndex) ?? container.GetOrCreateElement(state.TopRecordIndex);
-
-				if (child is null)
-				{
-					return;
-				}
-
-				container.UpdateLayout();
-
-				if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
-				{
-					return;
-				}
-				double targetViewportY = -state.WithinRecordOffset;
-
-				double delta = pointInViewport.Y - targetViewportY;
-
-				double maxOffsetY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-				scrollViewer.Offset = new Vector(
-					scrollViewer.Offset.X,
-					Math.Clamp(scrollViewer.Offset.Y + delta, 0, maxOffsetY));
-			}
-#pragma warning restore CS8321 // Local function is declared but never used
 		}
 		catch (Exception ex)
 		{

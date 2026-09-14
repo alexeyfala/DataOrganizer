@@ -28,14 +28,21 @@ namespace DataOrganizer.Services.Execution;
 public sealed partial class WindowsAppPickerService : IAppPickerService
 {
 	#region Data
-	// The native constants keep the spelling of the Windows headers.
-#pragma warning disable IDE1006
-	private const int S_OK = 0;
+	/// <summary>
+	/// Success code of a COM call, <c>S_OK</c> in the Windows headers.
+	/// </summary>
+	private const int HResultOk = 0;
 
+	/// <summary>
+	/// <c>SHGetFileInfo</c> flag: fill in the icon handle of the file.
+	/// </summary>
 	private const uint SHGFI_ICON = 0x000000100;
 
+	/// <summary>
+	/// <c>SHGetFileInfo</c> flag: take the large icon rather than the small one.
+	/// Large is the default size, hence the zero.
+	/// </summary>
 	private const uint SHGFI_LARGEICON = 0x000000000;
-#pragma warning restore IDE1006
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -148,7 +155,11 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 		Span<char> buffer = stackalloc char[1024];
 
-		if (SHLoadIndirectString(friendly, buffer, buffer.Length, IntPtr.Zero) != S_OK)
+		if (SHLoadIndirectString(
+			friendly,
+			buffer,
+			buffer.Length,
+			IntPtr.Zero) != HResultOk)
 		{
 			return subkeyName;
 		}
@@ -167,14 +178,14 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	{
 		int hr = handler.GetName(out string? appPath);
 
-		if (hr != S_OK || string.IsNullOrEmpty(appPath))
+		if (hr != HResultOk || string.IsNullOrEmpty(appPath))
 		{
 			return null;
 		}
 
 		hr = handler.GetUIName(out string? uiName);
 
-		if (hr != S_OK || string.IsNullOrEmpty(uiName))
+		if (hr != HResultOk || string.IsNullOrEmpty(uiName))
 		{
 			uiName = Path.GetFileNameWithoutExtension(appPath);
 		}
@@ -404,7 +415,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 				filter,
 				out enumerator);
 
-			if (hr != S_OK || enumerator is null)
+			if (hr != HResultOk || enumerator is null)
 			{
 				_logger.LogWarning($"SHAssocEnumHandlers failed for extension \"{extension}\" with HRESULT 0x{hr:X8}.");
 
@@ -415,7 +426,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 			IAssocHandler[] buffer = new IAssocHandler[1];
 
-			while (enumerator.Next(1, buffer, out int fetched) == S_OK && fetched == 1)
+			while (enumerator.Next(1, buffer, out int fetched) == HResultOk && fetched == 1)
 			{
 				IAssocHandler handler = buffer[0];
 
@@ -482,6 +493,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	private enum AssocFilter
 	{
 		None = 0,
+
 		Recommended = 1
 	}
 
