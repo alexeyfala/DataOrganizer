@@ -464,6 +464,11 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool DestroyIcon(IntPtr hIcon);
 
+	/// <summary>
+	/// Enumerates the handlers registered for a file type. Stays <c>[DllImport]</c>: only the
+	/// built-in marshaller builds the wrapper for an <c>out</c> parameter of a <c>[ComImport]</c>
+	/// interface, so <c>[LibraryImport]</c> needs <see cref="IAssocHandler" /> converted first.
+	/// </summary>
 	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
 	private static extern int SHAssocEnumHandlers(
 		[MarshalAs(UnmanagedType.LPWStr)] string? pszExtra,
@@ -501,6 +506,14 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// COM interface <c>IAssocHandler</c> — minimal binding (display name, executable
 	/// path; remaining methods are present only to preserve the v-table slot order).
 	/// </summary>
+	/// <remarks>
+	/// SYSLIB1096 proposes <c>[GeneratedComInterface]</c> here and on <see cref="IEnumAssocHandlers" />.
+	/// Both stay on built-in COM: the switch drags <see cref="SHAssocEnumHandlers" /> onto
+	/// <c>ComInterfaceMarshaller</c>, needs per-element marshalling for the array of
+	/// <see cref="IEnumAssocHandlers.Next" />, and replaces every <c>Marshal.ReleaseComObject</c>,
+	/// which ComWrappers objects reject. It pays off only once <c>WindowsExplorerManager</c>
+	/// leaves built-in COM too.
+	/// </remarks>
 	[ComImport]
 	[Guid("F04061AC-1659-4A3F-A954-775AA57FC083")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -534,6 +547,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// COM interface <c>IEnumAssocHandlers</c> — minimal binding (only the
 	/// <c>Next</c> method is used).
 	/// </summary>
+	/// <remarks>
+	/// Stays on built-in COM for the reason spelled out in <see cref="IAssocHandler" />.
+	/// </remarks>
 	[ComImport]
 	[Guid("973810AE-9599-4B88-9E4D-6EE98C9552DA")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
