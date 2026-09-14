@@ -5,6 +5,12 @@
 		<OutputPath>..\Publish</OutputPath>
 		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
 		<Cultures>$(SetupCulture)</Cultures>
+		<!--
+			WIX1101 reports that the neutral language of e_sqlite3.dll was supplied by hand
+			rather than read from the file. That is deliberate and explained in Components.wxs:
+			the library ships no translation block, and without the value ICE60 fires instead.
+		-->
+		<SuppressSpecificWarnings>1101</SuppressSpecificWarnings>
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppDisplayName=$(AppDisplayName)</DefineConstants>
