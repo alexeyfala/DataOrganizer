@@ -38,7 +38,17 @@ Please make sure the test suite passes before opening a pull request:
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
 dotnet test Entities.UnitTests/Entities.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
+dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
+```
+
+`Repository.IntegrationTests` is the only project that needs a real database file; it
+writes one into a temporary folder of its own and removes it again. Every test of that
+project carries the `Integration` category, so a run over the whole solution can leave
+them out:
+
+```bash
+dotnet test DataOrganizerApp.slnx --filter TestCategory!=Integration
 ```
 
 ## Coding Guidelines
