@@ -166,7 +166,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateEditorWindow_ViewModel_Should_Be_Initialized()
+	public void CreateEditorWindow_Initializes_The_ViewModel_From_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = RandomValues.CreateInt(100, 300);
@@ -280,7 +280,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateFavoritesWindow_ViewModel_Should_Be_Initialized()
+	public void CreateFavoritesWindow_Initializes_The_ViewModel_From_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = RandomValues.CreateInt(100, 300);

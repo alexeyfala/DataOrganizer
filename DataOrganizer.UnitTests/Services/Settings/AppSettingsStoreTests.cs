@@ -8,7 +8,6 @@ using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Shared.Interfaces;
-using System.IO;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
@@ -68,10 +67,7 @@ internal class AppSettingsStoreTests
 	public void Save_Uses_Path_From_AppEnvironment()
 	{
 		// Arrange
-		string expectedPath = Path.Combine(
-			Path.GetTempPath(),
-			"fake",
-			$"{nameof(AppSettings)}.json");
+		const string expectedPath = $@"C:\Settings\{nameof(AppSettings)}.json";
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 

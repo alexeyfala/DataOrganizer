@@ -44,7 +44,18 @@ internal class DbMaintenanceTests
 			.Should()
 			.BeGreaterThan(0L);
 
-		DbMaintenance sut = CreateSut(connection);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbConnection()
+				.Returns(connection);
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		await sut.EraseFreePagesOnceAsync();
@@ -78,7 +89,18 @@ internal class DbMaintenanceTests
 
 		long freePages = TempSqliteFile.Read(connection, FreePagesQuery);
 
-		DbMaintenance sut = CreateSut(connection);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbConnection()
+				.Returns(connection);
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		await sut.EraseFreePagesOnceAsync();
@@ -103,7 +125,18 @@ internal class DbMaintenanceTests
 
 		TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
 
-		DbMaintenance sut = CreateSut(connection);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbConnection()
+				.Returns(connection);
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		await sut.EraseFreePagesOnceAsync();
@@ -117,22 +150,6 @@ internal class DbMaintenanceTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Builds the service over the given connection.
-	/// </summary>
-	private static DbMaintenance CreateSut(SqliteConnection connection)
-	{
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		dbContextService
-			.GetDbConnection()
-			.Returns(connection);
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		return mock.Create<DbMaintenance>(TypedParameter.From(dbContextService));
-	}
-
 	/// <summary>
 	/// Fills the database and deletes everything, so that pages are left for reuse.
 	/// </summary>

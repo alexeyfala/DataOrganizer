@@ -11,7 +11,6 @@ using NSubstitute.ReceivedExtensions;
 using Serilog;
 using Shared.Interfaces;
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,7 +64,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+				.Returns(@"C:\Apps\test.exe");
 
 			builder.RegisterInstance(fileSystem);
 
@@ -284,7 +283,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+				.Returns(@"C:\Apps\test.exe");
 
 			builder.RegisterInstance(sandbox);
 
@@ -525,7 +524,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+				.Returns(@"C:\Apps\test.exe");
 
 			builder.RegisterInstance(sandbox);
 

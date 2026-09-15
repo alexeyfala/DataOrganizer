@@ -31,7 +31,20 @@ internal class DbMaintenanceTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DbMaintenance sut = CreateSut(fileSystem);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		sut.ErasePendingBackups();
@@ -57,9 +70,30 @@ internal class DbMaintenanceTests
 			Path.Combine(directoryPath, "second.sqlite-journal")
 		];
 
-		IFileSystem fileSystem = CreateFileSystem(leftovers);
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DbMaintenance sut = CreateSut(fileSystem);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
+
+			fileSystem
+				.DirectoryExists(directoryPath)
+				.Returns(true);
+
+			fileSystem
+				.EnumerateFiles(directoryPath)
+				.Returns(leftovers);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		sut.ErasePendingBackups();
@@ -86,13 +120,34 @@ internal class DbMaintenanceTests
 
 		string nextFilePath = Path.Combine(directoryPath, "next.sqlite");
 
-		IFileSystem fileSystem = CreateFileSystem([lockedFilePath, nextFilePath]);
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		fileSystem
-			.When(x => x.EraseAndDeleteFile(lockedFilePath))
-			.Throw(new IOException());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		DbMaintenance sut = CreateSut(fileSystem);
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
+
+			fileSystem
+				.DirectoryExists(directoryPath)
+				.Returns(true);
+
+			fileSystem
+				.EnumerateFiles(directoryPath)
+				.Returns([lockedFilePath, nextFilePath]);
+
+			fileSystem
+				.When(x => x.EraseAndDeleteFile(lockedFilePath))
+				.Throw(new IOException());
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
 
 		// Act
 		sut.ErasePendingBackups();
@@ -101,46 +156,6 @@ internal class DbMaintenanceTests
 		fileSystem
 			.Received(1)
 			.EraseAndDeleteFile(nextFilePath);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a file system holding the given copies of the database.
-	/// </summary>
-	private static IFileSystem CreateFileSystem(string[] leftovers)
-	{
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
-
-		fileSystem
-			.DirectoryExists(directoryPath)
-			.Returns(true);
-
-		fileSystem
-			.EnumerateFiles(directoryPath)
-			.Returns(leftovers);
-
-		return fileSystem;
-	}
-
-	/// <summary>
-	/// Builds the service over the given file system.
-	/// </summary>
-	private static DbMaintenance CreateSut(IFileSystem fileSystem)
-	{
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		dbContextService
-			.GetDbFilePath()
-			.Returns(DatabaseFilePath);
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		return mock.Create<DbMaintenance>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
 	}
 	#endregion
 }
