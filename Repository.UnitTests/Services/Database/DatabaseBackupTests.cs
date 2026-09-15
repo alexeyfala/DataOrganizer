@@ -144,10 +144,10 @@ internal class DatabaseBackupTests
 	public void Dispose_Survives_A_Failure_To_Erase()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			fileSystem
 				.FileExists(FilePath)
 				.Returns(true);

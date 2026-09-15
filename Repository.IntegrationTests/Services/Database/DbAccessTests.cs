@@ -37,21 +37,38 @@ internal class DbAccessTests
 
 		const string known = "20260907183944_InitialCreate";
 
-		IDbContextService dbContextService = CreateExistingDatabase(file);
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbContextService
-			.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
-			.Returns([known, "20991231235959_FromTheFuture"]);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.CanConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
 
-		dbContextService
-			.GetKnownMigrations()
-			.Returns([known]);
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
 
-		using AutoMock mock = AutoMock.GetLoose();
+			dbContextService
+				.HasMigrations()
+				.Returns(true);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
+			dbContextService
+				.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
+				.Returns([known, "20991231235959_FromTheFuture"]);
+
+			dbContextService
+				.GetKnownMigrations()
+				.Returns([known]);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -80,17 +97,34 @@ internal class DbAccessTests
 			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
 		}
 
-		IDbContextService dbContextService = CreateExistingDatabase(file);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbContextService
-			.MigrateAsync(Arg.Any<CancellationToken>())
-			.ThrowsAsync(new InvalidOperationException(@"Table ""Payloads"" already exists"));
+			dbContextService
+				.CanConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
 
-		using AutoMock mock = AutoMock.GetLoose();
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
+			dbContextService
+				.HasMigrations()
+				.Returns(true);
+
+			dbContextService
+				.MigrateAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException(@"Table ""Payloads"" already exists"));
+
+			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -115,19 +149,22 @@ internal class DbAccessTests
 			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
 		}
 
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbContextService
-			.GetDbFilePath()
-			.Returns(file.FilePath);
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
 
-		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializer>());
+			builder.RegisterInstance(dbContextService);
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+		});
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DatabaseBackup? backup = await sut.CreateBackupAsync();
@@ -153,31 +190,6 @@ internal class DbAccessTests
 			.Exists(backup.FilePath)
 			.Should()
 			.BeFalse();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A substitute of <see cref="IDbContextService" /> that opens the database of <paramref name="file" />
-	/// and reports it as migrated by this version.
-	/// </summary>
-	private static IDbContextService CreateExistingDatabase(TempSqliteFile file)
-	{
-		IDbContextService contextService = Substitute.For<IDbContextService>();
-
-		contextService
-			.CanConnectAsync(Arg.Any<CancellationToken>())
-			.Returns(true);
-
-		contextService
-			.GetDbFilePath()
-			.Returns(file.FilePath);
-
-		contextService
-			.HasMigrations()
-			.Returns(true);
-
-		return contextService;
 	}
 	#endregion
 }

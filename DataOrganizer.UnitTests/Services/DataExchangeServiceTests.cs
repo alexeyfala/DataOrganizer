@@ -748,10 +748,10 @@ internal class DataExchangeServiceTests
 
 		List<ExplorerItemDtoBase> objects = [];
 
-		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns((ExplorerItemDtoBase[]?)null);

@@ -304,10 +304,10 @@ internal class FavoritesViewModelTests
 
 		List<Task> scheduled = [];
 
-		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
 			exceptionHandler
 				.When(static x => x.Watch(Arg.Any<Task>()))
 				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
@@ -318,7 +318,9 @@ internal class FavoritesViewModelTests
 
 			builder.RegisterInstance(exceptionHandler);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();

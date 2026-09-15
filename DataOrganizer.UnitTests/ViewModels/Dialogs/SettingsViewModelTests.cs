@@ -414,11 +414,14 @@ internal class SettingsViewModelTests
 
 		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-		settingsStore
-			.Settings
-			.Returns(settings);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			settingsStore
+				.Settings
+				.Returns(settings);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(settingsStore));
+			builder.RegisterInstance(settingsStore);
+		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 

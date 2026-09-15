@@ -69,8 +69,6 @@ internal class ExecutionSandboxTests
 	public async Task EraseAsync_Repeats_The_Attempt_For_A_Locked_Folder()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		int attempts = 0;
 
 		FakeTimeProvider time = new();
@@ -78,6 +76,8 @@ internal class ExecutionSandboxTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			appEnvironment
 				.SandboxDirectoryPath
