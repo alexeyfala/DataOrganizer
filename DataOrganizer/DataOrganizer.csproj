@@ -3,6 +3,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>nullable</WarningsAsErrors>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<RootNamespace>$(AppName)</RootNamespace>
 		<AssemblyName>$(AppName)Main</AssemblyName>
 		<FileVersion>$(AppVersion)</FileVersion>
