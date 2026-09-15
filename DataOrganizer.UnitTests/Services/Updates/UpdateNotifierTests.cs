@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Updates;
@@ -116,19 +118,38 @@ internal class UpdateNotifierTests
 			ReleaseUrl = ReleaseUrl
 		};
 
-		Context context = CreateContext(result, promptAnswer: true);
+		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
+
+			updateCheckService
+				.CheckAsync(Arg.Any<CancellationToken>())
+				.Returns(result);
+
+			prompt
+				.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(updateCheckService);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await context
-			.Sut
-			.NotifyIfUpdateAvailableAsync(context.Prompt);
+		await sut.NotifyIfUpdateAvailableAsync(prompt);
 
 		// Assert
-		await context.Prompt
+		await prompt
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Is<string>(static x => x != null && x.Contains("0.2.0")), Arg.Any<CancellationToken>());
 
-		context.ProcessManager
+		processManager
 			.Received(1)
 			.StartProcess(ReleaseUrl, out _);
 	}

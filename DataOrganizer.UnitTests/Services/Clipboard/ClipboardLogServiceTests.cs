@@ -786,26 +786,26 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Captures_Text_Entry()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns("hello");
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		clipboard
-			.TryGetTextAsync()
-			.Returns("hello");
 
 		// Act
 		await sut.PollOnceAsync();

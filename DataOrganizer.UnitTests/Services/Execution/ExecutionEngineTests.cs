@@ -35,11 +35,11 @@ internal class ExecutionEngineTests
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
