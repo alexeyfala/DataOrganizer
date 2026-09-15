@@ -16,8 +16,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Http;
 
 namespace DataOrganizer.UnitTests.Services.Updates;
 
@@ -424,8 +424,8 @@ internal class UpdateCheckServiceTests
 			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
 
 			StubHttpMessageHandler handler = new(transportError is not null
-				? () => throw transportError
-				: () => new HttpResponseMessage(statusCode)
+				? _ => throw transportError
+				: _ => new HttpResponseMessage(statusCode)
 				{
 					Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
 				});
@@ -495,29 +495,6 @@ internal class UpdateCheckServiceTests
 		public required UpdateCheckService Sut { get; init; }
 
 		public required FakeTimeProvider Time { get; init; }
-		#endregion
-	}
-
-	/// <summary>
-	/// Returns a caller-supplied response (or throws) for every request.
-	/// </summary>
-	private sealed class StubHttpMessageHandler : HttpMessageHandler
-	{
-		#region Data
-		private readonly Func<HttpResponseMessage> _responder;
-		#endregion
-
-		#region Constructors
-		public StubHttpMessageHandler(Func<HttpResponseMessage> responder) => _responder = responder;
-		#endregion
-
-		#region Methods
-		protected override Task<HttpResponseMessage> SendAsync(
-			HttpRequestMessage request,
-			CancellationToken cancellationToken)
-		{
-			return Task.FromResult(_responder());
-		}
 		#endregion
 	}
 	#endregion
