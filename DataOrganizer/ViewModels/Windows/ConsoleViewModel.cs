@@ -181,37 +181,14 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 			.TextView
 			.Margin = new Thickness(6.0, 0.0);
 
-		editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.Add(new WordOccurrenceColorizer(
-				LogEventLevel.Debug.ToShort(),
-				LogEventLevel.Debug.ToBrush()));
-
-		editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.Add(new WordOccurrenceColorizer(
-				LogEventLevel.Information.ToShort(),
-				LogEventLevel.Information.ToBrush()));
-
-		editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.Add(new WordOccurrenceColorizer(
-				LogEventLevel.Warning.ToShort(),
-				LogEventLevel.Warning.ToBrush()));
-
-		editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.Add(new WordOccurrenceColorizer(
-				LogEventLevel.Error.ToShort(),
-				LogEventLevel.Error.ToBrush()));
+		foreach (LogEventLevel level in Enum.GetValues<LogEventLevel>())
+		{
+			editor
+				.TextArea
+				.TextView
+				.LineTransformers
+				.Add(new WordOccurrenceColorizer(level.ToShort(), level.ToBrush()));
+		}
 
 		editor
 			.Options
