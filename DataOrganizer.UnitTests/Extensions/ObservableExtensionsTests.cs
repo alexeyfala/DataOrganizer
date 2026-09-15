@@ -13,10 +13,10 @@ internal class ObservableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context and context is not ignored.
+	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context.
 	/// </summary>
 	[Test]
-	public void SetDelay_Returns_Source_When_No_Sync_Context_And_Not_Ignoring_Context()
+	public void SetDelay_Returns_Source_When_No_Sync_Context()
 	{
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
@@ -24,7 +24,7 @@ internal class ObservableExtensionsTests
 		Subject<EventPattern<EventArgs>> subject = new();
 
 		// Act
-		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100), ignoreContext: false);
+		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100));
 
 		// Assert
 		result

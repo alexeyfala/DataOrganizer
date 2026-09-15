@@ -1347,7 +1347,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
 					x => scrollViewer.ScrollChanged += x,
 					x => scrollViewer.ScrollChanged -= x)
-					.SetDelay(TimeSpan.FromSeconds(0.5), false)
+					.SetDelay(TimeSpan.FromSeconds(0.5))
 					.Subscribe(ScrollViewer_ScrollChanged);
 			}, DispatcherPriority.Loaded);
 		}

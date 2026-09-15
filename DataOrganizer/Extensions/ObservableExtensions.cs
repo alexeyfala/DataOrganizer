@@ -13,14 +13,9 @@ internal static class ObservableExtensions
 	/// </summary>
 	public static IObservable<EventPattern<TEventArgs>> SetDelay<TEventArgs>(
 		this IObservable<EventPattern<TEventArgs>> target,
-		TimeSpan delay,
-		bool ignoreContext)
+		TimeSpan delay)
 	{
-		if (ignoreContext)
-		{
-			return target.Throttle(delay);
-		}
-		else if (SynchronizationContext.Current is { } context)
+		if (SynchronizationContext.Current is { } context)
 		{
 			return target
 				.Throttle(delay)

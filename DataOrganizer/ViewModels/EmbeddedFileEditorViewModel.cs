@@ -151,14 +151,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				Observable.FromEventPattern<EventHandler, EventArgs>(
 					x => editor.TextChanged += x,
 					x => editor.TextChanged -= x)
-					.SetDelay(delay, false)
+					.SetDelay(delay)
 					.Subscribe(Editor_TextChanged)
 					.DisposeWith(_disposables);
 
 				Observable.FromEventPattern<EventHandler, EventArgs>(
 					x => editor.TextArea.Caret.PositionChanged += x,
 					x => editor.TextArea.Caret.PositionChanged -= x)
-					.SetDelay(delay, false)
+					.SetDelay(delay)
 					.Subscribe(Caret_PositionChanged)
 					.DisposeWith(_disposables);
 
