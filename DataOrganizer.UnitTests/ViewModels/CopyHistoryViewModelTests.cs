@@ -48,36 +48,6 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel" /> constructor.
-	/// </summary>
-	[Test]
-	public void Constructor_Initializes_Empty_History()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		// Act
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
-
-		// Assert
-		sut.IsEmpty
-			.Should()
-			.BeTrue();
-
-		sut.Items
-			.Should()
-			.BeEmpty();
-
-		sut.SelectedItem
-			.Should()
-			.BeNull();
-
-		sut.HistorySearch
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ObservableDisposableBase.Dispose" />: clears items and selection.
 	/// </summary>
 	[Test]

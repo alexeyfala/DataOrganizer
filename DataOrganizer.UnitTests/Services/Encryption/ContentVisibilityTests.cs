@@ -1,16 +1,21 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -300,6 +305,8 @@ internal class ContentVisibilityTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
+		RecordingNotificationService notification = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
@@ -311,12 +318,25 @@ internal class ContentVisibilityTests
 				.Returns(false);
 
 			builder.RegisterInstance(sessionKeyStore);
+
+			builder.RegisterInstance<INotificationService>(notification);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
 
 		// Act
 		await sut.ShowFolderContentsAsync(folder);
+
+		// Assert
+		notification
+			.Shown
+			.Should()
+			.Be(new SnackbarContent(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error));
+
+		folder
+			.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
