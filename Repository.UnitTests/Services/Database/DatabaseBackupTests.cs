@@ -1,7 +1,8 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using NSubstitute;
 using Repository.Services.Database;
-using Serilog.Core;
 using Shared.Common;
 using Shared.Interfaces;
 using System;
@@ -61,9 +62,18 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy()
 	{
 		// Arrange
-		IFileSystem fileSystem = CreateFileSystem();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			fileSystem
+				.FileExists(FilePath)
+				.Returns(true);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
 		// Act
 		sut.Dispose();
@@ -81,9 +91,18 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy_Only_Once()
 	{
 		// Arrange
-		IFileSystem fileSystem = CreateFileSystem();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			fileSystem
+				.FileExists(FilePath)
+				.Returns(true);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
 		// Act
 		sut.Dispose();
@@ -105,7 +124,9 @@ internal class DatabaseBackupTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileSystem));
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
 		// Act
 		sut.Dispose();
@@ -123,13 +144,22 @@ internal class DatabaseBackupTests
 	public void Dispose_Survives_A_Failure_To_Erase()
 	{
 		// Arrange
-		IFileSystem fileSystem = CreateFileSystem();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		fileSystem
-			.When(x => x.EraseAndDeleteFile(FilePath))
-			.Throw(new UnauthorizedAccessException());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			fileSystem
+				.FileExists(FilePath)
+				.Returns(true);
 
-		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+			fileSystem
+				.When(x => x.EraseAndDeleteFile(FilePath))
+				.Throw(new UnauthorizedAccessException());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
 		// Act
 		Action act = sut.Dispose;
@@ -158,22 +188,6 @@ internal class DatabaseBackupTests
 		directoryPath
 			.Should()
 			.NotBe(Path.GetDirectoryName(DatabaseFilePath));
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a file system in which the copy exists.
-	/// </summary>
-	private static IFileSystem CreateFileSystem()
-	{
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		fileSystem
-			.FileExists(FilePath)
-			.Returns(true);
-
-		return fileSystem;
 	}
 	#endregion
 }
