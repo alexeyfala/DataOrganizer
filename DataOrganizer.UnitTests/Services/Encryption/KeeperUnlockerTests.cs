@@ -34,11 +34,14 @@ internal class KeeperUnlockerTests
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		dialogService
-			.RequestPasswordAsync(Arg.Any<string>())
-			.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+			builder.RegisterInstance(dialogService);
+		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
@@ -114,7 +117,17 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = CreateEncryption(dek);
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(dek);
 
 			encryption.RewrapIfOutdated(
 				Arg.Any<byte[]>(),
@@ -123,7 +136,7 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())!
 			.Throws(new InvalidOperationException());
 
-			builder.RegisterInstance(CreateDialogService());
+			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
 		});
@@ -162,9 +175,29 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(CreateDialogService());
+			IDialogService dialogService = Substitute.For<IDialogService>();
 
-			builder.RegisterInstance(CreateEncryption(SecretFactory.CreateRandomKey()));
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(SecretFactory.CreateRandomKey());
+
+			// A null rewrap stands for a wrapper already written at the current cost.
+			encryption.RewrapIfOutdated(
+				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<ContentIdentity>())
+			.Returns((byte[]?)null);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -201,11 +234,28 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(CreateDialogService());
+			IDialogService dialogService = Substitute.For<IDialogService>();
 
-			builder.RegisterInstance(CreateEncryption(
-				SecretFactory.CreateRandomKey(),
-				RandomValues.CreateBytes(20)));
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(SecretFactory.CreateRandomKey());
+
+			encryption.RewrapIfOutdated(
+				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<ContentIdentity>())
+			.Returns(RandomValues.CreateBytes(20));
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -268,9 +318,16 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Refuses_A_Keeper_Without_A_Wrapper()
 	{
 		// Arrange
-		IDialogService dialogService = CreateDialogService();
+		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			builder.RegisterInstance(dialogService);
+		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
@@ -350,19 +407,38 @@ internal class KeeperUnlockerTests
 
 		FolderDto keeper = CreateKeeper();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		dbAccess
-			.UpdateFolderPropertiesAsync(default, default!, default)
-			.ReturnsForAnyArgs(true);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(CreateDialogService());
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			builder.RegisterInstance(CreateEncryption(dek, rewrapped));
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(dek);
+
+			encryption.RewrapIfOutdated(
+				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<ContentIdentity>())
+			.Returns(rewrapped);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -385,42 +461,6 @@ internal class KeeperUnlockerTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a dialog service answering the prompt with a random password.
-	/// </summary>
-	private static IDialogService CreateDialogService()
-	{
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		dialogService
-			.RequestPasswordAsync(Arg.Any<string>())
-			.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
-
-		return dialogService;
-	}
-
-	/// <summary>
-	/// Creates an encryption service unwrapping to <paramref name="dek" /> and rewrapping to
-	/// <paramref name="rewrapped" />, where <c>null</c> stands for a wrapper of the current cost.
-	/// </summary>
-	private static IEncryptionService CreateEncryption(PinnedBuffer dek, byte[]? rewrapped = null)
-	{
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(dek);
-
-		encryption.RewrapIfOutdated(
-			Arg.Any<byte[]>(),
-			Arg.Any<PinnedBuffer>(),
-			Arg.Any<PinnedBuffer>(),
-			Arg.Any<ContentIdentity>())
-		.Returns(rewrapped);
-
-		return encryption;
-	}
-
 	/// <summary>
 	/// Creates a keeper carrying a wrapped key.
 	/// </summary>

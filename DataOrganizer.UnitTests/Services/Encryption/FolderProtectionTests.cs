@@ -48,7 +48,7 @@ internal class FolderProtectionTests
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		IKeeperUnlocker unlocker = null!;
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -56,7 +56,16 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			unlocker = RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -102,7 +111,18 @@ internal class FolderProtectionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			// A rejected password leaves the unlocker with nothing to hand over.
-			RegisterUnlocker(builder, dek: null);
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 
@@ -148,7 +168,16 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(10));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -161,6 +190,8 @@ internal class FolderProtectionTests
 			dbAccess
 				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(true);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 
@@ -187,8 +218,6 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Decrypts_Notes()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
@@ -211,11 +240,13 @@ internal class FolderProtectionTests
 
 		byte[] decryptedNote = RandomValues.CreateBytes(10);
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -225,7 +256,16 @@ internal class FolderProtectionTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
@@ -234,6 +274,8 @@ internal class FolderProtectionTests
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(decryptedNote);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
@@ -254,6 +296,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(true);
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 
@@ -304,7 +350,18 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			// A rejected password leaves the unlocker with nothing to hand over.
-			RegisterUnlocker(builder, dek: null);
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 
@@ -348,9 +405,16 @@ internal class FolderProtectionTests
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
 				.Returns(isWriteSaved ? UpdateDatabaseOutcome.Saved : UpdateDatabaseOutcome.SaveFailed);
 
-			builder.RegisterInstance(contentWriter);
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -367,6 +431,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -406,9 +474,22 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterContentWriter(builder);
+			IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
+
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -429,6 +510,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(encryption);
 
@@ -462,13 +547,24 @@ internal class FolderProtectionTests
 
 		FileDto[] files = [ItemDtoFactory.CreateFileDto()];
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -479,6 +575,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(DatabaseFactory.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(encryption);
 
@@ -528,17 +628,32 @@ internal class FolderProtectionTests
 			}
 		];
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(loaded.ToAsyncEnumerable());
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -565,19 +680,19 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Saves_The_Decrypted_Contents()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -587,11 +702,22 @@ internal class FolderProtectionTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. DatabaseFactory.CreateValidatedContents(files.Length, isValid: true)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
@@ -600,6 +726,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(dialogService);
 
@@ -650,9 +780,22 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterContentWriter(builder);
+			IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
+
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -676,6 +819,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(encryption);
 
@@ -721,9 +868,16 @@ internal class FolderProtectionTests
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
 				.Returns(UpdateDatabaseOutcome.SaveFailed);
 
-			builder.RegisterInstance(contentWriter);
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -752,6 +906,10 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(encryption);
 
@@ -881,8 +1039,6 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Encrypts_Notes()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -893,11 +1049,13 @@ internal class FolderProtectionTests
 
 		byte[] encryptedNote = RandomValues.CreateBytes(10);
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -919,6 +1077,8 @@ internal class FolderProtectionTests
 				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(encryptedNote);
 
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(DatabaseFactory.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
@@ -934,6 +1094,8 @@ internal class FolderProtectionTests
 			dbAccess
 				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(true);
+
+			builder.RegisterInstance(contentWriter);
 
 			builder.RegisterInstance(encryption);
 
@@ -963,8 +1125,6 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Erases_The_Database_Backup([Values] bool isUpdateFailing)
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileSystem);
@@ -975,7 +1135,11 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptedContentWriter contentWriter = RegisterContentWriter(builder);
+			IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
+
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			// The failing branch is the one that used to leave the copy behind.
 			if (isUpdateFailing)
@@ -1005,6 +1169,8 @@ internal class FolderProtectionTests
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(DatabaseFactory.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
@@ -1012,6 +1178,8 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(backup);
+
+			builder.RegisterInstance(contentWriter);
 
 			builder.RegisterInstance(encryption);
 
@@ -1038,23 +1206,25 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Saves_The_Encrypted_Contents()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
-		IEncryptedContentWriter contentWriter = null!;
+		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentWriter = RegisterContentWriter(builder);
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
@@ -1073,6 +1243,8 @@ internal class FolderProtectionTests
 			dbAccess
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentWriter);
 
 			builder.RegisterInstance(encryption);
 
@@ -1118,7 +1290,11 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterContentWriter(builder);
+			IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
+
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(UpdateDatabaseOutcome.Saved);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -1146,6 +1322,8 @@ internal class FolderProtectionTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
+			builder.RegisterInstance(contentWriter);
+
 			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(dialogService);
@@ -1162,44 +1340,6 @@ internal class FolderProtectionTests
 		loaded[0].Contents.Should().AllSatisfy(x => x
 			.Should()
 			.Be(0));
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Registers a content writer that reports a successful write.
-	/// </summary>
-	private static IEncryptedContentWriter RegisterContentWriter(ContainerBuilder builder)
-	{
-		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
-
-		contentWriter
-			.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-			.Returns(UpdateDatabaseOutcome.Saved);
-
-		builder.RegisterInstance(contentWriter);
-
-		return contentWriter;
-	}
-
-	/// <summary>
-	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
-	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
-	{
-		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-		unlocker.RequestDekAsync(
-			Arg.Any<IPasswordKeeper>(),
-			Arg.Any<string>(),
-			Arg.Any<string>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<string>())
-		.Returns(dek);
-
-		builder.RegisterInstance(unlocker);
-
-		return unlocker;
 	}
 	#endregion
 }

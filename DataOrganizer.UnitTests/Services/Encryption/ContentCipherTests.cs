@@ -4,7 +4,6 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
@@ -198,29 +197,35 @@ internal class ContentCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
-
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
-
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(10));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(RandomValues.CreateBytes(10));
 
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
+
 			builder.RegisterInstance(encryption);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(unlocker);
 		});
 
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(file, contents, string.Empty);
+		byte[]? result = await sut.TryDecryptContentsAsync(
+			file,
+			contents,
+			string.Empty);
 
 		// Assert
 		result
@@ -275,7 +280,10 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(file, contents, string.Empty);
+		byte[]? result = await sut.TryDecryptContentsAsync(
+			file,
+			contents,
+			string.Empty);
 
 		// Assert
 		result
@@ -297,9 +305,9 @@ internal class ContentCipherTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
 
 		ContentCipher sut = mock.Create<ContentCipher>();
 
@@ -314,9 +322,9 @@ internal class ContentCipherTests
 			.Should()
 			.BeNull();
 
-		await dialogService
+		await unlocker
 			.DidNotReceiveWithAnyArgs()
-			.RequestPasswordAsync(default!);
+			.RequestDekAsync(default!, default!);
 	}
 
 	/// <summary>
@@ -327,9 +335,9 @@ internal class ContentCipherTests
 	public async Task TryDecryptContentsAsync_Hands_Empty_Contents_Back()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
 
 		ContentCipher sut = mock.Create<ContentCipher>();
 
@@ -344,9 +352,9 @@ internal class ContentCipherTests
 			.Should()
 			.BeEmpty();
 
-		await dialogService
+		await unlocker
 			.DidNotReceiveWithAnyArgs()
-			.RequestPasswordAsync(default!);
+			.RequestDekAsync(default!, default!);
 	}
 
 	/// <summary>
@@ -409,27 +417,6 @@ internal class ContentCipherTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
-	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
-	{
-		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-		unlocker
-			.RequestDekAsync(
-				Arg.Any<IPasswordKeeper>(),
-				Arg.Any<string>(),
-				Arg.Any<string>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<string>())
-			.Returns(dek);
-
-		builder.RegisterInstance(unlocker);
-
-		return unlocker;
-	}
-
 	/// <summary>
 	/// Failures an operation on the key of a session can end with.
 	/// </summary>

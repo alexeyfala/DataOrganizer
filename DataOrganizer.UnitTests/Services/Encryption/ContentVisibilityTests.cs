@@ -6,7 +6,6 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
@@ -204,13 +203,24 @@ internal class ContentVisibilityTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			sessionKeyStore
 				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(false);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -257,19 +267,18 @@ internal class ContentVisibilityTests
 				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(true);
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(10));
-
-			builder.RegisterInstance(dialogService);
-
-			builder.RegisterInstance(encryption);
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -309,13 +318,24 @@ internal class ContentVisibilityTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
 			sessionKeyStore
 				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(false);
+
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(sessionKeyStore);
 
@@ -362,19 +382,18 @@ internal class ContentVisibilityTests
 				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(true);
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -396,28 +415,6 @@ internal class ContentVisibilityTests
 		sessionKeyStore
 			.Received(1)
 			.Unlock(folder.Id, Arg.Any<PinnedBuffer>());
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
-	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
-	{
-		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-		unlocker.RequestDekAsync(
-			Arg.Any<IPasswordKeeper>(),
-			Arg.Any<string>(),
-			Arg.Any<string>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<string>())
-		.Returns(dek);
-
-		builder.RegisterInstance(unlocker);
-
-		return unlocker;
 	}
 	#endregion
 }
