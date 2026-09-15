@@ -12,7 +12,6 @@ using Material.Ripple;
 using Material.Styles.Controls;
 using Material.Styles.Models;
 using System;
-using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -37,12 +36,13 @@ internal class SnackbarTextColorTests
 	/// <summary>
 	/// No view sets Foreground on SnackbarHost, so a null brush cannot be inherited by the window subtree.
 	/// </summary>
+	[Guard]
 	[Test]
 	public void No_View_Sets_Foreground_On_SnackbarHost()
 	{
 		// Act
-		XElement[] hosts = [.. EnumerateProjectMarkup()
-			.SelectMany(document => document.Descendants())
+		XElement[] hosts = [.. RepositoryFiles.EnumerateProjectMarkup()
+			.SelectMany(markup => markup.Document.Descendants())
 			.Where(element => element.Name.LocalName == SnackbarHostElementName)];
 
 		// Assert
@@ -195,19 +195,6 @@ internal class SnackbarTextColorTests
 
 	#region Helpers
 	/// <summary>
-	/// Parses every markup file of the application project.
-	/// </summary>
-	private static XDocument[] EnumerateProjectMarkup()
-	{
-		string root = Path.Combine(LocateRepositoryRoot(), "DataOrganizer");
-
-		return [.. Directory
-			.EnumerateFiles(root, "*.axaml", SearchOption.AllDirectories)
-			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-			.Select(XDocument.Load)];
-	}
-
-	/// <summary>
 	/// Colour the snackbar styles assign to the given level.
 	/// </summary>
 	private static Color ExpectedColor(SnackbarMessageLevel level)
@@ -218,22 +205,6 @@ internal class SnackbarTextColorTests
 			SnackbarMessageLevel.Error => ResourceColor("WarningBrush"),
 			_ => ResourceColor("MaterialBodyBrush")
 		};
-	}
-
-	/// <summary>
-	/// Walks up from the test output directory to the folder containing Directory.Build.props.
-	/// </summary>
-	private static string LocateRepositoryRoot()
-	{
-		DirectoryInfo? directory = new(TestContext.CurrentContext.TestDirectory);
-
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Directory.Build.props")))
-		{
-			directory = directory.Parent;
-		}
-
-		return directory?.FullName
-			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
 	}
 
 	/// <summary>

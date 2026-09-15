@@ -10,6 +10,7 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
+[Guard]
 [TestFixture(Description = "Guards that every resource key the markup references can still be resolved")]
 internal partial class ResourceKeyConsistencyTests
 {
@@ -38,7 +39,7 @@ internal partial class ResourceKeyConsistencyTests
 	public void Referenced_Resource_Keys_Are_Declared_Or_Served_By_A_Theme()
 	{
 		// Arrange
-		(string FilePath, XDocument Document)[] markup = [.. EnumerateProjectMarkup()];
+		(string FilePath, XDocument Document)[] markup = [.. RepositoryFiles.EnumerateProjectMarkup()];
 
 		HashSet<string> declared = [.. markup.SelectMany(x => CollectDeclaredKeys(x.Document))];
 
@@ -98,19 +99,6 @@ internal partial class ResourceKeyConsistencyTests
 	}
 
 	/// <summary>
-	/// Parses every markup file of the application project.
-	/// </summary>
-	private static IEnumerable<(string FilePath, XDocument Document)> EnumerateProjectMarkup()
-	{
-		string root = Path.Combine(LocateRepositoryRoot(), "DataOrganizer");
-
-		return Directory
-			.EnumerateFiles(root, "*.axaml", SearchOption.AllDirectories)
-			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-			.Select(path => (FilePath: path, Document: XDocument.Load(path)));
-	}
-
-	/// <summary>
 	/// <c>True</c> when the running application resolves the key from a merged theme.
 	/// </summary>
 	private static bool IsServedByTheme(string key)
@@ -118,22 +106,6 @@ internal partial class ResourceKeyConsistencyTests
 		Application application = Application.Current!;
 
 		return application.TryGetResource(key, application.ActualThemeVariant, out _);
-	}
-
-	/// <summary>
-	/// Walks up from the test output directory to the folder containing Directory.Build.props.
-	/// </summary>
-	private static string LocateRepositoryRoot()
-	{
-		DirectoryInfo? directory = new(TestContext.CurrentContext.TestDirectory);
-
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Directory.Build.props")))
-		{
-			directory = directory.Parent;
-		}
-
-		return directory?.FullName
-			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
 	}
 
 	/// <summary>

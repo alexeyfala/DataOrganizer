@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
+[Guard]
 [TestFixture(Description = "Guards that the solution files reference describes every non-code file it covers")]
 internal class SolutionFilesReferenceTests
 {
@@ -14,7 +15,12 @@ internal class SolutionFilesReferenceTests
 	/// <summary>
 	/// The reference itself, relative to the repository root.
 	/// </summary>
-	private const string ReferenceFilePath = "Docs/Solution_Files.md";
+	private const string ReferenceFilePath = $"{ReferenceFolderPath}/Solution_Files.md";
+
+	/// <summary>
+	/// Folder the reference lives in; the links within it are relative to this folder.
+	/// </summary>
+	private const string ReferenceFolderPath = "Docs";
 
 	/// <summary>
 	/// Solution file listing the covered virtual folders.
@@ -45,7 +51,7 @@ internal class SolutionFilesReferenceTests
 	public void SolutionFilesReference_Mentions_Every_Covered_File()
 	{
 		// Arrange
-		string reference = File.ReadAllText(Path.Combine(LocateRepositoryRoot(), ReferenceFilePath));
+		string reference = RepositoryFiles.ReadText(ReferenceFilePath);
 
 		// Act
 		IEnumerable<string> undocumented = [.. CollectCoveredFiles().Where(path => !IsMentioned(path, reference))];
@@ -53,7 +59,7 @@ internal class SolutionFilesReferenceTests
 		// Assert
 		undocumented
 			.Should()
-			.BeEmpty($"{ReferenceFilePath} must describe every file it covers");
+			.BeEmpty($"{ReferenceFilePath} must link every file it covers");
 	}
 	#endregion
 
@@ -63,7 +69,7 @@ internal class SolutionFilesReferenceTests
 	/// </summary>
 	private static IEnumerable<string> CollectCoveredFiles()
 	{
-		string root = LocateRepositoryRoot();
+		string root = RepositoryFiles.LocateRoot();
 
 		IEnumerable<string> diskFiles = CoveredDiskFolders
 			.SelectMany(folder => EnumerateFolderFiles(root, folder));
@@ -94,27 +100,16 @@ internal class SolutionFilesReferenceTests
 	}
 
 	/// <summary>
-	/// Tells whether the reference names the file.
+	/// Tells whether the reference carries a link to the file. A bare mention of the name is not
+	/// enough: the name alone also appears in the prose around an entry.
 	/// </summary>
 	private static bool IsMentioned(string path, string reference)
 	{
-		return reference.Contains(Path.GetFileName(path), StringComparison.Ordinal);
-	}
+		string target = path.StartsWith($"{ReferenceFolderPath}/", StringComparison.OrdinalIgnoreCase)
+			? path[(ReferenceFolderPath.Length + 1)..]
+			: $"../{path}";
 
-	/// <summary>
-	/// Walks up from the test output directory to the folder containing Directory.Build.props.
-	/// </summary>
-	private static string LocateRepositoryRoot()
-	{
-		DirectoryInfo? directory = new(TestContext.CurrentContext.TestDirectory);
-
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Directory.Build.props")))
-		{
-			directory = directory.Parent;
-		}
-
-		return directory?.FullName
-			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
+		return reference.Contains($"]({target})", StringComparison.Ordinal);
 	}
 
 	/// <summary>

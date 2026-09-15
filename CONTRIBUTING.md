@@ -42,13 +42,17 @@ dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
 ```
 
-`Repository.IntegrationTests` is the only project that needs a real database file; it
-writes one into a temporary folder of its own and removes it again. Every test of that
-project carries the `Integration` category, so a run over the whole solution can leave
-them out:
+Two categories mark the tests that read or write outside the process, so a run over the
+whole solution can leave them out:
+
+- `Integration` — every test of `Repository.IntegrationTests`, the only project that needs
+  a real database file. It writes one into a temporary folder of its own and removes it again.
+- `Guard` — the tests in `DataOrganizer.UnitTests/Guards` that read the files of the
+  repository (the solution file, `Directory.Build.props`, `.vscode`, the markup) instead of
+  exercising the application.
 
 ```bash
-dotnet test DataOrganizerApp.slnx --filter TestCategory!=Integration
+dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCategory!=Guard"
 ```
 
 ## Coding Guidelines
