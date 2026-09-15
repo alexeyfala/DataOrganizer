@@ -8,6 +8,7 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -608,17 +609,10 @@ public class ViewLauncher : IViewLauncher
 		// 16 device-independent pixels of padding from the screen edge.
 		const int marginDip = 16;
 
-		PixelRect workingArea = screen.WorkingArea;
-
-		int widthPx = (int)(target.Width * screen.Scaling);
-
-		int heightPx = (int)(target.Height * screen.Scaling);
-
-		int marginPx = (int)(marginDip * screen.Scaling);
-
-		target.Position = new PixelPoint(
-			workingArea.X + workingArea.Width - widthPx - marginPx,
-			workingArea.Y + workingArea.Height - heightPx - marginPx);
+		target.Position = WindowPlacementHelper.GetLowerRightPosition(
+			screen.WorkingArea,
+			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
+			(int)(marginDip * screen.Scaling));
 	}
 
 	/// <summary>
