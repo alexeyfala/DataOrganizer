@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
@@ -467,13 +468,15 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.SaveAndClose" />: invoking it sets the IsSaved property to true.
+	/// <see cref="SettingsViewModel.SaveAndClose" />: marks the settings as saved and closes the dialog.
 	/// </summary>
 	[Test]
-	public void SaveAndClose_Sets_Property()
+	public void SaveAndClose_Marks_The_Settings_Saved_And_Closes_The_Dialog()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogHostCloser));
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
@@ -484,6 +487,10 @@ internal class SettingsViewModelTests
 		sut.IsSaved
 			.Should()
 			.BeTrue();
+
+		dialogHostCloser
+			.Received(1)
+			.Close();
 	}
 
 	/// <summary>

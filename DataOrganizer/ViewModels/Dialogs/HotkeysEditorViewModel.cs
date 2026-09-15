@@ -4,14 +4,13 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
-using DialogHostAvalonia;
 using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook.Data;
-using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -84,18 +83,14 @@ public sealed partial class HotkeysEditorViewModel :
 	{
 		IsSaved = true;
 
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		DialogHost.Close(null);
+		_dialogHostCloser.Close();
 	}
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDialogHostCloser" />
+	private readonly IDialogHostCloser _dialogHostCloser;
+
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
 
@@ -107,6 +102,7 @@ public sealed partial class HotkeysEditorViewModel :
 
 	#region Constructors
 	public HotkeysEditorViewModel(
+		IDialogHostCloser dialogHostCloser,
 		IGlobalHookRunner hookRunner,
 		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler)
@@ -120,6 +116,8 @@ public sealed partial class HotkeysEditorViewModel :
 			messenger.UnregisterAll(this);
 			Buffer.CollectionChanged -= Buffer_CollectionChanged;
 		}).DisposeWith(_disposables);
+
+		_dialogHostCloser = dialogHostCloser;
 
 		_hookRunner = hookRunner;
 

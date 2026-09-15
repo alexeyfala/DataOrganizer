@@ -9,6 +9,7 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
@@ -323,6 +324,7 @@ internal class DialogServiceTests
 		SettingsViewModel viewModel = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
+			Substitute.For<IDialogHostCloser>(),
 			Substitute.For<ISettingsSessionState>());
 
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -372,7 +374,7 @@ internal class DialogServiceTests
 			.DiscardAndCloseCommand
 			.Execute(null);
 
-		// The command itself skips the real close when it runs under NUnit.
+		// The view model closes through a substituted IDialogHostCloser, so the real host is closed here.
 		DialogHost.Close(null);
 
 		Dispatcher.UIThread.RunJobs();

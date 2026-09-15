@@ -12,7 +12,6 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -177,21 +176,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// Tries to remove value from <see cref="Items" />.
 	/// </summary>
 	public bool Remove(FileDto file) => _filter.Remove(file);
-
-	/// <summary>
-	/// Adds <see cref="FileDto" /> objects to the source.
-	/// </summary>
-	internal void SeedCopyHistory(IEnumerable<FileDto> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_filter.AddRange(items);
-	}
 
 	/// <inheritdoc />
 	protected override void AfterDispose()

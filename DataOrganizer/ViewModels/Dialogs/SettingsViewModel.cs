@@ -3,11 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
-using DialogHostAvalonia;
 using Material.Colors;
 using Material.Styles.Themes.Base;
-using Shared.Extensions;
 using System;
 using System.Globalization;
 
@@ -170,16 +169,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Called when <see cref="IsThemeInherited" /> changes.
+	/// Called when <see cref="IsLightTheme" /> changes.
 	/// </summary>
-	partial void OnIsThemeInheritedChanged(bool value)
+	partial void OnIsLightThemeChanged(bool value)
 	{
 		if (!value)
 		{
 			return;
 		}
 
-		const BaseThemeMode theme = BaseThemeMode.Inherit;
+		const BaseThemeMode theme = BaseThemeMode.Light;
 
 		CurrentSettings.Theme = theme;
 
@@ -192,16 +191,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Called when <see cref="IsLightTheme" /> changes.
+	/// Called when <see cref="IsThemeInherited" /> changes.
 	/// </summary>
-	partial void OnIsLightThemeChanged(bool value)
+	partial void OnIsThemeInheritedChanged(bool value)
 	{
 		if (!value)
 		{
 			return;
 		}
 
-		const BaseThemeMode theme = BaseThemeMode.Light;
+		const BaseThemeMode theme = BaseThemeMode.Inherit;
 
 		CurrentSettings.Theme = theme;
 
@@ -315,14 +314,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		IsConfirmingClose = false;
 
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		DialogHost.Close(null);
+		_dialogHostCloser.Close();
 	}
 
 	/// <summary>
@@ -375,24 +367,20 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		IsConfirmingClose = false;
 
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		DialogHost.Close(null);
+		_dialogHostCloser.Close();
 	}
 
 	/// <summary>
 	/// Closes the dialog, leaving the closing handler to intercept the unsaved changes.
 	/// </summary>
 	[RelayCommand]
-	private static void Close() => DialogHost.Close(null);
+	private void Close() => _dialogHostCloser.Close();
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDialogHostCloser" />
+	private readonly IDialogHostCloser _dialogHostCloser;
+
 	/// <inheritdoc cref="ISettingsSessionState" />
 	private readonly ISettingsSessionState _sessionState;
 
@@ -407,8 +395,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public SettingsViewModel(
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
+		IDialogHostCloser dialogHostCloser,
 		ISettingsSessionState sessionState)
 	{
+		_dialogHostCloser = dialogHostCloser;
+
 		_sessionState = sessionState;
 
 		_settingsStore = settingsStore;

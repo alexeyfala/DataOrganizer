@@ -145,6 +145,7 @@ public sealed class App : Application
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDbMaintenance, DbMaintenance>();
+		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
@@ -171,6 +172,7 @@ public sealed class App : Application
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INoteReader, NoteReader>();
 		services.AddTransient<IProcessManager, ProcessManager>();
+		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();

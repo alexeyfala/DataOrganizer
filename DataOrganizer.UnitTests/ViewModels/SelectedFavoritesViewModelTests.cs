@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,23 +24,31 @@ internal class SelectedFavoritesViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
 
 		const int count = 5;
 
-		sut.SeedCategories(FavoriteFactory.CreateFavoriteCategories(count));
+		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(count)];
 
-		sut.SeedFavorites(ItemDtoFactory.CreateFileDtos(count));
+		Guid selectedCategoryId = categories[0].Id;
 
-		sut
-			.OrderedCategoryIds
-			.AddRange(RandomValues.CreateGuids(count));
+		// The favorites of the selected category are what fills the favorites collection.
+		categories[0]
+			.Children
+			.AddRange(ItemDtoFactory.CreateFileDtos(count));
 
-		sut
-			.SelectedPairs
-			.AddRange(FavoriteFactory.CreateFavoriteSelections(count));
+		sut.Initialize(
+			navigationColumnWidth: RandomValues.CreateDouble(100.0, 300.0),
+			selectedCategoryId: selectedCategoryId,
+			categories: categories,
+			orderedCategoryIds: [.. categories.Select(x => x.Id)],
+			selectedPairs: [.. FavoriteFactory.CreateFavoriteSelections(count)]);
 
-		sut.SelectedCategory = FavoriteFactory.CreateFavoriteCategory();
+		sut.IsFavoritesEmpty
+			.Should()
+			.BeFalse();
 
 		// Act
 		sut.Dispose();

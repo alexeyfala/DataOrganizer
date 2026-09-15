@@ -12,6 +12,7 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
@@ -776,6 +777,40 @@ internal class ViewLauncherTests
 		viewFactory
 			.DidNotReceive()
 			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowStartupErrorAsync" />: with no desktop lifetime to shut down, the process
+	/// is ended even when the notice itself could not be shown.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowStartupErrorAsync_Ends_The_Process_Without_A_Desktop_Lifetime()
+	{
+		// Arrange
+		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NoticeViewModel>()
+				.Returns(_ => throw new InvalidOperationException());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(processTerminator);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowStartupErrorAsync(@"C:\Database\DataOrganizer.sqlite");
+
+		// Assert
+		processTerminator
+			.Received(1)
+			.Terminate(Arg.Any<int>());
 	}
 	#endregion
 }
