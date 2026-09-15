@@ -9,7 +9,6 @@ using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Dialogs;
-using Moq;
 using NSubstitute;
 using Repository.Dto;
 using Shared.Extensions;
@@ -382,9 +381,9 @@ internal class HotkeysEditorViewModelTests
 	public async Task StopHookAsync_Delegates_To_Hook_Runner()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IGlobalHookRunner runner = Substitute.For<IGlobalHookRunner>();
 
-		Mock<IGlobalHookRunner> runner = mock.Mock<IGlobalHookRunner>();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(runner));
 
 		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
 
@@ -392,7 +391,9 @@ internal class HotkeysEditorViewModelTests
 		await sut.StopHookAsync();
 
 		// Assert
-		runner.Verify(x => x.StopAsync(It.IsAny<CancellationToken>()), Times.Once);
+		await runner
+			.Received(1)
+			.StopAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

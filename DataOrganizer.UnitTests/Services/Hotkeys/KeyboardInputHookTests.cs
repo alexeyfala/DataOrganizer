@@ -15,7 +15,6 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
-using Moq;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -231,9 +230,9 @@ internal class KeyboardInputHookTests
 	public void Receive_Hands_Message_To_Handler()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-		Mock<ITaskExceptionHandler> exceptionHandler = mock.Mock<ITaskExceptionHandler>();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(exceptionHandler));
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
@@ -241,7 +240,9 @@ internal class KeyboardInputHookTests
 		sut.Receive(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
 
 		// Assert
-		exceptionHandler.Verify(x => x.Watch(It.IsAny<Task>()), Times.Once);
+		exceptionHandler
+			.Received(1)
+			.Watch(Arg.Any<Task>());
 	}
 
 	/// <summary>

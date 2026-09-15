@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
-using Moq;
+using NSubstitute;
 using Serilog;
 using SharpHook;
 using SharpHook.Data;
@@ -28,9 +28,9 @@ internal class GlobalHookRunnerTests
 		// Arrange
 		TestGlobalHook hook = new();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IGlobalHook>(hook));
 
-		GlobalHookRunner sut = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
 		// Act
 		sut.Dispose();
@@ -52,11 +52,14 @@ internal class GlobalHookRunnerTests
 
 		WeakReferenceMessenger messenger = new();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<IGlobalHook>(hook);
 
-		GlobalHookRunner sut = mock.Create<GlobalHookRunner>(
-			TypedParameter.From<IGlobalHook>(hook),
-			TypedParameter.From<IMessenger>(messenger));
+			builder.RegisterInstance<IMessenger>(messenger);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
 		List<GlobalKeyReleasedMessage> received = [];
 
@@ -86,11 +89,11 @@ internal class GlobalHookRunnerTests
 	public async Task StartAsync_Runs_Hook_Once()
 	{
 		// Arrange
-		TestGlobalHook hook = new();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<TestGlobalHook>()
+			.As<IGlobalHook>());
 
-		using AutoMock mock = AutoMock.GetLoose();
-
-		GlobalHookRunner sut = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
 		// Act
 		await sut.StartAsync();
@@ -110,9 +113,9 @@ internal class GlobalHookRunnerTests
 	public async Task StopAsync_Does_Not_Stop_Hook_When_It_Is_Not_Running()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IGlobalHook hook = Substitute.For<IGlobalHook>();
 
-		Mock<IGlobalHook> hook = mock.Mock<IGlobalHook>();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(hook));
 
 		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
@@ -124,7 +127,9 @@ internal class GlobalHookRunnerTests
 			.Should()
 			.NotThrowAsync();
 
-		hook.Verify(x => x.Stop(), Times.Never);
+		hook
+			.DidNotReceive()
+			.Stop();
 	}
 
 	/// <summary>
@@ -134,17 +139,24 @@ internal class GlobalHookRunnerTests
 	public async Task StopAsync_Logs_Exception_When_Stop_Fails()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		ILogger logger = Substitute.For<ILogger>();
 
-		Mock<IGlobalHook> hook = mock.Mock<IGlobalHook>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
 
-		hook.SetupGet(x => x.IsRunning)
-			.Returns(true);
+			hook
+				.IsRunning
+				.Returns(true);
 
-		hook.Setup(x => x.Stop())
-			.Throws(new HookException(UioHookResult.Failure));
+			hook
+				.When(x => x.Stop())
+				.Throw(new HookException(UioHookResult.Failure));
 
-		Mock<ILogger> logger = mock.Mock<ILogger>();
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance(logger);
+		});
 
 		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
@@ -156,9 +168,9 @@ internal class GlobalHookRunnerTests
 			.Should()
 			.NotThrowAsync();
 
-		logger.Verify(
-			x => x.Error(It.IsAny<HookException>(), It.IsAny<string>(), It.IsAny<string>()),
-			Times.Once);
+		logger
+			.Received(1)
+			.Error(Arg.Any<HookException>(), Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -168,11 +180,11 @@ internal class GlobalHookRunnerTests
 	public async Task StopAsync_Stops_Running_Hook()
 	{
 		// Arrange
-		TestGlobalHook hook = new();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<TestGlobalHook>()
+			.As<IGlobalHook>());
 
-		using AutoMock mock = AutoMock.GetLoose();
-
-		GlobalHookRunner sut = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
 		await sut.StartAsync();
 

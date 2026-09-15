@@ -51,11 +51,16 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-			windowMock.Mock<IClipboardLogService>()
-				.SetupGet(x => x.Entries)
-				.Returns([]);
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
 
 			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
@@ -469,7 +474,13 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
@@ -478,12 +489,10 @@ internal class ViewLauncherTests
 					Arg.Any<bool>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
+			builder.RegisterInstance(clipboardLogService);
+
 			builder.RegisterInstance(fileSystem);
 		});
-
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
@@ -515,7 +524,13 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
@@ -524,12 +539,10 @@ internal class ViewLauncherTests
 					Arg.Any<bool>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
+			builder.RegisterInstance(clipboardLogService);
+
 			builder.RegisterInstance(fileSystem);
 		});
-
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
@@ -559,14 +572,20 @@ internal class ViewLauncherTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(fileSystem));
+			builder.RegisterInstance(clipboardLogService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		sut.SaveClipboardLogSettings(mock.Create<ClipboardLogWindow>());
@@ -676,11 +695,16 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-			windowMock.Mock<IClipboardLogService>()
-				.SetupGet(x => x.Entries)
-				.Returns([]);
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
 
 			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
@@ -739,30 +763,35 @@ internal class ViewLauncherTests
 	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-		windowMock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			windowBuilder.RegisterInstance(clipboardLogService);
+		});
 
 		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
 		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
 
-		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-		lifetime
-			.Windows
-			.Returns([existing]);
-
-		Application app = Substitute.For<Application>();
-
-		app.ApplicationLifetime = lifetime;
-
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([existing]);
+
+			app.ApplicationLifetime = lifetime;
+
 			builder.RegisterInstance(app).As<Application>();
 
 			builder.RegisterInstance(viewFactory);
