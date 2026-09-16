@@ -25,7 +25,9 @@ internal class ConsoleViewModelTests
 	public void EditorLoadedCommand_Writes_The_Records_Buffered_Without_An_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor()));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
@@ -108,7 +110,9 @@ internal class ConsoleViewModelTests
 	public void Records_Written_While_Paused_Reach_The_Editor_Once_It_Is_Resumed()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor()));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 

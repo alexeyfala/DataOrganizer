@@ -1129,7 +1129,9 @@ internal class DatasetEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1261,7 +1263,9 @@ internal class DatasetEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
