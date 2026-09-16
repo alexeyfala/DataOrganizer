@@ -208,17 +208,20 @@ internal class DialogServiceTests
 			Application.Current!,
 			Substitute.For<ITaskExceptionHandler>());
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-		viewFactory
-			.CreateViewModel<MultilineTextEditViewModel>()
-			.Returns(viewModel);
+			viewFactory
+				.CreateViewModel<MultilineTextEditViewModel>()
+				.Returns(viewModel);
 
-		viewFactory
-			.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
-			.Returns(new MultilineTextEditView(viewModel));
+			viewFactory
+				.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
+				.Returns(new MultilineTextEditView(viewModel));
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+			builder.RegisterInstance(viewFactory);
+		});
 
 		DialogService sut = mock.Create<DialogService>();
 
@@ -327,17 +330,20 @@ internal class DialogServiceTests
 			Substitute.For<IDialogHostCloser>(),
 			Substitute.For<ISettingsSessionState>());
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-		viewFactory
-			.CreateViewModel<SettingsViewModel>()
-			.Returns(viewModel);
+			viewFactory
+				.CreateViewModel<SettingsViewModel>()
+				.Returns(viewModel);
 
-		viewFactory
-			.CreateUserControl<SettingsView>(Arg.Any<object[]>())
-			.Returns(new SettingsView(viewModel));
+			viewFactory
+				.CreateUserControl<SettingsView>(Arg.Any<object[]>())
+				.Returns(new SettingsView(viewModel));
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+			builder.RegisterInstance(viewFactory);
+		});
 
 		DialogService sut = mock.Create<DialogService>();
 

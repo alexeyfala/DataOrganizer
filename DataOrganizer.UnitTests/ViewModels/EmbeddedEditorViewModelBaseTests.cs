@@ -1,10 +1,17 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using Avalonia;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.ViewModels;
 using NSubstitute;
+using Repository.Interfaces.Database;
+using Serilog;
+using Shared.Interfaces;
 using System;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -28,14 +35,18 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		contentCipher
-			.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input)
-			.Returns(decrypted);
-
-		TestEditor sut = new(contentCipher)
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			KeeperId = keeperId
-		};
+			contentCipher
+				.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+				.Returns(decrypted);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		sut.KeeperId = keeperId;
 
 		// Act
 		byte[]? result = sut.InvokeTryDecrypt(input);
@@ -61,10 +72,11 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(contentCipher)
-		{
-			KeeperId = Guid.NewGuid()
-		};
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		sut.KeeperId = Guid.NewGuid();
 
 		// Act
 		byte[]? result = sut.InvokeTryDecrypt(input);
@@ -90,7 +102,9 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(contentCipher);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
+
+		TestEditor sut = mock.Create<TestEditor>();
 
 		// Act
 		byte[]? result = sut.InvokeTryDecrypt(input);
@@ -120,14 +134,18 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		contentCipher
-			.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input)
-			.Returns(encrypted);
-
-		TestEditor sut = new(contentCipher)
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			KeeperId = keeperId
-		};
+			contentCipher
+				.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+				.Returns(encrypted);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		sut.KeeperId = keeperId;
 
 		// Act
 		byte[]? result = sut.InvokeTryEncrypt(input);
@@ -153,10 +171,11 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(contentCipher)
-		{
-			KeeperId = Guid.NewGuid()
-		};
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		sut.KeeperId = Guid.NewGuid();
 
 		// Act
 		byte[]? result = sut.InvokeTryEncrypt(input);
@@ -182,7 +201,9 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(contentCipher);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
+
+		TestEditor sut = mock.Create<TestEditor>();
 
 		// Act
 		byte[]? result = sut.InvokeTryEncrypt(input);
@@ -204,19 +225,27 @@ internal class EmbeddedEditorViewModelBaseTests
 // can access it — a private nested type would be inaccessible to the generated code.
 
 /// <summary>
-/// Minimal concrete editor exposing the protected encryption helpers; unused base dependencies are left null.
+/// Minimal concrete editor exposing the protected encryption helpers.
 /// </summary>
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
-	public TestEditor(IContentCipher contentCipher) : base(
-		null!,
-		contentCipher,
-		null!,
-		null!,
-		null!,
-		Substitute.For<IMessenger>(),
-		Substitute.For<INotificationService>(),
-		null!)
+	public TestEditor(
+		Application app,
+		IContentCipher contentCipher,
+		IDbAccess dbAccess,
+		IJsonSerializer jsonSerializer,
+		ILogger logger,
+		IMessenger messenger,
+		INotificationService notification,
+		ITaskExceptionHandler exceptionHandler) : base(
+			app,
+			contentCipher,
+			dbAccess,
+			jsonSerializer,
+			logger,
+			messenger,
+			notification,
+			exceptionHandler)
 	{
 	}
 

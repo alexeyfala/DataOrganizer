@@ -159,7 +159,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(folderProtection);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -194,11 +196,16 @@ internal class EditorViewModelTests
 
 		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(engine),
-			TypedParameter.From<IDispatcherAccessor>(new InlineDispatcherAccessor()));
+			builder.RegisterInstance(engine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		sut
 			.ExecutingFiles
@@ -236,10 +243,11 @@ internal class EditorViewModelTests
 
 		executingFiles.ForEach(x => x.IsExecuting = true);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From<IDispatcherAccessor>(new InlineDispatcherAccessor()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		sut.CloseFiles(editingFiles, executingFiles);
@@ -289,7 +297,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(folderProtection);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -344,18 +354,20 @@ internal class EditorViewModelTests
 
 		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
-		hierarchyEditor
-			.DeleteAsync(
-				Arg.Any<ExplorerItemDtoBase>(),
-				Arg.Any<Collection<ExplorerItemDtoBase>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(true);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(hierarchyEditor);
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(hierarchyEditor);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -397,24 +409,26 @@ internal class EditorViewModelTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
-		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-		hierarchyEditor
-			.DeleteAsync(
-				Arg.Any<ExplorerItemDtoBase>(),
-				Arg.Any<Collection<ExplorerItemDtoBase>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(true);
-
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
-
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -441,16 +455,19 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(isExecuting: true);
 
-		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
-		hierarchyEditor
-			.DeleteAsync(
-				Arg.Any<ExplorerItemDtoBase>(),
-				Arg.Any<Collection<ExplorerItemDtoBase>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(false);
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(false);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(hierarchyEditor));
+			builder.RegisterInstance(hierarchyEditor);
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -486,19 +503,19 @@ internal class EditorViewModelTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
-		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-		hierarchyEditor
-			.DeleteAsync(
-				Arg.Any<ExplorerItemDtoBase>(),
-				Arg.Any<Collection<ExplorerItemDtoBase>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(false);
-
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(false);
+
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
@@ -528,24 +545,26 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-		hierarchyEditor
-			.DeleteAsync(
-				Arg.Any<ExplorerItemDtoBase>(),
-				Arg.Any<Collection<ExplorerItemDtoBase>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(true);
-
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
-
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -783,7 +802,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(folderProtection);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1173,7 +1194,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1224,7 +1247,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1269,7 +1294,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1321,7 +1348,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1374,7 +1403,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1427,7 +1458,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1452,16 +1485,16 @@ internal class EditorViewModelTests
 	public async Task Import_Drops_The_Keys_On_Replacement()
 	{
 		// Arrange
-		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-		dataExchange
-			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
-			.Returns(new ImportDataResult([], ImportMode.Replace));
-
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([], ImportMode.Replace));
+
 			builder.RegisterInstance(dataExchange);
 
 			builder.RegisterInstance(contentVisibility);
@@ -1485,16 +1518,16 @@ internal class EditorViewModelTests
 	public async Task Import_Keeps_The_Keys_On_Appending()
 	{
 		// Arrange
-		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-		dataExchange
-			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
-			.Returns(new ImportDataResult([], ImportMode.Append));
-
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([], ImportMode.Append));
+
 			builder.RegisterInstance(dataExchange);
 
 			builder.RegisterInstance(contentVisibility);
@@ -1742,21 +1775,23 @@ internal class EditorViewModelTests
 
 		List<Task> scheduled = [];
 
-		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-		exceptionHandler
-			.When(static x => x.Watch(Arg.Any<Task>()))
-			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
 			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1812,21 +1847,23 @@ internal class EditorViewModelTests
 
 		List<Task> scheduled = [];
 
-		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-		exceptionHandler
-			.When(static x => x.Watch(Arg.Any<Task>()))
-			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
 			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2066,7 +2103,9 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();

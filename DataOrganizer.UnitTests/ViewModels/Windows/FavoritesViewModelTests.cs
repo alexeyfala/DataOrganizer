@@ -404,7 +404,7 @@ internal class FavoritesViewModelTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
