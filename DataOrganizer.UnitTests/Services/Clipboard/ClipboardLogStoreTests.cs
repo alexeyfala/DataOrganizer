@@ -43,7 +43,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -73,7 +94,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -107,7 +149,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -146,13 +209,32 @@ internal class ClipboardLogStoreTests
 			Version = PersistedClipboardLog.CurrentVersion + 1
 		});
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		sessionKeyStore
-			.Decrypt(default, default, default!)
-			.ReturnsForAnyArgs(plaintext);
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		using AutoMock mock = CreateMock(files, sessionKeyStore: sessionKeyStore);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			sessionKeyStore
+				.Decrypt(default, default, default!)
+				.ReturnsForAnyArgs(plaintext);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -178,7 +260,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -206,7 +309,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -216,7 +340,28 @@ internal class ClipboardLogStoreTests
 		}
 
 		// Act
-		using AutoMock second = CreateMock(files);
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -250,7 +395,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -262,7 +428,28 @@ internal class ClipboardLogStoreTests
 		}
 
 		// Act
-		using AutoMock second = CreateMock(files);
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -292,23 +479,42 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		// The key is taken (so the store unlocks)...
-		sessionKeyStore
-			.Unlock(default, default!)
-			.ReturnsForAnyArgs(true);
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		sessionKeyStore
-			.IsUnlocked(default)
-			.ReturnsForAnyArgs(true);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
 
-		// ...but encrypting the journal fails.
-		sessionKeyStore
-			.Encrypt(default, default, default!)
-			.ThrowsForAnyArgs(new CryptographicException());
+			// The key is taken (so the store unlocks)...
+			sessionKeyStore
+				.Unlock(default, default!)
+				.ReturnsForAnyArgs(true);
 
-		using AutoMock mock = CreateMock(files, sessionKeyStore: sessionKeyStore);
+			sessionKeyStore
+				.IsUnlocked(default)
+				.ReturnsForAnyArgs(true);
+
+			// ...but encrypting the journal fails.
+			sessionKeyStore
+				.Encrypt(default, default, default!)
+				.ThrowsForAnyArgs(new CryptographicException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -332,7 +538,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -354,7 +581,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -389,7 +637,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -407,21 +676,39 @@ internal class ClipboardLogStoreTests
 
 		byte[] rewrapped = [9, 8, 7];
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(new PinnedBuffer(32));
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-		encryption
-			.RewrapIfOutdated(
-				Arg.Any<byte[]>(),
-				Arg.Any<PinnedBuffer>(),
-				Arg.Any<PinnedBuffer>(),
-				Arg.Any<ContentIdentity>())
-			.Returns(rewrapped);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
 
-		using AutoMock second = CreateMock(files, encryption);
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(new PinnedBuffer(32));
+
+			encryption
+				.RewrapIfOutdated(
+					Arg.Any<byte[]>(),
+					Arg.Any<PinnedBuffer>(),
+					Arg.Any<PinnedBuffer>(),
+					Arg.Any<ContentIdentity>())
+				.Returns(rewrapped);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			// The key store keeps a real encryption service even though the store gets a substituted one.
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+		});
 
 		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
 
@@ -452,20 +739,59 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("pw"));
 		}
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
-			.Throws(new AuthenticationTagMismatchException());
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-		using AutoMock second = CreateMock(files, encryption);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
+				.Throws(new AuthenticationTagMismatchException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			// The key store keeps a real encryption service even though the store gets a substituted one.
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -491,20 +817,59 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("pw"));
 		}
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
-			.Throws(new InvalidCredentialException());
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-		using AutoMock second = CreateMock(files, encryption);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
+				.Throws(new InvalidCredentialException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			// The key store keeps a real encryption service even though the store gets a substituted one.
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -530,17 +895,35 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		encryption
-			.CreateRandomDek()
-			.Returns(new PinnedBuffer(32));
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-		encryption
-			.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Throws(new CryptographicException());
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
 
-		using AutoMock mock = CreateMock(files, encryption);
+			encryption
+				.CreateRandomDek()
+				.Returns(new PinnedBuffer(32));
+
+			encryption
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Throws(new CryptographicException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			// The key store keeps a real encryption service even though the store gets a substituted one.
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -570,7 +953,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -579,14 +983,32 @@ internal class ClipboardLogStoreTests
 			await writer.SaveAsync([TextEntry("data")]);
 		}
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(new PinnedBuffer(32));
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-		using AutoMock second = CreateMock(files, encryption);
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(new PinnedBuffer(32));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			// The key store keeps a real encryption service even though the store gets a substituted one.
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -612,7 +1034,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -624,7 +1067,28 @@ internal class ClipboardLogStoreTests
 		files.Files[BinPath] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 		// Act
-		using AutoMock second = CreateMock(files);
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -650,7 +1114,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -662,7 +1147,28 @@ internal class ClipboardLogStoreTests
 		files.Files[BinPath] = [];
 
 		// Act
-		using AutoMock second = CreateMock(files);
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -687,7 +1193,28 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = CreateMock(files))
+		using (AutoMock first = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		}))
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
@@ -695,7 +1222,28 @@ internal class ClipboardLogStoreTests
 		}
 
 		// Act
-		using AutoMock second = CreateMock(files);
+		using AutoMock second = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
@@ -713,45 +1261,6 @@ internal class ClipboardLogStoreTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Builds an auto-mock container backed by the supplied in-memory file system, a real
-	/// <see cref="EncryptionService" /> and a real <see cref="SessionKeyStore" /> holding the key.
-	/// </summary>
-	private static AutoMock CreateMock(
-		InMemoryFileSystem files,
-		IEncryptionService? encryption = null,
-		ISessionKeyStore? sessionKeyStore = null)
-	{
-		return AutoMock.GetLoose(builder =>
-		{
-			// The key store keeps a real encryption service even when the store itself gets a substituted one.
-			builder.RegisterInstance(sessionKeyStore ?? new SessionKeyStore(new EncryptionService()));
-
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder
-				.RegisterInstance(files)
-				.As<IFileSystem>();
-
-			if (encryption is null)
-			{
-				builder
-					.RegisterType<EncryptionService>()
-					.As<IEncryptionService>();
-			}
-			else
-			{
-				builder.RegisterInstance(encryption);
-			}
-		});
-	}
-
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
