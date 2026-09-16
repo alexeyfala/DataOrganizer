@@ -32,19 +32,38 @@ internal class UpdateNotifierTests
 			ReleaseUrl = ReleaseUrl
 		};
 
-		Context context = CreateContext(result, promptAnswer: false);
+		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
+
+			updateCheckService
+				.CheckAsync(Arg.Any<CancellationToken>())
+				.Returns(result);
+
+			prompt
+				.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(updateCheckService);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await context
-			.Sut
-			.NotifyIfUpdateAvailableAsync(context.Prompt);
+		await sut.NotifyIfUpdateAvailableAsync(prompt);
 
 		// Assert
-		await context.Prompt
+		await prompt
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessManager
+		processManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -56,19 +75,34 @@ internal class UpdateNotifierTests
 	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_When_No_Update()
 	{
 		// Arrange
-		Context context = CreateContext(UpdateCheckResult.None, promptAnswer: false);
+		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
+
+			updateCheckService
+				.CheckAsync(Arg.Any<CancellationToken>())
+				.Returns(UpdateCheckResult.None);
+
+			builder.RegisterInstance(updateCheckService);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await context
-			.Sut
-			.NotifyIfUpdateAvailableAsync(context.Prompt);
+		await sut.NotifyIfUpdateAvailableAsync(prompt);
 
 		// Assert
-		await context.Prompt
+		await prompt
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessManager
+		processManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -87,19 +121,34 @@ internal class UpdateNotifierTests
 			ReleaseUrl = null
 		};
 
-		Context context = CreateContext(result, promptAnswer: true);
+		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
+
+			updateCheckService
+				.CheckAsync(Arg.Any<CancellationToken>())
+				.Returns(result);
+
+			builder.RegisterInstance(updateCheckService);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await context
-			.Sut
-			.NotifyIfUpdateAvailableAsync(context.Prompt);
+		await sut.NotifyIfUpdateAvailableAsync(prompt);
 
 		// Assert
-		await context.Prompt
+		await prompt
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessManager
+		processManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -152,49 +201,6 @@ internal class UpdateNotifierTests
 		processManager
 			.Received(1)
 			.StartProcess(ReleaseUrl, out _);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Builds a notifier under test wired with a canned check result and prompt answer.
-	/// </summary>
-	private static Context CreateContext(UpdateCheckResult checkResult, bool promptAnswer)
-	{
-		IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
-
-		updateCheckService
-			.CheckAsync(Arg.Any<CancellationToken>())
-			.Returns(checkResult);
-
-		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
-
-		prompt
-			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-			.Returns(promptAnswer);
-
-		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		return new Context
-		{
-			Prompt = prompt,
-			ProcessManager = processManager,
-			Sut = new UpdateNotifier(processManager, updateCheckService)
-		};
-	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Bundles the notifier under test with its captured collaborators.
-	/// </summary>
-	private sealed class Context
-	{
-		#region Properties
-		public required IProcessManager ProcessManager { get; init; }
-		public required IUpdatePrompt Prompt { get; init; }
-		public required UpdateNotifier Sut { get; init; }
-		#endregion
 	}
 	#endregion
 }

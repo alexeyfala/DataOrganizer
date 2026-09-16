@@ -15,7 +15,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using TestSupport.Http;
 
@@ -34,14 +33,45 @@ internal class UpdateCheckServiceTests
 		// Arrange
 		const string url = "https://github.com/alexeyfala/DataOrganizer/releases/tag/v0.2.0";
 
-		Context context = CreateContext(
-			currentVersion: "0.1.0",
-			responseJson: Releases(("v0.2.0", url, false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.2.0", url, false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -64,17 +94,50 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Records_Notified_Version_When_Update_Available()
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: "0.1.0",
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.2.0", "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		await context
-			.Sut
-			.CheckAsync();
+		await sut.CheckAsync();
 
 		// Assert
-		context.Settings.LastNotifiedVersion
+		settings.LastNotifiedVersion
 			.Should()
 			.Be("0.2.0");
 	}
@@ -86,23 +149,50 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Records_Timestamp_On_Completed_Request()
 	{
 		// Arrange
-		Context context = CreateContext(responseJson: "[]");
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		FakeTimeProvider time = new();
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(HttpStatusCode.OK, "[]");
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
-		context.Settings.LastUpdateCheckAt
+		settings.LastUpdateCheckAt
 			.Should()
-			.Be(context.Time.GetUtcNow());
+			.Be(time.GetUtcNow());
 
-		context.SettingsStore
+		settingsStore
 			.Received(1)
 			.Save();
 	}
@@ -122,14 +212,45 @@ internal class UpdateCheckServiceTests
 		bool expectedUpdate)
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: currentVersion,
-			responseJson: Releases((tag, "https://example.test/release", false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases((tag, "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			versionProvider
+				.CurrentVersion
+				.Returns(currentVersion);
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -144,15 +265,48 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Reports_Update_When_Newer_Than_Notified()
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: "0.1.0",
-			lastNotifiedVersion: "0.2.0",
-			responseJson: Releases(("v0.3.0", "https://example.test/release", false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.3.0", "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					LastNotifiedVersion = "0.2.0"
+				});
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -171,19 +325,40 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Returns_None_On_Http_Error()
 	{
 		// Arrange
-		Context context = CreateContext(statusCode: HttpStatusCode.InternalServerError);
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(HttpStatusCode.InternalServerError);
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
-		context.SettingsStore
+		settingsStore
 			.DidNotReceive()
 			.Save();
 	}
@@ -195,12 +370,35 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Returns_None_On_Malformed_Json()
 	{
 		// Arrange
-		Context context = CreateContext(responseJson: "{ not json");
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(HttpStatusCode.OK, "{ not json");
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -215,23 +413,46 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Returns_None_On_Transport_Error()
 	{
 		// Arrange
-		Context context = CreateContext(transportError: new HttpRequestException("boom"));
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = new(static _ => throw new HttpRequestException("boom"));
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
-		context.Settings.LastUpdateCheckAt
+		settings.LastUpdateCheckAt
 			.Should()
 			.BeNull();
 
-		context.SettingsStore
+		settingsStore
 			.DidNotReceive()
 			.Save();
 	}
@@ -243,14 +464,45 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Returns_None_When_Current_Version_Unparseable()
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: "unknown",
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.2.0", "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			versionProvider
+				.CurrentVersion
+				.Returns("unknown");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -265,22 +517,57 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Runs_After_Throttle_Window_Elapsed()
 	{
 		// Arrange
-		Context context = CreateContext(
-			sinceLastCheck: TimeSpan.FromDays(2.0),
-			currentVersion: "0.1.0",
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+		IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FakeTimeProvider time = new();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.2.0", "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					LastUpdateCheckAt = time.GetUtcNow() - TimeSpan.FromDays(2.0)
+				});
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
 			.Should()
 			.BeTrue();
 
-		context.Factory
+		factory
 			.Received(1)
 			.CreateClient(Arg.Any<string>());
 	}
@@ -292,16 +579,47 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Skips_Draft_Releases()
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: "0.1.0",
-			responseJson: Releases(
-				("v0.3.0", "https://example.test/draft", true),
-				("v0.2.0", "https://example.test/published", false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(
+					("v0.3.0", "https://example.test/draft", true),
+					("v0.2.0", "https://example.test/published", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -320,15 +638,48 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Skips_Version_Already_Notified()
 	{
 		// Arrange
-		Context context = CreateContext(
-			currentVersion: "0.1.0",
-			lastNotifiedVersion: "0.2.0",
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+			StubHttpMessageHandler handler = StubHttpMessageHandler.FromStatusCode(
+				HttpStatusCode.OK,
+				Releases(("v0.2.0", "https://example.test/release", false)));
+
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+
+			factory
+				.CreateClient(Arg.Any<string>())
+				.Returns(_ => new HttpClient(handler));
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					LastNotifiedVersion = "0.2.0"
+				});
+
+			versionProvider
+				.CurrentVersion
+				.Returns("0.1.0");
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(versionProvider);
+
+			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+
+			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
@@ -343,25 +694,39 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Skips_When_Opted_Out()
 	{
 		// Arrange
-		Context context = CreateContext(
-			checkForUpdates: false,
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+		IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					CheckForUpdates = false
+				});
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
 		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
+		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
 		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
-		context.Factory
+		factory
 			.DidNotReceive()
 			.CreateClient(Arg.Any<string>());
 
-		context.SettingsStore
+		settingsStore
 			.DidNotReceive()
 			.Save();
 	}
@@ -373,98 +738,45 @@ internal class UpdateCheckServiceTests
 	public async Task CheckAsync_Skips_Within_Throttle_Window()
 	{
 		// Arrange
-		Context context = CreateContext(
-			sinceLastCheck: TimeSpan.FromHours(1.0),
-			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
-
-		// Act
-		UpdateCheckResult result = await context
-			.Sut
-			.CheckAsync();
-
-		// Assert
-		result.IsUpdateAvailable
-			.Should()
-			.BeFalse();
-
-		context.Factory
-			.DidNotReceive()
-			.CreateClient(Arg.Any<string>());
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Builds a service under test wired with a fake clock, settings, and a canned HTTP response.
-	/// </summary>
-	private static Context CreateContext(
-		bool checkForUpdates = true,
-		TimeSpan? sinceLastCheck = null,
-		string? currentVersion = "0.1.0",
-		string? lastNotifiedVersion = null,
-		string responseJson = "[]",
-		HttpStatusCode statusCode = HttpStatusCode.OK,
-		Exception? transportError = null)
-	{
-		FakeTimeProvider time = new();
-
-		AppSettings settings = SettingsFactory.CreateSettings() with
-		{
-			CheckForUpdates = checkForUpdates,
-			LastNotifiedVersion = lastNotifiedVersion,
-			LastUpdateCheckAt = sinceLastCheck is { } elapsed ? time.GetUtcNow() - elapsed : null
-		};
-
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
 		IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppVersionProvider versionProvider = Substitute.For<IAppVersionProvider>();
+			FakeTimeProvider time = new();
 
-			StubHttpMessageHandler handler = new(transportError is not null
-				? _ => throw transportError
-				: _ => new HttpResponseMessage(statusCode)
-				{
-					Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
-				});
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
 			settingsStore
 				.Settings
-				.Returns(settings);
-
-			versionProvider
-				.CurrentVersion
-				.Returns(currentVersion);
-
-			factory
-				.CreateClient(Arg.Any<string>())
-				.Returns(_ => new HttpClient(handler));
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					LastUpdateCheckAt = time.GetUtcNow() - TimeSpan.FromHours(1.0)
+				});
 
 			builder.RegisterInstance(factory);
 
 			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(versionProvider);
-
-			builder.RegisterInstance<IJsonSerializer>(new SystemTextJsonSerializer());
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
 
-		return new Context
-		{
-			Factory = factory,
-			Settings = settings,
-			SettingsStore = settingsStore,
-			Sut = sut,
-			Time = time
-		};
-	}
+		// Act
+		UpdateCheckResult result = await sut.CheckAsync();
 
+		// Assert
+		result.IsUpdateAvailable
+			.Should()
+			.BeFalse();
+
+		factory
+			.DidNotReceive()
+			.CreateClient(Arg.Any<string>());
+	}
+	#endregion
+
+	#region Helpers
 	/// <summary>
 	/// Serializes a GitHub releases array from the given (tag, url, draft) tuples.
 	/// </summary>
@@ -476,26 +788,6 @@ internal class UpdateCheckServiceTests
 				$$"""{"tag_name":"{{x.Tag}}","html_url":"{{x.Url}}","draft":{{(x.Draft ? "true" : "false")}},"prerelease":true}"""));
 
 		return $"[{items}]";
-	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Bundles the service under test with its captured collaborators.
-	/// </summary>
-	private sealed class Context
-	{
-		#region Properties
-		public required IHttpClientFactory Factory { get; init; }
-
-		public required AppSettings Settings { get; init; }
-
-		public required IAppSettingsStore SettingsStore { get; init; }
-
-		public required UpdateCheckService Sut { get; init; }
-
-		public required FakeTimeProvider Time { get; init; }
-		#endregion
 	}
 	#endregion
 }

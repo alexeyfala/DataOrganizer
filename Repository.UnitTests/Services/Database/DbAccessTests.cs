@@ -52,12 +52,16 @@ internal class DbAccessTests
 			ParentId = Guid.NewGuid()
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(folderRepository),
-			TypedParameter.From(fileRepository));
+			builder.RegisterInstance(folderRepository);
+
+			builder.RegisterInstance(fileRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		ExplorerItemBase? entity = await sut.AddEntityAsync(parameters);
@@ -126,11 +130,14 @@ internal class DbAccessTests
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(repository));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		await sut.AddFilesAsync(files);
@@ -158,11 +165,14 @@ internal class DbAccessTests
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(repository),
-			TypedParameter.From(dbContextService));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		await sut.AddFoldersAsync(folders);
@@ -192,11 +202,14 @@ internal class DbAccessTests
 
 		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(repository));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		HotkeyEntity[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
@@ -312,25 +325,28 @@ internal class DbAccessTests
 		// Arrange
 		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbContextService
-			.HasMigrations()
-			.Returns(true);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			dbContextService
+				.HasMigrations()
+				.Returns(true);
 
-		fileSystem
-			.FileExists(Arg.Any<string>())
-			.Returns(true);
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
 
-		fileSystem
-			.OpenRead(Arg.Any<string>())
-			.Returns(_ => new MemoryStream(new byte[32]));
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(new byte[32]));
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -352,10 +368,10 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
 	{
 		// Arrange
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
 			dbContextService
 				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
@@ -387,16 +403,20 @@ internal class DbAccessTests
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		dbContextService
-			.EnsureCreatedAsync(Arg.Any<CancellationToken>())
-			.ThrowsAsync(new InvalidOperationException());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileRepository),
-			TypedParameter.From(folderRepository));
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(folderRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Assert
 		sut
@@ -456,10 +476,10 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Survives_A_Failed_Housekeeping_Step()
 	{
 		// Arrange
-		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
 			dbMaintenance
 				.When(x => x.ErasePendingBackups())
 				.Throw(new IOException());
@@ -491,10 +511,10 @@ internal class DbAccessTests
 		// Arrange
 		const int expectedCount = 7;
 
-		IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
+
 			repository
 				.CountOfAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
 				.Returns(expectedCount);
@@ -695,12 +715,12 @@ internal class DbAccessTests
 		// Arrange
 		Guid folderId = Guid.NewGuid();
 
-		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
-
-		IFileRepository fileRepository = Substitute.For<IFileRepository>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
+
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
 			folderRepository
 				.GetFolderSubtreeIdsAsync(folderId)
 				.Returns(ToAsyncEnumerable<Guid>([]));
@@ -1039,7 +1059,17 @@ internal class DbAccessTests
 	public async Task UpdateFileAndFolderPropertiesAsync_Accepts_An_Empty_Set_Of_Updates()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateContextServiceRunningTheTransaction()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			builder.RegisterInstance(dbContextService);
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -1091,11 +1121,18 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			builder.RegisterInstance(dbContextService);
+
 			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(folderRepository);
-
-			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1128,7 +1165,14 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
 			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
 
 			fileRepository
 				.UpdatePropertiesAsync(
@@ -1137,9 +1181,9 @@ internal class DbAccessTests
 					Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
 
-			builder.RegisterInstance(fileRepository);
+			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
+			builder.RegisterInstance(fileRepository);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1459,20 +1503,6 @@ internal class DbAccessTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// A substitute of <see cref="IDbContextService" /> that runs the body of the transaction.
-	/// </summary>
-	private static IDbContextService CreateContextServiceRunningTheTransaction()
-	{
-		IDbContextService contextService = Substitute.For<IDbContextService>();
-
-		contextService
-			.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
-			.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
-
-		return contextService;
-	}
-
 	/// <summary>
 	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
 	/// </summary>
