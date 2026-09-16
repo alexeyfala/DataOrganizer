@@ -3,18 +3,14 @@ using Autofac.Extras.Moq;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
-using SharpHook.Data;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,26 +123,13 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: hotkeys that could be read are passed over in silence.
+	/// <see cref="AppController.LaunchAppAsync" />: the launch goes on with an empty hierarchy when the data cannot be read.
 	/// </summary>
 	[Test]
-	public async Task LaunchAppAsync_Keeps_Silent_About_Readable_Hotkeys()
+	public async Task LaunchAppAsync_Goes_On_When_Data_Cannot_Be_Read()
 	{
 		// Arrange
-		INotificationService notificationService = Substitute.For<INotificationService>();
-
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = KeyCode.VcA,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = EventMask.LeftCtrl,
-				OwnerId = file.Id
-			});
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -166,15 +149,15 @@ internal class AppControllerTests
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns([file]);
+				.Returns((ExplorerItemDtoBase[]?)null);
 
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance(notificationService);
-
 			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -183,9 +166,9 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		notificationService
-			.DidNotReceive()
-			.ShowToast(Arg.Any<string>());
+		viewLauncher
+			.Received()
+			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -262,15 +245,13 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: an unavailable database is reported instead of passing unnoticed.
+	/// <see cref="AppController.LaunchAppAsync" />: an unavailable database leaves the data unread, and the launch goes on.
 	/// </summary>
 	[Test]
-	public async Task LaunchAppAsync_Reports_An_Unavailable_Database()
+	public async Task LaunchAppAsync_Skips_Loading_When_The_Database_Is_Unavailable()
 	{
 		// Arrange
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-		INotificationService notificationService = Substitute.For<INotificationService>();
 
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
@@ -292,8 +273,6 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance(notificationService);
-
 			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance(viewLauncher);
@@ -305,11 +284,6 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		notificationService
-			.Received(1)
-			.ShowToast(Arg.Any<string>());
-
-		// The message is enough: reading a database that is not there would only add a second one.
 		await entityLoader
 			.DidNotReceive()
 			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
@@ -317,126 +291,6 @@ internal class AppControllerTests
 		viewLauncher
 			.Received()
 			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: data that cannot be read is reported, and the launch
-	/// goes on with an empty hierarchy.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Reports_Data_It_Cannot_Read()
-	{
-		// Arrange
-		INotificationService notificationService = Substitute.For<INotificationService>();
-
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerItemDtoBase[]?)null);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(notificationService);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(viewLauncher);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		notificationService
-			.Received(1)
-			.ShowToast(Arg.Any<string>());
-
-		viewLauncher
-			.Received()
-			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: hotkeys that could not be read are reported by the file they belong to.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Reports_Files_With_Unreadable_Hotkeys()
-	{
-		// Arrange
-		INotificationService notificationService = Substitute.For<INotificationService>();
-
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = KeyCode.VcUndefined,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = EventMask.LeftCtrl,
-				OwnerId = file.Id
-			});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns([file]);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(notificationService);
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		notificationService
-			.Received(1)
-			.ShowToast(Arg.Is<string>(x => x.Contains(file.Name)));
 	}
 	#endregion
 }

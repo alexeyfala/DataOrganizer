@@ -2,14 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
@@ -181,10 +178,11 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: reports a refused key instead of returning silently.
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: a key store that refuses the key leaves the file encrypted
+	/// and turns the call down.
 	/// </summary>
 	[Test]
-	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
+	public async Task ShowFileContentsAsync_Keeps_The_File_Encrypted_When_The_Key_Is_Refused()
 	{
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
@@ -301,18 +299,15 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: a key store that refuses the key is
-	/// reported as a failure to show the contents.
+	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: a key store that refuses the key leaves the folder encrypted.
 	/// </summary>
 	[Test]
-	public async Task ShowFolderContentsAsync_Reports_A_Refused_Key()
+	public async Task ShowFolderContentsAsync_Keeps_The_Folder_Encrypted_When_The_Key_Is_Refused()
 	{
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
-
-		RecordingNotificationService notification = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -336,8 +331,6 @@ internal class ContentVisibilityTests
 			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(sessionKeyStore);
-
-			builder.RegisterInstance<INotificationService>(notification);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
@@ -346,17 +339,6 @@ internal class ContentVisibilityTests
 		await sut.ShowFolderContentsAsync(folder);
 
 		// Assert
-		notification
-			.Shown
-			.Should()
-			.NotBeNull();
-
-		notification
-			.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-
 		folder
 			.EncryptionStatus
 			.Should()

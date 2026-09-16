@@ -1,11 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Fakes;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 
@@ -16,10 +19,11 @@ internal class EncryptionFailureReporterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: rejected credentials are reported as a wrong password.
+	/// <see cref="EncryptionFailureReporter.Report" />: every kind of failure reaches the user as an error,
+	/// in words of its own.
 	/// </summary>
 	[Test]
-	public void Report_Tells_About_A_Wrong_Password()
+	public void Report_Tells_About_Every_Failure_In_Words_Of_Its_Own()
 	{
 		// Arrange
 		RecordingNotificationService notification = new();
@@ -28,79 +32,32 @@ internal class EncryptionFailureReporterTests
 
 		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
 
-		// Act
-		sut.Report(new InvalidCredentialException());
+		Exception[] failures =
+		[
+			new InvalidCredentialException(),
+			new AuthenticationTagMismatchException(),
+			new InvalidOperationException()
+		];
 
-		// Assert
-		notification
-			.Shown
-			.Should()
-			.NotBeNull();
-
-		notification
-			.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: a failure that is neither rejected credentials
-	/// nor a cryptographic one is reported as a failure to process the contents.
-	/// </summary>
-	[Test]
-	public void Report_Tells_About_An_Unprocessable_Content()
-	{
-		// Arrange
-		RecordingNotificationService notification = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
-
-		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
+		List<SnackbarContent?> shown = [];
 
 		// Act
-		sut.Report(new InvalidOperationException());
+		foreach (Exception failure in failures)
+		{
+			sut.Report(failure);
+
+			shown.Add(notification.Shown);
+		}
 
 		// Assert
-		notification
-			.Shown
+		shown
 			.Should()
-			.NotBeNull();
+			.OnlyContain(static x => x != null && x.Level == SnackbarMessageLevel.Error);
 
-		notification
-			.Shown
-			.Level
+		shown
+			.Select(static x => x!.Text)
 			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: a cryptographic failure is reported as damaged data.
-	/// </summary>
-	[Test]
-	public void Report_Tells_About_Damaged_Data()
-	{
-		// Arrange
-		RecordingNotificationService notification = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
-
-		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
-
-		// Act
-		sut.Report(new AuthenticationTagMismatchException());
-
-		// Assert
-		notification
-			.Shown
-			.Should()
-			.NotBeNull();
-
-		notification
-			.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
+			.OnlyHaveUniqueItems();
 	}
 	#endregion
 }

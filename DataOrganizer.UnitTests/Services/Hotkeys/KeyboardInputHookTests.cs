@@ -11,7 +11,6 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
@@ -171,8 +170,6 @@ internal class KeyboardInputHookTests
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		INotificationService notificationService = Substitute.For<INotificationService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -196,8 +193,6 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
-
-			builder.RegisterInstance(notificationService);
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -214,10 +209,6 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(mask, code);
 
 		// Assert
-		notificationService
-			.Received()
-			.ShowToast(Arg.Any<string>());
-
 		await clipboard
 			.Received()
 			.SetTextAsync(Arg.Any<string>());

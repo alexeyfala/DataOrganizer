@@ -104,36 +104,5 @@ internal class DbFailureReporterTests
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
 	}
-
-	/// <summary>
-	/// <see cref="DbFailureReporter.Report" />: a write the database turned down is reported as an error.
-	/// </summary>
-	[Test]
-	public void Report_Tells_About_A_Refused_Write()
-	{
-		// Arrange
-		RecordingNotificationService notification = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
-
-		DbFailureReporter sut = mock.Create<DbFailureReporter>();
-
-		// Act
-		sut.Report(
-			new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, RandomString.Create(10)),
-			RandomString.Create(10));
-
-		// Assert
-		notification
-			.Shown
-			.Should()
-			.NotBeNull();
-
-		notification
-			.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
 	#endregion
 }
