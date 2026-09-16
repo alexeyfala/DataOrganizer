@@ -42,10 +42,34 @@ internal class GlobalHookRunnerTests
 	}
 
 	/// <summary>
-	/// A released key of the owned hook is broadcast as a message.
+	/// <see cref="GlobalHookRunner.StartAsync" />: runs the hook and does nothing on a second call.
 	/// </summary>
 	[Test]
-	public async Task KeyReleased_Is_Sent_As_Message()
+	public async Task StartAsync_Runs_Hook_Once()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<TestGlobalHook>()
+			.As<IGlobalHook>());
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		// Act
+		await sut.StartAsync();
+
+		await sut.StartAsync();
+
+		// Assert
+		sut.IsRunning
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StartAsync" />: a released key of the owned hook is broadcast as a message.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_Sends_A_Released_Key_As_A_Message()
 	{
 		// Arrange
 		TestGlobalHook hook = new();
@@ -80,30 +104,6 @@ internal class GlobalHookRunnerTests
 		received[0].Code
 			.Should()
 			.Be(KeyCode.VcA);
-	}
-
-	/// <summary>
-	/// <see cref="GlobalHookRunner.StartAsync" />: runs the hook and does nothing on a second call.
-	/// </summary>
-	[Test]
-	public async Task StartAsync_Runs_Hook_Once()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<TestGlobalHook>()
-			.As<IGlobalHook>());
-
-		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
-
-		// Act
-		await sut.StartAsync();
-
-		await sut.StartAsync();
-
-		// Assert
-		sut.IsRunning
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

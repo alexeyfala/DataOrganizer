@@ -199,7 +199,7 @@ internal class EditingFilesViewModelTests
 	/// after other tabs shifted its index.
 	/// </summary>
 	[Test]
-	public void SwitchToPreviousTab_Follows_The_File_Not_The_Index()
+	public void SwitchToPreviousTabCommand_Follows_The_File_Not_The_Index()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -229,7 +229,7 @@ internal class EditingFilesViewModelTests
 	/// selected tab is closed.
 	/// </summary>
 	[Test]
-	public void SwitchToPreviousTab_Ignores_A_Closed_Tab()
+	public void SwitchToPreviousTabCommand_Ignores_A_Closed_Tab()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -260,7 +260,7 @@ internal class EditingFilesViewModelTests
 	/// before the current one.
 	/// </summary>
 	[Test]
-	public void SwitchToPreviousTab_Selects_The_Previously_Selected_Tab()
+	public void SwitchToPreviousTabCommand_Selects_The_Previously_Selected_Tab()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();

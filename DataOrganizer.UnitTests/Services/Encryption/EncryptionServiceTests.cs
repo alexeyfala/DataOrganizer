@@ -677,6 +677,71 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.EncryptWithDek" />,
+	/// <see cref="EncryptionService.EncryptWithSessionId" />: every path keeps its own version byte and
+	/// its own on-the-wire layout — the DEK one carries no salt, the other two do, and the password one
+	/// carries the cost of the derivation and the check value as well.
+	/// </summary>
+	[Test]
+	public void Encrypt_Keeps_A_Distinct_Layout_Per_Path()
+	{
+		// Arrange
+		const int checkSize = 16;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int tagSize = 16;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextDefaults
+			.Encoding
+			.GetBytes(SampleText.LoremIpsum);
+
+		byte[] secret = RandomValues.CreateBytes(32);
+
+		using PinnedBuffer secretBuffer = new(secret);
+
+		// Act
+		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, Identity);
+
+		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
+
+		using PinnedBuffer sessionDek = sut.CreateRandomDek();
+
+		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, Identity);
+
+		// Assert
+		password
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x01)
+			.And
+			.HaveCount(1 + Argon2Settings.HeaderSize + saltSize + checkSize + nonceSize + secret.Length + tagSize);
+
+		dek
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x02)
+			.And
+			.HaveCount(1 + nonceSize + input.Length + tagSize);
+
+		session
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x03)
+			.And
+			.HaveCount(1 + saltSize + nonceSize + sessionDek.Length + tagSize);
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.Encrypt" />: the cost of the derivation is written into the blob.
 	/// </summary>
 	[Test]
@@ -815,70 +880,6 @@ internal class EncryptionServiceTests
 		TextDefaults.Encoding.GetString(decrypted[1].Contents)
 			.Should()
 			.Be(SampleText.LoremIpsum);
-	}
-
-	/// <summary>
-	/// Every path keeps its own version byte and its own on-the-wire layout: the DEK one carries
-	/// no salt, the other two do, and the password one carries the cost of the derivation and the
-	/// check value as well.
-	/// </summary>
-	[Test]
-	public void EncryptedBlobs_Keep_Their_Layout()
-	{
-		// Arrange
-		const int checkSize = 16;
-
-		const int nonceSize = 24;
-
-		const int saltSize = 16;
-
-		const int tagSize = 16;
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		byte[] input = TextDefaults
-			.Encoding
-			.GetBytes(SampleText.LoremIpsum);
-
-		byte[] secret = RandomValues.CreateBytes(32);
-
-		using PinnedBuffer secretBuffer = new(secret);
-
-		// Act
-		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, Identity);
-
-		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
-
-		using PinnedBuffer sessionDek = sut.CreateRandomDek();
-
-		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, Identity);
-
-		// Assert
-		password
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x01)
-			.And
-			.HaveCount(1 + Argon2Settings.HeaderSize + saltSize + checkSize + nonceSize + secret.Length + tagSize);
-
-		dek
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x02)
-			.And
-			.HaveCount(1 + nonceSize + input.Length + tagSize);
-
-		session
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x03)
-			.And
-			.HaveCount(1 + saltSize + nonceSize + sessionDek.Length + tagSize);
 	}
 
 	/// <summary>

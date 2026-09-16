@@ -47,6 +47,40 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ConsoleViewModel.IsPaused" />: a record written while paused waits for the pause to end.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsPaused_Holds_A_Record_Until_It_Is_Resumed()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		TextEditor editor = new();
+
+		sut.EditorLoadedCommand.Execute(editor);
+
+		sut.IsPaused = true;
+
+		// Act
+		sut.WriteCallback("while paused");
+
+		// Assert
+		editor.Text
+			.Should()
+			.BeEmpty();
+
+		sut.IsPaused = false;
+
+		editor.Text
+			.Should()
+			.Be("while paused");
+	}
+
+	/// <summary>
 	/// <see cref="ConsoleViewModel.OpenAppDataDirectoryCommand" />: opens the folder the application writes to.
 	/// </summary>
 	[Test]
@@ -101,40 +135,6 @@ internal class ConsoleViewModelTests
 		directoryAccessor
 			.Received(1)
 			.OpenAppDirectory(Arg.Any<ILogger?>());
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.IsPaused" />: a record written while paused waits for the pause to end.
-	/// </summary>
-	[AvaloniaTest]
-	public void Records_Written_While_Paused_Reach_The_Editor_Once_It_Is_Resumed()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
-		TextEditor editor = new();
-
-		sut.EditorLoadedCommand.Execute(editor);
-
-		sut.IsPaused = true;
-
-		// Act
-		sut.WriteCallback("while paused");
-
-		// Assert
-		editor.Text
-			.Should()
-			.BeEmpty();
-
-		sut.IsPaused = false;
-
-		editor.Text
-			.Should()
-			.Be("while paused");
 	}
 	#endregion
 }

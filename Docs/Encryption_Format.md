@@ -102,6 +102,6 @@ Blobs of this format never reach the disk — they exist while the process holds
   length does not fit the fixed plaintext size of its format.
 - `BlobScheme` carries the format together with the derivation that opens it, so a format cannot be
   read with the derivation of another.
-- `EncryptedBlobs_Keep_Their_Layout` pins the version byte and the exact length of all three formats.
+- `Encrypt_Keeps_A_Distinct_Layout_Per_Path` pins the version byte and the exact length of all three formats.
   Note what it cannot do: an edit that changes a layout **and** the test together passes, so the rule
   above stays a matter of discipline, not of tooling.

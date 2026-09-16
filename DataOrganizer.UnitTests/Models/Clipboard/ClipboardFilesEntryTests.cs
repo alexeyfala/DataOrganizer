@@ -47,30 +47,6 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardFilesEntry.Preview" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
-	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
-	/// </summary>
-	[Test]
-	public void Long_List_Truncates_Summary_And_Exposes_ToolTip()
-	{
-		// Arrange (10 files: more than the 6-item summary budget).
-		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry([.. Enumerable
-			.Range(0, 10)
-			.Select(i => new ClipboardFileSystemEntry($@"{Folder}\file{i}.txt", IsFolder: false))]);
-
-		// Act, Assert
-		sut.Preview!
-			.Split(Environment.NewLine)
-			.Last()
-			.Should()
-			.Be("...");
-
-		sut.ContentToolTip
-			.Should()
-			.NotBeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardFilesEntry.Preview" />: a short list is shown in full with a header.
 	/// </summary>
 	[Test]
@@ -100,6 +76,30 @@ internal class ClipboardFilesEntryTests
 		lines
 			.Should()
 			.NotContain("...");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardFilesEntry.Preview" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
+	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
+	/// </summary>
+	[Test]
+	public void Preview_Truncates_A_Long_List_And_Exposes_The_ToolTip()
+	{
+		// Arrange (10 files: more than the 6-item summary budget).
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry([.. Enumerable
+			.Range(0, 10)
+			.Select(i => new ClipboardFileSystemEntry($@"{Folder}\file{i}.txt", IsFolder: false))]);
+
+		// Act, Assert
+		sut.Preview!
+			.Split(Environment.NewLine)
+			.Last()
+			.Should()
+			.Be("...");
+
+		sut.ContentToolTip
+			.Should()
+			.NotBeNull();
 	}
 
 	/// <summary>

@@ -78,77 +78,6 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.HandleNewPayload" />: the captured entry becomes the active one.
-	/// </summary>
-	[Test]
-	public void Capture_Marks_Entry_Active_Clearing_Previous()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry first = ClipboardEntryFactory.CreateTextEntry("a", [1]);
-
-		ClipboardTextEntry second = ClipboardEntryFactory.CreateTextEntry("b", [2]);
-
-		sut.HandleNewPayload([1], () => first, isSensitive: false);
-
-		// Act
-		sut.HandleNewPayload([2], () => second, isSensitive: false);
-
-		// Assert
-		second.IsActive
-			.Should()
-			.BeTrue();
-
-		first.IsActive
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardLogService.HandleNewPayload" />: pinned entries are exempt from the cap.
-	/// </summary>
-	[Test]
-	public void Capture_Trims_Only_Unpinned_Keeping_Pinned()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [200]);
-
-		sut.Entries.Add(pinned);
-
-		for (int i = 0; i < 100; i++)
-		{
-			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
-		}
-
-		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
-		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.HaveCount(101);
-
-		sut.Entries
-			.Should()
-			.Contain(pinned);
-
-		sut.Entries[0]
-			.Should()
-			.Be(pinned);
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogService.ClearAllAsync" />: the active highlight is cleared from a surviving pin.
 	/// </summary>
 	[Test]
@@ -375,6 +304,193 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a restored pinned entry keeps its pinned state on the replacement.
+	/// </summary>
+	[Test]
+	public async Task HandleNewPayload_After_Restore_Carries_The_Pin_State()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry original = ClipboardEntryFactory.CreatePinnedTextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
+
+		// Act (the clipboard handed back a different representation -> different hash).
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		rebaselined.IsPinned
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a restored entry that is no longer present is inserted at the top.
+	/// </summary>
+	[Test]
+	public async Task HandleNewPayload_After_Restore_Inserts_A_Missing_Rebaselined_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		// The restored entry is gone by the time the next capture arrives.
+		sut.Entries.Clear();
+
+		List<ClipboardLogChangeKind> received = Capture(messenger);
+
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
+
+		// Act
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		received
+			.Should()
+			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a restored entry observed with the same hash is left untouched.
+	/// </summary>
+	[Test]
+	public async Task HandleNewPayload_After_Restore_Keeps_An_Unchanged_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		List<ClipboardLogChangeKind> received = Capture(messenger);
+
+		bool built = false;
+
+		// Act (same hash as the restored entry — nothing to re-baseline).
+		sut.HandleNewPayload([1], () =>
+		{
+			built = true;
+
+			return ClipboardEntryFactory.CreateTextEntry("x", [1]);
+		}, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(original);
+
+		built
+			.Should()
+			.BeFalse();
+
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a restored entry whose hash changed on the next capture is replaced.
+	/// </summary>
+	[Test]
+	public async Task HandleNewPayload_After_Restore_Rebaselines_A_Differing_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		List<ClipboardLogChangeKind> received = Capture(messenger);
+
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
+
+		// Act (the clipboard handed back a different representation -> different hash).
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		received
+			.Should()
+			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.HandleNewPayload" />: capture enforces the history cap.
 	/// </summary>
 	[Test]
@@ -491,6 +607,38 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: the captured entry becomes the active one.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Marks_Entry_Active_Clearing_Previous()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry first = ClipboardEntryFactory.CreateTextEntry("a", [1]);
+
+		ClipboardTextEntry second = ClipboardEntryFactory.CreateTextEntry("b", [2]);
+
+		sut.HandleNewPayload([1], () => first, isSensitive: false);
+
+		// Act
+		sut.HandleNewPayload([2], () => second, isSensitive: false);
+
+		// Assert
+		second.IsActive
+			.Should()
+			.BeTrue();
+
+		first.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.HandleNewPayload" />: a matching hash moves the existing entry up.
 	/// </summary>
 	[Test]
@@ -533,6 +681,45 @@ internal class ClipboardLogServiceTests
 		received
 			.Should()
 			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: pinned entries are exempt from the cap.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Trims_Only_Unpinned_Keeping_Pinned()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [200]);
+
+		sut.Entries.Add(pinned);
+
+		for (int i = 0; i < 100; i++)
+		{
+			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
+		}
+
+		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
+		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.HaveCount(101);
+
+		sut.Entries
+			.Should()
+			.Contain(pinned);
+
+		sut.Entries[0]
+			.Should()
+			.Be(pinned);
 	}
 
 	/// <summary>
@@ -726,7 +913,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: files are captured with folders sorted first.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Captures_Files_Entry_Folders_First()
+	public async Task PollOnceAsync_Captures_Files_Entry_Folders_First()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -784,7 +971,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: plain text is captured as a text entry.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Captures_Text_Entry()
+	public async Task PollOnceAsync_Captures_Text_Entry()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -829,7 +1016,7 @@ internal class ClipboardLogServiceTests
 	/// is not treated as sensitive — the entry is captured (e.g. content restored via Win+V).
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Captures_When_History_Flag_Is_Allowed()
+	public async Task PollOnceAsync_Captures_When_History_Flag_Is_Allowed()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -878,7 +1065,7 @@ internal class ClipboardLogServiceTests
 	/// (ClipboardHistoryItemId present) is captured, even though it carries the exclude marker (anti-loop, not secrecy).
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Captures_Win_V_Restored_Content_Despite_Exclude_Marker()
+	public async Task PollOnceAsync_Captures_Win_V_Restored_Content_Despite_Exclude_Marker()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -927,7 +1114,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Clears_Active_When_Clipboard_Emptied()
+	public async Task PollOnceAsync_Clears_Active_When_Clipboard_Emptied()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -969,7 +1156,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: files without an absolute path are skipped.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
+	public async Task PollOnceAsync_Skips_Files_Without_Absolute_Path()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1026,7 +1213,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: a sensitivity marker skips the entry.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Skips_Sensitive_Content()
+	public async Task PollOnceAsync_Skips_Sensitive_Content()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1064,7 +1251,7 @@ internal class ClipboardLogServiceTests
 	/// is treated as sensitive — the entry is skipped.
 	/// </summary>
 	[Test]
-	public async Task PollOnce_Skips_When_History_Flag_Excludes()
+	public async Task PollOnceAsync_Skips_When_History_Flag_Excludes()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1102,47 +1289,10 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// Re-baseline path: a restored pinned entry keeps its pinned state on the replacement.
-	/// </summary>
-	[Test]
-	public async Task Rebaseline_Carries_Pin_State()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry original = ClipboardEntryFactory.CreatePinnedTextEntry("orig", [1]);
-
-		sut.Entries.Add(original);
-
-		await sut.RestoreAsync(original);
-
-		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
-
-		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.ContainSingle()
-			.Which
-			.Should()
-			.Be(rebaselined);
-
-		rebaselined.IsPinned
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogService.RemoveAsync" />: a missing entry is a no-op and raises no notification.
 	/// </summary>
 	[Test]
-	public async Task Remove_Missing_Entry_Is_NoOp()
+	public async Task RemoveAsync_Missing_Entry_Is_NoOp()
 	{
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
@@ -1179,7 +1329,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.RemoveAsync" />: removing the active entry empties the system clipboard.
 	/// </summary>
 	[Test]
-	public async Task Remove_Of_Active_Entry_Empties_System_Clipboard()
+	public async Task RemoveAsync_Of_Active_Entry_Empties_System_Clipboard()
 	{
 		// Arrange
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
@@ -1218,7 +1368,7 @@ internal class ClipboardLogServiceTests
 	/// is not re-captured by the next poll tick.
 	/// </summary>
 	[Test]
-	public async Task Remove_Of_Active_Entry_Is_Not_Recaptured_By_Next_Poll()
+	public async Task RemoveAsync_Of_Active_Entry_Is_Not_Recaptured_By_Next_Poll()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1257,7 +1407,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.RemoveAsync" />: removing a non-active entry leaves the system clipboard intact.
 	/// </summary>
 	[Test]
-	public async Task Remove_Of_Inactive_Entry_Leaves_System_Clipboard()
+	public async Task RemoveAsync_Of_Inactive_Entry_Leaves_System_Clipboard()
 	{
 		// Arrange
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
@@ -1302,7 +1452,7 @@ internal class ClipboardLogServiceTests
 	/// <see cref="ClipboardLogService.RemoveAsync" />: a pinned entry is removed and Updated is raised.
 	/// </summary>
 	[Test]
-	public async Task Remove_Removes_Pinned_Entry_And_Raises_Updated()
+	public async Task RemoveAsync_Removes_Pinned_Entry_And_Raises_Updated()
 	{
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
@@ -1341,198 +1491,6 @@ internal class ClipboardLogServiceTests
 		received
 			.Should()
 			.Contain(ClipboardLogChangeKind.Updated);
-	}
-
-	/// <summary>
-	/// Test of the re-baseline path when the restored entry is no longer present: it is inserted at the top.
-	/// </summary>
-	[Test]
-	public async Task Restore_Of_Missing_Entry_Then_Differing_Capture_Inserts_Rebaselined()
-	{
-		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(messenger);
-		});
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
-
-		sut.Entries.Add(original);
-
-		await sut.RestoreAsync(original);
-
-		// The restored entry is gone by the time the next capture arrives.
-		sut.Entries.Clear();
-
-		List<ClipboardLogChangeKind> received = Capture(messenger);
-
-		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
-
-		// Act
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.ContainSingle()
-			.Which
-			.Should()
-			.Be(rebaselined);
-
-		received
-			.Should()
-			.Contain(ClipboardLogChangeKind.Updated);
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring the top entry raises no notification.
-	/// </summary>
-	[Test]
-	public async Task Restore_Of_Top_Entry_Raises_No_Notification()
-	{
-		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(messenger);
-		});
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry top = ClipboardEntryFactory.CreateTextEntry("top", [1]);
-
-		sut.Entries.Add(top);
-
-		List<ClipboardLogChangeKind> received = Capture(messenger);
-
-		// Act (the entry is already at index 0).
-		await sut.RestoreAsync(top);
-
-		// Assert
-		received
-			.Should()
-			.BeEmpty();
-
-		sut.Entries
-			.Should()
-			.ContainSingle()
-			.Which
-			.Should()
-			.Be(top);
-	}
-
-	/// <summary>
-	/// Test of the re-baseline path: a restored entry whose hash changed on the next capture is replaced.
-	/// </summary>
-	[Test]
-	public async Task Restore_Then_Differing_Capture_Rebaselines_Entry()
-	{
-		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(messenger);
-		});
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
-
-		sut.Entries.Add(original);
-
-		await sut.RestoreAsync(original);
-
-		List<ClipboardLogChangeKind> received = Capture(messenger);
-
-		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
-
-		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.ContainSingle()
-			.Which
-			.Should()
-			.Be(rebaselined);
-
-		received
-			.Should()
-			.Contain(ClipboardLogChangeKind.Updated);
-	}
-
-	/// <summary>
-	/// Test of the re-baseline path: a restored entry observed with the same hash is left untouched.
-	/// </summary>
-	[Test]
-	public async Task Restore_Then_Same_Capture_Keeps_Entry()
-	{
-		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(messenger);
-		});
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
-
-		sut.Entries.Add(original);
-
-		await sut.RestoreAsync(original);
-
-		List<ClipboardLogChangeKind> received = Capture(messenger);
-
-		bool built = false;
-
-		// Act (same hash as the restored entry — nothing to re-baseline).
-		sut.HandleNewPayload([1], () =>
-		{
-			built = true;
-
-			return ClipboardEntryFactory.CreateTextEntry("x", [1]);
-		}, isSensitive: false);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.ContainSingle()
-			.Which
-			.Should()
-			.Be(original);
-
-		built
-			.Should()
-			.BeFalse();
-
-		received
-			.Should()
-			.BeEmpty();
 	}
 
 	/// <summary>
@@ -1674,6 +1632,48 @@ internal class ClipboardLogServiceTests
 		received
 			.Should()
 			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring the top entry raises no notification.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Of_Top_Entry_Raises_No_Notification()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry top = ClipboardEntryFactory.CreateTextEntry("top", [1]);
+
+		sut.Entries.Add(top);
+
+		List<ClipboardLogChangeKind> received = Capture(messenger);
+
+		// Act (the entry is already at index 0).
+		await sut.RestoreAsync(top);
+
+		// Assert
+		received
+			.Should()
+			.BeEmpty();
+
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(top);
 	}
 
 	/// <summary>

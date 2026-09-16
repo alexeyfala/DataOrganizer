@@ -43,178 +43,6 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 	#region Methods
 	/// <summary>
-	/// Test that an explicit clear cancels a pending debounced save and erases the journal.
-	/// </summary>
-	[Test]
-	public async Task ClearedByUser_Cancels_Pending_Save()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
-
-		List<Task> scheduled = [];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings() with
-				{
-					PersistClipboardHistory = true
-				});
-
-			clipboardLog
-				.Entries
-				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
-
-			store
-				.IsUnlocked
-				.Returns(true);
-
-			exceptionHandler
-				.When(static x => x.Watch(Arg.Any<Task>()))
-				.Do(call => scheduled.Add(call.Arg<Task>()));
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(clipboardLog);
-
-			builder.RegisterInstance(store);
-
-			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<TimeProvider>(time);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<WeakReferenceMessenger>()
-				.As<IMessenger>();
-
-			builder
-				.RegisterType<ClipboardLogPersistenceCoordinator>()
-				.FindConstructorsWith(DebounceConstructor)
-				.ExternallyOwned();
-		});
-
-		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
-			TypedParameter.From(SaveDebounce));
-
-		// Act
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedByUser));
-
-		time.Advance(SaveDebounce);
-
-		await Task.WhenAll([.. scheduled]);
-
-		// Assert
-		await store
-			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
-
-		store
-			.Received()
-			.EraseHistory();
-	}
-
-	/// <summary>
-	/// Test that a burst of change notifications is coalesced by the debounce into a single save.
-	/// </summary>
-	[Test]
-	public async Task Debounce_Coalesces_Burst_Into_Single_Save()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
-
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		List<Task> scheduled = [];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings() with
-				{
-					PersistClipboardHistory = true
-				});
-
-			clipboardLog
-				.Entries
-				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
-
-			store
-				.IsUnlocked
-				.Returns(true);
-
-			exceptionHandler
-				.When(static x => x.Watch(Arg.Any<Task>()))
-				.Do(call => scheduled.Add(call.Arg<Task>()));
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(clipboardLog);
-
-			builder.RegisterInstance(store);
-
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<TimeProvider>(time);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<ClipboardLogPersistenceCoordinator>()
-				.FindConstructorsWith(DebounceConstructor)
-				.ExternallyOwned();
-		});
-
-		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
-			TypedParameter.From(SaveDebounce));
-
-		sut.Start();
-
-		// Act (three rapid changes — each cancels the previous pending save).
-		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		time.Advance(SaveDebounce);
-
-		await Task.WhenAll([.. scheduled]);
-
-		// Assert
-		await store
-			.Received(1)
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogPersistenceCoordinator.DisablePersistence" />: it erases all persisted state.
 	/// </summary>
 	[Test]
@@ -454,6 +282,92 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: an explicit clear cancels a pending debounced save and erases the journal.
+	/// </summary>
+	[Test]
+	public async Task Receive_ClearedByUser_Cancels_Pending_Save()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					PersistClipboardHistory = true
+				});
+
+			clipboardLog
+				.Entries
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
+
+			store
+				.IsUnlocked
+				.Returns(true);
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(call => scheduled.Add(call.Arg<Task>()));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder
+				.RegisterType<ClipboardLogPersistenceCoordinator>()
+				.FindConstructorsWith(DebounceConstructor)
+				.ExternallyOwned();
+		});
+
+		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
+			TypedParameter.From(SaveDebounce));
+
+		// Act
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedByUser));
+
+		time.Advance(SaveDebounce);
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		await store
+			.DidNotReceive()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
+
+		store
+			.Received()
+			.EraseHistory();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: an explicit clear erases the journal.
 	/// </summary>
 	[Test]
@@ -551,6 +465,246 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		store
 			.DidNotReceive()
 			.EraseHistory();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: a burst of change notifications is coalesced by the debounce into a single save.
+	/// </summary>
+	[Test]
+	public async Task Receive_Updated_Coalesces_Burst_Into_Single_Save()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					PersistClipboardHistory = true
+				});
+
+			clipboardLog
+				.Entries
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
+
+			store
+				.IsUnlocked
+				.Returns(true);
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(call => scheduled.Add(call.Arg<Task>()));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ClipboardLogPersistenceCoordinator>()
+				.FindConstructorsWith(DebounceConstructor)
+				.ExternallyOwned();
+		});
+
+		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
+			TypedParameter.From(SaveDebounce));
+
+		sut.Start();
+
+		// Act (three rapid changes — each cancels the previous pending save).
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		time.Advance(SaveDebounce);
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		await store
+			.Received(1)
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: a change notification, while locked, schedules no save.
+	/// </summary>
+	[Test]
+	public async Task Receive_Updated_When_Locked_Does_Not_Save()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					PersistClipboardHistory = true
+				});
+
+			store
+				.IsUnlocked
+				.Returns(false);
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(call => scheduled.Add(call.Arg<Task>()));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder
+				.RegisterType<ClipboardLogPersistenceCoordinator>()
+				.FindConstructorsWith(DebounceConstructor)
+				.ExternallyOwned();
+		});
+
+		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
+			TypedParameter.From(SaveDebounce));
+
+		// Act
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		time.Advance(SaveDebounce);
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		await store
+			.DidNotReceive()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: a change notification, while unlocked, triggers a debounced save.
+	/// </summary>
+	[Test]
+	public async Task Receive_Updated_When_Unlocked_Saves_After_Debounce()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					PersistClipboardHistory = true
+				});
+
+			clipboardLog
+				.Entries
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
+
+			store
+				.IsUnlocked
+				.Returns(true);
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(call => scheduled.Add(call.Arg<Task>()));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ClipboardLogPersistenceCoordinator>()
+				.FindConstructorsWith(DebounceConstructor)
+				.ExternallyOwned();
+		});
+
+		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
+			TypedParameter.From(SaveDebounce));
+
+		sut.Start();
+
+		// Act
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+
+		time.Advance(SaveDebounce);
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		await store
+			.Received()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -694,7 +848,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// <see cref="ClipboardLogPersistenceCoordinator.TryUnlockAndMergeAsync" />: merges and saves.
 	/// </summary>
 	[Test]
-	public async Task TryUnlockAndMerge_Merges_And_Saves()
+	public async Task TryUnlockAndMergeAsync_Merges_And_Saves()
 	{
 		// Arrange
 		ClipboardLogEntryBase[] loaded = [ClipboardEntryFactory.CreateTextEntry("A", [1])];
@@ -766,7 +920,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// <see cref="ClipboardLogPersistenceCoordinator.TryUnlockAndMergeAsync" />: wrong password is a no-op.
 	/// </summary>
 	[Test]
-	public async Task TryUnlockAndMerge_Wrong_Password_Does_Not_Merge_Or_Save()
+	public async Task TryUnlockAndMergeAsync_Wrong_Password_Does_Not_Merge_Or_Save()
 	{
 		// Arrange
 		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
@@ -821,160 +975,6 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		await store
 			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// Test that a change notification, while locked, schedules no save.
-	/// </summary>
-	[Test]
-	public async Task Updated_When_Locked_Does_Not_Save()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
-
-		List<Task> scheduled = [];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings() with
-				{
-					PersistClipboardHistory = true
-				});
-
-			store
-				.IsUnlocked
-				.Returns(false);
-
-			exceptionHandler
-				.When(static x => x.Watch(Arg.Any<Task>()))
-				.Do(call => scheduled.Add(call.Arg<Task>()));
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(store);
-
-			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<TimeProvider>(time);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<WeakReferenceMessenger>()
-				.As<IMessenger>();
-
-			builder
-				.RegisterType<ClipboardLogPersistenceCoordinator>()
-				.FindConstructorsWith(DebounceConstructor)
-				.ExternallyOwned();
-		});
-
-		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
-			TypedParameter.From(SaveDebounce));
-
-		// Act
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		time.Advance(SaveDebounce);
-
-		await Task.WhenAll([.. scheduled]);
-
-		// Assert
-		await store
-			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// Test that a change notification, while unlocked, triggers a debounced save through the messenger.
-	/// </summary>
-	[Test]
-	public async Task Updated_When_Unlocked_Saves_After_Debounce()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
-
-		IMessenger messenger = new WeakReferenceMessenger();
-
-		List<Task> scheduled = [];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings() with
-				{
-					PersistClipboardHistory = true
-				});
-
-			clipboardLog
-				.Entries
-				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
-
-			store
-				.IsUnlocked
-				.Returns(true);
-
-			exceptionHandler
-				.When(static x => x.Watch(Arg.Any<Task>()))
-				.Do(call => scheduled.Add(call.Arg<Task>()));
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(clipboardLog);
-
-			builder.RegisterInstance(store);
-
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(exceptionHandler);
-
-			builder.RegisterInstance<TimeProvider>(time);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<ClipboardLogPersistenceCoordinator>()
-				.FindConstructorsWith(DebounceConstructor)
-				.ExternallyOwned();
-		});
-
-		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>(
-			TypedParameter.From(SaveDebounce));
-
-		sut.Start();
-
-		// Act
-		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
-
-		time.Advance(SaveDebounce);
-
-		await Task.WhenAll([.. scheduled]);
-
-		// Assert
-		await store
-			.Received()
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 	#endregion

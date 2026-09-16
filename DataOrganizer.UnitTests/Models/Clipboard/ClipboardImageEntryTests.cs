@@ -11,25 +11,6 @@ internal class ClipboardImageEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of the image badge metadata.
-	/// </summary>
-	[Test]
-	public void Badge_Metadata_Is_Image_Specific()
-	{
-		// Arrange
-		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
-
-		// Act, Assert
-		sut.TypeGlyph
-			.Should()
-			.Be(Glyphs.FramedPicture);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Image);
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardImageEntry.ContentToolTip" />: malformed bytes yield no size.
 	/// </summary>
 	[Test]
@@ -72,6 +53,25 @@ internal class ClipboardImageEntryTests
 		sut.ImagePreview
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardImageEntry.TypeGlyph" />, <see cref="ClipboardImageEntry.TypeToolTip" />: the badge names an image.
+	/// </summary>
+	[Test]
+	public void TypeGlyph_And_TypeToolTip_Are_Image_Specific()
+	{
+		// Arrange
+		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
+
+		// Act, Assert
+		sut.TypeGlyph
+			.Should()
+			.Be(Glyphs.FramedPicture);
+
+		sut.TypeToolTip
+			.Should()
+			.Be(Strings.Image);
 	}
 	#endregion
 

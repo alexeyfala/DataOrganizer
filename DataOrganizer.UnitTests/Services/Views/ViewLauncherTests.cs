@@ -467,7 +467,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the active type filter is persisted.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
+	public void SaveClipboardLogSettings_Persists_ActiveFilter()
 	{
 		// Arrange
 		ClipboardLogWindowSettings? captured = null;
@@ -517,7 +517,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the keep-open flag is persisted.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	public void SaveClipboardLogSettings_Persists_KeepOpen()
 	{
 		// Arrange
 		ClipboardLogWindowSettings? captured = null;
@@ -567,7 +567,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: clipboard window settings are serialized to a JSON file.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Saves_Settings()
+	public void SaveClipboardLogSettings_Saves_Settings()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();

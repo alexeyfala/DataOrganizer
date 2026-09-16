@@ -11,10 +11,10 @@ internal class ClipboardTextEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of the format flags for a plain-text entry.
+	/// <see cref="ClipboardTextEntry.IsHtml" />, <see cref="ClipboardTextEntry.IsRtf" />: plain text carries no companion format.
 	/// </summary>
 	[Test]
-	public void Flags_Are_False_For_Plain_Text()
+	public void IsHtml_And_IsRtf_Are_False_For_Plain_Text()
 	{
 		// Arrange
 		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("plain");
@@ -30,10 +30,10 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of the format flags when both companion formats are present.
+	/// <see cref="ClipboardTextEntry.IsHtml" />, <see cref="ClipboardTextEntry.IsRtf" />: both companion formats are reported.
 	/// </summary>
 	[Test]
-	public void Flags_Reflect_Companion_Formats()
+	public void IsHtml_And_IsRtf_Reflect_Companion_Formats()
 	{
 		// Arrange
 		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("x", html: "<b>x</b>", rtf: @"{\rtf1 x}");

@@ -1945,7 +1945,7 @@ internal class EditorViewModelTests
 	/// <see cref="EditorViewModel.RestartAutoLockCommand" />: the countdown starts over from the delay in the settings.
 	/// </summary>
 	[Test]
-	public void RestartAutoLock_Starts_The_Countdown_Over()
+	public void RestartAutoLockCommand_Starts_The_Countdown_Over()
 	{
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();

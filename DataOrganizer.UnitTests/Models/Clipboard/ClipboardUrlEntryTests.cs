@@ -12,29 +12,6 @@ internal class ClipboardUrlEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of the URL-specific badge metadata.
-	/// </summary>
-	[Test]
-	public void Badge_Metadata_Is_Url_Specific()
-	{
-		// Arrange
-		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry("https://example.com");
-
-		// Act, Assert
-		sut.IsUrl
-			.Should()
-			.BeTrue();
-
-		sut.TypeGlyph
-			.Should()
-			.Be(Glyphs.Link);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Hyperlink);
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardUrlEntry.ContentToolTip" />: a very long URL is capped with an ellipsis.
 	/// </summary>
 	[Test]
@@ -84,6 +61,29 @@ internal class ClipboardUrlEntryTests
 		string.Concat(lines)
 			.Should()
 			.Be(url);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardUrlEntry.IsUrl" />, <see cref="ClipboardUrlEntry.TypeGlyph" />, <see cref="ClipboardUrlEntry.TypeToolTip" />: the badge names a link.
+	/// </summary>
+	[Test]
+	public void IsUrl_And_Badge_Metadata_Are_Url_Specific()
+	{
+		// Arrange
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry("https://example.com");
+
+		// Act, Assert
+		sut.IsUrl
+			.Should()
+			.BeTrue();
+
+		sut.TypeGlyph
+			.Should()
+			.Be(Glyphs.Link);
+
+		sut.TypeToolTip
+			.Should()
+			.Be(Strings.Hyperlink);
 	}
 	#endregion
 }

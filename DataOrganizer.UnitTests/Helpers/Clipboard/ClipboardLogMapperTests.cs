@@ -13,7 +13,7 @@ internal class ClipboardLogMapperTests
 {
 	#region Methods
 	/// <summary>
-	/// Test that the persisted history survives a JSON serialization round-trip with polymorphic types.
+	/// <see cref="ClipboardLogMapper.ToPersisted" />, <see cref="ClipboardLogMapper.ToDomain" />: the persisted history survives a JSON round-trip with polymorphic types.
 	/// </summary>
 	[Test]
 	public void Json_RoundTrip_Preserves_Polymorphic_Entries()

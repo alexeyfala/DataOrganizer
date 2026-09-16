@@ -210,7 +210,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
 	/// </summary>
 	[Test]
-	public async Task LoadEntries_With_Unsupported_Version_Returns_Empty()
+	public async Task LoadEntriesAsync_With_Unsupported_Version_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -266,7 +266,7 @@ internal class ClipboardLogStoreTests
 	/// that does not finish leaves the previous one readable.
 	/// </summary>
 	[Test]
-	public async Task Save_Replaces_The_Log_Atomically()
+	public async Task SaveAsync_Replaces_The_Log_Atomically()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -315,7 +315,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.SaveAsync" /> / <see cref="ClipboardLogStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
-	public async Task Save_Then_Unlock_In_New_Session_Restores_Entries()
+	public async Task SaveAsync_Then_Unlock_In_New_Session_Restores_Entries()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -401,7 +401,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.SaveAsync" />: a later save replaces the previous journal.
 	/// </summary>
 	[Test]
-	public async Task Save_Twice_Overwrites_Previous_Log()
+	public async Task SaveAsync_Twice_Overwrites_Previous_Log()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -485,7 +485,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.SaveAsync" />: an encryption failure writes no journal.
 	/// </summary>
 	[Test]
-	public async Task Save_When_Encryption_Fails_Writes_Nothing()
+	public async Task SaveAsync_When_Encryption_Fails_Writes_Nothing()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -544,7 +544,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
-	public async Task Save_Without_Unlock_Writes_Nothing()
+	public async Task SaveAsync_Without_Unlock_Writes_Nothing()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -587,7 +587,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a new key is created when none exists.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_Creates_Key_When_None_Exists()
+	public async Task TryUnlockAsync_Creates_Key_When_None_Exists()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -643,7 +643,7 @@ internal class ClipboardLogStoreTests
 	/// the old one in one step, so an interrupted rewrap keeps the journal openable.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_Replaces_A_Rewrapped_Key_Atomically()
+	public async Task TryUnlockAsync_Replaces_A_Rewrapped_Key_Atomically()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -745,7 +745,7 @@ internal class ClipboardLogStoreTests
 	/// so a cryptographic failure behind it is the data and no further password is asked for.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_When_An_Existing_Key_Cannot_Be_Read_Returns_Damaged()
+	public async Task TryUnlockAsync_When_An_Existing_Key_Cannot_Be_Read_Returns_Damaged()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -823,7 +823,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: rejected credentials yield WrongPassword.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_When_Key_Unwrap_Is_Rejected_Returns_WrongPassword()
+	public async Task TryUnlockAsync_When_Key_Unwrap_Is_Rejected_Returns_WrongPassword()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -901,7 +901,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_When_Key_Wrap_Fails_Returns_Failed()
+	public async Task TryUnlockAsync_When_Key_Wrap_Fails_Returns_Failed()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -959,7 +959,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_When_Log_Is_Rejected_Returns_Empty()
+	public async Task TryUnlockAsync_When_Log_Is_Rejected_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -1040,7 +1040,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a corrupt journal yields no entries.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_With_Corrupt_Log_Returns_Empty()
+	public async Task TryUnlockAsync_With_Corrupt_Log_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -1120,7 +1120,7 @@ internal class ClipboardLogStoreTests
 	/// damaged data, so the session still opens.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_With_Empty_Log_Returns_Empty()
+	public async Task TryUnlockAsync_With_Empty_Log_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -1199,7 +1199,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a wrong password is rejected.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_With_Wrong_Password_Returns_WrongPassword()
+	public async Task TryUnlockAsync_With_Wrong_Password_Returns_WrongPassword()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();

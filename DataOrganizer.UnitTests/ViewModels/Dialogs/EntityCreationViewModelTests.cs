@@ -40,7 +40,7 @@ internal class EntityCreationViewModelTests
 	/// <see cref="EntityCreationViewModel" />: the constructor initializes its properties from the loaded settings.
 	/// </summary>
 	[Test]
-	public void Initializes_Properties_In_Constructor()
+	public void Constructor_Initializes_Properties()
 	{
 		// Arrange
 		EntityCreationViewSettings settings = new()
@@ -84,33 +84,10 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityCreationViewModel.SaveSettingsToFile" />: serializes the settings to a JSON file.
-	/// </summary>
-	[Test]
-	public void SaveSettingsToFile_Saves_Settings()
-	{
-		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>(TypedParameter.From(fileSystem));
-
-		// Act
-		sut.SaveSettingsToFile();
-
-		// Assert
-		fileSystem.Received().SerializeToJsonFile(
-			Arg.Any<EntityCreationViewSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
-	}
-
-	/// <summary>
 	/// <see cref="EntityCreationViewModel" />: the constructor selects the folder option when the loaded settings have nothing selected.
 	/// </summary>
 	[Test]
-	public void Selects_Folder_If_Nothing_Selected_In_Constructor()
+	public void Constructor_Selects_Folder_If_Nothing_Selected()
 	{
 		// Arrange
 		EntityCreationViewSettings settings = new()
@@ -139,6 +116,29 @@ internal class EntityCreationViewModelTests
 		sut.IsFolderSelected
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EntityCreationViewModel.SaveSettingsToFile" />: serializes the settings to a JSON file.
+	/// </summary>
+	[Test]
+	public void SaveSettingsToFile_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>(TypedParameter.From(fileSystem));
+
+		// Act
+		sut.SaveSettingsToFile();
+
+		// Assert
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<EntityCreationViewSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
 	}
 	#endregion
 }
