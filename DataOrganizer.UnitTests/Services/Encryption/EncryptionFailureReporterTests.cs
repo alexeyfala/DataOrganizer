@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
@@ -23,20 +22,30 @@ internal class EncryptionFailureReporterTests
 	[Test]
 	public void Report_Tells_About_A_Wrong_Password()
 	{
+		// Arrange
+		RecordingNotificationService notification = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
+
+		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
+
 		// Act
-		SnackbarContent? received = Report(new InvalidCredentialException());
+		sut.Report(new InvalidCredentialException());
 
 		// Assert
-		received
+		notification
+			.Shown
 			.Should()
 			.NotBeNull();
 
-		received
+		notification
+			.Shown
 			.Text
 			.Should()
 			.Be(Strings.IncorrectPassword);
 
-		received
+		notification
+			.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -49,20 +58,30 @@ internal class EncryptionFailureReporterTests
 	[Test]
 	public void Report_Tells_About_An_Unprocessable_Content()
 	{
+		// Arrange
+		RecordingNotificationService notification = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
+
+		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
+
 		// Act
-		SnackbarContent? received = Report(new InvalidOperationException());
+		sut.Report(new InvalidOperationException());
 
 		// Assert
-		received
+		notification
+			.Shown
 			.Should()
 			.NotBeNull();
 
-		received
+		notification
+			.Shown
 			.Text
 			.Should()
 			.Be(Strings.FailedToProcessContents);
 
-		received
+		notification
+			.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -74,41 +93,33 @@ internal class EncryptionFailureReporterTests
 	[Test]
 	public void Report_Tells_About_Damaged_Data()
 	{
-		// Act
-		SnackbarContent? received = Report(new AuthenticationTagMismatchException());
-
-		// Assert
-		received
-			.Should()
-			.NotBeNull();
-
-		received
-			.Text
-			.Should()
-			.Be(Strings.EncryptedDataIsDamaged);
-
-		received
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Reports the failure and returns the notification the reporter has asked for.
-	/// </summary>
-	private static SnackbarContent? Report(Exception failure)
-	{
+		// Arrange
 		RecordingNotificationService notification = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
 
 		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
 
-		sut.Report(failure);
+		// Act
+		sut.Report(new AuthenticationTagMismatchException());
 
-		return notification.Shown;
+		// Assert
+		notification
+			.Shown
+			.Should()
+			.NotBeNull();
+
+		notification
+			.Shown
+			.Text
+			.Should()
+			.Be(Strings.EncryptedDataIsDamaged);
+
+		notification
+			.Shown
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
 	}
 	#endregion
 }

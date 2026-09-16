@@ -35,11 +35,24 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Drops_A_Message_When_Too_Many_Are_Waiting()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -69,11 +82,24 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Gives_A_Repeat_More_Time()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -107,9 +133,24 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Holds_A_Message_While_Another_One_Is_Shown()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -131,9 +172,24 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Posts_The_First_Message_At_Once()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -155,11 +211,22 @@ internal class NotificationServiceTests
 		// Arrange
 		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
-		presenter
-			.CanShow
-			.Returns(false);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(false);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -179,12 +246,32 @@ internal class NotificationServiceTests
 	public void ShowToast_Holds_A_Message_While_Another_One_Is_Shown()
 	{
 		// Arrange
-		IToastPresenter toastPresenter = CreateToastPresenter();
+		IToastPresenter toastPresenter = Substitute.For<IToastPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(
-			builder => Register(builder, CreatePresenter(), time, toastPresenter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+
+			presenter
+				.CanShow
+				.Returns(true);
+
+			toastPresenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance(toastPresenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -218,11 +305,24 @@ internal class NotificationServiceTests
 	public void Tick_Drops_Waiting_Messages_When_The_Host_Is_Gone()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -256,15 +356,28 @@ internal class NotificationServiceTests
 	public void Tick_Holds_The_Message_Under_The_Pointer()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
-
-		presenter
-			.IsPointerOverMessage
-			.Returns(true);
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			presenter
+				.IsPointerOverMessage
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -298,11 +411,24 @@ internal class NotificationServiceTests
 	public void Tick_Keeps_The_Order()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -335,11 +461,24 @@ internal class NotificationServiceTests
 	public void Tick_Leaves_A_Message_Waiting_Until_Its_Turn()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -367,11 +506,24 @@ internal class NotificationServiceTests
 	public void Tick_Posts_The_Waiting_Message()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -395,11 +547,24 @@ internal class NotificationServiceTests
 	public void Tick_Removes_The_Shown_Message()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -427,11 +592,24 @@ internal class NotificationServiceTests
 	public void Tick_Stops_When_Nothing_Is_Waiting()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = CreatePresenter();
-
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		NotificationService sut = mock.Create<NotificationService>();
 
@@ -459,34 +637,6 @@ internal class NotificationServiceTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a presenter with a host ready to show messages.
-	/// </summary>
-	private static ISnackbarPresenter CreatePresenter()
-	{
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
-
-		presenter
-			.CanShow
-			.Returns(true);
-
-		return presenter;
-	}
-
-	/// <summary>
-	/// Creates a presenter with a window ready to show toasts.
-	/// </summary>
-	private static IToastPresenter CreateToastPresenter()
-	{
-		IToastPresenter presenter = Substitute.For<IToastPresenter>();
-
-		presenter
-			.CanShow
-			.Returns(true);
-
-		return presenter;
-	}
-
-	/// <summary>
 	/// Lets the shown message go away and the next one take its place.
 	/// </summary>
 	private static void PassTurn(NotificationService sut, FakeTimeProvider time)
@@ -498,33 +648,6 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		sut.Tick();
-	}
-
-	/// <summary>
-	/// Registers the dependencies of the service.
-	/// </summary>
-	private static void Register(
-		ContainerBuilder builder,
-		ISnackbarPresenter presenter,
-		TimeProvider timeProvider,
-		IToastPresenter? toastPresenter = null)
-	{
-		builder
-			.RegisterInstance(new InlineDispatcherAccessor())
-			.As<IDispatcherAccessor>();
-
-		builder.RegisterInstance(presenter);
-
-		builder
-			.RegisterInstance(timeProvider)
-			.As<TimeProvider>();
-
-		if (toastPresenter is null)
-		{
-			return;
-		}
-
-		builder.RegisterInstance(toastPresenter);
 	}
 	#endregion
 }

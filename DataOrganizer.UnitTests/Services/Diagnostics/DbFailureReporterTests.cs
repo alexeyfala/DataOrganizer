@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Diagnostics;
@@ -25,11 +24,19 @@ internal class DbFailureReporterTests
 	[Test]
 	public void Report_Keeps_A_Cancelled_Operation_Quiet()
 	{
+		// Arrange
+		RecordingNotificationService notification = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
+
+		DbFailureReporter sut = mock.Create<DbFailureReporter>();
+
 		// Act
-		SnackbarContent? received = Report(new OperationCanceledException(), RandomString.Create(10));
+		sut.Report(new OperationCanceledException(), RandomString.Create(10));
 
 		// Assert
-		received
+		notification
+			.Shown
 			.Should()
 			.BeNull();
 	}
@@ -71,20 +78,29 @@ internal class DbFailureReporterTests
 		// Arrange
 		string text = RandomString.Create(10);
 
+		RecordingNotificationService notification = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
+
+		DbFailureReporter sut = mock.Create<DbFailureReporter>();
+
 		// Act
-		SnackbarContent? received = Report(new InvalidOperationException(), text);
+		sut.Report(new InvalidOperationException(), text);
 
 		// Assert
-		received
+		notification
+			.Shown
 			.Should()
 			.NotBeNull();
 
-		received
+		notification
+			.Shown
 			.Text
 			.Should()
 			.Be(text);
 
-		received
+		notification
+			.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -96,43 +112,35 @@ internal class DbFailureReporterTests
 	[Test]
 	public void Report_Tells_About_A_Refused_Write_In_Its_Own_Words()
 	{
-		// Act
-		SnackbarContent? received = Report(
-			new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, RandomString.Create(10)),
-			RandomString.Create(10));
-
-		// Assert
-		received
-			.Should()
-			.NotBeNull();
-
-		received
-			.Text
-			.Should()
-			.Be(Strings.DatabaseIsUnavailable);
-
-		received
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Reports the failure and returns the notification the reporter has asked for.
-	/// </summary>
-	private static SnackbarContent? Report(Exception failure, string text)
-	{
+		// Arrange
 		RecordingNotificationService notification = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
 
 		DbFailureReporter sut = mock.Create<DbFailureReporter>();
 
-		sut.Report(failure, text);
+		// Act
+		sut.Report(
+			new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, RandomString.Create(10)),
+			RandomString.Create(10));
 
-		return notification.Shown;
+		// Assert
+		notification
+			.Shown
+			.Should()
+			.NotBeNull();
+
+		notification
+			.Shown
+			.Text
+			.Should()
+			.Be(Strings.DatabaseIsUnavailable);
+
+		notification
+			.Shown
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
 	}
 	#endregion
 }
