@@ -28,9 +28,20 @@ namespace DataOrganizer.UnitTests.Services.Clipboard;
 internal class ClipboardLogStoreTests
 {
 	#region Data
-	private static readonly string BinPath = Path.Combine("clip", "History.bin");
+	/// <summary>
+	/// Path of the clipboard history file.
+	/// </summary>
+	private static readonly string BinPath = Path.Combine(HistoryFolder, "History.bin");
 
-	private static readonly string KeyPath = Path.Combine("clip", "History.key");
+	/// <summary>
+	/// Directory the clipboard history files live in.
+	/// </summary>
+	private const string HistoryFolder = "clip";
+
+	/// <summary>
+	/// Path of the clipboard history key file.
+	/// </summary>
+	private static readonly string KeyPath = Path.Combine(HistoryFolder, "History.key");
 	#endregion
 
 	#region Methods
@@ -49,7 +60,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -100,7 +111,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -155,7 +166,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -217,7 +228,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			sessionKeyStore
 				.Decrypt(default, default, default!)
@@ -266,7 +277,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -315,7 +326,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -346,7 +357,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -401,7 +412,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -434,7 +445,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -487,7 +498,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			// The key is taken (so the store unlocks)...
 			sessionKeyStore
@@ -544,7 +555,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -587,7 +598,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -643,7 +654,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -684,7 +695,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
@@ -745,7 +756,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -775,7 +786,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
@@ -823,7 +834,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -853,7 +864,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
@@ -903,7 +914,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			encryption
 				.CreateRandomDek()
@@ -959,7 +970,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -991,7 +1002,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 			encryption
@@ -1040,7 +1051,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -1073,7 +1084,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -1120,7 +1131,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -1153,7 +1164,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -1199,7 +1210,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -1228,7 +1239,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
+				.Returns(call => Path.Combine(HistoryFolder, call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 

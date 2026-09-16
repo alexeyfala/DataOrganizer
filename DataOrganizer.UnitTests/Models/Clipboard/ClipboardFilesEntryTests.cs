@@ -10,6 +10,23 @@ namespace DataOrganizer.UnitTests.Models.Clipboard;
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardFilesEntry)}"" type")]
 internal class ClipboardFilesEntryTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the first listed file.
+	/// </summary>
+	private const string FirstFile = $@"{Folder}\a.txt";
+
+	/// <summary>
+	/// Directory holding the listed files.
+	/// </summary>
+	private const string Folder = @"C:\dir";
+
+	/// <summary>
+	/// Path of the second listed file.
+	/// </summary>
+	private const string SecondFile = $@"{Folder}\b.txt";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardFilesEntry.ContentToolTip" />: a short list shows no expanded tooltip.
@@ -20,7 +37,7 @@ internal class ClipboardFilesEntryTests
 		// Arrange
 		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
 		[
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false)
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false)
 		]);
 
 		// Act, Assert
@@ -39,7 +56,7 @@ internal class ClipboardFilesEntryTests
 		// Arrange (10 files: more than the 6-item summary budget).
 		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry([.. Enumerable
 			.Range(0, 10)
-			.Select(i => new ClipboardFileSystemEntry($"C:\\dir\\file{i}.txt", IsFolder: false))]);
+			.Select(i => new ClipboardFileSystemEntry($@"{Folder}\file{i}.txt", IsFolder: false))]);
 
 		// Act, Assert
 		sut.Preview!
@@ -62,8 +79,8 @@ internal class ClipboardFilesEntryTests
 		// Arrange
 		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
 		[
-			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false)
+			new ClipboardFileSystemEntry(Folder, IsFolder: true),
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false)
 		]);
 
 		// Act
@@ -94,9 +111,9 @@ internal class ClipboardFilesEntryTests
 		// Arrange
 		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
 		[
-			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false),
-			new ClipboardFileSystemEntry("C:\\dir\\b.txt", IsFolder: false)
+			new ClipboardFileSystemEntry(Folder, IsFolder: true),
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false),
+			new ClipboardFileSystemEntry(SecondFile, IsFolder: false)
 		]);
 
 		// Act

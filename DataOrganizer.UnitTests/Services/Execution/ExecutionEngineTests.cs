@@ -21,6 +21,13 @@ namespace DataOrganizer.UnitTests.Services.Execution;
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionEngine)}"" type")]
 internal class ExecutionEngineTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the application a file extension is associated with.
+	/// </summary>
+	private const string AssociatedAppPath = @"C:\Apps\test.exe";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: kills the process, clears the read-only flag, erases the file and deletes its directory.
@@ -64,7 +71,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -177,7 +184,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
@@ -254,7 +261,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
@@ -342,7 +349,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			builder.RegisterInstance(sandbox);
 
@@ -425,7 +432,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			changeTracker
 				.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
@@ -553,7 +560,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(@"C:\Apps\test.exe");
+				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
