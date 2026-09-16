@@ -84,7 +84,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -116,7 +116,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -155,7 +155,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -195,7 +195,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -239,7 +239,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -276,7 +276,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -357,7 +357,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -382,13 +382,13 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IMessenger messenger = new WeakReferenceMessenger();
-
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(messenger);
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -424,7 +424,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -461,7 +461,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -501,7 +501,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -592,7 +592,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -623,7 +623,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -661,13 +661,13 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IMessenger messenger = new WeakReferenceMessenger();
-
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(messenger);
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -699,7 +699,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -728,34 +728,34 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Captures_Files_Entry_Folders_First()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			IStorageFile file = Substitute.For<IStorageFile>();
+
+			IStorageFolder folder = Substitute.For<IStorageFolder>();
+
+			file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+
+			folder.Path.Returns(new Uri("file:///C:/dir/sub"));
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			clipboard
+				.TryGetFilesAsync()
+				.Returns([file, folder]);
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		IStorageFile file = Substitute.For<IStorageFile>();
-
-		file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
-
-		IStorageFolder folder = Substitute.For<IStorageFolder>();
-
-		folder.Path.Returns(new Uri("file:///C:/dir/sub"));
-
-		clipboard
-			.TryGetFilesAsync()
-			.Returns([file, folder]);
 
 		// Act
 		await sut.PollOnceAsync();
@@ -831,30 +831,30 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Captures_When_History_Flag_Is_Allowed()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
-
-		clipboard
-			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
-			.Returns([1, 0, 0, 0]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+			clipboard
+				.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+				.Returns([1, 0, 0, 0]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns("allowed");
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		clipboard
-			.TryGetTextAsync()
-			.Returns("allowed");
 
 		// Act
 		await sut.PollOnceAsync();
@@ -880,31 +880,31 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Captures_Win_V_Restored_Content_Despite_Exclude_Marker()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		// Order mirrors a real Win+V restore: the exclude marker precedes the history id.
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns(
-			[
-				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing),
-				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardHistoryItemId)
-			]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// Order mirrors a real Win+V restore: the exclude marker precedes the history id.
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns(
+				[
+					DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing),
+					DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardHistoryItemId)
+				]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns("restored from Win+V");
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		clipboard
-			.TryGetTextAsync()
-			.Returns("restored from Win+V");
 
 		// Act
 		await sut.PollOnceAsync();
@@ -938,7 +938,7 @@ internal class ClipboardLogServiceTests
 				.Returns([]);
 
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
@@ -971,34 +971,34 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			IStorageFile valid = Substitute.For<IStorageFile>();
+
+			IStorageFile relative = Substitute.For<IStorageFile>();
+
+			valid.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+
+			relative.Path.Returns(new Uri("a.txt", UriKind.Relative));
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			clipboard
+				.TryGetFilesAsync()
+				.Returns([valid, relative]);
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		IStorageFile valid = Substitute.For<IStorageFile>();
-
-		valid.Path.Returns(new Uri("file:///C:/dir/a.txt"));
-
-		IStorageFile relative = Substitute.For<IStorageFile>();
-
-		relative.Path.Returns(new Uri("a.txt", UriKind.Relative));
-
-		clipboard
-			.TryGetFilesAsync()
-			.Returns([valid, relative]);
 
 		// Act
 		await sut.PollOnceAsync();
@@ -1028,30 +1028,26 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Skips_Sensitive_Content()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing)]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns("super-secret");
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing)]);
-
-		clipboard
-			.TryGetTextAsync()
-			.Returns("super-secret");
 
 		// Act
 		await sut.PollOnceAsync();
@@ -1070,30 +1066,30 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnce_Skips_When_History_Flag_Excludes()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
-
-		clipboard
-			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
-			.Returns([0, 0, 0, 0]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+			clipboard
+				.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+				.Returns([0, 0, 0, 0]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns("excluded");
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		clipboard
-			.TryGetTextAsync()
-			.Returns("excluded");
 
 		// Act
 		await sut.PollOnceAsync();
@@ -1112,7 +1108,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1153,7 +1149,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1190,7 +1186,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
@@ -1224,16 +1220,16 @@ internal class ClipboardLogServiceTests
 	public async Task Remove_Of_Active_Entry_Is_Not_Recaptured_By_Next_Poll()
 	{
 		// Arrange
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
@@ -1268,7 +1264,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(clipboard);
@@ -1313,7 +1309,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1358,7 +1354,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1407,7 +1403,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1449,7 +1445,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1495,7 +1491,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1550,7 +1546,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(autoClear);
@@ -1583,7 +1579,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(autoClear);
@@ -1612,7 +1608,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1650,7 +1646,7 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
+				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(messenger);
@@ -1687,7 +1683,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1721,7 +1717,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1745,7 +1741,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1767,7 +1763,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1801,7 +1797,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1838,7 +1834,7 @@ internal class ClipboardLogServiceTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
