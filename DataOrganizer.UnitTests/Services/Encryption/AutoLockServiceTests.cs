@@ -25,7 +25,7 @@ internal class AutoLockServiceTests
 	public void Arm_Restarts_With_The_Current_Delay()
 	{
 		// Arrange
-		AppSettings settings = CreateSettings(1);
+		AppSettings settings = SettingsFactory.CreateSettings(autoLockMinutes: 1);
 
 		FakeTimeProvider time = new();
 
@@ -76,7 +76,7 @@ internal class AutoLockServiceTests
 
 			settingsStore
 				.Settings
-				.Returns(CreateSettings(15));
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 15));
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -117,7 +117,7 @@ internal class AutoLockServiceTests
 
 			settingsStore
 				.Settings
-				.Returns(CreateSettings(0));
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 0));
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -162,7 +162,7 @@ internal class AutoLockServiceTests
 
 			settingsStore
 				.Settings
-				.Returns(CreateSettings(1));
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
 
 			builder.RegisterInstance(settingsStore);
 
@@ -212,7 +212,7 @@ internal class AutoLockServiceTests
 
 			settingsStore
 				.Settings
-				.Returns(CreateSettings(1));
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
 
 			builder
 				.RegisterType<WeakReferenceMessenger>()
@@ -259,7 +259,7 @@ internal class AutoLockServiceTests
 
 			settingsStore
 				.Settings
-				.Returns(CreateSettings(1));
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
 
 			builder.RegisterInstance(settingsStore);
 
@@ -311,18 +311,6 @@ internal class AutoLockServiceTests
 			static (recipient, message) => ((List<SessionAutoLockedMessage>)recipient).Add(message));
 
 		return received;
-	}
-
-	/// <summary>
-	/// Settings carrying the auto-lock delay of a test.
-	/// </summary>
-	private static AppSettings CreateSettings(int autoLockMinutes)
-	{
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.AutoLockMinutes = autoLockMinutes;
-
-		return settings;
 	}
 	#endregion
 }

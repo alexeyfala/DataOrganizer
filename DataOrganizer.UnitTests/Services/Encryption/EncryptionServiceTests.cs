@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using NSec.Cryptography;
 using Repository.Dto;
 using System;

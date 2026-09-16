@@ -27,7 +27,7 @@ internal class NoteCipherTests
 	public void Decode_Binds_The_Note_To_Its_Object()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -63,7 +63,7 @@ internal class NoteCipherTests
 		// Arrange
 		string text = RandomString.Create(20);
 
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		keeper.Note = RandomValues.CreateBytes(10);
 
@@ -98,7 +98,7 @@ internal class NoteCipherTests
 		// Arrange
 		string text = RandomString.Create(20);
 
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		FolderDto nested = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -149,7 +149,7 @@ internal class NoteCipherTests
 		// Arrange
 		string text = RandomString.Create(20);
 
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -191,7 +191,7 @@ internal class NoteCipherTests
 	public void Decode_Does_Not_Propagate_A_Failure()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		keeper.Note = RandomValues.CreateBytes(10);
 
@@ -225,7 +225,7 @@ internal class NoteCipherTests
 	public void Decode_Returns_Null_When_Decryption_Fails()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -267,7 +267,7 @@ internal class NoteCipherTests
 	public void Decode_Returns_Null_When_Keeper_Is_Locked()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: false);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: false);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
@@ -393,7 +393,7 @@ internal class NoteCipherTests
 		// Arrange
 		string text = RandomString.Create(20);
 
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -446,7 +446,7 @@ internal class NoteCipherTests
 	public void Encode_Returns_Null_When_Keeper_Is_Locked()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: false);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: false);
 
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
@@ -534,7 +534,7 @@ internal class NoteCipherTests
 	public void Encode_Zeroes_The_Plain_Text_Buffer()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper(isUnlocked: true);
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
 		byte[]? passedText = null;
 
@@ -565,21 +565,6 @@ internal class NoteCipherTests
 			.AllSatisfy(x => x
 				.Should()
 				.Be(0));
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a password keeper folder; whether its key is available is decided by the key store.
-	/// </summary>
-	private static FolderDto CreateKeeper(bool isUnlocked)
-	{
-		FolderDto keeper = ItemDtoFactory.CreateFolderDto(
-			encryptionStatus: isUnlocked ? EncryptionStatus.Decrypted : EncryptionStatus.Encrypted);
-
-		keeper.EncryptedDek = RandomValues.CreateBytes(10);
-
-		return keeper;
 	}
 	#endregion
 }

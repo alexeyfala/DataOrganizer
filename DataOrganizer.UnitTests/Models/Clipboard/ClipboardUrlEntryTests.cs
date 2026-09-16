@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Properties;
 using System;
 
@@ -17,7 +18,7 @@ internal class ClipboardUrlEntryTests
 	public void Badge_Metadata_Is_Url_Specific()
 	{
 		// Arrange
-		ClipboardUrlEntry sut = UrlEntry("https://example.com");
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry("https://example.com");
 
 		// Act, Assert
 		sut.IsUrl
@@ -42,7 +43,7 @@ internal class ClipboardUrlEntryTests
 		// Arrange (> 10 lines worth of characters).
 		string url = "https://example.com/" + new string('a', 64 * 11);
 
-		ClipboardUrlEntry sut = UrlEntry(url);
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry(url);
 
 		// Act
 		string[] lines = sut
@@ -68,7 +69,7 @@ internal class ClipboardUrlEntryTests
 		// Arrange (96 chars -> 2 lines at 64 chars per line).
 		string url = "https://example.com/" + new string('a', 76);
 
-		ClipboardUrlEntry sut = UrlEntry(url);
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry(url);
 
 		// Act
 		string[] lines = sut
@@ -84,19 +85,5 @@ internal class ClipboardUrlEntryTests
 			.Should()
 			.Be(url);
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A URL entry whose text and URL are <paramref name="url" />.
-	/// </summary>
-	private static ClipboardUrlEntry UrlEntry(string url) => new()
-	{
-		Text = url,
-		Html = null,
-		Rtf = null,
-		Url = url,
-		Hash = [1]
-	};
 	#endregion
 }

@@ -5,12 +5,12 @@ using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -68,12 +68,12 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
-		await sut.TryUnlockAsync(Password("pw"));
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Act
 		sut.Dispose();
 
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
 		sut.IsUnlocked
@@ -119,9 +119,9 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
-		await sut.TryUnlockAsync(Password("pw"));
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Act
 		sut.EraseAll();
@@ -174,9 +174,9 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
-		await sut.TryUnlockAsync(Password("pw"));
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Act
 		sut.EraseHistory();
@@ -285,10 +285,10 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
-		await sut.TryUnlockAsync(Password("pw"));
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Act
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
 		files.AtomicWrites
@@ -334,9 +334,9 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-			await writer.SaveAsync([TextEntry("secret")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("secret")]);
 		}
 
 		// Act
@@ -365,7 +365,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -420,11 +420,11 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-			await writer.SaveAsync([TextEntry("old")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("old")]);
 
-			await writer.SaveAsync([TextEntry("new")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("new")]);
 		}
 
 		// Act
@@ -453,7 +453,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		ClipboardTextEntry restored = result
@@ -518,10 +518,10 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
-		await sut.TryUnlockAsync(Password("pw"));
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Act
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
 		files.Files
@@ -564,7 +564,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
-		await sut.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
 		files.Files
@@ -607,7 +607,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -662,7 +662,7 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 		}
 
 		files
@@ -713,7 +713,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -764,7 +764,7 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 		}
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
@@ -796,7 +796,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -842,7 +842,7 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 		}
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
@@ -874,7 +874,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -928,7 +928,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -978,9 +978,9 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-			await writer.SaveAsync([TextEntry("data")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 		}
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
@@ -1013,7 +1013,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -1059,9 +1059,9 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-			await writer.SaveAsync([TextEntry("data")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 		}
 
 		files.Files[BinPath] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -1092,7 +1092,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -1139,9 +1139,9 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("pw"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
-			await writer.SaveAsync([TextEntry("data")]);
+			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 		}
 
 		files.Files[BinPath] = [];
@@ -1172,7 +1172,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		result.Status
@@ -1218,7 +1218,7 @@ internal class ClipboardLogStoreTests
 		{
 			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
-			await writer.TryUnlockAsync(Password("right"));
+			await writer.TryUnlockAsync(SecretFactory.CreatePassword("right"));
 		}
 
 		// Act
@@ -1247,7 +1247,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("wrong"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(SecretFactory.CreatePassword("wrong"));
 
 		// Assert
 		result.Status
@@ -1258,23 +1258,5 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeFalse();
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// UTF-8 password bytes.
-	/// </summary>
-	private static PinnedBuffer Password(string value) => new(TextDefaults.Encoding.GetBytes(value));
-
-	/// <summary>
-	/// A minimal text entry.
-	/// </summary>
-	private static ClipboardTextEntry TextEntry(string text) => new()
-	{
-		Text = text,
-		Html = null,
-		Rtf = null,
-		Hash = [1, 2, 3]
-	};
 	#endregion
 }

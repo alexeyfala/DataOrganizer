@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Properties;
 using System;
 using System.Linq;
@@ -17,8 +18,10 @@ internal class ClipboardFilesEntryTests
 	public void ContentToolTip_Is_Null_When_Not_Truncated()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false));
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
+			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false)
+		]);
 
 		// Act, Assert
 		sut.ContentToolTip
@@ -34,7 +37,7 @@ internal class ClipboardFilesEntryTests
 	public void Long_List_Truncates_Summary_And_Exposes_ToolTip()
 	{
 		// Arrange (10 files: more than the 6-item summary budget).
-		ClipboardFilesEntry sut = FilesEntry([.. Enumerable
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry([.. Enumerable
 			.Range(0, 10)
 			.Select(i => new ClipboardFileSystemEntry($"C:\\dir\\file{i}.txt", IsFolder: false))]);
 
@@ -57,9 +60,11 @@ internal class ClipboardFilesEntryTests
 	public void Preview_Lists_Header_And_All_Items_When_Short()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
 			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false));
+			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false)
+		]);
 
 		// Act
 		string[] lines = sut
@@ -87,10 +92,12 @@ internal class ClipboardFilesEntryTests
 	public void TypeToolTip_Reports_Folder_And_File_Counts()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
 			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
 			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false),
-			new ClipboardFileSystemEntry("C:\\dir\\b.txt", IsFolder: false));
+			new ClipboardFileSystemEntry("C:\\dir\\b.txt", IsFolder: false)
+		]);
 
 		// Act
 		string tooltip = sut.TypeToolTip;
@@ -108,16 +115,5 @@ internal class ClipboardFilesEntryTests
 			.Should()
 			.Contain("Σ: 3");
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A files entry holding <paramref name="entries" />.
-	/// </summary>
-	private static ClipboardFilesEntry FilesEntry(params ClipboardFileSystemEntry[] entries) => new()
-	{
-		FileSystemEntries = entries,
-		Hash = [1]
-	};
 	#endregion
 }

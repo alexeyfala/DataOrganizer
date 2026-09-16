@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
@@ -47,7 +46,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		await sut.RequestDekAsync(
-			CreateKeeper(),
+			ItemDtoFactory.CreateKeeperDto(),
 			"header",
 			"label");
 
@@ -92,7 +91,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		PinnedBuffer? result = await sut.RequestDekAsync(
-			CreateKeeper(),
+			ItemDtoFactory.CreateKeeperDto(),
 			"header");
 
 		// Assert
@@ -111,7 +110,7 @@ internal class KeeperUnlockerTests
 		// Arrange
 		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
-		FolderDto keeper = CreateKeeper();
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -167,7 +166,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Keeps_A_Wrapper_Of_The_Current_Cost()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper();
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -228,7 +227,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Keeps_The_Wrapper_When_The_Write_Is_Refused()
 	{
 		// Arrange
-		FolderDto keeper = CreateKeeper();
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -298,7 +297,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		PinnedBuffer? result = await sut.RequestDekAsync(
-			CreateKeeper(),
+			ItemDtoFactory.CreateKeeperDto(),
 			"header");
 
 		// Assert
@@ -381,7 +380,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		PinnedBuffer? result = await sut.RequestDekAsync(
-			CreateKeeper(),
+			ItemDtoFactory.CreateKeeperDto(),
 			"header");
 
 		// Assert
@@ -405,7 +404,7 @@ internal class KeeperUnlockerTests
 
 		byte[] rewrapped = RandomValues.CreateBytes(20);
 
-		FolderDto keeper = CreateKeeper();
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -461,19 +460,6 @@ internal class KeeperUnlockerTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a keeper carrying a wrapped key.
-	/// </summary>
-	private static FolderDto CreateKeeper()
-	{
-		FolderDto keeper = ItemDtoFactory.CreateFolderDto(
-			encryptionStatus: EncryptionStatus.Encrypted);
-
-		keeper.EncryptedDek = RandomValues.CreateBytes(10);
-
-		return keeper;
-	}
-
 	/// <summary>
 	/// Failures an unwrap can end with.
 	/// </summary>

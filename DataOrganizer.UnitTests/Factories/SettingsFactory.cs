@@ -13,8 +13,9 @@ public static class SettingsFactory
 	/// <summary>
 	/// Creates an <see cref="AppSettings" /> object with fixed values.
 	/// </summary>
-	public static AppSettings CreateSettings(in bool trackHotkeys = false) => new()
+	public static AppSettings CreateSettings(in bool trackHotkeys = false, in int autoLockMinutes = 0) => new()
 	{
+		AutoLockMinutes = autoLockMinutes,
 		Language = "ja-JP",
 		PrimaryColor = PrimaryColor.Red,
 		SecondaryColor = SecondaryColor.Red,

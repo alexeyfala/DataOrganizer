@@ -21,7 +21,8 @@ public static class ItemDtoFactory
 		in Guid id = default,
 		in bool isEditing = false,
 		in bool isExecuting = false,
-		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
+		EncryptionStatus encryptionStatus = EncryptionStatus.None,
+		EntityKind kind = EntityKind.File) => new()
 		{
 			CreatedAt = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
@@ -29,7 +30,7 @@ public static class ItemDtoFactory
 			Index = RandomValues.CreateIntFrom10To100(),
 			IsEditing = isEditing,
 			IsExecuting = isExecuting,
-			Kind = EntityKind.File,
+			Kind = kind,
 			Name = RandomString.Create(10),
 			UpdatedAt = DateTime.Now
 		};
@@ -51,6 +52,46 @@ public static class ItemDtoFactory
 				encryptionStatus: encryptionStatus);
 		}
 	}
+
+	/// <summary>
+	/// Creates a password keeper <see cref="FolderDto" /> carrying a wrapped key.
+	/// </summary>
+	public static FolderDto CreateKeeperDto(bool isUnlocked = false)
+	{
+		FolderDto keeper = CreateFolderDto(
+			encryptionStatus: isUnlocked ? EncryptionStatus.Decrypted : EncryptionStatus.Encrypted);
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		return keeper;
+	}
+
+	/// <summary>
+	/// Creates a <see cref="FileDto" /> with the required base members populated, the given name and index 0.
+	/// </summary>
+	public static FileDto CreateNamedFileDto(string name = "") => new()
+	{
+		CreatedAt = DateTime.UtcNow,
+		Id = Guid.NewGuid(),
+		Index = 0,
+		Kind = EntityKind.File,
+		Name = name,
+		UpdatedAt = DateTime.UtcNow
+	};
+
+	/// <summary>
+	/// Creates a <see cref="FolderDto" /> with the required base members populated, the given name and index 0.
+	/// </summary>
+	public static FolderDto CreateNamedFolderDto(string name = "", byte[]? encryptedDek = null) => new()
+	{
+		CreatedAt = DateTime.UtcNow,
+		EncryptedDek = encryptedDek,
+		Id = Guid.NewGuid(),
+		Index = 0,
+		Kind = EntityKind.Folder,
+		Name = name,
+		UpdatedAt = DateTime.UtcNow
+	};
 
 	/// <summary>
 	/// Creates a <see cref="FolderDto" /> with random properties.

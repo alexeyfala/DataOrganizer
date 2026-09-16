@@ -1,9 +1,10 @@
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Helpers.Text;
 using Shared.Common;
 using System;
 using TestSupport.Common;
 
-namespace DataOrganizer.UnitTests.Services.Encryption;
+namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
 /// Builds pinned secrets for the tests.
@@ -11,6 +12,11 @@ namespace DataOrganizer.UnitTests.Services.Encryption;
 internal static class SecretFactory
 {
 	#region Methods
+	/// <summary>
+	/// A pinned buffer holding the UTF-8 bytes of the given password.
+	/// </summary>
+	public static PinnedBuffer CreatePassword(string value) => new(TextDefaults.Encoding.GetBytes(value));
+
 	/// <summary>
 	/// A pinned buffer holding random key material of the given size.
 	/// </summary>

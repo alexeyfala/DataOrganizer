@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Security.Cryptography;
 using TestSupport.Common;

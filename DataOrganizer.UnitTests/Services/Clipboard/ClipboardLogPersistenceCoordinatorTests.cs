@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -73,7 +72,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("a", [1])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
 
 			store
 				.IsUnlocked
@@ -161,7 +160,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("a", [1])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
 
 			store
 				.IsUnlocked
@@ -294,7 +293,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("a", [1])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
 
 			store
 				.IsUnlocked
@@ -420,7 +419,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("a", [1])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
 
 			store
 				.IsUnlocked
@@ -698,7 +697,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	public async Task TryUnlockAndMerge_Merges_And_Saves()
 	{
 		// Arrange
-		ClipboardLogEntryBase[] loaded = [TextEntry("A", [1])];
+		ClipboardLogEntryBase[] loaded = [ClipboardEntryFactory.CreateTextEntry("A", [1])];
 
 		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
@@ -747,7 +746,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(Password("pw"));
+		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
 		status
@@ -809,7 +808,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(Password("wrong"));
+		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(SecretFactory.CreatePassword("wrong"));
 
 		// Assert
 		status
@@ -929,7 +928,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("a", [1])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
 
 			store
 				.IsUnlocked
@@ -978,23 +977,5 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.Received()
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// UTF-8 password bytes.
-	/// </summary>
-	private static PinnedBuffer Password(string value) => new(TextDefaults.Encoding.GetBytes(value));
-
-	/// <summary>
-	/// A minimal text entry with the given hash.
-	/// </summary>
-	private static ClipboardTextEntry TextEntry(string text, byte[] hash) => new()
-	{
-		Text = text,
-		Html = null,
-		Rtf = null,
-		Hash = hash
-	};
 	#endregion
 }

@@ -206,7 +206,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
-		FileDto file = CreateFile(kind);
+		FileDto file = ItemDtoFactory.CreateFileDto(kind: kind);
 
 		byte[] encoded = RandomValues.CreateBytes(10);
 
@@ -365,20 +365,5 @@ internal class NoteEditorTests
 			.Should()
 			.Be(0));
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a file or a dataset.
-	/// </summary>
-	private static FileDto CreateFile(EntityKind kind) => new()
-	{
-		CreatedAt = DateTime.Now,
-		Id = Guid.NewGuid(),
-		Index = 0,
-		Kind = kind,
-		Name = RandomString.Create(10),
-		UpdatedAt = DateTime.Now
-	};
 	#endregion
 }

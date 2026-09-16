@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using System;
@@ -89,9 +90,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry first = TextEntry("a", [1]);
+		ClipboardTextEntry first = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		ClipboardTextEntry second = TextEntry("b", [2]);
+		ClipboardTextEntry second = ClipboardEntryFactory.CreateTextEntry("b", [2]);
 
 		sut.HandleNewPayload([1], () => first, isSensitive: false);
 
@@ -121,17 +122,17 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [200]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [200]);
 
 		sut.Entries.Add(pinned);
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
+			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
 		}
 
 		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
-		sut.HandleNewPayload([201], () => TextEntry("new", [201]), isSensitive: false);
+		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -160,7 +161,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
 		sut.Entries.Add(pinned);
 
@@ -203,11 +204,11 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
 		sut.Entries.Add(pinned);
 
-		sut.Entries.Add(TextEntry("u", [2]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
@@ -247,7 +248,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(TextEntry("a", [1]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
@@ -284,7 +285,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(TextEntry("a", [1]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
@@ -395,11 +396,11 @@ internal class ClipboardLogServiceTests
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
+			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
 		}
 
 		// Act
-		sut.HandleNewPayload([201], () => TextEntry("new", [201]), isSensitive: false);
+		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -432,7 +433,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.HandleNewPayload([1], () => TextEntry("a", [1]), isSensitive: false);
+		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false);
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
@@ -471,7 +472,7 @@ internal class ClipboardLogServiceTests
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
-		ClipboardTextEntry entry = TextEntry("a", [1]);
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Act
 		sut.HandleNewPayload([1], () => entry, isSensitive: false);
@@ -509,9 +510,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry target = TextEntry("target", [1]);
+		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [1]);
 
-		sut.Entries.Add(TextEntry("top", [9]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("top", [9]));
 
 		sut.Entries.Add(target);
 
@@ -631,14 +632,14 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(TextEntry("C", [2]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("C", [2]));
 
-		sut.Entries.Add(TextEntry("D", [9]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("D", [9]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act ("B" duplicates current "C" by hash [2] and is skipped).
-		sut.Merge([TextEntry("A", [1]), TextEntry("B", [2])]);
+		sut.Merge([ClipboardEntryFactory.CreateTextEntry("A", [1]), ClipboardEntryFactory.CreateTextEntry("B", [2])]);
 
 		// Assert
 		sut.Entries
@@ -674,11 +675,11 @@ internal class ClipboardLogServiceTests
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(TextEntry($"cur{i}", [(byte)i]));
+			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"cur{i}", [(byte)i]));
 		}
 
 		// Act
-		sut.Merge([TextEntry("overflow", [200])]);
+		sut.Merge([ClipboardEntryFactory.CreateTextEntry("overflow", [200])]);
 
 		// Assert
 		sut.Entries
@@ -704,14 +705,14 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(TextEntry("newText", [9]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("newText", [9]));
 
 		// Act
 		sut.Merge(
 		[
-			PinnedTextEntry("p0", [1]),
-			PinnedTextEntry("p1", [2]),
-			TextEntry("u", [3])
+			ClipboardEntryFactory.CreatePinnedTextEntry("p0", [1]),
+			ClipboardEntryFactory.CreatePinnedTextEntry("p1", [2]),
+			ClipboardEntryFactory.CreateTextEntry("u", [3])
 		]);
 
 		// Assert
@@ -946,7 +947,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry entry = TextEntry("a", [1]);
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Capturing marks the entry active; the clipboard now holds nothing capturable.
 		sut.HandleNewPayload([1], () => entry, isSensitive: false);
@@ -1113,13 +1114,13 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry original = PinnedTextEntry("orig", [1]);
+		ClipboardTextEntry original = ClipboardEntryFactory.CreatePinnedTextEntry("orig", [1]);
 
 		sut.Entries.Add(original);
 
 		await sut.RestoreAsync(original);
 
-		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
 		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
@@ -1157,12 +1158,12 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(TextEntry("a", [1]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (the entry was never added).
-		await sut.RemoveAsync(TextEntry("absent", [9]));
+		await sut.RemoveAsync(ClipboardEntryFactory.CreateTextEntry("absent", [9]));
 
 		// Assert
 		sut.Entries
@@ -1194,7 +1195,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry entry = TextEntry("a", [1]);
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Capturing marks the entry active (its content is the one held in the system clipboard).
 		sut.HandleNewPayload([1], () => entry, isSensitive: false);
@@ -1237,7 +1238,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry entry = TextEntry("a", [1]);
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		sut.HandleNewPayload([1], () => entry, isSensitive: false);
 
@@ -1272,9 +1273,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry old = TextEntry("old", [2]);
+		ClipboardTextEntry old = ClipboardEntryFactory.CreateTextEntry("old", [2]);
 
-		ClipboardTextEntry active = TextEntry("active", [1]);
+		ClipboardTextEntry active = ClipboardEntryFactory.CreateTextEntry("active", [1]);
 
 		sut.Entries.Add(old);
 
@@ -1317,11 +1318,11 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
 		sut.Entries.Add(pinned);
 
-		sut.Entries.Add(TextEntry("u", [2]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
@@ -1362,7 +1363,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry original = TextEntry("orig", [1]);
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
 		sut.Entries.Add(original);
 
@@ -1373,7 +1374,7 @@ internal class ClipboardLogServiceTests
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
-		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act
 		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
@@ -1411,7 +1412,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry top = TextEntry("top", [1]);
+		ClipboardTextEntry top = ClipboardEntryFactory.CreateTextEntry("top", [1]);
 
 		sut.Entries.Add(top);
 
@@ -1453,7 +1454,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry original = TextEntry("orig", [1]);
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
 		sut.Entries.Add(original);
 
@@ -1461,7 +1462,7 @@ internal class ClipboardLogServiceTests
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
-		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
 		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
@@ -1499,7 +1500,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry original = TextEntry("orig", [1]);
+		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
 		sut.Entries.Add(original);
 
@@ -1514,7 +1515,7 @@ internal class ClipboardLogServiceTests
 		{
 			built = true;
 
-			return TextEntry("x", [1]);
+			return ClipboardEntryFactory.CreateTextEntry("x", [1]);
 		}, isSensitive: false);
 
 		// Assert
@@ -1554,7 +1555,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry secret = TextEntry("Xk7#pQ2!mZ", [1]);
+		ClipboardTextEntry secret = ClipboardEntryFactory.CreateTextEntry("Xk7#pQ2!mZ", [1]);
 
 		sut.Entries.Add(secret);
 
@@ -1587,7 +1588,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry plain = TextEntry("just some text", [1]);
+		ClipboardTextEntry plain = ClipboardEntryFactory.CreateTextEntry("just some text", [1]);
 
 		sut.Entries.Add(plain);
 
@@ -1613,9 +1614,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry other = TextEntry("other", [1]);
+		ClipboardTextEntry other = ClipboardEntryFactory.CreateTextEntry("other", [1]);
 
-		ClipboardTextEntry target = TextEntry("target", [2]);
+		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
 		sut.Entries.Add(other);
 
@@ -1654,9 +1655,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry target = TextEntry("target", [2]);
+		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
-		sut.Entries.Add(TextEntry("other", [1]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
 
 		sut.Entries.Add(target);
 
@@ -1688,9 +1689,9 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry first = TextEntry("first", [1]);
+		ClipboardTextEntry first = ClipboardEntryFactory.CreateTextEntry("first", [1]);
 
-		ClipboardTextEntry target = TextEntry("target", [2]);
+		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
 		sut.Entries.Add(first);
 
@@ -1768,11 +1769,11 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry c = TextEntry("c", [3]);
+		ClipboardTextEntry c = ClipboardEntryFactory.CreateTextEntry("c", [3]);
 
-		sut.Entries.Add(TextEntry("a", [1]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		sut.Entries.Add(TextEntry("b", [2]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("b", [2]));
 
 		sut.Entries.Add(c);
 
@@ -1802,13 +1803,13 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
-		ClipboardTextEntry b = TextEntry("b", [3]);
+		ClipboardTextEntry b = ClipboardEntryFactory.CreateTextEntry("b", [3]);
 
 		sut.Entries.Add(pinned);
 
-		sut.Entries.Add(TextEntry("a", [2]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [2]));
 
 		sut.Entries.Add(b);
 
@@ -1839,15 +1840,15 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		ClipboardTextEntry p0 = PinnedTextEntry("p0", [1]);
+		ClipboardTextEntry p0 = ClipboardEntryFactory.CreatePinnedTextEntry("p0", [1]);
 
-		ClipboardTextEntry p1 = PinnedTextEntry("p1", [2]);
+		ClipboardTextEntry p1 = ClipboardEntryFactory.CreatePinnedTextEntry("p1", [2]);
 
 		sut.Entries.Add(p0);
 
 		sut.Entries.Add(p1);
 
-		sut.Entries.Add(TextEntry("u", [3]));
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [3]));
 
 		// Act
 		sut.TogglePin(p0);
@@ -1882,28 +1883,5 @@ internal class ClipboardLogServiceTests
 
 		return received;
 	}
-
-	/// <summary>
-	/// A minimal pinned text entry with the given hash.
-	/// </summary>
-	private static ClipboardTextEntry PinnedTextEntry(string text, byte[] hash)
-	{
-		ClipboardTextEntry entry = TextEntry(text, hash);
-
-		entry.IsPinned = true;
-
-		return entry;
-	}
-
-	/// <summary>
-	/// A minimal text entry with the given hash.
-	/// </summary>
-	private static ClipboardTextEntry TextEntry(string text, byte[] hash) => new()
-	{
-		Text = text,
-		Html = null,
-		Rtf = null,
-		Hash = hash
-	};
 	#endregion
 }

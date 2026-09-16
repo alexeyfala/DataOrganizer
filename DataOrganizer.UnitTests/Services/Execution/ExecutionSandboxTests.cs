@@ -48,7 +48,9 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance<TimeProvider>(new FakeTimeProvider());
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
@@ -142,7 +144,9 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance<TimeProvider>(new FakeTimeProvider());
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
@@ -175,7 +179,9 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<TimeProvider>(new FakeTimeProvider());
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();

@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
@@ -16,7 +17,7 @@ internal class ClipboardTextEntryTests
 	public void Flags_Are_False_For_Plain_Text()
 	{
 		// Arrange
-		ClipboardTextEntry sut = TextEntry("plain");
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("plain");
 
 		// Act, Assert
 		sut.IsHtml
@@ -35,7 +36,7 @@ internal class ClipboardTextEntryTests
 	public void Flags_Reflect_Companion_Formats()
 	{
 		// Arrange
-		ClipboardTextEntry sut = TextEntry("x", html: "<b>x</b>", rtf: @"{\rtf1 x}");
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("x", html: "<b>x</b>", rtf: @"{\rtf1 x}");
 
 		// Act, Assert
 		sut.IsHtml
@@ -54,7 +55,7 @@ internal class ClipboardTextEntryTests
 	public void IsSensitive_Is_False_For_Plain_Prose()
 	{
 		// Arrange
-		ClipboardTextEntry sut = TextEntry("hello world");
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("hello world");
 
 		// Act, Assert
 		sut.IsSensitive
@@ -69,7 +70,7 @@ internal class ClipboardTextEntryTests
 	public void IsSensitive_Is_True_For_Secret_Like_Token()
 	{
 		// Arrange
-		ClipboardTextEntry sut = TextEntry("Xy7$kQ9pLm2!");
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("Xy7$kQ9pLm2!");
 
 		// Act, Assert
 		sut.IsSensitive
@@ -84,19 +85,19 @@ internal class ClipboardTextEntryTests
 	public void TypeGlyph_Reflects_Format_Combination()
 	{
 		// Arrange, Act, Assert
-		TextEntry("a").TypeGlyph
+		ClipboardEntryFactory.CreateTextEntry("a").TypeGlyph
 			.Should()
 			.Be(Glyphs.InputLatinLetters);
 
-		TextEntry("a", html: "<b>a</b>").TypeGlyph
+		ClipboardEntryFactory.CreateTextEntry("a", html: "<b>a</b>").TypeGlyph
 			.Should()
 			.Be(Glyphs.AngleBracketSlash);
 
-		TextEntry("a", rtf: @"{\rtf1 a}").TypeGlyph
+		ClipboardEntryFactory.CreateTextEntry("a", rtf: @"{\rtf1 a}").TypeGlyph
 			.Should()
 			.Be(Glyphs.BButton);
 
-		TextEntry("a", html: "<b>a</b>", rtf: @"{\rtf1 a}").TypeGlyph
+		ClipboardEntryFactory.CreateTextEntry("a", html: "<b>a</b>", rtf: @"{\rtf1 a}").TypeGlyph
 			.Should()
 			.Be($"{Glyphs.AngleBracketSlash} {Glyphs.BButton}");
 	}
@@ -108,28 +109,12 @@ internal class ClipboardTextEntryTests
 	public void TypeToolTip_Is_PlainText_For_Plain_Text()
 	{
 		// Arrange
-		ClipboardTextEntry sut = TextEntry("a");
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("a");
 
 		// Act, Assert
 		sut.TypeToolTip
 			.Should()
 			.Be(Strings.PlainText);
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A text entry with optional companion formats.
-	/// </summary>
-	private static ClipboardTextEntry TextEntry(
-		string text,
-		string? html = null,
-		string? rtf = null) => new()
-		{
-			Text = text,
-			Html = html,
-			Rtf = rtf,
-			Hash = [1]
-		};
 	#endregion
 }
