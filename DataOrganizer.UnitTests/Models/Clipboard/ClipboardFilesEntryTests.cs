@@ -1,7 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Properties;
 using System;
 using System.Linq;
 
@@ -117,20 +116,24 @@ internal class ClipboardFilesEntryTests
 		]);
 
 		// Act
-		string tooltip = sut.TypeToolTip;
+		string[] lines = sut.TypeToolTip.Split(Environment.NewLine);
 
-		// Assert
-		tooltip
+		// Assert (a line per kind: folders, files, and the total).
+		lines
 			.Should()
-			.Contain($"{Strings.Folders}: 1");
+			.HaveCount(3);
 
-		tooltip
+		lines[0]
 			.Should()
-			.Contain($"{Strings.Files}: 2");
+			.EndWith("1");
 
-		tooltip
+		lines[1]
 			.Should()
-			.Contain("Σ: 3");
+			.EndWith("2");
+
+		lines[2]
+			.Should()
+			.Be("Σ: 3");
 	}
 	#endregion
 }

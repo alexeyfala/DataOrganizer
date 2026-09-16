@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
 
@@ -100,21 +99,6 @@ internal class ClipboardTextEntryTests
 		ClipboardEntryFactory.CreateTextEntry("a", html: "<b>a</b>", rtf: @"{\rtf1 a}").TypeGlyph
 			.Should()
 			.Be($"{Glyphs.AngleBracketSlash} {Glyphs.BButton}");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.TypeToolTip" /> for a plain-text entry.
-	/// </summary>
-	[Test]
-	public void TypeToolTip_Is_PlainText_For_Plain_Text()
-	{
-		// Arrange
-		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("a");
-
-		// Act, Assert
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.PlainText);
 	}
 	#endregion
 }

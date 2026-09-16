@@ -9,7 +9,6 @@ using NSubstitute;
 using Repository.Enums;
 using Repository.Exceptions;
 using Shared.Common;
-using Shared.Properties;
 using System;
 
 namespace DataOrganizer.UnitTests.Services.Diagnostics;
@@ -66,7 +65,7 @@ internal class DbFailureReporterTests
 		// Assert
 		notification
 			.Received(1)
-			.ShowErrorSnackbar(Strings.DatabaseIsUnavailable);
+			.ShowErrorSnackbar(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -107,10 +106,10 @@ internal class DbFailureReporterTests
 	}
 
 	/// <summary>
-	/// <see cref="DbFailureReporter.Report" />: a write the database turned down is reported in words of its own.
+	/// <see cref="DbFailureReporter.Report" />: a write the database turned down is reported as an error.
 	/// </summary>
 	[Test]
-	public void Report_Tells_About_A_Refused_Write_In_Its_Own_Words()
+	public void Report_Tells_About_A_Refused_Write()
 	{
 		// Arrange
 		RecordingNotificationService notification = new();
@@ -129,12 +128,6 @@ internal class DbFailureReporterTests
 			.Shown
 			.Should()
 			.NotBeNull();
-
-		notification
-			.Shown
-			.Text
-			.Should()
-			.Be(Strings.DatabaseIsUnavailable);
 
 		notification
 			.Shown

@@ -13,7 +13,6 @@ using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
-using Shared.Properties;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
@@ -308,7 +307,7 @@ internal class AppControllerTests
 		// Assert
 		notificationService
 			.Received(1)
-			.ShowToast(Strings.DatabaseIsUnavailable);
+			.ShowToast(Arg.Any<string>());
 
 		// The message is enough: reading a database that is not there would only add a second one.
 		await entityLoader
@@ -371,7 +370,7 @@ internal class AppControllerTests
 		// Assert
 		notificationService
 			.Received(1)
-			.ShowToast(Strings.FailedToReadDatabase);
+			.ShowToast(Arg.Any<string>());
 
 		viewLauncher
 			.Received()

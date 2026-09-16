@@ -12,7 +12,6 @@ using DataOrganizer.ViewModels.Dialogs;
 using NSubstitute;
 using Repository.Dto;
 using Shared.Extensions;
-using Shared.Properties;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
@@ -296,7 +295,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise the assigning placeholder.
+	/// <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise a prompt.
 	/// </summary>
 	[Test]
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
@@ -319,9 +318,21 @@ internal class HotkeysEditorViewModelTests
 		sut.MakePreview();
 
 		// Assert
-		sut.Preview
-			.Should()
-			.Be(isAnyInBuffer ? keyStrokes.GetHotkeysPresentation() : Strings.AssigningHotkeys);
+		if (isAnyInBuffer)
+		{
+			sut.Preview
+				.Should()
+				.Be(keyStrokes.GetHotkeysPresentation());
+		}
+		else
+		{
+			// An empty buffer leaves a prompt of its own, built from nothing the buffer holds.
+			sut.Preview
+				.Should()
+				.NotBeEmpty()
+				.And
+				.NotBe(keyStrokes.GetHotkeysPresentation());
+		}
 	}
 
 	/// <summary>

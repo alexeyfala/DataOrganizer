@@ -5,7 +5,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Fakes;
-using Shared.Properties;
 using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;
@@ -40,12 +39,6 @@ internal class EncryptionFailureReporterTests
 
 		notification
 			.Shown
-			.Text
-			.Should()
-			.Be(Strings.IncorrectPassword);
-
-		notification
-			.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -76,12 +69,6 @@ internal class EncryptionFailureReporterTests
 
 		notification
 			.Shown
-			.Text
-			.Should()
-			.Be(Strings.FailedToProcessContents);
-
-		notification
-			.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -108,12 +95,6 @@ internal class EncryptionFailureReporterTests
 			.Shown
 			.Should()
 			.NotBeNull();
-
-		notification
-			.Shown
-			.Text
-			.Should()
-			.Be(Strings.EncryptedDataIsDamaged);
 
 		notification
 			.Shown

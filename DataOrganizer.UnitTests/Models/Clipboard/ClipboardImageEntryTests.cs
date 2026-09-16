@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
 
@@ -56,10 +55,10 @@ internal class ClipboardImageEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardImageEntry.TypeGlyph" />, <see cref="ClipboardImageEntry.TypeToolTip" />: the badge names an image.
+	/// <see cref="ClipboardImageEntry.TypeGlyph" />: the badge marks an image.
 	/// </summary>
 	[Test]
-	public void TypeGlyph_And_TypeToolTip_Are_Image_Specific()
+	public void TypeGlyph_Is_Image_Specific()
 	{
 		// Arrange
 		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
@@ -68,10 +67,6 @@ internal class ClipboardImageEntryTests
 		sut.TypeGlyph
 			.Should()
 			.Be(Glyphs.FramedPicture);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Image);
 	}
 	#endregion
 

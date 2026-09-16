@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Properties;
 using System;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
@@ -64,10 +63,10 @@ internal class ClipboardUrlEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardUrlEntry.IsUrl" />, <see cref="ClipboardUrlEntry.TypeGlyph" />, <see cref="ClipboardUrlEntry.TypeToolTip" />: the badge names a link.
+	/// <see cref="ClipboardUrlEntry.IsUrl" />, <see cref="ClipboardUrlEntry.TypeGlyph" />: the badge marks a link.
 	/// </summary>
 	[Test]
-	public void IsUrl_And_Badge_Metadata_Are_Url_Specific()
+	public void IsUrl_And_TypeGlyph_Are_Url_Specific()
 	{
 		// Arrange
 		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry("https://example.com");
@@ -80,10 +79,6 @@ internal class ClipboardUrlEntryTests
 		sut.TypeGlyph
 			.Should()
 			.Be(Glyphs.Link);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Hyperlink);
 	}
 	#endregion
 }

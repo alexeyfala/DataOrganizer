@@ -6,6 +6,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -19,7 +20,6 @@ using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
 using DialogHostAvalonia;
 using NSubstitute;
-using Shared.Properties;
 using System;
 using System.Threading.Tasks;
 
@@ -241,7 +241,7 @@ internal class DialogServiceTests
 		// Assert
 		viewModel.Header
 			.Should()
-			.Be(string.IsNullOrWhiteSpace(name) ? Strings.Note : $"{Strings.Note}: {name}");
+			.Be(NoteHeaderBuilder.Build(name));
 
 		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
 		await viewModel

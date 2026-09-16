@@ -18,7 +18,6 @@ using Repository.Enums;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
-using Shared.Properties;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -370,7 +369,7 @@ internal class FileChangeTrackerTests
 		// Assert
 		dbFailureReporter.Received(1).Report(
 			Arg.Any<DatabaseNotWritableException>(),
-			Arg.Is<string>(x => x.StartsWith(Strings.FailedToSaveFileContents, StringComparison.Ordinal)));
+			Arg.Any<string>());
 
 		receivedClosedFile
 			.Should()

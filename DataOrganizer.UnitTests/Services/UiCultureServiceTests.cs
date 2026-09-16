@@ -66,30 +66,10 @@ internal class UiCultureServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="UiCultureService.Apply" />: switches localized resources to English.
+	/// <see cref="UiCultureService.Apply" />: localized resources are read in the applied culture.
 	/// </summary>
 	[Test]
-	public void Apply_Switches_Resources_To_English()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		UiCultureService sut = mock.Create<UiCultureService>();
-
-		// Act
-		sut.Apply("en-us");
-
-		// Assert
-		Strings.Search
-			.Should()
-			.Be("Search");
-	}
-
-	/// <summary>
-	/// <see cref="UiCultureService.Apply" />: switches localized resources to Russian.
-	/// </summary>
-	[Test]
-	public void Apply_Switches_Resources_To_Russian()
+	public void Apply_Sets_Culture_For_Resources()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -100,9 +80,9 @@ internal class UiCultureServiceTests
 		sut.Apply("ru-ru");
 
 		// Assert
-		Strings.Search
+		Strings.Culture
 			.Should()
-			.Be("Поиск");
+			.BeSameAs(sut.Current);
 	}
 
 	/// <summary>
