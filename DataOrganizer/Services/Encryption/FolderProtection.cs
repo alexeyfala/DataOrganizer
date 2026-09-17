@@ -13,12 +13,10 @@ using DataOrganizer.Interfaces.Notifications;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
-using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +30,9 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc cref="IEncryptedContentWriter" />
 	private readonly IEncryptedContentWriter _contentWriter;
+
+	/// <inheritdoc cref="IFolderContentsConverter" />
+	private readonly IFolderContentsConverter _converter;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -51,9 +52,6 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IKeeperUnlocker" />
 	private readonly IKeeperUnlocker _keeperUnlocker;
 
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
@@ -65,19 +63,21 @@ public sealed class FolderProtection : IFolderProtection
 	public FolderProtection(
 		IContentVisibility contentVisibility,
 		IEncryptedContentWriter contentWriter,
+		IFolderContentsConverter converter,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter encryptionFailureReporter,
 		IKeeperUnlocker keeperUnlocker,
-		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification)
 	{
 		_contentVisibility = contentVisibility;
 
 		_contentWriter = contentWriter;
+
+		_converter = converter;
 
 		_dbAccess = dbAccess;
 
@@ -90,8 +90,6 @@ public sealed class FolderProtection : IFolderProtection
 		_encryptionFailureReporter = encryptionFailureReporter;
 
 		_keeperUnlocker = keeperUnlocker;
-
-		_logger = logger;
 
 		_messenger = messenger;
 
@@ -183,9 +181,7 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
-		ValidatedContents[] result = [];
-
-		NoteUpdate[] notes = [];
+		FolderConversion? conversion = null;
 
 		// The notes reach the objects only on a done conversion; until then their plain text is ours to erase.
 		bool areNotesHandedOver = false;
@@ -194,34 +190,20 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ValidatedContents[] contents = await _dbAccess
-				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false);
+			conversion = await _converter.ConvertAsync(
+				new()
+				{
+					Dek = decryptedDek,
+					Encrypt = false,
+					Files = files,
+					Folder = folder
+				},
+				token).ConfigureAwait(false);
 
-			if (!AreContentsValid(contents, files.Length))
+			if (conversion is null)
 			{
-				_notification.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
-
 				return;
 			}
-
-			result = [.. _encryption.DecryptContents(contents, decryptedDek)];
-
-			if (!AreContentsValid(result, contents.Length))
-			{
-				LogInvalidContents(result);
-
-				_notification.ShowErrorSnackbar(Strings.EncryptedDataIsDamaged);
-
-				return;
-			}
-
-			notes = ProcessNotes(
-				folder,
-				files,
-				decryptedDek,
-				encrypt: false);
 
 			using DatabaseBackup? backup = await _dbAccess
 				.CreateBackupAsync(token)
@@ -237,12 +219,12 @@ public sealed class FolderProtection : IFolderProtection
 			UpdateDatabaseParameters parameters = new()
 			{
 				BackupFilePath = backup.FilePath,
-				Contents = result,
+				Contents = conversion.Converted,
 				EncryptedDek = null,
 				Files = files,
 				Folder = folder,
 				NewStatus = EncryptionStatus.None,
-				Notes = notes
+				Notes = conversion.Notes
 			};
 
 			if (await _contentWriter
@@ -267,11 +249,11 @@ public sealed class FolderProtection : IFolderProtection
 		finally
 		{
 			// Whatever the outcome, the decrypted contents have no reader left here.
-			WipeContents(result);
+			WipeContents(conversion?.Converted ?? []);
 
 			if (!areNotesHandedOver)
 			{
-				WipeNotes(notes);
+				WipeNotes(conversion?.Notes ?? []);
 			}
 		}
 	}
@@ -296,45 +278,33 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ValidatedContents[] contents = await _dbAccess
-				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false);
+			using PinnedBuffer dek = _encryption.CreateRandomDek();
 
+			FolderConversion? conversion = await _converter.ConvertAsync(
+				new()
+				{
+					Dek = dek,
+					Encrypt = true,
+					Files = files,
+					Folder = folder
+				},
+				token).ConfigureAwait(false);
+
+			if (conversion is null)
+			{
+				return;
+			}
+
+			// The inner scope erases the plain text while a failure is still on its way out,
+			// so nothing of it is left while the failure is being reported.
 			try
 			{
-				if (!AreContentsValid(contents, files.Length))
-				{
-					_notification.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
-
-					return;
-				}
-
-				using PinnedBuffer dek = _encryption.CreateRandomDek();
-
-				ValidatedContents[] result = [.. _encryption.EncryptContents(contents, dek)];
-
-				if (!AreContentsValid(result, contents.Length))
-				{
-					LogInvalidContents(result);
-
-					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-					return;
-				}
-
 				using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
 
 				byte[] encryptedDek = _encryption.Encrypt(
 					dek,
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id));
-
-				NoteUpdate[] notes = ProcessNotes(
-					folder,
-					files,
-					dek,
-					encrypt: true);
 
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.
@@ -352,12 +322,12 @@ public sealed class FolderProtection : IFolderProtection
 				UpdateDatabaseParameters parameters = new()
 				{
 					BackupFilePath = backup.FilePath,
-					Contents = result,
+					Contents = conversion.Converted,
 					EncryptedDek = encryptedDek,
 					Files = files,
 					Folder = folder,
 					NewStatus = EncryptionStatus.Encrypted,
-					Notes = notes
+					Notes = conversion.Notes
 				};
 
 				if (await _contentWriter
@@ -369,7 +339,7 @@ public sealed class FolderProtection : IFolderProtection
 			}
 			finally
 			{
-				WipeContents(contents);
+				WipeContents(conversion.Loaded);
 			}
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
@@ -385,16 +355,6 @@ public sealed class FolderProtection : IFolderProtection
 
 	#region Helpers
 	/// <summary>
-	/// <c>True</c> when every content is readable, carries an identifier, and there are as many of
-	/// them as expected.
-	/// </summary>
-	private static bool AreContentsValid(ValidatedContents[] contents, int expectedCount)
-	{
-		return contents.Length == expectedCount
-			&& contents.All(x => x.IsValid && x.Id.IsNotDefault());
-	}
-
-	/// <summary>
 	/// Overwrites the buffers of the given contents.
 	/// </summary>
 	private static void WipeContents(ValidatedContents[] contents)
@@ -406,72 +366,5 @@ public sealed class FolderProtection : IFolderProtection
 	/// Overwrites the buffers of the given notes.
 	/// </summary>
 	private static void WipeNotes(IEnumerable<NoteUpdate> notes) => notes.ForEach(x => x.Note.ZeroMemory());
-
-	/// <summary>
-	/// Writes the identifiers of the contents that could not be converted to the log.
-	/// </summary>
-	private void LogInvalidContents(ValidatedContents[] contents)
-	{
-		string identifiers = string.Join(", ", contents
-			.Where(x => !x.IsValid)
-			.Select(x => x.Id));
-
-		_logger.LogError(
-			$"The contents of these files cannot be converted: {identifiers}",
-			breakInDebugger: false);
-	}
-
-	/// <summary>
-	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK.
-	/// A note that cannot be converted throws, so the result is never partial.
-	/// </summary>
-	private NoteUpdate[] ProcessNotes(
-		FolderDto folder,
-		FileDto[] files,
-		PinnedBuffer dek,
-		bool encrypt)
-	{
-		List<NoteUpdate> notes = [];
-
-		ExplorerItemDtoBase[] objects =
-		[
-			.. folder.WithSubfolders(),
-			.. files
-		];
-
-		try
-		{
-			foreach (ExplorerItemDtoBase item in objects)
-			{
-				if (item.Note is not { } note || note.IsEmpty())
-				{
-					continue;
-				}
-
-				ContentIdentity identity = ContentIdentity.ForNote(item.Id);
-
-				byte[] processed = encrypt
-					? _encryption.EncryptWithDek(note, dek, identity)
-					: _encryption.DecryptWithDek(note, dek, identity);
-
-				notes.Add(new NoteUpdate(
-					item.Id,
-					item.Kind,
-					processed));
-			}
-		}
-		catch
-		{
-			// A partial result is thrown away, so the notes decrypted so far lose their only reader.
-			if (!encrypt)
-			{
-				WipeNotes(notes);
-			}
-
-			throw;
-		}
-
-		return [.. notes];
-	}
 	#endregion
 }
