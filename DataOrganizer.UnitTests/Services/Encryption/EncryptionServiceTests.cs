@@ -14,6 +14,9 @@ using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
+// Almost every test here derives a key from a password, which is deliberately expensive.
+// The tests share nothing beyond the readonly purpose below, so they may run side by side.
+[Parallelizable(ParallelScope.Children)]
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptionService)}"" type")]
 internal class EncryptionServiceTests
 {
