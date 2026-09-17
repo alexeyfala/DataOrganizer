@@ -75,21 +75,15 @@ internal class DbAccessTests
 			.Should()
 			.NotBeEmpty();
 
-		entity.Kind
+		// A struct is compared by value unless asked otherwise; the entity carries no contents, so
+		// the members the two do not share are left out.
+		entity
 			.Should()
-			.Be(type);
-
-		entity.Name
-			.Should()
-			.Be(parameters.Name);
-
-		entity.Index
-			.Should()
-			.Be(parameters.Index);
-
-		entity.ParentId
-			.Should()
-			.Be(parameters.ParentId);
+			.BeEquivalentTo(
+				parameters,
+				static options => options
+					.ComparingByMembers<AddEntityParameters>()
+					.ExcludingMissingMembers());
 
 		await dbContextService
 			.Received()

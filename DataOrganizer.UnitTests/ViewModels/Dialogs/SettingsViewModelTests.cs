@@ -300,7 +300,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.CurrentSettings" />: current settings are initialized from the settings manager values.
+	/// <see cref="SettingsViewModel.CurrentSettings" />: current settings are a copy of the settings manager values.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Is_Initialized_From_The_Settings_Manager()
@@ -325,37 +325,12 @@ internal class SettingsViewModelTests
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Assert
-		sut.CurrentSettings.Language
+		// The view edits a copy: every value is taken over, but never the stored instance itself.
+		sut.CurrentSettings
 			.Should()
-			.Be(settings.Language);
-
-		sut.CurrentSettings.PrimaryColor
-			.Should()
-			.Be(settings.PrimaryColor);
-
-		sut.CurrentSettings.SecondaryColor
-			.Should()
-			.Be(settings.SecondaryColor);
-
-		sut.CurrentSettings.Theme
-			.Should()
-			.Be(settings.Theme);
-
-		sut.CurrentSettings.TrackHotkeys
-			.Should()
-			.Be(settings.TrackHotkeys);
-
-		sut.CurrentSettings.TrackClipboardHistory
-			.Should()
-			.Be(settings.TrackClipboardHistory);
-
-		sut.CurrentSettings.CheckForUpdates
-			.Should()
-			.Be(settings.CheckForUpdates);
-
-		sut.CurrentSettings.ShowFavoritesOnHover
-			.Should()
-			.Be(settings.ShowFavoritesOnHover);
+			.Be(settings)
+			.And
+			.NotBeSameAs(settings);
 	}
 
 	/// <summary>
@@ -437,25 +412,13 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(defaults.TrackHotkeys);
 
-		sut.CurrentSettings.Theme
+		sut.CurrentSettings
 			.Should()
-			.Be(defaults.Theme);
-
-		sut.CurrentSettings.PrimaryColor
-			.Should()
-			.Be(defaults.PrimaryColor);
-
-		sut.CurrentSettings.Language
-			.Should()
-			.Be(defaults.Language);
-
-		sut.CurrentSettings.LastNotifiedVersion
-			.Should()
-			.Be("9.9.9");
-
-		sut.CurrentSettings.LastUpdateCheckAt
-			.Should()
-			.Be(DateTimeOffset.UnixEpoch);
+			.Be(defaults with
+			{
+				LastNotifiedVersion = settings.LastNotifiedVersion,
+				LastUpdateCheckAt = settings.LastUpdateCheckAt
+			});
 
 		sut.IsDirty
 			.Should()

@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
@@ -1635,13 +1636,9 @@ internal class EditorViewModelTests
 			copyHistorySettings);
 
 		// Assert
-		window.Position.X
+		window.Position
 			.Should()
-			.Be(windowSettings.X);
-
-		window.Position.Y
-			.Should()
-			.Be(windowSettings.Y);
+			.Be(new PixelPoint(windowSettings.X, windowSettings.Y));
 
 		window.Width
 			.Should()
@@ -1663,13 +1660,9 @@ internal class EditorViewModelTests
 			.Should()
 			.Be(windowSettings.IsReadOnly);
 
-		sut.CopyHistorySettings.SelectedItemId
+		sut.CopyHistorySettings
 			.Should()
-			.Be(copyHistorySettings.SelectedItemId);
-
-		sut.CopyHistorySettings.ItemIds
-			.Should()
-			.Contain(copyHistorySettings.ItemIds);
+			.BeEquivalentTo(copyHistorySettings);
 	}
 
 	/// <summary>
