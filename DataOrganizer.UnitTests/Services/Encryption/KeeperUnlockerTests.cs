@@ -152,8 +152,7 @@ internal class KeeperUnlockerTests
 			.Should()
 			.BeSameAs(dek);
 
-		keeper
-			.EncryptedDek
+		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(wrapped);
 	}
@@ -209,8 +208,7 @@ internal class KeeperUnlockerTests
 			"header");
 
 		// Assert
-		keeper
-			.EncryptedDek
+		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(wrapped);
 
@@ -265,8 +263,7 @@ internal class KeeperUnlockerTests
 			"header");
 
 		// Assert
-		keeper
-			.EncryptedDek
+		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(wrapped);
 	}
@@ -346,15 +343,14 @@ internal class KeeperUnlockerTests
 	}
 
 	/// <summary>
-	/// <see cref="KeeperUnlocker.RequestDekAsync" />: a rejected password is reported and nothing is handed over.
+	/// <see cref="KeeperUnlocker.RequestDekAsync" />: a key that cannot be unwrapped is not handed over,
+	/// whatever the failure behind it.
 	/// </summary>
 	[Test]
 	[TestCaseSource(nameof(UnwrapFailures))]
-	public async Task RequestDekAsync_Reports_A_Failed_Unwrap(Exception failure)
+	public async Task RequestDekAsync_Returns_Nothing_When_The_Unwrap_Fails(Exception failure)
 	{
 		// Arrange
-		IEncryptionFailureReporter failureReporter = Substitute.For<IEncryptionFailureReporter>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -372,8 +368,6 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(failureReporter);
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -387,10 +381,6 @@ internal class KeeperUnlockerTests
 		result
 			.Should()
 			.BeNull();
-
-		failureReporter
-			.Received(1)
-			.Report(failure, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -452,8 +442,7 @@ internal class KeeperUnlockerTests
 			.Should()
 			.BeSameAs(dek);
 
-		keeper
-			.EncryptedDek
+		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(rewrapped);
 	}

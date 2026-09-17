@@ -6,7 +6,6 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Fakes;
@@ -454,15 +453,13 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer is handed
-	/// to the reporter and the editor is closed for changes.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer closes
+	/// the editor for changes, and the loading still ends.
 	/// </summary>
 	[Test]
-	public async Task ContainerLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	public async Task ContainerLoaded_Closes_The_Editor_When_The_Read_Fails()
 	{
 		// Arrange
-		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -472,8 +469,6 @@ internal class DatasetEditorViewModelTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbFailureReporter);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -489,10 +484,6 @@ internal class DatasetEditorViewModelTests
 		sut.IsInitialized
 			.Should()
 			.BeTrue();
-
-		dbFailureReporter
-			.Received(1)
-			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -636,15 +627,14 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: a save the database turned down is handed to the reporter.
+	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: a save the database turned down neither
+	/// escapes nor puts the record back.
 	/// </summary>
 	[Test]
-	public async Task DeleteRecordAsync_Hands_A_Failed_Save_To_The_Reporter()
+	public async Task DeleteRecordAsync_Keeps_The_Record_Out_When_The_Save_Fails()
 	{
 		// Arrange
 		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
-
-		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -665,8 +655,6 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbFailureReporter);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -676,12 +664,17 @@ internal class DatasetEditorViewModelTests
 			.AddRange(records);
 
 		// Act
-		await sut.DeleteRecordAsync(records[0]);
+		Func<Task> act = () => sut.DeleteRecordAsync(records[0]);
 
 		// Assert
-		dbFailureReporter
-			.Received(1)
-			.Report(Arg.Any<DatabaseNotWritableException>(), Arg.Any<string>());
+		await act
+			.Should()
+			.NotThrowAsync();
+
+		// The file still holds the record, so a refused save leaves the view ahead of what is stored.
+		sut.Records
+			.Should()
+			.NotContain(records[0]);
 	}
 
 	/// <summary>
