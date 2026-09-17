@@ -67,7 +67,6 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	{
 		// A read hands out bytes of its own, so a caller wiping them leaves the file as it was.
 		return Task.FromResult<byte[]>([.. Files[filePath]]);
-
 	}
 
 	public Task WriteAllBytesAsync(
