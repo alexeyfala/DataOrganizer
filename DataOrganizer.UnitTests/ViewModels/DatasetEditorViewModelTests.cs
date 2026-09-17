@@ -1101,12 +1101,11 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups, in a group or at the root, and persists it.
 	/// </summary>
 	[Test]
-	public async Task ExpandCollapseAsync_Sets_The_Expanded_State_And_Persists_Only_When_Editable(
+	public async Task ExpandCollapseAsync_Sets_The_Expanded_State(
 		[Values] bool expand,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1136,8 +1135,6 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.IsReadOnly = isReadOnly;
-
 		RecordsGroup? group = inGroup ? new() : null;
 
 		// Whichever collection holds the records, the rest of the test reads the same.
@@ -1159,7 +1156,7 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsExpanded == expand);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -1327,12 +1324,11 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records, in a group or at the root, and persists it.
 	/// </summary>
 	[Test]
-	public async Task ShowHideAsync_Sets_The_Hidden_State_And_Persists_Only_When_Editable(
+	public async Task ShowHideAsync_Sets_The_Hidden_State(
 		[Values] bool hide,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1361,8 +1357,6 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.IsReadOnly = isReadOnly;
-
 		RecordsGroup? group = inGroup ? new() : null;
 
 		// Whichever collection holds the records, the rest of the test reads the same.
@@ -1384,18 +1378,57 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsHidden == hide);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts the records of a group or of the root in the given direction and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: a read-only dataset is never written back. The check
+	/// lives in the save path, so it holds for every change that persists the records.
 	/// </summary>
 	[Test]
-	public async Task SortAsync_Sorts_The_Records_And_Persists_Only_When_Editable(
+	public async Task SortAsync_Does_Not_Persist_A_Read_Only_Dataset()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.IsReadOnly = true;
+
+		sut
+			.Records
+			.AddRange(DbAccessExtensions.CreateRandomRecords(eachTypes: 5));
+
+		// Act
+		await sut.SortAsync(group: null, ListSortDirection.Ascending);
+
+		// Assert
+		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts the records of a group or of the root in the given direction and persists them.
+	/// </summary>
+	[Test]
+	public async Task SortAsync_Sorts_The_Records(
 		[Values] ListSortDirection direction,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1417,8 +1450,6 @@ internal class DatasetEditorViewModelTests
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		sut.IsReadOnly = isReadOnly;
 
 		RecordsGroup? group = inGroup ? new() : null;
 
@@ -1450,7 +1481,7 @@ internal class DatasetEditorViewModelTests
 				.BeInDescendingOrder(x => x.Value);
 		}
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}

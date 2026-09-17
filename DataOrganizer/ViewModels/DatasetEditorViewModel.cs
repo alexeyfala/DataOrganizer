@@ -853,11 +853,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
 			.ConfigureAwait(false);
 
-		if (IsReadOnly || IsContentUnavailable)
-		{
-			return;
-		}
-
 		await SaveContentsAsync(token).ConfigureAwait(false);
 	}
 
@@ -903,11 +898,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.ForEach(x => x.IsHidden = hide);
 
-		if (IsReadOnly || IsContentUnavailable)
-		{
-			return Task.CompletedTask;
-		}
-
 		return SaveContentsAsync(token);
 	}
 
@@ -940,17 +930,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.AddRange(sorted);
 
-		if (IsReadOnly || IsContentUnavailable)
-		{
-			return Task.CompletedTask;
-		}
-
 		return SaveContentsAsync(token);
 	}
 
 	/// <inheritdoc />
 	protected override Task<bool> FlushAsync(CancellationToken token = default)
 	{
+		// Nothing to write is not a failed write, so the check stays here: a refused save answers "false".
 		return IsReadOnly || IsContentUnavailable
 			? Task.FromResult(true)
 			: SaveContentsAsync(token);
@@ -1266,6 +1252,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private async Task<bool> SaveContentsAsync(CancellationToken token = default)
 	{
+		if (IsReadOnly || IsContentUnavailable)
+		{
+			return false;
+		}
+
 		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
 		if (TryEncrypt(contents) is not { } output)
