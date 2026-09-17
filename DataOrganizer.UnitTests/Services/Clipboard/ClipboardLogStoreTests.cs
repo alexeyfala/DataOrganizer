@@ -584,7 +584,8 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a new key is created when none exists.
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a new key is created when none exists,
+	/// and is written in one step.
 	/// </summary>
 	[Test]
 	public async Task TryUnlockAsync_Creates_Key_When_None_Exists()
@@ -636,6 +637,10 @@ internal class ClipboardLogStoreTests
 		sut.KeyFileExists
 			.Should()
 			.BeTrue();
+
+		files.AtomicWrites
+			.Should()
+			.Contain(KeyPath);
 	}
 
 	/// <summary>
@@ -648,42 +653,9 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.ClipboardHistoryDirectoryPath
-				.Returns(HistoryFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder
-				.RegisterInstance(files)
-				.As<IFileSystem>();
-
-			builder
-				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
-		}))
-		{
-			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
-
-			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-		}
-
-		files
-			.AtomicWrites
-			.Should()
-			.Contain(KeyPath, "a new key is written the same way");
-
-		files
-			.AtomicWrites
-			.Clear();
+		// The store only asks whether a key file is there, and its bytes go to the substituted
+		// encryption below, so they never have to be a real key.
+		files.Files[KeyPath] = [1, 2, 3];
 
 		byte[] rewrapped = [9, 8, 7];
 
@@ -750,33 +722,9 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.ClipboardHistoryDirectoryPath
-				.Returns(HistoryFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder
-				.RegisterInstance(files)
-				.As<IFileSystem>();
-
-			builder
-				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
-		}))
-		{
-			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
-
-			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-		}
+		// The bytes of the key reach the substituted encryption below, which answers for them,
+		// so they never have to be a real key.
+		files.Files[KeyPath] = [1, 2, 3];
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
 		{
@@ -828,33 +776,9 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using (AutoMock first = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.ClipboardHistoryDirectoryPath
-				.Returns(HistoryFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder
-				.RegisterInstance(files)
-				.As<IFileSystem>();
-
-			builder
-				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
-		}))
-		{
-			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
-
-			await writer.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-		}
+		// The bytes of the key reach the substituted encryption below, which answers for them,
+		// so they never have to be a real key.
+		files.Files[KeyPath] = [1, 2, 3];
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
 		{
