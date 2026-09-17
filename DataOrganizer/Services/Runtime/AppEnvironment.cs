@@ -11,6 +11,9 @@ public sealed class AppEnvironment : IAppEnvironment
 	public string AppDataDirectoryPath { get; }
 
 	/// <inheritdoc />
+	public string ClipboardHistoryDirectoryPath { get; }
+
+	/// <inheritdoc />
 	public string DatabaseDirectoryPath { get; }
 
 	/// <inheritdoc />
@@ -35,6 +38,10 @@ public sealed class AppEnvironment : IAppEnvironment
 			IAppEnvironment.GetAppDataDirectoryPath(),
 			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
 
+		ClipboardHistoryDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"ClipboardHistory");
+
 		DatabaseDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,
 			"Database");
@@ -52,15 +59,6 @@ public sealed class AppEnvironment : IAppEnvironment
 		return _appCount == 1
 			? AppInfo.AppDisplayName
 			: $"{AppInfo.AppDisplayName} ({_appCount})";
-	}
-
-	/// <inheritdoc />
-	public string GetClipboardHistoryFilePath(string fileName)
-	{
-		return Path.Combine(
-			AppDataDirectoryPath,
-			"ClipboardHistory",
-			fileName);
 	}
 
 	/// <inheritdoc />

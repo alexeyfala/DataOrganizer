@@ -54,6 +54,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private static readonly Guid HistoryKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 
+	/// <summary>
+	/// Absolute path to the directory both files live in.
+	/// </summary>
+	private readonly string _directoryPath;
+
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
@@ -93,9 +98,15 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		_sessionKeyStore = sessionKeyStore;
 
-		_historyFilePath = appEnvironment.GetClipboardHistoryFilePath(HistoryFileName);
+		_directoryPath = appEnvironment.ClipboardHistoryDirectoryPath;
 
-		_keyFilePath = appEnvironment.GetClipboardHistoryFilePath(KeyFileName);
+		_historyFilePath = Path.Combine(_directoryPath, HistoryFileName);
+
+		_keyFilePath = Path.Combine(_directoryPath, KeyFileName);
+
+		//_historyFilePath = appEnvironment.GetClipboardHistoryFilePath(HistoryFileName);
+
+		//_keyFilePath = appEnvironment.GetClipboardHistoryFilePath(KeyFileName);
 	}
 	#endregion
 
@@ -274,12 +285,14 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private void EnsureDirectory()
 	{
-		if (Path.GetDirectoryName(_historyFilePath) is not { Length: > 0 } directory)
-		{
-			return;
-		}
+		_fileSystem.CreateDirectory(_directoryPath);
 
-		_fileSystem.CreateDirectory(directory);
+		//if (Path.GetDirectoryName(_historyFilePath) is not { Length: > 0 } directory)
+		//{
+		//	return;
+		//}
+
+		//_fileSystem.CreateDirectory(directory);
 	}
 
 	/// <summary>
@@ -324,10 +337,15 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.DirectoryExists(directory))
+			if (_fileSystem.DirectoryExists(_directoryPath))
 			{
-				_fileSystem.DeleteDirectory(directory);
+				_fileSystem.DeleteDirectory(_directoryPath);
 			}
+
+			//if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.DirectoryExists(directory))
+			//{
+			//	_fileSystem.DeleteDirectory(directory);
+			//}
 		}
 		catch (Exception ex)
 		{

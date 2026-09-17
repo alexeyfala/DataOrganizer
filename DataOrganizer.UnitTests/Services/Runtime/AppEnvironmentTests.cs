@@ -14,6 +14,11 @@ internal class AppEnvironmentTests
 {
 	#region Data
 	/// <summary>
+	/// Clipboard history directory name.
+	/// </summary>
+	private const string ClipboardHistoryDirectoryName = "ClipboardHistory";
+
+	/// <summary>
 	/// Database directory name.
 	/// </summary>
 	private const string DatabaseDirectoryName = "Database";
@@ -67,6 +72,10 @@ internal class AppEnvironmentTests
 		sut.AppDataDirectoryPath
 			.Should()
 			.Be(Path.Combine(root, DefaultDirectoryName));
+
+		sut.ClipboardHistoryDirectoryPath
+			.Should()
+			.Be(Path.Combine(root, DefaultDirectoryName, ClipboardHistoryDirectoryName));
 
 		sut.DatabaseDirectoryPath
 			.Should()
