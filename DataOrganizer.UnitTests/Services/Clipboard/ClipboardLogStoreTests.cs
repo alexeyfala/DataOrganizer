@@ -24,9 +24,6 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
-// Unlocking a store derives a key from a password, which is deliberately expensive. Each test
-// owns its file system and its store, so they may run side by side.
-[Parallelizable(ParallelScope.Children)]
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogStore)}"" type")]
 internal class ClipboardLogStoreTests
 {
