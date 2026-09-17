@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
@@ -83,23 +84,38 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: sweeps the sandbox before a window can open a file again.
+	/// <see cref="AppController.LaunchAppAsync" />: the directory the sandbox lives in is there and the sandbox
+	/// is swept before a window can open a file again.
 	/// </summary>
 	[Test]
 	public async Task LaunchAppAsync_Erases_The_Sandbox_Before_The_Main_Window()
 	{
 		// Arrange
+		const string appDataFolder = @"C:\AppData\DataOrganizer";
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			appEnvironment
+				.AppDataDirectoryPath
+				.Returns(appDataFolder);
 
 			settingsStore
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(sandbox);
 
@@ -116,6 +132,8 @@ internal class AppControllerTests
 		// Assert
 		Received.InOrder(() =>
 		{
+			fileSystem.CreateDirectory(appDataFolder);
+
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
 			viewLauncher.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
@@ -178,13 +196,11 @@ internal class AppControllerTests
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
 	{
 		// Arrange
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
+
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
 
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
@@ -196,15 +212,11 @@ internal class AppControllerTests
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			options
-				.PrintHelp
-				.Returns(true);
-
-			builder.RegisterInstance(options);
+			entityLoader
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
+				.Returns(hierarchy);
 
 			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewLauncher);
 
@@ -223,14 +235,6 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		fileSystem
-			.Received()
-			.CreateDirectory(Arg.Any<string>());
-
-		options
-			.Received()
-			.GetHelp();
-
 		await dbAccess
 			.Received()
 			.ConnectAsync();
@@ -239,9 +243,10 @@ internal class AppControllerTests
 			.Received()
 			.LoadHierarchyAsync();
 
+		// What was read from the database is what the window is given.
 		viewLauncher
 			.Received()
-			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow(hierarchy);
 	}
 
 	/// <summary>
