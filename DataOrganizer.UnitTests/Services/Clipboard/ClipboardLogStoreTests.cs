@@ -42,15 +42,6 @@ internal class ClipboardLogStoreTests
 	/// Path of the clipboard history key file.
 	/// </summary>
 	private static readonly string KeyPath = Path.Combine(HistoryFolder, "History.key");
-
-	/// <summary>
-	/// Lowest supported derivation cost: no test here is about the cost, so unlocking a store pays
-	/// milliseconds instead of the memory a shipped key file is written with.
-	/// </summary>
-	private static readonly Argon2Settings LowestCost = new(
-		MemorySize: 8192,
-		NumberOfPasses: 1,
-		DegreeOfParallelism: 1);
 	#endregion
 
 	#region Methods
@@ -77,7 +68,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -130,7 +121,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -187,7 +178,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -255,7 +246,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -302,7 +293,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -353,7 +344,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -386,7 +377,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -443,7 +434,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -478,7 +469,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -547,7 +538,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -592,7 +583,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -638,7 +629,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -935,7 +926,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1018,7 +1009,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1053,7 +1044,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1102,7 +1093,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1137,7 +1128,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1185,7 +1176,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()
@@ -1216,7 +1207,7 @@ internal class ClipboardLogStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder.Register(_ => LowestCost);
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
 			builder
 				.RegisterType<EncryptionService>()

@@ -94,10 +94,11 @@ public sealed class EncryptionService : IEncryptionService
 	{
 	}
 
-	public EncryptionService(Argon2Settings cost)
-	{
-		_cost = cost;
-	}
+	/// <summary>
+	/// Writes new blobs with the given cost instead of the current one: a seam for the tests,
+	/// which lower the cost to keep a derivation cheap.
+	/// </summary>
+	public EncryptionService(Argon2Settings cost) => _cost = cost;
 	#endregion
 
 	#region Methods
