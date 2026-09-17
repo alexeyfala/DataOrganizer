@@ -5,6 +5,7 @@ using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Clipboard;
@@ -15,6 +16,7 @@ using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Authentication;
@@ -603,6 +605,62 @@ internal class ClipboardLogStoreTests
 		files.Files
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.SaveAsync" />: what lands in the journal is the ciphertext,
+	/// so the text of an entry cannot be read out of the file.
+	/// </summary>
+	[Test]
+	public async Task SaveAsync_Writes_No_Plaintext_Of_An_Entry()
+	{
+		// Arrange
+		const string text = "SomethingWorthHiding";
+
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
+
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		// Act
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry(text)]);
+
+		// Assert
+		files.Files
+			.Should()
+			.ContainKey(BinPath);
+
+		files.Files[BinPath]
+			.AsSpan()
+			.IndexOf(TextDefaults.Encoding.GetBytes(text))
+			.Should()
+			.Be(-1);
 	}
 
 	/// <summary>

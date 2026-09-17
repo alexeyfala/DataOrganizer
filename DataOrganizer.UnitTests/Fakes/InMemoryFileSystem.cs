@@ -65,7 +65,9 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
 	{
-		return Task.FromResult(Files[filePath]);
+		// A read hands out bytes of its own, so a caller wiping them leaves the file as it was.
+		return Task.FromResult<byte[]>([.. Files[filePath]]);
+
 	}
 
 	public Task WriteAllBytesAsync(
@@ -73,7 +75,8 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		byte[] bytes,
 		CancellationToken token = default)
 	{
-		Files[filePath] = bytes;
+		// A write copies the bytes, so a caller wiping its buffer afterwards cannot change the file.
+		Files[filePath] = [.. bytes];
 
 		return Task.CompletedTask;
 	}
@@ -86,7 +89,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	{
 		AtomicWrites.Add(filePath);
 
-		Files[filePath] = bytes;
+		Files[filePath] = [.. bytes];
 
 		return Task.CompletedTask;
 	}

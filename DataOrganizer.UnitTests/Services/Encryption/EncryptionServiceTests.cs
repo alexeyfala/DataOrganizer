@@ -818,6 +818,60 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />: every blob carries a salt and a nonce of its own,
+	/// so one password never derives the same key twice and no nonce comes back.
+	/// </summary>
+	[Test]
+	public void Encrypt_Writes_A_Fresh_Salt_And_Nonce()
+	{
+		// Arrange
+		const int checkSize = 16;
+
+		const int count = 5;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int saltOffset = 1 + Argon2Settings.HeaderSize;
+
+		const int checkOffset = saltOffset + saltSize;
+
+		const int nonceOffset = checkOffset + checkSize;
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer input = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
+
+		string[] nonces = new string[count];
+
+		string[] salts = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.Encrypt(input, password, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+
+			salts[index] = Convert.ToHexString(encrypted.AsSpan(saltOffset, saltSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+
+		salts
+			.Should()
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.EncryptContents" />, <see cref="EncryptionService.DecryptContents" />:
 	/// an empty content stays unencrypted and survives a folder round-trip next to a normal one.
 	/// </summary>
@@ -950,6 +1004,46 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithDek" />: every blob carries a nonce of its own,
+	/// so one key never encrypts twice under the same nonce.
+	/// </summary>
+	[Test]
+	public void EncryptWithDek_Writes_A_Fresh_Nonce()
+	{
+		// Arrange
+		const int count = 5;
+
+		const int nonceOffset = 1;
+
+		const int nonceSize = 24;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer dek = sut.CreateRandomDek();
+
+		byte[] input = TextDefaults
+			.Encoding
+			.GetBytes(SampleText.LoremIpsum);
+
+		string[] nonces = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.EncryptWithDek(input, dek, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.EncryptWithSessionId" />, <see cref="EncryptionService.DecryptWithSessionId" />: a session round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
@@ -1004,6 +1098,56 @@ internal class EncryptionServiceTests
 		act
 			.Should()
 			.ThrowExactly<CryptographicException>();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithSessionId" />: every blob carries a salt and a nonce
+	/// of its own, so one session secret never derives the same key twice.
+	/// </summary>
+	[Test]
+	public void EncryptWithSessionId_Writes_A_Fresh_Salt_And_Nonce()
+	{
+		// Arrange
+		const int count = 5;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int saltOffset = 1;
+
+		const int nonceOffset = saltOffset + saltSize;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer input = sut.CreateRandomDek();
+
+		using PinnedBuffer secret = new(RandomValues.CreateBytes(32));
+
+		string[] nonces = new string[count];
+
+		string[] salts = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.EncryptWithSessionId(input, secret, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+
+			salts[index] = Convert.ToHexString(encrypted.AsSpan(saltOffset, saltSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+
+		salts
+			.Should()
+			.OnlyHaveUniqueItems();
 	}
 
 	/// <summary>
