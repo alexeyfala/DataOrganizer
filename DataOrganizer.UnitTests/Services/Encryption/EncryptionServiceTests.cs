@@ -1,3 +1,4 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
@@ -25,6 +26,24 @@ internal class EncryptionServiceTests
 	/// Purpose every round-trip of the fixture is bound to.
 	/// </summary>
 	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
+
+	/// <summary>
+	/// Lowest supported derivation cost: a test whose subject is not the cost pays milliseconds
+	/// instead of the memory a shipped blob is written with.
+	/// </summary>
+	private static readonly Argon2Settings LowestCost = new(
+		MemorySize: 8192,
+		NumberOfPasses: 1,
+		DegreeOfParallelism: 1);
+
+	/// <summary>
+	/// A cost other than <see cref="LowestCost" /> and as cheap: what a blob written before
+	/// a change of the cost carries.
+	/// </summary>
+	private static readonly Argon2Settings OutdatedCost = new(
+		MemorySize: 16384,
+		NumberOfPasses: 1,
+		DegreeOfParallelism: 1);
 	#endregion
 
 	#region Methods
@@ -35,7 +54,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Cannot_Decrypt_With_Wrong_Password()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -109,7 +128,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_A_Tampered_Salt()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -141,7 +160,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_A_Wrapper_Of_Another_Size(int difference)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -172,7 +191,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_An_Unsupported_Derivation_Cost()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -241,7 +260,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Tells_Damaged_Data_From_A_Wrong_Password()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -598,7 +617,7 @@ internal class EncryptionServiceTests
 	public void DecryptWithSessionId_Rejects_Password_Encrypted_Input()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -653,7 +672,7 @@ internal class EncryptionServiceTests
 	public void Encrypt_Decrypt_Round_Trip_Restores_The_Plaintext()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -697,7 +716,7 @@ internal class EncryptionServiceTests
 
 		const int tagSize = 16;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -1049,7 +1068,7 @@ internal class EncryptionServiceTests
 	public void RewrapIfOutdated_Keeps_A_Wrapper_Of_The_Current_Cost()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -1080,7 +1099,7 @@ internal class EncryptionServiceTests
 	public void RewrapIfOutdated_Writes_An_Outdated_Wrapper_Again()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => LowestCost));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -1088,10 +1107,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
-		byte[] wrapped = WriteWithCost(dek, password, new(
-			MemorySize: 8192,
-			NumberOfPasses: 1,
-			DegreeOfParallelism: 1));
+		byte[] wrapped = WriteWithCost(dek, password, OutdatedCost);
 
 		// Act
 		byte[]? rewrapped = sut.RewrapIfOutdated(
@@ -1108,7 +1124,7 @@ internal class EncryptionServiceTests
 		Argon2Settings
 			.Read(rewrapped.AsSpan(1, Argon2Settings.HeaderSize))
 			.Should()
-			.Be(Argon2Settings.Current);
+			.Be(LowestCost);
 
 		using PinnedBuffer decrypted = sut.Decrypt(rewrapped, password, Identity);
 
