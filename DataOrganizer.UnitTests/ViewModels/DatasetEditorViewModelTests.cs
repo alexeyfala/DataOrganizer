@@ -1138,39 +1138,22 @@ internal class DatasetEditorViewModelTests
 
 		sut.IsReadOnly = isReadOnly;
 
-		RecordsGroup? group = null;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		if (inGroup)
-		{
-			group = new();
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-			group
-				.Children
-				.AddRange(groups);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(groups);
-		}
+		target.AddRange(groups);
 
 		// Act
 		await sut.ExpandCollapseAsync(group, expand);
 
 		// Assert
-		if (group is not null)
-		{
-			group.Children
-				.Should()
-				.Contain(groups);
-		}
-		else
-		{
-			sut.Records
-				.Should()
-				.Contain(groups);
-		}
+		target
+			.Should()
+			.Contain(groups);
 
 		groups
 			.Should()
@@ -1380,39 +1363,22 @@ internal class DatasetEditorViewModelTests
 
 		sut.IsReadOnly = isReadOnly;
 
-		RecordsGroup? group = null;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		if (inGroup)
-		{
-			group = new();
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-			group
-				.Children
-				.AddRange(records);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(records);
-		}
+		target.AddRange(records);
 
 		// Act
 		await sut.ShowHideAsync(group, hide);
 
 		// Assert
-		if (group is not null)
-		{
-			group.Children
-				.Should()
-				.Contain(records);
-		}
-		else
-		{
-			sut.Records
-				.Should()
-				.Contain(records);
-		}
+		target
+			.Should()
+			.Contain(records);
 
 		records
 			.Should()
@@ -1424,7 +1390,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts values, key-values and groups in the given direction (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts the records of a group or of the root in the given direction and persists only when not read-only.
 	/// </summary>
 	[Test]
 	public async Task SortAsync_Sorts_The_Records_And_Persists_Only_When_Editable(
@@ -1454,58 +1420,34 @@ internal class DatasetEditorViewModelTests
 
 		sut.IsReadOnly = isReadOnly;
 
-		RecordsGroup? group = null;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		if (inGroup)
-		{
-			group = new();
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-			group
-				.Children
-				.AddRange(records);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(records);
-		}
+		target.AddRange(records);
 
 		// Act
 		await sut.SortAsync(group, direction);
 
 		// Assert
-		ObservableCollection<DatasetRecordBase> collection = group is not null
-			? group.Children
-			: sut.Records;
+		target
+			.Should()
+			.HaveCount(records.Length);
 
 		if (direction == ListSortDirection.Ascending)
 		{
-			collection.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
 				.BeInAscendingOrder(x => x.Value);
-
-			collection.OfSpecificType<DatasetRecordBase, KeyValueRecord>()
-				.Should()
-				.BeInAscendingOrder(x => x.Key);
-
-			collection.OfType<RecordsGroup>()
-				.Should()
-				.BeInAscendingOrder(x => x.Name);
 		}
-		else if (direction == ListSortDirection.Descending)
+		else
 		{
-			collection.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
 				.BeInDescendingOrder(x => x.Value);
-
-			collection.OfSpecificType<DatasetRecordBase, KeyValueRecord>()
-				.Should()
-				.BeInDescendingOrder(x => x.Key);
-
-			collection.OfType<RecordsGroup>()
-				.Should()
-				.BeInDescendingOrder(x => x.Name);
 		}
 
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(

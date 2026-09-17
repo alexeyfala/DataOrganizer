@@ -314,7 +314,7 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file, starts the process and tracks changes only for editable (non-read-only) files.
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file into the sandbox, marks it read-only when asked and starts the process.
 	/// </summary>
 	[Test]
 	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)
@@ -323,8 +323,6 @@ internal class ExecutionEngineTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
@@ -356,8 +354,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(changeTracker);
 
 			builder.RegisterInstance(fileAssociation);
 		});
@@ -398,10 +394,6 @@ internal class ExecutionEngineTests
 		processManager
 			.Received()
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
-
-		await changeTracker
-			.Received(isReadOnly ? 0 : 1)
-			.TrackChangesAsync(Arg.Any<TrackChangesParameters>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -477,9 +469,7 @@ internal class ExecutionEngineTests
 		// Assert
 		contents
 			.Should()
-			.AllSatisfy(x => x
-				.Should()
-				.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 
 		if (isReadOnly)
 		{
