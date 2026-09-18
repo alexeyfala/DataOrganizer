@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using TestSupport.Attributes;
 
 namespace Shared.UnitTests.Services;
 
@@ -64,7 +63,6 @@ internal class SystemXmlSerializerTests
 	/// <see cref="SystemXmlSerializer.Deserialize{T}(string)" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
-	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
 	public void Deserialize_Throws_When_Xml_Contains_DTD_Declaration()
 	{
 		// Arrange
@@ -120,7 +118,6 @@ internal class SystemXmlSerializerTests
 	/// <see cref="SystemXmlSerializer.LoadDocumentAsync" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
-	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
 	public async Task LoadDocumentAsync_Throws_When_Xml_Contains_DTD_Declaration()
 	{
 		// Arrange
