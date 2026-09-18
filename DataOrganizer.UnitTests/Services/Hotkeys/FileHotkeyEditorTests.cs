@@ -54,7 +54,7 @@ internal class FileHotkeyEditorTests
 			.BeEmpty();
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.DeleteHotkeysAsync(Arg.Any<Guid>());
 	}
 
@@ -133,7 +133,7 @@ internal class FileHotkeyEditorTests
 			.NotBeNullOrEmpty();
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.AddHotkeysAsync(Arg.Any<Guid>(), Arg.Any<KeyStroke[]>());
 	}
 

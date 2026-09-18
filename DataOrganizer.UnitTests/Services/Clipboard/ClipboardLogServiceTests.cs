@@ -1359,7 +1359,7 @@ internal class ClipboardLogServiceTests
 			.BeEmpty();
 
 		await clipboard
-			.Received()
+			.Received(1)
 			.ClearAsync();
 	}
 

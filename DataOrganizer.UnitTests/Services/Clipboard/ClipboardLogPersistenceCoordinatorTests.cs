@@ -84,7 +84,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		// Assert
 		store
-			.Received()
+			.Received(1)
 			.EraseAll();
 	}
 
@@ -277,7 +277,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		// Assert
 		await store
-			.Received()
+			.Received(1)
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
@@ -363,7 +363,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 
 		store
-			.Received()
+			.Received(1)
 			.EraseHistory();
 	}
 
@@ -413,7 +413,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		// Assert
 		store
-			.Received()
+			.Received(1)
 			.EraseHistory();
 	}
 
@@ -703,7 +703,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		// Assert
 		await store
-			.Received()
+			.Received(1)
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
@@ -908,11 +908,11 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.Be(ClipboardLogStatus.Unlocked);
 
 		clipboardLog
-			.Received()
+			.Received(1)
 			.Merge(loaded);
 
 		await store
-			.Received()
+			.Received(1)
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 

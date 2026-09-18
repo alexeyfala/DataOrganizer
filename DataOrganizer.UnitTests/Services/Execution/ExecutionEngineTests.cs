@@ -88,7 +88,8 @@ internal class ExecutionEngineTests
 		{
 			Contents = [],
 			File = dto,
-			IsReadOnly = default
+			// A read-only file is the case where clearing the flag is what lets the erase happen at all.
+			IsReadOnly = true
 		};
 
 		await sut.ExecuteAsync(parameters);
@@ -98,19 +99,19 @@ internal class ExecutionEngineTests
 
 		// Assert
 		processManager
-			.Received()
+			.Received(1)
 			.KillProcess(Arg.Any<int>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.DeleteDirectory(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
@@ -228,7 +229,7 @@ internal class ExecutionEngineTests
 			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
@@ -301,11 +302,11 @@ internal class ExecutionEngineTests
 
 		// Assert
 		processManager
-			.Received()
+			.Received(1)
 			.KillProcess(Arg.Any<int>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
 		sut.IsExecuting(dto.Id)
@@ -380,19 +381,19 @@ internal class ExecutionEngineTests
 			.BeTrue();
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.CreateDirectory(Arg.Any<string>());
 
 		await fileSystem
-			.Received()
+			.Received(1)
 			.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.SetFileReadOnly(Arg.Any<string>(), isReadOnly);
 
 		processManager
-			.Received()
+			.Received(1)
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
 	}
 

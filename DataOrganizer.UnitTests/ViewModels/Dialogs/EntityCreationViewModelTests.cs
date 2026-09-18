@@ -135,7 +135,7 @@ internal class EntityCreationViewModelTests
 		sut.SaveSettingsToFile();
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<EntityCreationViewSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());

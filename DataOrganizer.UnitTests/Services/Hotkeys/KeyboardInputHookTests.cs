@@ -210,7 +210,7 @@ internal class KeyboardInputHookTests
 
 		// Assert
 		await clipboard
-			.Received()
+			.Received(1)
 			.SetTextAsync(Arg.Any<string>());
 	}
 

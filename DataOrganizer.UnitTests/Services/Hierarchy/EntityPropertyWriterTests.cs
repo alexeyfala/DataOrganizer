@@ -35,7 +35,7 @@ internal class EntityPropertyWriterTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
@@ -59,7 +59,7 @@ internal class EntityPropertyWriterTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.UpdateFilePropertiesAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
@@ -92,7 +92,7 @@ internal class EntityPropertyWriterTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.UpdateFilePropertiesAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
@@ -116,7 +116,7 @@ internal class EntityPropertyWriterTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());

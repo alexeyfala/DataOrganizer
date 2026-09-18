@@ -86,7 +86,7 @@ internal class DbAccessTests
 					.ExcludingMissingMembers());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 
 		if (type == EntityKind.Folder)
@@ -96,7 +96,7 @@ internal class DbAccessTests
 				.BeOfType<FolderEntity>();
 
 			await folderRepository
-				.Received()
+				.Received(1)
 				.AddAsync(Arg.Any<FolderEntity>());
 		}
 		else
@@ -106,7 +106,7 @@ internal class DbAccessTests
 				.BeOfType<FileEntity>();
 
 			await fileRepository
-				.Received()
+				.Received(1)
 				.AddAsync(Arg.Any<FileEntity>());
 		}
 	}
@@ -138,11 +138,11 @@ internal class DbAccessTests
 
 		// Assert
 		await repository
-			.Received()
+			.Received(1)
 			.AddRangeAsync(Arg.Any<IEnumerable<FileEntity>>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -173,11 +173,11 @@ internal class DbAccessTests
 
 		// Assert
 		await repository
-			.Received()
+			.Received(1)
 			.AddRangeAsync(Arg.Any<IEnumerable<FolderEntity>>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -222,7 +222,7 @@ internal class DbAccessTests
 			.AddAsync(Arg.Any<HotkeyEntity>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -251,13 +251,13 @@ internal class DbAccessTests
 
 		// Assert
 		dbContextService
-			.Received()
+			.Received(1)
 			.EnsureDeleted();
 
 		if (useMigrations)
 		{
 			dbContextService
-				.Received()
+				.Received(1)
 				.Migrate();
 		}
 		else
@@ -299,7 +299,7 @@ internal class DbAccessTests
 		if (useMigrations)
 		{
 			await dbContextService
-				.Received()
+				.Received(1)
 				.MigrateAsync();
 		}
 		else
@@ -582,11 +582,11 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await hotkeysRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
 
 		await fileRepository
-			.Received()
+			.Received(1)
 			.RemoveAsync(Arg.Any<Guid>());
 	}
 
@@ -668,7 +668,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await folderRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
 
 		await hotkeysRepository
@@ -739,15 +739,15 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await hotkeysRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdsAsync(fileIds);
 
 		await fileRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(fileIds);
 
 		await folderRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(Arg.Is<Guid[]>(x => x.SequenceEqual(subtreeIds)));
 	}
 
@@ -823,7 +823,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
 	}
 
@@ -1378,7 +1378,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(updates);
 	}
 
@@ -1420,7 +1420,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(fileId, setters);
 	}
 
@@ -1529,7 +1529,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(updates);
 	}
 
@@ -1571,7 +1571,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(folderId, setters);
 	}
 	#endregion

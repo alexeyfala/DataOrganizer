@@ -591,7 +591,7 @@ internal class ViewLauncherTests
 		sut.SaveClipboardLogSettings(mock.Create<ClipboardLogWindow>());
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<ClipboardLogWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -615,12 +615,12 @@ internal class ViewLauncherTests
 		await sut.SaveEditorSettingsAsync(mock.Create<EditorWindow>());
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<EditorWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			WindowKind.Editor,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -670,12 +670,12 @@ internal class ViewLauncherTests
 			.Should()
 			.BeEmpty();
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<FavoritesWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			WindowKind.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());

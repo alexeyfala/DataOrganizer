@@ -899,7 +899,7 @@ internal class FolderProtectionTests
 
 		// Assert
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(backup.FilePath);
 	}
 

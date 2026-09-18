@@ -93,7 +93,7 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is RecordsGroup);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -158,7 +158,7 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is KeyValueRecord);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -324,7 +324,7 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is ValueRecord);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -621,7 +621,7 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.NotContain(toBeDeleted);
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -833,7 +833,7 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(note);
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}

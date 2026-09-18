@@ -126,10 +126,10 @@ internal class DataExchangeServiceTests
 
 		// Assert
 		fileSystem
-			.Received()
+			.Received(1)
 			.CreateSequentialWrite(Arg.Any<string>());
 
-		await serializer.Received().SerializeAsync(
+		await serializer.Received(1).SerializeAsync(
 			Arg.Any<Stream>(),
 			Arg.Any<ExplorerItemBase[]>(),
 			Arg.Any<JsonSerializerOptions>(),
@@ -165,7 +165,7 @@ internal class DataExchangeServiceTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.CopyDatabaseAsync(Arg.Any<CopyDatabaseParameters>());
 	}
 
@@ -206,11 +206,11 @@ internal class DataExchangeServiceTests
 
 		// Assert
 		fileSystem
-			.Received()
+			.Received(1)
 			.CreateSequentialWrite(Arg.Any<string>());
 
 		serializer
-			.Received()
+			.Received(1)
 			.Serialize(Arg.Any<Stream>(), Arg.Any<ExplorerItemBase[]>());
 	}
 
@@ -267,7 +267,7 @@ internal class DataExchangeServiceTests
 			.BeNull();
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
 
@@ -308,7 +308,7 @@ internal class DataExchangeServiceTests
 			.BeNull();
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
 
@@ -369,7 +369,7 @@ internal class DataExchangeServiceTests
 			.BeNull();
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
 

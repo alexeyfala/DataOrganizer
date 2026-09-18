@@ -91,7 +91,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeSameAs(created);
 
-		await hierarchyEditor.Received().AddAsync(
+		await hierarchyEditor.Received(1).AddAsync(
 			name,
 			type,
 			parent,
@@ -180,7 +180,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		await folderProtection
-			.Received()
+			.Received(1)
 			.ChangePasswordAsync(Arg.Any<FolderDto>());
 	}
 
@@ -318,7 +318,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		await folderProtection
-			.Received()
+			.Received(1)
 			.DecryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
 	}
 
@@ -393,7 +393,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		await hierarchyEditor.Received().DeleteAsync(
+		await hierarchyEditor.Received(1).DeleteAsync(
 			file,
 			sut.Hierarchy,
 			Arg.Any<CancellationToken>());
@@ -823,7 +823,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		await folderProtection
-			.Received()
+			.Received(1)
 			.EncryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
 	}
 
@@ -931,7 +931,7 @@ internal class EditorViewModelTests
 			.Contain(dto);
 
 		await engine
-			.Received()
+			.Received(1)
 			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
 	}
 
@@ -1105,11 +1105,11 @@ internal class EditorViewModelTests
 				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 
 			settingsStore
-				.Received()
+				.Received(1)
 				.Overwrite(Arg.Any<AppSettings>());
 
 			settingsStore
-				.Received()
+				.Received(1)
 				.Save();
 		}
 		else
@@ -1424,7 +1424,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		contentVisibility
-			.Received()
+			.Received(1)
 			.HideFolderContents(Arg.Any<FolderDto>());
 	}
 
@@ -1590,7 +1590,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dataExchange
-			.Received()
+			.Received(1)
 			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>());
 	}
 
@@ -1930,7 +1930,7 @@ internal class EditorViewModelTests
 			.BeTrue();
 
 		processManager
-			.Received()
+			.Received(1)
 			.StartProcess(Arg.Any<string>());
 	}
 
@@ -1984,7 +1984,7 @@ internal class EditorViewModelTests
 			.NotBe(initialValue);
 
 		await propertyWriter
-			.Received()
+			.Received(1)
 			.UpdateIsFavoriteAsync(dto, Arg.Any<CancellationToken>());
 	}
 
@@ -2116,7 +2116,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		await contentVisibility
-			.Received()
+			.Received(1)
 			.ShowFolderContentsAsync(Arg.Any<FolderDto>());
 	}
 

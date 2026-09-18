@@ -54,7 +54,7 @@ internal class AppSettingsStoreTests
 		sut.Save();
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<AppSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -91,7 +91,7 @@ internal class AppSettingsStoreTests
 
 		// Assert
 		fileSystem
-			.Received()
+			.Received(1)
 			.SerializeToJsonFile(Arg.Any<AppSettings>(), expectedPath, false);
 	}
 
