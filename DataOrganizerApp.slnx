@@ -21,6 +21,7 @@
     </Project>
   </Folder>
   <Folder Name="/Docs/">
+    <File Path="Docs/Debugging_Tests.md" />
     <File Path="Docs/Encryption_Format.md" />
     <File Path="Docs/GitHub_Release.md" />
     <File Path="Docs/Mutation_Testing.md" />

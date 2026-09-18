@@ -14,6 +14,7 @@
     - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: generating and filling in [`app.pupnet.conf`](../app.pupnet.conf).
     - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: what in [`app.metainfo.xml`](../app.metainfo.xml) is filled in by hand.
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building `.deb`, `.rpm`, AppImage, Flatpak and zip, and checking the package.
+  - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — why `Debug All Tests` stops on the exceptions the suite throws on purpose, and the two Exception Settings steps that stop it; also why the steps cannot be kept in the repository. **Open:** the batch debug run started breaking again.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted blobs and the rule "a new layout takes a new version byte". **Open:** the encryption stack is being changed.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release on GitHub. **Open:** the artifacts are built and the tag is ready to go out.
   - 📄 [`Mutation_Testing.md`](Mutation_Testing.md) — what the mutation run is for, how to start it, how to read its report and what counts as noise; ends with how to check that the suite has not slowed down. **Open:** before a run, or when the suite feels slow.
