@@ -38,6 +38,22 @@ source generators, while `InitializeComponent` of Avalonia comes from one — th
 project fails to build before the first mutant is tested. Only `Shared`, `Repository` and `Entities`
 can be run.
 
+## Code Stryker cannot reach
+
+The encryption code sits in the application project, so no run ever touches it. It was checked by hand
+instead: twelve changes of the kind Stryker makes were planted one at a time in `EncryptionService`,
+`SessionKeyStore`, `Argon2Settings`, `ContentIdentity` and `PinnedBuffer`, and the suite was run against
+each one. Eight were caught, among them every change that weakens the encryption itself — a skipped
+password check, a nonce that stops being random, the purpose byte dropped from the associated data. Of
+the four that passed unnoticed two got a test and two were judged equivalent.
+
+The same check by hand costs about half an hour and needs no tooling:
+
+    copy the file aside, change one line, run the tests, put the file back, compare it with the copy
+
+The comparison at the end is not a formality. It is the only proof that nothing of the experiment
+stayed behind.
+
 ## Reading the report
 
 Reports land in `StrykerOutput/<date>/reports/` (kept out of git): `mutation-report.html` to read,
