@@ -348,6 +348,42 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="SessionKeyStore.Unlock" />: a key that cannot be wrapped leaves the keepers
+	/// already unlocked usable.
+	/// </summary>
+	[Test]
+	public void Unlock_Keeps_Other_Keepers_Usable_When_The_Key_Cannot_Be_Wrapped()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid unlockedKeeperId = Guid.NewGuid();
+
+		Guid refusedKeeperId = Guid.NewGuid();
+
+		byte[] contents = RandomValues.CreateBytes(64);
+
+		sut.Unlock(unlockedKeeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		byte[]? encrypted = sut.Encrypt(unlockedKeeperId, Identity, contents);
+
+		// Act
+		// A key of another size is refused by the format, and that refusal is what the store has to survive.
+		Action act = () => sut.Unlock(refusedKeeperId, SecretFactory.CreateRandomKey(DekSize / 2));
+
+		// Assert
+		act
+			.Should()
+			.Throw<CryptographicException>();
+
+		sut.Decrypt(unlockedKeeperId, Identity, encrypted!)
+			.Should()
+			.Equal(contents);
+	}
+
+	/// <summary>
 	/// <see cref="SessionKeyStore.Unlock" />: rejects an empty key.
 	/// </summary>
 	[Test]

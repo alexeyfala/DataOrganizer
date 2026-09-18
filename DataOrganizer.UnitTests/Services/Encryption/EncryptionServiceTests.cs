@@ -20,6 +20,11 @@ internal class EncryptionServiceTests
 {
 	#region Data
 	/// <summary>
+	/// Version byte of the DEK based format, which records no derivation cost.
+	/// </summary>
+	private const byte DekFormatVersion = 0x02;
+
+	/// <summary>
 	/// Purpose every round-trip of the fixture is bound to.
 	/// </summary>
 	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
@@ -1171,6 +1176,44 @@ internal class EncryptionServiceTests
 		// Act
 		byte[]? rewrapped = sut.RewrapIfOutdated(
 			wrapped,
+			dek,
+			password,
+			Identity);
+
+		// Assert
+		rewrapped
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.RewrapIfOutdated" />: a blob of another format is left as it is,
+	/// even when its bytes would read as an outdated cost at the place the password format keeps one.
+	/// </summary>
+	[Test]
+	public void RewrapIfOutdated_Keeps_A_Wrapper_Of_Another_Format()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer dek = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
+
+		// Long enough for the password format, so only the version byte tells the two formats apart.
+		byte[] foreign = RandomValues.CreateBytes(105);
+
+		foreign[0] = DekFormatVersion;
+
+		Argon2SettingsFactory
+			.CreateOutdatedCost()
+			.Write(foreign.AsSpan(1));
+
+		// Act
+		byte[]? rewrapped = sut.RewrapIfOutdated(
+			foreign,
 			dek,
 			password,
 			Identity);
