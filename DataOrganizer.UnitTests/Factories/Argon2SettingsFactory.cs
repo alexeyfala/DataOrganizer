@@ -3,7 +3,8 @@ using DataOrganizer.Helpers.Security;
 namespace DataOrganizer.UnitTests.Factories;
 
 /// <summary>
-/// Builds key derivation costs for the tests.
+/// Builds key derivation costs for the tests. A test that derives a key from a password registers one
+/// of them; without it the single derivation costs about half a second.
 /// </summary>
 internal static class Argon2SettingsFactory
 {

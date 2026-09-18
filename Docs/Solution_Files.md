@@ -16,6 +16,7 @@
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building `.deb`, `.rpm`, AppImage, Flatpak and zip, and checking the package.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted blobs and the rule "a new layout takes a new version byte". **Open:** the encryption stack is being changed.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release on GitHub. **Open:** the artifacts are built and the tag is ready to go out.
+  - 📄 [`Mutation_Testing.md`](Mutation_Testing.md) — what the mutation run is for, how to start it, how to read its report and what counts as noise; ends with how to check that the suite has not slowed down. **Open:** before a run, or when the suite feels slow.
   - 📄 [`Publish.md`](Publish.md) — recipes for building the distributables for Windows, Linux and macOS.
   - 📄 [`release-notes.template.md`](release-notes.template.md) — release description template with `{version}` placeholders. **Edit:** the set of release artifacts changed.
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file. **Edit:** a non-code file appeared in or left the solution — otherwise `SolutionFilesReferenceTests` fails the test run: it checks this reference against `.slnx` and against the contents of `Docs/`.

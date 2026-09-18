@@ -23,6 +23,7 @@
   <Folder Name="/Docs/">
     <File Path="Docs/Encryption_Format.md" />
     <File Path="Docs/GitHub_Release.md" />
+    <File Path="Docs/Mutation_Testing.md" />
     <File Path="Docs/Publish.md" />
     <File Path="Docs/release-notes.template.md" />
     <File Path="Docs/Solution_Files.md" />
