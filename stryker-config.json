@@ -1,8 +1,11 @@
 {
 	"stryker-config": {
-		"project": "DataOrganizer.csproj",
-		"test-projects": [ "DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" ],
-		"mutate": [ "**/Services/Encryption/**/*.cs" ],
+		"project": "Repository.csproj",
+		"test-projects": [
+			"Repository.UnitTests/Repository.UnitTests.csproj",
+			"Repository.IntegrationTests/Repository.IntegrationTests.csproj"
+		],
+		"mutate": [ "**/Services/**/*.cs" ],
 		"ignore-mutations": [ "string", "regex" ],
 		"ignore-methods": [ "*Log*", "ConfigureAwait" ],
 		"reporters": [ "progress", "html", "json" ],

@@ -437,11 +437,33 @@ internal class DbAccessTests
 
 		await AssertRefusedAsync(() => sut.AddFilesAsync([]));
 
+		await AssertRefusedAsync(() => sut.AddFoldersAsync([]));
+
 		await AssertRefusedAsync(() => sut.AddHotkeysAsync(Guid.NewGuid(), []));
 
 		await AssertRefusedAsync(() => sut.ClearDatabaseAsync());
 
 		await AssertRefusedAsync(() => sut.DeleteFileAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.DeleteFolderAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.DeleteHotkeysAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.RestoreFromBackupAsync(RandomString.Create(10)));
+
+		await AssertRefusedAsync(() => sut.UpdateFileAndFolderPropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
+
+		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(Guid.NewGuid(), []));
+
+		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>()));
+
+		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(Guid.NewGuid(), []));
+
+		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
 
 		await dbContextService
 			.DidNotReceive()
@@ -566,6 +588,35 @@ internal class DbAccessTests
 		await fileRepository
 			.Received()
 			.RemoveAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.DeleteFileAsync" />: returns false when no file rows are removed.
+	/// </summary>
+	[Test]
+	public async Task DeleteFileAsync_Returns_False_When_File_Does_Not_Exist()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			fileRepository
+				.RemoveAsync(Arg.Any<Guid>())
+				.Returns(0);
+
+			builder.RegisterInstance(fileRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteFileAsync(Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -774,6 +825,35 @@ internal class DbAccessTests
 		await repository
 			.Received()
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.DeleteHotkeysAsync" />: returns false when no hotkey rows are removed.
+	/// </summary>
+	[Test]
+	public async Task DeleteHotkeysAsync_Returns_False_When_No_Hotkeys_Exist()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
+
+			repository
+				.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteHotkeysAsync(Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

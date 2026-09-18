@@ -20,6 +20,11 @@ internal class DbMaintenanceTests
 	private const string FreePagesQuery = "PRAGMA freelist_count;";
 
 	/// <summary>
+	/// Query reporting the cookie SQLite raises whenever the file is rewritten.
+	/// </summary>
+	private const string SchemaVersionQuery = "PRAGMA schema_version;";
+
+	/// <summary>
 	/// Query reporting the stamp of the maintenance.
 	/// </summary>
 	private const string VersionQuery = "PRAGMA user_version;";
@@ -113,7 +118,8 @@ internal class DbMaintenanceTests
 	}
 
 	/// <summary>
-	/// <see cref="DbMaintenance.EraseFreePagesOnceAsync" />: stamps a database that has nothing to erase.
+	/// <see cref="DbMaintenance.EraseFreePagesOnceAsync" />: stamps a database that has nothing to erase,
+	/// and spares it the rewrite.
 	/// </summary>
 	[Test]
 	public async Task EraseFreePagesOnceAsync_Stamps_A_Database_Without_Free_Pages()
@@ -124,6 +130,8 @@ internal class DbMaintenanceTests
 		await using SqliteConnection connection = file.Open();
 
 		TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+
+		long schemaVersion = TempSqliteFile.Read(connection, SchemaVersionQuery);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -146,6 +154,12 @@ internal class DbMaintenanceTests
 			.Read(connection, VersionQuery)
 			.Should()
 			.Be(1L);
+
+		// A rewrite raises the cookie, so an unchanged one tells that VACUUM was not run.
+		TempSqliteFile
+			.Read(connection, SchemaVersionQuery)
+			.Should()
+			.Be(schemaVersion);
 	}
 	#endregion
 
