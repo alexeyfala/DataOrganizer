@@ -64,13 +64,6 @@ public sealed class AppThemeService : IAppThemeService
 		PrimaryColor primaryColor,
 		SecondaryColor secondaryColor)
 	{
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
 		MaterialTheme appTheme = GetAppTheme();
 
 		if (appTheme.BaseTheme != mode)

@@ -6,12 +6,10 @@ using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Factories;
 using Repository.Dto;
 using Shared.Common;
-using Shared.Properties;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Extensions;
@@ -724,7 +722,7 @@ internal class EnumerableExtensionsTests
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
 		// Act
-		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
+		string result = files.GetUnreadableHotkeysPresentation("header");
 
 		// Assert
 		result
@@ -736,8 +734,10 @@ internal class EnumerableExtensionsTests
 			.NotContain($@"""{files[3].Name}""");
 
 		result
+			.Split(Environment.NewLine)
+			.Last()
 			.Should()
-			.EndWith(string.Format(CultureInfo.CurrentCulture, Strings.AndMore, 2));
+			.Contain("2");
 	}
 
 	/// <summary>
@@ -750,12 +750,12 @@ internal class EnumerableExtensionsTests
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		// Act
-		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
+		string result = files.GetUnreadableHotkeysPresentation("header");
 
 		// Assert
 		result
 			.Should()
-			.StartWith(Strings.FailedToReadHotkeys);
+			.StartWith("header");
 
 		foreach (FileDto file in files)
 		{

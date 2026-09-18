@@ -432,3 +432,6 @@ Setup/LICENSE.rtf
 
 # macOS Finder metadata
 .DS_Store
+
+# Mutation testing reports and sandboxes (dotnet-stryker)
+StrykerOutput/

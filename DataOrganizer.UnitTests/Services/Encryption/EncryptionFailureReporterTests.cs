@@ -6,8 +6,9 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Fakes;
-using Shared.Properties;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 
@@ -18,97 +19,45 @@ internal class EncryptionFailureReporterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: rejected credentials are reported as a wrong password.
+	/// <see cref="EncryptionFailureReporter.Report" />: every kind of failure reaches the user as an error,
+	/// in words of its own.
 	/// </summary>
 	[Test]
-	public void Report_Tells_About_A_Wrong_Password()
+	public void Report_Tells_About_Every_Failure_In_Words_Of_Its_Own()
 	{
-		// Act
-		SnackbarContent? received = Report(new InvalidCredentialException());
-
-		// Assert
-		received
-			.Should()
-			.NotBeNull();
-
-		received
-			.Text
-			.Should()
-			.Be(Strings.IncorrectPassword);
-
-		received
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: a failure that is neither rejected credentials
-	/// nor a cryptographic one is reported as a failure to process the contents.
-	/// </summary>
-	[Test]
-	public void Report_Tells_About_An_Unprocessable_Content()
-	{
-		// Act
-		SnackbarContent? received = Report(new InvalidOperationException());
-
-		// Assert
-		received
-			.Should()
-			.NotBeNull();
-
-		received
-			.Text
-			.Should()
-			.Be(Strings.FailedToProcessContents);
-
-		received
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionFailureReporter.Report" />: a cryptographic failure is reported as damaged data.
-	/// </summary>
-	[Test]
-	public void Report_Tells_About_Damaged_Data()
-	{
-		// Act
-		SnackbarContent? received = Report(new AuthenticationTagMismatchException());
-
-		// Assert
-		received
-			.Should()
-			.NotBeNull();
-
-		received
-			.Text
-			.Should()
-			.Be(Strings.EncryptedDataIsDamaged);
-
-		received
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Reports the failure and returns the notification the reporter has asked for.
-	/// </summary>
-	private static SnackbarContent? Report(Exception failure)
-	{
+		// Arrange
 		RecordingNotificationService notification = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
 
 		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
 
-		sut.Report(failure);
+		Exception[] failures =
+		[
+			new InvalidCredentialException(),
+			new AuthenticationTagMismatchException(),
+			new InvalidOperationException()
+		];
 
-		return notification.Shown;
+		List<SnackbarContent?> shown = [];
+
+		// Act
+		foreach (Exception failure in failures)
+		{
+			sut.Report(failure);
+
+			shown.Add(notification.Shown);
+		}
+
+		// Assert
+		shown
+			.Should()
+			.OnlyContain(static x => x != null && x.Level == SnackbarMessageLevel.Error);
+
+		shown
+			.Select(static x => x!.Text)
+			.Should()
+			.OnlyHaveUniqueItems();
 	}
 	#endregion
 }

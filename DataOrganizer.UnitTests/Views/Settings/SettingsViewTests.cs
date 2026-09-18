@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
@@ -92,6 +93,7 @@ internal class SettingsViewTests
 		SettingsViewModel viewModel = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
+			Substitute.For<IDialogHostCloser>(),
 			sessionState);
 
 		SettingsView sut = new(viewModel);

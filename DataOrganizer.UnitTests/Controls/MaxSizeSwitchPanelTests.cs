@@ -12,49 +12,6 @@ internal class MaxSizeSwitchPanelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="MaxSizeSwitchPanel.SelectedIndex" />: only the selected child is enabled and placed inside the panel.
-	/// </summary>
-	[AvaloniaTest]
-	public void Only_The_Selected_Child_Is_Displayed()
-	{
-		// Arrange
-		MaxSizeSwitchPanel sut = new()
-		{
-			Children =
-			{
-				new Border { Width = 100.0, Height = 50.0 },
-				new Border { Width = 200.0, Height = 150.0 }
-			}
-		};
-
-		Window window = new() { Content = sut };
-
-		window.Show();
-
-		// Act
-		sut.SelectedIndex = 1;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		sut.Children[0].IsEnabled
-			.Should()
-			.BeFalse();
-
-		sut.Children[0].Bounds.Right
-			.Should()
-			.BeLessThanOrEqualTo(0.0);
-
-		sut.Children[1].IsEnabled
-			.Should()
-			.BeTrue();
-
-		sut.Children[1].Bounds.Left
-			.Should()
-			.BeGreaterThanOrEqualTo(0.0);
-	}
-
-	/// <summary>
 	/// <see cref="MaxSizeSwitchPanel" />: the panel is sized to the largest child regardless of the selection.
 	/// </summary>
 	[AvaloniaTest]
@@ -92,6 +49,49 @@ internal class MaxSizeSwitchPanelTests
 		sut.DesiredSize
 			.Should()
 			.Be(expectedSize);
+	}
+
+	/// <summary>
+	/// <see cref="MaxSizeSwitchPanel.SelectedIndex" />: only the selected child is enabled and placed inside the panel.
+	/// </summary>
+	[AvaloniaTest]
+	public void SelectedIndex_Displays_Only_The_Selected_Child()
+	{
+		// Arrange
+		MaxSizeSwitchPanel sut = new()
+		{
+			Children =
+			{
+				new Border { Width = 100.0, Height = 50.0 },
+				new Border { Width = 200.0, Height = 150.0 }
+			}
+		};
+
+		Window window = new() { Content = sut };
+
+		window.Show();
+
+		// Act
+		sut.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Children[0].IsEnabled
+			.Should()
+			.BeFalse();
+
+		sut.Children[0].Bounds.Right
+			.Should()
+			.BeLessThanOrEqualTo(0.0);
+
+		sut.Children[1].IsEnabled
+			.Should()
+			.BeTrue();
+
+		sut.Children[1].Bounds.Left
+			.Should()
+			.BeGreaterThanOrEqualTo(0.0);
 	}
 	#endregion
 }

@@ -12,6 +12,7 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
@@ -50,11 +51,16 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-			windowMock.Mock<IClipboardLogService>()
-				.SetupGet(x => x.Entries)
-				.Returns([]);
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
 
 			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
@@ -165,7 +171,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateEditorWindow_ViewModel_Should_Be_Initialized()
+	public void CreateEditorWindow_Initializes_The_ViewModel_From_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = RandomValues.CreateInt(100, 300);
@@ -279,7 +285,7 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateFavoritesWindow_ViewModel_Should_Be_Initialized()
+	public void CreateFavoritesWindow_Initializes_The_ViewModel_From_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = RandomValues.CreateInt(100, 300);
@@ -461,14 +467,20 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the active type filter is persisted.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
+	public void SaveClipboardLogSettings_Persists_ActiveFilter()
 	{
 		// Arrange
 		ClipboardLogWindowSettings? captured = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
@@ -477,12 +489,10 @@ internal class ViewLauncherTests
 					Arg.Any<bool>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
+			builder.RegisterInstance(clipboardLogService);
+
 			builder.RegisterInstance(fileSystem);
 		});
-
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
@@ -507,14 +517,20 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the keep-open flag is persisted.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	public void SaveClipboardLogSettings_Persists_KeepOpen()
 	{
 		// Arrange
 		ClipboardLogWindowSettings? captured = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
@@ -523,12 +539,10 @@ internal class ViewLauncherTests
 					Arg.Any<bool>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
+			builder.RegisterInstance(clipboardLogService);
+
 			builder.RegisterInstance(fileSystem);
 		});
-
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
@@ -553,25 +567,31 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: clipboard window settings are serialized to a JSON file.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Saves_Settings()
+	public void SaveClipboardLogSettings_Saves_Settings()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-		mock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(fileSystem));
+			builder.RegisterInstance(clipboardLogService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		sut.SaveClipboardLogSettings(mock.Create<ClipboardLogWindow>());
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<ClipboardLogWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -595,12 +615,12 @@ internal class ViewLauncherTests
 		await sut.SaveEditorSettingsAsync(mock.Create<EditorWindow>());
 
 		// Assert
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<EditorWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			WindowKind.Editor,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -650,12 +670,12 @@ internal class ViewLauncherTests
 			.Should()
 			.BeEmpty();
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Any<FavoritesWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 
-		fileSystem.Received().SerializeToJsonFile(
+		fileSystem.Received(1).SerializeToJsonFile(
 			WindowKind.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
@@ -675,11 +695,16 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-			windowMock.Mock<IClipboardLogService>()
-				.SetupGet(x => x.Entries)
-				.Returns([]);
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
 
 			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
@@ -738,30 +763,35 @@ internal class ViewLauncherTests
 	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-		windowMock.Mock<IClipboardLogService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			windowBuilder.RegisterInstance(clipboardLogService);
+		});
 
 		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
 		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
 
-		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-		lifetime
-			.Windows
-			.Returns([existing]);
-
-		Application app = Substitute.For<Application>();
-
-		app.ApplicationLifetime = lifetime;
-
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([existing]);
+
+			app.ApplicationLifetime = lifetime;
+
 			builder.RegisterInstance(app).As<Application>();
 
 			builder.RegisterInstance(viewFactory);
@@ -776,6 +806,40 @@ internal class ViewLauncherTests
 		viewFactory
 			.DidNotReceive()
 			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowStartupErrorAsync" />: with no desktop lifetime to shut down, the process
+	/// is ended even when the notice itself could not be shown.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowStartupErrorAsync_Ends_The_Process_Without_A_Desktop_Lifetime()
+	{
+		// Arrange
+		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NoticeViewModel>()
+				.Returns(_ => throw new InvalidOperationException());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(processTerminator);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowStartupErrorAsync(@"C:\Database\DataOrganizer.sqlite");
+
+		// Assert
+		processTerminator
+			.Received(1)
+			.Terminate(Arg.Any<int>());
 	}
 	#endregion
 }

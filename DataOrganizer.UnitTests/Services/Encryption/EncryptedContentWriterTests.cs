@@ -123,7 +123,7 @@ internal class EncryptedContentWriterTests
 			.Be(UpdateDatabaseOutcome.SaveFailed);
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
 
@@ -169,7 +169,7 @@ internal class EncryptedContentWriterTests
 			.Be(UpdateDatabaseOutcome.ExceptionThrown);
 
 		await dbAccess
-			.Received()
+			.Received(1)
 			.RestoreFromBackupAsync(parameters.BackupFilePath);
 	}
 

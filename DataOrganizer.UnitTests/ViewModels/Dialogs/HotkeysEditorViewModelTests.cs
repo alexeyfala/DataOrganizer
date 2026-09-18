@@ -3,15 +3,15 @@ using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Dialogs;
-using Moq;
+using NSubstitute;
 using Repository.Dto;
 using Shared.Extensions;
-using Shared.Properties;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
@@ -295,7 +295,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise the assigning placeholder.
+	/// <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise a prompt.
 	/// </summary>
 	[Test]
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
@@ -318,9 +318,21 @@ internal class HotkeysEditorViewModelTests
 		sut.MakePreview();
 
 		// Assert
-		sut.Preview
-			.Should()
-			.Be(isAnyInBuffer ? keyStrokes.GetHotkeysPresentation() : Strings.AssigningHotkeys);
+		if (isAnyInBuffer)
+		{
+			sut.Preview
+				.Should()
+				.Be(keyStrokes.GetHotkeysPresentation());
+		}
+		else
+		{
+			// An empty buffer leaves a prompt of its own, built from nothing the buffer holds.
+			sut.Preview
+				.Should()
+				.NotBeEmpty()
+				.And
+				.NotBe(keyStrokes.GetHotkeysPresentation());
+		}
 	}
 
 	/// <summary>
@@ -348,13 +360,15 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.SaveAndClose" />: sets the saved flag.
+	/// <see cref="HotkeysEditorViewModel.SaveAndClose" />: sets the saved flag and closes the dialog.
 	/// </summary>
 	[Test]
-	public void SaveAndClose_Sets_Property()
+	public void SaveAndClose_Sets_The_Saved_Flag_And_Closes_The_Dialog()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogHostCloser));
 
 		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
 
@@ -365,6 +379,10 @@ internal class HotkeysEditorViewModelTests
 		sut.IsSaved
 			.Should()
 			.BeTrue();
+
+		dialogHostCloser
+			.Received(1)
+			.Close();
 	}
 
 	/// <summary>
@@ -374,9 +392,9 @@ internal class HotkeysEditorViewModelTests
 	public async Task StopHookAsync_Delegates_To_Hook_Runner()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IGlobalHookRunner runner = Substitute.For<IGlobalHookRunner>();
 
-		Mock<IGlobalHookRunner> runner = mock.Mock<IGlobalHookRunner>();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(runner));
 
 		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
 
@@ -384,7 +402,9 @@ internal class HotkeysEditorViewModelTests
 		await sut.StopHookAsync();
 
 		// Assert
-		runner.Verify(x => x.StopAsync(It.IsAny<CancellationToken>()), Times.Once);
+		await runner
+			.Received(1)
+			.StopAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

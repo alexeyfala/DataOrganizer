@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Models.Clipboard;
-using Shared.Properties;
+using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Linq;
 
@@ -9,6 +9,23 @@ namespace DataOrganizer.UnitTests.Models.Clipboard;
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardFilesEntry)}"" type")]
 internal class ClipboardFilesEntryTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the first listed file.
+	/// </summary>
+	private const string FirstFile = $@"{Folder}\a.txt";
+
+	/// <summary>
+	/// Directory holding the listed files.
+	/// </summary>
+	private const string Folder = @"C:\dir";
+
+	/// <summary>
+	/// Path of the second listed file.
+	/// </summary>
+	private const string SecondFile = $@"{Folder}\b.txt";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardFilesEntry.ContentToolTip" />: a short list shows no expanded tooltip.
@@ -17,37 +34,15 @@ internal class ClipboardFilesEntryTests
 	public void ContentToolTip_Is_Null_When_Not_Truncated()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false));
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false)
+		]);
 
 		// Act, Assert
 		sut.ContentToolTip
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardFilesEntry.Preview" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
-	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
-	/// </summary>
-	[Test]
-	public void Long_List_Truncates_Summary_And_Exposes_ToolTip()
-	{
-		// Arrange (10 files: more than the 6-item summary budget).
-		ClipboardFilesEntry sut = FilesEntry([.. Enumerable
-			.Range(0, 10)
-			.Select(i => new ClipboardFileSystemEntry($"C:\\dir\\file{i}.txt", IsFolder: false))]);
-
-		// Act, Assert
-		sut.Preview!
-			.Split(Environment.NewLine)
-			.Last()
-			.Should()
-			.Be("...");
-
-		sut.ContentToolTip
-			.Should()
-			.NotBeNull();
 	}
 
 	/// <summary>
@@ -57,9 +52,11 @@ internal class ClipboardFilesEntryTests
 	public void Preview_Lists_Header_And_All_Items_When_Short()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
-			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false));
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
+			new ClipboardFileSystemEntry(Folder, IsFolder: true),
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false)
+		]);
 
 		// Act
 		string[] lines = sut
@@ -81,43 +78,62 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardFilesEntry.Preview" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
+	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
+	/// </summary>
+	[Test]
+	public void Preview_Truncates_A_Long_List_And_Exposes_The_ToolTip()
+	{
+		// Arrange (10 files: more than the 6-item summary budget).
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry([.. Enumerable
+			.Range(0, 10)
+			.Select(i => new ClipboardFileSystemEntry($@"{Folder}\file{i}.txt", IsFolder: false))]);
+
+		// Act, Assert
+		sut.Preview!
+			.Split(Environment.NewLine)
+			.Last()
+			.Should()
+			.Be("...");
+
+		sut.ContentToolTip
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardFilesEntry.TypeToolTip" />: folder / file / total counts are reported.
 	/// </summary>
 	[Test]
 	public void TypeToolTip_Reports_Folder_And_File_Counts()
 	{
 		// Arrange
-		ClipboardFilesEntry sut = FilesEntry(
-			new ClipboardFileSystemEntry("C:\\dir", IsFolder: true),
-			new ClipboardFileSystemEntry("C:\\dir\\a.txt", IsFolder: false),
-			new ClipboardFileSystemEntry("C:\\dir\\b.txt", IsFolder: false));
+		ClipboardFilesEntry sut = ClipboardEntryFactory.CreateFilesEntry(
+		[
+			new ClipboardFileSystemEntry(Folder, IsFolder: true),
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false),
+			new ClipboardFileSystemEntry(SecondFile, IsFolder: false)
+		]);
 
 		// Act
-		string tooltip = sut.TypeToolTip;
+		string[] lines = sut.TypeToolTip.Split(Environment.NewLine);
 
-		// Assert
-		tooltip
+		// Assert (a line per kind: folders, files, and the total).
+		lines
 			.Should()
-			.Contain($"{Strings.Folders}: 1");
+			.HaveCount(3);
 
-		tooltip
+		lines[0]
 			.Should()
-			.Contain($"{Strings.Files}: 2");
+			.EndWith("1");
 
-		tooltip
+		lines[1]
 			.Should()
-			.Contain("Σ: 3");
+			.EndWith("2");
+
+		lines[2]
+			.Should()
+			.Be("Σ: 3");
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A files entry holding <paramref name="entries" />.
-	/// </summary>
-	private static ClipboardFilesEntry FilesEntry(params ClipboardFileSystemEntry[] entries) => new()
-	{
-		FileSystemEntries = entries,
-		Hash = [1]
-	};
 	#endregion
 }

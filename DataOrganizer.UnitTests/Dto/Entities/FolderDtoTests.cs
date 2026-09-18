@@ -1,7 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
-using Entities.Enums;
-using System;
+using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.Dto.Entities;
@@ -17,9 +16,9 @@ internal class FolderDtoTests
 	public void AnyChild_Returns_False_When_No_Child_Matches()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		AddChild(root, CreateFile("a"));
+		AddChild(root, ItemDtoFactory.CreateNamedFileDto("a"));
 
 		// Act
 		bool result = root.AnyChild(x => x.Name == "missing");
@@ -37,13 +36,13 @@ internal class FolderDtoTests
 	public void AnyChild_Returns_True_When_A_Nested_Child_Matches()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		FolderDto sub = CreateFolder("sub");
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
 
 		AddChild(root, sub);
 
-		AddChild(sub, CreateFile("target"));
+		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("target"));
 
 		// Act
 		bool result = root.AnyChild(x => x.Name == "target");
@@ -61,9 +60,9 @@ internal class FolderDtoTests
 	public void AnyFile_Returns_False_When_Only_Folders_Match()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		AddChild(root, CreateFolder("target"));
+		AddChild(root, ItemDtoFactory.CreateNamedFolderDto("target"));
 
 		// Act
 		bool result = root.AnyFile(file => file.Name == "target");
@@ -81,13 +80,13 @@ internal class FolderDtoTests
 	public void AnyFile_Returns_True_When_A_Nested_File_Matches()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		FolderDto sub = CreateFolder("sub");
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
 
 		AddChild(root, sub);
 
-		AddChild(sub, CreateFile("target"));
+		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("target"));
 
 		// Act
 		bool result = root.AnyFile(file => file.Name == "target");
@@ -106,11 +105,11 @@ internal class FolderDtoTests
 	public void FindPasswordKeeper_Of_A_File_Returns_The_Parent_Keeper()
 	{
 		// Arrange
-		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = ItemDtoFactory.CreateNamedFolderDto("keeper", encryptedDek: [1]);
 
-		FolderDto child = CreateFolder("child");
+		FolderDto child = ItemDtoFactory.CreateNamedFolderDto("child");
 
-		FileDto file = CreateFile("file");
+		FileDto file = ItemDtoFactory.CreateNamedFileDto("file");
 
 		AddChild(keeper, child);
 
@@ -132,9 +131,9 @@ internal class FolderDtoTests
 	public void FindPasswordKeeper_Of_A_File_Without_A_Keeper_Returns_Null()
 	{
 		// Arrange
-		FolderDto parent = CreateFolder("parent");
+		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
 
-		FileDto file = CreateFile("file");
+		FileDto file = ItemDtoFactory.CreateNamedFileDto("file");
 
 		AddChild(parent, file);
 
@@ -154,9 +153,9 @@ internal class FolderDtoTests
 	public void FindPasswordKeeper_Returns_Null_When_No_Keeper_In_Chain()
 	{
 		// Arrange
-		FolderDto parent = CreateFolder("parent");
+		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
 
-		FolderDto child = CreateFolder("child");
+		FolderDto child = ItemDtoFactory.CreateNamedFolderDto("child");
 
 		AddChild(parent, child);
 
@@ -176,9 +175,9 @@ internal class FolderDtoTests
 	public void FindPasswordKeeper_Returns_Parent_Keeper_When_Self_Is_Not()
 	{
 		// Arrange
-		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = ItemDtoFactory.CreateNamedFolderDto("keeper", encryptedDek: [1]);
 
-		FolderDto child = CreateFolder("child");
+		FolderDto child = ItemDtoFactory.CreateNamedFolderDto("child");
 
 		AddChild(keeper, child);
 
@@ -198,7 +197,7 @@ internal class FolderDtoTests
 	public void FindPasswordKeeper_Returns_Self_When_Self_Is_Password_Keeper()
 	{
 		// Arrange
-		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = ItemDtoFactory.CreateNamedFolderDto("keeper", encryptedDek: [1]);
 
 		// Act
 		FolderDto? result = keeper.FindPasswordKeeper();
@@ -216,13 +215,13 @@ internal class FolderDtoTests
 	public void GetAllChildren_Returns_All_Descendants_Flattened()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		FolderDto sub = CreateFolder("sub");
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
 
-		FileDto nested = CreateFile("nested");
+		FileDto nested = ItemDtoFactory.CreateNamedFileDto("nested");
 
-		FileDto top = CreateFile("top");
+		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
 
 		AddChild(root, sub);
 
@@ -250,15 +249,15 @@ internal class FolderDtoTests
 	public void GetFiles_Returns_Only_Matching_Files()
 	{
 		// Arrange
-		FolderDto root = CreateFolder();
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
-		FileDto keptTop = CreateFile("keep");
+		FileDto keptTop = ItemDtoFactory.CreateNamedFileDto("keep");
 
-		FolderDto sub = CreateFolder("sub");
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
 
-		FileDto keptNested = CreateFile("keep");
+		FileDto keptNested = ItemDtoFactory.CreateNamedFileDto("keep");
 
-		FileDto skipped = CreateFile("skip");
+		FileDto skipped = ItemDtoFactory.CreateNamedFileDto("skip");
 
 		AddChild(root, keptTop);
 
@@ -288,7 +287,7 @@ internal class FolderDtoTests
 	public void IsPasswordKeeper_Returns_False_When_Dek_Empty()
 	{
 		// Arrange
-		FolderDto folder = CreateFolder("folder", encryptedDek: []);
+		FolderDto folder = ItemDtoFactory.CreateNamedFolderDto("folder", encryptedDek: []);
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -306,7 +305,7 @@ internal class FolderDtoTests
 	public void IsPasswordKeeper_Returns_False_When_Dek_Missing()
 	{
 		// Arrange
-		FolderDto folder = CreateFolder("folder");
+		FolderDto folder = ItemDtoFactory.CreateNamedFolderDto("folder");
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -324,7 +323,7 @@ internal class FolderDtoTests
 	public void IsPasswordKeeper_Returns_True_When_Dek_Present()
 	{
 		// Arrange
-		FolderDto folder = CreateFolder("folder", encryptedDek: [1]);
+		FolderDto folder = ItemDtoFactory.CreateNamedFolderDto("folder", encryptedDek: [1]);
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -346,34 +345,5 @@ internal class FolderDtoTests
 
 		parent.Children.Add(child);
 	}
-
-	/// <summary>
-	/// Creates a file DTO with the required base members populated.
-	/// </summary>
-	private static FileDto CreateFile(string name = "") => new()
-	{
-		Id = Guid.NewGuid(),
-		Index = 0,
-		Name = name,
-		CreatedAt = DateTime.UtcNow,
-		UpdatedAt = DateTime.UtcNow,
-		Kind = EntityKind.File
-	};
-
-	/// <summary>
-	/// Creates a folder DTO with the required base members populated and optional password-keeper data.
-	/// </summary>
-	private static FolderDto CreateFolder(
-		string name = "",
-		byte[]? encryptedDek = null) => new()
-		{
-			Id = Guid.NewGuid(),
-			Index = 0,
-			Name = name,
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow,
-			Kind = EntityKind.Folder,
-			EncryptedDek = encryptedDek
-		};
 	#endregion
 }

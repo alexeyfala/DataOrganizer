@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using Avalonia.Input;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
@@ -5,9 +7,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Clipboard;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
-using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
@@ -30,17 +30,42 @@ internal class ClipboardAutoClearTests
 	public async Task Arm_Clears_Clipboard_When_Still_Owned()
 	{
 		// Arrange
-		Context context = CreateContext(ownershipPresent: true);
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		FakeTimeProvider time = new();
+
+		Task? scheduled = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership)]);
+
+			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+		});
+
+		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
 
 		// Act
-		context.Sut.Arm();
+		sut.Arm();
 
-		context.Time.Advance(Timeout);
+		time.Advance(Timeout);
 
-		await context.Scheduled!;
+		await scheduled!;
 
 		// Assert
-		await context.Clipboard
+		await clipboard
 			.Received(1)
 			.ClearAsync();
 	}
@@ -52,17 +77,42 @@ internal class ClipboardAutoClearTests
 	public async Task Arm_Does_Not_Clear_When_Ownership_Marker_Absent()
 	{
 		// Arrange
-		Context context = CreateContext(ownershipPresent: false);
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		FakeTimeProvider time = new();
+
+		Task? scheduled = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+		});
+
+		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
 
 		// Act
-		context.Sut.Arm();
+		sut.Arm();
 
-		context.Time.Advance(Timeout);
+		time.Advance(Timeout);
 
-		await context.Scheduled!;
+		await scheduled!;
 
 		// Assert
-		await context.Clipboard
+		await clipboard
 			.DidNotReceive()
 			.ClearAsync();
 	}
@@ -74,29 +124,54 @@ internal class ClipboardAutoClearTests
 	public async Task Arm_Restarts_Countdown_On_ReArm()
 	{
 		// Arrange
-		Context context = CreateContext(ownershipPresent: true);
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		FakeTimeProvider time = new();
+
+		Task? scheduled = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership)]);
+
+			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+		});
+
+		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
 
 		// Act
-		context.Sut.Arm();
+		sut.Arm();
 
-		context.Time.Advance(TimeSpan.FromSeconds(10.0));
+		time.Advance(TimeSpan.FromSeconds(10.0));
 
 		// Re-arm before the first window elapses.
-		context.Sut.Arm();
+		sut.Arm();
 
-		context.Time.Advance(TimeSpan.FromSeconds(10.0));
+		time.Advance(TimeSpan.FromSeconds(10.0));
 
 		// Assert
-		await context.Clipboard
+		await clipboard
 			.DidNotReceive()
 			.ClearAsync();
 
 		// The second window now elapses.
-		context.Time.Advance(TimeSpan.FromSeconds(5.0));
+		time.Advance(TimeSpan.FromSeconds(5.0));
 
-		await context.Scheduled!;
+		await scheduled!;
 
-		await context.Clipboard
+		await clipboard
 			.Received(1)
 			.ClearAsync();
 	}
@@ -108,77 +183,42 @@ internal class ClipboardAutoClearTests
 	public async Task Dispose_Cancels_Pending_Clear()
 	{
 		// Arrange
-		Context context = CreateContext(ownershipPresent: true);
-
-		// Act
-		context.Sut.Arm();
-
-		context.Sut.Dispose();
-
-		await context.Scheduled!;
-
-		context.Time.Advance(Timeout);
-
-		// Assert
-		await context.Clipboard
-			.DidNotReceive()
-			.ClearAsync();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Builds a service under test wired with a fake clock and a captured scheduled task.
-	/// </summary>
-	private static Context CreateContext(bool ownershipPresent)
-	{
-		IReadOnlyList<DataFormat> formats = ownershipPresent
-			? [DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership)]
-			: [];
-
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns(formats);
-
-		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
 		FakeTimeProvider time = new();
 
-		Context context = new()
+		Task? scheduled = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			Clipboard = clipboard,
-			Sut = new ClipboardAutoClear(
-				clipboard,
-				new ClipboardGate(),
-				Substitute.For<ILogger>(),
-				exceptionHandler,
-				time),
-			Time = time
-		};
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-		exceptionHandler.Watch(Arg.Do<Task>(task => context.Scheduled = task));
+			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
 
-		return context;
-	}
-	#endregion
+			builder.RegisterInstance(clipboard);
 
-	#region Nested Types
-	/// <summary>
-	/// Bundles the service under test with its captured collaborators.
-	/// </summary>
-	private sealed class Context
-	{
-		#region Properties
-		public required IClipboardAccessor Clipboard { get; init; }
+			builder.RegisterInstance(exceptionHandler);
 
-		public Task? Scheduled { get; set; }
+			builder.RegisterInstance<TimeProvider>(time);
 
-		public required ClipboardAutoClear Sut { get; init; }
+			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+		});
 
-		public required FakeTimeProvider Time { get; init; }
-		#endregion
+		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
+
+		// Act
+		sut.Arm();
+
+		sut.Dispose();
+
+		await scheduled!;
+
+		time.Advance(Timeout);
+
+		// Assert
+		await clipboard
+			.DidNotReceive()
+			.ClearAsync();
 	}
 	#endregion
 }

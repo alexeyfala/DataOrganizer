@@ -5,7 +5,6 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -24,15 +23,13 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer is handed
-	/// to the reporter and the editor is closed for changes.
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer closes
+	/// the editor for changes.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task EditorLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	public async Task EditorLoaded_Closes_The_Editor_When_The_Read_Fails()
 	{
 		// Arrange
-		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -42,8 +39,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbFailureReporter);
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -57,10 +52,6 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsContentUnavailable
 			.Should()
 			.BeTrue();
-
-		dbFailureReporter
-			.Received(1)
-			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
 	}
 
 	/// <summary>

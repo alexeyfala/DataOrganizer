@@ -1,6 +1,9 @@
 using AwesomeAssertions;
 using Shared.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shared.UnitTests.Extensions;
 
@@ -8,6 +11,43 @@ namespace Shared.UnitTests.Extensions;
 internal class EnumerableExtensionsTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EnumerableExtensions.AsNotNull{T}(T[])" />: a null array is handed on as an empty one.
+	/// </summary>
+	[Test]
+	public void AsNotNull_Turns_A_Null_Array_Into_An_Empty_One()
+	{
+		// Arrange
+		int[]? source = null;
+
+		// Act
+		int[] result = source.AsNotNull();
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.ForEachAsync{T}(IEnumerable{T}, Action{T}, int, CancellationToken)" />:
+	/// a degree of parallelism that is not positive is refused instead of reaching the loop.
+	/// </summary>
+	[Test]
+	public async Task ForEachAsync_Refuses_A_Degree_Of_Parallelism_That_Is_Not_Positive()
+	{
+		// Arrange
+		int[] source = [1, 2, 3];
+
+		// Act
+		Func<Task> act = () => source.ForEachAsync(_ => { }, maxDegreeOfParallelism: -1);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<ArgumentOutOfRangeException>();
+	}
+
 	/// <summary>
 	/// <see cref="EnumerableExtensions.ForEachWithIndex{T}" />: invokes the action with each element and its index.
 	/// </summary>
@@ -26,6 +66,24 @@ internal class EnumerableExtensionsTests
 		visited
 			.Should()
 			.Equal(("a", 0), ("b", 1), ("c", 2));
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: an empty sequence gets no trailing separator.
+	/// </summary>
+	[Test]
+	public void JoinAsString_Adds_No_Trailing_Separator_To_An_Empty_Sequence()
+	{
+		// Arrange
+		int[] source = [];
+
+		// Act
+		string result = source.JoinAsString("-", addSeparatorToEnd: true);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>

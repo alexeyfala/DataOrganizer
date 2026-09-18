@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
-using Shared.Properties;
+using DataOrganizer.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
 
@@ -10,32 +10,13 @@ internal class ClipboardImageEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of the image badge metadata.
-	/// </summary>
-	[Test]
-	public void Badge_Metadata_Is_Image_Specific()
-	{
-		// Arrange
-		ClipboardImageEntry sut = ImageEntry([]);
-
-		// Act, Assert
-		sut.TypeGlyph
-			.Should()
-			.Be(Glyphs.FramedPicture);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Image);
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardImageEntry.ContentToolTip" />: malformed bytes yield no size.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Is_Null_For_Malformed_Png()
 	{
 		// Arrange
-		ClipboardImageEntry sut = ImageEntry([0, 1, 2, 3]);
+		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([0, 1, 2, 3]);
 
 		// Act, Assert
 		sut.ContentToolTip
@@ -50,7 +31,7 @@ internal class ClipboardImageEntryTests
 	public void ContentToolTip_Reports_Png_Pixel_Size()
 	{
 		// Arrange
-		ClipboardImageEntry sut = ImageEntry(PngWithSize(width: 100, height: 50));
+		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry(PngWithSize(width: 100, height: 50));
 
 		// Act, Assert
 		sut.ContentToolTip
@@ -65,25 +46,31 @@ internal class ClipboardImageEntryTests
 	public void ImagePreview_Is_Null_For_Empty_Bytes()
 	{
 		// Arrange
-		ClipboardImageEntry sut = ImageEntry([]);
+		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
 
 		// Act, Assert
 		sut.ImagePreview
 			.Should()
 			.BeNull();
 	}
+
+	/// <summary>
+	/// <see cref="ClipboardImageEntry.TypeGlyph" />: the badge marks an image.
+	/// </summary>
+	[Test]
+	public void TypeGlyph_Is_Image_Specific()
+	{
+		// Arrange
+		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
+
+		// Act, Assert
+		sut.TypeGlyph
+			.Should()
+			.Be(Glyphs.FramedPicture);
+	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// An image entry backed by <paramref name="png" />.
-	/// </summary>
-	private static ClipboardImageEntry ImageEntry(byte[] png) => new()
-	{
-		OriginalPng = png,
-		Hash = [1]
-	};
-
 	/// <summary>
 	/// Builds a minimal PNG header (signature + IHDR with the given size); pixel data is not included.
 	/// </summary>

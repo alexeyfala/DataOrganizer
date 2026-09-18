@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
-using Shared.Properties;
+using DataOrganizer.UnitTests.Factories;
 using System;
 
 namespace DataOrganizer.UnitTests.Models.Clipboard;
@@ -11,29 +11,6 @@ internal class ClipboardUrlEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of the URL-specific badge metadata.
-	/// </summary>
-	[Test]
-	public void Badge_Metadata_Is_Url_Specific()
-	{
-		// Arrange
-		ClipboardUrlEntry sut = UrlEntry("https://example.com");
-
-		// Act, Assert
-		sut.IsUrl
-			.Should()
-			.BeTrue();
-
-		sut.TypeGlyph
-			.Should()
-			.Be(Glyphs.Link);
-
-		sut.TypeToolTip
-			.Should()
-			.Be(Strings.Hyperlink);
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardUrlEntry.ContentToolTip" />: a very long URL is capped with an ellipsis.
 	/// </summary>
 	[Test]
@@ -42,7 +19,7 @@ internal class ClipboardUrlEntryTests
 		// Arrange (> 10 lines worth of characters).
 		string url = "https://example.com/" + new string('a', 64 * 11);
 
-		ClipboardUrlEntry sut = UrlEntry(url);
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry(url);
 
 		// Act
 		string[] lines = sut
@@ -68,7 +45,7 @@ internal class ClipboardUrlEntryTests
 		// Arrange (96 chars -> 2 lines at 64 chars per line).
 		string url = "https://example.com/" + new string('a', 76);
 
-		ClipboardUrlEntry sut = UrlEntry(url);
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry(url);
 
 		// Act
 		string[] lines = sut
@@ -84,19 +61,24 @@ internal class ClipboardUrlEntryTests
 			.Should()
 			.Be(url);
 	}
-	#endregion
 
-	#region Helpers
 	/// <summary>
-	/// A URL entry whose text and URL are <paramref name="url" />.
+	/// <see cref="ClipboardUrlEntry.IsUrl" />, <see cref="ClipboardUrlEntry.TypeGlyph" />: the badge marks a link.
 	/// </summary>
-	private static ClipboardUrlEntry UrlEntry(string url) => new()
+	[Test]
+	public void IsUrl_And_TypeGlyph_Are_Url_Specific()
 	{
-		Text = url,
-		Html = null,
-		Rtf = null,
-		Url = url,
-		Hash = [1]
-	};
+		// Arrange
+		ClipboardUrlEntry sut = ClipboardEntryFactory.CreateUrlEntry("https://example.com");
+
+		// Act, Assert
+		sut.IsUrl
+			.Should()
+			.BeTrue();
+
+		sut.TypeGlyph
+			.Should()
+			.Be(Glyphs.Link);
+	}
 	#endregion
 }

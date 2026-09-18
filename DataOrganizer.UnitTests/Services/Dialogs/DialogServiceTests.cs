@@ -6,9 +6,11 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
@@ -18,7 +20,6 @@ using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
 using DialogHostAvalonia;
 using NSubstitute;
-using Shared.Properties;
 using System;
 using System.Threading.Tasks;
 
@@ -207,17 +208,20 @@ internal class DialogServiceTests
 			Application.Current!,
 			Substitute.For<ITaskExceptionHandler>());
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-		viewFactory
-			.CreateViewModel<MultilineTextEditViewModel>()
-			.Returns(viewModel);
+			viewFactory
+				.CreateViewModel<MultilineTextEditViewModel>()
+				.Returns(viewModel);
 
-		viewFactory
-			.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
-			.Returns(new MultilineTextEditView(viewModel));
+			viewFactory
+				.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
+				.Returns(new MultilineTextEditView(viewModel));
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+			builder.RegisterInstance(viewFactory);
+		});
 
 		DialogService sut = mock.Create<DialogService>();
 
@@ -237,7 +241,7 @@ internal class DialogServiceTests
 		// Assert
 		viewModel.Header
 			.Should()
-			.Be(string.IsNullOrWhiteSpace(name) ? Strings.Note : $"{Strings.Note}: {name}");
+			.Be(NoteHeaderBuilder.Build(name));
 
 		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
 		await viewModel
@@ -323,19 +327,23 @@ internal class DialogServiceTests
 		SettingsViewModel viewModel = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
+			Substitute.For<IDialogHostCloser>(),
 			Substitute.For<ISettingsSessionState>());
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-		viewFactory
-			.CreateViewModel<SettingsViewModel>()
-			.Returns(viewModel);
+			viewFactory
+				.CreateViewModel<SettingsViewModel>()
+				.Returns(viewModel);
 
-		viewFactory
-			.CreateUserControl<SettingsView>(Arg.Any<object[]>())
-			.Returns(new SettingsView(viewModel));
+			viewFactory
+				.CreateUserControl<SettingsView>(Arg.Any<object[]>())
+				.Returns(new SettingsView(viewModel));
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+			builder.RegisterInstance(viewFactory);
+		});
 
 		DialogService sut = mock.Create<DialogService>();
 
@@ -372,7 +380,7 @@ internal class DialogServiceTests
 			.DiscardAndCloseCommand
 			.Execute(null);
 
-		// The command itself skips the real close when it runs under NUnit.
+		// The view model closes through a substituted IDialogHostCloser, so the real host is closed here.
 		DialogHost.Close(null);
 
 		Dispatcher.UIThread.RunJobs();

@@ -16,15 +16,20 @@ public static class EntityFactory
 	/// <summary>
 	/// Creates a <see cref="FileEntity" /> with random properties.
 	/// </summary>
-	public static FileEntity CreateFile(in Guid id = default) => new()
-	{
-		CreatedAt = DateTime.Now,
-		Id = id == default ? Guid.NewGuid() : id,
-		Index = RandomValues.CreateIntFrom10To100(),
-		Kind = EntityKind.File,
-		Name = RandomString.Create(10),
-		UpdatedAt = DateTime.Now
-	};
+	public static FileEntity CreateFile(
+		in Guid id = default,
+		byte[]? contents = null,
+		string? editorState = null) => new()
+		{
+			Contents = contents ?? [],
+			CreatedAt = DateTime.Now,
+			EditorState = editorState,
+			Id = id == default ? Guid.NewGuid() : id,
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = EntityKind.File,
+			Name = RandomString.Create(10),
+			UpdatedAt = DateTime.Now
+		};
 
 	/// <summary>
 	/// Creates the required number of random <see cref="FileEntity" /> objects.
@@ -40,15 +45,17 @@ public static class EntityFactory
 	/// <summary>
 	/// Creates a <see cref="FolderEntity" /> with random properties.
 	/// </summary>
-	public static FolderEntity CreateFolder(in Guid id = default) => new()
+	public static FolderEntity CreateFolder(in Guid id = default, in Guid? parentId = null) => new()
 	{
 		CreatedAt = DateTime.Now,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = RandomValues.CreateIntFrom10To100(),
 		Kind = EntityKind.Folder,
 		Name = RandomString.Create(10),
+		ParentId = parentId,
 		UpdatedAt = DateTime.Now
 	};
+
 
 	/// <summary>
 	/// Creates the required number of random <see cref="FolderEntity" /> objects.

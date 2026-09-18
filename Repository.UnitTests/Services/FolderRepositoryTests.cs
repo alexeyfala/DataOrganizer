@@ -1,11 +1,11 @@
 using AwesomeAssertions;
-using Entities.Enums;
 using Entities.Models;
 using Repository.Services;
 using Repository.UnitTests.Fixtures;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TestSupport.Models;
 
 namespace Repository.UnitTests.Services;
 
@@ -22,13 +22,13 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderEntity root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = EntityFactory.CreateFolder(Guid.NewGuid());
 
-		FolderEntity child = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity child = EntityFactory.CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderEntity otherRoot = CreateFolder(Guid.NewGuid());
+		FolderEntity otherRoot = EntityFactory.CreateFolder(Guid.NewGuid());
 
-		FolderEntity otherChild = CreateFolder(Guid.NewGuid(), otherRoot.Id);
+		FolderEntity otherChild = EntityFactory.CreateFolder(Guid.NewGuid(), otherRoot.Id);
 
 		database
 			.Context
@@ -58,7 +58,7 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderEntity root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = EntityFactory.CreateFolder(Guid.NewGuid());
 
 		database
 			.Context
@@ -88,13 +88,13 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderEntity root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = EntityFactory.CreateFolder(Guid.NewGuid());
 
-		FolderEntity childA = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity childA = EntityFactory.CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderEntity childB = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity childB = EntityFactory.CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderEntity grandChild = CreateFolder(Guid.NewGuid(), childA.Id);
+		FolderEntity grandChild = EntityFactory.CreateFolder(Guid.NewGuid(), childA.Id);
 
 		database
 			.Context
@@ -131,17 +131,5 @@ internal class FolderRepositoryTests
 
 		return result;
 	}
-
-	/// <summary>
-	/// Creates a folder model with the given identifier and optional parent.
-	/// </summary>
-	private static FolderEntity CreateFolder(Guid id, Guid? parentId = null) => new()
-	{
-		Id = id,
-		Index = 0,
-		Kind = EntityKind.Folder,
-		Name = "folder",
-		ParentId = parentId
-	};
 	#endregion
 }

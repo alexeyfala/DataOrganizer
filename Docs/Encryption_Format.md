@@ -102,6 +102,12 @@ Blobs of this format never reach the disk — they exist while the process holds
   length does not fit the fixed plaintext size of its format.
 - `BlobScheme` carries the format together with the derivation that opens it, so a format cannot be
   read with the derivation of another.
-- `EncryptedBlobs_Keep_Their_Layout` pins the version byte and the exact length of all three formats.
-  Note what it cannot do: an edit that changes a layout **and** the test together passes, so the rule
-  above stays a matter of discipline, not of tooling.
+- `Encrypt_Keeps_A_Distinct_Layout_Per_Path` pins the version byte and the exact length of all three formats.
+- `EncryptionFormatCompatibilityTests` opens a blob of every format recorded by an earlier build, and the
+  associated data of every purpose. Unlike a round trip, these bytes do not follow an edit of the layout,
+  so a change that breaks the rule above cannot stay green by changing its test along with it. The same
+  fixture flips a bit through every region of every format, which leaves no field unauthenticated.
+- `ClipboardLogFormatCompatibilityTests` opens a recorded key file and journal of the clipboard history,
+  pinning the persisted JSON schema together with the two formats those files are written in.
+- A format that legitimately changes takes a new version byte and a recorded blob of its own; the blobs
+  already recorded stay as they are, because they are what earlier builds wrote.

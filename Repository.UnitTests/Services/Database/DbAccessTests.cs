@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -13,10 +12,8 @@ using Repository.Exceptions;
 using Repository.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
-using Repository.UnitTests.Fixtures;
 using Shared.Common;
 using Shared.Interfaces;
-using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +30,13 @@ namespace Repository.UnitTests.Services.Database;
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests
 {
+	#region Data
+	/// <summary>
+	/// Path the database file is taken to live at.
+	/// </summary>
+	private const string DatabaseFilePath = @"C:\Database\DataOrganizer.sqlite";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
@@ -55,12 +59,16 @@ internal class DbAccessTests
 			ParentId = Guid.NewGuid()
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(folderRepository),
-			TypedParameter.From(fileRepository));
+			builder.RegisterInstance(folderRepository);
+
+			builder.RegisterInstance(fileRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		ExplorerItemBase? entity = await sut.AddEntityAsync(parameters);
@@ -74,24 +82,18 @@ internal class DbAccessTests
 			.Should()
 			.NotBeEmpty();
 
-		entity.Kind
+		// A struct is compared by value unless asked otherwise; the entity carries no contents, so
+		// the members the two do not share are left out.
+		entity
 			.Should()
-			.Be(type);
-
-		entity.Name
-			.Should()
-			.Be(parameters.Name);
-
-		entity.Index
-			.Should()
-			.Be(parameters.Index);
-
-		entity.ParentId
-			.Should()
-			.Be(parameters.ParentId);
+			.BeEquivalentTo(
+				parameters,
+				static options => options
+					.ComparingByMembers<AddEntityParameters>()
+					.ExcludingMissingMembers());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 
 		if (type == EntityKind.Folder)
@@ -101,7 +103,7 @@ internal class DbAccessTests
 				.BeOfType<FolderEntity>();
 
 			await folderRepository
-				.Received()
+				.Received(1)
 				.AddAsync(Arg.Any<FolderEntity>());
 		}
 		else
@@ -111,7 +113,7 @@ internal class DbAccessTests
 				.BeOfType<FileEntity>();
 
 			await fileRepository
-				.Received()
+				.Received(1)
 				.AddAsync(Arg.Any<FileEntity>());
 		}
 	}
@@ -129,22 +131,25 @@ internal class DbAccessTests
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(repository));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		await sut.AddFilesAsync(files);
 
 		// Assert
 		await repository
-			.Received()
+			.Received(1)
 			.AddRangeAsync(Arg.Any<IEnumerable<FileEntity>>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -161,22 +166,25 @@ internal class DbAccessTests
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(repository),
-			TypedParameter.From(dbContextService));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		await sut.AddFoldersAsync(folders);
 
 		// Assert
 		await repository
-			.Received()
+			.Received(1)
 			.AddRangeAsync(Arg.Any<IEnumerable<FolderEntity>>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -195,11 +203,14 @@ internal class DbAccessTests
 
 		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(repository));
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		HotkeyEntity[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
@@ -218,7 +229,7 @@ internal class DbAccessTests
 			.AddAsync(Arg.Any<HotkeyEntity>());
 
 		await dbContextService
-			.Received()
+			.Received(1)
 			.SaveChangesAsync();
 	}
 
@@ -247,13 +258,13 @@ internal class DbAccessTests
 
 		// Assert
 		dbContextService
-			.Received()
+			.Received(1)
 			.EnsureDeleted();
 
 		if (useMigrations)
 		{
 			dbContextService
-				.Received()
+				.Received(1)
 				.Migrate();
 		}
 		else
@@ -295,7 +306,7 @@ internal class DbAccessTests
 		if (useMigrations)
 		{
 			await dbContextService
-				.Received()
+				.Received(1)
 				.MigrateAsync();
 		}
 		else
@@ -307,36 +318,18 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a migration applied by a newer version is seen before the schema is touched.
+	/// <see cref="DbAccess.ConnectAsync" />: a database that opened is swept once, so the pages freed
+	/// by earlier deletions stop carrying what was deleted.
 	/// </summary>
 	[Test]
-	public async Task ConnectAsync_Reports_A_Database_From_A_Newer_Version()
+	public async Task ConnectAsync_Erases_The_Free_Pages_Once()
 	{
 		// Arrange
-		using TempSqliteFile file = new();
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
 
-		await using (SqliteConnection connection = file.Open())
-		{
-			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
-		}
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
 
-		const string known = "20260907183944_InitialCreate";
-
-		IDbContextService dbContextService = CreateExistingDatabase(file);
-
-		dbContextService
-			.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
-			.Returns([known, "20991231235959_FromTheFuture"]);
-
-		dbContextService
-			.GetKnownMigrations()
-			.Returns([known]);
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -344,11 +337,11 @@ internal class DbAccessTests
 		// Assert
 		result
 			.Should()
-			.Be(DbConnectionStatus.SchemaTooNew);
+			.Be(DbConnectionStatus.Connected);
 
-		await dbContextService
-			.DidNotReceive()
-			.MigrateAsync(Arg.Any<CancellationToken>());
+		await dbMaintenance
+			.Received(1)
+			.EraseFreePagesOnceAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -360,25 +353,28 @@ internal class DbAccessTests
 		// Arrange
 		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbContextService
-			.HasMigrations()
-			.Returns(true);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			dbContextService
+				.HasMigrations()
+				.Returns(true);
 
-		fileSystem
-			.FileExists(Arg.Any<string>())
-			.Returns(true);
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
 
-		fileSystem
-			.OpenRead(Arg.Any<string>())
-			.Returns(_ => new MemoryStream(new byte[32]));
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(new byte[32]));
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -394,51 +390,16 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a migration that fails on a readable database is about its schema.
-	/// </summary>
-	[Test]
-	public async Task ConnectAsync_Reports_A_Schema_It_Cannot_Update()
-	{
-		// Arrange
-		using TempSqliteFile file = new();
-
-		await using (SqliteConnection connection = file.Open())
-		{
-			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
-		}
-
-		IDbContextService dbContextService = CreateExistingDatabase(file);
-
-		dbContextService
-			.MigrateAsync(Arg.Any<CancellationToken>())
-			.ThrowsAsync(new InvalidOperationException(@"Table ""Payloads"" already exists"));
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
-
-		// Act
-		DbConnectionStatus result = await sut.ConnectAsync();
-
-		// Assert
-		result
-			.Should()
-			.Be(DbConnectionStatus.SchemaTooOld);
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created is reported as unreadable.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
 	{
 		// Arrange
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
 			dbContextService
 				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
@@ -470,16 +431,20 @@ internal class DbAccessTests
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		dbContextService
-			.EnsureCreatedAsync(Arg.Any<CancellationToken>())
-			.ThrowsAsync(new InvalidOperationException());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(dbContextService);
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileRepository),
-			TypedParameter.From(folderRepository));
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(folderRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Assert
 		sut
@@ -506,11 +471,33 @@ internal class DbAccessTests
 
 		await AssertRefusedAsync(() => sut.AddFilesAsync([]));
 
+		await AssertRefusedAsync(() => sut.AddFoldersAsync([]));
+
 		await AssertRefusedAsync(() => sut.AddHotkeysAsync(Guid.NewGuid(), []));
 
 		await AssertRefusedAsync(() => sut.ClearDatabaseAsync());
 
 		await AssertRefusedAsync(() => sut.DeleteFileAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.DeleteFolderAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.DeleteHotkeysAsync(Guid.NewGuid()));
+
+		await AssertRefusedAsync(() => sut.RestoreFromBackupAsync(RandomString.Create(10)));
+
+		await AssertRefusedAsync(() => sut.UpdateFileAndFolderPropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
+
+		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(Guid.NewGuid(), []));
+
+		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>()));
+
+		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(Guid.NewGuid(), []));
+
+		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
 
 		await dbContextService
 			.DidNotReceive()
@@ -539,10 +526,10 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Survives_A_Failed_Housekeeping_Step()
 	{
 		// Arrange
-		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
 			dbMaintenance
 				.When(x => x.ErasePendingBackups())
 				.Throw(new IOException());
@@ -574,10 +561,10 @@ internal class DbAccessTests
 		// Arrange
 		const int expectedCount = 7;
 
-		IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
+
 			repository
 				.CountOfAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
 				.Returns(expectedCount);
@@ -597,32 +584,33 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.CreateBackupAsync" />: the copy appears in the folder of the copies and is gone once released.
+	/// <see cref="DbAccess.CreateBackupAsync" />: without a database file there is nothing to copy,
+	/// so no folder for the copies is made either.
 	/// </summary>
 	[Test]
-	public async Task CreateBackupAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
+	public async Task CreateBackupAsync_Returns_Null_Without_A_Database_File()
 	{
 		// Arrange
-		using TempSqliteFile file = new();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		await using (SqliteConnection connection = file.Open())
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
-		}
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
 
-		dbContextService
-			.GetDbFilePath()
-			.Returns(file.FilePath);
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false);
 
-		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializer>());
+			builder.RegisterInstance(dbContextService);
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(fileSystem);
+		});
 
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
+		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
 		DatabaseBackup? backup = await sut.CreateBackupAsync();
@@ -630,24 +618,11 @@ internal class DbAccessTests
 		// Assert
 		backup
 			.Should()
-			.NotBeNull();
+			.BeNull();
 
-		Path
-			.GetDirectoryName(backup.FilePath)
-			.Should()
-			.Be(DatabaseBackup.GetDirectoryPath(file.FilePath));
-
-		File
-			.Exists(backup.FilePath)
-			.Should()
-			.BeTrue();
-
-		backup.Dispose();
-
-		File
-			.Exists(backup.FilePath)
-			.Should()
-			.BeFalse();
+		fileSystem
+			.DidNotReceive()
+			.CreateDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -683,12 +658,41 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await hotkeysRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
 
 		await fileRepository
-			.Received()
+			.Received(1)
 			.RemoveAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.DeleteFileAsync" />: returns false when no file rows are removed.
+	/// </summary>
+	[Test]
+	public async Task DeleteFileAsync_Returns_False_When_File_Does_Not_Exist()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			fileRepository
+				.RemoveAsync(Arg.Any<Guid>())
+				.Returns(0);
+
+			builder.RegisterInstance(fileRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteFileAsync(Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -740,7 +744,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await folderRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
 
 		await hotkeysRepository
@@ -811,15 +815,15 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await hotkeysRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdsAsync(fileIds);
 
 		await fileRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(fileIds);
 
 		await folderRepository
-			.Received()
+			.Received(1)
 			.RemoveRangeByIdsAsync(Arg.Is<Guid[]>(x => x.SequenceEqual(subtreeIds)));
 	}
 
@@ -832,12 +836,12 @@ internal class DbAccessTests
 		// Arrange
 		Guid folderId = Guid.NewGuid();
 
-		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
-
-		IFileRepository fileRepository = Substitute.For<IFileRepository>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
+
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
 			folderRepository
 				.GetFolderSubtreeIdsAsync(folderId)
 				.Returns(ToAsyncEnumerable<Guid>([]));
@@ -895,8 +899,37 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.DeleteHotkeysAsync" />: returns false when no hotkey rows are removed.
+	/// </summary>
+	[Test]
+	public async Task DeleteHotkeysAsync_Returns_False_When_No_Hotkeys_Exist()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
+
+			repository
+				.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteHotkeysAsync(Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1176,7 +1209,17 @@ internal class DbAccessTests
 	public async Task UpdateFileAndFolderPropertiesAsync_Accepts_An_Empty_Set_Of_Updates()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateContextServiceRunningTheTransaction()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			builder.RegisterInstance(dbContextService);
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -1228,11 +1271,18 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			builder.RegisterInstance(dbContextService);
+
 			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(folderRepository);
-
-			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1265,7 +1315,14 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
 			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
 
 			fileRepository
 				.UpdatePropertiesAsync(
@@ -1274,9 +1331,9 @@ internal class DbAccessTests
 					Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
 
-			builder.RegisterInstance(fileRepository);
+			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
+			builder.RegisterInstance(fileRepository);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1397,7 +1454,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(updates);
 	}
 
@@ -1439,7 +1496,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(fileId, setters);
 	}
 
@@ -1548,7 +1605,7 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(updates);
 	}
 
@@ -1590,49 +1647,12 @@ internal class DbAccessTests
 			.BeTrue();
 
 		await repository
-			.Received()
+			.Received(1)
 			.UpdatePropertiesAsync(folderId, setters);
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// A substitute of <see cref="IDbContextService" /> that runs the body of the transaction.
-	/// </summary>
-	private static IDbContextService CreateContextServiceRunningTheTransaction()
-	{
-		IDbContextService contextService = Substitute.For<IDbContextService>();
-
-		contextService
-			.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
-			.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
-
-		return contextService;
-	}
-
-	/// <summary>
-	/// A substitute of <see cref="IDbContextService" /> that opens the database of <paramref name="file" />
-	/// and reports it as migrated by this version.
-	/// </summary>
-	private static IDbContextService CreateExistingDatabase(TempSqliteFile file)
-	{
-		IDbContextService contextService = Substitute.For<IDbContextService>();
-
-		contextService
-			.CanConnectAsync(Arg.Any<CancellationToken>())
-			.Returns(true);
-
-		contextService
-			.GetDbFilePath()
-			.Returns(file.FilePath);
-
-		contextService
-			.HasMigrations()
-			.Returns(true);
-
-		return contextService;
-	}
-
 	/// <summary>
 	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
 	/// </summary>

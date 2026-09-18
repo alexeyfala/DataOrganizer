@@ -21,8 +21,10 @@
     </Project>
   </Folder>
   <Folder Name="/Docs/">
+    <File Path="Docs/Debugging_Tests.md" />
     <File Path="Docs/Encryption_Format.md" />
     <File Path="Docs/GitHub_Release.md" />
+    <File Path="Docs/Mutation_Testing.md" />
     <File Path="Docs/Publish.md" />
     <File Path="Docs/release-notes.template.md" />
     <File Path="Docs/Solution_Files.md" />
@@ -60,6 +62,7 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="README.md" />
+    <File Path="stryker-config.json" />
   </Folder>
   <Folder Name="/Solution Items/.config/">
     <File Path=".config/dotnet-tools.json" />
@@ -100,6 +103,7 @@
   <Folder Name="/Tests/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
+    <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
     <Project Path="TestSupport/TestSupport.csproj" />

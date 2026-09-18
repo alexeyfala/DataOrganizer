@@ -22,9 +22,11 @@ internal class CopyHistoryViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		sut.SeedCopyHistory(ItemDtoFactory.CreateFileDtos(5));
+		sut.Initialize(ItemDtoFactory.CreateFileDtos(5), Guid.Empty);
 
 		sut.SelectedItem = ItemDtoFactory.CreateFileDto();
 
@@ -48,36 +50,6 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel" /> constructor.
-	/// </summary>
-	[Test]
-	public void Constructor_Initializes_Empty_History()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		// Act
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
-
-		// Assert
-		sut.IsEmpty
-			.Should()
-			.BeTrue();
-
-		sut.Items
-			.Should()
-			.BeEmpty();
-
-		sut.SelectedItem
-			.Should()
-			.BeNull();
-
-		sut.HistorySearch
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ObservableDisposableBase.Dispose" />: clears items and selection.
 	/// </summary>
 	[Test]
@@ -86,9 +58,11 @@ internal class CopyHistoryViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		sut.SeedCopyHistory(ItemDtoFactory.CreateFileDtos(5));
+		sut.Initialize(ItemDtoFactory.CreateFileDtos(5), Guid.Empty);
 
 		sut.SelectedItem = ItemDtoFactory.CreateFileDto();
 
@@ -114,11 +88,13 @@ internal class CopyHistoryViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
 		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(5)];
 
-		sut.SeedCopyHistory(items);
+		sut.Initialize(items, Guid.Empty);
 
 		// Act
 		Guid[] result = [.. sut.GetItemIds()];
@@ -171,7 +147,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. ItemDtoFactory.CreateFileDtos(3)];
 
-		sut.SeedCopyHistory(existing);
+		sut.Initialize(existing, Guid.Empty);
 
 		FileDto newItem = ItemDtoFactory.CreateFileDto();
 
@@ -199,7 +175,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. ItemDtoFactory.CreateFileDtos(3)];
 
-		sut.SeedCopyHistory(existing);
+		sut.Initialize(existing, Guid.Empty);
 
 		int initialCount = sut.Items.Count;
 
@@ -251,7 +227,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. ItemDtoFactory.CreateFileDtos(3)];
 
-		sut.SeedCopyHistory(existing);
+		sut.Initialize(existing, Guid.Empty);
 
 		// Act
 		bool result = sut.Remove(existing[1]);

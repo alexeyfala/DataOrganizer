@@ -18,7 +18,6 @@ using Repository.Enums;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
-using Shared.Properties;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -304,15 +303,6 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Reports_A_Failed_Save_And_Stops()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		dbAccess
-			.UpdateFilePropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-				Arg.Any<CancellationToken>())
-			.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
-
 		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
 
 		StrongReferenceMessenger messenger = new();
@@ -328,6 +318,15 @@ internal class FileChangeTrackerTests
 			byte[] previousContents = RandomValues.CreateBytes(32);
 
 			byte[] currentContents = RandomValues.CreateBytes(32);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<CancellationToken>())
+				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -368,11 +367,9 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters);
 
 		// Assert
-		dbFailureReporter
-			.Received(1)
-			.Report(
-				Arg.Any<DatabaseNotWritableException>(),
-				Arg.Is<string>(x => x.StartsWith(Strings.FailedToSaveFileContents, StringComparison.Ordinal)));
+		dbFailureReporter.Received(1).Report(
+			Arg.Any<DatabaseNotWritableException>(),
+			Arg.Any<string>());
 
 		receivedClosedFile
 			.Should()

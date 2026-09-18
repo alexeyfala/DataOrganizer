@@ -1,11 +1,10 @@
 using AwesomeAssertions;
-using Entities.Enums;
 using Entities.Models;
 using Repository.Enums;
 using Repository.Services;
 using Repository.UnitTests.Fixtures;
-using System;
 using System.Threading.Tasks;
+using TestSupport.Models;
 
 namespace Repository.UnitTests.Services;
 
@@ -26,7 +25,7 @@ internal class FileRepositoryTests
 
 		database
 			.Context
-			.Add(CreateFile(contents, "props"));
+			.Add(EntityFactory.CreateFile(contents: contents, editorState: "props"));
 
 		await database
 			.Context
@@ -65,7 +64,7 @@ internal class FileRepositoryTests
 
 		database
 			.Context
-			.Add(CreateFile(contents, "props"));
+			.Add(EntityFactory.CreateFile(contents: contents, editorState: "props"));
 
 		await database
 			.Context
@@ -102,7 +101,7 @@ internal class FileRepositoryTests
 
 		database
 			.Context
-			.Add(CreateFile([1, 2, 3], "props"));
+			.Add(EntityFactory.CreateFile(contents: [1, 2, 3], editorState: "props"));
 
 		await database
 			.Context
@@ -137,9 +136,11 @@ internal class FileRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
+		FileEntity stored = EntityFactory.CreateFile(contents: [1, 2, 3], editorState: "props");
+
 		database
 			.Context
-			.Add(CreateFile([1, 2, 3], "props"));
+			.Add(stored);
 
 		await database
 			.Context
@@ -158,7 +159,7 @@ internal class FileRepositoryTests
 
 		file.Name
 			.Should()
-			.Be("file");
+			.Be(stored.Name);
 
 		file.Contents
 			.Should()
@@ -168,20 +169,5 @@ internal class FileRepositoryTests
 			.Should()
 			.BeNull();
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a file model with the given contents and editor state.
-	/// </summary>
-	private static FileEntity CreateFile(byte[] contents, string? editorState) => new()
-	{
-		Id = Guid.NewGuid(),
-		Index = 0,
-		Name = "file",
-		Kind = EntityKind.File,
-		Contents = contents,
-		EditorState = editorState
-	};
 	#endregion
 }

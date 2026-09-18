@@ -38,7 +38,21 @@ Please make sure the test suite passes before opening a pull request:
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
 dotnet test Entities.UnitTests/Entities.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
+dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
+```
+
+Two categories mark the tests that read or write outside the process, so a run over the
+whole solution can leave them out:
+
+- `Integration` — every test of `Repository.IntegrationTests`, the only project that needs
+  a real database file. It writes one into a temporary folder of its own and removes it again.
+- `Guard` — the tests in `DataOrganizer.UnitTests/Guards` that read the files of the
+  repository (the solution file, `Directory.Build.props`, `.vscode`, the markup) instead of
+  exercising the application.
+
+```bash
+dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCategory!=Guard"
 ```
 
 ## Coding Guidelines

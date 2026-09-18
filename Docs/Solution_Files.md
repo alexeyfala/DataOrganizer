@@ -14,14 +14,16 @@
     - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: generating and filling in [`app.pupnet.conf`](../app.pupnet.conf).
     - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: what in [`app.metainfo.xml`](../app.metainfo.xml) is filled in by hand.
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building `.deb`, `.rpm`, AppImage, Flatpak and zip, and checking the package.
+  - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — why `Debug All Tests` stops on the exceptions the suite throws on purpose, and the two Exception Settings steps that stop it; also why the steps cannot be kept in the repository. **Open:** the batch debug run started breaking again.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted blobs and the rule "a new layout takes a new version byte". **Open:** the encryption stack is being changed.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release on GitHub. **Open:** the artifacts are built and the tag is ready to go out.
+  - 📄 [`Mutation_Testing.md`](Mutation_Testing.md) — what the mutation run is for, how to start it, how to read its report and what counts as noise; ends with how to check that the suite has not slowed down. **Open:** before a run, or when the suite feels slow.
   - 📄 [`Publish.md`](Publish.md) — recipes for building the distributables for Windows, Linux and macOS.
   - 📄 [`release-notes.template.md`](release-notes.template.md) — release description template with `{version}` placeholders. **Edit:** the set of release artifacts changed.
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file. **Edit:** a non-code file appeared in or left the solution — otherwise `SolutionFilesReferenceTests` fails the test run: it checks this reference against `.slnx` and against the contents of `Docs/`.
 - 📁 **`Solution Items/`**
   - 📁 **`.config/`**
-    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef`. Restored with `dotnet tool restore`. **Update:** together with EF Core — the tool version stays at or above the package version. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
+    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef` and `dotnet-stryker`. Restored with `dotnet tool restore`. **Update:** `dotnet-ef` together with EF Core — the tool version stays at or above the package version. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
       - ⚙️ [`bug_report.yml`](../.github/ISSUE_TEMPLATE/bug_report.yml) — bug report form, label `bug`.
@@ -50,9 +52,10 @@
     - 💻 [`gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) — rebuilds `THIRD-PARTY-NOTICES.txt` from `project.assets.json`. **Run:** before a release and after the dependencies change; needs a fresh `dotnet restore`, and the output must carry no `UNKNOWN`.
   - ⚙️ [`.editorconfig`](../.editorconfig) — code style and naming rules; together with `EnforceCodeStyleInBuild` a violation reaches the compiler output. The `[*.{csproj,wixproj,props,targets,wxs,wxi}]` section keeps tabs in MSBuild and WiX files. **Edit:** a convention changes.
   - ⚙️ [`.gitattributes`](../.gitattributes) — line ending normalisation (`* text=auto`); the rest is the commented-out Visual Studio template. **Edit:** almost never.
-  - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository: `bin/`, `obj/`, `.vs/`, `Publish/` (finished installers and archives), `Setup/LICENSE.rtf`. **Edit:** a new generated artifact appeared.
+  - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository: `bin/`, `obj/`, `.vs/`, `Publish/` (finished installers and archives), `Setup/LICENSE.rtf`, `StrykerOutput/` (mutation reports). **Edit:** a new generated artifact appeared.
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — the single source of the version, the application names and the assembly metadata. **Edit:** before a release — raise the version.
   - 📄 [`README.md`](../README.md) — the repository front page: features, screenshots, requirements, building, licence. **Edit:** the features or the requirements changed.
+  - ⚙️ [`stryker-config.json`](../stryker-config.json) — settings of the mutation test run: the project whose code is mutated, the test project that has to catch the mutations, the files taken in, and what is left out as unobservable (string literals, logging, `ConfigureAwait`). The run itself is `dotnet dotnet-stryker`, and its reports land in `StrykerOutput/`. **Edit:** another project or another set of files is put under the run.
 
 **Project files** — not part of the tree above.
 

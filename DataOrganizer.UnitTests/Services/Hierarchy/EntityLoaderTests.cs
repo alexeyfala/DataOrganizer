@@ -37,11 +37,17 @@ internal class EntityLoaderTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+			IMapper mapper = Substitute.For<IMapper>();
+
 			dbAccess
 				.GetAllFoldersAsync(Arg.Any<CancellationToken>())
 				.ThrowsAsync(new OperationCanceledException());
 
-			builder.RegisterInstance(CreateMapper());
+			mapper
+				.Config
+				.Returns(Substitute.For<TypeAdapterConfig>());
+
+			builder.RegisterInstance(mapper);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -69,11 +75,17 @@ internal class EntityLoaderTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+			IMapper mapper = Substitute.For<IMapper>();
+
 			dbAccess
 				.GetAllFoldersAsync()
 				.ThrowsAsync(new InvalidOperationException());
 
-			builder.RegisterInstance(CreateMapper());
+			mapper
+				.Config
+				.Returns(Substitute.For<TypeAdapterConfig>());
+
+			builder.RegisterInstance(mapper);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -201,22 +213,6 @@ internal class EntityLoaderTests
 		plainFile.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.None);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A mapper the constructor of the loader can configure.
-	/// </summary>
-	private static IMapper CreateMapper()
-	{
-		IMapper mapper = Substitute.For<IMapper>();
-
-		mapper
-			.Config
-			.Returns(Substitute.For<TypeAdapterConfig>());
-
-		return mapper;
 	}
 	#endregion
 }

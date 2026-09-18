@@ -14,9 +14,34 @@ internal class AppEnvironmentTests
 {
 	#region Data
 	/// <summary>
+	/// Clipboard history directory name.
+	/// </summary>
+	private const string ClipboardHistoryDirectoryName = "ClipboardHistory";
+
+	/// <summary>
+	/// Database directory name.
+	/// </summary>
+	private const string DatabaseDirectoryName = "Database";
+
+	/// <summary>
 	/// Default directory name.
 	/// </summary>
 	private const string DefaultDirectoryName = "Instance";
+
+	/// <summary>
+	/// Sandbox directory name.
+	/// </summary>
+	private const string SandboxDirectoryName = "Sandbox";
+
+	/// <summary>
+	/// Settings directory name.
+	/// </summary>
+	private const string SettingsDirectoryName = "Settings";
+
+	/// <summary>
+	/// Settings file name without extension.
+	/// </summary>
+	private const string SettingsFileName = "AppSettings";
 	#endregion
 
 	#region Methods
@@ -48,13 +73,17 @@ internal class AppEnvironmentTests
 			.Should()
 			.Be(Path.Combine(root, DefaultDirectoryName));
 
+		sut.ClipboardHistoryDirectoryPath
+			.Should()
+			.Be(Path.Combine(root, DefaultDirectoryName, ClipboardHistoryDirectoryName));
+
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, DefaultDirectoryName, "Database"));
+			.Be(Path.Combine(root, DefaultDirectoryName, DatabaseDirectoryName));
 
 		sut.SandboxDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, DefaultDirectoryName, "Sandbox"));
+			.Be(Path.Combine(root, DefaultDirectoryName, SandboxDirectoryName));
 	}
 
 	/// <summary>
@@ -87,7 +116,7 @@ internal class AppEnvironmentTests
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)", "Database"));
+			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)", DatabaseDirectoryName));
 	}
 
 	/// <summary>
@@ -169,12 +198,12 @@ internal class AppEnvironmentTests
 		AppEnvironment sut = mock.Create<AppEnvironment>();
 
 		// Act
-		string result = sut.GetSettingsFilePath("AppSettings");
+		string result = sut.GetSettingsFilePath(SettingsFileName);
 
 		// Assert
 		result
 			.Should()
-			.Be(Path.Combine(sut.AppDataDirectoryPath, "Settings", "AppSettings.json"));
+			.Be(Path.Combine(sut.AppDataDirectoryPath, SettingsDirectoryName, $"{SettingsFileName}.json"));
 	}
 	#endregion
 }

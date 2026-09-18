@@ -82,6 +82,23 @@ public sealed class EncryptionService : IEncryptionService
 		},
 		KeyFactory = DeriveSessionKey
 	};
+
+	/// <summary>
+	/// Cost the blobs of this instance are written with.
+	/// </summary>
+	private readonly Argon2Settings _cost;
+	#endregion
+
+	#region Constructors
+	public EncryptionService() : this(Argon2Settings.Current)
+	{
+	}
+
+	/// <summary>
+	/// Writes new blobs with the given cost instead of the current one: a seam for the tests,
+	/// which lower the cost to keep a derivation cheap.
+	/// </summary>
+	public EncryptionService(Argon2Settings cost) => _cost = cost;
 	#endregion
 
 	#region Methods
@@ -162,9 +179,7 @@ public sealed class EncryptionService : IEncryptionService
 		Span<byte> header = stackalloc byte[Argon2Settings.HeaderSize];
 
 		// The cost travels with the blob, so raising it later leaves earlier blobs readable.
-		Argon2Settings
-			.Current
-			.Write(header);
+		_cost.Write(header);
 
 		return EncryptCore(
 			dek.AsReadOnlySpan(),
@@ -229,7 +244,7 @@ public sealed class EncryptionService : IEncryptionService
 		ArgumentNullException.ThrowIfNull(wrapped);
 
 		// A cost that cannot be read is left alone: the wrapper still opens with the password.
-		if (ReadCost(wrapped) is not { } cost || cost == Argon2Settings.Current)
+		if (ReadCost(wrapped) is not { } cost || cost == _cost)
 		{
 			return null;
 		}

@@ -20,9 +20,24 @@ internal class SensitiveCopyBehaviorTests
 	public void Copy_Leaves_An_Ordinary_Control_Alone()
 	{
 		// Arrange
-		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			RandomString.Create(16),
-			isSensitive: false);
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = false,
+			Writer = writer
+		};
+
+		sut.Attach(input);
 
 		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
 
@@ -46,9 +61,24 @@ internal class SensitiveCopyBehaviorTests
 	public void Copy_Leaves_An_Unselected_Text_Alone()
 	{
 		// Arrange
-		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			RandomString.Create(16),
-			isSensitive: true);
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
 
 		input.ClearSelection();
 
@@ -111,7 +141,22 @@ internal class SensitiveCopyBehaviorTests
 		// Arrange
 		string text = RandomString.Create(16);
 
-		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(text, isSensitive: true);
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
 
 		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
 
@@ -135,7 +180,24 @@ internal class SensitiveCopyBehaviorTests
 	public void Cut_Removes_The_Written_Selection()
 	{
 		// Arrange
-		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup("abcdef", isSensitive: true);
+		const string text = "abcdef";
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
 
 		input.SelectionEnd = 3;
 
@@ -165,9 +227,24 @@ internal class SensitiveCopyBehaviorTests
 	public void Detaching_Stops_The_Interception()
 	{
 		// Arrange
-		(SensitiveCopyBehavior sut, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			RandomString.Create(16),
-			isSensitive: true);
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
 
 		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
 
@@ -184,35 +261,6 @@ internal class SensitiveCopyBehaviorTests
 		writer
 			.DidNotReceive()
 			.Write(Arg.Any<string>());
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Builds the behavior attached to a text box whose whole text is selected.
-	/// </summary>
-	private static (SensitiveCopyBehavior Sut, TextBox Input, ISensitiveClipboardWriter Writer) CreateSetup(
-		string text,
-		bool isSensitive)
-	{
-		TextBox input = new()
-		{
-			Text = text,
-			SelectionStart = 0,
-			SelectionEnd = text.Length
-		};
-
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
-
-		SensitiveCopyBehavior sut = new()
-		{
-			IsSensitive = isSensitive,
-			Writer = writer
-		};
-
-		sut.Attach(input);
-
-		return (sut, input, writer);
 	}
 	#endregion
 }

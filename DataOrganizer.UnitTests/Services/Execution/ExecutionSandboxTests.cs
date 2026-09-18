@@ -30,11 +30,30 @@ internal class ExecutionSandboxTests
 	public async Task EraseAsync_Erases_The_Folder()
 	{
 		// Arrange
-		IFileSystem fileSystem = CreateFileSystem();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		ExecutionSandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
+			appEnvironment
+				.SandboxDirectoryPath
+				.Returns(DirectoryPath);
+
+			fileSystem
+				.DirectoryExists(DirectoryPath)
+				.Returns(true);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
 
 		// Act
 		await sut.EraseAsync();
@@ -52,27 +71,44 @@ internal class ExecutionSandboxTests
 	public async Task EraseAsync_Repeats_The_Attempt_For_A_Locked_Folder()
 	{
 		// Arrange
-		IFileSystem fileSystem = CreateFileSystem();
-
 		int attempts = 0;
-
-		fileSystem
-			.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
-			.Do(_ =>
-			{
-				attempts++;
-
-				if (attempts == 1)
-				{
-					throw new IOException();
-				}
-			});
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		ExecutionSandbox sut = CreateSut(mock, fileSystem, time);
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			appEnvironment
+				.SandboxDirectoryPath
+				.Returns(DirectoryPath);
+
+			fileSystem
+				.DirectoryExists(DirectoryPath)
+				.Returns(true);
+
+			fileSystem
+				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
+				.Do(_ =>
+				{
+					attempts++;
+
+					if (attempts == 1)
+					{
+						throw new IOException();
+					}
+				});
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
 
 		// Act
 		Task task = sut.EraseAsync();
@@ -96,9 +132,24 @@ internal class ExecutionSandboxTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		ExecutionSandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
+			appEnvironment
+				.SandboxDirectoryPath
+				.Returns(DirectoryPath);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
 
 		// Act
 		await sut.EraseAsync();
@@ -118,9 +169,22 @@ internal class ExecutionSandboxTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		ExecutionSandbox sut = CreateSut(mock, Substitute.For<IFileSystem>(), new FakeTimeProvider());
+			appEnvironment
+				.SandboxDirectoryPath
+				.Returns(DirectoryPath);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
 
 		// Act
 		string directoryPath = sut.GetFileDirectoryPath(fileId);
@@ -129,42 +193,6 @@ internal class ExecutionSandboxTests
 		directoryPath
 			.Should()
 			.Be(Path.Combine(DirectoryPath, fileId.ToString()));
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a file system in which the sandbox exists.
-	/// </summary>
-	private static IFileSystem CreateFileSystem()
-	{
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		fileSystem
-			.DirectoryExists(DirectoryPath)
-			.Returns(true);
-
-		return fileSystem;
-	}
-
-	/// <summary>
-	/// Builds the service over the given file system and clock.
-	/// </summary>
-	private static ExecutionSandbox CreateSut(
-		AutoMock mock,
-		IFileSystem fileSystem,
-		TimeProvider timeProvider)
-	{
-		IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-		appEnvironment
-			.SandboxDirectoryPath
-			.Returns(DirectoryPath);
-
-		return mock.Create<ExecutionSandbox>(
-			TypedParameter.From(appEnvironment),
-			TypedParameter.From(fileSystem),
-			TypedParameter.From(timeProvider));
 	}
 	#endregion
 }

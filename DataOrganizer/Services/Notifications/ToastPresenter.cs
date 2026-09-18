@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Platform;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
@@ -15,11 +16,6 @@ namespace DataOrganizer.Services.Notifications;
 public sealed class ToastPresenter : IToastPresenter
 {
 	#region Data
-	/// <summary>
-	/// Distance the toast keeps from the edges of the screen.
-	/// </summary>
-	private const int Margin = 10;
-
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -118,15 +114,9 @@ public sealed class ToastPresenter : IToastPresenter
 	/// </summary>
 	private static void Place(ToastWindow window, Screen screen)
 	{
-		PixelSize screenSize = screen
-			.WorkingArea
-			.Size;
-
-		PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
-
-		window.Position = new PixelPoint(
-			screenSize.Width - (windowSize.Width + Margin),
-			screenSize.Height - (windowSize.Height + Margin));
+		window.Position = WindowPlacementHelper.GetLowerRightPosition(
+			screen.WorkingArea,
+			PixelSize.FromSize(window.ClientSize, screen.Scaling));
 	}
 	#endregion
 }

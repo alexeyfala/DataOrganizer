@@ -34,7 +34,7 @@ internal class PinnedBufferTests
 	}
 
 	/// <summary>
-	/// The copying constructor takes a snapshot of the source, so wiping the source leaves the buffer intact.
+	/// <see cref="PinnedBuffer" /> copying constructor: takes a snapshot of the source, so wiping the source leaves the buffer intact.
 	/// </summary>
 	[Test]
 	public void Constructor_Copies_The_Source()

@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -12,7 +13,7 @@ internal class ClipboardLogMapperTests
 {
 	#region Methods
 	/// <summary>
-	/// Test that the persisted history survives a JSON serialization round-trip with polymorphic types.
+	/// <see cref="ClipboardLogMapper.ToPersisted" />, <see cref="ClipboardLogMapper.ToDomain" />: the persisted history survives a JSON round-trip with polymorphic types.
 	/// </summary>
 	[Test]
 	public void Json_RoundTrip_Preserves_Polymorphic_Entries()
@@ -20,13 +21,9 @@ internal class ClipboardLogMapperTests
 		// Arrange
 		List<ClipboardLogEntryBase> entries =
 		[
-			new ClipboardTextEntry { Text = "plain", Html = null, Rtf = null, Hash = [1] },
-			new ClipboardImageEntry { OriginalPng = [2, 2], Hash = [2] },
-			new ClipboardFilesEntry
-			{
-				FileSystemEntries = [new("C:\\a", IsFolder: false)],
-				Hash = [3]
-			}
+			ClipboardEntryFactory.CreateTextEntry("plain"),
+			ClipboardEntryFactory.CreateImageEntry([2, 2], [2]),
+			ClipboardEntryFactory.CreateFilesEntry([new ClipboardFileSystemEntry(@"C:\a", IsFolder: false)], [3])
 		];
 
 		// Act

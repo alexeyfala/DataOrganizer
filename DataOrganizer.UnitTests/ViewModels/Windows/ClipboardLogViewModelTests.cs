@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
@@ -31,7 +32,7 @@ internal class ClipboardLogViewModelTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("apple", [1]), ClipboardEntryFactory.CreateUrlEntry("https://apple.com", [2]), ClipboardEntryFactory.CreateImageEntry(hash: [3])]);
 
 			builder.RegisterInstance(clipboardLog);
 		});
@@ -66,7 +67,7 @@ internal class ClipboardLogViewModelTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("apple", [1]), ClipboardEntryFactory.CreateUrlEntry("https://apple.com", [2]), ClipboardEntryFactory.CreateImageEntry(hash: [3])]);
 
 			builder.RegisterInstance(clipboardLog);
 		});
@@ -98,15 +99,15 @@ internal class ClipboardLogViewModelTests
 		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildSearchPredicate(query);
 
 		// Act, Assert
-		predicate(TextEntry("anything", [1]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("anything", [1]))
 			.Should()
 			.BeTrue();
 
-		predicate(PinnedTextEntry("pinned", [2]))
+		predicate(ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [2]))
 			.Should()
 			.BeTrue();
 
-		predicate(ImageEntry([3]))
+		predicate(ClipboardEntryFactory.CreateImageEntry(hash: [3]))
 			.Should()
 			.BeTrue();
 	}
@@ -122,26 +123,26 @@ internal class ClipboardLogViewModelTests
 		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildSearchPredicate("App");
 
 		// Act, Assert
-		predicate(TextEntry("Application", [1]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("Application", [1]))
 			.Should()
 			.BeTrue();
 
 		// Case-insensitive.
-		predicate(TextEntry("an apple", [2]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("an apple", [2]))
 			.Should()
 			.BeTrue();
 
-		predicate(TextEntry("banana", [3]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("banana", [3]))
 			.Should()
 			.BeFalse();
 
 		// The filter applies to pinned entries too.
-		predicate(PinnedTextEntry("banana", [4]))
+		predicate(ClipboardEntryFactory.CreatePinnedTextEntry("banana", [4]))
 			.Should()
 			.BeFalse();
 
 		// Images have no searchable text, so they are hidden while searching.
-		predicate(ImageEntry([5]))
+		predicate(ClipboardEntryFactory.CreateImageEntry(hash: [5]))
 			.Should()
 			.BeFalse();
 	}
@@ -156,19 +157,19 @@ internal class ClipboardLogViewModelTests
 		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.All);
 
 		// Act, Assert
-		predicate(TextEntry("text", [1]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("text", [1]))
 			.Should()
 			.BeTrue();
 
-		predicate(UrlEntry("https://example.com", [2]))
+		predicate(ClipboardEntryFactory.CreateUrlEntry("https://example.com", [2]))
 			.Should()
 			.BeTrue();
 
-		predicate(ImageEntry([3]))
+		predicate(ClipboardEntryFactory.CreateImageEntry(hash: [3]))
 			.Should()
 			.BeTrue();
 
-		predicate(FilesEntry([4]))
+		predicate(ClipboardEntryFactory.CreateFilesEntry(hash: [4]))
 			.Should()
 			.BeTrue();
 	}
@@ -180,11 +181,11 @@ internal class ClipboardLogViewModelTests
 	public void BuildTypePredicate_Matches_Only_Its_Own_Type()
 	{
 		// Arrange
-		ClipboardLogEntryBase url = UrlEntry("https://example.com", [1]);
+		ClipboardLogEntryBase url = ClipboardEntryFactory.CreateUrlEntry("https://example.com", [1]);
 
-		ClipboardLogEntryBase image = ImageEntry([2]);
+		ClipboardLogEntryBase image = ClipboardEntryFactory.CreateImageEntry(hash: [2]);
 
-		ClipboardLogEntryBase files = FilesEntry([3]);
+		ClipboardLogEntryBase files = ClipboardEntryFactory.CreateFilesEntry(hash: [3]);
 
 		// Act, Assert
 		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(url)
@@ -223,15 +224,15 @@ internal class ClipboardLogViewModelTests
 		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Text);
 
 		// Act, Assert
-		predicate(TextEntry("text", [1]))
+		predicate(ClipboardEntryFactory.CreateTextEntry("text", [1]))
 			.Should()
 			.BeTrue();
 
-		predicate(UrlEntry("https://example.com", [2]))
+		predicate(ClipboardEntryFactory.CreateUrlEntry("https://example.com", [2]))
 			.Should()
 			.BeFalse();
 
-		predicate(ImageEntry([3]))
+		predicate(ClipboardEntryFactory.CreateImageEntry(hash: [3]))
 			.Should()
 			.BeFalse();
 	}
@@ -249,7 +250,7 @@ internal class ClipboardLogViewModelTests
 
 			clipboardLog
 				.Entries
-				.Returns([PinnedTextEntry("p", [1])]);
+				.Returns([ClipboardEntryFactory.CreatePinnedTextEntry("p", [1])]);
 
 			builder.RegisterInstance(clipboardLog);
 		});
@@ -276,7 +277,7 @@ internal class ClipboardLogViewModelTests
 
 			clipboardLog
 				.Entries
-				.Returns([PinnedTextEntry("p", [1]), TextEntry("u", [2])]);
+				.Returns([ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]), ClipboardEntryFactory.CreateTextEntry("u", [2])]);
 
 			builder.RegisterInstance(clipboardLog);
 		});
@@ -391,7 +392,7 @@ internal class ClipboardLogViewModelTests
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
-		ClipboardTextEntry entry = TextEntry("a", [1]);
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Act
 		sut.TogglePinCommand.Execute(entry);
@@ -417,7 +418,7 @@ internal class ClipboardLogViewModelTests
 
 			clipboardLog
 				.Entries
-				.Returns([TextEntry("apple", [1]), TextEntry("banana", [2]), ImageEntry([3])]);
+				.Returns([ClipboardEntryFactory.CreateTextEntry("apple", [1]), ClipboardEntryFactory.CreateTextEntry("banana", [2]), ClipboardEntryFactory.CreateImageEntry(hash: [3])]);
 
 			builder.RegisterInstance(clipboardLog);
 		});
@@ -441,9 +442,9 @@ internal class ClipboardLogViewModelTests
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
 
-		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [1]);
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [1]);
 
-		ClipboardTextEntry older = TextEntry("older", [2]);
+		ClipboardTextEntry older = ClipboardEntryFactory.CreateTextEntry("older", [2]);
 
 		ObservableCollection<ClipboardLogEntryBase> entries = [pinned, older];
 
@@ -461,7 +462,7 @@ internal class ClipboardLogViewModelTests
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act — mimic the service: insert the new entry just below the pinned block.
-		ClipboardTextEntry fresh = TextEntry("fresh", [3]);
+		ClipboardTextEntry fresh = ClipboardEntryFactory.CreateTextEntry("fresh", [3]);
 
 		entries.Insert(1, fresh);
 
@@ -470,60 +471,5 @@ internal class ClipboardLogViewModelTests
 			.Should()
 			.ContainInOrder(pinned, fresh, older);
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// A minimal files entry with a single file and the given hash.
-	/// </summary>
-	private static ClipboardFilesEntry FilesEntry(byte[] hash) => new()
-	{
-		FileSystemEntries = [new ClipboardFileSystemEntry(@"C:\file.txt", IsFolder: false)],
-		Hash = hash
-	};
-
-	/// <summary>
-	/// A minimal image entry (no searchable text) with the given hash.
-	/// </summary>
-	private static ClipboardImageEntry ImageEntry(byte[] hash) => new()
-	{
-		OriginalPng = [],
-		Hash = hash
-	};
-
-	/// <summary>
-	/// A minimal pinned text entry with the given hash.
-	/// </summary>
-	private static ClipboardTextEntry PinnedTextEntry(string text, byte[] hash)
-	{
-		ClipboardTextEntry entry = TextEntry(text, hash);
-
-		entry.IsPinned = true;
-
-		return entry;
-	}
-
-	/// <summary>
-	/// A minimal text entry with the given hash.
-	/// </summary>
-	private static ClipboardTextEntry TextEntry(string text, byte[] hash) => new()
-	{
-		Text = text,
-		Html = null,
-		Rtf = null,
-		Hash = hash
-	};
-
-	/// <summary>
-	/// A minimal URL entry with the given hash.
-	/// </summary>
-	private static ClipboardUrlEntry UrlEntry(string url, byte[] hash) => new()
-	{
-		Text = url,
-		Html = null,
-		Rtf = null,
-		Url = url,
-		Hash = hash
-	};
 	#endregion
 }

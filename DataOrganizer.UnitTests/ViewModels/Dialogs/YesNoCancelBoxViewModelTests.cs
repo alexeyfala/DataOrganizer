@@ -12,10 +12,17 @@ internal class YesNoCancelBoxViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: each variant shows the expected buttons and cancel flags.
+	/// <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: every variant shows exactly the buttons it needs, and marks the one the Escape key activates.
 	/// </summary>
-	[Test]
-	public async Task GetResultAsync_Controls_Buttons([Values] YesNoCancelButtons variant)
+	[TestCase(YesNoCancelButtons.YesNo, true, true, false, false)]
+	[TestCase(YesNoCancelButtons.YesCancel, false, false, true, true)]
+	[TestCase(YesNoCancelButtons.YesNoCancel, true, false, true, true)]
+	public async Task GetResultAsync_Controls_Buttons(
+		YesNoCancelButtons variant,
+		bool isNoButtonVisible,
+		bool noButtonHandlesEscape,
+		bool isCancelButtonVisible,
+		bool cancelButtonHandlesEscape)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -28,45 +35,21 @@ internal class YesNoCancelBoxViewModelTests
 		await sut.GetResultAsync(variant);
 
 		// Assert
-		switch (variant)
-		{
-			case YesNoCancelButtons.YesNo:
-				sut.IsNoButtonVisible
-					.Should()
-					.BeTrue();
+		sut.IsNoButtonVisible
+			.Should()
+			.Be(isNoButtonVisible);
 
-				sut.NoButtonHandlesEscape
-					.Should()
-					.BeTrue();
-				break;
+		sut.NoButtonHandlesEscape
+			.Should()
+			.Be(noButtonHandlesEscape);
 
-			case YesNoCancelButtons.YesCancel:
-				sut.IsCancelButtonVisible
-					.Should()
-					.BeTrue();
+		sut.IsCancelButtonVisible
+			.Should()
+			.Be(isCancelButtonVisible);
 
-				sut.CancelButtonHandlesEscape
-					.Should()
-					.BeTrue();
-				break;
-
-			case YesNoCancelButtons.YesNoCancel:
-				sut.IsNoButtonVisible
-					.Should()
-					.BeTrue();
-
-				sut.IsCancelButtonVisible
-					.Should()
-					.BeTrue();
-
-				sut.CancelButtonHandlesEscape
-					.Should()
-					.BeTrue();
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
+		sut.CancelButtonHandlesEscape
+			.Should()
+			.Be(cancelButtonHandlesEscape);
 	}
 
 	/// <summary>

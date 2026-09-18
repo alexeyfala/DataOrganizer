@@ -4,18 +4,19 @@ using System;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading;
+using ObservableExtensions = DataOrganizer.Extensions.ObservableExtensions;
 
 namespace DataOrganizer.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DataOrganizer.Extensions.ObservableExtensions)}"" type")]
+[TestFixture(Description = $@"Tests of ""{nameof(ObservableExtensions)}"" type")]
 internal class ObservableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="DataOrganizer.Extensions.ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context and context is not ignored.
+	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context.
 	/// </summary>
 	[Test]
-	public void SetDelay_Returns_Source_When_No_Sync_Context_And_Not_Ignoring_Context()
+	public void SetDelay_Returns_Source_When_No_Sync_Context()
 	{
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
@@ -23,30 +24,12 @@ internal class ObservableExtensionsTests
 		Subject<EventPattern<EventArgs>> subject = new();
 
 		// Act
-		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100), ignoreContext: false);
+		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100));
 
 		// Assert
 		result
 			.Should()
 			.BeSameAs(subject);
-	}
-
-	/// <summary>
-	/// <see cref="DataOrganizer.Extensions.ObservableExtensions.SetDelay{TEventArgs}" />: returns a new throttled sequence when context is ignored.
-	/// </summary>
-	[Test]
-	public void SetDelay_Returns_Throttled_Sequence_When_Ignoring_Context()
-	{
-		// Arrange
-		Subject<EventPattern<EventArgs>> subject = new();
-
-		// Act
-		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100), ignoreContext: true);
-
-		// Assert
-		result
-			.Should()
-			.NotBeSameAs(subject);
 	}
 	#endregion
 }

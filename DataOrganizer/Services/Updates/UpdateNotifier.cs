@@ -1,7 +1,9 @@
 using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Updates;
+using Shared.Helpers;
 using Shared.Properties;
+using System;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +41,10 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			.CheckAsync(token)
 			.ConfigureAwait(true);
 
-		if (!result.IsUpdateAvailable || result.ReleaseUrl is not { } url)
+		if (!result.IsUpdateAvailable
+			|| result.ReleaseUrl is not { } url
+			|| !Uri.TryCreate(url, UriKind.Absolute, out Uri? releaseUri)
+			|| !TransportSecurity.IsSecureOrLoopback(releaseUri))
 		{
 			return;
 		}

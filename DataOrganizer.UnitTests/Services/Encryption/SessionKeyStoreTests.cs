@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Security.Cryptography;
 using TestSupport.Common;
@@ -27,42 +28,11 @@ internal class SessionKeyStoreTests
 
 	#region Methods
 	/// <summary>
-	/// Contents are bound to the field they are stored in: a note cannot be read back as the contents of the same object.
+	/// <see cref="SessionKeyStore.Decrypt" />: contents are deliberately not bound to the object owning them —
+	/// an import gives every object a new identifier, and binding would leave imported data impossible to open.
 	/// </summary>
 	[Test]
-	public void Contents_Are_Bound_To_Their_Purpose()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
-
-		SessionKeyStore sut = mock.Create<SessionKeyStore>();
-
-		Guid keeperId = Guid.NewGuid();
-
-		Guid fileId = Guid.NewGuid();
-
-		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize));
-
-		// Act
-		byte[]? encrypted = sut.Encrypt(
-			keeperId,
-			ContentIdentity.ForNote(fileId),
-			RandomValues.CreateBytes(64));
-
-		// Assert
-		Action act = () => sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!);
-
-		act
-			.Should()
-			.ThrowExactly<AuthenticationTagMismatchException>();
-	}
-
-	/// <summary>
-	/// Contents are deliberately not bound to the object owning them: an import gives every object
-	/// a new identifier, and binding would leave imported data impossible to open.
-	/// </summary>
-	[Test]
-	public void Contents_Are_Not_Bound_To_Their_Owner()
+	public void Decrypt_Accepts_Another_Owner()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
@@ -119,6 +89,69 @@ internal class SessionKeyStoreTests
 		act
 			.Should()
 			.ThrowExactly<InvalidOperationException>();
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.Decrypt" />: a key is bound to its keeper, so contents of one keeper cannot
+	/// be read through another one.
+	/// </summary>
+	[Test]
+	public void Decrypt_Refuses_Another_Keeper()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid firstKeeperId = Guid.NewGuid();
+
+		Guid secondKeeperId = Guid.NewGuid();
+
+		sut.Unlock(firstKeeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		sut.Unlock(secondKeeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(firstKeeperId, Identity, RandomValues.CreateBytes(64));
+
+		// Assert
+		Action act = () => sut.Decrypt(secondKeeperId, Identity, encrypted!);
+
+		act
+			.Should()
+			.ThrowExactly<AuthenticationTagMismatchException>();
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.Decrypt" />: contents are bound to the field they are stored in, so a note
+	/// cannot be read back as the contents of the same object.
+	/// </summary>
+	[Test]
+	public void Decrypt_Refuses_Another_Purpose()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		Guid fileId = Guid.NewGuid();
+
+		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(
+			keeperId,
+			ContentIdentity.ForNote(fileId),
+			RandomValues.CreateBytes(64));
+
+		// Assert
+		Action act = () => sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!);
+
+		act
+			.Should()
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
@@ -251,36 +284,6 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
-	/// A key is bound to its keeper: contents of one keeper cannot be read through another one.
-	/// </summary>
-	[Test]
-	public void Keepers_Are_Isolated()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
-
-		SessionKeyStore sut = mock.Create<SessionKeyStore>();
-
-		Guid firstKeeperId = Guid.NewGuid();
-
-		Guid secondKeeperId = Guid.NewGuid();
-
-		sut.Unlock(firstKeeperId, SecretFactory.CreateRandomKey(DekSize));
-
-		sut.Unlock(secondKeeperId, SecretFactory.CreateRandomKey(DekSize));
-
-		// Act
-		byte[]? encrypted = sut.Encrypt(firstKeeperId, Identity, RandomValues.CreateBytes(64));
-
-		// Assert
-		Action act = () => sut.Decrypt(secondKeeperId, Identity, encrypted!);
-
-		act
-			.Should()
-			.ThrowExactly<AuthenticationTagMismatchException>();
-	}
-
-	/// <summary>
 	/// <see cref="SessionKeyStore.Lock" />: locking one keeper leaves the keys of the others usable.
 	/// </summary>
 	[Test]
@@ -342,6 +345,42 @@ internal class SessionKeyStoreTests
 		sut.IsUnlocked(secondKeeperId)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.Unlock" />: a key that cannot be wrapped leaves the keepers
+	/// already unlocked usable.
+	/// </summary>
+	[Test]
+	public void Unlock_Keeps_Other_Keepers_Usable_When_The_Key_Cannot_Be_Wrapped()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid unlockedKeeperId = Guid.NewGuid();
+
+		Guid refusedKeeperId = Guid.NewGuid();
+
+		byte[] contents = RandomValues.CreateBytes(64);
+
+		sut.Unlock(unlockedKeeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		byte[]? encrypted = sut.Encrypt(unlockedKeeperId, Identity, contents);
+
+		// Act
+		// A key of another size is refused by the format, and that refusal is what the store has to survive.
+		Action act = () => sut.Unlock(refusedKeeperId, SecretFactory.CreateRandomKey(DekSize / 2));
+
+		// Assert
+		act
+			.Should()
+			.Throw<CryptographicException>();
+
+		sut.Decrypt(unlockedKeeperId, Identity, encrypted!)
+			.Should()
+			.Equal(contents);
 	}
 
 	/// <summary>

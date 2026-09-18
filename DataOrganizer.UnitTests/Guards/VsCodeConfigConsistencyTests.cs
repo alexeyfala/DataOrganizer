@@ -6,6 +6,7 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
+[Guard]
 [TestFixture(Description = "Guards that .vscode configs stay in sync with the app name in Directory.Build.props")]
 internal class VsCodeConfigConsistencyTests
 {
@@ -83,27 +84,11 @@ internal class VsCodeConfigConsistencyTests
 
 	#region Helpers
 	/// <summary>
-	/// Walks up from the test output directory to the folder containing Directory.Build.props.
-	/// </summary>
-	private static string LocateRepositoryRoot()
-	{
-		DirectoryInfo? directory = new(TestContext.CurrentContext.TestDirectory);
-
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Directory.Build.props")))
-		{
-			directory = directory.Parent;
-		}
-
-		return directory?.FullName
-			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
-	}
-
-	/// <summary>
 	/// Reads AppName from Directory.Build.props at the repository root.
 	/// </summary>
 	private static string ReadAppNameFromDirectoryBuildProps()
 	{
-		string path = Path.Combine(LocateRepositoryRoot(), "Directory.Build.props");
+		string path = Path.Combine(RepositoryFiles.LocateRoot(), "Directory.Build.props");
 
 		// Directory.Build.props declares <Project> without a namespace, so match by local name.
 		XElement element = XDocument.Load(path)
@@ -138,9 +123,7 @@ internal class VsCodeConfigConsistencyTests
 	/// </summary>
 	private static string ReadVsCodeFileText(string fileName)
 	{
-		string path = Path.Combine(LocateRepositoryRoot(), ".vscode", fileName);
-
-		return File.ReadAllText(path);
+		return RepositoryFiles.ReadText(Path.Combine(".vscode", fileName));
 	}
 	#endregion
 }

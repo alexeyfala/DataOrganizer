@@ -11,7 +11,6 @@ using NSubstitute.ReceivedExtensions;
 using Serilog;
 using Shared.Interfaces;
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +21,13 @@ namespace DataOrganizer.UnitTests.Services.Execution;
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionEngine)}"" type")]
 internal class ExecutionEngineTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the application a file extension is associated with.
+	/// </summary>
+	private const string AssociatedAppPath = @"C:\Apps\test.exe";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: kills the process, clears the read-only flag, erases the file and deletes its directory.
@@ -36,11 +42,11 @@ internal class ExecutionEngineTests
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -65,7 +71,7 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+				.Returns(AssociatedAppPath);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -82,7 +88,8 @@ internal class ExecutionEngineTests
 		{
 			Contents = [],
 			File = dto,
-			IsReadOnly = default
+			// A read-only file is the case where clearing the flag is what lets the erase happen at all.
+			IsReadOnly = true
 		};
 
 		await sut.ExecuteAsync(parameters);
@@ -92,19 +99,19 @@ internal class ExecutionEngineTests
 
 		// Assert
 		processManager
-			.Received()
+			.Received(1)
 			.KillProcess(Arg.Any<int>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.DeleteDirectory(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
@@ -119,9 +126,12 @@ internal class ExecutionEngineTests
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
 
-		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
+			builder.RegisterInstance(processManager);
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -147,29 +157,57 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
-		fileSystem
-			.FileExists(Arg.Any<string>())
-			.Returns(true);
-
-		fileSystem
-			.IsFileLocked(Arg.Any<string>())
-			.Returns(true);
-
-		fileSystem
-			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
-			.Returns(true);
-
-		processManager
-			.ProcessExists(Arg.Any<int>())
-			.Returns(true);
-
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.IsFileLocked(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			processManager
+				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[1] = RandomValues.CreateIntFrom10To100();
+
+					return true;
+				});
+
+			processManager
+				.ProcessExists(Arg.Any<int>())
+				.Returns(true);
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(fileAssociation);
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -191,7 +229,7 @@ internal class ExecutionEngineTests
 			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
@@ -206,19 +244,47 @@ internal class ExecutionEngineTests
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
-		fileSystem
-			.FileExists(Arg.Any<string>())
-			.Returns(true);
-
-		processManager
-			.ProcessExists(Arg.Any<int>())
-			.Returns(true);
-
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			processManager
+				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[1] = RandomValues.CreateIntFrom10To100();
+
+					return true;
+				});
+
+			processManager
+				.ProcessExists(Arg.Any<int>())
+				.Returns(true);
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(fileAssociation);
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -236,11 +302,11 @@ internal class ExecutionEngineTests
 
 		// Assert
 		processManager
-			.Received()
+			.Received(1)
 			.KillProcess(Arg.Any<int>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
 		sut.IsExecuting(dto.Id)
@@ -249,7 +315,7 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file, starts the process and tracks changes only for editable (non-read-only) files.
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file into the sandbox, marks it read-only when asked and starts the process.
 	/// </summary>
 	[Test]
 	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)
@@ -259,15 +325,13 @@ internal class ExecutionEngineTests
 
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
-
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -284,15 +348,13 @@ internal class ExecutionEngineTests
 
 			fileAssociation
 				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+				.Returns(AssociatedAppPath);
 
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(changeTracker);
 
 			builder.RegisterInstance(fileAssociation);
 		});
@@ -319,24 +381,20 @@ internal class ExecutionEngineTests
 			.BeTrue();
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.CreateDirectory(Arg.Any<string>());
 
 		await fileSystem
-			.Received()
+			.Received(1)
 			.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>());
 
 		fileSystem
-			.Received()
+			.Received(1)
 			.SetFileReadOnly(Arg.Any<string>(), isReadOnly);
 
 		processManager
-			.Received()
+			.Received(1)
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
-
-		await changeTracker
-			.Received(isReadOnly ? 0 : 1)
-			.TrackChangesAsync(Arg.Any<TrackChangesParameters>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -347,25 +405,51 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Overwrites_The_Contents_It_Was_Given([Values] bool isReadOnly)
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
-		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
-
 		TrackChangesParameters? tracked = null;
 
-		changeTracker
-			.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-		using AutoMock mock = CreateConfiguredMock(
-			fileSystem,
-			processManager,
-			fileAssociation,
-			changeTracker);
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			changeTracker
+				.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
+				.Returns(Task.CompletedTask);
+
+			processManager
+				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[1] = RandomValues.CreateIntFrom10To100();
+
+					return true;
+				});
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(fileAssociation);
+
+			builder.RegisterInstance(changeTracker);
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -386,9 +470,7 @@ internal class ExecutionEngineTests
 		// Assert
 		contents
 			.Should()
-			.AllSatisfy(x => x
-				.Should()
-				.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 
 		if (isReadOnly)
 		{
@@ -416,13 +498,9 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Returns_False_After_Dispose()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
-		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(processManager));
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -455,15 +533,43 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Returns_False_When_Already_Executing()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			processManager
+				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[1] = RandomValues.CreateIntFrom10To100();
+
+					return true;
+				});
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(fileAssociation);
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -487,54 +593,6 @@ internal class ExecutionEngineTests
 		processManager
 			.Received(1)
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Builds a loose <see cref="AutoMock" /> with the sandbox environment, process launch and
-	/// file-association stubs wired for a successful execution.
-	/// </summary>
-	private static AutoMock CreateConfiguredMock(
-		IFileSystem fileSystem,
-		IProcessManager processManager,
-		IFileAssociationService fileAssociation,
-		IFileChangeTracker? changeTracker = null)
-	{
-		return AutoMock.GetLoose(builder =>
-		{
-			if (changeTracker is not null)
-			{
-				builder.RegisterInstance(changeTracker);
-			}
-
-			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
-
-			sandbox
-				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
-
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
-
-			builder.RegisterInstance(sandbox);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
-		});
 	}
 	#endregion
 }

@@ -11,6 +11,7 @@ internal static class LogEventLevelExtensions
 	/// </summary>
 	public static IImmutableSolidColorBrush ToBrush(this LogEventLevel level) => level switch
 	{
+		LogEventLevel.Verbose => Brushes.Gray,
 		LogEventLevel.Debug => Brushes.CadetBlue,
 		LogEventLevel.Information => Brushes.LimeGreen,
 		LogEventLevel.Warning => Brushes.Orange,

@@ -25,11 +25,26 @@ internal class AutoLockServiceTests
 	public void Arm_Restarts_With_The_Current_Delay()
 	{
 		// Arrange
-		AppSettings settings = CreateSettings(1);
+		AppSettings settings = SettingsFactory.CreateSettings(autoLockMinutes: 1);
 
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, settings, time, new WeakReferenceMessenger()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -55,11 +70,24 @@ internal class AutoLockServiceTests
 	public void Arm_Starts_The_Countdown()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(
-			builder,
-			CreateSettings(15),
-			new FakeTimeProvider(),
-			new WeakReferenceMessenger()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 15));
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder.RegisterInstance(settingsStore);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -83,11 +111,24 @@ internal class AutoLockServiceTests
 	public void Arm_Without_A_Delay_Does_Not_Start_The_Countdown()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(
-			builder,
-			CreateSettings(0),
-			new FakeTimeProvider(),
-			new WeakReferenceMessenger()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 0));
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder.RegisterInstance(settingsStore);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -115,7 +156,20 @@ internal class AutoLockServiceTests
 
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, CreateSettings(1), time, messenger));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterInstance(messenger);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -152,7 +206,22 @@ internal class AutoLockServiceTests
 		// Arrange
 		FakeTimeProvider time = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, CreateSettings(1), time, new WeakReferenceMessenger()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -184,7 +253,20 @@ internal class AutoLockServiceTests
 
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, CreateSettings(1), time, messenger));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterInstance(messenger);
+		});
 
 		AutoLockService sut = mock.Create<AutoLockService>();
 
@@ -229,42 +311,6 @@ internal class AutoLockServiceTests
 			static (recipient, message) => ((List<SessionAutoLockedMessage>)recipient).Add(message));
 
 		return received;
-	}
-
-	/// <summary>
-	/// Settings carrying the auto-lock delay of a test.
-	/// </summary>
-	private static AppSettings CreateSettings(int autoLockMinutes)
-	{
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.AutoLockMinutes = autoLockMinutes;
-
-		return settings;
-	}
-
-	/// <summary>
-	/// Registers the dependencies the service is built from.
-	/// </summary>
-	private static void Register(
-		ContainerBuilder builder,
-		AppSettings settings,
-		TimeProvider timeProvider,
-		IMessenger messenger)
-	{
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-		settingsStore
-			.Settings
-			.Returns(settings);
-
-		builder.RegisterInstance(settingsStore);
-
-		builder
-			.RegisterInstance(timeProvider)
-			.As<TimeProvider>();
-
-		builder.RegisterInstance(messenger);
 	}
 	#endregion
 }

@@ -6,7 +6,6 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Fakes;
@@ -94,67 +93,9 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is RecordsGroup);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the text entered into an encrypted dataset is declared sensitive to the dialog.
-	/// </summary>
-	[Test]
-	public async Task AddKeyValue_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
-
-		// Act
-		await sut
-			.AddKeyValueCommand
-			.ExecuteAsync(null);
-
-		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x.IsSensitive == isEncrypted),
-			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the value input field is masked only when the dataset is encrypted.
-	/// </summary>
-	[Test]
-	public async Task AddKeyValue_Masks_Value_Input_When_Encrypted([Values] bool isEncrypted)
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
-
-		// Act
-		await sut
-			.AddKeyValueCommand
-			.ExecuteAsync(null);
-
-		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
-			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -217,7 +158,7 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is KeyValueRecord);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -268,10 +209,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.AddValueCommand" />: the value input dialog masks the input only when the dataset is encrypted.
+	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the text entered into an encrypted dataset is declared sensitive to the dialog.
 	/// </summary>
 	[Test]
-	public async Task AddValue_Masks_Input_When_Encrypted([Values] bool isEncrypted)
+	public async Task AddKeyValueCommand_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -287,12 +228,41 @@ internal class DatasetEditorViewModelTests
 
 		// Act
 		await sut
-			.AddValueCommand
+			.AddKeyValueCommand
 			.ExecuteAsync(null);
 
 		// Assert
 		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
+			Arg.Is<KeyValueInputParameters>(x => x.IsSensitive == isEncrypted),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the value input field is masked only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValueCommand_Masks_Value_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		// Act
+		await sut
+			.AddKeyValueCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -354,7 +324,7 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is ValueRecord);
 		}
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -402,6 +372,35 @@ internal class DatasetEditorViewModelTests
 			.IsHidden
 			.Should()
 			.Be(isEncrypted);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddValueCommand" />: the value input dialog masks the input only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddValueCommand_Masks_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		// Act
+		await sut
+			.AddValueCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -454,15 +453,13 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer is handed
-	/// to the reporter and the editor is closed for changes.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer closes
+	/// the editor for changes, and the loading still ends.
 	/// </summary>
 	[Test]
-	public async Task ContainerLoaded_Hands_A_Failed_Read_To_The_Reporter()
+	public async Task ContainerLoaded_Closes_The_Editor_When_The_Read_Fails()
 	{
 		// Arrange
-		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -472,8 +469,6 @@ internal class DatasetEditorViewModelTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbFailureReporter);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -489,10 +484,6 @@ internal class DatasetEditorViewModelTests
 		sut.IsInitialized
 			.Should()
 			.BeTrue();
-
-		dbFailureReporter
-			.Received(1)
-			.Report(Arg.Any<InvalidOperationException>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -542,7 +533,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.CopyKeyValueToClipboardCommand" />: encrypted copies are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext copies use <see cref="IClipboardAccessor.SetTextAsync" />.
 	/// </summary>
 	[Test]
-	public async Task CopyKeyValueToClipboard_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
+	public async Task CopyKeyValueToClipboardCommand_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
@@ -630,21 +621,20 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.NotContain(toBeDeleted);
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: a save the database turned down is handed to the reporter.
+	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: a save the database turned down neither
+	/// escapes nor puts the record back.
 	/// </summary>
 	[Test]
-	public async Task DeleteRecordAsync_Hands_A_Failed_Save_To_The_Reporter()
+	public async Task DeleteRecordAsync_Keeps_The_Record_Out_When_The_Save_Fails()
 	{
 		// Arrange
 		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
-
-		IDbFailureReporter dbFailureReporter = Substitute.For<IDbFailureReporter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -665,8 +655,6 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbFailureReporter);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -676,78 +664,17 @@ internal class DatasetEditorViewModelTests
 			.AddRange(records);
 
 		// Act
-		await sut.DeleteRecordAsync(records[0]);
+		Func<Task> act = () => sut.DeleteRecordAsync(records[0]);
 
 		// Assert
-		dbFailureReporter
-			.Received(1)
-			.Report(Arg.Any<DatabaseNotWritableException>(), Arg.Any<string>());
-	}
+		await act
+			.Should()
+			.NotThrowAsync();
 
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the text edited in an encrypted dataset is declared sensitive to the dialog.
-	/// </summary>
-	[Test]
-	public async Task EditKeyValue_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
-
-		KeyValueRecord record = new()
-		{
-			Key = RandomString.Create(10),
-			Value = RandomString.Create(10)
-		};
-
-		// Act
-		await sut
-			.EditKeyValueCommand
-			.ExecuteAsync(record);
-
-		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x!.IsSensitive == isEncrypted),
-			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the value input field is masked only when the record is hidden.
-	/// </summary>
-	[Test]
-	public async Task EditKeyValue_Masks_Value_Input_When_Hidden([Values] bool isHidden)
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		KeyValueRecord record = new()
-		{
-			IsHidden = isHidden,
-			Key = RandomString.Create(10),
-			Value = RandomString.Create(10)
-		};
-
-		// Act
-		await sut
-			.EditKeyValueCommand
-			.ExecuteAsync(record);
-
-		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
-			Arg.Any<CancellationToken>());
+		// The file still holds the record, so a refused save leaves the view ahead of what is stored.
+		sut.Records
+			.Should()
+			.NotContain(records[0]);
 	}
 
 	/// <summary>
@@ -805,10 +732,117 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the text edited in an encrypted dataset is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task EditKeyValueCommand_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		KeyValueRecord record = new()
+		{
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
+		};
+
+		// Act
+		await sut
+			.EditKeyValueCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.IsSensitive == isEncrypted),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the value input field is masked only when the record is hidden.
+	/// </summary>
+	[Test]
+	public async Task EditKeyValueCommand_Masks_Value_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		KeyValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
+		};
+
+		// Act
+		await sut
+			.EditKeyValueCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditNoteAsync" />: updates the record's note and persists the change.
+	/// </summary>
+	[Test]
+	public async Task EditNoteAsync_Edits_Note_Of_Record()
+	{
+		// Arrange
+		string note = RandomString.Create(10);
+
+		ValueRecord target = new();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.EditNoteAsync(target, note);
+
+		// Assert
+		target.Note
+			.Should()
+			.Be(note);
+
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note of an encrypted dataset is declared sensitive to the dialog.
 	/// </summary>
 	[Test]
-	public async Task EditNote_Declares_The_Note_Of_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	public async Task EditNoteCommand_Declares_The_Note_Of_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -856,7 +890,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note dialog of a group is headed by its name.
 	/// </summary>
 	[Test]
-	public async Task EditNote_Heads_The_Dialog_Of_A_Group_With_Its_Name()
+	public async Task EditNoteCommand_Heads_The_Dialog_Of_A_Group_With_Its_Name()
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -899,7 +933,7 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note dialog of a key-value record is headed by its key.
 	/// </summary>
 	[Test]
-	public async Task EditNote_Heads_The_Dialog_Of_A_Key_Value_Record_With_Its_Key()
+	public async Task EditNoteCommand_Heads_The_Dialog_Of_A_Key_Value_Record_With_Its_Key()
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -944,7 +978,7 @@ internal class DatasetEditorViewModelTests
 	/// its value never becomes one.
 	/// </summary>
 	[Test]
-	public async Task EditNote_Leaves_A_Value_Record_Without_A_Header()
+	public async Task EditNoteCommand_Leaves_A_Value_Record_Without_A_Header()
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -980,77 +1014,6 @@ internal class DatasetEditorViewModelTests
 			record.Note,
 			null,
 			Arg.Any<bool>(),
-			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.EditNoteAsync" />: updates the record's note and persists the change.
-	/// </summary>
-	[Test]
-	public async Task EditNoteAsync_Edits_Note_Of_Record()
-	{
-		// Arrange
-		string note = RandomString.Create(10);
-
-		ValueRecord target = new();
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(serializer);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		// Act
-		await sut.EditNoteAsync(target, note);
-
-		// Assert
-		target.Note
-			.Should()
-			.Be(note);
-
-		await dbAccess.Received().UpdateFilePropertiesAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.EditValueCommand" />: the value input dialog masks the input only when the record is hidden.
-	/// </summary>
-	[Test]
-	public async Task EditValue_Masks_Input_When_Hidden([Values] bool isHidden)
-	{
-		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		ValueRecord record = new()
-		{
-			IsHidden = isHidden,
-			Value = RandomString.Create(10)
-		};
-
-		// Act
-		await sut
-			.EditValueCommand
-			.ExecuteAsync(record);
-
-		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
-			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -1101,12 +1064,41 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.EditValueCommand" />: the value input dialog masks the input only when the record is hidden.
 	/// </summary>
 	[Test]
-	public async Task ExpandCollapseAsync_Sets_The_Expanded_State_And_Persists_Only_When_Editable(
+	public async Task EditValueCommand_Masks_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		ValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Value = RandomString.Create(10)
+		};
+
+		// Act
+		await sut
+			.EditValueCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups, in a group or at the root, and persists it.
+	/// </summary>
+	[Test]
+	public async Task ExpandCollapseAsync_Sets_The_Expanded_State(
 		[Values] bool expand,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1129,52 +1121,35 @@ internal class DatasetEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.IsReadOnly = isReadOnly;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		RecordsGroup? group = null;
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-		if (inGroup)
-		{
-			group = new();
-
-			group
-				.Children
-				.AddRange(groups);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(groups);
-		}
+		target.AddRange(groups);
 
 		// Act
 		await sut.ExpandCollapseAsync(group, expand);
 
 		// Assert
-		if (group is not null)
-		{
-			group.Children
-				.Should()
-				.Contain(groups);
-		}
-		else
-		{
-			sut.Records
-				.Should()
-				.Contain(groups);
-		}
+		target
+			.Should()
+			.Contain(groups);
 
 		groups
 			.Should()
 			.OnlyContain(x => x.IsExpanded == expand);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
@@ -1261,7 +1236,9 @@ internal class DatasetEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1340,12 +1317,11 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records, in a group or at the root, and persists it.
 	/// </summary>
 	[Test]
-	public async Task ShowHideAsync_Sets_The_Hidden_State_And_Persists_Only_When_Editable(
+	public async Task ShowHideAsync_Sets_The_Hidden_State(
 		[Values] bool hide,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1374,58 +1350,78 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.IsReadOnly = isReadOnly;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		RecordsGroup? group = null;
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-		if (inGroup)
-		{
-			group = new();
-
-			group
-				.Children
-				.AddRange(records);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(records);
-		}
+		target.AddRange(records);
 
 		// Act
 		await sut.ShowHideAsync(group, hide);
 
 		// Assert
-		if (group is not null)
-		{
-			group.Children
-				.Should()
-				.Contain(records);
-		}
-		else
-		{
-			sut.Records
-				.Should()
-				.Contain(records);
-		}
+		target
+			.Should()
+			.Contain(records);
 
 		records
 			.Should()
 			.OnlyContain(x => x.IsHidden == hide);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts values, key-values and groups in the given direction (in a group or at the root) and persists only when not read-only.
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: a read-only dataset is never written back. The check
+	/// lives in the save path, so it holds for every change that persists the records.
 	/// </summary>
 	[Test]
-	public async Task SortAsync_Sorts_The_Records_And_Persists_Only_When_Editable(
+	public async Task SortAsync_Does_Not_Persist_A_Read_Only_Dataset()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.IsReadOnly = true;
+
+		sut
+			.Records
+			.AddRange(DbAccessExtensions.CreateRandomRecords(eachTypes: 5));
+
+		// Act
+		await sut.SortAsync(group: null, ListSortDirection.Ascending);
+
+		// Assert
+		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts the records of a group or of the root in the given direction and persists them.
+	/// </summary>
+	[Test]
+	public async Task SortAsync_Sorts_The_Records(
 		[Values] ListSortDirection direction,
-		[Values] bool isReadOnly,
 		[Values] bool inGroup)
 	{
 		// Arrange
@@ -1448,63 +1444,37 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.IsReadOnly = isReadOnly;
+		RecordsGroup? group = inGroup ? new() : null;
 
-		RecordsGroup? group = null;
+		// Whichever collection holds the records, the rest of the test reads the same.
+		ObservableCollection<DatasetRecordBase> target = group is not null
+			? group.Children
+			: sut.Records;
 
-		if (inGroup)
-		{
-			group = new();
-
-			group
-				.Children
-				.AddRange(records);
-		}
-		else
-		{
-			sut
-				.Records
-				.AddRange(records);
-		}
+		target.AddRange(records);
 
 		// Act
 		await sut.SortAsync(group, direction);
 
 		// Assert
-		ObservableCollection<DatasetRecordBase> collection = group is not null
-			? group.Children
-			: sut.Records;
+		target
+			.Should()
+			.HaveCount(records.Length);
 
 		if (direction == ListSortDirection.Ascending)
 		{
-			collection.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
 				.BeInAscendingOrder(x => x.Value);
-
-			collection.OfSpecificType<DatasetRecordBase, KeyValueRecord>()
-				.Should()
-				.BeInAscendingOrder(x => x.Key);
-
-			collection.OfType<RecordsGroup>()
-				.Should()
-				.BeInAscendingOrder(x => x.Name);
 		}
-		else if (direction == ListSortDirection.Descending)
+		else
 		{
-			collection.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
 				.BeInDescendingOrder(x => x.Value);
-
-			collection.OfSpecificType<DatasetRecordBase, KeyValueRecord>()
-				.Should()
-				.BeInDescendingOrder(x => x.Key);
-
-			collection.OfType<RecordsGroup>()
-				.Should()
-				.BeInDescendingOrder(x => x.Name);
 		}
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}

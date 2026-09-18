@@ -12,25 +12,22 @@ internal class LogEventLevelExtensionsTests
 	/// <summary>
 	/// <see cref="LogEventLevelExtensions.ToBrush" />: each level maps to its expected brush.
 	/// </summary>
-	[Test]
-	public void ToBrush_Returns_Expected_Brush_For_Level([Values] LogEventLevel level)
+	[TestCase(LogEventLevel.Verbose, nameof(Colors.Gray))]
+	[TestCase(LogEventLevel.Debug, nameof(Colors.CadetBlue))]
+	[TestCase(LogEventLevel.Information, nameof(Colors.LimeGreen))]
+	[TestCase(LogEventLevel.Warning, nameof(Colors.Orange))]
+	[TestCase(LogEventLevel.Error, nameof(Colors.Red))]
+	[TestCase(LogEventLevel.Fatal, nameof(Colors.Red))]
+	public void ToBrush_Returns_Expected_Brush_For_Level(LogEventLevel level, string expected)
 	{
 		// Act
 		IImmutableSolidColorBrush result = level.ToBrush();
 
 		// Assert
-		IImmutableSolidColorBrush expected = level switch
-		{
-			LogEventLevel.Debug => Brushes.CadetBlue,
-			LogEventLevel.Information => Brushes.LimeGreen,
-			LogEventLevel.Warning => Brushes.Orange,
-			LogEventLevel.Error or LogEventLevel.Fatal => Brushes.Red,
-			_ => Brushes.Transparent
-		};
-
 		result
+			.Color
 			.Should()
-			.BeSameAs(expected);
+			.Be(Color.Parse(expected));
 	}
 
 	/// <summary>

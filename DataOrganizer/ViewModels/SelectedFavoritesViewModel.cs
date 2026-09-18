@@ -320,36 +320,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
 
-	/// <summary>
-	/// Adds <see cref="FavoriteCategory" /> objects to the source.
-	/// </summary>
-	internal void SeedCategories(IEnumerable<FavoriteCategory> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_categoriesFilter.AddRange(items);
-	}
-
-	/// <summary>
-	/// Adds <see cref="FileDto" /> objects to the source.
-	/// </summary>
-	internal void SeedFavorites(IEnumerable<FileDto> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_favoritesFilter.AddRange(items);
-	}
-
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{

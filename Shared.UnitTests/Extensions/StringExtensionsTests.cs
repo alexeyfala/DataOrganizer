@@ -6,6 +6,18 @@ namespace Shared.UnitTests.Extensions;
 [TestFixture(Description = $@"Tests of ""{nameof(StringExtensions)}"" type")]
 internal class StringExtensionsTests
 {
+	#region Data
+	/// <summary>
+	/// Path that needs quoting because of the space in it.
+	/// </summary>
+	private const string PathWithSpace = @"C:\my path";
+
+	/// <summary>
+	/// The same path already surrounded with quotes.
+	/// </summary>
+	private const string QuotedPathWithSpace = $@"""{PathWithSpace}""";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="StringExtensions.IsHtmlColorFormat" />: returns false for null, empty or malformed hex color values.
@@ -129,16 +141,13 @@ internal class StringExtensionsTests
 	[Test]
 	public void SurroundWithQuotesIfNeeded_Leaves_Already_Quoted_Value_Unchanged()
 	{
-		// Arrange
-		const string value = "\"C:\\my path\"";
-
 		// Act
-		string result = value.SurroundWithQuotesIfNeeded();
+		string result = QuotedPathWithSpace.SurroundWithQuotesIfNeeded();
 
 		// Assert
 		result
 			.Should()
-			.Be(value);
+			.Be(QuotedPathWithSpace);
 	}
 
 	/// <summary>
@@ -148,12 +157,12 @@ internal class StringExtensionsTests
 	public void SurroundWithQuotesIfNeeded_Wraps_Unquoted_Value()
 	{
 		// Act
-		string result = "C:\\my path".SurroundWithQuotesIfNeeded();
+		string result = PathWithSpace.SurroundWithQuotesIfNeeded();
 
 		// Assert
 		result
 			.Should()
-			.Be("\"C:\\my path\"");
+			.Be(QuotedPathWithSpace);
 	}
 
 	/// <summary>

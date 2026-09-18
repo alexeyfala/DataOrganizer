@@ -19,7 +19,7 @@ internal class HotkeyXmlSanitizerTests
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a key the library still has is left alone.
 	/// </summary>
 	[Test]
-	public void Keeps_A_Key_The_Library_Knows()
+	public void Sanitize_Keeps_A_Key_The_Library_Knows()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
@@ -37,7 +37,7 @@ internal class HotkeyXmlSanitizerTests
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask of several flags is left exactly as the serializer wrote it.
 	/// </summary>
 	[Test]
-	public void Keeps_A_Mask_Written_By_The_Serializer()
+	public void Sanitize_Keeps_A_Mask_Written_By_The_Serializer()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
@@ -54,11 +54,55 @@ internal class HotkeyXmlSanitizerTests
 	}
 
 	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask whose flags are separated by commas is read
+	/// as it stands, so a file written elsewhere does not lose its modifiers.
+	/// </summary>
+	[Test]
+	public void Sanitize_Keeps_A_Mask_Written_With_Commas()
+	{
+		// Arrange
+		const string mask = "LeftCtrl, LeftShift";
+
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), mask);
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(mask);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document without hotkeys is left alone.
+	/// </summary>
+	[Test]
+	public void Sanitize_Leaves_A_Document_Without_Hotkeys_Alone()
+	{
+		// Arrange
+		XDocument document = XDocument.Parse(Serialize([new FolderEntity { Name = "folder" }]));
+
+		string xml = document.ToString();
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		document
+			.ToString()
+			.Should()
+			.Be(xml);
+	}
+
+	/// <summary>
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document with a key the library lost is read
 	/// instead of being rejected as a whole.
 	/// </summary>
 	[Test]
-	public void Makes_A_Document_With_A_Lost_Key_Readable()
+	public void Sanitize_Makes_A_Document_With_A_Lost_Key_Readable()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
@@ -86,7 +130,7 @@ internal class HotkeyXmlSanitizerTests
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a key the library no longer has is replaced with undefined.
 	/// </summary>
 	[Test]
-	public void Replaces_A_Key_The_Library_Lost()
+	public void Sanitize_Replaces_A_Key_The_Library_Lost()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
@@ -107,7 +151,7 @@ internal class HotkeyXmlSanitizerTests
 	/// is replaced with no mask.
 	/// </summary>
 	[Test]
-	public void Replaces_A_Mask_With_A_Lost_Flag()
+	public void Sanitize_Replaces_A_Mask_With_A_Lost_Flag()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
@@ -127,7 +171,7 @@ internal class HotkeyXmlSanitizerTests
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: an empty mask is replaced with no mask.
 	/// </summary>
 	[Test]
-	public void Replaces_An_Empty_Mask()
+	public void Sanitize_Replaces_An_Empty_Mask()
 	{
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
@@ -141,27 +185,6 @@ internal class HotkeyXmlSanitizerTests
 		ReadHotkey(document, nameof(HotkeyEntity.Mask))
 			.Should()
 			.Be(nameof(EventMask.None));
-	}
-
-	/// <summary>
-	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document without hotkeys is left alone.
-	/// </summary>
-	[Test]
-	public void Sanitizes_A_Document_Without_Hotkeys()
-	{
-		// Arrange
-		XDocument document = XDocument.Parse(Serialize([new FolderEntity { Name = "folder" }]));
-
-		string xml = document.ToString();
-
-		// Act
-		HotkeyXmlSanitizer.Sanitize(document);
-
-		// Assert
-		document
-			.ToString()
-			.Should()
-			.Be(xml);
 	}
 	#endregion
 

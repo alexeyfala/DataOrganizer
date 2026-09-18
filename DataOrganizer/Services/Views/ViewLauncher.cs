@@ -8,6 +8,7 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -76,6 +77,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
+	/// <inheritdoc cref="IProcessTerminator" />
+	private readonly IProcessTerminator _processTerminator;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -98,6 +102,7 @@ public class ViewLauncher : IViewLauncher
 		IFileSystem fileSystem,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
+		IProcessTerminator processTerminator,
 		IExecutionSandbox sandbox,
 		INotificationService notification,
 		IServiceProvider serviceProvider,
@@ -130,6 +135,8 @@ public class ViewLauncher : IViewLauncher
 		_logger = logger;
 
 		_notification = notification;
+
+		_processTerminator = processTerminator;
 
 		_sandbox = sandbox;
 
@@ -583,11 +590,9 @@ public class ViewLauncher : IViewLauncher
 			{
 				desktop.Shutdown();
 			}
-			else if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
+			else
 			{
-				Environment.Exit(0);
+				_processTerminator.Terminate();
 			}
 		}
 	}
@@ -608,17 +613,10 @@ public class ViewLauncher : IViewLauncher
 		// 16 device-independent pixels of padding from the screen edge.
 		const int marginDip = 16;
 
-		PixelRect workingArea = screen.WorkingArea;
-
-		int widthPx = (int)(target.Width * screen.Scaling);
-
-		int heightPx = (int)(target.Height * screen.Scaling);
-
-		int marginPx = (int)(marginDip * screen.Scaling);
-
-		target.Position = new PixelPoint(
-			workingArea.X + workingArea.Width - widthPx - marginPx,
-			workingArea.Y + workingArea.Height - heightPx - marginPx);
+		target.Position = WindowPlacementHelper.GetLowerRightPosition(
+			screen.WorkingArea,
+			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
+			(int)(marginDip * screen.Scaling));
 	}
 
 	/// <summary>
@@ -669,12 +667,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			await ShutdownAsync(hierarchy);
 
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				Environment.Exit(0);
-			}
+			_processTerminator.Terminate();
 		}
 
 		async Task ShutdownAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)

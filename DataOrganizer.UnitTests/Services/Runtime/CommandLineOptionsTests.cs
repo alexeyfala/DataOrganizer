@@ -16,7 +16,7 @@ internal class CommandLineOptionsTests
 	/// <see cref="CommandLineOptions" />: the constructor initializes properties from the parsed command-line arguments.
 	/// </summary>
 	[Test]
-	public void CommandLineOptions_Inializes_Properties_From_Arguments_Through_Constructor()
+	public void Constructor_Initializes_Properties_From_Arguments()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();

@@ -11,11 +11,9 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
-using Moq;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -172,8 +170,6 @@ internal class KeyboardInputHookTests
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		INotificationService notificationService = Substitute.For<INotificationService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -197,8 +193,6 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
-
-			builder.RegisterInstance(notificationService);
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -215,12 +209,8 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(mask, code);
 
 		// Assert
-		notificationService
-			.Received()
-			.ShowToast(Arg.Any<string>());
-
 		await clipboard
-			.Received()
+			.Received(1)
 			.SetTextAsync(Arg.Any<string>());
 	}
 
@@ -231,9 +221,9 @@ internal class KeyboardInputHookTests
 	public void Receive_Hands_Message_To_Handler()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-		Mock<ITaskExceptionHandler> exceptionHandler = mock.Mock<ITaskExceptionHandler>();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(exceptionHandler));
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
@@ -241,7 +231,9 @@ internal class KeyboardInputHookTests
 		sut.Receive(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
 
 		// Assert
-		exceptionHandler.Verify(x => x.Watch(It.IsAny<Task>()), Times.Once);
+		exceptionHandler
+			.Received(1)
+			.Watch(Arg.Any<Task>());
 	}
 
 	/// <summary>

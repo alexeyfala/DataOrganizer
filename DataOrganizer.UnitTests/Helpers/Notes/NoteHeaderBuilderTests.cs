@@ -1,7 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Notes;
 using Shared.Common;
-using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.Helpers.Notes;
 
@@ -10,36 +9,23 @@ internal class NoteHeaderBuilderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NoteHeaderBuilder.Build" />: a name is appended to the label.
+	/// <see cref="NoteHeaderBuilder.Build" />: a name is appended to the label a blank name leaves alone.
 	/// </summary>
 	[Test]
-	public void Build_Returns_The_Label_With_A_Name()
+	public void Build_Appends_The_Name_To_The_Label([Values(null, "", "   ")] string? blank)
 	{
 		// Arrange
 		string name = RandomString.Create(10);
 
 		// Act
+		string label = NoteHeaderBuilder.Build(blank);
+
 		string header = NoteHeaderBuilder.Build(name);
 
 		// Assert
 		header
 			.Should()
-			.Be($"{Strings.Note}: {name}");
-	}
-
-	/// <summary>
-	/// <see cref="NoteHeaderBuilder.Build" />: a blank name leaves the label alone.
-	/// </summary>
-	[Test]
-	public void Build_Returns_The_Label_Without_A_Name([Values(null, "", "   ")] string? name)
-	{
-		// Act
-		string header = NoteHeaderBuilder.Build(name);
-
-		// Assert
-		header
-			.Should()
-			.Be(Strings.Note);
+			.Be($"{label}: {name}");
 	}
 	#endregion
 }

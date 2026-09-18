@@ -1,8 +1,10 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Factories;
 using NSec.Cryptography;
 using Repository.Dto;
 using System;
@@ -18,6 +20,11 @@ internal class EncryptionServiceTests
 {
 	#region Data
 	/// <summary>
+	/// Version byte of the DEK based format, which records no derivation cost.
+	/// </summary>
+	private const byte DekFormatVersion = 0x02;
+
+	/// <summary>
 	/// Purpose every round-trip of the fixture is bound to.
 	/// </summary>
 	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
@@ -31,7 +38,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Cannot_Decrypt_With_Wrong_Password()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -77,10 +84,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
-		Argon2Settings settings = new(
-			MemorySize: 8192,
-			NumberOfPasses: 1,
-			DegreeOfParallelism: 1);
+		Argon2Settings settings = Argon2SettingsFactory.CreateLowestCost();
 
 		settings
 			.Should()
@@ -105,7 +109,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_A_Tampered_Salt()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -137,7 +141,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_A_Wrapper_Of_Another_Size(int difference)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -168,7 +172,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Rejects_An_Unsupported_Derivation_Cost()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -237,7 +241,7 @@ internal class EncryptionServiceTests
 	public void Decrypt_Tells_Damaged_Data_From_A_Wrong_Password()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -594,7 +598,7 @@ internal class EncryptionServiceTests
 	public void DecryptWithSessionId_Rejects_Password_Encrypted_Input()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -649,7 +653,7 @@ internal class EncryptionServiceTests
 	public void Encrypt_Decrypt_Round_Trip_Restores_The_Plaintext()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -673,6 +677,71 @@ internal class EncryptionServiceTests
 		BytesOf(decrypted)
 			.Should()
 			.Equal(BytesOf(input));
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.EncryptWithDek" />,
+	/// <see cref="EncryptionService.EncryptWithSessionId" />: every path keeps its own version byte and
+	/// its own on-the-wire layout — the DEK one carries no salt, the other two do, and the password one
+	/// carries the cost of the derivation and the check value as well.
+	/// </summary>
+	[Test]
+	public void Encrypt_Keeps_A_Distinct_Layout_Per_Path()
+	{
+		// Arrange
+		const int checkSize = 16;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int tagSize = 16;
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextDefaults
+			.Encoding
+			.GetBytes(SampleText.LoremIpsum);
+
+		byte[] secret = RandomValues.CreateBytes(32);
+
+		using PinnedBuffer secretBuffer = new(secret);
+
+		// Act
+		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, Identity);
+
+		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
+
+		using PinnedBuffer sessionDek = sut.CreateRandomDek();
+
+		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, Identity);
+
+		// Assert
+		password
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x01)
+			.And
+			.HaveCount(1 + Argon2Settings.HeaderSize + saltSize + checkSize + nonceSize + secret.Length + tagSize);
+
+		dek
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x02)
+			.And
+			.HaveCount(1 + nonceSize + input.Length + tagSize);
+
+		session
+			.Should()
+			.NotBeNull()
+			.And
+			.HaveElementAt(0, 0x03)
+			.And
+			.HaveCount(1 + saltSize + nonceSize + sessionDek.Length + tagSize);
 	}
 
 	/// <summary>
@@ -754,6 +823,60 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />: every blob carries a salt and a nonce of its own,
+	/// so one password never derives the same key twice and no nonce comes back.
+	/// </summary>
+	[Test]
+	public void Encrypt_Writes_A_Fresh_Salt_And_Nonce()
+	{
+		// Arrange
+		const int checkSize = 16;
+
+		const int count = 5;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int saltOffset = 1 + Argon2Settings.HeaderSize;
+
+		const int checkOffset = saltOffset + saltSize;
+
+		const int nonceOffset = checkOffset + checkSize;
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer input = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
+
+		string[] nonces = new string[count];
+
+		string[] salts = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.Encrypt(input, password, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+
+			salts[index] = Convert.ToHexString(encrypted.AsSpan(saltOffset, saltSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+
+		salts
+			.Should()
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.EncryptContents" />, <see cref="EncryptionService.DecryptContents" />:
 	/// an empty content stays unencrypted and survives a folder round-trip next to a normal one.
 	/// </summary>
@@ -814,70 +937,6 @@ internal class EncryptionServiceTests
 		TextDefaults.Encoding.GetString(decrypted[1].Contents)
 			.Should()
 			.Be(SampleText.LoremIpsum);
-	}
-
-	/// <summary>
-	/// Every path keeps its own version byte and its own on-the-wire layout: the DEK one carries
-	/// no salt, the other two do, and the password one carries the cost of the derivation and the
-	/// check value as well.
-	/// </summary>
-	[Test]
-	public void EncryptedBlobs_Keep_Their_Layout()
-	{
-		// Arrange
-		const int checkSize = 16;
-
-		const int nonceSize = 24;
-
-		const int saltSize = 16;
-
-		const int tagSize = 16;
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		byte[] input = TextDefaults
-			.Encoding
-			.GetBytes(SampleText.LoremIpsum);
-
-		byte[] secret = RandomValues.CreateBytes(32);
-
-		using PinnedBuffer secretBuffer = new(secret);
-
-		// Act
-		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, Identity);
-
-		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), Identity);
-
-		using PinnedBuffer sessionDek = sut.CreateRandomDek();
-
-		byte[]? session = sut.EncryptWithSessionId(sessionDek, secretBuffer, Identity);
-
-		// Assert
-		password
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x01)
-			.And
-			.HaveCount(1 + Argon2Settings.HeaderSize + saltSize + checkSize + nonceSize + secret.Length + tagSize);
-
-		dek
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x02)
-			.And
-			.HaveCount(1 + nonceSize + input.Length + tagSize);
-
-		session
-			.Should()
-			.NotBeNull()
-			.And
-			.HaveElementAt(0, 0x03)
-			.And
-			.HaveCount(1 + saltSize + nonceSize + sessionDek.Length + tagSize);
 	}
 
 	/// <summary>
@@ -950,6 +1009,46 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithDek" />: every blob carries a nonce of its own,
+	/// so one key never encrypts twice under the same nonce.
+	/// </summary>
+	[Test]
+	public void EncryptWithDek_Writes_A_Fresh_Nonce()
+	{
+		// Arrange
+		const int count = 5;
+
+		const int nonceOffset = 1;
+
+		const int nonceSize = 24;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer dek = sut.CreateRandomDek();
+
+		byte[] input = TextDefaults
+			.Encoding
+			.GetBytes(SampleText.LoremIpsum);
+
+		string[] nonces = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.EncryptWithDek(input, dek, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.EncryptWithSessionId" />, <see cref="EncryptionService.DecryptWithSessionId" />: a session round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
@@ -1007,6 +1106,56 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithSessionId" />: every blob carries a salt and a nonce
+	/// of its own, so one session secret never derives the same key twice.
+	/// </summary>
+	[Test]
+	public void EncryptWithSessionId_Writes_A_Fresh_Salt_And_Nonce()
+	{
+		// Arrange
+		const int count = 5;
+
+		const int nonceSize = 24;
+
+		const int saltSize = 16;
+
+		const int saltOffset = 1;
+
+		const int nonceOffset = saltOffset + saltSize;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer input = sut.CreateRandomDek();
+
+		using PinnedBuffer secret = new(RandomValues.CreateBytes(32));
+
+		string[] nonces = new string[count];
+
+		string[] salts = new string[count];
+
+		// Act
+		for (int index = 0; index < count; index++)
+		{
+			byte[] encrypted = sut.EncryptWithSessionId(input, secret, Identity);
+
+			nonces[index] = Convert.ToHexString(encrypted.AsSpan(nonceOffset, nonceSize));
+
+			salts[index] = Convert.ToHexString(encrypted.AsSpan(saltOffset, saltSize));
+		}
+
+		// Assert
+		nonces
+			.Should()
+			.OnlyHaveUniqueItems();
+
+		salts
+			.Should()
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.RewrapIfOutdated" />: a blob of another format carries no cost
 	/// to compare, so it is left as it is.
 	/// </summary>
@@ -1038,13 +1187,51 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.RewrapIfOutdated" />: a blob of another format is left as it is,
+	/// even when its bytes would read as an outdated cost at the place the password format keeps one.
+	/// </summary>
+	[Test]
+	public void RewrapIfOutdated_Keeps_A_Wrapper_Of_Another_Format()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer dek = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
+
+		// Long enough for the password format, so only the version byte tells the two formats apart.
+		byte[] foreign = RandomValues.CreateBytes(105);
+
+		foreign[0] = DekFormatVersion;
+
+		Argon2SettingsFactory
+			.CreateOutdatedCost()
+			.Write(foreign.AsSpan(1));
+
+		// Act
+		byte[]? rewrapped = sut.RewrapIfOutdated(
+			foreign,
+			dek,
+			password,
+			Identity);
+
+		// Assert
+		rewrapped
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.RewrapIfOutdated" />: a wrapper of the current cost is left as it is.
 	/// </summary>
 	[Test]
 	public void RewrapIfOutdated_Keeps_A_Wrapper_Of_The_Current_Cost()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -1075,7 +1262,7 @@ internal class EncryptionServiceTests
 	public void RewrapIfOutdated_Writes_An_Outdated_Wrapper_Again()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.Register(_ => Argon2SettingsFactory.CreateLowestCost()));
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
@@ -1083,10 +1270,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer password = new(TextDefaults.Encoding.GetBytes("SomePassword"));
 
-		byte[] wrapped = WriteWithCost(dek, password, new(
-			MemorySize: 8192,
-			NumberOfPasses: 1,
-			DegreeOfParallelism: 1));
+		byte[] wrapped = WriteWithCost(dek, password, Argon2SettingsFactory.CreateOutdatedCost());
 
 		// Act
 		byte[]? rewrapped = sut.RewrapIfOutdated(
@@ -1103,7 +1287,7 @@ internal class EncryptionServiceTests
 		Argon2Settings
 			.Read(rewrapped.AsSpan(1, Argon2Settings.HeaderSize))
 			.Should()
-			.Be(Argon2Settings.Current);
+			.Be(Argon2SettingsFactory.CreateLowestCost());
 
 		using PinnedBuffer decrypted = sut.Decrypt(rewrapped, password, Identity);
 

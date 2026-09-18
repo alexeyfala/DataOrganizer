@@ -729,7 +729,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public bool IsValidSqliteDatabase(string databaseFilePath, bool deepCheck = false)
+	public bool IsValidSqliteDatabase(string databaseFilePath)
 	{
 		try
 		{
@@ -749,9 +749,7 @@ public sealed class DbAccess : IDbAccess
 
 			using SqliteCommand command = connection.CreateCommand();
 
-			command.CommandText = deepCheck
-				? "PRAGMA integrity_check;"
-				: "PRAGMA quick_check;";
+			command.CommandText = "PRAGMA quick_check;";
 
 			string? result = command
 				.ExecuteScalar()?

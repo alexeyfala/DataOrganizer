@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
@@ -188,13 +189,9 @@ internal class FavoritesViewModelTests
 			copyHistorySettings);
 
 		// Assert
-		window.Position.X
+		window.Position
 			.Should()
-			.Be(windowSettings.X);
-
-		window.Position.Y
-			.Should()
-			.Be(windowSettings.Y);
+			.Be(new PixelPoint(windowSettings.X, windowSettings.Y));
 
 		sut.PopupWidth
 			.Should()
@@ -204,29 +201,14 @@ internal class FavoritesViewModelTests
 			.Should()
 			.Be(windowSettings.PopupHeight);
 
-		sut.FavoritesSettings.NavigationColumnWidth
+		// The categories come from the hierarchy, not from the settings being applied.
+		sut.FavoritesSettings
 			.Should()
-			.Be(favoritesSettings.NavigationColumnWidth);
+			.BeEquivalentTo(favoritesSettings, static options => options.Excluding(x => x.Categories));
 
-		sut.FavoritesSettings.SelectedCategoryId
+		sut.CopyHistorySettings
 			.Should()
-			.Be(favoritesSettings.SelectedCategoryId);
-
-		sut.FavoritesSettings.SelectedPairs
-			.Should()
-			.Contain(favoritesSettings.SelectedPairs);
-
-		sut.FavoritesSettings.OrderedCategoryIds
-			.Should()
-			.Contain(favoritesSettings.OrderedCategoryIds);
-
-		sut.CopyHistorySettings.SelectedItemId
-			.Should()
-			.Be(copyHistorySettings.SelectedItemId);
-
-		sut.CopyHistorySettings.ItemIds
-			.Should()
-			.Contain(copyHistorySettings.ItemIds);
+			.BeEquivalentTo(copyHistorySettings);
 	}
 
 	/// <summary>
@@ -304,10 +286,10 @@ internal class FavoritesViewModelTests
 
 		List<Task> scheduled = [];
 
-		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
 			exceptionHandler
 				.When(static x => x.Watch(Arg.Any<Task>()))
 				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
@@ -318,7 +300,9 @@ internal class FavoritesViewModelTests
 
 			builder.RegisterInstance(exceptionHandler);
 
-			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
@@ -387,7 +371,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received().CreateEditorWindow(
+		viewLauncher.Received(1).CreateEditorWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());
@@ -402,7 +386,7 @@ internal class FavoritesViewModelTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(new InlineDispatcherAccessor())
+			.RegisterType<InlineDispatcherAccessor>()
 			.As<IDispatcherAccessor>());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
