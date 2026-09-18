@@ -185,7 +185,7 @@ internal class AppControllerTests
 
 		// Assert
 		viewLauncher
-			.Received()
+			.Received(1)
 			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
@@ -236,7 +236,7 @@ internal class AppControllerTests
 
 		// Assert
 		await dbAccess
-			.Received()
+			.Received(1)
 			.ConnectAsync();
 
 		await entityLoader
@@ -245,7 +245,7 @@ internal class AppControllerTests
 
 		// What was read from the database is what the window is given.
 		viewLauncher
-			.Received()
+			.Received(1)
 			.CreateMainWindow(hierarchy);
 	}
 
@@ -294,7 +294,7 @@ internal class AppControllerTests
 			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
 
 		viewLauncher
-			.Received()
+			.Received(1)
 			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 	#endregion

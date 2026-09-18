@@ -225,7 +225,7 @@ internal class EditorViewModelTests
 			.BeFalse();
 
 		engine
-			.Received()
+			.Received(1)
 			.CloseAsync(Arg.Any<Guid>());
 	}
 
@@ -1090,6 +1090,9 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
+		// Tracking is started while the view model is built, and that belongs to the arrangement.
+		hook.ClearReceivedCalls();
+
 		// Act
 		await sut.HandleSettingsChangedAsync(isSave, settings);
 
@@ -1097,11 +1100,11 @@ internal class EditorViewModelTests
 		if (isSave)
 		{
 			await hook
-				.Received()
+				.Received(1)
 				.StopTrackingAsync();
 
 			await hook
-				.Received()
+				.Received(1)
 				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 
 			settingsStore
@@ -2055,7 +2058,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received().CreateFavoritesWindow(
+		viewLauncher.Received(1).CreateFavoritesWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());

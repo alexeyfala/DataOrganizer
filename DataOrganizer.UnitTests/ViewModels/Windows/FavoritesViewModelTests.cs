@@ -371,7 +371,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received().CreateEditorWindow(
+		viewLauncher.Received(1).CreateEditorWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());
