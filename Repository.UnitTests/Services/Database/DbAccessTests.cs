@@ -30,6 +30,13 @@ namespace Repository.UnitTests.Services.Database;
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests
 {
+	#region Data
+	/// <summary>
+	/// Path the database file is taken to live at.
+	/// </summary>
+	private const string DatabaseFilePath = @"C:\Database\DataOrganizer.sqlite";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
@@ -311,6 +318,33 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a database that opened is swept once, so the pages freed
+	/// by earlier deletions stop carrying what was deleted.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Erases_The_Free_Pages_Once()
+	{
+		// Arrange
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.Connected);
+
+		await dbMaintenance
+			.Received(1)
+			.EraseFreePagesOnceAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.ConnectAsync" />: a file that is not a database is not migrated.
 	/// </summary>
 	[Test]
@@ -547,6 +581,48 @@ internal class DbAccessTests
 		result
 			.Should()
 			.Be(expectedCount);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.CreateBackupAsync" />: without a database file there is nothing to copy,
+	/// so no folder for the copies is made either.
+	/// </summary>
+	[Test]
+	public async Task CreateBackupAsync_Returns_Null_Without_A_Database_File()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		DatabaseBackup? backup = await sut.CreateBackupAsync();
+
+		// Assert
+		backup
+			.Should()
+			.BeNull();
+
+		fileSystem
+			.DidNotReceive()
+			.CreateDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>

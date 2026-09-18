@@ -54,6 +54,29 @@ internal class HotkeyXmlSanitizerTests
 	}
 
 	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask whose flags are separated by commas is read
+	/// as it stands, so a file written elsewhere does not lose its modifiers.
+	/// </summary>
+	[Test]
+	public void Sanitize_Keeps_A_Mask_Written_With_Commas()
+	{
+		// Arrange
+		const string mask = "LeftCtrl, LeftShift";
+
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), mask);
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(mask);
+	}
+
+	/// <summary>
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document without hotkeys is left alone.
 	/// </summary>
 	[Test]

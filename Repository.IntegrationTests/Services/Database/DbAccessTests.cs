@@ -191,5 +191,105 @@ internal class DbAccessTests
 			.Should()
 			.BeFalse();
 	}
+
+	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a real database is accepted and a file that only
+	/// carries the name of one is refused, which is what keeps an import from opening anything at all.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Tells_A_Database_From_Another_File()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		string foreignFilePath = Path.Combine(Path.GetDirectoryName(file.FilePath)!, "Foreign.db");
+
+		File.WriteAllText(foreignFilePath, "A name is not a database.");
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FileSystem>()
+			.As<IFileSystem>());
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act, Assert
+		sut
+			.IsValidSqliteDatabase(file.FilePath)
+			.Should()
+			.BeTrue();
+
+		sut
+			.IsValidSqliteDatabase(foreignFilePath)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.RestoreFromBackupAsync" />: the copy takes the place of the database it was
+	/// made from, so what was deleted after it was taken is there again.
+	/// </summary>
+	[Test]
+	public async Task RestoreFromBackupAsync_Brings_The_Copy_Back()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+
+			TempSqliteFile.Execute(connection, "INSERT INTO Payloads (Payload) VALUES ('kept');");
+		}
+
+		await using SqliteConnection contextConnection = file.Open();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
+
+			dbContextService
+				.GetDbConnection()
+				.Returns(contextConnection);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		using DatabaseBackup? backup = await sut.CreateBackupAsync();
+
+		backup
+			.Should()
+			.NotBeNull();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "DELETE FROM Payloads;");
+		}
+
+		// Act
+		await sut.RestoreFromBackupAsync(backup.FilePath);
+
+		// Assert
+		await using SqliteConnection restored = file.Open();
+
+		TempSqliteFile
+			.Read(restored, "SELECT COUNT(*) FROM Payloads;")
+			.Should()
+			.Be(1L);
+	}
 	#endregion
 }
