@@ -21,7 +21,7 @@
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file. **Edit:** a non-code file appeared in or left the solution — otherwise `SolutionFilesReferenceTests` fails the test run: it checks this reference against `.slnx` and against the contents of `Docs/`.
 - 📁 **`Solution Items/`**
   - 📁 **`.config/`**
-    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef`. Restored with `dotnet tool restore`. **Update:** together with EF Core — the tool version stays at or above the package version. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
+    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef` and `dotnet-stryker`. Restored with `dotnet tool restore`. **Update:** `dotnet-ef` together with EF Core — the tool version stays at or above the package version. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
       - ⚙️ [`bug_report.yml`](../.github/ISSUE_TEMPLATE/bug_report.yml) — bug report form, label `bug`.
@@ -50,9 +50,10 @@
     - 💻 [`gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) — rebuilds `THIRD-PARTY-NOTICES.txt` from `project.assets.json`. **Run:** before a release and after the dependencies change; needs a fresh `dotnet restore`, and the output must carry no `UNKNOWN`.
   - ⚙️ [`.editorconfig`](../.editorconfig) — code style and naming rules; together with `EnforceCodeStyleInBuild` a violation reaches the compiler output. The `[*.{csproj,wixproj,props,targets,wxs,wxi}]` section keeps tabs in MSBuild and WiX files. **Edit:** a convention changes.
   - ⚙️ [`.gitattributes`](../.gitattributes) — line ending normalisation (`* text=auto`); the rest is the commented-out Visual Studio template. **Edit:** almost never.
-  - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository: `bin/`, `obj/`, `.vs/`, `Publish/` (finished installers and archives), `Setup/LICENSE.rtf`. **Edit:** a new generated artifact appeared.
+  - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository: `bin/`, `obj/`, `.vs/`, `Publish/` (finished installers and archives), `Setup/LICENSE.rtf`, `StrykerOutput/` (mutation reports). **Edit:** a new generated artifact appeared.
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — the single source of the version, the application names and the assembly metadata. **Edit:** before a release — raise the version.
   - 📄 [`README.md`](../README.md) — the repository front page: features, screenshots, requirements, building, licence. **Edit:** the features or the requirements changed.
+  - ⚙️ [`stryker-config.json`](../stryker-config.json) — settings of the mutation test run: the project whose code is mutated, the test project that has to catch the mutations, the files taken in, and what is left out as unobservable (string literals, logging, `ConfigureAwait`). The run itself is `dotnet dotnet-stryker`, and its reports land in `StrykerOutput/`. **Edit:** another project or another set of files is put under the run.
 
 **Project files** — not part of the tree above.
 

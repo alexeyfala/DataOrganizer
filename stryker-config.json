@@ -1,0 +1,11 @@
+{
+	"stryker-config": {
+		"project": "DataOrganizer.csproj",
+		"test-projects": [ "DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" ],
+		"mutate": [ "**/Services/Encryption/**/*.cs" ],
+		"ignore-mutations": [ "string", "regex" ],
+		"ignore-methods": [ "*Log*", "ConfigureAwait" ],
+		"reporters": [ "progress", "html", "json" ],
+		"concurrency": 8
+	}
+}
