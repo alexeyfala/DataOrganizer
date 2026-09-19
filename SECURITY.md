@@ -94,7 +94,10 @@ The following are known and accepted, so there is no need to report them.
   pinned memory and every value the input field replaces is wiped, but some
   strings are out of reach: the one carried by each keystroke event, the one
   handed over by the clipboard on paste, and any copy the garbage collector
-  makes while moving objects.
+  makes while moving objects. A password holding anything outside ASCII adds
+  one more: it is briefly a string while it is normalized, because the runtime
+  normalizes strings only. Both instances are wiped as soon as the bytes are
+  out, and a password made of ASCII alone never becomes a string at all.
 - **A copy of protected data goes out marked, not protected.** Text copied
   from protected data — contents, dataset records and fields, notes, and the
   dialogs that edit them — carries the markers that ask the system and

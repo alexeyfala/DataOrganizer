@@ -77,6 +77,20 @@ ciphertext is touched, which is what tells a wrong password from damaged data. B
 reading the header live in `Argon2Settings`; new blobs are written with the moderate level of
 libsodium (256 MiB, 3 passes, 1 lane).
 
+The password reaching the derivation is **normalized to NFC and encoded as UTF-8**
+(`PinnedSecret.ToUtf8Buffer`). Without it the same password typed on macOS, which tends to hand over
+the decomposed spelling, and on Windows, which hands over the composed one, would derive two
+different keys and a database moved between the two would refuse a correct password. Normalization
+is therefore part of this format, not an implementation detail: a reader that skips it opens nothing
+written by a password outside ASCII.
+
+The normalization was added on 2026-09-19 **without a new version byte**, against the rule above.
+It was a deliberate decision of the owner, taken while the application had no release: no database
+outside the development machine existed, so nothing had to stay readable. A blob written by an
+earlier build still opens whenever its password was ASCII, because ASCII is normalized already.
+This is the one recorded exception, and it is not a precedent — after a release the same change
+takes a new byte.
+
 ## `0x02` — data encryption key
 
     [version:1][nonce:24][ciphertext:n][tag:16]
@@ -107,6 +121,10 @@ Blobs of this format never reach the disk — they exist while the process holds
   associated data of every purpose. Unlike a round trip, these bytes do not follow an edit of the layout,
   so a change that breaks the rule above cannot stay green by changing its test along with it. The same
   fixture flips a bit through every region of every format, which leaves no field unauthenticated.
+- `Decrypt_Opens_A_Recorded_Blob_Written_With_A_Normalized_Password` pins the normalization: the
+  recorded blob was written under the composed spelling of a password and is opened under the
+  decomposed one. The other recorded password blob cannot cover this — its password is ASCII, which
+  passes through normalization untouched.
 - `ClipboardLogFormatCompatibilityTests` opens a recorded key file and journal of the clipboard history,
   pinning the persisted JSON schema together with the two formats those files are written in.
 - A format that legitimately changes takes a new version byte and a recorded blob of its own; the blobs
