@@ -2,6 +2,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace DataOrganizer.Helpers.Security;
@@ -79,12 +80,45 @@ public sealed class PinnedSecret : IDisposable
 	}
 
 	/// <summary>
-	/// Encodes the contents as UTF-8 into a new pinned buffer owned by the caller.
+	/// Encodes the contents as UTF-8 into a new pinned buffer owned by the caller, normalizing the
+	/// characters to NFC first, so one secret spells one key whatever the input method produced.
 	/// </summary>
 	public PinnedBuffer ToUtf8Buffer()
 	{
 		ReadOnlySpan<char> characters = AsReadOnlySpan();
 
+		// ASCII holds no decomposable character, so it is normalized already and the common
+		// secret never becomes a string.
+		if (Ascii.IsValid(characters))
+		{
+			return Encode(characters);
+		}
+
+		// The framework normalizes strings only, so the detour is unavoidable; both instances
+		// are wiped as soon as the bytes are out.
+		string source = new(characters);
+
+		string normalized = source.Normalize(NormalizationForm.FormC);
+
+		try
+		{
+			return Encode(normalized);
+		}
+		finally
+		{
+			StringWiper.Wipe(normalized);
+
+			StringWiper.Wipe(source);
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Encodes the characters as UTF-8 into a new pinned buffer.
+	/// </summary>
+	private static PinnedBuffer Encode(ReadOnlySpan<char> characters)
+	{
 		PinnedBuffer buffer = new(TextDefaults
 			.Encoding
 			.GetByteCount(characters));

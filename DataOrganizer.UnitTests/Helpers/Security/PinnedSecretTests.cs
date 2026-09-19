@@ -118,6 +118,33 @@ internal class PinnedSecretTests
 	}
 
 	/// <summary>
+	/// <see cref="PinnedSecret.ToUtf8Buffer" />: the bytes are those of the composed spelling.
+	/// </summary>
+	// The spellings stay escapes on purpose: the two forms of one letter look the same on screen.
+	[TestCase("Password123!", "Password123!", Description = "An ASCII secret is normalized already")]
+	[TestCase("é", "é", Description = "A decomposed letter takes its composed spelling")]
+	[TestCase("ﬁ", "ﬁ", Description = "A ligature stays, so the form is canonical and not compatibility")]
+	public void ToUtf8Buffer_Encodes_The_Composed_Spelling(string value, string composed)
+	{
+		// Arrange
+		using PinnedSecret sut = new(value.Length);
+
+		value
+			.AsSpan()
+			.CopyTo(sut.AsSpan());
+
+		// Act
+		using PinnedBuffer buffer = sut.ToUtf8Buffer();
+
+		// Assert
+		buffer
+			.AsReadOnlySpan()
+			.ToArray()
+			.Should()
+			.Equal(Encoding.UTF8.GetBytes(composed));
+	}
+
+	/// <summary>
 	/// <see cref="PinnedSecret.ToUtf8Buffer" />: an empty secret produces an empty buffer.
 	/// </summary>
 	[Test]
