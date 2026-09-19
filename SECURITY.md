@@ -63,8 +63,15 @@ The following are known and accepted, so there is no need to report them.
   decrypted into a sandbox folder and erased when it is closed, but the opening
   application keeps its own autosave and recovery copies, and the operating
   system records the file name in recent items and jump lists.
-- **Record names are not encrypted.** Encryption covers contents and notes.
-  Names are stored as plain text in the database and appear in exported files.
+- **Record names are not encrypted.** Encryption covers contents and notes;
+  everything else is stored as plain text in the database and appears in
+  exported files. Names are the obvious part. The less obvious one is the
+  state of the built-in editor: the caret position, the bounds of the
+  selection and the scroll offset are kept for every file opened in it,
+  protected ones included, although they follow from the protected text.
+  They give away less than the ciphertext itself, whose length is the exact
+  length of the contents — the editor state only hints at how that text
+  breaks into lines.
 - **Encrypted values are not bound to the record holding them.** A value is tied
   to the key of its protected folder and to the kind of field it belongs to, but
   not to the record it is stored in. Whoever can write to the database file can
