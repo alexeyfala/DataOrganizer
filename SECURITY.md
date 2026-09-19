@@ -90,6 +90,19 @@ The following are known and accepted, so there is no need to report them.
   Auto-lock shortens that window, but only once a timeout is set in the
   settings — it is off by default — and it drops the keys of protected folders
   alone: the key of the clipboard history is held until the application exits.
+- **Keys are pinned, not locked.** Key material sits in buffers the garbage
+  collector never relocates, so moving objects around leaves no stray copy, and
+  every buffer is overwritten as soon as it is no longer needed. The pages
+  behind them are not locked into memory: the operating system may still write
+  them to the page file, hibernation writes memory out whole, and a crash dump
+  or an attached debugger reads them as they are.
+- **Decrypted contents are not overwritten.** Wiping covers key material and
+  the buffers that carry contents through an encryption or a decryption. It
+  does not reach what the interface shows: a note, a dataset field or an entry
+  of the clipboard history becomes an immutable string the moment it is
+  displayed, and such a string cannot be overwritten in place — it lives until
+  the garbage collector takes it. The clipboard history holds every entry this
+  way for as long as the session is unlocked.
 - **The password input leaves fragments.** The entered password is held in
   pinned memory and every value the input field replaces is wiped, but some
   strings are out of reach: the one carried by each keystroke event, the one
