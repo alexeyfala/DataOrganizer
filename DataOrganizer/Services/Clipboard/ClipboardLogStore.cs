@@ -139,7 +139,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		{
 			byte[] ciphertext = _sessionKeyStore.Encrypt(
 				HistoryKeyId,
-				ContentIdentity.ForClipboardLog(HistoryKeyId),
+				ContentIdentity.ClipboardLog,
 				plaintext);
 
 			EnsureDirectory();
@@ -211,7 +211,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		{
 			plaintext = _sessionKeyStore.Decrypt(
 				HistoryKeyId,
-				ContentIdentity.ForClipboardLog(HistoryKeyId),
+				ContentIdentity.ClipboardLog,
 				ciphertext);
 		}
 		catch (CryptographicException ex)
@@ -263,7 +263,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		byte[] wrappedDek = _encryption.Encrypt(
 			dek,
 			password,
-			ContentIdentity.ForClipboardDek(HistoryKeyId));
+			ContentIdentity.ClipboardDek);
 
 		EnsureDirectory();
 
@@ -297,7 +297,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				wrappedDek,
 				dek,
 				password,
-				ContentIdentity.ForClipboardDek(HistoryKeyId)) is not { } rewrapped)
+				ContentIdentity.ClipboardDek) is not { } rewrapped)
 			{
 				return;
 			}
@@ -366,7 +366,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		using PinnedBuffer dek = _encryption.Decrypt(
 			wrappedDek,
 			password,
-			ContentIdentity.ForClipboardDek(HistoryKeyId));
+			ContentIdentity.ClipboardDek);
 
 		if (!_sessionKeyStore.Unlock(HistoryKeyId, dek))
 		{

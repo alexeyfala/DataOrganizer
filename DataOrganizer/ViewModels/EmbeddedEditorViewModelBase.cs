@@ -256,7 +256,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		return _contentCipher.TryDecrypt(
 			keeperId,
-			ContentIdentity.ForContents(FileId),
+			ContentIdentity.Contents,
 			input);
 	}
 
@@ -272,7 +272,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		return _contentCipher.TryEncrypt(
 			keeperId,
-			ContentIdentity.ForContents(FileId),
+			ContentIdentity.Contents,
 			input);
 	}
 	#endregion

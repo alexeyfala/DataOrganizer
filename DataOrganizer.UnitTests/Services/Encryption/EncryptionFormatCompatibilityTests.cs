@@ -71,11 +71,6 @@ internal class EncryptionFormatCompatibilityTests
 	/// Secret <see cref="SessionBlob" /> was written under.
 	/// </summary>
 	private const string SessionSecret = "808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9F";
-
-	/// <summary>
-	/// Identifier the blobs were written under; it stays out of the associated data.
-	/// </summary>
-	private static readonly Guid Id = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 	#endregion
 
 	#region Methods
@@ -97,7 +92,7 @@ internal class EncryptionFormatCompatibilityTests
 		using PinnedBuffer plaintext = sut.Decrypt(
 			Convert.FromHexString(PasswordBlob),
 			password,
-			ContentIdentity.ForDek(Id));
+			ContentIdentity.Dek);
 
 		// Assert
 		plaintext
@@ -127,7 +122,7 @@ internal class EncryptionFormatCompatibilityTests
 		using PinnedBuffer plaintext = sut.Decrypt(
 			Convert.FromHexString(NormalizedPasswordBlob),
 			password,
-			ContentIdentity.ForDek(Id));
+			ContentIdentity.Dek);
 
 		// Assert
 		plaintext
@@ -174,7 +169,7 @@ internal class EncryptionFormatCompatibilityTests
 		List<int> accepted = FindAcceptedFlips(
 			blob,
 			offsets,
-			tampered => sut.Decrypt(tampered, password, ContentIdentity.ForDek(Id)));
+			tampered => sut.Decrypt(tampered, password, ContentIdentity.Dek));
 
 		// Assert
 		accepted
@@ -200,7 +195,7 @@ internal class EncryptionFormatCompatibilityTests
 		byte[] contents = sut.DecryptWithDek(
 			Convert.FromHexString(DekBlob),
 			secret,
-			ContentIdentity.ForContents(Id));
+			ContentIdentity.Contents);
 
 		// Assert
 		TextDefaults.Encoding
@@ -229,7 +224,7 @@ internal class EncryptionFormatCompatibilityTests
 		List<int> accepted = FindAcceptedFlips(
 			blob,
 			Enumerable.Range(0, blob.Length),
-			tampered => sut.DecryptWithDek(tampered, secret, ContentIdentity.ForContents(Id)));
+			tampered => sut.DecryptWithDek(tampered, secret, ContentIdentity.Contents));
 
 		// Assert
 		accepted
@@ -255,7 +250,7 @@ internal class EncryptionFormatCompatibilityTests
 		using PinnedBuffer plaintext = sut.DecryptWithSessionId(
 			Convert.FromHexString(SessionBlob),
 			sessionId,
-			ContentIdentity.ForDek(Id));
+			ContentIdentity.Dek);
 
 		// Assert
 		plaintext
@@ -285,7 +280,7 @@ internal class EncryptionFormatCompatibilityTests
 		List<int> accepted = FindAcceptedFlips(
 			blob,
 			Enumerable.Range(0, blob.Length),
-			tampered => sut.DecryptWithSessionId(tampered, sessionId, ContentIdentity.ForDek(Id)));
+			tampered => sut.DecryptWithSessionId(tampered, sessionId, ContentIdentity.Dek));
 
 		// Assert
 		accepted
@@ -305,7 +300,7 @@ internal class EncryptionFormatCompatibilityTests
 	public void ToAssociatedData_Keeps_The_Recorded_Bytes(ContentPurpose purpose, string expected)
 	{
 		// Arrange
-		ContentIdentity identity = new(Id, purpose);
+		ContentIdentity identity = new(purpose);
 
 		// Act
 		byte[] associatedData = identity.ToAssociatedData();

@@ -132,7 +132,10 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = sut.TryDecrypt(keeperId, ContentIdentity.ForNote(Guid.NewGuid()), input);
+		byte[]? result = sut.TryDecrypt(
+			keeperId,
+			ContentIdentity.Note,
+			input);
 
 		// Assert
 		result
@@ -165,7 +168,7 @@ internal class ContentCipherTests
 		// Act
 		byte[]? result = sut.TryDecrypt(
 			Guid.NewGuid(),
-			ContentIdentity.ForNote(Guid.NewGuid()),
+			ContentIdentity.Note,
 			RandomValues.CreateBytes(10));
 
 		// Assert
@@ -406,7 +409,7 @@ internal class ContentCipherTests
 		// Act
 		byte[]? result = sut.TryEncrypt(
 			Guid.NewGuid(),
-			ContentIdentity.ForNote(Guid.NewGuid()),
+			ContentIdentity.Note,
 			RandomValues.CreateBytes(10));
 
 		// Assert

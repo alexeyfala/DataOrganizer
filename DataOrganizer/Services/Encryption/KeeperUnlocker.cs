@@ -75,8 +75,6 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 		using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
 
-		ContentIdentity identity = ContentIdentity.ForDek(keeper.Id);
-
 		PinnedBuffer dek;
 
 		try
@@ -84,7 +82,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 			dek = _encryption.Decrypt(
 				wrapped,
 				passwordBinary,
-				identity);
+				ContentIdentity.Dek);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
@@ -98,7 +96,6 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 			wrapped,
 			dek,
 			passwordBinary,
-			identity,
 			token).ConfigureAwait(false);
 
 		return dek;
@@ -115,7 +112,6 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 		byte[] wrapped,
 		PinnedBuffer dek,
 		PinnedBuffer password,
-		ContentIdentity identity,
 		CancellationToken token)
 	{
 		try
@@ -124,7 +120,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 				wrapped,
 				dek,
 				password,
-				identity) is not { } rewrapped)
+				ContentIdentity.Dek) is not { } rewrapped)
 			{
 				return;
 			}

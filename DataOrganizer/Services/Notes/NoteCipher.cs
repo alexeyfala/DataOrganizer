@@ -43,7 +43,7 @@ public sealed class NoteCipher : INoteCipher
 		// A note is read while the interface is being rendered, so a refusal only reaches the log.
 		if (_contentCipher.TryDecrypt(
 			keeper.Id,
-			ContentIdentity.ForNote(item.Id),
+			ContentIdentity.Note,
 			note) is not { } decrypted)
 		{
 			return null;
@@ -81,7 +81,7 @@ public sealed class NoteCipher : INoteCipher
 			// A protected note can only be written while its keeper is unlocked;
 			// a failure here must not take the note editor down, the caller reports the refusal.			
 			return item.EncryptionStatus == EncryptionStatus.Decrypted && item.FindPasswordKeeper() is { } keeper
-				? _contentCipher.TryEncrypt(keeper.Id, ContentIdentity.ForNote(item.Id), decoded)
+				? _contentCipher.TryEncrypt(keeper.Id, ContentIdentity.Note, decoded)
 				: null;
 		}
 		finally

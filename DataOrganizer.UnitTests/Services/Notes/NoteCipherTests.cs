@@ -51,7 +51,7 @@ internal class NoteCipherTests
 		// Assert
 		contentCipher
 			.Received(1)
-			.TryDecrypt(keeper.Id, ContentIdentity.ForNote(file.Id), file.Note);
+			.TryDecrypt(keeper.Id, ContentIdentity.Note, file.Note);
 	}
 
 	/// <summary>

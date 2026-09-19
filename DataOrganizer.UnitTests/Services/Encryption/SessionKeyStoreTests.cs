@@ -23,40 +23,10 @@ internal class SessionKeyStoreTests
 	/// <summary>
 	/// Place the contents of these tests belong to.
 	/// </summary>
-	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
+	private static readonly ContentIdentity Identity = ContentIdentity.Contents;
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// <see cref="SessionKeyStore.Decrypt" />: contents are deliberately not bound to the object owning them —
-	/// an import gives every object a new identifier, and binding would leave imported data impossible to open.
-	/// </summary>
-	[Test]
-	public void Decrypt_Accepts_Another_Owner()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
-
-		SessionKeyStore sut = mock.Create<SessionKeyStore>();
-
-		Guid keeperId = Guid.NewGuid();
-
-		byte[] contents = RandomValues.CreateBytes(64);
-
-		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize));
-
-		// Act
-		byte[]? encrypted = sut.Encrypt(
-			keeperId,
-			ContentIdentity.ForContents(Guid.NewGuid()),
-			contents);
-
-		// Assert
-		sut.Decrypt(keeperId, ContentIdentity.ForContents(Guid.NewGuid()), encrypted!)
-			.Should()
-			.Equal(contents);
-	}
-
 	/// <summary>
 	/// <see cref="SessionKeyStore.Decrypt" />: refuses to work once the keeper has been locked.
 	/// </summary>
@@ -143,11 +113,11 @@ internal class SessionKeyStoreTests
 		// Act
 		byte[]? encrypted = sut.Encrypt(
 			keeperId,
-			ContentIdentity.ForNote(fileId),
+			ContentIdentity.Note,
 			RandomValues.CreateBytes(64));
 
 		// Assert
-		Action act = () => sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!);
+		Action act = () => sut.Decrypt(keeperId, ContentIdentity.Contents, encrypted!);
 
 		act
 			.Should()

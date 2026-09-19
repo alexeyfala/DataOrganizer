@@ -43,9 +43,9 @@ tag of 16 bytes appended to the ciphertext.
     [label:20]["DataOrganizer.Aad.v1"][purpose:1][version:1][header][salt][check]
 
 The label and the purpose byte come from `ContentIdentity`; the rest is the prefix of the blob up to
-the nonce. The nonce itself stays out — the algorithm authenticates it on its own. The identifier of
-the object is deliberately **not** authenticated, because an import renumbers every object; the
-limitation is recorded in `SECURITY.md`.
+the nonce. The nonce itself stays out — the algorithm authenticates it on its own. Nothing ties a
+ciphertext to the record holding it: `ContentIdentity` carries the purpose and nothing else, because
+an import renumbers every object. The limitation is recorded in `SECURITY.md`.
 
 `ContentPurpose` values are part of the authenticated data, so their numbering is as binding as the
 version byte:

@@ -175,7 +175,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 						if (_contentCipher.TryEncrypt(
 							keeperId,
-							ContentIdentity.ForContents(parameters.File.Id),
+							ContentIdentity.Contents,
 							bytes) is not { } ciphertext)
 						{
 							PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");

@@ -27,7 +27,7 @@ internal class EncryptionServiceTests
 	/// <summary>
 	/// Purpose every round-trip of the fixture is bound to.
 	/// </summary>
-	private static readonly ContentIdentity Identity = ContentIdentity.ForContents(Guid.NewGuid());
+	private static readonly ContentIdentity Identity = ContentIdentity.Contents;
 	#endregion
 
 	#region Methods
@@ -357,7 +357,7 @@ internal class EncryptionServiceTests
 		[
 			new()
 			{
-				Contents = sut.EncryptWithDek(input, dek, ContentIdentity.ForContents(openableId)),
+				Contents = sut.EncryptWithDek(input, dek, ContentIdentity.Contents),
 				Id = openableId,
 				IsValid = true
 			},
@@ -414,26 +414,26 @@ internal class EncryptionServiceTests
 		Guid id = Guid.NewGuid();
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithDek(input, dek, ContentIdentity.ForContents(id));
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, ContentIdentity.Contents);
 
 		encrypted
 			.Should()
 			.NotBeNull();
 
 		// Assert
-		Action asNote = () => sut.DecryptWithDek(encrypted, dek, ContentIdentity.ForNote(id));
+		Action asNote = () => sut.DecryptWithDek(encrypted, dek, ContentIdentity.Note);
 
 		asNote
 			.Should()
 			.ThrowExactly<AuthenticationTagMismatchException>();
 
-		Action asDek = () => sut.DecryptWithDek(encrypted, dek, ContentIdentity.ForDek(id));
+		Action asDek = () => sut.DecryptWithDek(encrypted, dek, ContentIdentity.Dek);
 
 		asDek
 			.Should()
 			.ThrowExactly<AuthenticationTagMismatchException>();
 
-		sut.DecryptWithDek(encrypted, dek, ContentIdentity.ForContents(id))
+		sut.DecryptWithDek(encrypted, dek, ContentIdentity.Contents)
 			.Should()
 			.Equal(input);
 	}
@@ -470,36 +470,6 @@ internal class EncryptionServiceTests
 		act
 			.Should()
 			.ThrowExactly<AuthenticationTagMismatchException>();
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithDek" />: the identifier is not authenticated, so contents
-	/// of one object open as contents of another under the same key.
-	/// </summary>
-	/// <remarks>
-	/// A known limitation of the current blob format, kept here so a change of it is noticed.
-	/// </remarks>
-	[Test]
-	public void DecryptWithDek_Cannot_Tell_Two_Objects_Of_One_Purpose_Apart()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		byte[] input = TextDefaults
-			.Encoding
-			.GetBytes(SampleText.LoremIpsum);
-
-		using PinnedBuffer dek = sut.CreateRandomDek();
-
-		// Act
-		byte[] encrypted = sut.EncryptWithDek(input, dek, ContentIdentity.ForContents(Guid.NewGuid()));
-
-		// Assert
-		sut.DecryptWithDek(encrypted, dek, ContentIdentity.ForContents(Guid.NewGuid()))
-			.Should()
-			.Equal(input);
 	}
 
 	/// <summary>
