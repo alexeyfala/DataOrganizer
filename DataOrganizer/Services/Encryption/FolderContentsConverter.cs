@@ -177,11 +177,9 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 					continue;
 				}
 
-				ContentIdentity identity = ContentIdentity.ForNote(item.Id);
-
 				byte[] processed = parameters.Encrypt
-					? _encryption.EncryptWithDek(note, parameters.Dek, identity)
-					: _encryption.DecryptWithDek(note, parameters.Dek, identity);
+					? _encryption.EncryptWithDek(note, parameters.Dek, ContentIdentity.Note)
+					: _encryption.DecryptWithDek(note, parameters.Dek, ContentIdentity.Note);
 
 				notes.Add(new NoteUpdate(
 					item.Id,

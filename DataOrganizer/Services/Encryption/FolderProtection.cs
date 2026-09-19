@@ -135,7 +135,7 @@ public sealed class FolderProtection : IFolderProtection
 			byte[] encryptedDek = _encryption.Encrypt(
 				dek,
 				newPasswordBinary,
-				ContentIdentity.ForDek(folder.Id));
+				ContentIdentity.Dek);
 
 			if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
 				[
@@ -304,7 +304,7 @@ public sealed class FolderProtection : IFolderProtection
 				byte[] encryptedDek = _encryption.Encrypt(
 					dek,
 					passwordBinary,
-					ContentIdentity.ForDek(folder.Id));
+					ContentIdentity.Dek);
 
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.

@@ -18,14 +18,12 @@ internal class ContentIdentityTests
 	public void ToAssociatedData_Tells_Every_Purpose_Apart()
 	{
 		// Arrange
-		Guid id = Guid.NewGuid();
-
 		List<string> written = [];
 
 		// Act
 		foreach (ContentPurpose purpose in Enum.GetValues<ContentPurpose>())
 		{
-			ContentIdentity identity = new(id, purpose);
+			ContentIdentity identity = new(purpose);
 
 			written.Add(Convert.ToHexString(identity.ToAssociatedData()));
 		}

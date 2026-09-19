@@ -67,7 +67,7 @@ public sealed class ContentCipher : IContentCipher
 
 		return _sessionKeyStore.Decrypt(
 			root.Id,
-			ContentIdentity.ForContents(file.Id),
+			ContentIdentity.Contents,
 			input);
 	}
 
@@ -122,7 +122,7 @@ public sealed class ContentCipher : IContentCipher
 				return _encryption.DecryptWithDek(
 					contents,
 					decryptedDek,
-					ContentIdentity.ForContents(file.Id));
+					ContentIdentity.Contents);
 			}
 			catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 			{

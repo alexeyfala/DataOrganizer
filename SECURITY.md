@@ -63,14 +63,23 @@ The following are known and accepted, so there is no need to report them.
   decrypted into a sandbox folder and erased when it is closed, but the opening
   application keeps its own autosave and recovery copies, and the operating
   system records the file name in recent items and jump lists.
-- **Record names are not encrypted.** Encryption covers contents and notes.
-  Names are stored as plain text in the database and appear in exported files.
+- **Record names are not encrypted.** Encryption covers contents and notes;
+  everything else is stored as plain text in the database and appears in
+  exported files. Names are the obvious part. The less obvious one is the
+  state of the built-in editor: the caret position, the bounds of the
+  selection and the scroll offset are kept for every file opened in it,
+  protected ones included, although they follow from the protected text.
+  They give away less than the ciphertext itself, whose length is the exact
+  length of the contents — the editor state only hints at how that text
+  breaks into lines.
 - **Encrypted values are not bound to the record holding them.** A value is tied
   to the key of its protected folder and to the kind of field it belongs to, but
   not to the record it is stored in. Whoever can write to the database file can
   move an encrypted value between records of the same protected folder, and the
-  application opens it without noticing the move. Binding a value to its record
-  would keep an import from renumbering records, which the import has to do.
+  application opens it without noticing the move. Erasing one is as quiet: empty
+  contents are never encrypted, so a value cut to nothing reads as a file that
+  was never filled in. Binding a value to its record would keep an import from
+  renumbering records, which the import has to do.
 - **An export is as sensitive as the database.** An exported file carries the
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever
@@ -90,11 +99,27 @@ The following are known and accepted, so there is no need to report them.
   Auto-lock shortens that window, but only once a timeout is set in the
   settings — it is off by default — and it drops the keys of protected folders
   alone: the key of the clipboard history is held until the application exits.
+- **Keys are pinned, not locked.** Key material sits in buffers the garbage
+  collector never relocates, so moving objects around leaves no stray copy, and
+  every buffer is overwritten as soon as it is no longer needed. The pages
+  behind them are not locked into memory: the operating system may still write
+  them to the page file, hibernation writes memory out whole, and a crash dump
+  or an attached debugger reads them as they are.
+- **Decrypted contents are not overwritten.** Wiping covers key material and
+  the buffers that carry contents through an encryption or a decryption. It
+  does not reach what the interface shows: a note, a dataset field or an entry
+  of the clipboard history becomes an immutable string the moment it is
+  displayed, and such a string cannot be overwritten in place — it lives until
+  the garbage collector takes it. The clipboard history holds every entry this
+  way for as long as the session is unlocked.
 - **The password input leaves fragments.** The entered password is held in
   pinned memory and every value the input field replaces is wiped, but some
   strings are out of reach: the one carried by each keystroke event, the one
   handed over by the clipboard on paste, and any copy the garbage collector
-  makes while moving objects.
+  makes while moving objects. A password holding anything outside ASCII adds
+  one more: it is briefly a string while it is normalized, because the runtime
+  normalizes strings only. Both instances are wiped as soon as the bytes are
+  out, and a password made of ASCII alone never becomes a string at all.
 - **A copy of protected data goes out marked, not protected.** Text copied
   from protected data — contents, dataset records and fields, notes, and the
   dialogs that edit them — carries the markers that ask the system and

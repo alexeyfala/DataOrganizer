@@ -651,15 +651,13 @@ public sealed class EncryptionService : IEncryptionService
 			return item;
 		}
 
-		ContentIdentity identity = ContentIdentity.ForContents(item.Id);
-
 		try
 		{
 			return new()
 			{
 				Contents = encrypt
-					? EncryptWithDek(item.Contents, dek, identity)
-					: DecryptWithDek(item.Contents, dek, identity),
+					? EncryptWithDek(item.Contents, dek, ContentIdentity.Contents)
+					: DecryptWithDek(item.Contents, dek, ContentIdentity.Contents),
 				Id = item.Id,
 				IsValid = true
 			};

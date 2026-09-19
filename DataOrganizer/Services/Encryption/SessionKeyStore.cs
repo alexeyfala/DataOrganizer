@@ -127,7 +127,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 				wrappedDek = _encryption.EncryptWithSessionId(
 					dek,
 					sessionId,
-					ContentIdentity.ForDek(keeperId));
+					ContentIdentity.Dek);
 			}
 			catch
 			{
@@ -196,7 +196,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 		return _encryption.DecryptWithSessionId(
 			wrappedDek,
 			sessionId,
-			ContentIdentity.ForDek(keeperId));
+			ContentIdentity.Dek);
 	}
 	#endregion
 }
