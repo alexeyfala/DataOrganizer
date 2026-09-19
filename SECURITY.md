@@ -76,8 +76,10 @@ The following are known and accepted, so there is no need to report them.
   to the key of its protected folder and to the kind of field it belongs to, but
   not to the record it is stored in. Whoever can write to the database file can
   move an encrypted value between records of the same protected folder, and the
-  application opens it without noticing the move. Binding a value to its record
-  would keep an import from renumbering records, which the import has to do.
+  application opens it without noticing the move. Erasing one is as quiet: empty
+  contents are never encrypted, so a value cut to nothing reads as a file that
+  was never filled in. Binding a value to its record would keep an import from
+  renumbering records, which the import has to do.
 - **An export is as sensitive as the database.** An exported file carries the
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever

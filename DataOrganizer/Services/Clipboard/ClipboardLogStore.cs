@@ -103,10 +103,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		_historyFilePath = Path.Combine(_directoryPath, HistoryFileName);
 
 		_keyFilePath = Path.Combine(_directoryPath, KeyFileName);
-
-		//_historyFilePath = appEnvironment.GetClipboardHistoryFilePath(HistoryFileName);
-
-		//_keyFilePath = appEnvironment.GetClipboardHistoryFilePath(KeyFileName);
 	}
 	#endregion
 
@@ -283,17 +279,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Ensures the clipboard history directory exists.
 	/// </summary>
-	private void EnsureDirectory()
-	{
-		_fileSystem.CreateDirectory(_directoryPath);
-
-		//if (Path.GetDirectoryName(_historyFilePath) is not { Length: > 0 } directory)
-		//{
-		//	return;
-		//}
-
-		//_fileSystem.CreateDirectory(directory);
-	}
+	private void EnsureDirectory() => _fileSystem.CreateDirectory(_directoryPath);
 
 	/// <summary>
 	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change and the
@@ -337,15 +323,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (_fileSystem.DirectoryExists(_directoryPath))
+			if (!_fileSystem.DirectoryExists(_directoryPath))
 			{
-				_fileSystem.DeleteDirectory(_directoryPath);
+				return;
 			}
 
-			//if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.DirectoryExists(directory))
-			//{
-			//	_fileSystem.DeleteDirectory(directory);
-			//}
+			_fileSystem.DeleteDirectory(_directoryPath);
 		}
 		catch (Exception ex)
 		{
