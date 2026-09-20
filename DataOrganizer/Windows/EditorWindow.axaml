@@ -39,46 +39,7 @@
 	</Window.Resources>
 
 	<Window.Styles>
-		<!-- Caption buttons of the title bar drawn by the application. -->
-		<Style Selector="Button.CaptionButtonStyle,ToggleButton.CaptionButtonStyle">
-			<Setter Property="Width" Value="46.0" />
-			<Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
-			<Setter Property="Padding" Value="0.0" />
-			<Setter Property="CornerRadius" Value="0.0" />
-			<Setter Property="Cursor" Value="Arrow" />
-			<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-			<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-		</Style>
-
-		<Style Selector="ToggleButton.CaptionButtonStyle">
-			<Setter Property="Content">
-				<Template>
-					<materialIcons:MaterialIcon
-						Width="14.0"
-						Height="14.0"
-						Kind="WindowMaximize" />
-				</Template>
-			</Setter>
-
-			<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Maximize}" />
-		</Style>
-
-		<Style Selector="ToggleButton.CaptionButtonStyle:checked">
-			<Setter Property="Content">
-				<Template>
-					<materialIcons:MaterialIcon
-						Width="14.0"
-						Height="14.0"
-						Kind="WindowRestore" />
-				</Template>
-			</Setter>
-
-			<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Restore}" />
-		</Style>
-
-		<Style Selector="Button.CloseCaptionButtonStyle:pointerover">
-			<Setter Property="Foreground" Value="#C42B1C" />
-		</Style>
+		<StyleInclude Source="/Styling/TitleBarStyles.axaml" />
 	</Window.Styles>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
@@ -92,20 +53,18 @@
 				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
 					<Panel
 						Grid.Column="0"
-						Width="{OnPlatform Default=0.0,
-						                   macOS=78.0}" />
+						Width="{StaticResource TrafficLightsWidth}" />
 
 					<StackPanel
 						Grid.Column="3"
-						IsVisible="{OnPlatform Default=True,
-						                       macOS=False}"
+						IsVisible="{StaticResource AreCaptionButtonsVisible}"
 						Orientation="Horizontal">
 
 						<Button
 							chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
 							Classes="CaptionButtonStyle"
 							Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
-							                                        IconSize=14.0}"
+							                                        IconSize={StaticResource CaptionIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.Minimize}">
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
@@ -123,7 +82,7 @@
 							chrome:WindowDecorationProperties.ElementRole="CloseButton"
 							Classes="CaptionButtonStyle CloseCaptionButtonStyle"
 							Content="{materialIcons:MaterialIconExt Kind=WindowClose,
-							                                        IconSize=14.0}"
+							                                        IconSize={StaticResource CaptionIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.Close}">
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
@@ -143,32 +102,21 @@
 				</Grid>
 
 				<StackPanel
-					Margin="{OnPlatform Default='8.0,0.0,142.0,0.0',
-					                    macOS='146.0,0.0,146.0,0.0',
-					                    Linux='142.0,0.0,142.0,0.0'}"
-					HorizontalAlignment="{OnPlatform Default=Left,
-					                                 macOS=Center,
-					                                 Linux=Center}"
+					Margin="{StaticResource TitleBarContentMargin}"
+					HorizontalAlignment="{StaticResource TitleBarContentAlignment}"
 					VerticalAlignment="Center"
 					Orientation="Horizontal"
 					Spacing="8.0">
 
 					<Image
 						Classes="AppImageStyle"
-						IsVisible="{OnPlatform Default=True,
-						                       macOS=False,
-						                       Linux=False}" />
+						IsVisible="{StaticResource IsTitleBarIconVisible}" />
 
 					<TextBlock
 						VerticalAlignment="Center"
-						FontFamily="{OnPlatform Default='Segoe UI',
-						                        macOS='SF Pro Text',
-						                        Linux='Cantarell'}"
-						FontSize="{OnPlatform Default=12.0,
-						                      macOS=13.0}"
-						FontWeight="{OnPlatform Default=Normal,
-						                        macOS=SemiBold,
-						                        Linux=Bold}"
+						FontFamily="{StaticResource TitleBarFontFamily}"
+						FontSize="{StaticResource TitleBarFontSize}"
+						FontWeight="{StaticResource TitleBarFontWeight}"
 						Foreground="{StaticResource MaterialBodyBrush}"
 						Text="{Binding $parent[Window].Title, Mode=OneWay}"
 						TextTrimming="CharacterEllipsis" />
