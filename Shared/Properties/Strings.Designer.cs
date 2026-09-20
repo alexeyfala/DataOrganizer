@@ -1078,11 +1078,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Maximize.
+        /// </summary>
+        public static string Maximize {
+            get {
+                return ResourceManager.GetString("Maximize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Menu.
         /// </summary>
         public static string Menu {
             get {
                 return ResourceManager.GetString("Menu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimize.
+        /// </summary>
+        public static string Minimize {
+            get {
+                return ResourceManager.GetString("Minimize", resourceCulture);
             }
         }
         
@@ -1488,6 +1506,15 @@ namespace Shared.Properties {
         public static string RestartAutoLockHint {
             get {
                 return ResourceManager.GetString("RestartAutoLockHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        public static string Restore {
+            get {
+                return ResourceManager.GetString("Restore", resourceCulture);
             }
         }
         

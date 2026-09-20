@@ -729,4 +729,13 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>Содержимое файла отсутствует</value>
   </data>
+  <data name="Minimize" xml:space="preserve">
+    <value>Свернуть</value>
+  </data>
+  <data name="Maximize" xml:space="preserve">
+    <value>Развернуть</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Восстановить</value>
+  </data>
 </root>

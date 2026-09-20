@@ -26,6 +26,8 @@
 	ExtendClientAreaToDecorationsHint="True"
 	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
+	WindowDecorations="{OnPlatform Default=BorderOnly,
+	                               macOS=Full}"
 	mc:Ignorable="d">
 
 	<Window.Resources>
@@ -35,6 +37,48 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Window.Resources>
+
+	<Window.Styles>
+		<!-- Caption buttons of the title bar drawn by the application. -->
+		<Style Selector="Button.CaptionButtonStyle,ToggleButton.CaptionButtonStyle">
+			<Setter Property="Width" Value="46.0" />
+			<Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
+			<Setter Property="Padding" Value="0.0" />
+			<Setter Property="CornerRadius" Value="0.0" />
+			<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+			<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+		</Style>
+
+		<Style Selector="ToggleButton.CaptionButtonStyle">
+			<Setter Property="Content">
+				<Template>
+					<materialIcons:MaterialIcon
+						Width="14.0"
+						Height="14.0"
+						Kind="WindowMaximize" />
+				</Template>
+			</Setter>
+
+			<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Maximize}" />
+		</Style>
+
+		<Style Selector="ToggleButton.CaptionButtonStyle:checked">
+			<Setter Property="Content">
+				<Template>
+					<materialIcons:MaterialIcon
+						Width="14.0"
+						Height="14.0"
+						Kind="WindowRestore" />
+				</Template>
+			</Setter>
+
+			<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Restore}" />
+		</Style>
+
+		<Style Selector="Button.CloseCaptionButtonStyle:pointerover">
+			<Setter Property="Foreground" Value="#C42B1C" />
+		</Style>
+	</Window.Styles>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
 		<Border
@@ -50,10 +94,43 @@
 						Width="{OnPlatform Default=0.0,
 						                   macOS=78.0}" />
 
-					<Panel
+					<StackPanel
 						Grid.Column="3"
-						Width="{OnPlatform Default=140.0,
-						                   macOS=0.0}" />
+						IsVisible="{OnPlatform Default=True,
+						                       macOS=False}"
+						Orientation="Horizontal">
+
+						<Button
+							chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
+							Classes="CaptionButtonStyle"
+							Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
+							                                        IconSize=14.0}"
+							ToolTip.Tip="{x:Static prop:Strings.Minimize}">
+							<Interaction.Behaviors>
+								<EventTriggerBehavior EventName="Click">
+									<WindowAction ActionType="Minimize" />
+								</EventTriggerBehavior>
+							</Interaction.Behaviors>
+						</Button>
+
+						<ToggleButton
+							chrome:WindowDecorationProperties.ElementRole="MaximizeButton"
+							Classes="CaptionButtonStyle"
+							IsChecked="{Binding $parent[Window].WindowState, Converter={x:Static converters:AppConverters.WindowStateToBool}, Mode=TwoWay}" />
+
+						<Button
+							chrome:WindowDecorationProperties.ElementRole="CloseButton"
+							Classes="CaptionButtonStyle CloseCaptionButtonStyle"
+							Content="{materialIcons:MaterialIconExt Kind=WindowClose,
+							                                        IconSize=14.0}"
+							ToolTip.Tip="{x:Static prop:Strings.Close}">
+							<Interaction.Behaviors>
+								<EventTriggerBehavior EventName="Click">
+									<CloseWindowAction />
+								</EventTriggerBehavior>
+							</Interaction.Behaviors>
+						</Button>
+					</StackPanel>
 
 					<ToggleSwitch
 						Grid.Column="2"
@@ -65,9 +142,9 @@
 				</Grid>
 
 				<StackPanel
-					Margin="{OnPlatform Default='8.0,0.0,208.0,0.0',
+					Margin="{OnPlatform Default='8.0,0.0,142.0,0.0',
 					                    macOS='146.0,0.0,146.0,0.0',
-					                    Linux='208.0,0.0,208.0,0.0'}"
+					                    Linux='142.0,0.0,142.0,0.0'}"
 					HorizontalAlignment="{OnPlatform Default=Left,
 					                                 macOS=Center,
 					                                 Linux=Center}"

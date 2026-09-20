@@ -159,6 +159,9 @@ internal static class AppConverters
 		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
+
+	/// <inheritdoc cref="WindowStateToBoolConverter" />
+	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
 	#endregion
 
 	#region Helpers
