@@ -49,6 +49,9 @@
 
 	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
 
+	<!-- Icon inside the knob of a toggle switch, which is 20 across. -->
+	<system:Double x:Key="ToggleSwitchIconSize">12.0</system:Double>
+
 	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
 	<!--#endregion-->
 

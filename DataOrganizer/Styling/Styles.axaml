@@ -252,10 +252,39 @@
 	</Style>
 
 	<Style Selector="ToggleSwitch.CompactToggleSwitchStyle">
-		<Setter Property="VerticalAlignment" Value="Center" />
-		<Setter Property="OffContent" Value="" />
-		<Setter Property="OnContent" Value="" />
 		<Setter Property="RenderTransform" Value="scale(0.8)" />
 		<Setter Property="RenderTransformOrigin" Value="50%,50%" />
+	</Style>
+
+	<Style Selector="ToggleSwitch.PinToggleSwitchStyle">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<!-- Material paints the track black, which the dark theme swallows. -->
+		<Setter Property="assists:ToggleSwitchAssist.SwitchTrackOffBackground" Value="{StaticResource MaterialBodyBrush}" />
+
+		<!-- The knob is filled with the brush the icon would inherit, so both icons take the opposite one. -->
+		<Setter Property="OffContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource MaterialPaperBrush}"
+					Kind="PinOutline" />
+			</Template>
+		</Setter>
+
+		<Setter Property="OnContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource LightForegroundBrush}"
+					Kind="Pin" />
+			</Template>
+		</Setter>
+
+		<!-- Material hides the presenter of "OnContent" and never brings it back. -->
+		<Style Selector="^:checked /template/ ContentPresenter#OnContentPresenter">
+			<Setter Property="IsVisible" Value="True" />
+		</Style>
 	</Style>
 </Styles>

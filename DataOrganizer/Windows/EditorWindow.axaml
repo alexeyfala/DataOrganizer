@@ -96,7 +96,7 @@
 						Grid.Column="2"
 						Margin="4.0,0.0"
 						chrome:WindowDecorationProperties.ElementRole="User"
-						Classes="accent CompactToggleSwitchStyle"
+						Classes="accent PinToggleSwitchStyle CompactToggleSwitchStyle"
 						IsChecked="{Binding $parent[Window].Topmost, Mode=TwoWay}"
 						ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
 				</Grid>

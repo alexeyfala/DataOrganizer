@@ -63,7 +63,7 @@
 				<ToggleSwitch
 					Grid.Column="3"
 					Margin="12.0,0.0"
-					Classes="accent"
+					Classes="accent PinToggleSwitchStyle"
 					IsChecked="{Binding IsPopupFixed, Mode=TwoWay}"
 					ToolTip.Tip="{x:Static prop:Strings.Fix}">
 
