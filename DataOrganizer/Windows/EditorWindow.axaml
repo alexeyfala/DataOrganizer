@@ -47,19 +47,57 @@
 			Background="Transparent"
 			DockPanel.Dock="Top">
 
-			<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-				<!-- Space left free for the window buttons drawn at the left edge (macOS). -->
-				<Panel
-					Grid.Column="0"
-					Width="{OnPlatform Default=0.0,
-					                   macOS=78.0}" />
+			<Panel>
+				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+					<!-- Space left free for the window buttons drawn at the left edge (macOS). -->
+					<Panel
+						Grid.Column="0"
+						Width="{OnPlatform Default=0.0,
+						                   macOS=78.0}" />
 
-				<!-- Space left free for the window buttons drawn at the right edge (Windows, most Linux desktops). -->
-				<Panel
-					Grid.Column="3"
-					Width="{OnPlatform Default=140.0,
-					                   macOS=0.0}" />
-			</Grid>
+					<!-- Space left free for the window buttons drawn at the right edge (Windows, most Linux desktops). -->
+					<Panel
+						Grid.Column="3"
+						Width="{OnPlatform Default=140.0,
+						                   macOS=0.0}" />
+				</Grid>
+
+				<!--
+					Icon and title in the place each operating system gives them: at the left edge on Windows,
+					centered on macOS and Linux. The margins keep the text clear of the window buttons.
+				-->
+				<StackPanel
+					Margin="{OnPlatform Default='8,0,148,0',
+					                    macOS='86,0,86,0',
+					                    Linux='148,0,148,0'}"
+					HorizontalAlignment="{OnPlatform Default=Left,
+					                                 macOS=Center,
+					                                 Linux=Center}"
+					VerticalAlignment="Center"
+					Orientation="Horizontal"
+					Spacing="8.0">
+
+					<Image
+						Classes="AppImageStyle"
+						IsVisible="{OnPlatform Default=True,
+						                       macOS=False,
+						                       Linux=False}" />
+
+					<TextBlock
+						VerticalAlignment="Center"
+						FontFamily="{OnPlatform Default='Segoe UI',
+						                        macOS='SF Pro Text',
+						                        Linux='Cantarell'}"
+						FontSize="{OnPlatform Default=12.0,
+						                      macOS=13.0}"
+						FontWeight="{OnPlatform Default=Normal,
+						                        macOS=SemiBold,
+						                        Linux=Bold}"
+						Foreground="{StaticResource MaterialBodyBrush}"
+						Text="{Binding $parent[Window].Title, Mode=OneWay}"
+						TextTrimming="CharacterEllipsis" />
+				</StackPanel>
+			</Panel>
 		</Border>
 
 		<dialogHost:DialogHost
