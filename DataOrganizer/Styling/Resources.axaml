@@ -46,6 +46,14 @@
 
 	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
 
+	<!-- Height of the title bar drawn by the application, matching the default title bar of each operating system. -->
+	<OnPlatform
+		x:Key="TitleBarHeight"
+		x:TypeArguments="system:Double"
+		Default="32.0"
+		Linux="37.0"
+		macOS="28.0" />
+
 	<Thickness x:Key="ChromelessWindowBorderThickness">4.0</Thickness>
 
 	<Thickness x:Key="DialogIndent">8.0</Thickness>
