@@ -101,10 +101,12 @@
 						ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
 				</Grid>
 
+				<!-- Hit testing takes the topmost element only, so the title has to let the title bar role through. -->
 				<StackPanel
 					Margin="{StaticResource TitleBarContentMargin}"
 					HorizontalAlignment="{StaticResource TitleBarContentAlignment}"
 					VerticalAlignment="Center"
+					IsHitTestVisible="False"
 					Orientation="Horizontal"
 					Spacing="8.0">
 
