@@ -45,6 +45,7 @@
 			<Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
 			<Setter Property="Padding" Value="0.0" />
 			<Setter Property="CornerRadius" Value="0.0" />
+			<Setter Property="Cursor" Value="Arrow" />
 			<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 			<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 		</Style>
