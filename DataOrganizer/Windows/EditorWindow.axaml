@@ -37,10 +37,6 @@
 	</Window.Resources>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
-		<!--
-			The client area is extended into the decorations, so this strip takes the place of the title bar
-			of the operating system, which keeps drawing the window buttons over it.
-		-->
 		<Border
 			Height="{StaticResource TitleBarHeight}"
 			chrome:WindowDecorationProperties.ElementRole="TitleBar"
@@ -49,27 +45,29 @@
 
 			<Panel>
 				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-					<!-- Space left free for the window buttons drawn at the left edge (macOS). -->
 					<Panel
 						Grid.Column="0"
 						Width="{OnPlatform Default=0.0,
 						                   macOS=78.0}" />
 
-					<!-- Space left free for the window buttons drawn at the right edge (Windows, most Linux desktops). -->
 					<Panel
 						Grid.Column="3"
 						Width="{OnPlatform Default=140.0,
 						                   macOS=0.0}" />
+
+					<ToggleSwitch
+						Grid.Column="2"
+						Margin="4.0,0.0"
+						chrome:WindowDecorationProperties.ElementRole="User"
+						Classes="accent CompactToggleSwitchStyle"
+						IsChecked="{Binding $parent[Window].Topmost, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
 				</Grid>
 
-				<!--
-					Icon and title in the place each operating system gives them: at the left edge on Windows,
-					centered on macOS and Linux. The margins keep the text clear of the window buttons.
-				-->
 				<StackPanel
-					Margin="{OnPlatform Default='8,0,148,0',
-					                    macOS='86,0,86,0',
-					                    Linux='148,0,148,0'}"
+					Margin="{OnPlatform Default='8.0,0.0,208.0,0.0',
+					                    macOS='146.0,0.0,146.0,0.0',
+					                    Linux='208.0,0.0,208.0,0.0'}"
 					HorizontalAlignment="{OnPlatform Default=Left,
 					                                 macOS=Center,
 					                                 Linux=Center}"

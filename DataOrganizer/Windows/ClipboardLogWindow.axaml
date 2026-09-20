@@ -110,13 +110,8 @@
 					<ToggleSwitch
 						Grid.Column="3"
 						Margin="4.0,0.0"
-						VerticalAlignment="Center"
-						Classes="accent"
+						Classes="accent CompactToggleSwitchStyle"
 						IsChecked="{Binding KeepOpen, Mode=TwoWay}"
-						OffContent=""
-						OnContent=""
-						RenderTransform="scale(0.8)"
-						RenderTransformOrigin="50%,50%"
 						ToolTip.Tip="{x:Static prop:Strings.DoNotCloseAutomatically}" />
 
 					<Button

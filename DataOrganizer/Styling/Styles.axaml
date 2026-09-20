@@ -251,11 +251,11 @@
 		<Setter Property="Width" Value="16.0" />
 	</Style>
 
-	<!-- Drop shadow matching Avalonia's default drawn window decorations (BoxShadow + ShadowThickness=16). -->
-	<!--
-	<Style Selector="Border.WindowShadowStyle">
-		<Setter Property="Margin" Value="16.0" />
-		<Setter Property="BoxShadow" Value="0 8 32 0 #40000000" />
+	<Style Selector="ToggleSwitch.CompactToggleSwitchStyle">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="OffContent" Value="" />
+		<Setter Property="OnContent" Value="" />
+		<Setter Property="RenderTransform" Value="scale(0.8)" />
+		<Setter Property="RenderTransformOrigin" Value="50%,50%" />
 	</Style>
-	-->
 </Styles>
