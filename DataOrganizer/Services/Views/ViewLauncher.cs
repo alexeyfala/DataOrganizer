@@ -426,6 +426,7 @@ public class ViewLauncher : IViewLauncher
 			EditorWindowSettings settings = new()
 			{
 				IsReadOnly = window.ViewModel.IsReadOnly,
+				IsTopmost = window.Topmost,
 				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
 				Size = size,
 				WindowState = window.Placement.WindowState,

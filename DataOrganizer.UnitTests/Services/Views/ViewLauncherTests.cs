@@ -179,6 +179,7 @@ internal class ViewLauncherTests
 		EditorWindowSettings settings = new()
 		{
 			IsReadOnly = true,
+			IsTopmost = true,
 			NavigationColumnWidth = positiveValue - 20,
 			Size = new(positiveValue, positiveValue),
 			WindowState = WindowState.Normal,
@@ -611,12 +612,16 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>(
 			TypedParameter.From(fileSystem));
 
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		window.Topmost = true;
+
 		// Act
-		await sut.SaveEditorSettingsAsync(mock.Create<EditorWindow>());
+		await sut.SaveEditorSettingsAsync(window);
 
 		// Assert
 		fileSystem.Received(1).SerializeToJsonFile(
-			Arg.Any<EditorWindowSettings>(),
+			Arg.Is<EditorWindowSettings>(x => x.IsTopmost),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 
