@@ -126,7 +126,9 @@ internal sealed class WindowPlacementTracker
 	public static WindowPlacementTracker Attach(
 		Window window,
 		bool sizeTracked = true) => new(window, sizeTracked);
+	#endregion
 
+	#region Helpers
 	/// <summary>
 	/// Tracks the size of the last resize once the state of the window has settled.
 	/// </summary>
