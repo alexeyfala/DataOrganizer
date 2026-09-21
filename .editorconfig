@@ -13,6 +13,13 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline = true
 
+# Avalonia markup — keep tabs, the XAML formatter follows the editor and that defaults to spaces
+[*.{axaml,xaml}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+end_of_line = crlf
+
 # Markdown — keep the BOM so Windows tools do not guess the encoding
 [*.md]
 charset = utf-8-bom
