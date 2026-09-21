@@ -24,10 +24,15 @@
 	x:DataType="windows:EditorViewModel"
 	ExtendClientAreaTitleBarHeightHint="{StaticResource TitleBarHeight}"
 	ExtendClientAreaToDecorationsHint="True"
+	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
 	WindowDecorations="{OnPlatform Default=BorderOnly,
 	                               macOS=Full}"
 	mc:Ignorable="d">
+
+	<!--
+		The "Icon" property above feeds the task bar, Alt+Tab and the window list; the icon drawn in our own title bar never reaches them.
+	-->
 
 	<Window.Resources>
 		<ResourceDictionary>
