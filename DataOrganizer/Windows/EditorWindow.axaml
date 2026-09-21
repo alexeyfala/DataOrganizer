@@ -24,7 +24,6 @@
 	x:DataType="windows:EditorViewModel"
 	ExtendClientAreaTitleBarHeightHint="{StaticResource TitleBarHeight}"
 	ExtendClientAreaToDecorationsHint="True"
-	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
 	WindowDecorations="{OnPlatform Default=BorderOnly,
 	                               macOS=Full}"
@@ -108,7 +107,7 @@
 					Orientation="Horizontal"
 					Spacing="8.0">
 
-					<Image Classes="AppImageStyle" />
+					<Image Classes="AppImageStyle" RenderOptions.BitmapInterpolationMode="HighQuality" />
 
 					<TextBlock
 						VerticalAlignment="Center"
