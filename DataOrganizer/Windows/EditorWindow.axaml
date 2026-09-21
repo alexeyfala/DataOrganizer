@@ -105,6 +105,10 @@
 						ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
 				</Grid>
 
+				<!--
+					The caption takes no pointer input on purpose: a hit test reports the topmost element alone,
+					so a press has to reach the border underneath, the one carrying the title bar role.
+				-->
 				<DockPanel
 					Margin="{StaticResource TitleBarContentMargin}"
 					HorizontalAlignment="{StaticResource TitleBarContentAlignment}"
