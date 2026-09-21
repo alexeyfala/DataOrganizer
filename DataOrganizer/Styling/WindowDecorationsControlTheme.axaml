@@ -5,6 +5,10 @@
 
 	Windows grants the system menu only to a window with full decorations, while the border, the title
 	and the caption buttons of the original theme would land on top of the ones drawn by the application.
+
+	TODO: Avalonia 12.1.2 opens that menu from the task bar button, but not from a right click on the
+	title bar: its WindowImpl.CustomCaptionProc handles neither WM_NCRBUTTONUP nor WM_INITMENU.
+	Both arrived on master after the release, so check the next version of Avalonia and drop this note.
 -->
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
