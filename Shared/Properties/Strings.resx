@@ -709,13 +709,4 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>The file contents are missing</value>
   </data>
-  <data name="Minimize" xml:space="preserve">
-    <value>Minimize</value>
-  </data>
-  <data name="Maximize" xml:space="preserve">
-    <value>Maximize</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>Restore</value>
-  </data>
 </root>

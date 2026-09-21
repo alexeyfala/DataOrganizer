@@ -2,10 +2,9 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
-	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:prop="using:Shared.Properties">
+	xmlns:materialIcons="using:Material.Icons.Avalonia">
 
-	<!-- Caption buttons of the title bar drawn by the application. -->
+	<!--  Caption buttons of the title bar drawn by the application.  -->
 	<Style Selector="Button.CaptionButtonStyle,ToggleButton.CaptionButtonStyle">
 		<Setter Property="Width" Value="{StaticResource CaptionButtonWidth}" />
 		<Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
@@ -25,8 +24,6 @@
 					Kind="WindowMaximize" />
 			</Template>
 		</Setter>
-
-		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Maximize}" />
 	</Style>
 
 	<Style Selector="ToggleButton.CaptionButtonStyle:checked">
@@ -38,8 +35,6 @@
 					Kind="WindowRestore" />
 			</Template>
 		</Setter>
-
-		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Restore}" />
 	</Style>
 
 	<!--  The close button fills with red under the pointer, the way Windows paints its own.  -->

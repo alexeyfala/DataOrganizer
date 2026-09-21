@@ -70,8 +70,7 @@
 							chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
 							Classes="CaptionButtonStyle"
 							Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
-							                                        IconSize={StaticResource CaptionIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.Minimize}">
+							                                        IconSize={StaticResource CaptionIconSize}}">
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<WindowAction ActionType="Minimize" />
@@ -88,8 +87,7 @@
 							chrome:WindowDecorationProperties.ElementRole="CloseButton"
 							Classes="CaptionButtonStyle CloseCaptionButtonStyle"
 							Content="{materialIcons:MaterialIconExt Kind=WindowClose,
-							                                        IconSize={StaticResource CaptionIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.Close}">
+							                                        IconSize={StaticResource CaptionIconSize}}">
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<CloseWindowAction />
