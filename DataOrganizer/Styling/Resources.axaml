@@ -88,8 +88,8 @@
 	<OnPlatform
 		x:Key="TitleBarContentMargin"
 		x:TypeArguments="Thickness"
-		Default="8.0,0.0,142.0,0.0"
-		Linux="142.0,0.0,142.0,0.0"
+		Default="8.0,0.0,200.0,0.0"
+		Linux="200.0,0.0,200.0,0.0"
 		macOS="146.0,0.0,146.0,0.0" />
 
 	<OnPlatform
