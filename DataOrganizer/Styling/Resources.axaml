@@ -44,12 +44,12 @@
 
 	<system:Double x:Key="EntityKindIconSize">28.0</system:Double>
 
-	<!-- Height of a combo box inside a settings group box. -->
+	<!--  Height of a combo box inside a settings group box.  -->
 	<system:Double x:Key="SettingsComboBoxHeight">18.0</system:Double>
 
 	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
 
-	<!-- Icon inside the knob of a toggle switch, which is 20 across. -->
+	<!--  Icon inside the knob of a toggle switch, which is 20 across.  -->
 	<system:Double x:Key="ToggleSwitchIconSize">12.0</system:Double>
 
 	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
@@ -62,9 +62,9 @@
 	<!--#endregion-->
 
 	<!--#region Title Bar-->
-	<!-- The values below follow the title bar each operating system draws by default. -->
+	<!--  The values below follow the title bar each operating system draws by default.  -->
 
-	<!-- Caption buttons are drawn by the application everywhere except macOS, which keeps its own. -->
+	<!--  Caption buttons are drawn by the application everywhere except macOS, which keeps its own.  -->
 	<OnPlatform
 		x:Key="AreCaptionButtonsVisible"
 		x:TypeArguments="system:Boolean"
@@ -75,15 +75,8 @@
 
 	<system:Double x:Key="CaptionIconSize">14.0</system:Double>
 
-	<!-- Highlight of the close button, matching the one of Windows. -->
+	<!--  Highlight of the close button, matching the one of Windows.  -->
 	<Brush x:Key="CloseCaptionButtonBrush">#FFC42B1C</Brush>
-
-	<OnPlatform
-		x:Key="IsTitleBarIconVisible"
-		x:TypeArguments="system:Boolean"
-		Default="True"
-		Linux="False"
-		macOS="False" />
 
 	<OnPlatform
 		x:Key="TitleBarContentAlignment"
@@ -119,7 +112,7 @@
 		Linux="Bold"
 		macOS="SemiBold" />
 
-	<!-- Height of the title bar drawn by the application. -->
+	<!--  Height of the title bar drawn by the application.  -->
 	<OnPlatform
 		x:Key="TitleBarHeight"
 		x:TypeArguments="system:Double"
@@ -127,7 +120,7 @@
 		Linux="37.0"
 		macOS="28.0" />
 
-	<!-- Room the macOS traffic lights take on the left of the title bar. -->
+	<!--  Room the macOS traffic lights take on the left of the title bar.  -->
 	<OnPlatform
 		x:Key="TrafficLightsWidth"
 		x:TypeArguments="system:Double"
