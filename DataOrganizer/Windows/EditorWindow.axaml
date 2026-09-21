@@ -21,6 +21,8 @@
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
+	MinWidth="500.0"
+	MinHeight="400.0"
 	x:DataType="windows:EditorViewModel"
 	ExtendClientAreaTitleBarHeightHint="{StaticResource TitleBarHeight}"
 	ExtendClientAreaToDecorationsHint="True"
