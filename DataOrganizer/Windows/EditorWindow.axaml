@@ -29,7 +29,9 @@
 	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
 	WindowDecorations="{OnPlatform Default=BorderOnly,
+	                               Windows=Full,
 	                               macOS=Full}"
+	WindowDecorationsTheme="{StaticResource EmptyWindowDecorationsControlTheme}"
 	mc:Ignorable="d">
 
 	<!--
