@@ -62,6 +62,7 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="README.md" />
+    <File Path="Settings.XamlStyler" />
     <File Path="stryker-config.json" />
   </Folder>
   <Folder Name="/Solution Items/.config/">

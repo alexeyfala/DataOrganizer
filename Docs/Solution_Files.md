@@ -56,6 +56,7 @@
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — the single source of the version, the application names and the assembly metadata. **Edit:** before a release — raise the version.
   - 📄 [`README.md`](../README.md) — the repository front page: features, screenshots, requirements, building, licence. **Edit:** the features or the requirements changed.
   - ⚙️ [`stryker-config.json`](../stryker-config.json) — settings of the mutation test run: the project whose code is mutated, the test project that has to catch the mutations, the files taken in, and what is left out as unobservable (string literals, logging, `ConfigureAwait`). The run itself is `dotnet dotnet-stryker`, and its reports land in `StrykerOutput/`. **Edit:** another project or another set of files is put under the run.
+  - ⚙️ [`Settings.XamlStyler`](../Settings.XamlStyler) — indentation for the XAML Styler extension; without it the formatter follows Visual Studio and turns the tabs of the markup into spaces. **Edit:** the formatting conventions change.
 
 **Project files** — not part of the tree above.
 
