@@ -4,6 +4,16 @@
 	xmlns:icons="using:Material.Icons"
 	xmlns:system="using:System">
 
+	<!--#region Brushes-->
+	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
+
+	<Brush x:Key="FolderBrush">Peru</Brush>
+
+	<Brush x:Key="LightForegroundBrush">#FFFAFAFA</Brush>
+
+	<Brush x:Key="WarningBrush">OrangeRed</Brush>
+	<!--#endregion-->
+
 	<!--#region Icon Colors-->
 	<!--
 		The icon colors below are single values that keep at least a 3:1 contrast
@@ -21,32 +31,100 @@
 	<Brush x:Key="NoteBrush">#FFA1887F</Brush>
 	<!--#endregion-->
 
-	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
-
-	<Brush x:Key="FolderBrush">Peru</Brush>
-
-	<Brush x:Key="LightForegroundBrush">#FFFAFAFA</Brush>
-
-	<Brush x:Key="WarningBrush">OrangeRed</Brush>
-
+	<!--#region Icon Kinds-->
 	<icons:MaterialIconKind x:Key="DatasetIconKind">ViewSplitHorizontal</icons:MaterialIconKind>
 
 	<icons:MaterialIconKind x:Key="FileIconKind">FileOutline</icons:MaterialIconKind>
 
 	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
+	<!--#endregion-->
 
+	<!--#region Sizes-->
 	<system:Double x:Key="ElementSpacing">10.0</system:Double>
 
 	<system:Double x:Key="EntityKindIconSize">28.0</system:Double>
 
-	<!-- Height of a combo box inside a settings group box. -->
+	<!--  Height of a combo box inside a settings group box.  -->
 	<system:Double x:Key="SettingsComboBoxHeight">18.0</system:Double>
 
 	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
 
-	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
+	<!--  Icon inside the knob of a toggle switch, which is 20 across.  -->
+	<system:Double x:Key="ToggleSwitchIconSize">12.0</system:Double>
 
+	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
+	<!--#endregion-->
+
+	<!--#region Thicknesses-->
 	<Thickness x:Key="ChromelessWindowBorderThickness">4.0</Thickness>
 
 	<Thickness x:Key="DialogIndent">8.0</Thickness>
+	<!--#endregion-->
+
+	<!--#region Title Bar-->
+	<!--  The values below follow the title bar each operating system draws by default.  -->
+
+	<!--  Caption buttons are drawn by the application everywhere except macOS, which keeps its own.  -->
+	<OnPlatform
+		x:Key="AreCaptionButtonsVisible"
+		x:TypeArguments="system:Boolean"
+		Default="True"
+		macOS="False" />
+
+	<system:Double x:Key="CaptionButtonWidth">46.0</system:Double>
+
+	<system:Double x:Key="CaptionIconSize">14.0</system:Double>
+
+	<!--  Highlight of the close button, matching the one of Windows.  -->
+	<Brush x:Key="CloseCaptionButtonBrush">#FFC42B1C</Brush>
+
+	<OnPlatform
+		x:Key="TitleBarContentAlignment"
+		x:TypeArguments="HorizontalAlignment"
+		Default="Left"
+		Linux="Center"
+		macOS="Center" />
+
+	<OnPlatform
+		x:Key="TitleBarContentMargin"
+		x:TypeArguments="Thickness"
+		Default="8.0,0.0,200.0,0.0"
+		Linux="200.0,0.0,200.0,0.0"
+		macOS="146.0,0.0,146.0,0.0" />
+
+	<OnPlatform
+		x:Key="TitleBarFontFamily"
+		x:TypeArguments="FontFamily"
+		Default="Segoe UI"
+		Linux="Cantarell"
+		macOS="SF Pro Text" />
+
+	<OnPlatform
+		x:Key="TitleBarFontSize"
+		x:TypeArguments="system:Double"
+		Default="12.0"
+		macOS="13.0" />
+
+	<OnPlatform
+		x:Key="TitleBarFontWeight"
+		x:TypeArguments="FontWeight"
+		Default="Normal"
+		Linux="Bold"
+		macOS="SemiBold" />
+
+	<!--  Height of the title bar drawn by the application.  -->
+	<OnPlatform
+		x:Key="TitleBarHeight"
+		x:TypeArguments="system:Double"
+		Default="32.0"
+		Linux="37.0"
+		macOS="28.0" />
+
+	<!--  Room the macOS traffic lights take on the left of the title bar.  -->
+	<OnPlatform
+		x:Key="TrafficLightsWidth"
+		x:TypeArguments="system:Double"
+		Default="0.0"
+		macOS="78.0" />
+	<!--#endregion-->
 </ResourceDictionary>

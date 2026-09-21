@@ -1283,6 +1283,8 @@ public partial class EditorViewModel :
 			window.WindowState = windowSettings.WindowState;
 		}
 
+		window.Topmost = windowSettings.IsTopmost;
+
 		if (windowSettings.NavigationColumnWidth > default(double))
 		{
 			NavigationColumnWidth = new GridLength(windowSettings.NavigationColumnWidth);

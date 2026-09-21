@@ -1,5 +1,5 @@
-<!-- https://docs.avaloniaui.net/docs/basics/user-interface/styling/styles -->
-<!-- https://docs.avaloniaui.net/docs/guides/styles-and-resources/selectors -->
+<!--  https://docs.avaloniaui.net/docs/basics/user-interface/styling/styles  -->
+<!--  https://docs.avaloniaui.net/docs/guides/styles-and-resources/selectors  -->
 
 <Styles
 	xmlns="https://github.com/avaloniaui"
@@ -13,7 +13,7 @@
 		<!--<Setter Property="Background" Value="{StaticResource MaterialSelectionBrush}" />-->
 	</Style>
 
-	<!-- Compact header, chevron on the left (custom MaterialIcon.HeaderChevron in HeaderTemplate). -->
+	<!--  Compact header, chevron on the left (custom MaterialIcon.HeaderChevron in HeaderTemplate).  -->
 	<Style Selector="Expander.RecordsGroupExpanderStyle">
 		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 
@@ -26,7 +26,7 @@
 			<Setter Property="Padding" Value="0.0" />
 		</Style>
 
-		<!-- Hide Material's built-in chevron (the unnamed Border wrapping the chevron Path inside PART_RootBorder). -->
+		<!--  Hide Material's built-in chevron (the unnamed Border wrapping the chevron Path inside PART_RootBorder).  -->
 		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder Border">
 			<Setter Property="IsVisible" Value="False" />
 		</Style>
@@ -35,9 +35,7 @@
 			<Setter Property="RenderTransform" Value="rotate(0deg)" />
 			<Setter Property="Transitions">
 				<Transitions>
-					<TransformOperationsTransition
-						Property="RenderTransform"
-						Duration="0:0:0.2" />
+					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
 				</Transitions>
 			</Setter>
 		</Style>
@@ -54,7 +52,7 @@
 		<Setter Property="Width" Value="1.0" />
 	</Style>
 
-	<!-- https://docs.avaloniaui.net/docs/concepts/custom-itemspanel -->
+	<!--  https://docs.avaloniaui.net/docs/concepts/custom-itemspanel  -->
 	<Style Selector="ItemsControl.VirtualizedItemsControlStyle">
 		<Setter Property="ItemsPanel">
 			<Setter.Value>
@@ -161,7 +159,7 @@
 		<Setter Property="VerticalAlignment" Value="Bottom" />
 	</Style>
 
-	<!-- Supporting text of a snackbar message. Mirrors Material's MaterialSnackbarHostSupportingTextBlock metrics. -->
+	<!--  Supporting text of a snackbar message. Mirrors Material's MaterialSnackbarHostSupportingTextBlock metrics.  -->
 	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="MaxLines" Value="2" />
@@ -181,9 +179,7 @@
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid
-					ColumnDefinitions="Auto,*"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
 					<Border
 						Grid.Row="0"
 						Grid.Column="0"
@@ -191,9 +187,7 @@
 						Padding="5.0,0.0"
 						Background="{StaticResource MaterialPaperBrush}"
 						ZIndex="1">
-						<TextBlock
-							FontWeight="Bold"
-							Text="{TemplateBinding Header}" />
+						<TextBlock FontWeight="Bold" Text="{TemplateBinding Header}" />
 					</Border>
 
 					<Border
@@ -216,9 +210,7 @@
 	<Style Selector="HeaderedContentControl.GroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid
-					ColumnDefinitions="Auto,*"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"
@@ -251,11 +243,39 @@
 		<Setter Property="Width" Value="16.0" />
 	</Style>
 
-	<!-- Drop shadow matching Avalonia's default drawn window decorations (BoxShadow + ShadowThickness=16). -->
-	<!--
-	<Style Selector="Border.WindowShadowStyle">
-		<Setter Property="Margin" Value="16.0" />
-		<Setter Property="BoxShadow" Value="0 8 32 0 #40000000" />
+	<Style Selector="ToggleSwitch.CompactToggleSwitchStyle">
+		<Setter Property="assists:SelectionControlAssist.Size" Value="28.0" />
 	</Style>
-	-->
+
+	<Style Selector="ToggleSwitch.PinToggleSwitchStyle">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<!--  Material paints the track black, which the dark theme swallows.  -->
+		<Setter Property="assists:ToggleSwitchAssist.SwitchTrackOffBackground" Value="{StaticResource MaterialBodyBrush}" />
+
+		<!--  The knob is filled with the brush the icon would inherit, so both icons take the opposite one.  -->
+		<Setter Property="OffContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource MaterialPaperBrush}"
+					Kind="PinOutline" />
+			</Template>
+		</Setter>
+
+		<Setter Property="OnContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource LightForegroundBrush}"
+					Kind="Pin" />
+			</Template>
+		</Setter>
+
+		<!--  Material hides the presenter of "OnContent" and never brings it back.  -->
+		<Style Selector="^:checked /template/ ContentPresenter#OnContentPresenter">
+			<Setter Property="IsVisible" Value="True" />
+		</Style>
+	</Style>
 </Styles>

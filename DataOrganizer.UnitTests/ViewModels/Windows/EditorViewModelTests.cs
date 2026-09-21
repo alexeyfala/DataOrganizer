@@ -1609,6 +1609,7 @@ internal class EditorViewModelTests
 		EditorWindowSettings windowSettings = new()
 		{
 			IsReadOnly = true,
+			IsTopmost = true,
 			NavigationColumnWidth = positiveValue - 20,
 			Size = new(positiveValue, positiveValue),
 			WindowState = WindowState.Normal,
@@ -1654,6 +1655,10 @@ internal class EditorViewModelTests
 		window.WindowState
 			.Should()
 			.Be(windowSettings.WindowState);
+
+		window.Topmost
+			.Should()
+			.Be(windowSettings.IsTopmost);
 
 		sut.NavigationColumnWidth.Value
 			.Should()

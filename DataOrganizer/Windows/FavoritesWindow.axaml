@@ -39,18 +39,25 @@
 			<WindowDragMoveBehavior />
 		</Interaction.Behaviors>
 
-		<Grid
-			Background="{StaticResource MaterialPrimaryMidBrush}"
-			RowDefinitions="Auto,Auto,*">
+		<Grid Background="{StaticResource MaterialPrimaryMidBrush}" RowDefinitions="Auto,Auto,*">
 			<Grid
 				Grid.Row="0"
 				Margin="0.0,0.0,0.0,3.0"
 				Background="Transparent"
 				ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-				<Image
+				<!--
+					The grey of the logo is the Blue Grey swatch itself, so it takes a fill of its own over the primary color.
+				-->
+				<Border
 					Grid.Column="0"
 					Margin="4.0,0.0"
-					Classes="AppImageStyle" />
+					Padding="2.0"
+					VerticalAlignment="Center"
+					Background="{StaticResource MaterialPaperBrush}"
+					CornerRadius="{StaticResource CornerRadius}">
+
+					<Image Classes="AppImageStyle" RenderOptions.BitmapInterpolationMode="HighQuality" />
+				</Border>
 
 				<TextBlock
 					Grid.Column="1"
@@ -63,14 +70,12 @@
 				<ToggleSwitch
 					Grid.Column="3"
 					Margin="12.0,0.0"
-					Classes="accent"
+					Classes="accent PinToggleSwitchStyle"
 					IsChecked="{Binding IsPopupFixed, Mode=TwoWay}"
 					ToolTip.Tip="{x:Static prop:Strings.Fix}">
 
 					<Interaction.Behaviors>
-						<input:PointerHoverCommandBehavior
-							Command="{Binding ShowPopupOnHoverCommand}"
-							Delay="300" />
+						<input:PointerHoverCommandBehavior Command="{Binding ShowPopupOnHoverCommand}" Delay="300" />
 					</Interaction.Behaviors>
 				</ToggleSwitch>
 
@@ -92,9 +97,7 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="DoubleTapped">
-						<InvokeCommandAction
-							Command="{Binding ShowEditorCommand}"
-							CommandParameter="{Binding $parent[Window]}" />
+						<InvokeCommandAction Command="{Binding ShowEditorCommand}" CommandParameter="{Binding $parent[Window]}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 			</Grid>
@@ -110,16 +113,12 @@
 				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 				VerticalOffset="-2.0">
 
-				<Grid
-					ColumnDefinitions="Auto,*,Auto"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,*">
 
 					<Grid.Resources>
 						<system:Double x:Key="ThumbSize">4.0</system:Double>
 
-						<ControlTheme
-							x:Key="ThumbTheme"
-							TargetType="Thumb">
+						<ControlTheme x:Key="ThumbTheme" TargetType="Thumb">
 							<Setter Property="Template">
 								<ControlTemplate>
 									<Border
@@ -140,12 +139,8 @@
 						BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
 						BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
-						<Border
-							Background="{StaticResource MaterialPaperBrush}"
-							CornerRadius="{StaticResource CornerRadius}">
-							<dialogHost:DialogHost
-								dialogHost:DialogHostStyle.CornerRadius="6.0"
-								CloseOnClickAway="True">
+						<Border Background="{StaticResource MaterialPaperBrush}" CornerRadius="{StaticResource CornerRadius}">
+							<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
 									HostName="{Binding $self.Name}"
@@ -164,9 +159,7 @@
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>
-											<KeyBinding
-												Command="{Binding ClosePopupByEscCommand}"
-												Gesture="Escape" />
+											<KeyBinding Command="{Binding ClosePopupByEscCommand}" Gesture="Escape" />
 										</ContentControl.KeyBindings>
 									</ContentControl>
 								</materialControls:SnackbarHost>
@@ -182,9 +175,7 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior
-								Width="{Binding PopupWidth}"
-								Edge="West" />
+							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth}" Edge="West" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -212,9 +203,7 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior
-								Height="{Binding PopupHeight}"
-								Edge="North" />
+							<windowBehaviors:ThumbResizeBehavior Height="{Binding PopupHeight}" Edge="North" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -242,9 +231,7 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior
-								Width="{Binding PopupWidth}"
-								Edge="East" />
+							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth}" Edge="East" />
 						</Interaction.Behaviors>
 					</Thumb>
 				</Grid>
@@ -292,9 +279,7 @@
 							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-						<TextBlock
-							Classes="CountTextBlockStyle"
-							Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
+						<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
 					</Panel>
 				</StackPanel>
 			</Border>

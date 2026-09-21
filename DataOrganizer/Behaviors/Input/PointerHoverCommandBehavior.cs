@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -13,6 +15,13 @@ namespace DataOrganizer.Behaviors.Input;
 /// </summary>
 internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 {
+	#region Data
+	/// <summary>
+	/// Cancels the delay of the pointer resting over <see cref="Behavior{T}.AssociatedObject" />.
+	/// </summary>
+	private CancellationTokenSource? _delay;
+	#endregion
+
 	#region Properties
 	/// <summary>
 	/// Command to execute on hover.
@@ -63,7 +72,24 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	/// <summary>
 	/// <see cref="InputElement.PointerEntered" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
-	private void AssociatedObject_PointerEntered(object? sender, PointerEventArgs e) => _ = ExecuteAfterDelayAsync();
+	private void AssociatedObject_PointerEntered(object? sender, PointerEventArgs e)
+	{
+		CancelDelay();
+
+		_delay = new CancellationTokenSource();
+
+		_ = ExecuteAfterDelayAsync(_delay.Token);
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerExited" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
+	/// </summary>
+	private void AssociatedObject_PointerExited(object? sender, PointerEventArgs e) => CancelDelay();
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressed" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
+	/// </summary>
+	private void AssociatedObject_PointerPressed(object? sender, PointerPressedEventArgs e) => CancelDelay();
 	#endregion
 
 	#region Methods
@@ -78,6 +104,10 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 		}
 
 		AssociatedObject.PointerEntered += AssociatedObject_PointerEntered;
+
+		AssociatedObject.PointerExited += AssociatedObject_PointerExited;
+
+		AssociatedObject.PointerPressed += AssociatedObject_PointerPressed;
 	}
 
 	/// <inheritdoc />
@@ -85,25 +115,55 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	{
 		base.OnDetaching();
 
+		CancelDelay();
+
 		if (AssociatedObject is null)
 		{
 			return;
 		}
 
 		AssociatedObject.PointerEntered -= AssociatedObject_PointerEntered;
+
+		AssociatedObject.PointerExited -= AssociatedObject_PointerExited;
+
+		AssociatedObject.PointerPressed -= AssociatedObject_PointerPressed;
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
+	/// Drops the pending delay, leaving the command unexecuted.
+	/// </summary>
+	private void CancelDelay()
+	{
+		if (_delay is not { } source)
+		{
+			return;
+		}
+
+		_delay = null;
+
+		source.Cancel();
+
+		source.Dispose();
+	}
+
+	/// <summary>
 	/// Executes <see cref="Command" /> when the pointer is still over <see cref="Behavior{T}.AssociatedObject" />
 	/// after <see cref="Delay" />.
 	/// </summary>
-	private async Task ExecuteAfterDelayAsync()
+	private async Task ExecuteAfterDelayAsync(CancellationToken token)
 	{
-		await Task
-			.Delay(Delay)
-			.ConfigureAwait(true);
+		try
+		{
+			await Task
+				.Delay(Delay, token)
+				.ConfigureAwait(true);
+		}
+		catch (OperationCanceledException)
+		{
+			return;
+		}
 
 		if (AssociatedObject is not { IsPointerOver: true } || Command is not { } command)
 		{

@@ -90,6 +90,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			return;
 		}
 
+		// A popup opened unfixed holds a light-dismiss overlay that is released only on close, and the
+		// overlay stops dismissing the popup once it is fixed, swallowing every press over the window.
+		IsPopupOpen = false;
+
 		// The RestorePopupContent method must be executed in DispatcherPriority.Background
 		// otherwise the UI will freeze.
 		_dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);

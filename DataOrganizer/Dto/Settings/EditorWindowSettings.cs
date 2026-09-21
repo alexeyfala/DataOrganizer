@@ -13,6 +13,11 @@ public sealed class EditorWindowSettings : PositionSizeSettings
 	/// <inheritdoc cref="EditorViewModel.IsReadOnly" />
 	public required bool IsReadOnly { get; init; }
 
+	/// <summary>
+	/// <c>True</c> when the window stays above the windows of the other applications.
+	/// </summary>
+	public required bool IsTopmost { get; init; }
+
 	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
 	public required double NavigationColumnWidth { get; init; }
 
