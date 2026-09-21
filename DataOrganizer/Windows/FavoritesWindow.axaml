@@ -45,11 +45,19 @@
 				Margin="0.0,0.0,0.0,3.0"
 				Background="Transparent"
 				ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-				<Image
+				<!--
+					The grey of the logo is the Blue Grey swatch itself, so it takes a fill of its own over the primary color.
+				-->
+				<Border
 					Grid.Column="0"
 					Margin="4.0,0.0"
-					Classes="AppImageStyle"
-					RenderOptions.BitmapInterpolationMode="HighQuality" />
+					Padding="2.0"
+					VerticalAlignment="Center"
+					Background="{StaticResource MaterialPaperBrush}"
+					CornerRadius="{StaticResource CornerRadius}">
+
+					<Image Classes="AppImageStyle" RenderOptions.BitmapInterpolationMode="HighQuality" />
+				</Border>
 
 				<TextBlock
 					Grid.Column="1"
