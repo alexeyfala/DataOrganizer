@@ -1,6 +1,7 @@
 <Styles
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties">
 
@@ -41,7 +42,12 @@
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Restore}" />
 	</Style>
 
+	<!--  The close button fills with red under the pointer, the way Windows paints its own.  -->
 	<Style Selector="Button.CloseCaptionButtonStyle:pointerover">
-		<Setter Property="Foreground" Value="{StaticResource CloseCaptionButtonBrush}" />
+		<Setter Property="Background" Value="{StaticResource CloseCaptionButtonBrush}" />
+		<Setter Property="Foreground" Value="{StaticResource LightForegroundBrush}" />
+
+		<!--  Material lays its own hover tint over the background, so it takes the same brush.  -->
+		<Setter Property="assists:ButtonAssist.HoverColor" Value="{StaticResource CloseCaptionButtonBrush}" />
 	</Style>
 </Styles>
