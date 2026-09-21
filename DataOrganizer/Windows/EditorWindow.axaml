@@ -107,6 +107,7 @@
 					Margin="{StaticResource TitleBarContentMargin}"
 					HorizontalAlignment="{StaticResource TitleBarContentAlignment}"
 					VerticalAlignment="Center"
+					ClipToBounds="True"
 					IsHitTestVisible="False">
 
 					<Image
