@@ -44,7 +44,15 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <c>True</c> when the contents could not be obtained, which closes the editor for changes
 	/// so that nothing is written over what was not read.
 	/// </summary>
-	public bool IsContentUnavailable { get; protected set; }
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+	public partial bool IsContentUnavailable { get; protected set; }
+
+	/// <summary>
+	/// <c>True</c> when the contents can be edited: the read-only mode is off,
+	/// and the contents are loaded and readable.
+	/// </summary>
+	public bool IsEditingEnabled => !IsReadOnly && IsInitialized && !IsContentUnavailable;
 
 	/// <summary>
 	/// <c>True</c> when the file contents are encrypted with a session key.
@@ -54,12 +62,15 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// <c>True</c> when the editor has been initialized at least once.
 	/// </summary>
-	public bool IsInitialized { get; protected set; }
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
+	public partial bool IsInitialized { get; protected set; }
 
 	/// <summary>
-	/// <c>True</c> when the contents cannot be edited.
+	/// <c>True</c> when the read-only mode is on.
 	/// </summary>
 	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(IsEditingEnabled))]
 	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>

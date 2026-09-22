@@ -5,6 +5,8 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -13,6 +15,7 @@ using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
@@ -52,6 +55,10 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsContentUnavailable
 			.Should()
 			.BeTrue();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -127,6 +134,115 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.FontSize
 			.Should()
 			.Be(fontSize);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents read successfully open the document for editing.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Opens_The_Document_For_Editing()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		TextEditor editor = Substitute.For<TextEditor>();
+
+		// Act
+		await sut.EditorLoaded(editor);
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush that arrives while the contents
+	/// are loading queues nothing, so the still empty editor never overwrites the file.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_While_Loading_Writes_Nothing()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		TaskCompletionSource<ValidatedContents> read = new();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(read.Task);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		TextEditor editor = Substitute.For<TextEditor>();
+
+		Task loading = sut.EditorLoaded(editor);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		read.SetResult(new()
+		{
+			Contents = RandomValues.CreateBytes(10),
+			IsValid = true
+		});
+
+		await loading;
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
 	}
 	#endregion
 }

@@ -162,7 +162,8 @@ internal static class TextEditorOperations
 	}
 
 	/// <summary>
-	/// Subscribes to <see cref="InputElement.PointerWheelChangedEvent" /> of <see cref="TextEditor" />.
+	/// Subscribes to <see cref="InputElement.PointerWheelChangedEvent" /> of <see cref="TextEditor" />
+	/// for the lifetime of the editor.
 	/// </summary>
 	public static void SubscribePointerWheelChanged(
 		TextEditor editor,
@@ -173,19 +174,6 @@ internal static class TextEditorOperations
 			InputElement.PointerWheelChangedEvent,
 			(_, e) => Editor_PointerWheelChanged(e, currentValue, expression),
 			RoutingStrategies.Tunnel);
-	}
-
-	/// <summary>
-	/// Unsubscribes from <see cref="InputElement.PointerWheelChangedEvent" /> of <see cref="TextEditor" />.
-	/// </summary>
-	public static void UnsubscribePointerWheelChanged(
-		TextEditor editor,
-		Func<double> currentValue,
-		Expression<Func<double>> expression)
-	{
-		editor.RemoveHandler(
-			InputElement.PointerWheelChangedEvent,
-			(_, e) => Editor_PointerWheelChanged(e, currentValue, expression));
 	}
 	#endregion
 

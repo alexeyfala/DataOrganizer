@@ -76,11 +76,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		bool initialIsReadOnly = IsReadOnly;
-
-		// At the time of initialization, prohibit making changes.
-		editor.IsReadOnly = true;
-
 		_editor = editor;
 
 		try
@@ -137,6 +132,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			try
 			{
+				// The editor never outlives this view model, so the handler is never removed.
 				TextEditorOperations.SubscribePointerWheelChanged(
 					editor,
 					() => FontSize,
@@ -195,27 +191,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		finally
 		{
-			editor.IsReadOnly = initialIsReadOnly;
-
 			IsInitialized = true;
 		}
-	}
-
-	/// <summary>
-	/// Handles the <see cref="Visual.DetachedFromVisualTree" /> event of <see cref="TextEditor" />.
-	/// </summary>
-	[RelayCommand]
-	private void DetachedFromVisualTree(TextEditor? editor)
-	{
-		if (editor is null)
-		{
-			return;
-		}
-
-		TextEditorOperations.UnsubscribePointerWheelChanged(
-			editor,
-			() => FontSize,
-			() => FontSize);
 	}
 	#endregion
 
@@ -348,7 +325,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		if (IsContentUnavailable || IsReadOnly)
+		// While the contents are loading the editor is still empty, and queuing its text would overwrite the file.
+		if (!IsEditingEnabled)
 		{
 			return true;
 		}
