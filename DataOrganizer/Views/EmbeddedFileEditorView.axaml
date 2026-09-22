@@ -85,6 +85,7 @@
 		<AvaloniaEdit:TextEditor
 			x:Name="Editor"
 			Grid.Row="1"
+			Document="{Binding Document, Mode=OneWay}"
 			Focusable="True"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 			FontSize="{Binding FontSize, Mode=OneWay}"

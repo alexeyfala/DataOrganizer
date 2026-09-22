@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -35,6 +36,12 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
+	/// <summary>
+	/// The file contents as an editable document.
+	/// </summary>
+	[ObservableProperty]
+	public partial TextDocument Document { get; private set; } = new();
+
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
@@ -124,9 +131,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			editor.Text = TextDefaults
+			// A new document starts with an empty undo stack, so the loaded text cannot be undone.
+			TextDocument document = new(TextDefaults
 				.Encoding
-				.GetString(output);
+				.GetString(output));
+
+			Document = document;
 
 			_lastSavedContentHash = SHA256.HashData(output);
 
@@ -145,10 +155,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
 				Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => editor.TextChanged += x,
-					x => editor.TextChanged -= x)
+					x => document.TextChanged += x,
+					x => document.TextChanged -= x)
 					.SetDelay(delay)
-					.Subscribe(Editor_TextChanged)
+					.Subscribe(Document_TextChanged)
 					.DisposeWith(_disposables);
 
 				Observable.FromEventPattern<EventHandler, EventArgs>(
@@ -157,14 +167,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					.SetDelay(delay)
 					.Subscribe(Caret_PositionChanged)
 					.DisposeWith(_disposables);
-
-				//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
-				//Observable.FromEventPattern<EventHandler, EventArgs>(
-				//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
-				//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
-				//	.SetDelay(delay, false)
-				//	.Subscribe(Editor_PropertyChanged)
-				//	.DisposeWith(_disposables);
 
 				_exceptionHandler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
 
@@ -278,18 +280,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// <see cref="TextEditor.TextChanged" /> event handler.
+	/// <see cref="TextDocument.TextChanged" /> event handler.
 	/// </summary>
-	private void Editor_TextChanged(EventPattern<EventArgs> e)
+	private void Document_TextChanged(EventPattern<EventArgs> e)
 	{
 		if (IsContentUnavailable
 			|| IsReadOnly
-			|| e.Sender is not TextEditor editor)
+			|| e.Sender is not TextDocument document)
 		{
 			return;
 		}
 
-		EnqueueSave(editor);
+		EnqueueSave(document);
 	}
 	#endregion
 
@@ -325,17 +327,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		// While the contents are loading the editor is still empty, and queuing its text would overwrite the file.
+		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
 		if (!IsEditingEnabled)
 		{
 			return true;
 		}
 
 		// The text change handler is debounced, so the newest text may not be queued yet.
-		if (_editor is { } editor)
-		{
-			EnqueueSave(editor);
-		}
+		EnqueueSave(Document);
 
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
@@ -386,13 +385,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Queues the current text of the editor for saving.
+	/// Queues the current text of the document for saving.
 	/// </summary>
-	private void EnqueueSave(TextEditor editor)
+	private void EnqueueSave(TextDocument document)
 	{
 		byte[] contents = TextDefaults
 			.Encoding
-			.GetBytes(editor.Text);
+			.GetBytes(document.Text);
 
 		if (_saveChannel
 			.Writer

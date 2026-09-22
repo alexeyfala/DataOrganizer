@@ -4,14 +4,17 @@ using Avalonia.Headless.NUnit;
 using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
+using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
@@ -62,10 +65,51 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored editor state (font size, word wrap).
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the loaded text is not an edit, so there is nothing to undo.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task EditorLoaded_Loads_Text_To_Editor()
+	public async Task EditorLoaded_Leaves_Nothing_To_Undo()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		TextEditor editor = Substitute.For<TextEditor>();
+
+		// Act
+		await sut.EditorLoaded(editor);
+
+		// Assert
+		sut.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the document and applies the stored editor state (font size, word wrap).
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Loads_Text_Into_Document()
 	{
 		// Arrange
 		byte[] contents = RandomValues.CreateBytes(10);
@@ -123,7 +167,7 @@ internal class EmbeddedFileEditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		editor.Text
+		sut.Document.Text
 			.Should()
 			.Be(TextDefaults.Encoding.GetString(contents));
 
@@ -174,6 +218,83 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsEditingEnabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush saves the document text as it is,
+	/// including an edit the text change handler has not queued yet.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Saves_The_Latest_Document_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		TextEditor editor = Substitute.For<TextEditor>();
+
+		await sut.EditorLoaded(editor);
+
+		sut.Document.Text = text;
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		saved
+			.Should()
+			.Equal(TextDefaults.Encoding.GetBytes(text));
+
+		responses
+			.Should()
+			.Equal(true);
 	}
 
 	/// <summary>
