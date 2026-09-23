@@ -165,6 +165,34 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditor.DocumentFontSize" />: a spin of the font size spinner changes the size by one step.
+	/// </summary>
+	[AvaloniaTest]
+	public void DocumentFontSize_Changes_By_One_Step_Per_Spin()
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			DocumentFontSize = 14.0
+		};
+
+		Show(sut);
+
+		ButtonSpinner spinner = sut
+			.GetVisualDescendants()
+			.OfType<ButtonSpinner>()
+			.Single();
+
+		// Act
+		spinner.RaiseEvent(new SpinEventArgs(Spinner.SpinEvent, SpinDirection.Increase));
+
+		// Assert
+		sut.DocumentFontSize
+			.Should()
+			.Be(14.5);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditor.IsReadOnly" />: the read-only mode reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -231,34 +259,6 @@ internal class DocumentEditorTests
 		GetScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditor.SpinCommand" />: the font size changes by a step and stays between the limits.
-	/// </summary>
-	[AvaloniaTest]
-	[TestCase(14.0, SpinDirection.Increase, 14.5)]
-	[TestCase(14.0, SpinDirection.Decrease, 13.5)]
-	[TestCase(64.0, SpinDirection.Increase, 64.0)]
-	[TestCase(6.0, SpinDirection.Decrease, 6.0)]
-	public void SpinCommand_Changes_The_Font_Size_Within_Limits(
-		double fontSize,
-		SpinDirection direction,
-		double expected)
-	{
-		// Arrange
-		DocumentEditor sut = new()
-		{
-			DocumentFontSize = fontSize
-		};
-
-		// Act
-		sut.SpinCommand.Execute(new(Spinner.SpinEvent, direction));
-
-		// Assert
-		sut.DocumentFontSize
-			.Should()
-			.Be(expected);
 	}
 
 	/// <summary>

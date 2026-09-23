@@ -7,10 +7,8 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
-using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using System;
 using System.Reactive.Linq;
 
@@ -124,26 +122,6 @@ internal sealed partial class DocumentEditor : UserControl
 			defaultBindingMode: BindingMode.TwoWay);
 	#endregion
 
-	#region Commands
-	/// <inheritdoc cref="TextEditorOperations.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorOperations.Copy, TextEditorOperations.CanCopy);
-
-	/// <inheritdoc cref="TextEditorOperations.Find" />
-	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorOperations.Find);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToEnd" />
-	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorOperations.ScrollToEnd);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToTop" />
-	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorOperations.ScrollToTop);
-
-	/// <inheritdoc cref="TextEditorOperations.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorOperations.SelectAll, TextEditorOperations.CanSelectAll);
-
-	/// <inheritdoc cref="TextEditorOperations.Spin" />
-	public RelayCommand<SpinEventArgs> SpinCommand { get; }
-	#endregion
-
 	#region Data
 	/// <summary>
 	/// Name of the scroll viewer in the template of <see cref="TextEditor" />.
@@ -176,16 +154,7 @@ internal sealed partial class DocumentEditor : UserControl
 	{
 		InitializeComponent();
 
-		ApplyEditorSettings(Editor);
-
-		SpinCommand = new(e => TextEditorOperations.Spin(e, DocumentFontSize, () => DocumentFontSize));
-
 		// The editor never outlives this control, so none of the handlers below is ever removed.
-		TextEditorOperations.SubscribePointerWheelChanged(
-			Editor,
-			() => DocumentFontSize,
-			() => DocumentFontSize);
-
 		Editor.TemplateApplied += Editor_TemplateApplied;
 
 		TextArea area = Editor.TextArea;
@@ -291,24 +260,6 @@ internal sealed partial class DocumentEditor : UserControl
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Applies settings to <see cref="TextEditor" />.
-	/// </summary>
-	private static void ApplyEditorSettings(TextEditor editor)
-	{
-		editor
-			.Options
-			.HighlightCurrentLine = true;
-
-		editor
-			.Options
-			.EnableEmailHyperlinks = false;
-
-		editor
-			.Options
-			.AllowScrollBelowDocument = false;
-	}
-
 	/// <summary>
 	/// Applies the pending view state to the laid out document.
 	/// </summary>

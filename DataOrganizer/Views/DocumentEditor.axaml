@@ -2,7 +2,7 @@
 	x:Class="DataOrganizer.Views.DocumentEditor"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:AvaloniaEdit="using:AvaloniaEdit"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -40,16 +40,14 @@
 
 				<Button
 					Classes="primary"
-					Command="{Binding ScrollToTopCommand}"
-					CommandParameter="{Binding #Editor}"
+					Command="{Binding #Editor.ScrollToTopCommand}"
 					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
 
 				<Button
 					Classes="primary"
-					Command="{Binding ScrollToEndCommand}"
-					CommandParameter="{Binding #Editor}"
+					Command="{Binding #Editor.ScrollToEndCommand}"
 					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
@@ -66,7 +64,9 @@
 
 					<Interaction.Behaviors>
 						<EventTriggerBehavior EventName="Spin">
-							<InvokeCommandAction Command="{Binding SpinCommand}" PassEventArgsToCommand="True" />
+							<!--<InvokeCommandAction Command="{Binding SpinCommand}" PassEventArgsToCommand="True" />-->
+
+							<InvokeCommandAction Command="{Binding #Editor.SpinCommand}" PassEventArgsToCommand="True" />
 						</EventTriggerBehavior>
 					</Interaction.Behaviors>
 
@@ -80,30 +80,25 @@
 			<ContentPresenter Content="{Binding #View.ToolBarContent}" />
 		</StackPanel>
 
-		<!--  https://github.com/AvaloniaUI/AvaloniaEdit  -->
-		<AvaloniaEdit:TextEditor
+		<controls:DocumentTextEditor
 			x:Name="Editor"
 			Grid.Row="1"
 			DataContext="{Binding #View}"
 			Document="{Binding Document, Mode=OneWay}"
 			Focusable="True"
-			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-			FontSize="{Binding DocumentFontSize, Mode=OneWay}"
+			FontSize="{Binding DocumentFontSize, Mode=TwoWay}"
 			Foreground="{StaticResource MaterialBodyBrush}"
-			HorizontalScrollBarVisibility="Auto"
 			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
-			ShowLineNumbers="True"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
 				<styling:FluentThemeBehavior />
 			</Interaction.Behaviors>
 
-			<AvaloniaEdit:TextEditor.ContextMenu>
+			<controls:DocumentTextEditor.ContextMenu>
 				<ContextMenu Padding="4.0,0.0">
 					<MenuItem
-						Command="{Binding CopyCommand}"
-						CommandParameter="{Binding #Editor.TextArea}"
+						Command="{Binding #Editor.CopyCommand}"
 						Header="{x:Static prop:Strings.Copy}"
 						InputGesture="{OnPlatform Default='Ctrl+C',
 						                          macOS='⌘+C'}" />
@@ -111,8 +106,7 @@
 					<Separator />
 
 					<MenuItem
-						Command="{Binding SelectAllCommand}"
-						CommandParameter="{Binding #Editor}"
+						Command="{Binding #Editor.SelectAllCommand}"
 						Header="{x:Static prop:Strings.SelectAll}"
 						InputGesture="{OnPlatform Default='Ctrl+A',
 						                          macOS='⌘+A'}" />
@@ -120,13 +114,12 @@
 					<Separator />
 
 					<MenuItem
-						Command="{Binding FindCommand}"
-						CommandParameter="{Binding #Editor.TextArea}"
+						Command="{Binding #Editor.FindCommand}"
 						Header="{x:Static prop:Strings.Find}"
 						InputGesture="{OnPlatform Default='Ctrl+F',
 						                          macOS='⌘+F'}" />
 				</ContextMenu>
-			</AvaloniaEdit:TextEditor.ContextMenu>
-		</AvaloniaEdit:TextEditor>
+			</controls:DocumentTextEditor.ContextMenu>
+		</controls:DocumentTextEditor>
 	</Grid>
 </UserControl>
