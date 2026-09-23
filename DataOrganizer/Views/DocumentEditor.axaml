@@ -8,9 +8,12 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
-	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
 	mc:Ignorable="d">
 
+	<!--
+		Bound by name, not by $parent: an ancestor binding is lost while the control is detached, which resets the editor.
+	-->
 	<Grid RowDefinitions="Auto,*">
 		<StackPanel Grid.Row="0" Orientation="Horizontal">
 			<StackPanel.Styles>
@@ -25,7 +28,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<StackPanel DataContext="{Binding $parent[views:DocumentEditor]}" Orientation="Horizontal">
+			<StackPanel DataContext="{Binding #View}" Orientation="Horizontal">
 				<ToggleButton
 					Classes="primary"
 					Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
@@ -74,14 +77,14 @@
 			</StackPanel>
 
 			<!--  The slot keeps the inherited data context for the buttons placed in it.  -->
-			<ContentPresenter Content="{Binding $parent[views:DocumentEditor].ToolBarContent}" />
+			<ContentPresenter Content="{Binding #View.ToolBarContent}" />
 		</StackPanel>
 
 		<!--  https://github.com/AvaloniaUI/AvaloniaEdit  -->
 		<AvaloniaEdit:TextEditor
 			x:Name="Editor"
 			Grid.Row="1"
-			DataContext="{Binding $parent[views:DocumentEditor]}"
+			DataContext="{Binding #View}"
 			Document="{Binding Document, Mode=OneWay}"
 			Focusable="True"
 			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"

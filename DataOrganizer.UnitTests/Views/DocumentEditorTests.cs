@@ -186,6 +186,54 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditor" />: detaching the control and attaching it again, as a tab switch does,
+	/// keeps the selection and the scroll position.
+	/// </summary>
+	[AvaloniaTest]
+	public void Keeps_The_View_When_Attached_Again()
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Window window = Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		editor.Select(20, 4);
+
+		Vector offset = new(0.0, 500.0);
+
+		GetScrollViewer(sut).Offset = offset;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		window.Content = sut;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.SelectionStart
+			.Should()
+			.Be(20);
+
+		editor.SelectionLength
+			.Should()
+			.Be(4);
+
+		GetScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditor.SpinCommand" />: the font size changes by a step and stays between the limits.
 	/// </summary>
 	[AvaloniaTest]
