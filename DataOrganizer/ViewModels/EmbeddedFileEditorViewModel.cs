@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using AvaloniaEdit;
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -46,44 +44,28 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
+	/// <summary>
+	/// Caret, selection and scroll position of <see cref="Document" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial DocumentViewState? ViewState { get; set; }
+
 	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
 	public partial bool WordWrap { get; set; }
 	#endregion
 
-	#region Commands
-	/// <inheritdoc cref="TextEditorOperations.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorOperations.Copy, TextEditorOperations.CanCopy);
-
-	/// <inheritdoc cref="TextEditorOperations.Find" />
-	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorOperations.Find);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToEnd" />
-	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorOperations.ScrollToEnd);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToTop" />
-	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorOperations.ScrollToTop);
-
-	/// <inheritdoc cref="TextEditorOperations.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorOperations.SelectAll, TextEditorOperations.CanSelectAll);
-
-	/// <inheritdoc cref="TextEditorOperations.Spin" />
-	public RelayCommand<SpinEventArgs> SpinCommand { get; }
-	#endregion
-
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="TextEditor" />.
+	/// Handles the <see cref="Control.Loaded" /> event of the editor.
 	/// </summary>
 	[RelayCommand]
-	internal async Task EditorLoaded(TextEditor? editor)
+	internal async Task EditorLoaded()
 	{
-		if (IsInitialized || editor is null)
+		if (IsInitialized)
 		{
 			return;
 		}
-
-		_editor = editor;
 
 		try
 		{
@@ -142,15 +124,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			try
 			{
-				// The editor never outlives this view model, so the handler is never removed.
-				TextEditorOperations.SubscribePointerWheelChanged(
-					editor,
-					() => FontSize,
-					() => FontSize);
-
-				ApplyEditorSettings(editor);
-
-				await InitializeEditorStateAsync(editor).ConfigureAwait(true);
+				await InitializeEditorStateAsync().ConfigureAwait(true);
 
 				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
@@ -161,22 +135,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					.Subscribe(Document_TextChanged)
 					.DisposeWith(_disposables);
 
-				Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => editor.TextArea.Caret.PositionChanged += x,
-					x => editor.TextArea.Caret.PositionChanged -= x)
-					.SetDelay(delay)
-					.Subscribe(Caret_PositionChanged)
-					.DisposeWith(_disposables);
-
 				_exceptionHandler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
 
 				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-
-				await Task
-					.Delay(100)
-					.ConfigureAwait(true);
-
-				editor.Focus();
 			}
 			finally
 			{
@@ -213,11 +174,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		SingleReader = true,
 		SingleWriter = true
 	});
-
-	/// <summary>
-	/// Reference to <see cref="TextEditor" />.
-	/// </summary>
-	private TextEditor? _editor;
 
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
@@ -257,28 +213,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			exceptionHandler)
 	{
 		_dbFailureReporter = dbFailureReporter;
-
-		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
 
 	#region Event Handlers
-	/// <summary>
-	/// <see cref="Caret.PositionChanged" /> event handler.
-	/// </summary>
-	private void Caret_PositionChanged(EventPattern<EventArgs> e)
-	{
-		lock (_mutex)
-		{
-			if (IsContentUnavailable)
-			{
-				return;
-			}
-
-			_exceptionHandler.Watch(TrySaveEditorStateAsync());
-		}
-	}
-
 	/// <summary>
 	/// <see cref="TextDocument.TextChanged" /> event handler.
 	/// </summary>
@@ -300,6 +238,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Called when <see cref="FontSize" /> changes.
 	/// </summary>
 	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
+
+	/// <summary>
+	/// Called when <see cref="ViewState" /> changes.
+	/// </summary>
+	partial void OnViewStateChanged(DocumentViewState? value) => TrySavePersistentEditorState();
 
 	/// <summary>
 	/// Called when <see cref="WordWrap" /> changes.
@@ -346,41 +289,20 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Helpers
 	/// <summary>
-	/// Applies settings to <see cref="TextEditor" />.
-	/// </summary>
-	private static void ApplyEditorSettings(TextEditor editor)
-	{
-		editor
-			.Options
-			.HighlightCurrentLine = true;
-
-		editor
-			.Options
-			.EnableEmailHyperlinks = false;
-
-		editor
-			.Options
-			.AllowScrollBelowDocument = false;
-	}
-
-	/// <summary>
-	/// Creates <see cref="FileEditorState" /> from the view model and the editor.
+	/// Creates <see cref="FileEditorState" /> from the view model.
 	/// </summary>
 	private FileEditorState CreateEditorState()
 	{
-		if (_editor is not { } editor)
-		{
-			return default;
-		}
+		DocumentViewState view = ViewState.GetValueOrDefault();
 
 		return new()
 		{
-			CaretPosition = editor.TextArea.Caret.Position,
+			CaretPosition = view.CaretPosition,
 			FontSize = FontSize,
 			WordWrap = WordWrap,
-			ScrollOffset = new((int)editor.HorizontalOffset, (int)editor.VerticalOffset),
-			SelectionLength = editor.SelectionLength,
-			SelectionStart = editor.SelectionStart
+			ScrollOffset = new((int)view.ScrollOffset.X, (int)view.ScrollOffset.Y),
+			SelectionLength = view.SelectionLength,
+			SelectionStart = view.SelectionStart
 		};
 	}
 
@@ -408,11 +330,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Restores the editor state from the database.
 	/// </summary>
-	private async Task InitializeEditorStateAsync(TextEditor editor, CancellationToken token = default)
+	private async Task InitializeEditorStateAsync(CancellationToken token = default)
 	{
+		// The restored values reach the view through bindings, so they are set on the UI thread.
 		string? value = InitialEditorState ?? await _dbAccess
 			.GetFileEditorStateAsync(FileId, token)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		if (value is null)
 		{
@@ -427,22 +350,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			WordWrap = state.WordWrap;
 
-			editor.SelectionStart = state.SelectionStart;
-
-			editor.SelectionLength = state.SelectionLength;
-
-			// Not implemented in TextEditor.
-			editor.ScrollToVerticalOffset(state.ScrollOffset.Y);
-
-			// Not implemented in TextEditor.
-			editor.ScrollToHorizontalOffset(state.ScrollOffset.X);
-
-			editor.ScrollToLine(state.CaretPosition.Line);
-
-			editor
-				.TextArea
-				.Caret
-				.Position = state.CaretPosition;
+			ViewState = new DocumentViewState
+			{
+				CaretPosition = state.CaretPosition,
+				ScrollOffset = new(state.ScrollOffset.X, state.ScrollOffset.Y),
+				SelectionLength = state.SelectionLength,
+				SelectionStart = state.SelectionStart
+			};
 
 			_logger.LogDebug(
 				$@"Editor state of ""{FileId}"" is initialized:{state.GetPropertyValues(true)}");
@@ -573,7 +487,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsContentUnavailable || !IsInitialized)
+			// The view may still report its state for a moment after the file has been closed.
+			if (IsContentUnavailable
+				|| !IsInitialized
+				|| IsDisposed)
 			{
 				return;
 			}

@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using AvaloniaEdit;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Security;
@@ -29,6 +29,76 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored state reaches the bound properties
+	/// on the UI thread, also when the database answers from another thread.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Applies_The_Stored_State_On_The_UI_Thread()
+	{
+		// Arrange
+		TaskCompletionSource<string?> stateRead = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(stateRead.Task);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		bool? isOnUiThread = null;
+
+		sut.PropertyChanged += (_, e) =>
+		{
+			if (e.PropertyName == nameof(EmbeddedFileEditorViewModel.ViewState))
+			{
+				isOnUiThread = Dispatcher.UIThread.CheckAccess();
+			}
+		};
+
+		string json = new SystemTextJsonSerializer().Serialize(new FileEditorState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			FontSize = 20.0,
+			ScrollOffset = new(15, 480),
+			SelectionLength = 4,
+			SelectionStart = 20,
+			WordWrap = true
+		});
+
+		Task loading = sut.EditorLoaded();
+
+		// Act
+		await Task.Run(() => stateRead.SetResult(json));
+
+		await loading;
+
+		// Assert
+		isOnUiThread
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer closes
 	/// the editor for changes.
 	/// </summary>
@@ -49,10 +119,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		// Assert
 		sut.IsContentUnavailable
@@ -94,10 +162,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		// Assert
 		sut.Document.UndoStack.CanUndo
@@ -157,10 +223,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		// Assert
 		sut.IsInitialized
@@ -210,14 +274,72 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		sut.IsEditingEnabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored caret, selection and scroll position
+	/// become the view state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_View_State()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				CaretPosition = new(line: 3, column: 2),
+				FontSize = 14.0,
+				ScrollOffset = new(15, 480),
+				SelectionLength = 4,
+				SelectionStart = 20,
+				WordWrap = false
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.Be(new DocumentViewState
+			{
+				CaretPosition = new(line: 3, column: 2),
+				ScrollOffset = new(15.0, 480.0),
+				SelectionLength = 4,
+				SelectionStart = 20
+			});
 	}
 
 	/// <summary>
@@ -274,9 +396,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		sut.KeeperId = Guid.NewGuid();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		sut.Document.Text = text;
 
@@ -332,9 +452,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
-		Task loading = sut.EditorLoaded(editor);
+		Task loading = sut.EditorLoaded();
 
 		FlushEditorsMessage flush = new();
 
@@ -364,6 +482,132 @@ internal class EmbeddedFileEditorViewModelTests
 		responses
 			.Should()
 			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: a view state reported after the editor has been closed
+	/// is not saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_Nothing_After_Dispose()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Dispose();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			ScrollOffset = new(15.0, 480.0),
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: a new view state is saved together with the font size
+	/// and the word wrap.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_The_Editor_State()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		string expected = new SystemTextJsonSerializer().Serialize(
+			new FileEditorState
+			{
+				CaretPosition = new(line: 3, column: 2),
+				FontSize = sut.FontSize,
+				ScrollOffset = new(15, 480),
+				SelectionLength = 4,
+				SelectionStart = 20,
+				WordWrap = sut.WordWrap
+			},
+			JsonDefaults.Options);
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			ScrollOffset = new(15.0, 480.0),
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		// Assert
+		reported
+			.Should()
+			.Be(expected);
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 	#endregion
 }
