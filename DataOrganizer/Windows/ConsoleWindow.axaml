@@ -2,7 +2,7 @@
 	x:Class="DataOrganizer.Windows.ConsoleWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:AvaloniaEdit="using:AvaloniaEdit"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,13 +18,9 @@
 			<styling:FluentThemeBehavior />
 		</Interaction.Behaviors>
 
-		<Separator
-			Grid.Row="0"
-			Margin="0.0" />
+		<Separator Grid.Row="0" Margin="0.0" />
 
-		<StackPanel
-			Grid.Row="1"
-			Orientation="Horizontal">
+		<StackPanel Grid.Row="1" Orientation="Horizontal">
 			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Margin" Value="6.0,4.0" />
@@ -55,37 +51,28 @@
 			<Panel Classes="VerticalSeparatorPanelStyle" />
 
 			<Button
-				Command="{Binding ScrollToTopCommand}"
-				CommandParameter="{Binding #Editor}"
+				Command="{Binding #Editor.ScrollToTopCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
 
 			<Button
-				Command="{Binding ScrollToEndCommand}"
-				CommandParameter="{Binding #Editor}"
+				Command="{Binding #Editor.ScrollToEndCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
 
 			<Button
 				Command="{Binding ClearCommand}"
-				CommandParameter="{Binding #Editor}"
 				Content="{materialIcons:MaterialIconTextExt Kind=EraserVariant}"
 				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />
 
-			<Button
-				Content="{materialIcons:MaterialIconTextExt Kind=FolderOutline}"
-				ToolTip.Tip="{x:Static prop:Strings.Folders}">
+			<Button Content="{materialIcons:MaterialIconTextExt Kind=FolderOutline}" ToolTip.Tip="{x:Static prop:Strings.Folders}">
 				<Button.Flyout>
 					<MenuFlyout>
-						<MenuItem
-							Command="{Binding OpenAppDataDirectoryCommand}"
-							Header="{x:Static prop:Strings.ApplicationData}" />
+						<MenuItem Command="{Binding OpenAppDataDirectoryCommand}" Header="{x:Static prop:Strings.ApplicationData}" />
 
-						<MenuItem
-							Command="{Binding OpenAppDirectoryCommand}"
-							Header="{x:Static prop:Strings.ApplicationFile}" />
+						<MenuItem Command="{Binding OpenAppDirectoryCommand}" Header="{x:Static prop:Strings.ApplicationFile}" />
 					</MenuFlyout>
 				</Button.Flyout>
 			</Button>
@@ -101,9 +88,7 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="Spin">
-						<InvokeCommandAction
-							Command="{Binding SpinCommand}"
-							PassEventArgsToCommand="True" />
+						<InvokeCommandAction Command="{Binding #Editor.SpinCommand}" PassEventArgsToCommand="True" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 
@@ -111,34 +96,20 @@
 			</ButtonSpinner>
 		</StackPanel>
 
-		<Separator
-			Grid.Row="2"
-			Margin="0.0" />
+		<Separator Grid.Row="2" Margin="0.0" />
 
-		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
-		<AvaloniaEdit:TextEditor
+		<controls:ConsoleTextEditor
 			x:Name="Editor"
 			Grid.Row="3"
-			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-			FontSize="{Binding FontSize, Mode=OneWay}"
-			HorizontalScrollBarVisibility="Auto"
+			Document="{Binding Document, Mode=OneWay}"
+			FontSize="{Binding FontSize, Mode=TwoWay}"
 			IsReadOnly="True"
-			ShowLineNumbers="True"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="Loaded">
-					<InvokeCommandAction
-						Command="{Binding EditorLoadedCommand}"
-						CommandParameter="{Binding #Editor}" />
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-
-			<AvaloniaEdit:TextEditor.ContextMenu>
+			<controls:ConsoleTextEditor.ContextMenu>
 				<ContextMenu Padding="4.0,0.0">
 					<MenuItem
-						Command="{Binding CopyCommand}"
-						CommandParameter="{Binding #Editor.TextArea}"
+						Command="{Binding #Editor.CopyCommand}"
 						Header="{x:Static prop:Strings.Copy}"
 						InputGesture="{OnPlatform Default='Ctrl+C',
 						                          macOS='⌘+C'}" />
@@ -146,8 +117,7 @@
 					<Separator />
 
 					<MenuItem
-						Command="{Binding SelectAllCommand}"
-						CommandParameter="{Binding #Editor}"
+						Command="{Binding #Editor.SelectAllCommand}"
 						Header="{x:Static prop:Strings.SelectAll}"
 						InputGesture="{OnPlatform Default='Ctrl+A',
 						                          macOS='⌘+A'}" />
@@ -155,13 +125,12 @@
 					<Separator />
 
 					<MenuItem
-						Command="{Binding FindCommand}"
-						CommandParameter="{Binding #Editor.TextArea}"
+						Command="{Binding #Editor.FindCommand}"
 						Header="{x:Static prop:Strings.Find}"
 						InputGesture="{OnPlatform Default='Ctrl+F',
 						                          macOS='⌘+F'}" />
 				</ContextMenu>
-			</AvaloniaEdit:TextEditor.ContextMenu>
-		</AvaloniaEdit:TextEditor>
+			</controls:ConsoleTextEditor.ContextMenu>
+		</controls:ConsoleTextEditor>
 	</Grid>
 </Window>

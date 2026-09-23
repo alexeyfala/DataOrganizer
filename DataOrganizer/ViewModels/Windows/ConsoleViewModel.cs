@@ -1,17 +1,11 @@
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Threading;
-using AvaloniaEdit;
-using AvaloniaEdit.Editing;
+using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,6 +18,18 @@ namespace DataOrganizer.ViewModels.Windows;
 public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {
 	#region Properties
+	/// <summary>
+	/// The log records shown in the console.
+	/// </summary>
+	public TextDocument Document { get; } = new()
+	{
+		// An undo history of the log would keep every record and every removed line in memory.
+		UndoStack =
+		{
+			SizeLimit = 0
+		}
+	};
+
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
@@ -49,55 +55,12 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	public Action<string> WriteCallback => Write;
 	#endregion
 
-	#region Commands
-	/// <inheritdoc cref="TextEditorOperations.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorOperations.Copy, TextEditorOperations.CanCopy);
-
-	/// <inheritdoc cref="TextEditorOperations.Find" />
-	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorOperations.Find);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToEnd" />
-	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorOperations.ScrollToEnd);
-
-	/// <inheritdoc cref="TextEditorOperations.ScrollToTop" />
-	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorOperations.ScrollToTop);
-
-	/// <inheritdoc cref="TextEditorOperations.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorOperations.SelectAll, TextEditorOperations.CanSelectAll);
-
-	/// <inheritdoc cref="TextEditorOperations.Spin" />
-	public RelayCommand<SpinEventArgs> SpinCommand { get; }
-	#endregion
-
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Clears <see cref="TextEditor" />.
+	/// Clears the log.
 	/// </summary>
 	[RelayCommand]
-	private static void Clear(TextEditor? editor) => editor?.Clear();
-
-	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="TextEditor" />.
-	/// </summary>
-	[RelayCommand]
-	private void EditorLoaded(TextEditor? editor)
-	{
-		if (editor is null)
-		{
-			return;
-		}
-
-		_editor = editor;
-
-		TextEditorOperations.SubscribePointerWheelChanged(
-			editor,
-			() => FontSize,
-			() => FontSize);
-
-		ApplyEditorSettings(editor);
-
-		ReadFromBuffer();
-	}
+	private void Clear() => Document.Remove(0, Document.TextLength);
 
 	/// <summary>
 	/// Opens the application data directory.
@@ -127,9 +90,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 
 	#region Data
 	/// <summary>
-	/// The caret position at the first line.
+	/// The largest number of lines the log keeps.
 	/// </summary>
-	private static readonly TextViewPosition FirstLinePosition = new();
+	private const int MaxLineCount = 999_999;
 
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
@@ -144,14 +107,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	private readonly Lock _mutex = new();
 
 	/// <summary>
-	/// Log records waiting to be written into the editor.
+	/// Log records waiting to be written into <see cref="Document" />.
 	/// </summary>
 	private readonly List<string> _recordsBuffer = [];
-
-	/// <summary>
-	/// Reference to <see cref="TextEditor" />.
-	/// </summary>
-	private TextEditor? _editor;
 	#endregion
 
 	#region Constructors
@@ -165,91 +123,50 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 		_directoryAccessor = directoryAccessor;
 
 		_dispatcher = dispatcher;
+	}
+	#endregion
 
-		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
+	#region Methods
+	/// <summary>
+	/// Removes leading lines of <paramref name="document" />, so that at most <paramref name="maxLines" /> remain.
+	/// </summary>
+	internal static void RemoveStartLines(TextDocument document, int maxLines)
+	{
+		if (document.LineCount <= maxLines)
+		{
+			return;
+		}
+
+		DocumentLine firstKeptLine = document.GetLineByNumber(document.LineCount - maxLines + 1);
+
+		document.Remove(0, firstKeptLine.Offset);
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Applies settings to <see cref="TextEditor" />.
+	/// Appends a record to the end of the log.
 	/// </summary>
-	private static void ApplyEditorSettings(TextEditor editor)
+	private void Append(string value)
 	{
-		editor
-			.TextArea
-			.TextView
-			.Margin = new Thickness(6.0, 0.0);
+		Document.Insert(Document.TextLength, value);
 
-		foreach (LogEventLevel level in Enum.GetValues<LogEventLevel>())
-		{
-			editor
-				.TextArea
-				.TextView
-				.LineTransformers
-				.Add(new WordOccurrenceColorizer(level.ToShort(), level.ToBrush()));
-		}
-
-		editor
-			.Options
-			.HighlightCurrentLine = true;
-
-		editor
-			.Options
-			.EnableEmailHyperlinks = false;
-
-		editor
-			.Options
-			.AllowScrollBelowDocument = false;
+		RemoveStartLines(Document, MaxLineCount);
 	}
 
 	/// <summary>
-	/// Removes leading lines.
+	/// Moves the records from the buffer into the log unless recording is paused.
 	/// </summary>
-	private static void RemoveStartLines(TextEditor editor, int maxLines)
+	private void ReadFromBuffer()
 	{
-		if (editor.LineCount <= maxLines)
+		if (IsPaused)
 		{
 			return;
 		}
 
-		bool isReadOnly = editor.IsReadOnly;
-
-		try
-		{
-			editor.IsReadOnly = false;
-
-			while (editor.LineCount > maxLines)
-			{
-				editor
-					.TextArea
-					.Caret
-					.Position = FirstLinePosition;
-
-				AvaloniaEditCommands
-					.DeleteLine
-					.Execute(null, editor.TextArea);
-			}
-		}
-		finally
-		{
-			editor.IsReadOnly = isReadOnly;
-		}
-	}
-
-	/// <summary>
-	/// Reads records from the buffer if it is not empty.
-	/// </summary>
-	private void ReadFromBuffer()
-	{
 		lock (_mutex)
 		{
-			if (_editor is null || _recordsBuffer.Count == 0)
-			{
-				return;
-			}
-
-			_recordsBuffer.ForEach(_editor.AppendText);
+			_recordsBuffer.ForEach(Append);
 
 			_recordsBuffer.Clear();
 		}
@@ -262,24 +179,12 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	{
 		lock (_mutex)
 		{
-			if (_editor is null || IsPaused)
-			{
-				_recordsBuffer.Add(value);
-
-				return;
-			}
-
-			_dispatcher.Post(() =>
-			{
-				ReadFromBuffer();
-
-				_editor.AppendText(value);
-
-				RemoveStartLines(_editor, 999_999);
-
-				_editor.ScrollToEnd();
-			}, DispatcherPriority.Background);
+			_recordsBuffer.Add(value);
 		}
+
+		// The pause is checked on the UI thread, which owns the document and sets the pause,
+		// so a record posted just before a pause waits with the ones written after it.
+		_dispatcher.Post(ReadFromBuffer, DispatcherPriority.Background);
 	}
 	#endregion
 }
