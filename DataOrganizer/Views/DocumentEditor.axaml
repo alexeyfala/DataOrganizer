@@ -98,10 +98,36 @@
 			<controls:DocumentTextEditor.ContextMenu>
 				<ContextMenu Padding="4.0,0.0">
 					<MenuItem
+						Command="{Binding #Editor.CutCommand}"
+						Header="{x:Static prop:Strings.Cut}"
+						InputGesture="{OnPlatform Default='Ctrl+X',
+						                          macOS='⌘+X'}" />
+
+					<MenuItem
 						Command="{Binding #Editor.CopyCommand}"
 						Header="{x:Static prop:Strings.Copy}"
 						InputGesture="{OnPlatform Default='Ctrl+C',
 						                          macOS='⌘+C'}" />
+
+					<MenuItem
+						Command="{Binding #Editor.PasteCommand}"
+						Header="{x:Static prop:Strings.Paste}"
+						InputGesture="{OnPlatform Default='Ctrl+V',
+						                          macOS='⌘+V'}" />
+
+					<Separator />
+					
+					<MenuItem
+						Command="{Binding #Editor.UndoCommand}"
+						Header="{x:Static prop:Strings.Undo}"
+						InputGesture="{OnPlatform Default='Ctrl+Z',
+						                          macOS='⌘+Z'}" />
+
+					<MenuItem
+						Command="{Binding #Editor.RedoCommand}"
+						Header="{x:Static prop:Strings.Redo}"
+						InputGesture="{OnPlatform Default='Ctrl+Y',
+						                          macOS='⌘+Y'}" />
 
 					<Separator />
 
