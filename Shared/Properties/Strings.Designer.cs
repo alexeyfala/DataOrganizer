@@ -1078,6 +1078,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Line endings.
+        /// </summary>
+        public static string LineEndings {
+            get {
+                return ResourceManager.GetString("LineEndings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Locking in {0}.
         /// </summary>
         public static string LockedInFormat {
@@ -1744,11 +1753,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Spaces.
+        /// </summary>
+        public static string Spaces {
+            get {
+                return ResourceManager.GetString("Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to System.
         /// </summary>
         public static string System {
             get {
                 return ResourceManager.GetString("System", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tabs.
+        /// </summary>
+        public static string Tabs {
+            get {
+                return ResourceManager.GetString("Tabs", resourceCulture);
             }
         }
         

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 
@@ -62,7 +61,7 @@ internal sealed class ThumbResizeBehavior : Behavior<Thumb>
 	/// Identifies the <see cref="Height" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> HeightProperty = AvaloniaProperty
-		.Register<ThumbResizeBehavior, double>(name: nameof(Height), defaultBindingMode: BindingMode.TwoWay);
+		.Register<ThumbResizeBehavior, double>(name: nameof(Height));
 
 	/// <summary>
 	/// Identifies the <see cref="MinimumSize" /> avalonia property.
@@ -74,7 +73,7 @@ internal sealed class ThumbResizeBehavior : Behavior<Thumb>
 	/// Identifies the <see cref="Width" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> WidthProperty = AvaloniaProperty
-		.Register<ThumbResizeBehavior, double>(name: nameof(Width), defaultBindingMode: BindingMode.TwoWay);
+		.Register<ThumbResizeBehavior, double>(name: nameof(Width));
 	#endregion
 
 	#region Event Handlers

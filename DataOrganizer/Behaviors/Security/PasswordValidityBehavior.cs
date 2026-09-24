@@ -122,9 +122,7 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// Identifies the <see cref="IsConfirmationMismatched" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsConfirmationMismatchedProperty = AvaloniaProperty
-		.Register<PasswordValidityBehavior, bool>(
-			name: nameof(IsConfirmationMismatched),
-			defaultBindingMode: BindingMode.OneWayToSource);
+		.Register<PasswordValidityBehavior, bool>(name: nameof(IsConfirmationMismatched));
 
 	/// <summary>
 	/// Identifies the <see cref="IsConfirmationRequired" /> avalonia property.
@@ -136,24 +134,19 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// Identifies the <see cref="IsPasswordAccepted" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsPasswordAcceptedProperty = AvaloniaProperty
-		.Register<PasswordValidityBehavior, bool>(
-			name: nameof(IsPasswordAccepted),
-			defaultBindingMode: BindingMode.OneWayToSource);
+		.Register<PasswordValidityBehavior, bool>(name: nameof(IsPasswordAccepted));
 
 	/// <summary>
 	/// Identifies the <see cref="IsPasswordTooShort" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsPasswordTooShortProperty = AvaloniaProperty
-		.Register<PasswordValidityBehavior, bool>(
-			name: nameof(IsPasswordTooShort),
-			defaultBindingMode: BindingMode.OneWayToSource);
+		.Register<PasswordValidityBehavior, bool>(name: nameof(IsPasswordTooShort));
 
 	/// <summary>
 	/// Identifies the <see cref="IsValid" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<bool> IsValidProperty = AvaloniaProperty.Register<PasswordValidityBehavior, bool>(
-		name: nameof(IsValid),
-		defaultBindingMode: BindingMode.OneWayToSource);
+	public static readonly StyledProperty<bool> IsValidProperty = AvaloniaProperty
+		.Register<PasswordValidityBehavior, bool>(name: nameof(IsValid));
 
 	/// <summary>
 	/// Identifies the <see cref="MinimumLength" /> avalonia property.
@@ -171,9 +164,7 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// Identifies the <see cref="Strength" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<PasswordStrength> StrengthProperty = AvaloniaProperty
-		.Register<PasswordValidityBehavior, PasswordStrength>(
-			name: nameof(Strength),
-			defaultBindingMode: BindingMode.OneWayToSource);
+		.Register<PasswordValidityBehavior, PasswordStrength>(name: nameof(Strength));
 
 	/// <summary>
 	/// Identifies the <see cref="TooShortMessage" /> avalonia property.

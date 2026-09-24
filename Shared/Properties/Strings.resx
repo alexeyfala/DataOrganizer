@@ -724,4 +724,13 @@
   <data name="Paste" xml:space="preserve">
     <value>Paste</value>
   </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>Spaces</value>
+  </data>
+  <data name="Tabs" xml:space="preserve">
+    <value>Tabs</value>
+  </data>
+  <data name="LineEndings" xml:space="preserve">
+    <value>Line endings</value>
+  </data>
 </root>

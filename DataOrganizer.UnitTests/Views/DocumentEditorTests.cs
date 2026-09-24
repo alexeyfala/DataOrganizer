@@ -262,6 +262,69 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditor.ShowEndOfLine" />: the glyphs of line endings reach the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowEndOfLine_Reaches_The_Editor([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			ShowEndOfLine = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(EditorName).Options.ShowEndOfLine
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditor.ShowSpaces" />: the glyphs of spaces reach the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowSpaces_Reaches_The_Editor([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			ShowSpaces = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(EditorName).Options.ShowSpaces
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditor.ShowTabs" />: the glyphs of tabs reach the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowTabs_Reaches_The_Editor([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			ShowTabs = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(EditorName).Options.ShowTabs
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditor.ToolBarContent" />: the content placed in the toolbar keeps the data context of the control.
 	/// </summary>
 	[AvaloniaTest]

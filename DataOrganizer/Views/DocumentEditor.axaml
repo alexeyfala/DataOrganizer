@@ -18,23 +18,47 @@
 		<StackPanel Grid.Row="0" Orientation="Horizontal">
 			<StackPanel.Styles>
 				<Style Selector="ToggleButton">
-					<Setter Property="Margin" Value="6.0,4.0" />
+					<Setter Property="Margin" Value="0.0,4.0" />
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatToggleButton}" />
 				</Style>
 
 				<Style Selector="Button">
-					<Setter Property="Margin" Value="6.0,4.0" />
+					<Setter Property="Margin" Value="0.0,4.0" />
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 				</Style>
 			</StackPanel.Styles>
 
-			<StackPanel DataContext="{Binding #View}" Orientation="Horizontal">
+			<StackPanel
+				DataContext="{Binding #View}"
+				Orientation="Horizontal"
+				Spacing="4.0">
 				<ToggleButton
 					Classes="primary"
 					Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					IsChecked="{Binding WordWrap, Mode=TwoWay}"
 					ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=KeyboardSpace,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowSpaces, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.Spaces}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=KeyboardTab,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowTabs, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.Tabs}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=FormatPilcrow,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowEndOfLine, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
 
 				<Panel Classes="VerticalSeparatorPanelStyle" />
 
@@ -89,6 +113,9 @@
 			FontSize="{Binding DocumentFontSize, Mode=TwoWay}"
 			Foreground="{StaticResource MaterialBodyBrush}"
 			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
+			ShowEndOfLine="{Binding ShowEndOfLine, Mode=OneWay}"
+			ShowSpaces="{Binding ShowSpaces, Mode=OneWay}"
+			ShowTabs="{Binding ShowTabs, Mode=OneWay}"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
@@ -116,7 +143,7 @@
 						                          macOS='⌘+V'}" />
 
 					<Separator />
-					
+
 					<MenuItem
 						Command="{Binding #Editor.UndoCommand}"
 						Header="{x:Static prop:Strings.Undo}"

@@ -15,6 +15,9 @@
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
 		IsReadOnly="{Binding !IsEditingEnabled, Mode=OneWay}"
+		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
+		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"
+		ShowTabs="{Binding ShowTabs, Mode=TwoWay}"
 		ViewState="{Binding ViewState, Mode=TwoWay}"
 		WordWrap="{Binding WordWrap, Mode=TwoWay}">
 

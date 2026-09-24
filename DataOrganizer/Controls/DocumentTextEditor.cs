@@ -1,5 +1,7 @@
+using Avalonia;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Linq;
 
 namespace DataOrganizer.Controls;
@@ -9,6 +11,55 @@ namespace DataOrganizer.Controls;
 /// </summary>
 internal sealed class DocumentTextEditor : TextEditorBase
 {
+	#region Properties
+	/// <summary>
+	/// <c>True</c> when line endings are shown.
+	/// </summary>
+	public bool ShowEndOfLine
+	{
+		get => GetValue(ShowEndOfLineProperty);
+		set => SetValue(ShowEndOfLineProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when spaces are shown.
+	/// </summary>
+	public bool ShowSpaces
+	{
+		get => GetValue(ShowSpacesProperty);
+		set => SetValue(ShowSpacesProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when tabs are shown.
+	/// </summary>
+	public bool ShowTabs
+	{
+		get => GetValue(ShowTabsProperty);
+		set => SetValue(ShowTabsProperty, value);
+	}
+	#endregion
+
+	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
+		.Register<DocumentTextEditor, bool>(name: nameof(ShowEndOfLine));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowSpaces" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowSpacesProperty = AvaloniaProperty
+		.Register<DocumentTextEditor, bool>(name: nameof(ShowSpaces));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowTabs" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
+		.Register<DocumentTextEditor, bool>(name: nameof(ShowTabs));
+	#endregion
+
 	#region Commands
 	/// <summary>
 	/// Cuts the selected text.
@@ -50,19 +101,49 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		{
 			binding.CanExecute += UndoRedoBinding_CanExecute;
 		}
+
+		// The engine keeps these switches in its options, which markup cannot bind to.
+		this
+			.GetObservable(ShowEndOfLineProperty)
+			.Subscribe(ShowEndOfLineProperty_Changed);
+
+		this
+			.GetObservable(ShowSpacesProperty)
+			.Subscribe(ShowSpacesProperty_Changed);
+
+		this
+			.GetObservable(ShowTabsProperty)
+			.Subscribe(ShowTabsProperty_Changed);
 	}
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
+	/// <see cref="ShowEndOfLineProperty" /> changed handler.
+	/// </summary>
+	private void ShowEndOfLineProperty_Changed(bool value) => Options.ShowEndOfLine = value;
+
+	/// <summary>
+	/// <see cref="ShowSpacesProperty" /> changed handler.
+	/// </summary>
+	private void ShowSpacesProperty_Changed(bool value) => Options.ShowSpaces = value;
+
+	/// <summary>
+	/// <see cref="ShowTabsProperty" /> changed handler.
+	/// </summary>
+	private void ShowTabsProperty_Changed(bool value) => Options.ShowTabs = value;
+
+	/// <summary>
 	/// <see cref="RoutedCommandBinding.CanExecute" /> handler of undo and redo, which denies them in read-only mode.
 	/// </summary>
 	private void UndoRedoBinding_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
 	{
-		if (IsReadOnly)
+		if (!IsReadOnly)
 		{
-			e.CanExecute = false;
+			return;
 		}
+
+		e.CanExecute = false;
 	}
 	#endregion
 
@@ -73,8 +154,7 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	private bool CanCutSelection()
 	{
 		// Without a selection the engine would cut the whole line of the caret.
-		return CanCut
-			&& TextArea.Selection.Length > 0;
+		return CanCut && TextArea.Selection.Length > 0;
 	}
 
 	/// <summary>

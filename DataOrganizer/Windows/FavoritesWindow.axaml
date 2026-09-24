@@ -175,7 +175,7 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth}" Edge="West" />
+							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth, Mode=TwoWay}" Edge="West" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -189,8 +189,8 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<windowBehaviors:ThumbResizeBehavior
-								Width="{Binding PopupWidth}"
-								Height="{Binding PopupHeight}"
+								Width="{Binding PopupWidth, Mode=TwoWay}"
+								Height="{Binding PopupHeight, Mode=TwoWay}"
 								Edge="NorthWest" />
 						</Interaction.Behaviors>
 					</Thumb>
@@ -203,7 +203,7 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Height="{Binding PopupHeight}" Edge="North" />
+							<windowBehaviors:ThumbResizeBehavior Height="{Binding PopupHeight, Mode=TwoWay}" Edge="North" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -217,8 +217,8 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<windowBehaviors:ThumbResizeBehavior
-								Width="{Binding PopupWidth}"
-								Height="{Binding PopupHeight}"
+								Width="{Binding PopupWidth, Mode=TwoWay}"
+								Height="{Binding PopupHeight, Mode=TwoWay}"
 								Edge="NorthEast" />
 						</Interaction.Behaviors>
 					</Thumb>
@@ -231,7 +231,7 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth}" Edge="East" />
+							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth, Mode=TwoWay}" Edge="East" />
 						</Interaction.Behaviors>
 					</Thumb>
 				</Grid>

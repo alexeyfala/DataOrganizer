@@ -19,6 +19,7 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
@@ -328,6 +329,143 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a state saved before its optional fields appeared
+	/// is read as it is and not written over.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Reads_A_State_Without_The_Optional_Fields()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			JsonObject state = JsonNode
+				.Parse(new SystemTextJsonSerializer().Serialize(new FileEditorState
+				{
+					CaretPosition = default,
+					FontSize = 20.0,
+					ScrollOffset = default,
+					SelectionLength = default,
+					SelectionStart = default,
+					WordWrap = default
+				}))!
+				.AsObject();
+
+			state.Remove(nameof(FileEditorState.ShowEndOfLine));
+
+			state.Remove(nameof(FileEditorState.ShowSpaces));
+
+			state.Remove(nameof(FileEditorState.ShowTabs));
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(state.ToJsonString());
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.FontSize
+			.Should()
+			.Be(20.0);
+
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: each stored switch of invisible characters
+	/// reaches its own property.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(true, false, false)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public async Task EditorLoaded_Restores_The_Invisible_Character_Switches(
+		bool showEndOfLine,
+		bool showSpaces,
+		bool showTabs)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				CaretPosition = default,
+				FontSize = 14.0,
+				ScrollOffset = default,
+				SelectionLength = default,
+				SelectionStart = default,
+				ShowEndOfLine = showEndOfLine,
+				ShowSpaces = showSpaces,
+				ShowTabs = showTabs,
+				WordWrap = default
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.ShowEndOfLine
+			.Should()
+			.Be(showEndOfLine);
+
+		sut.ShowSpaces
+			.Should()
+			.Be(showSpaces);
+
+		sut.ShowTabs
+			.Should()
+			.Be(showTabs);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored caret, selection and scroll position
 	/// become the view state.
 	/// </summary>
@@ -385,6 +523,85 @@ internal class EmbeddedFileEditorViewModelTests
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ShowEndOfLine" />, <see cref="EmbeddedFileEditorViewModel.ShowSpaces" />
+	/// and <see cref="EmbeddedFileEditorViewModel.ShowTabs" />: each switch turned on saves the editor state with it.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(true, false, false)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public async Task Invisible_Character_Switches_Save_The_Editor_State(
+		bool showEndOfLine,
+		bool showSpaces,
+		bool showTabs)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		string expected = new SystemTextJsonSerializer().Serialize(
+			new FileEditorState
+			{
+				CaretPosition = default,
+				FontSize = sut.FontSize,
+				ScrollOffset = default,
+				SelectionLength = default,
+				SelectionStart = default,
+				ShowEndOfLine = showEndOfLine,
+				ShowSpaces = showSpaces,
+				ShowTabs = showTabs,
+				WordWrap = sut.WordWrap
+			},
+			JsonDefaults.Options);
+
+		// Act
+		sut.ShowEndOfLine = showEndOfLine;
+
+		sut.ShowSpaces = showSpaces;
+
+		sut.ShowTabs = showTabs;
+
+		// Assert
+		reported
+			.Should()
+			.Be(expected);
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 
 	/// <summary>

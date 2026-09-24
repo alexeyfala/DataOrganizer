@@ -209,6 +209,69 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.ShowEndOfLine" />: turns the glyphs of line endings on and off.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowEndOfLine_Sets_The_Engine_Option([Values] bool isShown)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			ShowEndOfLine = !isShown
+		};
+
+		// Act
+		sut.ShowEndOfLine = isShown;
+
+		// Assert
+		sut.Options.ShowEndOfLine
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ShowSpaces" />: turns the glyphs of spaces on and off.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowSpaces_Sets_The_Engine_Option([Values] bool isShown)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			ShowSpaces = !isShown
+		};
+
+		// Act
+		sut.ShowSpaces = isShown;
+
+		// Assert
+		sut.Options.ShowSpaces
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ShowTabs" />: turns the glyphs of tabs on and off.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowTabs_Sets_The_Engine_Option([Values] bool isShown)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			ShowTabs = !isShown
+		};
+
+		// Act
+		sut.ShowTabs = isShown;
+
+		// Assert
+		sut.Options.ShowTabs
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.UndoCommand" />: an edit cannot be undone in read-only mode.
 	/// </summary>
 	[AvaloniaTest]

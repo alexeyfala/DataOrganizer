@@ -45,6 +45,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
+	/// <inheritdoc cref="FileEditorState.ShowEndOfLine" />
+	[ObservableProperty]
+	public partial bool ShowEndOfLine { get; set; }
+
+	/// <inheritdoc cref="FileEditorState.ShowSpaces" />
+	[ObservableProperty]
+	public partial bool ShowSpaces { get; set; }
+
+	/// <inheritdoc cref="FileEditorState.ShowTabs" />
+	[ObservableProperty]
+	public partial bool ShowTabs { get; set; }
+
 	/// <summary>
 	/// Caret, selection and scroll position of <see cref="Document" />.
 	/// </summary>
@@ -255,6 +267,21 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
 
 	/// <summary>
+	/// Called when <see cref="ShowEndOfLine" /> changes.
+	/// </summary>
+	partial void OnShowEndOfLineChanged(bool value) => TrySavePersistentEditorState();
+
+	/// <summary>
+	/// Called when <see cref="ShowSpaces" /> changes.
+	/// </summary>
+	partial void OnShowSpacesChanged(bool value) => TrySavePersistentEditorState();
+
+	/// <summary>
+	/// Called when <see cref="ShowTabs" /> changes.
+	/// </summary>
+	partial void OnShowTabsChanged(bool value) => TrySavePersistentEditorState();
+
+	/// <summary>
 	/// Called when <see cref="ViewState" /> changes.
 	/// </summary>
 	partial void OnViewStateChanged(DocumentViewState? value) => TrySavePersistentEditorState();
@@ -326,7 +353,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			WordWrap = WordWrap,
 			ScrollOffset = new((int)view.ScrollOffset.X, (int)view.ScrollOffset.Y),
 			SelectionLength = view.SelectionLength,
-			SelectionStart = view.SelectionStart
+			SelectionStart = view.SelectionStart,
+			ShowEndOfLine = ShowEndOfLine,
+			ShowSpaces = ShowSpaces,
+			ShowTabs = ShowTabs
 		};
 	}
 
@@ -371,6 +401,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			FileEditorState state = _jsonSerializer.Deserialize<FileEditorState>(value);
 
 			FontSize = state.FontSize;
+
+			ShowEndOfLine = state.ShowEndOfLine;
+
+			ShowSpaces = state.ShowSpaces;
+
+			ShowTabs = state.ShowTabs;
 
 			WordWrap = state.WordWrap;
 

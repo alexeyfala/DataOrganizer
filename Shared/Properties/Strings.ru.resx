@@ -744,4 +744,13 @@
   <data name="Paste" xml:space="preserve">
     <value>Вставить</value>
   </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>Пробелы</value>
+  </data>
+  <data name="Tabs" xml:space="preserve">
+    <value>Табуляция</value>
+  </data>
+  <data name="LineEndings" xml:space="preserve">
+    <value>Концы строк</value>
+  </data>
 </root>

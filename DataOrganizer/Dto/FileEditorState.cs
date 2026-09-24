@@ -12,31 +12,46 @@ public readonly struct FileEditorState
 	/// <summary>
 	/// The caret position.
 	/// </summary>
-	public required TextViewPosition CaretPosition { get; init; }
+	public TextViewPosition CaretPosition { get; init; }
 
 	/// <summary>
 	/// Font size.
 	/// </summary>
-	public required double FontSize { get; init; }
+	public double FontSize { get; init; }
 
 	/// <summary>
 	/// The offset of scrolling position.
 	/// </summary>
-	public required Point ScrollOffset { get; init; }
+	public Point ScrollOffset { get; init; }
 
 	/// <summary>
 	/// The length of selected text.
 	/// </summary>
-	public required int SelectionLength { get; init; }
+	public int SelectionLength { get; init; }
 
 	/// <summary>
 	/// The start of selected text.
 	/// </summary>
-	public required int SelectionStart { get; init; }
+	public int SelectionStart { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when line endings are shown.
+	/// </summary>
+	public bool ShowEndOfLine { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when spaces are shown.
+	/// </summary>
+	public bool ShowSpaces { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when tabs are shown.
+	/// </summary>
+	public bool ShowTabs { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when long lines are wrapped.
 	/// </summary>
-	public required bool WordWrap { get; init; }
+	public bool WordWrap { get; init; }
 	#endregion
 }

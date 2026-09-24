@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
@@ -49,6 +48,33 @@ internal sealed partial class DocumentEditor : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when line endings are shown.
+	/// </summary>
+	public bool ShowEndOfLine
+	{
+		get => GetValue(ShowEndOfLineProperty);
+		set => SetValue(ShowEndOfLineProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when spaces are shown.
+	/// </summary>
+	public bool ShowSpaces
+	{
+		get => GetValue(ShowSpacesProperty);
+		set => SetValue(ShowSpacesProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when tabs are shown.
+	/// </summary>
+	public bool ShowTabs
+	{
+		get => GetValue(ShowTabsProperty);
+		set => SetValue(ShowTabsProperty, value);
+	}
+
+	/// <summary>
 	/// Content placed at the end of the toolbar.
 	/// </summary>
 	public object? ToolBarContent
@@ -84,8 +110,7 @@ internal sealed partial class DocumentEditor : UserControl
 	public static readonly StyledProperty<double> DocumentFontSizeProperty = AvaloniaProperty
 		.Register<DocumentEditor, double>(
 			name: nameof(DocumentFontSize),
-			defaultValue: 14.0,
-			defaultBindingMode: BindingMode.TwoWay);
+			defaultValue: 14.0);
 
 	/// <summary>
 	/// Identifies the <see cref="Document" /> avalonia property.
@@ -100,6 +125,24 @@ internal sealed partial class DocumentEditor : UserControl
 		.Register<DocumentEditor, bool>(name: nameof(IsReadOnly));
 
 	/// <summary>
+	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
+		.Register<DocumentEditor, bool>(name: nameof(ShowEndOfLine));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowSpaces" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowSpacesProperty = AvaloniaProperty
+		.Register<DocumentEditor, bool>(name: nameof(ShowSpaces));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowTabs" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
+		.Register<DocumentEditor, bool>(name: nameof(ShowTabs));
+
+	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<object?> ToolBarContentProperty = AvaloniaProperty
@@ -109,17 +152,13 @@ internal sealed partial class DocumentEditor : UserControl
 	/// Identifies the <see cref="ViewState" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<DocumentViewState?> ViewStateProperty = AvaloniaProperty
-		.Register<DocumentEditor, DocumentViewState?>(
-			name: nameof(ViewState),
-			defaultBindingMode: BindingMode.TwoWay);
+		.Register<DocumentEditor, DocumentViewState?>(name: nameof(ViewState));
 
 	/// <summary>
 	/// Identifies the <see cref="WordWrap" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> WordWrapProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(
-			name: nameof(WordWrap),
-			defaultBindingMode: BindingMode.TwoWay);
+		.Register<DocumentEditor, bool>(name: nameof(WordWrap));
 	#endregion
 
 	#region Data
