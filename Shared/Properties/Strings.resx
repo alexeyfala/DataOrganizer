@@ -709,4 +709,7 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>The file contents are missing</value>
   </data>
+  <data name="NonTextFileContents" xml:space="preserve">
+    <value>The file contents are not text</value>
+  </data>
 </root>

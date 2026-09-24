@@ -41,7 +41,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public string? InitialEditorState { get; set; }
 
 	/// <summary>
-	/// <c>True</c> when the contents could not be obtained, which closes the editor for changes
+	/// <c>True</c> when the contents could not be read, which closes the editor for changes
 	/// so that nothing is written over what was not read.
 	/// </summary>
 	[ObservableProperty]

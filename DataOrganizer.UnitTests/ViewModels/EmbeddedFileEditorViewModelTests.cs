@@ -44,7 +44,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -99,6 +99,51 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents that are not text close the editor for changes,
+	/// since saving them back as text would rewrite the file.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCaseSource(nameof(NonTextContents))]
+	public async Task EditorLoaded_Closes_The_Editor_When_The_Contents_Are_Not_Text(byte[] contents)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. contents],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer closes
 	/// the editor for changes.
 	/// </summary>
@@ -145,7 +190,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -178,7 +223,7 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Loads_Text_Into_Document()
 	{
 		// Arrange
-		byte[] contents = RandomValues.CreateBytes(10);
+		byte[] contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10));
 
 		double fontSize = RandomValues.CreateDouble(6.0, 64.0);
 
@@ -257,7 +302,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -296,7 +341,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -343,6 +388,70 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes nothing over contents
+	/// that are not text, so the file keeps its bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Leaves_Non_Text_Contents_Untouched()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				// "Привет" in Windows-1251
+				Contents = [0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush saves the document text as it is,
 	/// including an edit the text change handler has not queued yet.
 	/// </summary>
@@ -360,7 +469,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -463,7 +572,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		read.SetResult(new()
 		{
-			Contents = RandomValues.CreateBytes(10),
+			Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 			IsValid = true
 		});
 
@@ -498,7 +607,7 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -554,7 +663,7 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			ValidatedContents fileContents = new()
 			{
-				Contents = RandomValues.CreateBytes(10),
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
 				IsValid = true
 			};
 
@@ -609,5 +718,22 @@ internal class EmbeddedFileEditorViewModelTests
 			.ReceivedWithAnyArgs(1)
 			.UpdateFilePropertiesAsync(default, default!, default);
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// File contents that are not text.
+	/// </summary>
+	private static byte[][] NonTextContents() =>
+	[
+		// UTF-16 with a byte order mark
+		[0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00],
+		// UTF-16 without a byte order mark: valid UTF-8, but with zero bytes
+		[0x48, 0x00, 0x69, 0x00],
+		// Windows-1251
+		[0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
+		// Signature of a PNG image
+		[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+	];
 	#endregion
 }

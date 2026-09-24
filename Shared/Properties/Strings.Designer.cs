@@ -1168,6 +1168,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file contents are not text.
+        /// </summary>
+        public static string NonTextFileContents {
+            get {
+                return ResourceManager.GetString("NonTextFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note.
         /// </summary>
         public static string Note {

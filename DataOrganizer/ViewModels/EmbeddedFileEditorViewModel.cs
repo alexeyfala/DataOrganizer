@@ -22,6 +22,7 @@ using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -109,6 +110,20 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				_logger.LogError(
 					$@"{Strings.FailedToProcessContents} of file ""{FileId}""",
 					breakInDebugger: false);
+
+				return;
+			}
+
+			// Contents that are not text would come back from the editor re-encoded and overwrite the file.
+			if (!IsText(output))
+			{
+				IsContentUnavailable = true;
+
+				output.ZeroMemory();
+
+				_notification.ShowWarningSnackbar(Strings.NonTextFileContents);
+
+				_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{FileId}""");
 
 				return;
 			}
@@ -288,6 +303,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// <c>True</c> when <paramref name="contents" /> is UTF-8 text, which the editor saves back unchanged.
+	/// </summary>
+	private static bool IsText(ReadOnlySpan<byte> contents)
+	{
+		// A zero byte is valid UTF-8, yet in a file it marks binary data or UTF-16 text.
+		return Utf8.IsValid(contents) && !contents.Contains((byte)0);
+	}
+
 	/// <summary>
 	/// Creates <see cref="FileEditorState" /> from the view model.
 	/// </summary>

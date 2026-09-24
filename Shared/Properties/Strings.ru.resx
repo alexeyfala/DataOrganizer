@@ -729,4 +729,7 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>Содержимое файла отсутствует</value>
   </data>
+  <data name="NonTextFileContents" xml:space="preserve">
+    <value>Содержимое файла не является текстом</value>
+  </data>
 </root>
