@@ -14,7 +14,7 @@ using System.Reactive.Linq;
 namespace DataOrganizer.Views;
 
 /// <summary>
-/// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu and zoom.
+/// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
 /// </summary>
 internal sealed partial class DocumentEditor : UserControl
 {

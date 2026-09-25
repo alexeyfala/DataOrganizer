@@ -1,5 +1,7 @@
+using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
+using DataOrganizer.Enums;
 using System;
 using System.Globalization;
 
@@ -91,16 +93,60 @@ internal class AppConvertersTests
 			.Should()
 			.BeNull();
 	}
+
+	/// <summary>
+	/// <see cref="AppConverters.LineEndingToCaption" />: line endings of one style are named by their characters.
+	/// </summary>
+	[TestCase(LineEnding.CrLf, "CRLF")]
+	[TestCase(LineEnding.Lf, "LF")]
+	[TestCase(LineEnding.Cr, "CR")]
+	public void LineEndingToCaption_Names_The_Line_Break(LineEnding ending, string expected)
+	{
+		// Act
+		object? result = Convert(AppConverters.LineEndingToCaption, ending);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.LineEndingToCaption" />: a document without line breaks has no caption.
+	/// </summary>
+	[Test]
+	public void LineEndingToCaption_Without_Line_Breaks_Is_Empty()
+	{
+		// Act
+		object? result = Convert(AppConverters.LineEndingToCaption, LineEnding.None);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
 	/// Runs a converter over the time left of a countdown.
 	/// </summary>
-	private static object? Convert(Avalonia.Data.Converters.IValueConverter converter, TimeSpan? remaining)
+	private static object? Convert(IValueConverter converter, TimeSpan? remaining)
 	{
 		return converter.Convert(
 			remaining,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the line endings of a document.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<LineEnding, string?> converter, LineEnding ending)
+	{
+		return converter.Convert(
+			ending,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

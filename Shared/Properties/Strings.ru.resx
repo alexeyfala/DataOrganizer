@@ -753,4 +753,16 @@
   <data name="LineEndings" xml:space="preserve">
     <value>Концы строк</value>
   </data>
+  <data name="LineColumnFormat" xml:space="preserve">
+    <value>Стр {0}, стлб {1}</value>
+  </data>
+  <data name="LinesFormat" xml:space="preserve">
+    <value>Строк: {0}</value>
+  </data>
+  <data name="MixedLineEndings" xml:space="preserve">
+    <value>Разные</value>
+  </data>
+  <data name="SelectedFormat" xml:space="preserve">
+    <value>Выделено: {0}</value>
+  </data>
 </root>

@@ -1078,11 +1078,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ln {0}, Col {1}.
+        /// </summary>
+        public static string LineColumnFormat {
+            get {
+                return ResourceManager.GetString("LineColumnFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Line endings.
         /// </summary>
         public static string LineEndings {
             get {
                 return ResourceManager.GetString("LineEndings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lines: {0}.
+        /// </summary>
+        public static string LinesFormat {
+            get {
+                return ResourceManager.GetString("LinesFormat", resourceCulture);
             }
         }
         
@@ -1128,6 +1146,15 @@ namespace Shared.Properties {
         public static string MissingFiles {
             get {
                 return ResourceManager.GetString("MissingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mixed.
+        /// </summary>
+        public static string MixedLineEndings {
+            get {
+                return ResourceManager.GetString("MixedLineEndings", resourceCulture);
             }
         }
         
@@ -1650,6 +1677,15 @@ namespace Shared.Properties {
         public static string SelectApplicationOnPC {
             get {
                 return ResourceManager.GetString("SelectApplicationOnPC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected: {0}.
+        /// </summary>
+        public static string SelectedFormat {
+            get {
+                return ResourceManager.GetString("SelectedFormat", resourceCulture);
             }
         }
         

@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
@@ -57,9 +59,17 @@ internal static class AppConverters
 			: string.Format(
 				CultureInfo.CurrentCulture,
 				Strings.LockedInFormat,
-				left.ToString(
-					left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss",
-					CultureInfo.CurrentCulture)));
+				left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture)));
+
+	/// <summary>
+	/// Caption of the caret line and column of a document.
+	/// </summary>
+	public static FuncValueConverter<DocumentStatus, string> CaretPosition { get; } =
+		new(status => string.Format(
+			CultureInfo.CurrentCulture,
+			Strings.LineColumnFormat,
+			status.Line,
+			status.Column));
 
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
@@ -108,6 +118,25 @@ internal static class AppConverters
 	/// </summary>
 	public static FuncValueConverter<FavoriteCategory?, FolderDto?> FavoriteCategoryToFolder { get; } =
 		new(GetFolder);
+
+	/// <summary>
+	/// Caption of the number of lines of a document.
+	/// </summary>
+	public static FuncValueConverter<int, string> LineCount { get; } =
+		new(count => string.Format(CultureInfo.CurrentCulture, Strings.LinesFormat, count));
+
+	/// <summary>
+	/// Caption of the line endings of a document; <c>null</c> for a document without line breaks.
+	/// </summary>
+	public static FuncValueConverter<LineEnding, string?> LineEndingToCaption { get; } =
+		new(ending => ending switch
+		{
+			LineEnding.CrLf => "CRLF",
+			LineEnding.Lf => "LF",
+			LineEnding.Cr => "CR",
+			LineEnding.Mixed => Strings.MixedLineEndings,
+			_ => null
+		});
 
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch
@@ -159,6 +188,14 @@ internal static class AppConverters
 		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
+
+	/// <summary>
+	/// Caption of the number of selected characters.
+	/// </summary>
+	public static FuncValueConverter<int, string> SelectionLength { get; } = new(length => string.Format(
+		CultureInfo.CurrentCulture,
+		Strings.SelectedFormat,
+		length));
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();

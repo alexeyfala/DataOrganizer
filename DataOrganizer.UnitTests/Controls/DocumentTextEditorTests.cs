@@ -5,9 +5,12 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
+using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
+using DataOrganizer.Dto;
+using DataOrganizer.Enums;
 using System;
 
 namespace DataOrganizer.UnitTests.Controls;
@@ -272,6 +275,151 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: a rectangular selection is counted without the gaps between its rows.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Counts_The_Characters_Of_A_Rectangular_Selection()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("abcdef\nabcdef")
+		};
+
+		Show(sut);
+
+		// Act
+		sut.TextArea.Selection = new RectangleSelection(
+			sut.TextArea,
+			new(line: 1, column: 2),
+			new(line: 2, column: 4));
+
+		// Assert
+		sut.Status.SelectionLength
+			.Should()
+			.Be(4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: the number of lines follows an edit.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Counts_The_Lines_After_An_Edit()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond")
+		};
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+
+		// Assert
+		sut.Status.LineCount
+			.Should()
+			.Be(3);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: counts the selected characters.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Counts_The_Selected_Characters()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("Some text")
+		};
+
+		// Act
+		sut.Select(5, 4);
+
+		// Assert
+		sut.Status.SelectionLength
+			.Should()
+			.Be(4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: a new document puts the caret at its start, drops the selection
+	/// and brings its own lines.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Follows_A_New_Document()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\r\nSecond\r\nThird")
+		};
+
+		sut.Select(7, 6);
+
+		// Act
+		sut.Document = new("First\nSecond");
+
+		// Assert
+		sut.Status
+			.Should()
+			.Be(new DocumentStatus
+			{
+				Column = 1,
+				Line = 1,
+				LineCount = 2,
+				LineEnding = LineEnding.Lf,
+				SelectionLength = 0
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: reports the line and the column of the caret.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Follows_The_Caret()
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			CaretOffset = 9
+		};
+
+		// Assert
+		sut.Status.Line
+			.Should()
+			.Be(2);
+
+		sut.Status.Column
+			.Should()
+			.Be(4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: the line endings of a new document are found at once.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("First", LineEnding.None)]
+	[TestCase("First\r\nSecond\r\n", LineEnding.CrLf)]
+	[TestCase("First\nSecond\n", LineEnding.Lf)]
+	[TestCase("First\rSecond\r", LineEnding.Cr)]
+	[TestCase("First\r\nSecond\nThird", LineEnding.Mixed)]
+	public void Status_Reports_The_Line_Ending(string text, LineEnding expected)
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new()
+		{
+			Document = new(text)
+		};
+
+		// Assert
+		sut.Status.LineEnding
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.UndoCommand" />: an edit cannot be undone in read-only mode.
 	/// </summary>
 	[AvaloniaTest]
@@ -345,6 +493,30 @@ internal class DocumentTextEditorTests
 		canExecute
 			.Should()
 			.Be(isEdited);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.UpdateLineEnding" />: a line ending of another style brought in by an edit
+	/// makes the endings mixed.
+	/// </summary>
+	[AvaloniaTest]
+	public void UpdateLineEnding_Follows_An_Edit()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\r\nSecond")
+		};
+
+		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+
+		// Act
+		sut.UpdateLineEnding();
+
+		// Assert
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.Mixed);
 	}
 	#endregion
 

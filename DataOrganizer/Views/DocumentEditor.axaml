@@ -3,7 +3,9 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -14,7 +16,7 @@
 	<!--
 		Bound by name, not by $parent: an ancestor binding is lost while the control is detached, which resets the editor.
 	-->
-	<Grid RowDefinitions="Auto,*">
+	<Grid RowDefinitions="Auto,*,Auto">
 		<StackPanel Grid.Row="0" Orientation="Horizontal">
 			<StackPanel.Styles>
 				<Style Selector="ToggleButton">
@@ -174,5 +176,33 @@
 				</ContextMenu>
 			</controls:DocumentTextEditor.ContextMenu>
 		</controls:DocumentTextEditor>
+
+		<StackPanel
+			Grid.Row="2"
+			Margin="4.0"
+			HorizontalAlignment="Right"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<StackPanel.Styles>
+				<Style Selector="TextBlock">
+					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<TextBlock
+				x:Name="SelectionCaption"
+				IsVisible="{Binding #Editor.Status.SelectionLength, Mode=OneWay}"
+				Text="{Binding #Editor.Status.SelectionLength, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionLength}}" />
+
+			<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.CaretPosition}}" />
+
+			<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.LineCount}}" />
+
+			<TextBlock
+				x:Name="LineEndingCaption"
+				IsVisible="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:LineEnding.None}}"
+				Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+				ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+		</StackPanel>
 	</Grid>
 </UserControl>
