@@ -177,26 +177,30 @@
 			</controls:DocumentTextEditor.ContextMenu>
 		</controls:DocumentTextEditor>
 
-		<StackPanel
+		<Border
 			Grid.Row="2"
-			Margin="4.0"
-			HorizontalAlignment="Right"
-			Orientation="Horizontal"
-			Spacing="{StaticResource ElementSpacing}">
-			<TextBlock
-				x:Name="SelectionCaption"
-				IsVisible="{Binding #Editor.Status.SelectionLength, Mode=OneWay}"
-				Text="{Binding #Editor.Status.SelectionLength, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionLength}}" />
+			BorderBrush="{StaticResource MaterialDividerBrush}"
+			BorderThickness="0.0,1.0,0.0,0.0">
+			<StackPanel
+				Margin="4.0"
+				HorizontalAlignment="Right"
+				Orientation="Horizontal"
+				Spacing="{StaticResource ElementSpacing}">
+				<TextBlock
+					x:Name="SelectionCaption"
+					IsVisible="{Binding #Editor.Status.SelectionLength, Mode=OneWay}"
+					Text="{Binding #Editor.Status.SelectionLength, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionLength}}" />
 
-			<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.CaretPosition}}" />
+				<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.CaretPosition}}" />
 
-			<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.LineCount}}" />
+				<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.LineCount}}" />
 
-			<TextBlock
-				x:Name="LineEndingCaption"
-				IsVisible="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:LineEnding.None}}"
-				Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-				ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
-		</StackPanel>
+				<TextBlock
+					x:Name="LineEndingCaption"
+					IsVisible="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:LineEnding.None}}"
+					Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+					ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+			</StackPanel>
+		</Border>
 	</Grid>
 </UserControl>
