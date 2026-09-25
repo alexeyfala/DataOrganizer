@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using System;
 using System.Globalization;
@@ -95,11 +96,11 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.LineEndingToCaption" />: line endings of one style are named by their characters.
+	/// <see cref="AppConverters.LineEndingToCaption" />: line endings of one style are named after their system and characters.
 	/// </summary>
-	[TestCase(LineEnding.CrLf, "CRLF")]
-	[TestCase(LineEnding.Lf, "LF")]
-	[TestCase(LineEnding.Cr, "CR")]
+	[TestCase(LineEnding.CrLf, "Windows (CR LF)")]
+	[TestCase(LineEnding.Lf, "Unix (LF)")]
+	[TestCase(LineEnding.Cr, "Macintosh (CR)")]
 	public void LineEndingToCaption_Names_The_Line_Break(LineEnding ending, string expected)
 	{
 		// Act
@@ -125,6 +126,75 @@ internal class AppConvertersTests
 			.Should()
 			.BeNull();
 	}
+
+	/// <summary>
+	/// <see cref="AppConverters.NumberCaption" />: puts the number, with its digits grouped, into the format given as the parameter.
+	/// </summary>
+	[Test]
+	public void NumberCaption_Groups_The_Digits()
+	{
+		// Act
+		object? result = Convert(AppConverters.NumberCaption, 1234567, "[{0}]");
+
+		// Assert
+		result
+			.Should()
+			.Be($"[{1234567.ToString("N0", CultureInfo.CurrentCulture)}]");
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SelectionOrPosition" />: while nothing is selected, shows the caret position counted from one.
+	/// </summary>
+	[Test]
+	public void SelectionOrPosition_Shows_The_Position_Counted_From_One()
+	{
+		// Arrange
+		DocumentStatus status = default(DocumentStatus) with
+		{
+			CaretOffset = 776
+		};
+
+		// Act
+		object? result = Convert(AppConverters.SelectionOrPosition, status);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<string>()
+			.Which
+			.Should()
+			.Contain("777");
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SelectionOrPosition" />: a selection shows its characters and lines instead of the caret position.
+	/// </summary>
+	[Test]
+	public void SelectionOrPosition_Shows_The_Selection_Instead_Of_The_Position()
+	{
+		// Arrange
+		DocumentStatus status = default(DocumentStatus) with
+		{
+			CaretOffset = 776,
+			SelectionLength = 128,
+			SelectionLineCount = 45
+		};
+
+		// Act
+		object? result = Convert(AppConverters.SelectionOrPosition, status);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<string>()
+			.Which
+			.Should()
+			.Contain("128")
+			.And
+			.Contain("45")
+			.And
+			.NotContain("777");
+	}
 	#endregion
 
 	#region Helpers
@@ -147,6 +217,30 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			ending,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over a number with the format given as the parameter.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<int, string, string> converter, int number, string format)
+	{
+		return converter.Convert(
+			number,
+			typeof(object),
+			format,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the status of a document.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<DocumentStatus, string> converter, DocumentStatus status)
+	{
+		return converter.Convert(
+			status,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

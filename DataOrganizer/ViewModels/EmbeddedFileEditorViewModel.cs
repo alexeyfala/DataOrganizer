@@ -22,6 +22,7 @@ using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Channels;
@@ -40,6 +41,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	[ObservableProperty]
 	public partial TextDocument Document { get; private set; } = new();
+
+	/// <summary>
+	/// Name of the encoding the file is stored in.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? EncodingName { get; private set; }
 
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
@@ -140,12 +147,21 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
+			// The mark belongs to the file rather than to its text: it stays out of the document and returns on save.
+			_hasByteOrderMark = output
+				.AsSpan()
+				.StartsWith(Encoding.UTF8.Preamble);
+
 			// A new document starts with an empty undo stack, so the loaded text cannot be undone.
 			TextDocument document = new(TextDefaults
 				.Encoding
-				.GetString(output));
+				.GetString(output.AsSpan(_hasByteOrderMark ? Encoding.UTF8.Preamble.Length : 0)));
 
 			Document = document;
+
+			EncodingName = _hasByteOrderMark
+				? Utf8WithByteOrderMarkName
+				: Utf8Name;
 
 			_lastSavedContentHash = SHA256.HashData(output);
 
@@ -187,6 +203,16 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Name of the encoding of a file stored without a byte order mark.
+	/// </summary>
+	private const string Utf8Name = "UTF-8";
+
+	/// <summary>
+	/// Name of the encoding of a file that starts with a byte order mark.
+	/// </summary>
+	private const string Utf8WithByteOrderMarkName = "UTF-8-BOM";
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
@@ -201,6 +227,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		SingleReader = true,
 		SingleWriter = true
 	});
+
+	/// <summary>
+	/// <c>True</c> when the file starts with a byte order mark, which the document text leaves out.
+	/// </summary>
+	private bool _hasByteOrderMark;
 
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
@@ -365,9 +396,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void EnqueueSave(TextDocument document)
 	{
-		byte[] contents = TextDefaults
+		string text = document.Text;
+
+		// The byte order mark taken off the text on load goes back in front of it.
+		ReadOnlySpan<byte> preamble = _hasByteOrderMark ? Encoding.UTF8.Preamble : [];
+
+		byte[] contents = new byte[preamble.Length + TextDefaults.Encoding.GetByteCount(text)];
+
+		preamble.CopyTo(contents);
+
+		TextDefaults
 			.Encoding
-			.GetBytes(document.Text);
+			.GetBytes(text, contents.AsSpan(preamble.Length));
 
 		if (_saveChannel
 			.Writer

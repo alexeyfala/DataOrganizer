@@ -24,19 +24,14 @@ internal class DocumentEditorTests
 	private const string EditorName = "Editor";
 
 	/// <summary>
-	/// Name of the caption of the line endings in the markup.
+	/// Name of the caption of the encoding in the markup.
 	/// </summary>
-	private const string LineEndingCaptionName = "LineEndingCaption";
+	private const string EncodingCaptionName = "EncodingCaption";
 
 	/// <summary>
 	/// Name of the scroll viewer in the template of the text editor.
 	/// </summary>
 	private const string ScrollViewerName = "PART_ScrollViewer";
-
-	/// <summary>
-	/// Name of the caption of the selection length in the markup.
-	/// </summary>
-	private const string SelectionCaptionName = "SelectionCaption";
 	#endregion
 
 	#region Methods
@@ -203,6 +198,27 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditor.EncodingName" />: the name of the encoding reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void EncodingName_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditor sut = new()
+		{
+			EncodingName = "UTF-8-BOM"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextBlock>(EncodingCaptionName).Text
+			.Should()
+			.Be("UTF-8-BOM");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditor.IsReadOnly" />: the read-only mode reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -335,49 +351,24 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor" />: the status bar shows the line endings only when the document has a line break.
+	/// <see cref="DocumentEditor" />: the status bar shows the encoding only when one is given.
 	/// </summary>
 	[AvaloniaTest]
-	public void StatusBar_Shows_The_Line_Ending_Only_With_A_Line_Break([Values] bool hasLineBreak)
+	public void StatusBar_Shows_The_Encoding_Only_When_It_Is_Given([Values] bool isGiven)
 	{
 		// Arrange
 		DocumentEditor sut = new()
 		{
-			Document = new(hasLineBreak ? "First\nSecond" : "First")
+			EncodingName = isGiven ? "UTF-8" : null
 		};
 
 		// Act
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextBlock>(LineEndingCaptionName).IsVisible
+		sut.GetControl<TextBlock>(EncodingCaptionName).IsVisible
 			.Should()
-			.Be(hasLineBreak);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditor" />: the status bar shows the length of the selection only while text is selected.
-	/// </summary>
-	[AvaloniaTest]
-	public void StatusBar_Shows_The_Selection_Only_With_Selected_Text([Values] bool isSelected)
-	{
-		// Arrange
-		DocumentEditor sut = new()
-		{
-			Document = new("Some text")
-		};
-
-		Show(sut);
-
-		// Act
-		sut
-			.GetControl<TextEditor>(EditorName)
-			.Select(0, isSelected ? 4 : 0);
-
-		// Assert
-		sut.GetControl<TextBlock>(SelectionCaptionName).IsVisible
-			.Should()
-			.Be(isSelected);
+			.Be(isGiven);
 	}
 
 	/// <summary>

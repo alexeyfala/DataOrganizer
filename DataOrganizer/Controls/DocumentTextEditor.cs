@@ -163,11 +163,14 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		// The handlers above follow the changes only, so the status starts from the current state.
 		Status = new()
 		{
+			CaretOffset = TextArea.Caret.Offset,
 			Column = TextArea.Caret.Column,
 			Line = TextArea.Caret.Line,
 			LineCount = LineCount,
 			LineEnding = FindLineEnding(Document),
-			SelectionLength = TextArea.Selection.Length
+			SelectionLength = TextArea.Selection.Length,
+			SelectionLineCount = CountSelectedLines(TextArea.Selection),
+			TextLength = Document?.TextLength ?? 0
 		};
 	}
 	#endregion
@@ -180,6 +183,7 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	{
 		Status = Status with
 		{
+			CaretOffset = TextArea.Caret.Offset,
 			Column = TextArea.Caret.Column,
 			Line = TextArea.Caret.Line
 		};
@@ -195,9 +199,12 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// </summary>
 	private void DocumentTextEditor_TextChanged(object? sender, EventArgs e)
 	{
+		// An edit before the caret moves its offset while its line and column stay, and then the caret reports nothing.
 		Status = Status with
 		{
-			LineCount = LineCount
+			CaretOffset = TextArea.Caret.Offset,
+			LineCount = LineCount,
+			TextLength = Document?.TextLength ?? 0
 		};
 	}
 
@@ -224,7 +231,8 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		// SelectionLength of the editor would also count the gaps of a rectangular selection.
 		Status = Status with
 		{
-			SelectionLength = TextArea.Selection.Length
+			SelectionLength = TextArea.Selection.Length,
+			SelectionLineCount = CountSelectedLines(TextArea.Selection)
 		};
 	}
 
@@ -253,6 +261,19 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the number of lines a selection touches.
+	/// </summary>
+	private static int CountSelectedLines(Selection selection)
+	{
+		if (selection.IsEmpty)
+		{
+			return 0;
+		}
+
+		return Math.Abs(selection.EndPosition.Line - selection.StartPosition.Line) + 1;
+	}
+
 	/// <summary>
 	/// Returns the line break style shared by the lines of a document.
 	/// </summary>

@@ -61,16 +61,6 @@ internal static class AppConverters
 				Strings.LockedInFormat,
 				left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture)));
 
-	/// <summary>
-	/// Caption of the caret line and column of a document.
-	/// </summary>
-	public static FuncValueConverter<DocumentStatus, string> CaretPosition { get; } =
-		new(status => string.Format(
-			CultureInfo.CurrentCulture,
-			Strings.LineColumnFormat,
-			status.Line,
-			status.Column));
-
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
 		{
@@ -120,20 +110,14 @@ internal static class AppConverters
 		new(GetFolder);
 
 	/// <summary>
-	/// Caption of the number of lines of a document.
-	/// </summary>
-	public static FuncValueConverter<int, string> LineCount { get; } =
-		new(count => string.Format(CultureInfo.CurrentCulture, Strings.LinesFormat, count));
-
-	/// <summary>
 	/// Caption of the line endings of a document; <c>null</c> for a document without line breaks.
 	/// </summary>
 	public static FuncValueConverter<LineEnding, string?> LineEndingToCaption { get; } =
 		new(ending => ending switch
 		{
-			LineEnding.CrLf => "CRLF",
-			LineEnding.Lf => "LF",
-			LineEnding.Cr => "CR",
+			LineEnding.CrLf => "Windows (CR LF)",
+			LineEnding.Lf => "Unix (LF)",
+			LineEnding.Cr => "Macintosh (CR)",
 			LineEnding.Mixed => Strings.MixedLineEndings,
 			_ => null
 		});
@@ -148,6 +132,15 @@ internal static class AppConverters
 
 	/// <inheritdoc cref="NoteHeaderBuilder.Build" />
 	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHeaderBuilder.Build);
+
+	/// <summary>
+	/// Caption of a number with its digits grouped, put into the format given as the parameter.
+	/// </summary>
+	public static FuncValueConverter<int, string, string> NumberCaption { get; } =
+		new((number, format) => string.Format(
+			CultureInfo.CurrentCulture,
+			format ?? "{0}",
+			FormatNumber(number)));
 
 	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.
@@ -190,18 +183,31 @@ internal static class AppConverters
 			: default);
 
 	/// <summary>
-	/// Caption of the number of selected characters.
+	/// Caption of the selection of a document, or of the caret position while nothing is selected.
 	/// </summary>
-	public static FuncValueConverter<int, string> SelectionLength { get; } = new(length => string.Format(
-		CultureInfo.CurrentCulture,
-		Strings.SelectedFormat,
-		length));
+	public static FuncValueConverter<DocumentStatus, string> SelectionOrPosition { get; } =
+		new(status => status.SelectionLength > 0
+			? string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.SelectedFormat,
+				FormatNumber(status.SelectionLength),
+				FormatNumber(status.SelectionLineCount))
+			: string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.PositionFormat,
+				// The position counts from one, like the line and the column.
+				FormatNumber(status.CaretOffset + 1)));
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Formats a number with its digits grouped the way the current culture groups them.
+	/// </summary>
+	private static string FormatNumber(int number) => number.ToString("N0", CultureInfo.CurrentCulture);
+
 	/// <summary>
 	/// The parent folder of the objects of a favorites category; a category always has children.
 	/// </summary>

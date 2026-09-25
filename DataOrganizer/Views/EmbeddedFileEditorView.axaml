@@ -14,6 +14,7 @@
 	<views:DocumentEditor
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
+		EncodingName="{Binding EncodingName, Mode=OneWay}"
 		IsReadOnly="{Binding !IsEditingEnabled, Mode=OneWay}"
 		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
 		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"

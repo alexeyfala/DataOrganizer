@@ -11,17 +11,17 @@ public enum LineEnding
 	None,
 
 	/// <summary>
-	/// Every line ends with a carriage return and a line feed.
+	/// Every line ends with a carriage return and a line feed (Windows).
 	/// </summary>
 	CrLf,
 
 	/// <summary>
-	/// Every line ends with a line feed.
+	/// Every line ends with a line feed (Unix).
 	/// </summary>
 	Lf,
 
 	/// <summary>
-	/// Every line ends with a carriage return.
+	/// Every line ends with a carriage return (Macintosh).
 	/// </summary>
 	Cr,
 

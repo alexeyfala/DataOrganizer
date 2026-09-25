@@ -331,6 +331,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Col: {0}.
+        /// </summary>
+        public static string ColumnFormat {
+            get {
+                return ResourceManager.GetString("ColumnFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Confirm Password.
         /// </summary>
         public static string ConfirmPassword {
@@ -1069,6 +1078,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Length: {0}.
+        /// </summary>
+        public static string LengthFormat {
+            get {
+                return ResourceManager.GetString("LengthFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light.
         /// </summary>
         public static string Light {
@@ -1078,20 +1096,20 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ln {0}, Col {1}.
-        /// </summary>
-        public static string LineColumnFormat {
-            get {
-                return ResourceManager.GetString("LineColumnFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Line endings.
         /// </summary>
         public static string LineEndings {
             get {
                 return ResourceManager.GetString("LineEndings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ln: {0}.
+        /// </summary>
+        public static string LineFormat {
+            get {
+                return ResourceManager.GetString("LineFormat", resourceCulture);
             }
         }
         
@@ -1474,6 +1492,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pos: {0}.
+        /// </summary>
+        public static string PositionFormat {
+            get {
+                return ResourceManager.GetString("PositionFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Primary Color.
         /// </summary>
         public static string PrimaryColor {
@@ -1681,7 +1708,7 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Selected: {0}.
+        ///   Looks up a localized string similar to Sel: {0} | {1}.
         /// </summary>
         public static string SelectedFormat {
             get {

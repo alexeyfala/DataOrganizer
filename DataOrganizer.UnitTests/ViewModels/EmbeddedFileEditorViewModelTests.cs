@@ -19,6 +19,7 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -291,6 +292,48 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: names the encoding of the file, telling apart a file
+	/// that starts with a byte order mark.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Names_The_Encoding([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.EncodingName
+			.Should()
+			.Be(hasByteOrderMark ? "UTF-8-BOM" : "UTF-8");
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents read successfully open the document for editing.
 	/// </summary>
 	[AvaloniaTest]
@@ -526,6 +569,48 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the byte order mark stays out of the text, so it neither
+	/// counts as a character nor shifts the first line.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Takes_The_Byte_Order_Mark_Off_The_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. Encoding.UTF8.GetPreamble(), .. TextDefaults.Encoding.GetBytes(text)],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(text);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.ShowEndOfLine" />, <see cref="EmbeddedFileEditorViewModel.ShowSpaces" />
 	/// and <see cref="EmbeddedFileEditorViewModel.ShowTabs" />: each switch turned on saves the editor state with it.
 	/// </summary>
@@ -605,6 +690,71 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush of a file nobody edited writes nothing,
+	/// also when the file starts with a byte order mark.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Leaves_An_Unedited_File_Alone([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes nothing over contents
 	/// that are not text, so the file keeps its bytes.
 	/// </summary>
@@ -662,6 +812,85 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
 			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: an edited file is saved with the byte order mark
+	/// it was loaded with, and without one when it had none.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Saves_The_Byte_Order_Mark_It_Loaded([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = text;
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		byte[] expected = [.. mark, .. TextDefaults.Encoding.GetBytes(text)];
+
+		saved
+			.Should()
+			.Equal(expected);
 
 		responses
 			.Should()

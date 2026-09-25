@@ -5,7 +5,6 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -181,26 +180,54 @@
 			Grid.Row="2"
 			BorderBrush="{StaticResource MaterialDividerBrush}"
 			BorderThickness="0.0,1.0,0.0,0.0">
-			<StackPanel
-				Margin="4.0"
-				HorizontalAlignment="Right"
-				Orientation="Horizontal"
-				Spacing="{StaticResource ElementSpacing}">
+			<Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+				<StackPanel
+					Grid.Column="1"
+					MinWidth="180.0"
+					Margin="8.0,4.0"
+					Orientation="Horizontal"
+					Spacing="{StaticResource ElementSpacing}">
+					<TextBlock Text="{Binding #Editor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+
+					<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+				</StackPanel>
+
+				<Panel Grid.Column="2" Classes="VerticalSeparatorPanelStyle" />
+
+				<StackPanel
+					Grid.Column="3"
+					MinWidth="240.0"
+					Margin="8.0,4.0"
+					Orientation="Horizontal"
+					Spacing="{StaticResource ElementSpacing}">
+					<TextBlock Text="{Binding #Editor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+
+					<TextBlock Text="{Binding #Editor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+
+					<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
+				</StackPanel>
+
+				<Panel Grid.Column="4" Classes="VerticalSeparatorPanelStyle" />
+
 				<TextBlock
-					x:Name="SelectionCaption"
-					IsVisible="{Binding #Editor.Status.SelectionLength, Mode=OneWay}"
-					Text="{Binding #Editor.Status.SelectionLength, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionLength}}" />
-
-				<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.CaretPosition}}" />
-
-				<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.LineCount}}" />
-
-				<TextBlock
-					x:Name="LineEndingCaption"
-					IsVisible="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:LineEnding.None}}"
+					Grid.Column="5"
+					MinWidth="110.0"
+					Margin="8.0,4.0"
 					Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
 					ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
-			</StackPanel>
+
+				<Panel
+					Grid.Column="6"
+					Classes="VerticalSeparatorPanelStyle"
+					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+				<TextBlock
+					x:Name="EncodingCaption"
+					Grid.Column="7"
+					Margin="8.0,4.0"
+					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+					Text="{Binding #View.EncodingName, Mode=OneWay}" />
+			</Grid>
 		</Border>
 	</Grid>
 </UserControl>

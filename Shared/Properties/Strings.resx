@@ -733,16 +733,31 @@
   <data name="LineEndings" xml:space="preserve">
     <value>Line endings</value>
   </data>
-  <data name="LineColumnFormat" xml:space="preserve">
+  <!--<data name="LineColumnFormat" xml:space="preserve">
     <value>Ln {0}, Col {1}</value>
-  </data>
+  </data>-->
   <data name="LinesFormat" xml:space="preserve">
     <value>Lines: {0}</value>
   </data>
   <data name="MixedLineEndings" xml:space="preserve">
     <value>Mixed</value>
   </data>
-  <data name="SelectedFormat" xml:space="preserve">
+  <!--<data name="SelectedFormat" xml:space="preserve">
     <value>Selected: {0}</value>
+  </data>-->
+  <data name="SelectedFormat" xml:space="preserve">
+    <value>Sel: {0} | {1}</value>
+  </data>
+  <data name="LengthFormat" xml:space="preserve">
+    <value>Length: {0}</value>
+  </data>
+  <data name="LineFormat" xml:space="preserve">
+    <value>Ln: {0}</value>
+  </data>
+  <data name="ColumnFormat" xml:space="preserve">
+    <value>Col: {0}</value>
+  </data>
+  <data name="PositionFormat" xml:space="preserve">
+    <value>Pos: {0}</value>
   </data>
 </root>

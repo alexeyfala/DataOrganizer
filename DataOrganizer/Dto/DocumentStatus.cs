@@ -9,6 +9,11 @@ public readonly record struct DocumentStatus
 {
 	#region Properties
 	/// <summary>
+	/// The caret offset in the text, counted from zero.
+	/// </summary>
+	public required int CaretOffset { get; init; }
+
+	/// <summary>
 	/// The caret column, counted from one; a tab takes one column.
 	/// </summary>
 	public required int Column { get; init; }
@@ -32,5 +37,15 @@ public readonly record struct DocumentStatus
 	/// The number of selected characters.
 	/// </summary>
 	public required int SelectionLength { get; init; }
+
+	/// <summary>
+	/// The number of lines the selection touches.
+	/// </summary>
+	public required int SelectionLineCount { get; init; }
+
+	/// <summary>
+	/// The number of characters in the text.
+	/// </summary>
+	public required int TextLength { get; init; }
 	#endregion
 }

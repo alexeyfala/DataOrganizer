@@ -275,6 +275,27 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: the number of characters follows an edit.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Counts_The_Characters_After_An_Edit()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond")
+		};
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+
+		// Assert
+		sut.Status.TextLength
+			.Should()
+			.Be(18);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Status" />: a rectangular selection is counted without the gaps between its rows.
 	/// </summary>
 	[AvaloniaTest]
@@ -343,6 +364,27 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: counts the lines the selection touches.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Counts_The_Selected_Lines()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond\nThird")
+		};
+
+		// Act
+		sut.Select(2, 8);
+
+		// Assert
+		sut.Status.SelectionLineCount
+			.Should()
+			.Be(2);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Status" />: a new document puts the caret at its start, drops the selection
 	/// and brings its own lines.
 	/// </summary>
@@ -365,11 +407,14 @@ internal class DocumentTextEditorTests
 			.Should()
 			.Be(new DocumentStatus
 			{
+				CaretOffset = 0,
 				Column = 1,
 				Line = 1,
 				LineCount = 2,
 				LineEnding = LineEnding.Lf,
-				SelectionLength = 0
+				SelectionLength = 0,
+				SelectionLineCount = 0,
+				TextLength = 12
 			});
 	}
 
@@ -394,6 +439,32 @@ internal class DocumentTextEditorTests
 		sut.Status.Column
 			.Should()
 			.Be(4);
+
+		sut.Status.CaretOffset
+			.Should()
+			.Be(9);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: an edit before the caret moves its offset, while its line and column stay.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Follows_The_Caret_After_An_Edit_Before_It()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			CaretOffset = 8
+		};
+
+		// Act
+		sut.Document.Insert(5, "!");
+
+		// Assert
+		sut.Status.CaretOffset
+			.Should()
+			.Be(9);
 	}
 
 	/// <summary>

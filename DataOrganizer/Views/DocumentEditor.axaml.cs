@@ -39,6 +39,15 @@ internal sealed partial class DocumentEditor : UserControl
 	}
 
 	/// <summary>
+	/// Name of the encoding the document is stored in; <c>null</c> for a document that is not stored as bytes.
+	/// </summary>
+	public string? EncodingName
+	{
+		get => GetValue(EncodingNameProperty);
+		set => SetValue(EncodingNameProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when the document cannot be edited.
 	/// </summary>
 	public bool IsReadOnly
@@ -117,6 +126,12 @@ internal sealed partial class DocumentEditor : UserControl
 	/// </summary>
 	public static readonly StyledProperty<TextDocument?> DocumentProperty = AvaloniaProperty
 		.Register<DocumentEditor, TextDocument?>(name: nameof(Document));
+
+	/// <summary>
+	/// Identifies the <see cref="EncodingName" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> EncodingNameProperty = AvaloniaProperty
+		.Register<DocumentEditor, string?>(name: nameof(EncodingName));
 
 	/// <summary>
 	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
