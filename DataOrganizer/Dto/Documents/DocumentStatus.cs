@@ -1,6 +1,6 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Documents;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Documents;
 
 /// <summary>
 /// Caret position, selection and lines of a document in the editor.

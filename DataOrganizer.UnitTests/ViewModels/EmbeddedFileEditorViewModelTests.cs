@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;

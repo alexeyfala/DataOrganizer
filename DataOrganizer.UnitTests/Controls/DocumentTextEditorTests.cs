@@ -9,8 +9,8 @@ using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
-using DataOrganizer.Dto;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using System;
 
 namespace DataOrganizer.UnitTests.Controls;

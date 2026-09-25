@@ -2,7 +2,7 @@ using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;

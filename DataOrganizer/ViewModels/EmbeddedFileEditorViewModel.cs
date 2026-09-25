@@ -4,7 +4,7 @@ using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;

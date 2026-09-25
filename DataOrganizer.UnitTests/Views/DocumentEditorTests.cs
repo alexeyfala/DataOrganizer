@@ -8,7 +8,7 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Views;
 using System.Linq;
 

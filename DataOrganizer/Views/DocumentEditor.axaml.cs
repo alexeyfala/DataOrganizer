@@ -6,7 +6,7 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using System;
 using System.Reactive.Linq;

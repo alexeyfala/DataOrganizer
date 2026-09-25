@@ -1,7 +1,7 @@
 using Avalonia;
 using AvaloniaEdit;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Documents;
 
 /// <summary>
 /// Caret, selection and scroll position of a document in the editor.

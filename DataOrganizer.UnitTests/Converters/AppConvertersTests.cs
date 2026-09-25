@@ -1,8 +1,8 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Dto;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using System;
 using System.Globalization;
 

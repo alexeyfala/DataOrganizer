@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;

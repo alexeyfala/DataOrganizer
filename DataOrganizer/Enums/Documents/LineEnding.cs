@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Documents;
 
 /// <summary>
 /// Line break style of a document.

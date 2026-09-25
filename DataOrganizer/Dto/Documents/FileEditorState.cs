@@ -1,7 +1,7 @@
 using AvaloniaEdit;
 using System.Drawing;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Documents;
 
 /// <summary>
 /// State of the built-in editor for a file.
