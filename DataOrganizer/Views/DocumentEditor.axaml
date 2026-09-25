@@ -183,12 +183,6 @@
 			HorizontalAlignment="Right"
 			Orientation="Horizontal"
 			Spacing="{StaticResource ElementSpacing}">
-			<StackPanel.Styles>
-				<Style Selector="TextBlock">
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-			</StackPanel.Styles>
-
 			<TextBlock
 				x:Name="SelectionCaption"
 				IsVisible="{Binding #Editor.Status.SelectionLength, Mode=OneWay}"
