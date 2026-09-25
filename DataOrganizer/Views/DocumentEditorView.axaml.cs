@@ -16,7 +16,7 @@ namespace DataOrganizer.Views;
 /// <summary>
 /// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
 /// </summary>
-internal sealed partial class DocumentEditor : UserControl
+internal sealed partial class DocumentEditorView : UserControl
 {
 	#region Properties
 	/// <summary>
@@ -117,7 +117,7 @@ internal sealed partial class DocumentEditor : UserControl
 	/// Identifies the <see cref="DocumentFontSize" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> DocumentFontSizeProperty = AvaloniaProperty
-		.Register<DocumentEditor, double>(
+		.Register<DocumentEditorView, double>(
 			name: nameof(DocumentFontSize),
 			defaultValue: 14.0);
 
@@ -125,55 +125,55 @@ internal sealed partial class DocumentEditor : UserControl
 	/// Identifies the <see cref="Document" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<TextDocument?> DocumentProperty = AvaloniaProperty
-		.Register<DocumentEditor, TextDocument?>(name: nameof(Document));
+		.Register<DocumentEditorView, TextDocument?>(name: nameof(Document));
 
 	/// <summary>
 	/// Identifies the <see cref="EncodingName" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> EncodingNameProperty = AvaloniaProperty
-		.Register<DocumentEditor, string?>(name: nameof(EncodingName));
+		.Register<DocumentEditorView, string?>(name: nameof(EncodingName));
 
 	/// <summary>
 	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(name: nameof(IsReadOnly));
+		.Register<DocumentEditorView, bool>(name: nameof(IsReadOnly));
 
 	/// <summary>
 	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(name: nameof(ShowEndOfLine));
+		.Register<DocumentEditorView, bool>(name: nameof(ShowEndOfLine));
 
 	/// <summary>
 	/// Identifies the <see cref="ShowSpaces" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowSpacesProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(name: nameof(ShowSpaces));
+		.Register<DocumentEditorView, bool>(name: nameof(ShowSpaces));
 
 	/// <summary>
 	/// Identifies the <see cref="ShowTabs" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(name: nameof(ShowTabs));
+		.Register<DocumentEditorView, bool>(name: nameof(ShowTabs));
 
 	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<object?> ToolBarContentProperty = AvaloniaProperty
-		.Register<DocumentEditor, object?>(name: nameof(ToolBarContent));
+		.Register<DocumentEditorView, object?>(name: nameof(ToolBarContent));
 
 	/// <summary>
 	/// Identifies the <see cref="ViewState" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<DocumentViewState?> ViewStateProperty = AvaloniaProperty
-		.Register<DocumentEditor, DocumentViewState?>(name: nameof(ViewState));
+		.Register<DocumentEditorView, DocumentViewState?>(name: nameof(ViewState));
 
 	/// <summary>
 	/// Identifies the <see cref="WordWrap" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> WordWrapProperty = AvaloniaProperty
-		.Register<DocumentEditor, bool>(name: nameof(WordWrap));
+		.Register<DocumentEditorView, bool>(name: nameof(WordWrap));
 	#endregion
 
 	#region Data
@@ -204,7 +204,7 @@ internal sealed partial class DocumentEditor : UserControl
 	#endregion
 
 	#region Constructors
-	public DocumentEditor()
+	public DocumentEditorView()
 	{
 		InitializeComponent();
 

@@ -14,8 +14,8 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleTextEditor)}"" type")]
-internal class ConsoleTextEditorTests
+[TestFixture(Description = $@"Tests of ""{nameof(ConsoleLogViewer)}"" type")]
+internal class ConsoleLogViewerTests
 {
 	#region Data
 	/// <summary>
@@ -26,7 +26,7 @@ internal class ConsoleTextEditorTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="ConsoleTextEditor" />: text appended to the document brings the end of the text into view.
+	/// <see cref="ConsoleLogViewer" />: text appended to the document brings the end of the text into view.
 	/// </summary>
 	[AvaloniaTest]
 	public void Follows_The_End_When_Text_Is_Appended()
@@ -34,7 +34,7 @@ internal class ConsoleTextEditorTests
 		// Arrange
 		TextDocument document = new();
 
-		ConsoleTextEditor sut = new()
+		ConsoleLogViewer sut = new()
 		{
 			Document = document
 		};
@@ -59,13 +59,13 @@ internal class ConsoleTextEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="ConsoleTextEditor" />: every log level has a colorizer of its own.
+	/// <see cref="ConsoleLogViewer" />: every log level has a colorizer of its own.
 	/// </summary>
 	[AvaloniaTest]
 	public void Paints_Every_Log_Level()
 	{
 		// Act
-		ConsoleTextEditor sut = new();
+		ConsoleLogViewer sut = new();
 
 		// Assert
 		sut.TextArea.TextView.LineTransformers
@@ -77,28 +77,28 @@ internal class ConsoleTextEditorTests
 
 	#region Helpers
 	/// <summary>
-	/// Returns the scroll viewer of the editor.
+	/// Returns the scroll viewer of the log viewer.
 	/// </summary>
-	private static ScrollViewer GetScrollViewer(ConsoleTextEditor editor)
+	private static ScrollViewer GetScrollViewer(ConsoleLogViewer viewer)
 	{
-		return editor
+		return viewer
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
 	}
 
 	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
+	/// Shows the log viewer in its theme in a window of a fixed size and lets the layout settle.
 	/// </summary>
-	private static void Show(ConsoleTextEditor editor)
+	private static void Show(ConsoleLogViewer viewer)
 	{
 		Interaction
-			.GetBehaviors(editor)
+			.GetBehaviors(viewer)
 			.Add(new FluentThemeBehavior());
 
 		Window window = new()
 		{
-			Content = editor,
+			Content = viewer,
 			Height = 600.0,
 			Width = 800.0
 		};

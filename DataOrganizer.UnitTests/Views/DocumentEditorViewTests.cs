@@ -14,8 +14,8 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentEditor)}"" type")]
-internal class DocumentEditorTests
+[TestFixture(Description = $@"Tests of ""{nameof(DocumentEditorView)}"" type")]
+internal class DocumentEditorViewTests
 {
 	#region Data
 	/// <summary>
@@ -36,14 +36,14 @@ internal class DocumentEditorTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="DocumentEditor.CaptureViewState" />: the reported state is not restored back,
+	/// <see cref="DocumentEditorView.CaptureViewState" />: the reported state is not restored back,
 	/// so a later scroll stays where it is.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Does_Not_Scroll_The_View_Back()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 1000)
 		};
@@ -72,13 +72,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.CaptureViewState" />: a view state that is still to be restored is not overwritten.
+	/// <see cref="DocumentEditorView.CaptureViewState" />: a view state that is still to be restored is not overwritten.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Keeps_A_Pending_View_State()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 100)
 		};
@@ -105,13 +105,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.CaptureViewState" />: reports the caret, the selection and the offset the editor shows.
+	/// <see cref="DocumentEditorView.CaptureViewState" />: reports the caret, the selection and the offset the editor shows.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Reports_The_Caret_The_Selection_And_The_Offset()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 1000)
 		};
@@ -144,13 +144,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.DocumentFontSize" />: a notch of the wheel with Ctrl changes the size by one step.
+	/// <see cref="DocumentEditorView.DocumentFontSize" />: a notch of the wheel with Ctrl changes the size by one step.
 	/// </summary>
 	[AvaloniaTest]
 	public void DocumentFontSize_Changes_By_One_Step_Per_Ctrl_Wheel_Notch()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 100),
 			DocumentFontSize = 14.0
@@ -170,13 +170,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.DocumentFontSize" />: a spin of the font size spinner changes the size by one step.
+	/// <see cref="DocumentEditorView.DocumentFontSize" />: a spin of the font size spinner changes the size by one step.
 	/// </summary>
 	[AvaloniaTest]
 	public void DocumentFontSize_Changes_By_One_Step_Per_Spin()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			DocumentFontSize = 14.0
 		};
@@ -198,13 +198,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.EncodingName" />: the name of the encoding reaches the status bar.
+	/// <see cref="DocumentEditorView.EncodingName" />: the name of the encoding reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
 	public void EncodingName_Reaches_The_Status_Bar()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			EncodingName = "UTF-8-BOM"
 		};
@@ -219,13 +219,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.IsReadOnly" />: the read-only mode reaches the editor.
+	/// <see cref="DocumentEditorView.IsReadOnly" />: the read-only mode reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void IsReadOnly_Reaches_The_Editor([Values] bool isReadOnly)
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			IsReadOnly = isReadOnly
 		};
@@ -240,14 +240,14 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor" />: detaching the control and attaching it again, as a tab switch does,
+	/// <see cref="DocumentEditorView" />: detaching the control and attaching it again, as a tab switch does,
 	/// keeps the selection and the scroll position.
 	/// </summary>
 	[AvaloniaTest]
 	public void Keeps_The_View_When_Attached_Again()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 1000)
 		};
@@ -288,13 +288,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ShowEndOfLine" />: the glyphs of line endings reach the editor.
+	/// <see cref="DocumentEditorView.ShowEndOfLine" />: the glyphs of line endings reach the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowEndOfLine_Reaches_The_Editor([Values] bool isShown)
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			ShowEndOfLine = isShown
 		};
@@ -309,13 +309,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ShowSpaces" />: the glyphs of spaces reach the editor.
+	/// <see cref="DocumentEditorView.ShowSpaces" />: the glyphs of spaces reach the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowSpaces_Reaches_The_Editor([Values] bool isShown)
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			ShowSpaces = isShown
 		};
@@ -330,13 +330,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ShowTabs" />: the glyphs of tabs reach the editor.
+	/// <see cref="DocumentEditorView.ShowTabs" />: the glyphs of tabs reach the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowTabs_Reaches_The_Editor([Values] bool isShown)
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			ShowTabs = isShown
 		};
@@ -351,13 +351,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor" />: the status bar shows the encoding only when one is given.
+	/// <see cref="DocumentEditorView" />: the status bar shows the encoding only when one is given.
 	/// </summary>
 	[AvaloniaTest]
 	public void StatusBar_Shows_The_Encoding_Only_When_It_Is_Given([Values] bool isGiven)
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			EncodingName = isGiven ? "UTF-8" : null
 		};
@@ -372,7 +372,7 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ToolBarContent" />: the content placed in the toolbar keeps the data context of the control.
+	/// <see cref="DocumentEditorView.ToolBarContent" />: the content placed in the toolbar keeps the data context of the control.
 	/// </summary>
 	[AvaloniaTest]
 	public void ToolBarContent_Keeps_The_Data_Context_Of_The_Control()
@@ -382,7 +382,7 @@ internal class DocumentEditorTests
 
 		Button button = new();
 
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			DataContext = dataContext,
 			ToolBarContent = button
@@ -398,7 +398,7 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ViewState" />: a selection and a caret beyond the document are brought inside it.
+	/// <see cref="DocumentEditorView.ViewState" />: a selection and a caret beyond the document are brought inside it.
 	/// </summary>
 	[AvaloniaTest]
 	public void ViewState_Clamps_A_Selection_Beyond_The_Document()
@@ -406,7 +406,7 @@ internal class DocumentEditorTests
 		// Arrange
 		TextDocument document = CreateDocument(lineCount: 10);
 
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = document
 		};
@@ -441,14 +441,14 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ViewState" />: a document set right after the state is the one it is restored on,
+	/// <see cref="DocumentEditorView.ViewState" />: a document set right after the state is the one it is restored on,
 	/// not the one it would have been lost with.
 	/// </summary>
 	[AvaloniaTest]
 	public void ViewState_Is_Restored_On_A_Document_Set_After_It()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = new()
 		};
@@ -487,13 +487,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ViewState" />: the offset is restored, and the caret line does not scroll it away.
+	/// <see cref="DocumentEditorView.ViewState" />: the offset is restored, and the caret line does not scroll it away.
 	/// </summary>
 	[AvaloniaTest]
 	public void ViewState_Restores_The_Offset_Instead_Of_The_Caret_Line()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 1000)
 		};
@@ -520,13 +520,13 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ViewState" />: restores the selection and the caret.
+	/// <see cref="DocumentEditorView.ViewState" />: restores the selection and the caret.
 	/// </summary>
 	[AvaloniaTest]
 	public void ViewState_Restores_The_Selection_And_The_Caret()
 	{
 		// Arrange
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 100)
 		};
@@ -561,7 +561,7 @@ internal class DocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditor.ViewState" />: a value set before the control is loaded is restored once it is.
+	/// <see cref="DocumentEditorView.ViewState" />: a value set before the control is loaded is restored once it is.
 	/// </summary>
 	[AvaloniaTest]
 	public void ViewState_Set_Before_Loading_Is_Restored_Once_Loaded()
@@ -569,7 +569,7 @@ internal class DocumentEditorTests
 		// Arrange
 		Vector offset = new(0.0, 500.0);
 
-		DocumentEditor sut = new()
+		DocumentEditorView sut = new()
 		{
 			Document = CreateDocument(lineCount: 1000),
 			ViewState = new DocumentViewState
@@ -617,7 +617,7 @@ internal class DocumentEditorTests
 	/// <summary>
 	/// Returns the scroll viewer of the text editor.
 	/// </summary>
-	private static ScrollViewer GetScrollViewer(DocumentEditor editor)
+	private static ScrollViewer GetScrollViewer(DocumentEditorView editor)
 	{
 		return editor
 			.GetControl<TextEditor>(EditorName)
@@ -629,7 +629,7 @@ internal class DocumentEditorTests
 	/// <summary>
 	/// Shows the editor in a window of a fixed size and lets the layout settle.
 	/// </summary>
-	private static Window Show(DocumentEditor editor)
+	private static Window Show(DocumentEditorView editor)
 	{
 		Window window = new()
 		{

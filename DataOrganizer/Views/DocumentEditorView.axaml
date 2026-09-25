@@ -1,5 +1,5 @@
 <UserControl
-	x:Class="DataOrganizer.Views.DocumentEditor"
+	x:Class="DataOrganizer.Views.DocumentEditorView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"

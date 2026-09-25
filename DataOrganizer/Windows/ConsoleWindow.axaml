@@ -98,7 +98,7 @@
 
 		<Separator Grid.Row="2" Margin="0.0" />
 
-		<controls:ConsoleTextEditor
+		<controls:ConsoleLogViewer
 			x:Name="Editor"
 			Grid.Row="3"
 			Document="{Binding Document, Mode=OneWay}"
@@ -106,7 +106,7 @@
 			IsReadOnly="True"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
-			<controls:ConsoleTextEditor.ContextMenu>
+			<controls:ConsoleLogViewer.ContextMenu>
 				<ContextMenu Padding="4.0,0.0">
 					<MenuItem
 						Command="{Binding #Editor.CopyCommand}"
@@ -130,7 +130,7 @@
 						InputGesture="{OnPlatform Default='Ctrl+F',
 						                          macOS='⌘+F'}" />
 				</ContextMenu>
-			</controls:ConsoleTextEditor.ContextMenu>
-		</controls:ConsoleTextEditor>
+			</controls:ConsoleLogViewer.ContextMenu>
+		</controls:ConsoleLogViewer>
 	</Grid>
 </Window>

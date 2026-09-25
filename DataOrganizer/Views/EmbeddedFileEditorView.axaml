@@ -11,7 +11,7 @@
 	x:DataType="vm:EmbeddedFileEditorViewModel"
 	mc:Ignorable="d">
 
-	<views:DocumentEditor
+	<views:DocumentEditorView
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
 		EncodingName="{Binding EncodingName, Mode=OneWay}"
@@ -28,7 +28,7 @@
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
 
-		<views:DocumentEditor.ToolBarContent>
+		<views:DocumentEditorView.ToolBarContent>
 			<Button
 				Classes="primary"
 				Command="{Binding ShowInListCommand}"
@@ -36,6 +36,6 @@
 				Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ShowInList}" />
-		</views:DocumentEditor.ToolBarContent>
-	</views:DocumentEditor>
+		</views:DocumentEditorView.ToolBarContent>
+	</views:DocumentEditorView>
 </UserControl>

@@ -10,7 +10,7 @@ using System;
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// <see cref="TextEditor" /> with the settings, commands and zoom common to the editors of the application.
+/// <see cref="TextEditor" /> with the settings, commands and zoom common to the text editors and viewers of the application.
 /// </summary>
 internal abstract class TextEditorBase : TextEditor
 {
