@@ -253,54 +253,62 @@
 			Grid.Row="2"
 			BorderBrush="{StaticResource MaterialDividerBrush}"
 			BorderThickness="0.0,1.0,0.0,0.0">
-			<Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-				<StackPanel
-					Grid.Column="1"
-					MinWidth="180.0"
-					Margin="8.0,4.0"
-					Orientation="Horizontal"
-					Spacing="{StaticResource ElementSpacing}">
-					<TextBlock Text="{Binding #Editor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
-
-					<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
-				</StackPanel>
-
-				<Panel Grid.Column="2" Classes="VerticalSeparatorPanelStyle" />
-
-				<StackPanel
-					Grid.Column="3"
-					MinWidth="240.0"
-					Margin="8.0,4.0"
-					Orientation="Horizontal"
-					Spacing="{StaticResource ElementSpacing}">
-					<TextBlock Text="{Binding #Editor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
-
-					<TextBlock Text="{Binding #Editor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
-
-					<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
-				</StackPanel>
-
-				<Panel Grid.Column="4" Classes="VerticalSeparatorPanelStyle" />
-
-				<TextBlock
-					Grid.Column="5"
-					MinWidth="110.0"
-					Margin="8.0,4.0"
-					Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-					ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+			<!--
+				The blocks are docked to the right edge, so they come in reverse order. Each one gets the width left
+				by the blocks on its right, and a block without enough room is cut at its right edge, as in Notepad++.
+			-->
+			<DockPanel LastChildFill="False">
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<TextBlock
+						x:Name="EncodingCaption"
+						Margin="8.0,4.0"
+						IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+						Text="{Binding #View.EncodingName, Mode=OneWay}" />
+				</Border>
 
 				<Panel
-					Grid.Column="6"
 					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right"
 					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-				<TextBlock
-					x:Name="EncodingCaption"
-					Grid.Column="7"
-					Margin="8.0,4.0"
-					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-					Text="{Binding #View.EncodingName, Mode=OneWay}" />
-			</Grid>
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<TextBlock
+						MinWidth="110.0"
+						Margin="8.0,4.0"
+						Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+				</Border>
+
+				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<StackPanel
+						MinWidth="240.0"
+						Margin="8.0,4.0"
+						Orientation="Horizontal"
+						Spacing="{StaticResource ElementSpacing}">
+						<TextBlock Text="{Binding #Editor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
+					</StackPanel>
+				</Border>
+
+				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<StackPanel
+						MinWidth="180.0"
+						Margin="8.0,4.0"
+						Orientation="Horizontal"
+						Spacing="{StaticResource ElementSpacing}">
+						<TextBlock Text="{Binding #Editor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+					</StackPanel>
+				</Border>
+			</DockPanel>
 		</Border>
 	</Grid>
 </UserControl>

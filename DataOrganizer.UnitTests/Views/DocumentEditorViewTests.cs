@@ -351,6 +351,42 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: in a window too narrow for the status bar the block on the right edge stays whole
+	/// and in view, while the blocks on the left give way.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Keeps_The_Encoding_Whole_In_A_Narrow_Window()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8"
+		};
+
+		Window window = Show(sut);
+
+		TextBlock caption = sut.GetControl<TextBlock>(EncodingCaptionName);
+
+		double width = caption.Bounds.Width;
+
+		// Act
+		window.Width = 400.0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		caption.Bounds.Width
+			.Should()
+			.Be(width);
+
+		double? right = caption.TranslatePoint(new(width, 0.0), sut)?.X;
+
+		right
+			.Should()
+			.BeLessThanOrEqualTo(sut.Bounds.Width);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: the status bar shows the encoding only when one is given.
 	/// </summary>
 	[AvaloniaTest]

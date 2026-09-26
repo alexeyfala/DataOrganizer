@@ -146,8 +146,8 @@ internal class TextEditorBaseTests
 	/// <see cref="TemplatedControl.FontSize" />: the gap between the line numbers and the text grows with the font size.
 	/// </summary>
 	[AvaloniaTest]
-	[TestCase(10.0, 3.0)]
-	[TestCase(40.0, 12.0)]
+	[TestCase(10.0, 4.0)]
+	[TestCase(40.0, 16.0)]
 	public void FontSize_Sets_The_Gap_Before_The_Text(double fontSize, double expected)
 	{
 		// Arrange, Act

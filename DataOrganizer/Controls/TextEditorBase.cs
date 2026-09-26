@@ -69,7 +69,7 @@ internal abstract class TextEditorBase : TextEditor
 	private const double MinFontSize = 6.0;
 
 	/// <summary>
-	/// Width of the gap before the text as a share of the font size, about half a character.
+	/// Width of the gap before the text as a share of the font size.
 	/// </summary>
 	private const double TextGapRatio = 0.4;
 	#endregion
