@@ -731,7 +731,7 @@
     <value>Tabs</value>
   </data>
   <data name="LineEndings" xml:space="preserve">
-    <value>Line endings</value>
+    <value>Line Endings</value>
   </data>
   <!--<data name="LineColumnFormat" xml:space="preserve">
     <value>Ln {0}, Col {1}</value>
@@ -759,5 +759,32 @@
   </data>
   <data name="PositionFormat" xml:space="preserve">
     <value>Pos: {0}</value>
+  </data>
+  <data name="Transform" xml:space="preserve">
+    <value>Transform</value>
+  </data>
+  <data name="Uppercase" xml:space="preserve">
+    <value>UPPERCASE</value>
+  </data>
+  <data name="Lowercase" xml:space="preserve">
+    <value>lowercase</value>
+  </data>
+  <data name="TitleCase" xml:space="preserve">
+    <value>Title Case</value>
+  </data>
+  <data name="InvertCase" xml:space="preserve">
+    <value>iNVERT cASE</value>
+  </data>
+  <data name="RemoveTrailingSpaces" xml:space="preserve">
+    <value>Remove Trailing Spaces</value>
+  </data>
+  <data name="RemoveLeadingSpaces" xml:space="preserve">
+    <value>Remove Leading Spaces</value>
+  </data>
+  <data name="IndentsTabsToSpaces" xml:space="preserve">
+    <value>Indents: Tabs To Spaces</value>
+  </data>
+  <data name="IndentsSpacesToTabs" xml:space="preserve">
+    <value>Indents: Spaces To Tabs</value>
   </data>
 </root>

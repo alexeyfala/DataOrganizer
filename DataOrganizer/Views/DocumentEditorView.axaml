@@ -5,6 +5,7 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:documents="using:DataOrganizer.Enums.Documents"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -164,6 +165,78 @@
 						Header="{x:Static prop:Strings.SelectAll}"
 						InputGesture="{OnPlatform Default='Ctrl+A',
 						                          macOS='⌘+A'}" />
+
+					<Separator />
+
+					<MenuItem Header="{x:Static prop:Strings.Transform}">
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.UpperCase}"
+							Header="{x:Static prop:Strings.Uppercase}"
+							InputGesture="{OnPlatform Default='Ctrl+Shift+U',
+							                          macOS='⌘+Shift+U'}" />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.LowerCase}"
+							Header="{x:Static prop:Strings.Lowercase}"
+							InputGesture="{OnPlatform Default='Ctrl+U',
+							                          macOS='⌘+U'}" />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.TitleCase}"
+							Header="{x:Static prop:Strings.TitleCase}" />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.InvertCase}"
+							Header="{x:Static prop:Strings.InvertCase}" />
+
+						<Separator />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
+							Header="{x:Static prop:Strings.RemoveTrailingSpaces}" />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
+							Header="{x:Static prop:Strings.RemoveLeadingSpaces}" />
+
+						<Separator />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
+							Header="{x:Static prop:Strings.IndentsTabsToSpaces}" />
+
+						<MenuItem
+							Command="{Binding #Editor.TransformCommand}"
+							CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
+							Header="{x:Static prop:Strings.IndentsSpacesToTabs}" />
+
+						<Separator />
+
+						<!--  The same captions as in the status bar.  -->
+						<MenuItem Header="{x:Static prop:Strings.LineEndings}">
+							<MenuItem
+								Command="{Binding #Editor.ConvertLineEndingsCommand}"
+								CommandParameter="{x:Static documents:LineEnding.CrLf}"
+								Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
+
+							<MenuItem
+								Command="{Binding #Editor.ConvertLineEndingsCommand}"
+								CommandParameter="{x:Static documents:LineEnding.Lf}"
+								Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
+
+							<MenuItem
+								Command="{Binding #Editor.ConvertLineEndingsCommand}"
+								CommandParameter="{x:Static documents:LineEnding.Cr}"
+								Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
+						</MenuItem>
+					</MenuItem>
 
 					<Separator />
 

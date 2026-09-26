@@ -20,6 +20,168 @@ internal class DocumentTextEditorTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: every line break takes the style, including those
+	/// of empty lines, where a carriage return meets the line feed of the next line.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(LineEnding.CrLf, "A\r\n\r\nB\r\n\r\nC")]
+	[TestCase(LineEnding.Lf, "A\n\nB\n\nC")]
+	[TestCase(LineEnding.Cr, "A\r\rB\r\rC")]
+	public void ConvertLineEndingsCommand_Brings_Every_Line_Break_To_The_Style(LineEnding lineEnding, string expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("A\r\rB\n\nC")
+		};
+
+		// Act
+		sut.ConvertLineEndingsCommand.Execute(lineEnding);
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: a line break just typed counts at once,
+	/// while the status catches up with it only after a delay.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Follows_An_Edit_At_Once()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First")
+		};
+
+		sut.Document.Insert(sut.Document.TextLength, "\nSecond");
+
+		// Act
+		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: the line breaks cannot be changed in read-only mode.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Is_Denied_In_Read_Only_Mode([Values] bool isReadOnly)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			IsReadOnly = isReadOnly
+		};
+
+		// Act
+		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(!isReadOnly);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: a single undo brings back every line break.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Is_Undone_In_One_Step()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\r\nSecond\nThird")
+		};
+
+		sut.ConvertLineEndingsCommand.Execute(LineEnding.Cr);
+
+		// Act
+		sut.UndoCommand.Execute(null);
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be("First\r\nSecond\nThird");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: a document is not converted to the style it has.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(LineEnding.CrLf, true)]
+	[TestCase(LineEnding.Lf, false)]
+	[TestCase(LineEnding.Cr, true)]
+	public void ConvertLineEndingsCommand_Needs_Another_Style(LineEnding lineEnding, bool expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond")
+		};
+
+		// Act
+		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(lineEnding);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: there is something to convert only in a document
+	/// with line breaks.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Needs_Line_Breaks([Values] bool hasLineBreaks)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(hasLineBreaks ? "First\nSecond" : "First")
+		};
+
+		// Act
+		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasLineBreaks);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: the status shows the new style without the delay
+	/// that follows an edit.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Updates_The_Status_At_Once()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\r\nSecond\nThird")
+		};
+
+		// Act
+		sut.ConvertLineEndingsCommand.Execute(LineEnding.Lf);
+
+		// Assert
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.Lf);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.CutCommand" />: the selection cannot be cut in read-only mode.
 	/// </summary>
 	[AvaloniaTest]
@@ -486,6 +648,234 @@ internal class DocumentTextEditorTests
 
 		// Assert
 		sut.Status.LineEnding
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: the case changes in the selected text only.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(TextTransform.UpperCase, "one TWO three")]
+	[TestCase(TextTransform.LowerCase, "one two three")]
+	[TestCase(TextTransform.TitleCase, "one Two three")]
+	[TestCase(TextTransform.InvertCase, "one TwO three")]
+	public void TransformCommand_Changes_The_Case_Of_The_Selection(TextTransform transform, string expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("one tWo three")
+		};
+
+		sut.Select(4, 3);
+
+		// Act
+		sut.TransformCommand.Execute(transform);
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: words in capitals get title case too,
+	/// though .NET takes them for abbreviations and keeps them.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Converts_Words_In_Capitals_To_Title_Case()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("ПРИВЕТ МИР")
+		};
+
+		sut.SelectAll();
+
+		// Act
+		sut.TransformCommand.Execute(TextTransform.TitleCase);
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be("Привет Мир");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: the transformations of whole lines work without a selection.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Is_Allowed_Without_A_Selection(
+		[Values(
+			TextTransform.RemoveTrailingWhitespace,
+			TextTransform.LeadingTabsToSpaces,
+			TextTransform.LeadingSpacesToTabs)] TextTransform transform)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("Some text")
+		};
+
+		// Act
+		bool canExecute = sut.TransformCommand.CanExecute(transform);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: no transformation is allowed in read-only mode.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Is_Denied_In_Read_Only_Mode([Values] TextTransform transform, [Values] bool isReadOnly)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("Some text"),
+			IsReadOnly = isReadOnly
+		};
+
+		sut.SelectAll();
+
+		// Act
+		bool canExecute = sut.TransformCommand.CanExecute(transform);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(!isReadOnly);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: the case and the leading spaces change only in a selection,
+	/// so that a stray click does not rewrite the whole document.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Needs_A_Selection(
+		[Values(
+			TextTransform.UpperCase,
+			TextTransform.LowerCase,
+			TextTransform.TitleCase,
+			TextTransform.InvertCase,
+			TextTransform.RemoveLeadingWhitespace)] TextTransform transform,
+		[Values] bool isSelected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("Some text")
+		};
+
+		if (isSelected)
+		{
+			sut.Select(0, 4);
+		}
+
+		// Act
+		bool canExecute = sut.TransformCommand.CanExecute(transform);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(isSelected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: the leading spaces and tabs go from every line
+	/// the selection touches.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Removes_Leading_Whitespace_Of_The_Selected_Lines()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("  one\n\ttwo\n  three")
+		};
+
+		// From the start of the first line into the second one.
+		sut.Select(0, 8);
+
+		// Act
+		sut.TransformCommand.Execute(TextTransform.RemoveLeadingWhitespace);
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be("one\ntwo\n  three");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: Ctrl+U makes the selection lower case and Ctrl+Shift+U
+	/// upper case, with ⌘ for Ctrl on macOS.
+	/// </summary>
+	[AvaloniaTest]
+	public void TransformCommand_Runs_On_The_Case_Keys([Values] bool isShifted)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("one tWo three")
+		};
+
+		Window window = Show(sut);
+
+		sut.Select(4, 3);
+
+		sut.TextArea.Focus();
+
+		RawInputModifiers modifiers = OperatingSystem.IsMacOS()
+			? RawInputModifiers.Meta
+			: RawInputModifiers.Control;
+
+		if (isShifted)
+		{
+			modifiers |= RawInputModifiers.Shift;
+		}
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.U, modifiers);
+
+		window.KeyReleaseQwerty(PhysicalKey.U, modifiers);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Text
+			.Should()
+			.Be(isShifted ? "one TWO three" : "one two three");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.TransformCommand" />: without a selection the transformations of whole lines
+	/// take every line, and the indentation ones leave the rest of the line alone.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(TextTransform.RemoveTrailingWhitespace, "one  \ntwo\t\nthree", "one\ntwo\nthree")]
+	[TestCase(TextTransform.LeadingTabsToSpaces, "\tone\n\t\ttwo\tend", "    one\n        two\tend")]
+	[TestCase(TextTransform.LeadingSpacesToTabs, "    one\n        two    end", "\tone\n\t\ttwo    end")]
+	public void TransformCommand_Takes_The_Whole_Document_Without_A_Selection(
+		TextTransform transform,
+		string text,
+		string expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(text)
+		};
+
+		// Act
+		sut.TransformCommand.Execute(transform);
+
+		// Assert
+		sut.Text
 			.Should()
 			.Be(expected);
 	}

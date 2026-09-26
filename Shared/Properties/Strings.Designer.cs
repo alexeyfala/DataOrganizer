@@ -1060,6 +1060,33 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indents: Spaces To Tabs.
+        /// </summary>
+        public static string IndentsSpacesToTabs {
+            get {
+                return ResourceManager.GetString("IndentsSpacesToTabs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indents: Tabs To Spaces.
+        /// </summary>
+        public static string IndentsTabsToSpaces {
+            get {
+                return ResourceManager.GetString("IndentsTabsToSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to iNVERT cASE.
+        /// </summary>
+        public static string InvertCase {
+            get {
+                return ResourceManager.GetString("InvertCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key.
         /// </summary>
         public static string Key {
@@ -1096,7 +1123,7 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Line endings.
+        ///   Looks up a localized string similar to Line Endings.
         /// </summary>
         public static string LineEndings {
             get {
@@ -1128,6 +1155,15 @@ namespace Shared.Properties {
         public static string LockedInFormat {
             get {
                 return ResourceManager.GetString("LockedInFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lowercase.
+        /// </summary>
+        public static string Lowercase {
+            get {
+                return ResourceManager.GetString("Lowercase", resourceCulture);
             }
         }
         
@@ -1537,6 +1573,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove Leading Spaces.
+        /// </summary>
+        public static string RemoveLeadingSpaces {
+            get {
+                return ResourceManager.GetString("RemoveLeadingSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Trailing Spaces.
+        /// </summary>
+        public static string RemoveTrailingSpaces {
+            get {
+                return ResourceManager.GetString("RemoveTrailingSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rename.
         /// </summary>
         public static string Rename {
@@ -1906,6 +1960,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Title Case.
+        /// </summary>
+        public static string TitleCase {
+            get {
+                return ResourceManager.GetString("TitleCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to to.
         /// </summary>
         public static string To {
@@ -1920,6 +1983,15 @@ namespace Shared.Properties {
         public static string Topmost {
             get {
                 return ResourceManager.GetString("Topmost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transform.
+        /// </summary>
+        public static string Transform {
+            get {
+                return ResourceManager.GetString("Transform", resourceCulture);
             }
         }
         
@@ -2001,6 +2073,15 @@ namespace Shared.Properties {
         public static string Updates {
             get {
                 return ResourceManager.GetString("Updates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPPERCASE.
+        /// </summary>
+        public static string Uppercase {
+            get {
+                return ResourceManager.GetString("Uppercase", resourceCulture);
             }
         }
         

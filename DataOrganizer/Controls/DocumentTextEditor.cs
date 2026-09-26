@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Input;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
@@ -7,6 +8,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 
@@ -87,6 +89,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 
 	#region Commands
 	/// <summary>
+	/// Brings every line break of the document to the given style.
+	/// </summary>
+	public RelayCommand<LineEnding> ConvertLineEndingsCommand { get; }
+
+	/// <summary>
 	/// Cuts the selected text.
 	/// </summary>
 	public RelayCommand CutCommand { get; }
@@ -102,6 +109,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	public RelayCommand RedoCommand { get; }
 
 	/// <summary>
+	/// Transforms the selected text, or the whole document where the transformation allows it.
+	/// </summary>
+	public RelayCommand<TextTransform> TransformCommand { get; }
+
+	/// <summary>
 	/// Undoes the last edit.
 	/// </summary>
 	public RelayCommand UndoCommand { get; }
@@ -115,13 +127,34 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	#region Constructors
 	public DocumentTextEditor()
 	{
+		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
+
 		CutCommand = new(CutSelection, CanCutSelection);
 
 		PasteCommand = new(PasteText, CanPasteText);
 
 		RedoCommand = new(RedoEdit, CanRedoEdit);
 
+		TransformCommand = new(TransformText, CanTransformText);
+
 		UndoCommand = new(UndoEdit, CanUndoEdit);
+
+		// The keys of Visual Studio and Notepad++, with ⌘ for Ctrl on macOS like the keys of the engine.
+		KeyModifiers commandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+
+		KeyBindings.Add(new KeyBinding
+		{
+			Command = TransformCommand,
+			CommandParameter = TextTransform.LowerCase,
+			Gesture = new KeyGesture(Key.U, commandModifier)
+		});
+
+		KeyBindings.Add(new KeyBinding
+		{
+			Command = TransformCommand,
+			CommandParameter = TextTransform.UpperCase,
+			Gesture = new KeyGesture(Key.U, commandModifier | KeyModifiers.Shift)
+		});
 
 		// The engine undoes and redoes in read-only mode too; its bindings serve both the keys and the commands.
 		foreach (RoutedCommandBinding binding in TextArea
@@ -313,6 +346,43 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	}
 
 	/// <summary>
+	/// Returns the command of the engine that performs a transformation.
+	/// </summary>
+	private static RoutedCommand GetEngineCommand(TextTransform transform) => transform switch
+	{
+		TextTransform.InvertCase => AvaloniaEditCommands.InvertCase,
+		TextTransform.LeadingSpacesToTabs => AvaloniaEditCommands.ConvertLeadingSpacesToTabs,
+		TextTransform.LeadingTabsToSpaces => AvaloniaEditCommands.ConvertLeadingTabsToSpaces,
+		TextTransform.LowerCase => AvaloniaEditCommands.ConvertToLowercase,
+		TextTransform.RemoveLeadingWhitespace => AvaloniaEditCommands.RemoveLeadingWhitespace,
+		TextTransform.RemoveTrailingWhitespace => AvaloniaEditCommands.RemoveTrailingWhitespace,
+		TextTransform.UpperCase => AvaloniaEditCommands.ConvertToUppercase,
+		_ => throw new NotImplementedException()
+	};
+
+	/// <summary>
+	/// Returns the characters of a line break style.
+	/// </summary>
+	private static string GetNewLine(LineEnding lineEnding) => lineEnding switch
+	{
+		LineEnding.Cr => "\r",
+		LineEnding.CrLf => "\r\n",
+		LineEnding.Lf => "\n",
+		_ => throw new NotImplementedException()
+	};
+
+	/// <summary>
+	/// Validates <see cref="ConvertLineEndingsCommand" />.
+	/// </summary>
+	private bool CanConvertLineEndings(LineEnding lineEnding)
+	{
+		// A pass of its own, as the status catches up with an edit only after a delay.
+		LineEnding current = FindLineEnding(Document);
+
+		return !IsReadOnly && current != LineEnding.None && current != lineEnding;
+	}
+
+	/// <summary>
 	/// Validates <see cref="CutCommand" />.
 	/// </summary>
 	private bool CanCutSelection()
@@ -332,9 +402,75 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	private bool CanRedoEdit() => CanRedo;
 
 	/// <summary>
+	/// Validates <see cref="TransformCommand" />.
+	/// </summary>
+	private bool CanTransformText(TextTransform transform)
+	{
+		// The line transformations of the engine change the text in read-only mode too.
+		if (IsReadOnly || Document is not { TextLength: > 0 })
+		{
+			return false;
+		}
+
+		// Without a selection the engine takes the whole document, which a stray click must not rewrite.
+		return transform switch
+		{
+			TextTransform.LeadingSpacesToTabs
+				or TextTransform.LeadingTabsToSpaces
+				or TextTransform.RemoveTrailingWhitespace => true,
+			_ => TextArea.Selection.Length > 0
+		};
+	}
+
+	/// <summary>
 	/// Validates <see cref="UndoCommand" />.
 	/// </summary>
 	private bool CanUndoEdit() => CanUndo;
+
+	/// <summary>
+	/// Brings every line break of the document to a style, as one step to undo.
+	/// </summary>
+	private void ConvertLineEndings(LineEnding lineEnding)
+	{
+		string newLine = GetNewLine(lineEnding);
+
+		// Collected before the edits and replaced from the end: a carriage return next to the line feed
+		// of the next line joins the two lines for a while, so line numbers would drift, but offsets hold.
+		(int Offset, int Length)[] lineBreaks = [.. Document.Lines
+			.Reverse()
+			.Where(x => x.DelimiterLength > 0 && Document.GetText(x.EndOffset, x.DelimiterLength) != newLine)
+			.Select(static x => (Offset: x.EndOffset, Length: x.DelimiterLength))];
+
+		using (Document.RunUpdate())
+		{
+			foreach ((int offset, int length) in lineBreaks)
+			{
+				Document.Replace(offset, length, newLine);
+			}
+		}
+
+		// The status would catch up only after the delay.
+		UpdateLineEnding();
+	}
+
+	/// <summary>
+	/// Converts the selected text to title case, as one step to undo.
+	/// </summary>
+	private void ConvertSelectionToTitleCase()
+	{
+		TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+
+		using (Document.RunUpdate())
+		{
+			foreach (SelectionSegment segment in TextArea.Selection.Segments.Reverse())
+			{
+				// A word in capitals is taken for an abbreviation and kept, so the text goes to lower case first.
+				string text = textInfo.ToTitleCase(textInfo.ToLower(Document.GetText(segment)));
+
+				Document.Replace(segment.StartOffset, segment.Length, text, OffsetChangeMappingType.CharacterReplace);
+			}
+		}
+	}
 
 	/// <summary>
 	/// Executes <see cref="ApplicationCommands.Cut" /> on the text area.
@@ -363,6 +499,23 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	{
 		ApplicationCommands
 			.Redo
+			.Execute(null, TextArea);
+	}
+
+	/// <summary>
+	/// Applies a transformation to the selected text, or to the whole document where the transformation allows it.
+	/// </summary>
+	private void TransformText(TextTransform transform)
+	{
+		// The title case command of the engine throws NotSupportedException.
+		if (transform == TextTransform.TitleCase)
+		{
+			ConvertSelectionToTitleCase();
+
+			return;
+		}
+
+		GetEngineCommand(transform)
 			.Execute(null, TextArea);
 	}
 

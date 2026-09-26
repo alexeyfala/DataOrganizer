@@ -780,4 +780,31 @@
   <data name="PositionFormat" xml:space="preserve">
     <value>Поз: {0}</value>
   </data>
+  <data name="Transform" xml:space="preserve">
+    <value>Преобразовать</value>
+  </data>
+  <data name="Uppercase" xml:space="preserve">
+    <value>ВЕРХНИЙ РЕГИСТР</value>
+  </data>
+  <data name="Lowercase" xml:space="preserve">
+    <value>нижний регистр</value>
+  </data>
+  <data name="TitleCase" xml:space="preserve">
+    <value>Каждое Слово С Заглавной</value>
+  </data>
+  <data name="InvertCase" xml:space="preserve">
+    <value>иНВЕРСИЯ рЕГИСТРА</value>
+  </data>
+  <data name="RemoveTrailingSpaces" xml:space="preserve">
+    <value>Удалить пробелы в конце строк</value>
+  </data>
+  <data name="RemoveLeadingSpaces" xml:space="preserve">
+    <value>Удалить пробелы в начале строк</value>
+  </data>
+  <data name="IndentsTabsToSpaces" xml:space="preserve">
+    <value>Отступы: табуляции в пробелы</value>
+  </data>
+  <data name="IndentsSpacesToTabs" xml:space="preserve">
+    <value>Отступы: пробелы в табуляции</value>
+  </data>
 </root>
