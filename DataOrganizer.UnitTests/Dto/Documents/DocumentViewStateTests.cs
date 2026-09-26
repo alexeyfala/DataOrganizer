@@ -8,6 +8,21 @@ internal class DocumentViewStateTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="DocumentViewState.Bookmarks" />: an empty set of lines is kept as <c>null</c>, the one form of none.
+	/// </summary>
+	[Test]
+	public void Bookmarks_Stores_An_Empty_Set_As_Null()
+	{
+		// Act
+		DocumentViewState sut = Create(bookmarks: []);
+
+		// Assert
+		sut.Bookmarks
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentViewState.Equals(DocumentViewState)" />: the bookmarks compare by their lines,
 	/// and no bookmarks equal an empty set.
 	/// </summary>
