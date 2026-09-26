@@ -43,6 +43,11 @@ internal static class Glyphs
 	public const string GlobeShowingAmericas = "🌎";
 
 	/// <summary>
+	/// Horizontal ellipsis.
+	/// </summary>
+	public const string HorizontalEllipsis = "…";
+
+	/// <summary>
 	/// Input latin letters.
 	/// </summary>
 	public const string InputLatinLetters = "🔤";

@@ -1,7 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using AvaloniaEdit;
+using Avalonia.Threading;
+using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
@@ -10,6 +11,9 @@ using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -18,11 +22,10 @@ internal class ConsoleViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ConsoleViewModel.EditorLoadedCommand" />: the records written before an editor arrived
-	/// are held back and reach it once it does.
+	/// <see cref="ConsoleViewModel.ClearCommand" />: removes the whole log.
 	/// </summary>
 	[AvaloniaTest]
-	public void EditorLoadedCommand_Writes_The_Records_Buffered_Without_An_Editor()
+	public void ClearCommand_Empties_The_Document()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
@@ -31,19 +34,15 @@ internal class ConsoleViewModelTests
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
-		sut.WriteCallback("first ");
-
-		sut.WriteCallback("second ");
-
-		TextEditor editor = new();
+		sut.WriteCallback("record");
 
 		// Act
-		sut.EditorLoadedCommand.Execute(editor);
+		sut.ClearCommand.Execute(null);
 
 		// Assert
-		editor.Text
+		sut.Document.TextLength
 			.Should()
-			.Be("first second ");
+			.Be(0);
 	}
 
 	/// <summary>
@@ -59,25 +58,65 @@ internal class ConsoleViewModelTests
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
-		TextEditor editor = new();
-
-		sut.EditorLoadedCommand.Execute(editor);
-
 		sut.IsPaused = true;
 
 		// Act
 		sut.WriteCallback("while paused");
 
 		// Assert
-		editor.Text
+		sut.Document.Text
 			.Should()
 			.BeEmpty();
 
 		sut.IsPaused = false;
 
-		editor.Text
+		sut.Document.Text
 			.Should()
 			.Be("while paused");
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.IsPaused" />: a record still on its way to the log when the pause begins
+	/// waits with the records written after it, in the order they were written.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsPaused_Holds_A_Record_Written_Just_Before_It()
+	{
+		// Arrange
+		List<Action> posted = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
+
+			dispatcher
+				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>()))
+				.Do(x => posted.Add(x.Arg<Action>()));
+
+			builder.RegisterInstance(dispatcher);
+		});
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		sut.WriteCallback("before ");
+
+		sut.IsPaused = true;
+
+		sut.WriteCallback("while paused");
+
+		// Act
+		posted.ForEach(static x => x());
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.BeEmpty();
+
+		sut.IsPaused = false;
+
+		sut.Document.Text
+			.Should()
+			.Be("before while paused");
 	}
 
 	/// <summary>
@@ -136,5 +175,96 @@ internal class ConsoleViewModelTests
 			.Received(1)
 			.OpenAppDirectory(Arg.Any<ILogger?>());
 	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.RemoveStartLines" />: a longer document keeps only its last lines.
+	/// </summary>
+	[AvaloniaTest]
+	public void RemoveStartLines_Keeps_The_Last_Lines()
+	{
+		// Arrange
+		TextDocument document = new(CreateText(lineCount: 5));
+
+		// Act
+		ConsoleViewModel.RemoveStartLines(document, maxLines: 3);
+
+		// Assert
+		document.Text
+			.Should()
+			.Be("3\n4\n5");
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.RemoveStartLines" />: a document within the limit stays as it is.
+	/// </summary>
+	[AvaloniaTest]
+	public void RemoveStartLines_Leaves_A_Document_Within_The_Limit([Values(2, 3)] int lineCount)
+	{
+		// Arrange
+		string text = CreateText(lineCount);
+
+		TextDocument document = new(text);
+
+		// Act
+		ConsoleViewModel.RemoveStartLines(document, maxLines: 3);
+
+		// Assert
+		document.Text
+			.Should()
+			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.WriteCallback" />: the records reach the log in the order they are written.
+	/// </summary>
+	[AvaloniaTest]
+	public void WriteCallback_Appends_The_Records_In_Order()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		// Act
+		sut.WriteCallback("first ");
+
+		sut.WriteCallback("second ");
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be("first second ");
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.WriteCallback" />: the log keeps no undo history of its records.
+	/// </summary>
+	[AvaloniaTest]
+	public void WriteCallback_Leaves_Nothing_To_Undo()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		// Act
+		sut.WriteCallback("record");
+
+		// Assert
+		sut.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a text of lines numbered from one.
+	/// </summary>
+	private static string CreateText(int lineCount) => string.Join('\n', Enumerable.Range(1, lineCount));
 	#endregion
 }

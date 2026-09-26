@@ -7,12 +7,14 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -20,6 +22,85 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class EmbeddedEditorViewModelBaseTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsEditingEnabled" />: turning the read-only mode on closes the editor
+	/// and is reported, so that the editor follows it.
+	/// </summary>
+	[Test]
+	public void IsEditingEnabled_Follows_The_Read_Only_Mode()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		sut.MarkInitialized();
+
+		List<string?> changed = [];
+
+		sut.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+		// Act
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		// Assert
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
+
+		changed
+			.Should()
+			.Contain(nameof(EmbeddedEditorViewModelBase.IsEditingEnabled));
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsEditingEnabled" />: the editor stays closed for changes
+	/// until its contents are loaded.
+	/// </summary>
+	[Test]
+	public void IsEditingEnabled_Is_False_Before_The_Contents_Are_Loaded()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		// Act
+		TestEditor sut = mock.Create<TestEditor>();
+
+		// Assert
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsEditingEnabled" />: the end of loading opens the editor
+	/// and is reported, so that the editor follows it.
+	/// </summary>
+	[Test]
+	public void IsEditingEnabled_Is_Reported_When_The_Editor_Is_Initialized()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		List<string?> changed = [];
+
+		sut.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+		// Act
+		sut.MarkInitialized();
+
+		// Assert
+		sut.IsEditingEnabled
+			.Should()
+			.BeTrue();
+
+		changed
+			.Should()
+			.Contain(nameof(EmbeddedEditorViewModelBase.IsEditingEnabled));
+	}
+
 	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
@@ -225,7 +306,7 @@ internal class EmbeddedEditorViewModelBaseTests
 // can access it — a private nested type would be inaccessible to the generated code.
 
 /// <summary>
-/// Minimal concrete editor exposing the protected encryption helpers.
+/// Minimal concrete editor exposing the protected members under test.
 /// </summary>
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
@@ -252,4 +333,6 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	public byte[]? InvokeTryDecrypt(byte[] input) => TryDecrypt(input);
 
 	public byte[]? InvokeTryEncrypt(byte[] input) => TryEncrypt(input);
+
+	public void MarkInitialized() => IsInitialized = true;
 }

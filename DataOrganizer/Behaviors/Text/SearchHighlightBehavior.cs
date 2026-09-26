@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Helpers.Text;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -22,25 +23,6 @@ namespace DataOrganizer.Behaviors.Text;
 internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 {
 	#region Properties
-	/// <summary>
-	/// Brush painted behind each query match.
-	/// </summary>
-	public IBrush? HighlightBrush
-	{
-		get => GetValue(HighlightBrushProperty);
-		set => SetValue(HighlightBrushProperty, value);
-	}
-
-	/// <summary>
-	/// Brush for the text of each query match; pinned so the match stays readable on
-	/// <see cref="HighlightBrush" /> regardless of the active theme's text color.
-	/// </summary>
-	public IBrush? HighlightForeground
-	{
-		get => GetValue(HighlightForegroundProperty);
-		set => SetValue(HighlightForegroundProperty, value);
-	}
-
 	/// <summary>
 	/// Search query whose matches are highlighted; blank shows the full ellipsis-trimmed text.
 	/// </summary>
@@ -61,18 +43,6 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	#endregion
 
 	#region Styled Properties
-	/// <summary>
-	/// Identifies the <see cref="HighlightBrush" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<IBrush?> HighlightBrushProperty = AvaloniaProperty
-		.Register<SearchHighlightBehavior, IBrush?>(name: nameof(HighlightBrush));
-
-	/// <summary>
-	/// Identifies the <see cref="HighlightForeground" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<IBrush?> HighlightForegroundProperty = AvaloniaProperty
-		.Register<SearchHighlightBehavior, IBrush?>(name: nameof(HighlightForeground));
-
 	/// <summary>
 	/// Identifies the <see cref="Query" /> avalonia property.
 	/// </summary>
@@ -125,16 +95,6 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 			.Subscribe(_ => Rebuild())
 			.DisposeWith(_disposables);
 
-		this
-			.GetObservable(HighlightBrushProperty)
-			.Subscribe(_ => Rebuild())
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(HighlightForegroundProperty)
-			.Subscribe(_ => Rebuild())
-			.DisposeWith(_disposables);
-
 		// Re-run once the ScrollViewer ancestor is reachable, which a virtualized container lacks at OnAttached.
 		AssociatedObject.AttachedToVisualTree += OnAttachedToVisualTree;
 
@@ -153,6 +113,29 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Builds the inlines for <paramref name="text" />, wrapping each match of <paramref name="query" />
+	/// in a highlighted <see cref="Run" />.
+	/// </summary>
+	private static InlineCollection BuildInlines(string text, string? query)
+	{
+		InlineCollection inlines = [];
+
+		foreach (SearchHighlight.Segment segment in SearchHighlight.SplitSegments(text, query))
+		{
+			Run run = new(segment.Text);
+
+			if (segment.IsMatch)
+			{
+				run.Background = TextHighlight.Brush;
+			}
+
+			inlines.Add(run);
+		}
+
+		return inlines;
+	}
+
 	/// <summary>
 	/// Resets the vertical scroll offset to the top.
 	/// </summary>
@@ -180,31 +163,6 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 		target.VerticalAlignment = VerticalAlignment.Top;
 
 		scroll?.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
-	}
-
-	/// <summary>
-	/// Builds the inlines for <paramref name="text" />, wrapping each match of <paramref name="query" />
-	/// in a highlighted <see cref="Run" />.
-	/// </summary>
-	private InlineCollection BuildInlines(string text, string? query)
-	{
-		InlineCollection inlines = [];
-
-		foreach (SearchHighlight.Segment segment in SearchHighlight.SplitSegments(text, query))
-		{
-			Run run = new(segment.Text);
-
-			if (segment.IsMatch)
-			{
-				run.Background = HighlightBrush;
-
-				run.Foreground = HighlightForeground;
-			}
-
-			inlines.Add(run);
-		}
-
-		return inlines;
 	}
 
 	/// <summary>

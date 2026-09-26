@@ -1,18 +1,26 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using AvaloniaEdit;
+using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
+using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
@@ -22,6 +30,121 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored state reaches the bound properties
+	/// on the UI thread, also when the database answers from another thread.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Applies_The_Stored_State_On_The_UI_Thread()
+	{
+		// Arrange
+		TaskCompletionSource<string?> stateRead = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(stateRead.Task);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		bool? isOnUiThread = null;
+
+		sut.PropertyChanged += (_, e) =>
+		{
+			if (e.PropertyName == nameof(EmbeddedFileEditorViewModel.ViewState))
+			{
+				isOnUiThread = Dispatcher.UIThread.CheckAccess();
+			}
+		};
+
+		string json = new SystemTextJsonSerializer().Serialize(new FileEditorState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			FontSize = 20.0,
+			ScrollOffset = new(15, 480),
+			SelectionLength = 4,
+			SelectionStart = 20,
+			WordWrap = true
+		});
+
+		Task loading = sut.EditorLoaded();
+
+		// Act
+		await Task.Run(() => stateRead.SetResult(json));
+
+		await loading;
+
+		// Assert
+		isOnUiThread
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents that are not text close the editor for changes,
+	/// since saving them back as text would rewrite the file.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCaseSource(nameof(NonTextContents))]
+	public async Task EditorLoaded_Closes_The_Editor_When_The_Contents_Are_Not_Text(byte[] contents)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. contents],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a read the database could not answer closes
 	/// the editor for changes.
@@ -43,25 +166,66 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		// Assert
 		sut.IsContentUnavailable
 			.Should()
 			.BeTrue();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored editor state (font size, word wrap).
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the loaded text is not an edit, so there is nothing to undo.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task EditorLoaded_Loads_Text_To_Editor()
+	public async Task EditorLoaded_Leaves_Nothing_To_Undo()
 	{
 		// Arrange
-		byte[] contents = RandomValues.CreateBytes(10);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the document and applies the stored editor state (font size, word wrap).
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Loads_Text_Into_Document()
+	{
+		// Arrange
+		byte[] contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10));
 
 		double fontSize = RandomValues.CreateDouble(6.0, 64.0);
 
@@ -106,17 +270,15 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextEditor editor = Substitute.For<TextEditor>();
-
 		// Act
-		await sut.EditorLoaded(editor);
+		await sut.EditorLoaded();
 
 		// Assert
 		sut.IsInitialized
 			.Should()
 			.BeTrue();
 
-		editor.Text
+		sut.Document.Text
 			.Should()
 			.Be(TextDefaults.Encoding.GetString(contents));
 
@@ -128,5 +290,1004 @@ internal class EmbeddedFileEditorViewModelTests
 			.Should()
 			.Be(fontSize);
 	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: names the encoding of the file, telling apart a file
+	/// that starts with a byte order mark.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Names_The_Encoding([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.EncodingName
+			.Should()
+			.Be(hasByteOrderMark ? "UTF-8-BOM" : "UTF-8");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents read successfully open the document for editing.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Opens_The_Document_For_Editing()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a state saved before its optional fields appeared
+	/// is read as it is and not written over.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Reads_A_State_Without_The_Optional_Fields()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			JsonObject state = JsonNode
+				.Parse(new SystemTextJsonSerializer().Serialize(new FileEditorState
+				{
+					CaretPosition = default,
+					FontSize = 20.0,
+					ScrollOffset = default,
+					SelectionLength = default,
+					SelectionStart = default,
+					WordWrap = default
+				}))!
+				.AsObject();
+
+			state.Remove(nameof(FileEditorState.ShowEndOfLine));
+
+			state.Remove(nameof(FileEditorState.ShowSpaces));
+
+			state.Remove(nameof(FileEditorState.ShowTabs));
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(state.ToJsonString());
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.FontSize
+			.Should()
+			.Be(20.0);
+
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored bookmarks become part of the view state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_Bookmarks()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				Bookmarks = [3, 7],
+				FontSize = 14.0
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
+		int[]? bookmarks = sut.ViewState?.Bookmarks;
+
+		bookmarks
+			.Should()
+			.Equal(3, 7);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: each stored switch of invisible characters
+	/// reaches its own property.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(true, false, false)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public async Task EditorLoaded_Restores_The_Invisible_Character_Switches(
+		bool showEndOfLine,
+		bool showSpaces,
+		bool showTabs)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				CaretPosition = default,
+				FontSize = 14.0,
+				ScrollOffset = default,
+				SelectionLength = default,
+				SelectionStart = default,
+				ShowEndOfLine = showEndOfLine,
+				ShowSpaces = showSpaces,
+				ShowTabs = showTabs,
+				WordWrap = default
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.ShowEndOfLine
+			.Should()
+			.Be(showEndOfLine);
+
+		sut.ShowSpaces
+			.Should()
+			.Be(showSpaces);
+
+		sut.ShowTabs
+			.Should()
+			.Be(showTabs);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored caret, selection and scroll position
+	/// become the view state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_View_State()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				CaretPosition = new(line: 3, column: 2),
+				FontSize = 14.0,
+				ScrollOffset = new(15, 480),
+				SelectionLength = 4,
+				SelectionStart = 20,
+				WordWrap = false
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.Be(new DocumentViewState
+			{
+				CaretPosition = new(line: 3, column: 2),
+				ScrollOffset = new(15.0, 480.0),
+				SelectionLength = 4,
+				SelectionStart = 20
+			});
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the byte order mark stays out of the text, so it neither
+	/// counts as a character nor shifts the first line.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Takes_The_Byte_Order_Mark_Off_The_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. Encoding.UTF8.GetPreamble(), .. TextDefaults.Encoding.GetBytes(text)],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ShowEndOfLine" />, <see cref="EmbeddedFileEditorViewModel.ShowSpaces" />
+	/// and <see cref="EmbeddedFileEditorViewModel.ShowTabs" />: each switch turned on saves the editor state with it.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(true, false, false)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public async Task Invisible_Character_Switches_Save_The_Editor_State(
+		bool showEndOfLine,
+		bool showSpaces,
+		bool showTabs)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		string expected = new SystemTextJsonSerializer().Serialize(
+			new FileEditorState
+			{
+				CaretPosition = default,
+				FontSize = sut.FontSize,
+				ScrollOffset = default,
+				SelectionLength = default,
+				SelectionStart = default,
+				ShowEndOfLine = showEndOfLine,
+				ShowSpaces = showSpaces,
+				ShowTabs = showTabs,
+				WordWrap = sut.WordWrap
+			},
+			JsonDefaults.Options);
+
+		// Act
+		sut.ShowEndOfLine = showEndOfLine;
+
+		sut.ShowSpaces = showSpaces;
+
+		sut.ShowTabs = showTabs;
+
+		// Assert
+		reported
+			.Should()
+			.Be(expected);
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush of a file nobody edited writes nothing,
+	/// also when the file starts with a byte order mark.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Leaves_An_Unedited_File_Alone([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes nothing over contents
+	/// that are not text, so the file keeps its bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Leaves_Non_Text_Contents_Untouched()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				// "Привет" in Windows-1251
+				Contents = [0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: an edited file is saved with the byte order mark
+	/// it was loaded with, and without one when it had none.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Saves_The_Byte_Order_Mark_It_Loaded([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
+
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = text;
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		byte[] expected = [.. mark, .. TextDefaults.Encoding.GetBytes(text)];
+
+		saved
+			.Should()
+			.Equal(expected);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush saves the document text as it is,
+	/// including an edit the text change handler has not queued yet.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Saves_The_Latest_Document_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = text;
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		saved
+			.Should()
+			.Equal(TextDefaults.Encoding.GetBytes(text));
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush that arrives while the contents
+	/// are loading queues nothing, so the still empty editor never overwrites the file.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_While_Loading_Writes_Nothing()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		TaskCompletionSource<ValidatedContents> read = new();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(read.Task);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		Task loading = sut.EditorLoaded();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		read.SetResult(new()
+		{
+			Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+			IsValid = true
+		});
+
+		await loading;
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: a view state reported after the editor has been closed
+	/// is not saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_Nothing_After_Dispose()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Dispose();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			ScrollOffset = new(15.0, 480.0),
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: the bookmarks of a new view state go into the editor state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_The_Bookmarks()
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			Bookmarks = [2, 5],
+			CaretPosition = new(line: 1, column: 1),
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		// Assert
+		new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).Bookmarks
+			.Should()
+			.Equal(2, 5);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: a new view state is saved together with the font size
+	/// and the word wrap.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_The_Editor_State()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		string expected = new SystemTextJsonSerializer().Serialize(
+			new FileEditorState
+			{
+				CaretPosition = new(line: 3, column: 2),
+				FontSize = sut.FontSize,
+				ScrollOffset = new(15, 480),
+				SelectionLength = 4,
+				SelectionStart = 20,
+				WordWrap = sut.WordWrap
+			},
+			JsonDefaults.Options);
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 2),
+			ScrollOffset = new(15.0, 480.0),
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		// Assert
+		reported
+			.Should()
+			.Be(expected);
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// File contents that are not text.
+	/// </summary>
+	private static byte[][] NonTextContents() =>
+	[
+		// UTF-16 with a byte order mark
+		[0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00],
+		// UTF-16 without a byte order mark: valid UTF-8, but with zero bytes
+		[0x48, 0x00, 0x69, 0x00],
+		// Windows-1251
+		[0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
+		// Signature of a PNG image
+		[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+	];
 	#endregion
 }

@@ -61,38 +61,41 @@ listed above, which is the source of the binaries bundled with SharpHook.
 3. MIT License (MIT)
 --------------------------------------------------------------------------
 
-  * Avalonia 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia 12.1.3 - Copyright (c) Avalonia Team
   * Avalonia.AvaloniaEdit 12.0.0 - Copyright (c) Avalonia Team
   * Avalonia.BuildServices 11.3.2 - Copyright (c) Avalonia Team
-  * Avalonia.Desktop 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Fonts.Inter 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop.AtSpi 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.HarfBuzz 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Native 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Remote.Protocol 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Skia 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Themes.Fluent 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.Win32 12.1.2 - Copyright (c) Avalonia Team
-  * Avalonia.X11 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Desktop 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Fonts.Inter 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop.AtSpi 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.HarfBuzz 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Native 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Remote.Protocol 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Skia 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Themes.Fluent 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.Win32 12.1.3 - Copyright (c) Avalonia Team
+  * Avalonia.X11 12.1.3 - Copyright (c) Avalonia Team
   * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) jpmikkers
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
   * Comparation 0.1.7 - Copyright (c) Alexey Pepelev
   * DialogHost.Avalonia 0.12.3 - Copyright (c) SKProCH
   * DynamicData 9.4.33 - Copyright (c) Roland Pheasant
+  * Generator.Equals 4.1.0 - Copyright (c) Diego Frata
+  * Generator.Equals.Runtime 4.1.0 - Copyright (c) Diego Frata
   * HarfBuzzSharp 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.Linux 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.macOS 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.WebAssembly 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.Win32 8.3.1.3 - Copyright (c) Microsoft
   * Interop.UIAutomationClient 10.19041.0 - Copyright (c) Roemer
-  * Mapster 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.Core 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.DependencyInjection 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Material.Avalonia 3.20.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
+  * Mapster 10.0.13 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.Core 10.0.13 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.DependencyInjection 10.0.13 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Material.Avalonia 3.21.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
   * Material.Icons 3.0.2 - Copyright (c) SKProCH
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
+  * Microsoft.Bcl.HashCode 6.0.0 - Copyright (c) Microsoft
   * Microsoft.Data.Sqlite.Core 10.0.12 - Copyright (c) Microsoft
   * Microsoft.EntityFrameworkCore 10.0.12 - Copyright (c) Microsoft
   * Microsoft.EntityFrameworkCore.Abstractions 10.0.12 - Copyright (c) Microsoft

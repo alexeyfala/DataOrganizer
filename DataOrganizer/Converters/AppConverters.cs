@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
@@ -57,9 +59,7 @@ internal static class AppConverters
 			: string.Format(
 				CultureInfo.CurrentCulture,
 				Strings.LockedInFormat,
-				left.ToString(
-					left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss",
-					CultureInfo.CurrentCulture)));
+				left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture)));
 
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
@@ -109,6 +109,19 @@ internal static class AppConverters
 	public static FuncValueConverter<FavoriteCategory?, FolderDto?> FavoriteCategoryToFolder { get; } =
 		new(GetFolder);
 
+	/// <summary>
+	/// Caption of the line endings of a document; <c>null</c> for a document without line breaks.
+	/// </summary>
+	public static FuncValueConverter<LineEnding, string?> LineEndingToCaption { get; } =
+		new(ending => ending switch
+		{
+			LineEnding.CrLf => "Windows (CR LF)",
+			LineEnding.Lf => "Unix (LF)",
+			LineEnding.Cr => "Macintosh (CR)",
+			LineEnding.Mixed => Strings.MixedLineEndings,
+			_ => null
+		});
+
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch
 		{
@@ -119,6 +132,15 @@ internal static class AppConverters
 
 	/// <inheritdoc cref="NoteHeaderBuilder.Build" />
 	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHeaderBuilder.Build);
+
+	/// <summary>
+	/// Caption of a number with its digits grouped, put into the format given as the parameter.
+	/// </summary>
+	public static FuncValueConverter<int, string, string> NumberCaption { get; } =
+		new((number, format) => string.Format(
+			CultureInfo.CurrentCulture,
+			format ?? "{0}",
+			FormatNumber(number)));
 
 	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.
@@ -160,11 +182,32 @@ internal static class AppConverters
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
 
+	/// <summary>
+	/// Caption of the selection of a document, or of the caret position while nothing is selected.
+	/// </summary>
+	public static FuncValueConverter<DocumentStatus, string> SelectionOrPosition { get; } =
+		new(status => status.SelectionLength > 0
+			? string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.SelectedFormat,
+				FormatNumber(status.SelectionLength),
+				FormatNumber(status.SelectionLineCount))
+			: string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.PositionFormat,
+				// The position counts from one, like the line and the column.
+				FormatNumber(status.CaretOffset + 1)));
+
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Formats a number with its digits grouped the way the current culture groups them.
+	/// </summary>
+	private static string FormatNumber(int number) => number.ToString("N0", CultureInfo.CurrentCulture);
+
 	/// <summary>
 	/// The parent folder of the objects of a favorites category; a category always has children.
 	/// </summary>

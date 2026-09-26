@@ -37,6 +37,10 @@ internal sealed class MaxSizeSwitchPanel : Panel
 		ClipToBounds = true;
 
 		Children.CollectionChanged += Children_CollectionChanged;
+
+		this
+			.GetObservable(SelectedIndexProperty)
+			.Subscribe(SelectedIndexProperty_Changed);
 	}
 	#endregion
 
@@ -45,6 +49,16 @@ internal sealed class MaxSizeSwitchPanel : Panel
 	/// <see cref="Panel.Children" /> <see cref="INotifyCollectionChanged.CollectionChanged" /> handler.
 	/// </summary>
 	private void Children_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateChildrenState();
+
+	/// <summary>
+	/// <see cref="SelectedIndexProperty" /> changed handler.
+	/// </summary>
+	private void SelectedIndexProperty_Changed(int value)
+	{
+		UpdateChildrenState();
+
+		InvalidateArrange();
+	}
 	#endregion
 
 	#region Methods
@@ -84,21 +98,6 @@ internal sealed class MaxSizeSwitchPanel : Panel
 		}
 
 		return new(width, height);
-	}
-
-	/// <inheritdoc />
-	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-	{
-		base.OnPropertyChanged(change);
-
-		if (change.Property != SelectedIndexProperty)
-		{
-			return;
-		}
-
-		UpdateChildrenState();
-
-		InvalidateArrange();
 	}
 	#endregion
 

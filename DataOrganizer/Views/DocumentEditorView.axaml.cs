@@ -1,0 +1,409 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using AvaloniaEdit;
+using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Extensions;
+using DataOrganizer.Messages.Documents;
+using System;
+using System.Reactive.Linq;
+
+namespace DataOrganizer.Views;
+
+/// <summary>
+/// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
+/// </summary>
+internal sealed partial class DocumentEditorView : UserControl, IRecipient<BookmarksChangedMessage>
+{
+	#region Properties
+	/// <summary>
+	/// The document being edited.
+	/// </summary>
+	public TextDocument? Document
+	{
+		get => GetValue(DocumentProperty);
+		set => SetValue(DocumentProperty, value);
+	}
+
+	/// <summary>
+	/// Font size of the document text, kept apart from <see cref="TemplatedControl.FontSize" />,
+	/// which the toolbar inherits.
+	/// </summary>
+	public double DocumentFontSize
+	{
+		get => GetValue(DocumentFontSizeProperty);
+		set => SetValue(DocumentFontSizeProperty, value);
+	}
+
+	/// <summary>
+	/// Name of the encoding the document is stored in; <c>null</c> for a document that is not stored as bytes.
+	/// </summary>
+	public string? EncodingName
+	{
+		get => GetValue(EncodingNameProperty);
+		set => SetValue(EncodingNameProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when the document cannot be edited.
+	/// </summary>
+	public bool IsReadOnly
+	{
+		get => GetValue(IsReadOnlyProperty);
+		set => SetValue(IsReadOnlyProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when the text must not appear outside the text area, as the text of an encrypted file.
+	/// </summary>
+	public bool IsSensitive
+	{
+		get => GetValue(IsSensitiveProperty);
+		set => SetValue(IsSensitiveProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when line endings are shown.
+	/// </summary>
+	public bool ShowEndOfLine
+	{
+		get => GetValue(ShowEndOfLineProperty);
+		set => SetValue(ShowEndOfLineProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when spaces are shown.
+	/// </summary>
+	public bool ShowSpaces
+	{
+		get => GetValue(ShowSpacesProperty);
+		set => SetValue(ShowSpacesProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when tabs are shown.
+	/// </summary>
+	public bool ShowTabs
+	{
+		get => GetValue(ShowTabsProperty);
+		set => SetValue(ShowTabsProperty, value);
+	}
+
+	/// <summary>
+	/// Content placed at the end of the toolbar.
+	/// </summary>
+	public object? ToolBarContent
+	{
+		get => GetValue(ToolBarContentProperty);
+		set => SetValue(ToolBarContentProperty, value);
+	}
+
+	/// <summary>
+	/// Caret, selection, scroll position and bookmarks of the document.
+	/// A value set from outside is restored once the document has been laid out.
+	/// </summary>
+	public DocumentViewState? ViewState
+	{
+		get => GetValue(ViewStateProperty);
+		set => SetValue(ViewStateProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when long lines are wrapped.
+	/// </summary>
+	public bool WordWrap
+	{
+		get => GetValue(WordWrapProperty);
+		set => SetValue(WordWrapProperty, value);
+	}
+	#endregion
+
+	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="DocumentFontSize" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<double> DocumentFontSizeProperty = AvaloniaProperty
+		.Register<DocumentEditorView, double>(
+			name: nameof(DocumentFontSize),
+			defaultValue: 14.0);
+
+	/// <summary>
+	/// Identifies the <see cref="Document" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<TextDocument?> DocumentProperty = AvaloniaProperty
+		.Register<DocumentEditorView, TextDocument?>(name: nameof(Document));
+
+	/// <summary>
+	/// Identifies the <see cref="EncodingName" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> EncodingNameProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(EncodingName));
+
+	/// <summary>
+	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(IsReadOnly));
+
+	/// <summary>
+	/// Identifies the <see cref="IsSensitive" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(IsSensitive));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(ShowEndOfLine));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowSpaces" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowSpacesProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(ShowSpaces));
+
+	/// <summary>
+	/// Identifies the <see cref="ShowTabs" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(ShowTabs));
+
+	/// <summary>
+	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<object?> ToolBarContentProperty = AvaloniaProperty
+		.Register<DocumentEditorView, object?>(name: nameof(ToolBarContent));
+
+	/// <summary>
+	/// Identifies the <see cref="ViewState" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<DocumentViewState?> ViewStateProperty = AvaloniaProperty
+		.Register<DocumentEditorView, DocumentViewState?>(name: nameof(ViewState));
+
+	/// <summary>
+	/// Identifies the <see cref="WordWrap" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> WordWrapProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(WordWrap));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Name of the scroll viewer in the template of <see cref="TextEditor" />.
+	/// </summary>
+	private const string ScrollViewerPartName = "PART_ScrollViewer";
+
+	/// <summary>
+	/// <c>True</c> once the control has been loaded.
+	/// </summary>
+	private bool _hasBeenLoaded;
+
+	/// <summary>
+	/// <c>True</c> while the control writes <see cref="ViewState" /> itself, so the change is not restored back.
+	/// </summary>
+	private bool _isCapturing;
+
+	/// <summary>
+	/// View state set from outside and not restored yet.
+	/// </summary>
+	private DocumentViewState? _pendingViewState;
+
+	/// <summary>
+	/// Scroll viewer of <see cref="TextEditor" />.
+	/// </summary>
+	private ScrollViewer? _scrollViewer;
+	#endregion
+
+	#region Constructors
+	public DocumentEditorView()
+	{
+		InitializeComponent();
+
+		// The editor never outlives this control, so none of the handlers below is ever removed.
+		Editor.TemplateApplied += Editor_TemplateApplied;
+
+		TextArea area = Editor.TextArea;
+
+		Observable.FromEventPattern<EventHandler, EventArgs>(
+			x => area.Caret.PositionChanged += x,
+			x => area.Caret.PositionChanged -= x)
+			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => area.TextView.ScrollOffsetChanged += x,
+				x => area.TextView.ScrollOffsetChanged -= x))
+			.SetDelay(TimeSpan.FromSeconds(0.5))
+			.Subscribe(_ => CaptureViewState());
+
+		this
+			.GetObservable(ViewStateProperty)
+			.Subscribe(ViewStateProperty_Changed);
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="TextEditor" />.
+	/// </summary>
+	private void Editor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
+	{
+		_scrollViewer = e.NameScope.Find<ScrollViewer>(ScrollViewerPartName);
+	}
+
+	/// <summary>
+	/// <see cref="ViewStateProperty" /> changed handler.
+	/// </summary>
+	private void ViewStateProperty_Changed(DocumentViewState? value)
+	{
+		if (_isCapturing || value is not { } state)
+		{
+			return;
+		}
+
+		_pendingViewState = state;
+
+		if (!IsLoaded)
+		{
+			return;
+		}
+
+		ScheduleRestore();
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Reports the view state again when the bookmarks of the document change.
+	/// </summary>
+	public void Receive(BookmarksChangedMessage message)
+	{
+		// Every open editor sends the message about its own bookmarks.
+		if (message.Bookmarks != Editor.Bookmarks)
+		{
+			return;
+		}
+
+		CaptureViewState();
+	}
+
+	/// <summary>
+	/// Reports the caret, selection, scroll position and bookmarks through <see cref="ViewState" />.
+	/// </summary>
+	internal void CaptureViewState()
+	{
+		// A capture before the restore would overwrite the state that is still to be shown.
+		if (_pendingViewState is not null
+			|| _scrollViewer is not { } scrollViewer
+			|| Editor.Document is null)
+		{
+			return;
+		}
+
+		DocumentViewState state = new()
+		{
+			Bookmarks = Editor.Bookmarks.GetLines(),
+			CaretPosition = Editor.TextArea.Caret.Position,
+			ScrollOffset = scrollViewer.Offset,
+			SelectionLength = Editor.SelectionLength,
+			SelectionStart = Editor.SelectionStart
+		};
+
+		_isCapturing = true;
+
+		try
+		{
+			SetCurrentValue(ViewStateProperty, state);
+		}
+		finally
+		{
+			_isCapturing = false;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		// A click on the bookmark margin moves neither the caret nor the view, whose moves the state follows otherwise.
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
+	}
+
+	/// <inheritdoc />
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
+
+		base.OnDetachedFromVisualTree(e);
+	}
+
+	/// <inheritdoc />
+	protected override void OnLoaded(RoutedEventArgs e)
+	{
+		base.OnLoaded(e);
+
+		if (_pendingViewState is not null)
+		{
+			ScheduleRestore();
+		}
+
+		if (_hasBeenLoaded)
+		{
+			return;
+		}
+
+		_hasBeenLoaded = true;
+
+		DispatcherTimer.RunOnce(() => Editor.Focus(), TimeSpan.FromMilliseconds(100));
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Applies the pending view state to the laid out document.
+	/// </summary>
+	private void RestoreViewState()
+	{
+		if (_pendingViewState is not { } state
+			|| _scrollViewer is not { } scrollViewer
+			|| Editor.Document is not { } document)
+		{
+			return;
+		}
+
+		_pendingViewState = null;
+
+		int start = Math.Clamp(state.SelectionStart, 0, document.TextLength);
+
+		int length = Math.Clamp(state.SelectionLength, 0, document.TextLength - start);
+
+		Editor.Select(start, length);
+
+		Editor
+			.TextArea
+			.Caret
+			.Position = state.CaretPosition;
+
+		// The offset, not the caret line, brings the view back the way it was left.
+		scrollViewer.Offset = state.ScrollOffset;
+
+		Editor
+			.Bookmarks
+			.SetLines(state.Bookmarks ?? []);
+	}
+
+	/// <summary>
+	/// Restores the pending view state after the layout pass, so that a document set along with it
+	/// is already in place and does not reset the caret and the scroll position afterwards.
+	/// </summary>
+	private void ScheduleRestore() => Dispatcher.UIThread.Post(RestoreViewState, DispatcherPriority.Loaded);
+	#endregion
+}

@@ -205,6 +205,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bookmarks.
+        /// </summary>
+        public static string Bookmarks {
+            get {
+                return ResourceManager.GetString("Bookmarks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Cancel {
@@ -331,6 +340,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Col: {0}.
+        /// </summary>
+        public static string ColumnFormat {
+            get {
+                return ResourceManager.GetString("ColumnFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Confirm Password.
         /// </summary>
         public static string ConfirmPassword {
@@ -426,6 +444,15 @@ namespace Shared.Properties {
         public static string Created {
             get {
                 return ResourceManager.GetString("Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut.
+        /// </summary>
+        public static string Cut {
+            get {
+                return ResourceManager.GetString("Cut", resourceCulture);
             }
         }
         
@@ -1042,6 +1069,33 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indents: Spaces To Tabs.
+        /// </summary>
+        public static string IndentsSpacesToTabs {
+            get {
+                return ResourceManager.GetString("IndentsSpacesToTabs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indents: Tabs To Spaces.
+        /// </summary>
+        public static string IndentsTabsToSpaces {
+            get {
+                return ResourceManager.GetString("IndentsTabsToSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to iNVERT cASE.
+        /// </summary>
+        public static string InvertCase {
+            get {
+                return ResourceManager.GetString("InvertCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key.
         /// </summary>
         public static string Key {
@@ -1060,6 +1114,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Length: {0}.
+        /// </summary>
+        public static string LengthFormat {
+            get {
+                return ResourceManager.GetString("LengthFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light.
         /// </summary>
         public static string Light {
@@ -1069,11 +1132,47 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Line Endings.
+        /// </summary>
+        public static string LineEndings {
+            get {
+                return ResourceManager.GetString("LineEndings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ln: {0}.
+        /// </summary>
+        public static string LineFormat {
+            get {
+                return ResourceManager.GetString("LineFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lines: {0}.
+        /// </summary>
+        public static string LinesFormat {
+            get {
+                return ResourceManager.GetString("LinesFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Locking in {0}.
         /// </summary>
         public static string LockedInFormat {
             get {
                 return ResourceManager.GetString("LockedInFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lowercase.
+        /// </summary>
+        public static string Lowercase {
+            get {
+                return ResourceManager.GetString("Lowercase", resourceCulture);
             }
         }
         
@@ -1110,6 +1209,15 @@ namespace Shared.Properties {
         public static string MissingFiles {
             get {
                 return ResourceManager.GetString("MissingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mixed.
+        /// </summary>
+        public static string MixedLineEndings {
+            get {
+                return ResourceManager.GetString("MixedLineEndings", resourceCulture);
             }
         }
         
@@ -1159,11 +1267,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Next Bookmark.
+        /// </summary>
+        public static string NextBookmark {
+            get {
+                return ResourceManager.GetString("NextBookmark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
             get {
                 return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file contents are not text.
+        /// </summary>
+        public static string NonTextFileContents {
+            get {
+                return ResourceManager.GetString("NonTextFileContents", resourceCulture);
             }
         }
         
@@ -1375,6 +1501,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Paste.
+        /// </summary>
+        public static string Paste {
+            get {
+                return ResourceManager.GetString("Paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pause.
         /// </summary>
         public static string Pause {
@@ -1411,6 +1546,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pos: {0}.
+        /// </summary>
+        public static string PositionFormat {
+            get {
+                return ResourceManager.GetString("PositionFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Previous Bookmark.
+        /// </summary>
+        public static string PreviousBookmark {
+            get {
+                return ResourceManager.GetString("PreviousBookmark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Primary Color.
         /// </summary>
         public static string PrimaryColor {
@@ -1434,6 +1587,42 @@ namespace Shared.Properties {
         public static string ReadOnlyMode {
             get {
                 return ResourceManager.GetString("ReadOnlyMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Redo.
+        /// </summary>
+        public static string Redo {
+            get {
+                return ResourceManager.GetString("Redo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove All Bookmarks.
+        /// </summary>
+        public static string RemoveAllBookmarks {
+            get {
+                return ResourceManager.GetString("RemoveAllBookmarks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Leading Spaces.
+        /// </summary>
+        public static string RemoveLeadingSpaces {
+            get {
+                return ResourceManager.GetString("RemoveLeadingSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Trailing Spaces.
+        /// </summary>
+        public static string RemoveTrailingSpaces {
+            get {
+                return ResourceManager.GetString("RemoveTrailingSpaces", resourceCulture);
             }
         }
         
@@ -1609,6 +1798,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sel: {0} | {1}.
+        /// </summary>
+        public static string SelectedFormat {
+            get {
+                return ResourceManager.GetString("SelectedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
         public static string Settings {
@@ -1708,11 +1906,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Spaces.
+        /// </summary>
+        public static string Spaces {
+            get {
+                return ResourceManager.GetString("Spaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to System.
         /// </summary>
         public static string System {
             get {
                 return ResourceManager.GetString("System", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tabs.
+        /// </summary>
+        public static string Tabs {
+            get {
+                return ResourceManager.GetString("Tabs", resourceCulture);
             }
         }
         
@@ -1780,6 +1996,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Title Case.
+        /// </summary>
+        public static string TitleCase {
+            get {
+                return ResourceManager.GetString("TitleCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to to.
         /// </summary>
         public static string To {
@@ -1789,11 +2014,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toggle Bookmark.
+        /// </summary>
+        public static string ToggleBookmark {
+            get {
+                return ResourceManager.GetString("ToggleBookmark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Topmost.
         /// </summary>
         public static string Topmost {
             get {
                 return ResourceManager.GetString("Topmost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transform.
+        /// </summary>
+        public static string Transform {
+            get {
+                return ResourceManager.GetString("Transform", resourceCulture);
             }
         }
         
@@ -1821,6 +2064,15 @@ namespace Shared.Properties {
         public static string UnableToCreateDatabaseBackup {
             get {
                 return ResourceManager.GetString("UnableToCreateDatabaseBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Undo.
+        /// </summary>
+        public static string Undo {
+            get {
+                return ResourceManager.GetString("Undo", resourceCulture);
             }
         }
         
@@ -1866,6 +2118,15 @@ namespace Shared.Properties {
         public static string Updates {
             get {
                 return ResourceManager.GetString("Updates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPPERCASE.
+        /// </summary>
+        public static string Uppercase {
+            get {
+                return ResourceManager.GetString("Uppercase", resourceCulture);
             }
         }
         

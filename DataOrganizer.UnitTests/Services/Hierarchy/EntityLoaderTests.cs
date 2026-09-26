@@ -149,9 +149,9 @@ internal class EntityLoaderTests
 		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
 
 		// Assert
-		hierarchy?.Length
+		hierarchy
 			.Should()
-			.Be(folderCount + fileCount);
+			.HaveCount(folderCount + fileCount);
 	}
 
 	/// <summary>

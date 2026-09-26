@@ -709,4 +709,97 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>The file contents are missing</value>
   </data>
+  <data name="NonTextFileContents" xml:space="preserve">
+    <value>The file contents are not text</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Cut</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>Spaces</value>
+  </data>
+  <data name="Tabs" xml:space="preserve">
+    <value>Tabs</value>
+  </data>
+  <data name="LineEndings" xml:space="preserve">
+    <value>Line Endings</value>
+  </data>
+  <!--<data name="LineColumnFormat" xml:space="preserve">
+    <value>Ln {0}, Col {1}</value>
+  </data>-->
+  <data name="LinesFormat" xml:space="preserve">
+    <value>Lines: {0}</value>
+  </data>
+  <data name="MixedLineEndings" xml:space="preserve">
+    <value>Mixed</value>
+  </data>
+  <!--<data name="SelectedFormat" xml:space="preserve">
+    <value>Selected: {0}</value>
+  </data>-->
+  <data name="SelectedFormat" xml:space="preserve">
+    <value>Sel: {0} | {1}</value>
+  </data>
+  <data name="LengthFormat" xml:space="preserve">
+    <value>Length: {0}</value>
+  </data>
+  <data name="LineFormat" xml:space="preserve">
+    <value>Ln: {0}</value>
+  </data>
+  <data name="ColumnFormat" xml:space="preserve">
+    <value>Col: {0}</value>
+  </data>
+  <data name="PositionFormat" xml:space="preserve">
+    <value>Pos: {0}</value>
+  </data>
+  <data name="Transform" xml:space="preserve">
+    <value>Transform</value>
+  </data>
+  <data name="Uppercase" xml:space="preserve">
+    <value>UPPERCASE</value>
+  </data>
+  <data name="Lowercase" xml:space="preserve">
+    <value>lowercase</value>
+  </data>
+  <data name="TitleCase" xml:space="preserve">
+    <value>Title Case</value>
+  </data>
+  <data name="InvertCase" xml:space="preserve">
+    <value>iNVERT cASE</value>
+  </data>
+  <data name="RemoveTrailingSpaces" xml:space="preserve">
+    <value>Remove Trailing Spaces</value>
+  </data>
+  <data name="RemoveLeadingSpaces" xml:space="preserve">
+    <value>Remove Leading Spaces</value>
+  </data>
+  <data name="IndentsTabsToSpaces" xml:space="preserve">
+    <value>Indents: Tabs To Spaces</value>
+  </data>
+  <data name="IndentsSpacesToTabs" xml:space="preserve">
+    <value>Indents: Spaces To Tabs</value>
+  </data>
+  <data name="Bookmarks" xml:space="preserve">
+    <value>Bookmarks</value>
+  </data>
+  <data name="ToggleBookmark" xml:space="preserve">
+    <value>Toggle Bookmark</value>
+  </data>
+  <data name="NextBookmark" xml:space="preserve">
+    <value>Next Bookmark</value>
+  </data>
+  <data name="PreviousBookmark" xml:space="preserve">
+    <value>Previous Bookmark</value>
+  </data>
+  <data name="RemoveAllBookmarks" xml:space="preserve">
+    <value>Remove All Bookmarks</value>
+  </data>
 </root>

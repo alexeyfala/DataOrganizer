@@ -127,7 +127,8 @@ The following are known and accepted, so there is no need to report them.
   history this application records, and is cleared 15 seconds later. The
   markers are a request: an application that ignores them reads the text like
   any other, and a reader that was quicker than the timeout keeps what it
-  took. Two places copy without the markers, and what they copy stays on the
-  clipboard until something replaces it: the built-in file editor, whose
+  took. Two places copy without the markers: the built-in file editor, whose
   control offers no point to intercept a copy, and the console, whose output
-  is not tied to protected data.
+  is not tied to protected data. What they copy can reach the clipboard
+  histories, this application's included, and stays on the clipboard until
+  something replaces it.

@@ -729,4 +729,97 @@
   <data name="MissingFileContents" xml:space="preserve">
     <value>Содержимое файла отсутствует</value>
   </data>
+  <data name="NonTextFileContents" xml:space="preserve">
+    <value>Содержимое файла не является текстом</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Вырезать</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Вставить</value>
+  </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>Пробелы</value>
+  </data>
+  <data name="Tabs" xml:space="preserve">
+    <value>Табуляция</value>
+  </data>
+  <data name="LineEndings" xml:space="preserve">
+    <value>Концы строк</value>
+  </data>
+  <!--<data name="LineColumnFormat" xml:space="preserve">
+    <value>Стр {0}, стлб {1}</value>
+  </data>-->
+  <data name="LinesFormat" xml:space="preserve">
+    <value>Строк: {0}</value>
+  </data>
+  <data name="MixedLineEndings" xml:space="preserve">
+    <value>Разные</value>
+  </data>
+  <!--<data name="SelectedFormat" xml:space="preserve">
+    <value>Выделено: {0}</value>
+  </data>-->
+  <data name="SelectedFormat" xml:space="preserve">
+    <value>Выд: {0} | {1}</value>
+  </data>
+  <data name="LengthFormat" xml:space="preserve">
+    <value>Длина: {0}</value>
+  </data>
+  <data name="LineFormat" xml:space="preserve">
+    <value>Стр: {0}</value>
+  </data>
+  <data name="ColumnFormat" xml:space="preserve">
+    <value>Стлб: {0}</value>
+  </data>
+  <data name="PositionFormat" xml:space="preserve">
+    <value>Поз: {0}</value>
+  </data>
+  <data name="Transform" xml:space="preserve">
+    <value>Преобразовать</value>
+  </data>
+  <data name="Uppercase" xml:space="preserve">
+    <value>ВЕРХНИЙ РЕГИСТР</value>
+  </data>
+  <data name="Lowercase" xml:space="preserve">
+    <value>нижний регистр</value>
+  </data>
+  <data name="TitleCase" xml:space="preserve">
+    <value>Каждое Слово С Заглавной</value>
+  </data>
+  <data name="InvertCase" xml:space="preserve">
+    <value>иНВЕРСИЯ рЕГИСТРА</value>
+  </data>
+  <data name="RemoveTrailingSpaces" xml:space="preserve">
+    <value>Удалить пробелы в конце строк</value>
+  </data>
+  <data name="RemoveLeadingSpaces" xml:space="preserve">
+    <value>Удалить пробелы в начале строк</value>
+  </data>
+  <data name="IndentsTabsToSpaces" xml:space="preserve">
+    <value>Отступы: табуляции в пробелы</value>
+  </data>
+  <data name="IndentsSpacesToTabs" xml:space="preserve">
+    <value>Отступы: пробелы в табуляции</value>
+  </data>
+  <data name="Bookmarks" xml:space="preserve">
+    <value>Закладки</value>
+  </data>
+  <data name="ToggleBookmark" xml:space="preserve">
+    <value>Поставить/снять закладку</value>
+  </data>
+  <data name="NextBookmark" xml:space="preserve">
+    <value>Следующая закладка</value>
+  </data>
+  <data name="PreviousBookmark" xml:space="preserve">
+    <value>Предыдущая закладка</value>
+  </data>
+  <data name="RemoveAllBookmarks" xml:space="preserve">
+    <value>Удалить все закладки</value>
+  </data>
 </root>
