@@ -787,4 +787,19 @@
   <data name="IndentsSpacesToTabs" xml:space="preserve">
     <value>Indents: Spaces To Tabs</value>
   </data>
+  <data name="Bookmarks" xml:space="preserve">
+    <value>Bookmarks</value>
+  </data>
+  <data name="ToggleBookmark" xml:space="preserve">
+    <value>Toggle Bookmark</value>
+  </data>
+  <data name="NextBookmark" xml:space="preserve">
+    <value>Next Bookmark</value>
+  </data>
+  <data name="PreviousBookmark" xml:space="preserve">
+    <value>Previous Bookmark</value>
+  </data>
+  <data name="RemoveAllBookmarks" xml:space="preserve">
+    <value>Remove All Bookmarks</value>
+  </data>
 </root>

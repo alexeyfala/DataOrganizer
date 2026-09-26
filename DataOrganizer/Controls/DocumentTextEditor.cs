@@ -95,6 +95,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 
 	#region Commands
 	/// <summary>
+	/// Removes all bookmarks.
+	/// </summary>
+	public RelayCommand ClearBookmarksCommand { get; }
+
+	/// <summary>
 	/// Brings every line break of the document to the given style.
 	/// </summary>
 	public RelayCommand<LineEnding> ConvertLineEndingsCommand { get; }
@@ -105,14 +110,29 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	public RelayCommand CutCommand { get; }
 
 	/// <summary>
+	/// Moves the caret to the next bookmarked line, going round to the first one.
+	/// </summary>
+	public RelayCommand NextBookmarkCommand { get; }
+
+	/// <summary>
 	/// Pastes the text from the clipboard.
 	/// </summary>
 	public RelayCommand PasteCommand { get; }
 
 	/// <summary>
+	/// Moves the caret to the previous bookmarked line, going round to the last one.
+	/// </summary>
+	public RelayCommand PreviousBookmarkCommand { get; }
+
+	/// <summary>
 	/// Redoes the last undone edit.
 	/// </summary>
 	public RelayCommand RedoCommand { get; }
+
+	/// <summary>
+	/// Sets or removes the bookmark of the caret line.
+	/// </summary>
+	public RelayCommand ToggleBookmarkCommand { get; }
 
 	/// <summary>
 	/// Transforms the selected text, or the whole document where the transformation allows it.
@@ -133,13 +153,21 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	#region Constructors
 	public DocumentTextEditor()
 	{
+		ClearBookmarksCommand = new(ClearBookmarks, HasBookmarks);
+
 		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
 
 		CutCommand = new(CutSelection, CanCutSelection);
 
+		NextBookmarkCommand = new(GoToNextBookmark, HasBookmarks);
+
 		PasteCommand = new(PasteText, CanPasteText);
 
+		PreviousBookmarkCommand = new(GoToPreviousBookmark, HasBookmarks);
+
 		RedoCommand = new(RedoEdit, CanRedoEdit);
+
+		ToggleBookmarkCommand = new(ToggleBookmark);
 
 		TransformCommand = new(TransformText, CanTransformText);
 
@@ -160,6 +188,24 @@ internal sealed class DocumentTextEditor : TextEditorBase
 			Command = TransformCommand,
 			CommandParameter = TextTransform.UpperCase,
 			Gesture = new KeyGesture(Key.U, commandModifier | KeyModifiers.Shift)
+		});
+
+		KeyBindings.Add(new KeyBinding
+		{
+			Command = ToggleBookmarkCommand,
+			Gesture = new KeyGesture(Key.F2, commandModifier)
+		});
+
+		KeyBindings.Add(new KeyBinding
+		{
+			Command = NextBookmarkCommand,
+			Gesture = new KeyGesture(Key.F2)
+		});
+
+		KeyBindings.Add(new KeyBinding
+		{
+			Command = PreviousBookmarkCommand,
+			Gesture = new KeyGesture(Key.F2, KeyModifiers.Shift)
 		});
 
 		// The engine undoes and redoes in read-only mode too; its bindings serve both the keys and the commands.
@@ -448,6 +494,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	private bool CanUndoEdit() => CanUndo;
 
 	/// <summary>
+	/// Removes all bookmarks.
+	/// </summary>
+	private void ClearBookmarks() => Bookmarks.Clear();
+
+	/// <summary>
 	/// Brings every line break of the document to a style, as one step to undo.
 	/// </summary>
 	private void ConvertLineEndings(LineEnding lineEnding)
@@ -503,6 +554,38 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	}
 
 	/// <summary>
+	/// Moves the caret to the next bookmarked line, going round to the first one.
+	/// </summary>
+	private void GoToNextBookmark() => MoveCaretToLine(Bookmarks.FindNext(TextArea.Caret.Line));
+
+	/// <summary>
+	/// Moves the caret to the previous bookmarked line, going round to the last one.
+	/// </summary>
+	private void GoToPreviousBookmark() => MoveCaretToLine(Bookmarks.FindPrevious(TextArea.Caret.Line));
+
+	/// <summary>
+	/// Validates <see cref="ClearBookmarksCommand" />, <see cref="NextBookmarkCommand" /> and
+	/// <see cref="PreviousBookmarkCommand" />.
+	/// </summary>
+	private bool HasBookmarks() => Bookmarks.GetLines().Length > 0;
+
+	/// <summary>
+	/// Puts the caret at the start of a line and brings the line into view.
+	/// </summary>
+	private void MoveCaretToLine(int? line)
+	{
+		if (line is not { } number)
+		{
+			return;
+		}
+
+		// A selection left behind would stretch over the jump.
+		Select(Document.GetLineByNumber(number).Offset, 0);
+
+		ScrollTo(number, 1);
+	}
+
+	/// <summary>
 	/// Executes <see cref="ApplicationCommands.Paste" /> on the text area.
 	/// </summary>
 	private void PasteText()
@@ -521,6 +604,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 			.Redo
 			.Execute(null, TextArea);
 	}
+
+	/// <summary>
+	/// Sets or removes the bookmark of the caret line.
+	/// </summary>
+	private void ToggleBookmark() => Bookmarks.Toggle(TextArea.Caret.Line);
 
 	/// <summary>
 	/// Applies a transformation to the selected text, or to the whole document where the transformation allows it.

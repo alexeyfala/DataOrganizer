@@ -205,6 +205,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bookmarks.
+        /// </summary>
+        public static string Bookmarks {
+            get {
+                return ResourceManager.GetString("Bookmarks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Cancel {
@@ -1258,6 +1267,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Next Bookmark.
+        /// </summary>
+        public static string NextBookmark {
+            get {
+                return ResourceManager.GetString("NextBookmark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
@@ -1537,6 +1555,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Previous Bookmark.
+        /// </summary>
+        public static string PreviousBookmark {
+            get {
+                return ResourceManager.GetString("PreviousBookmark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Primary Color.
         /// </summary>
         public static string PrimaryColor {
@@ -1569,6 +1596,15 @@ namespace Shared.Properties {
         public static string Redo {
             get {
                 return ResourceManager.GetString("Redo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove All Bookmarks.
+        /// </summary>
+        public static string RemoveAllBookmarks {
+            get {
+                return ResourceManager.GetString("RemoveAllBookmarks", resourceCulture);
             }
         }
         
@@ -1974,6 +2010,15 @@ namespace Shared.Properties {
         public static string To {
             get {
                 return ResourceManager.GetString("To", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Bookmark.
+        /// </summary>
+        public static string ToggleBookmark {
+            get {
+                return ResourceManager.GetString("ToggleBookmark", resourceCulture);
             }
         }
         

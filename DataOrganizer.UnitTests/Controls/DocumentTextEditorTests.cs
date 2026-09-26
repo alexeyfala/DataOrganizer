@@ -5,7 +5,9 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
@@ -55,6 +57,57 @@ internal class DocumentTextEditorTests
 		margin.Bounds.Right
 			.Should()
 			.BeLessThanOrEqualTo(lineNumbers.Bounds.Left);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ClearBookmarksCommand" />: there is something to remove only with a bookmark.
+	/// </summary>
+	[AvaloniaTest]
+	public void ClearBookmarksCommand_Needs_A_Bookmark([Values] bool hasBookmark)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		if (hasBookmark)
+		{
+			sut.Bookmarks.Toggle(2);
+		}
+
+		// Act
+		bool canExecute = sut.ClearBookmarksCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasBookmark);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ClearBookmarksCommand" />: removes every bookmark.
+	/// </summary>
+	[AvaloniaTest]
+	public void ClearBookmarksCommand_Removes_Every_Bookmark()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		sut.Bookmarks.Toggle(1);
+
+		sut.Bookmarks.Toggle(3);
+
+		// Act
+		sut.ClearBookmarksCommand.Execute(null);
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -363,6 +416,129 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.NextBookmarkCommand" />: a bookmarked line out of view comes into view.
+	/// </summary>
+	[AvaloniaTest]
+	public void NextBookmarkCommand_Brings_The_Line_Into_View()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(sut);
+
+		sut.Bookmarks.Toggle(800);
+
+		// Act
+		sut.NextBookmarkCommand.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		TextView textView = sut.TextArea.TextView;
+
+		textView.GetVisualTopByDocumentLine(800)
+			.Should()
+			.BeInRange(
+				textView.VerticalOffset,
+				textView.VerticalOffset + sut.ViewportHeight - textView.DefaultLineHeight);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.NextBookmarkCommand" />: the caret goes to the start of the next bookmarked line,
+	/// and the selection goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void NextBookmarkCommand_Moves_The_Caret_To_The_Start_Of_The_Next_Bookmarked_Line()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		sut.Bookmarks.Toggle(3);
+
+		sut.Bookmarks.Toggle(7);
+
+		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
+
+		// Act
+		sut.NextBookmarkCommand.Execute(null);
+
+		// Assert
+		sut.TextArea.Caret.Location
+			.Should()
+			.Be(new TextLocation(7, 1));
+
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.NextBookmarkCommand" />: there is somewhere to go only with a bookmark.
+	/// </summary>
+	[AvaloniaTest]
+	public void NextBookmarkCommand_Needs_A_Bookmark([Values] bool hasBookmark)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		if (hasBookmark)
+		{
+			sut.Bookmarks.Toggle(2);
+		}
+
+		// Act
+		bool canExecute = sut.NextBookmarkCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasBookmark);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.NextBookmarkCommand" />: runs on F2, as in Notepad++.
+	/// </summary>
+	[AvaloniaTest]
+	public void NextBookmarkCommand_Runs_On_F2()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		Window window = Show(sut);
+
+		sut.Bookmarks.Toggle(2);
+
+		sut.Bookmarks.Toggle(3);
+
+		sut.TextArea.Focus();
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.F2, RawInputModifiers.None);
+
+		window.KeyReleaseQwerty(PhysicalKey.F2, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		// From the first line the next bookmark is on the second line, while the previous one would be on the third.
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(2);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.PasteCommand" />: nothing can be pasted in read-only mode.
 	/// </summary>
 	[AvaloniaTest]
@@ -382,6 +558,98 @@ internal class DocumentTextEditorTests
 		canExecute
 			.Should()
 			.Be(!isReadOnly);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.PreviousBookmarkCommand" />: the caret goes to the start of the previous bookmarked
+	/// line, and the selection goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousBookmarkCommand_Moves_The_Caret_To_The_Start_Of_The_Previous_Bookmarked_Line()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		sut.Bookmarks.Toggle(3);
+
+		sut.Bookmarks.Toggle(7);
+
+		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
+
+		// Act
+		sut.PreviousBookmarkCommand.Execute(null);
+
+		// Assert
+		sut.TextArea.Caret.Location
+			.Should()
+			.Be(new TextLocation(3, 1));
+
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.PreviousBookmarkCommand" />: there is somewhere to go only with a bookmark.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousBookmarkCommand_Needs_A_Bookmark([Values] bool hasBookmark)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		if (hasBookmark)
+		{
+			sut.Bookmarks.Toggle(2);
+		}
+
+		// Act
+		bool canExecute = sut.PreviousBookmarkCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasBookmark);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.PreviousBookmarkCommand" />: runs on Shift+F2, as in Notepad++.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousBookmarkCommand_Runs_On_Shift_F2()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		Window window = Show(sut);
+
+		sut.Bookmarks.Toggle(2);
+
+		sut.Bookmarks.Toggle(3);
+
+		sut.TextArea.Focus();
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.F2, RawInputModifiers.Shift);
+
+		window.KeyReleaseQwerty(PhysicalKey.F2, RawInputModifiers.Shift);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		// From the first line the previous bookmark goes round to the third line, while the next one would be on the second.
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(3);
 	}
 
 	/// <summary>
@@ -719,6 +987,72 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleBookmarkCommand" />: runs on Ctrl+F2, with ⌘ for Ctrl on macOS, as in Notepad++.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleBookmarkCommand_Runs_On_Ctrl_F2()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		Window window = Show(sut);
+
+		sut.CaretOffset = sut.Document.GetLineByNumber(2).Offset;
+
+		sut.TextArea.Focus();
+
+		RawInputModifiers modifiers = OperatingSystem.IsMacOS()
+			? RawInputModifiers.Meta
+			: RawInputModifiers.Control;
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.F2, modifiers);
+
+		window.KeyReleaseQwerty(PhysicalKey.F2, modifiers);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(2);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleBookmarkCommand" />: sets a bookmark on the caret line without one and removes
+	/// the bookmark of the caret line with one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleBookmarkCommand_Toggles_The_Bookmark_Of_The_Caret_Line([Values] bool isBookmarked)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		if (isBookmarked)
+		{
+			sut.Bookmarks.Toggle(2);
+		}
+
+		sut.CaretOffset = sut.Document.GetLineByNumber(2).Offset;
+
+		// Act
+		sut.ToggleBookmarkCommand.Execute(null);
+
+		// Assert
+		int[] expected = isBookmarked ? [] : [2];
+
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.TransformCommand" />: the case changes in the selected text only.
 	/// </summary>
 	[AvaloniaTest]
@@ -1048,6 +1382,16 @@ internal class DocumentTextEditorTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Creates a document of numbered lines.
+	/// </summary>
+	private static TextDocument CreateDocument(int lineCount)
+	{
+		return new(string.Join('\n', Enumerable
+			.Range(1, lineCount)
+			.Select(static x => $"Line {x:D4}")));
+	}
+
 	/// <summary>
 	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
 	/// </summary>

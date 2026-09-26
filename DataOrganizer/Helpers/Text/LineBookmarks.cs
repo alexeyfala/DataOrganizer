@@ -1,4 +1,5 @@
 using AvaloniaEdit.Document;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,6 +31,13 @@ internal sealed class LineBookmarks
 	}
 	#endregion
 
+	#region Events
+	/// <summary>
+	/// Occurs when a bookmark is set or removed in the document.
+	/// </summary>
+	public event EventHandler? Changed;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Anchors at the starts of the bookmarked lines.
@@ -42,9 +50,46 @@ internal sealed class LineBookmarks
 
 	#region Methods
 	/// <summary>
+	/// Removes all bookmarks.
+	/// </summary>
+	public void Clear()
+	{
+		if (_anchors.Count == 0)
+		{
+			return;
+		}
+
+		_anchors.Clear();
+
+		RaiseChanged();
+	}
+
+	/// <summary>
 	/// <c>True</c> when a line has a bookmark.
 	/// </summary>
 	public bool Contains(int line) => _anchors.Exists(x => x.Line == line);
+
+	/// <summary>
+	/// Returns the first bookmarked line after a line, going round to the start of the document;
+	/// <c>null</c> without bookmarks.
+	/// </summary>
+	public int? FindNext(int line)
+	{
+		int[] lines = GetLines();
+
+		return lines.Length > 0 ? lines.FirstOrDefault(x => x > line, lines[0]) : null;
+	}
+
+	/// <summary>
+	/// Returns the last bookmarked line before a line, going round to the end of the document;
+	/// <c>null</c> without bookmarks.
+	/// </summary>
+	public int? FindPrevious(int line)
+	{
+		int[] lines = GetLines();
+
+		return lines.Length > 0 ? lines.LastOrDefault(x => x < line, lines[^1]) : null;
+	}
 
 	/// <summary>
 	/// Returns the numbers of the bookmarked lines in ascending order.
@@ -64,6 +109,8 @@ internal sealed class LineBookmarks
 		// Lines joined by an edit keep the bookmarks of both, and one toggle removes them all.
 		if (_anchors.RemoveAll(x => x.Line == line) > 0)
 		{
+			RaiseChanged();
+
 			return;
 		}
 
@@ -76,6 +123,15 @@ internal sealed class LineBookmarks
 		anchor.SurviveDeletion = true;
 
 		_anchors.Add(anchor);
+
+		RaiseChanged();
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Raises <see cref="Changed" />.
+	/// </summary>
+	private void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
 	#endregion
 }

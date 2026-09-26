@@ -1,6 +1,7 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Text;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;
 
@@ -8,6 +9,61 @@ namespace DataOrganizer.UnitTests.Helpers.Text;
 internal class LineBookmarksTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="LineBookmarks.Clear" />: reports a change only when there were bookmarks to remove.
+	/// </summary>
+	[Test]
+	public void Clear_Raises_Changed_Only_With_Bookmarks([Values] bool hasBookmarks)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		if (hasBookmarks)
+		{
+			sut.Toggle(2);
+		}
+
+		int changeCount = 0;
+
+		sut.Changed += (_, _) => changeCount++;
+
+		// Act
+		sut.Clear();
+
+		// Assert
+		changeCount
+			.Should()
+			.Be(hasBookmarks ? 1 : 0);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.Clear" />: removes every bookmark.
+	/// </summary>
+	[Test]
+	public void Clear_Removes_Every_Bookmark()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		sut.Toggle(1);
+
+		sut.Toggle(3);
+
+		// Act
+		sut.Clear();
+
+		// Assert
+		sut.GetLines()
+			.Should()
+			.BeEmpty();
+	}
+
 	/// <summary>
 	/// <see cref="LineBookmarks.Contains" />: tells a bookmarked line from a line without a bookmark.
 	/// </summary>
@@ -53,6 +109,152 @@ internal class LineBookmarksTests
 		sut.GetLines()
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindNext" />: after the last bookmark the search goes round to the first one.
+	/// </summary>
+	[TestCase(5)]
+	[TestCase(7)]
+	public void FindNext_Goes_Round_To_The_First_Bookmark(int line)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new(string.Join('\n', Enumerable.Repeat("Line", 7)))
+		};
+
+		sut.Toggle(2);
+
+		sut.Toggle(5);
+
+		// Act
+		int? found = sut.FindNext(line);
+
+		// Assert
+		found
+			.Should()
+			.Be(2);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindNext" />: without bookmarks there is nothing to find.
+	/// </summary>
+	[Test]
+	public void FindNext_Needs_A_Bookmark()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		// Act
+		int? found = sut.FindNext(1);
+
+		// Assert
+		found
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindNext" />: returns the first bookmarked line after the line.
+	/// </summary>
+	[TestCase(1, 2)]
+	[TestCase(2, 5)]
+	public void FindNext_Returns_The_Next_Bookmarked_Line(int line, int expected)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new(string.Join('\n', Enumerable.Repeat("Line", 7)))
+		};
+
+		sut.Toggle(2);
+
+		sut.Toggle(5);
+
+		// Act
+		int? found = sut.FindNext(line);
+
+		// Assert
+		found
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindPrevious" />: before the first bookmark the search goes round to the last one.
+	/// </summary>
+	[TestCase(1)]
+	[TestCase(2)]
+	public void FindPrevious_Goes_Round_To_The_Last_Bookmark(int line)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new(string.Join('\n', Enumerable.Repeat("Line", 7)))
+		};
+
+		sut.Toggle(2);
+
+		sut.Toggle(5);
+
+		// Act
+		int? found = sut.FindPrevious(line);
+
+		// Assert
+		found
+			.Should()
+			.Be(5);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindPrevious" />: without bookmarks there is nothing to find.
+	/// </summary>
+	[Test]
+	public void FindPrevious_Needs_A_Bookmark()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		// Act
+		int? found = sut.FindPrevious(3);
+
+		// Assert
+		found
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.FindPrevious" />: returns the last bookmarked line before the line.
+	/// </summary>
+	[TestCase(7, 5)]
+	[TestCase(5, 2)]
+	public void FindPrevious_Returns_The_Previous_Bookmarked_Line(int line, int expected)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new(string.Join('\n', Enumerable.Repeat("Line", 7)))
+		};
+
+		sut.Toggle(2);
+
+		sut.Toggle(5);
+
+		// Act
+		int? found = sut.FindPrevious(line);
+
+		// Assert
+		found
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -181,6 +383,36 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
+	/// <see cref="LineBookmarks.Toggle" />: reports a change once, both when it sets a bookmark and when it removes one.
+	/// </summary>
+	[Test]
+	public void Toggle_Raises_Changed([Values] bool isBookmarked)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		if (isBookmarked)
+		{
+			sut.Toggle(2);
+		}
+
+		int changeCount = 0;
+
+		sut.Changed += (_, _) => changeCount++;
+
+		// Act
+		sut.Toggle(2);
+
+		// Assert
+		changeCount
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="LineBookmarks.Toggle" />: removes every bookmark of a line, those that came with a joined line too.
 	/// </summary>
 	[Test]
@@ -234,7 +466,7 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
-	/// <see cref="LineBookmarks.Toggle" />: a line out of the document gets no bookmark.
+	/// <see cref="LineBookmarks.Toggle" />: a line out of the document gets no bookmark and reports no change.
 	/// </summary>
 	[Test]
 	public void Toggle_Skips_A_Line_Out_Of_The_Document([Values(0, 4)] int line)
@@ -245,6 +477,10 @@ internal class LineBookmarksTests
 			Document = new("One\nTwo\nThree")
 		};
 
+		int changeCount = 0;
+
+		sut.Changed += (_, _) => changeCount++;
+
 		// Act
 		sut.Toggle(line);
 
@@ -252,6 +488,10 @@ internal class LineBookmarksTests
 		sut.GetLines()
 			.Should()
 			.BeEmpty();
+
+		changeCount
+			.Should()
+			.Be(0);
 	}
 	#endregion
 }

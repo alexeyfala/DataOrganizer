@@ -59,11 +59,21 @@ internal sealed class BookmarkMargin : AbstractMargin
 	{
 		_bookmarks = bookmarks;
 
+		// The keys and the menu change the bookmarks too.
+		_bookmarks.Changed += Bookmarks_Changed;
+
 		// The margin widens with the zoom, like the line numbers.
 		this
 			.GetObservable(TextElement.FontSizeProperty)
 			.Subscribe(_ => InvalidateMeasure());
 	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="LineBookmarks.Changed" /> event handler.
+	/// </summary>
+	private void Bookmarks_Changed(object? sender, EventArgs e) => InvalidateVisual();
 	#endregion
 
 	#region Methods
@@ -145,8 +155,6 @@ internal sealed class BookmarkMargin : AbstractMargin
 		}
 
 		_bookmarks.Toggle(visualLine.FirstDocumentLine.LineNumber);
-
-		InvalidateVisual();
 	}
 	#endregion
 

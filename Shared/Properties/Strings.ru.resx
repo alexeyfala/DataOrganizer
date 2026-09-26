@@ -807,4 +807,19 @@
   <data name="IndentsSpacesToTabs" xml:space="preserve">
     <value>Отступы: пробелы в табуляции</value>
   </data>
+  <data name="Bookmarks" xml:space="preserve">
+    <value>Закладки</value>
+  </data>
+  <data name="ToggleBookmark" xml:space="preserve">
+    <value>Поставить/снять закладку</value>
+  </data>
+  <data name="NextBookmark" xml:space="preserve">
+    <value>Следующая закладка</value>
+  </data>
+  <data name="PreviousBookmark" xml:space="preserve">
+    <value>Предыдущая закладка</value>
+  </data>
+  <data name="RemoveAllBookmarks" xml:space="preserve">
+    <value>Удалить все закладки</value>
+  </data>
 </root>

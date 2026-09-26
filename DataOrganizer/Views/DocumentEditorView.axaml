@@ -244,6 +244,28 @@
 						Header="{x:Static prop:Strings.Find}"
 						InputGesture="{OnPlatform Default='Ctrl+F',
 						                          macOS='⌘+F'}" />
+
+					<MenuItem Header="{x:Static prop:Strings.Bookmarks}">
+						<MenuItem
+							Command="{Binding #Editor.ToggleBookmarkCommand}"
+							Header="{x:Static prop:Strings.ToggleBookmark}"
+							InputGesture="{OnPlatform Default='Ctrl+F2',
+							                          macOS='⌘+F2'}" />
+
+						<MenuItem
+							Command="{Binding #Editor.NextBookmarkCommand}"
+							Header="{x:Static prop:Strings.NextBookmark}"
+							InputGesture="F2" />
+
+						<MenuItem
+							Command="{Binding #Editor.PreviousBookmarkCommand}"
+							Header="{x:Static prop:Strings.PreviousBookmark}"
+							InputGesture="Shift+F2" />
+
+						<Separator />
+
+						<MenuItem Command="{Binding #Editor.ClearBookmarksCommand}" Header="{x:Static prop:Strings.RemoveAllBookmarks}" />
+					</MenuItem>
 				</ContextMenu>
 			</controls:DocumentTextEditor.ContextMenu>
 		</controls:DocumentTextEditor>
