@@ -438,6 +438,58 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored bookmarks become part of the view state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_Bookmarks()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				Bookmarks = [3, 7],
+				FontSize = 14.0
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
+		int[]? bookmarks = sut.ViewState?.Bookmarks;
+
+		bookmarks
+			.Should()
+			.Equal(3, 7);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: each stored switch of invisible characters
 	/// reaches its own property.
 	/// </summary>
@@ -1091,6 +1143,62 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
 			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: the bookmarks of a new view state go into the editor state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_The_Bookmarks()
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			Bookmarks = [2, 5],
+			CaretPosition = new(line: 1, column: 1),
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		// Assert
+		new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).Bookmarks
+			.Should()
+			.Equal(2, 5);
 	}
 
 	/// <summary>

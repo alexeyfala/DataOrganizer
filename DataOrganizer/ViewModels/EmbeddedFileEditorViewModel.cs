@@ -65,7 +65,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public partial bool ShowTabs { get; set; }
 
 	/// <summary>
-	/// Caret, selection and scroll position of <see cref="Document" />.
+	/// Caret, selection, scroll position and bookmarks of <see cref="Document" />.
 	/// </summary>
 	[ObservableProperty]
 	public partial DocumentViewState? ViewState { get; set; }
@@ -379,6 +379,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		return new()
 		{
+			Bookmarks = view.Bookmarks,
 			CaretPosition = view.CaretPosition,
 			FontSize = FontSize,
 			WordWrap = WordWrap,
@@ -452,6 +453,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			ViewState = new DocumentViewState
 			{
+				Bookmarks = state.Bookmarks,
 				CaretPosition = state.CaretPosition,
 				ScrollOffset = new(state.ScrollOffset.X, state.ScrollOffset.Y),
 				SelectionLength = state.SelectionLength,

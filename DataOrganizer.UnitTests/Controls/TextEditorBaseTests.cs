@@ -200,7 +200,12 @@ internal class TextEditorBaseTests
 			.OfType<LineNumberMargin>()
 			.Single();
 
-		lineNumbers.Cursor?.ToString()
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no cursor.
+		string? cursor = lineNumbers
+			.Cursor?
+			.ToString();
+
+		cursor
 			.Should()
 			.Be(nameof(StandardCursorType.Arrow));
 	}

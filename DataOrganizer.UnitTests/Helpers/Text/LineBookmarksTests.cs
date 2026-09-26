@@ -366,6 +366,73 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
+	/// <see cref="LineBookmarks.SetLines" />: the bookmarks of the lines take the place of the old ones.
+	/// </summary>
+	[Test]
+	public void SetLines_Replaces_The_Bookmarks()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		sut.Toggle(1);
+
+		// Act
+		sut.SetLines([2, 3]);
+
+		// Assert
+		sut.GetLines()
+			.Should()
+			.Equal(2, 3);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.SetLines" />: a whole set of lines is one change and sends one message.
+	/// </summary>
+	[Test]
+	public void SetLines_Sends_One_Message()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		List<BookmarksChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.SetLines([1, 2, 3]);
+
+		// Assert
+		messages
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.SetLines" />: a line out of the document gets no bookmark.
+	/// </summary>
+	[Test]
+	public void SetLines_Skips_The_Lines_Out_Of_The_Document()
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		// Act
+		sut.SetLines([0, 2, 4]);
+
+		// Assert
+		sut.GetLines()
+			.Should()
+			.Equal(2);
+	}
+
+	/// <summary>
 	/// <see cref="LineBookmarks.Toggle" />: without a document there is no line to bookmark.
 	/// </summary>
 	[Test]

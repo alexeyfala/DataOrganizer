@@ -127,7 +127,12 @@ internal class BookmarkMarginTests
 		window.MouseUp(point, MouseButton.Left);
 
 		// Assert
-		sut.Cursor?.ToString()
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no cursor.
+		string? cursor = sut
+			.Cursor?
+			.ToString();
+
+		cursor
 			.Should()
 			.Be(nameof(StandardCursorType.Arrow));
 	}

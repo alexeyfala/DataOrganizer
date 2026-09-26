@@ -91,6 +91,25 @@ internal sealed class LineBookmarks
 	public int[] GetLines() => [.. _anchors.Select(static x => x.Line).Distinct().Order()];
 
 	/// <summary>
+	/// Replaces the bookmarks with those of the lines; a line out of the document gets none.
+	/// </summary>
+	public void SetLines(IEnumerable<int> lines)
+	{
+		_anchors.Clear();
+
+		if (_document is { } document)
+		{
+			_anchors.AddRange(lines
+				.Distinct()
+				.Where(x => x >= 1 && x <= document.LineCount)
+				.Select(x => CreateAnchor(document, x)));
+		}
+
+		// One message for all the lines, as a restored set is one change.
+		RaiseChanged();
+	}
+
+	/// <summary>
 	/// Sets a bookmark on a line without one and removes the bookmark of a line with one.
 	/// </summary>
 	public void Toggle(int line)
@@ -108,6 +127,18 @@ internal sealed class LineBookmarks
 			return;
 		}
 
+		_anchors.Add(CreateAnchor(document, line));
+
+		RaiseChanged();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates the anchor of a bookmark at the start of a line.
+	/// </summary>
+	private static TextAnchor CreateAnchor(TextDocument document, int line)
+	{
 		// Text put at the start of the line, a line break too, pushes the anchor on, so the bookmark stays with the text.
 		TextAnchor anchor = document.CreateAnchor(document
 			.GetLineByNumber(line)
@@ -116,13 +147,9 @@ internal sealed class LineBookmarks
 		// A deletion that takes the start of the line away leaves the bookmark on the line joined in its place.
 		anchor.SurviveDeletion = true;
 
-		_anchors.Add(anchor);
-
-		RaiseChanged();
+		return anchor;
 	}
-	#endregion
 
-	#region Helpers
 	/// <summary>
 	/// Sends <see cref="BookmarksChangedMessage" /> about these bookmarks.
 	/// </summary>

@@ -10,6 +10,11 @@ public readonly struct FileEditorState
 {
 	#region Properties
 	/// <summary>
+	/// Numbers of the bookmarked lines.
+	/// </summary>
+	public int[]? Bookmarks { get; init; }
+
+	/// <summary>
 	/// The caret position.
 	/// </summary>
 	public TextViewPosition CaretPosition { get; init; }

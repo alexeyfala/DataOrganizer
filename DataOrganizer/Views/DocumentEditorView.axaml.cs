@@ -6,8 +6,10 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Messages.Documents;
 using System;
 using System.Reactive.Linq;
 
@@ -16,7 +18,7 @@ namespace DataOrganizer.Views;
 /// <summary>
 /// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
 /// </summary>
-internal sealed partial class DocumentEditorView : UserControl
+internal sealed partial class DocumentEditorView : UserControl, IRecipient<BookmarksChangedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -102,7 +104,7 @@ internal sealed partial class DocumentEditorView : UserControl
 	}
 
 	/// <summary>
-	/// Caret, selection and scroll position of the document.
+	/// Caret, selection, scroll position and bookmarks of the document.
 	/// A value set from outside is restored once the document has been laid out.
 	/// </summary>
 	public DocumentViewState? ViewState
@@ -275,7 +277,21 @@ internal sealed partial class DocumentEditorView : UserControl
 
 	#region Methods
 	/// <summary>
-	/// Reports the caret, selection and scroll position through <see cref="ViewState" />.
+	/// Reports the view state again when the bookmarks of the document change.
+	/// </summary>
+	public void Receive(BookmarksChangedMessage message)
+	{
+		// Every open editor sends the message about its own bookmarks.
+		if (message.Bookmarks != Editor.Bookmarks)
+		{
+			return;
+		}
+
+		CaptureViewState();
+	}
+
+	/// <summary>
+	/// Reports the caret, selection, scroll position and bookmarks through <see cref="ViewState" />.
 	/// </summary>
 	internal void CaptureViewState()
 	{
@@ -289,6 +305,7 @@ internal sealed partial class DocumentEditorView : UserControl
 
 		DocumentViewState state = new()
 		{
+			Bookmarks = Editor.Bookmarks.GetLines(),
 			CaretPosition = Editor.TextArea.Caret.Position,
 			ScrollOffset = scrollViewer.Offset,
 			SelectionLength = Editor.SelectionLength,
@@ -305,6 +322,27 @@ internal sealed partial class DocumentEditorView : UserControl
 		{
 			_isCapturing = false;
 		}
+	}
+
+	/// <inheritdoc />
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		// A click on the bookmark margin moves neither the caret nor the view, whose moves the state follows otherwise.
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
+	}
+
+	/// <inheritdoc />
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
+
+		base.OnDetachedFromVisualTree(e);
 	}
 
 	/// <inheritdoc />
@@ -356,6 +394,10 @@ internal sealed partial class DocumentEditorView : UserControl
 
 		// The offset, not the caret line, brings the view back the way it was left.
 		scrollViewer.Offset = state.ScrollOffset;
+
+		Editor
+			.Bookmarks
+			.SetLines(state.Bookmarks ?? []);
 	}
 
 	/// <summary>

@@ -8,8 +8,10 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
 using System.Linq;
 
@@ -310,7 +312,114 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.ShowEndOfLine" />: the glyphs of line endings reach the editor.
+	/// <see cref="DocumentEditorView" />: listens to the messages about the bookmarks once it stands in a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnAttachedToVisualTree_Registers_For_The_Bookmark_Messages()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: stops listening to the messages about the bookmarks when it leaves the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnDetachedFromVisualTree_Unregisters_From_The_Bookmark_Messages()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive" />: the bookmarks of another editor leave the view state alone.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Ignores_The_Bookmarks_Of_Another_Editor()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100)
+		};
+
+		Show(sut);
+
+		DocumentEditorView other = new()
+		{
+			Document = CreateDocument(lineCount: 100)
+		};
+
+		Show(other);
+
+		// Act
+		other.GetControl<DocumentTextEditor>(EditorName).Bookmarks.Toggle(3);
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive" />: a change of the bookmarks reaches the view state at once,
+	/// as a click on the bookmark margin moves neither the caret nor the view.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Reports_The_Bookmarks_At_Once()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100)
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+
+		// Act
+		editor.Bookmarks.Toggle(3);
+
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
+		int[]? bookmarks = sut.ViewState?.Bookmarks;
+
+		bookmarks
+			.Should()
+			.Equal(3);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ShowEndOfLine" />:the glyphs of line endings reach the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowEndOfLine_Reaches_The_Editor([Values] bool isShown)
@@ -542,6 +651,38 @@ internal class DocumentEditorViewTests
 		GetScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: restores the bookmarks.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Bookmarks()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100)
+		};
+
+		Show(sut);
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			Bookmarks = [2, 4],
+			CaretPosition = new(line: 1, column: 1),
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetControl<DocumentTextEditor>(EditorName).Bookmarks.GetLines()
+			.Should()
+			.Equal(2, 4);
 	}
 
 	/// <summary>
