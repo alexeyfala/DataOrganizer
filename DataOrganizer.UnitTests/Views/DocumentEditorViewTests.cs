@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Views;
 using System.Linq;
@@ -237,6 +238,27 @@ internal class DocumentEditorViewTests
 		sut.GetControl<TextEditor>(EditorName).IsReadOnly
 			.Should()
 			.Be(isReadOnly);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSensitive" />: the sensitivity of the text reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSensitive_Reaches_The_Editor([Values] bool isSensitive)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSensitive = isSensitive
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<DocumentTextEditor>(EditorName).IsSensitive
+			.Should()
+			.Be(isSensitive);
 	}
 
 	/// <summary>

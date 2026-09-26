@@ -1,18 +1,23 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
+using DataOrganizer.Converters;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 
@@ -51,14 +56,34 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	private const double MarkInset = 2.0;
 
 	/// <summary>
+	/// Characters kept before the first occurrence when a tip cuts a long line at its start.
+	/// </summary>
+	private const int TipLeadLength = 20;
+
+	/// <summary>
+	/// The most characters of a line that a tip takes.
+	/// </summary>
+	private const int TipTextLength = 200;
+
+	/// <summary>
+	/// The widest line of text in a tip.
+	/// </summary>
+	private const double TipTextWidth = 600.0;
+
+	/// <summary>
 	/// Pause after the last change of the selection or the text before the marks are found again.
 	/// </summary>
 	private static readonly TimeSpan MarksDelay = TimeSpan.FromSeconds(0.2);
 
 	/// <summary>
-	/// Rows of pixels of the marks drawn last.
+	/// Editor whose document the margin marks.
 	/// </summary>
-	private readonly List<double> _markRows = [];
+	private readonly TextEditorBase _editor;
+
+	/// <summary>
+	/// Marks drawn last: the row of pixels of each and the first line it stands for.
+	/// </summary>
+	private readonly List<(double Row, int Line)> _marks = [];
 
 	/// <summary>
 	/// Row of pixels of the mark under the pointer.
@@ -72,8 +97,10 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	#endregion
 
 	#region Constructors
-	public ScrollMarkMargin(TextEditor editor)
+	public ScrollMarkMargin(TextEditorBase editor)
 	{
+		_editor = editor;
+
 		TextView = editor.TextArea.TextView;
 
 		editor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
@@ -107,7 +134,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			Brushes.Transparent,
 			new Rect(Bounds.Size));
 
-		_markRows.Clear();
+		_marks.Clear();
 
 		if (TextView is not { Document: { } document, DocumentHeight: > 0.0 } textView)
 		{
@@ -127,15 +154,15 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			double row = GetRow(textView, line, top, height);
 
 			// The marks of one row of pixels are drawn once.
-			if (_markRows.Count > 0 && _markRows[^1] == row)
+			if (_marks.Count > 0 && _marks[^1].Row == row)
 			{
 				continue;
 			}
 
-			_markRows.Add(row);
+			_marks.Add((row, line));
 		}
 
-		foreach (double row in _markRows)
+		foreach ((double row, _) in _marks)
 		{
 			if (row == _hoveredRow)
 			{
@@ -146,7 +173,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		}
 
 		// The mark under the pointer grows to the whole width and comes above its neighbours.
-		if (_hoveredRow is { } hoveredRow && _markRows.Contains(hoveredRow))
+		if (_hoveredRow is { } hoveredRow && _marks.Exists(x => x.Row == hoveredRow))
 		{
 			DrawMark(context, hoveredRow, 0.0, HoveredMarkHeight);
 		}
@@ -237,6 +264,120 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	}
 
 	/// <summary>
+	/// Builds the runs of the text of a line with the occurrences of the selected text on the highlight;
+	/// a long line is cut so that the first occurrence stays in view.
+	/// </summary>
+	private InlineCollection CreateLineInlines(TextDocument document, DocumentLine line)
+	{
+		SimpleSegment[] occurrences = [.. SelectionOccurrenceFinder.Find(
+			document,
+			TextArea.Selection,
+			line.Offset,
+			line.EndOffset)];
+
+		string text = document.GetText(line);
+
+		// The indentation tells nothing about the occurrence.
+		int start = line.Offset + (text.Length - text.TrimStart().Length);
+
+		InlineCollection inlines = [];
+
+		if (occurrences.Length > 0 && (occurrences[0].Offset - start) > TipLeadLength)
+		{
+			start = occurrences[0].Offset - TipLeadLength;
+
+			inlines.Add(new Run(Glyphs.HorizontalEllipsis));
+		}
+
+		int end = Math.Min(line.EndOffset, start + TipTextLength);
+
+		int position = start;
+
+		foreach (SimpleSegment occurrence in occurrences)
+		{
+			if (occurrence.Offset >= end)
+			{
+				break;
+			}
+
+			int from = Math.Max(position, occurrence.Offset);
+
+			int to = Math.Min(end, occurrence.EndOffset);
+
+			if (from > position)
+			{
+				inlines.Add(new Run(document.GetText(position, from - position)));
+			}
+
+			inlines.Add(new Run(document.GetText(from, to - from))
+			{
+				Background = TextHighlight.Brush
+			});
+
+			position = to;
+		}
+
+		if (end > position)
+		{
+			inlines.Add(new Run(document.GetText(position, end - position)));
+		}
+
+		return inlines;
+	}
+
+	/// <summary>
+	/// Builds the tip of the mark on a row of pixels: the number of the first line it stands for and the text of that line.
+	/// </summary>
+	private StackPanel? CreateTip(double? row)
+	{
+		if (row is null || TextView?.Document is not { } document)
+		{
+			return null;
+		}
+
+		int line = _marks.Find(x => x.Row == row).Line;
+
+		// The lines found before an edit may be gone until the next pass.
+		if (line < 1 || line > document.LineCount)
+		{
+			return null;
+		}
+
+		StackPanel tip = new()
+		{
+			Orientation = Orientation.Vertical,
+			Children =
+			{
+				// The same caption as in the status bar.
+				new TextBlock
+				{
+					Text = AppConverters.NumberCaption.Convert(
+						line,
+						typeof(string),
+						Strings.LineFormat,
+						CultureInfo.CurrentCulture) as string
+				}
+			}
+		};
+
+		// The text of an encrypted file stays in the text area; the line number tells nothing of it.
+		if (_editor.IsSensitive)
+		{
+			return tip;
+		}
+
+		tip.Children.Add(new TextBlock
+		{
+			FontFamily = TextArea.FontFamily,
+			Inlines = CreateLineInlines(document, document.GetLineByNumber(line)),
+			MaxWidth = TipTextWidth,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		});
+
+		return tip;
+	}
+
+	/// <summary>
 	/// Draws a mark on a row of pixels, set in from the sides of the margin.
 	/// </summary>
 	private void DrawMark(DrawingContext context, double row, double inset, double height)
@@ -255,7 +396,8 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	/// </summary>
 	private double? FindMarkRow(double y)
 	{
-		return _markRows
+		return _marks
+			.Select(static x => x.Row)
 			.Where(x => Math.Abs(x - y) <= ((MarkHeight / 2.0) + MarkHitTolerance))
 			.OrderBy(x => Math.Abs(x - y))
 			.Select(static x => (double?)x)
@@ -300,6 +442,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		}
 
 		_hoveredRow = row;
+
+		// The tip is built for the mark under the pointer only, and the tooltip service shows it after its delay.
+		ToolTip.SetTip(this, CreateTip(row));
 
 		InvalidateVisual();
 	}

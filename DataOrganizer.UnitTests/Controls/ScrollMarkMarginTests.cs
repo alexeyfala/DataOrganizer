@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless;
@@ -14,6 +15,7 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using System.Linq;
 
@@ -110,6 +112,10 @@ internal class ScrollMarkMarginTests
 			.Distinct()
 			.Should()
 			.ContainSingle();
+
+		ToolTip.GetTip(sut)
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -156,6 +162,153 @@ internal class ScrollMarkMarginTests
 		hovered.Width
 			.Should()
 			.BeGreaterThan(other.Width);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the tip cuts a long line at its start, so that the occurrence stays in view.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Keeps_The_Occurrence_Of_A_Long_Line_In_The_Tip()
+	{
+		// Arrange
+		string text = $"{new string('x', 300)} needle";
+
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(x => x switch
+				{
+					1 or 1000 => "needle",
+					500 => text,
+					_ => $"Line {x:D4}"
+				})))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		// Assert
+		string shown = string.Concat(GetRuns((TextBlock)GetTip(sut).Children[1]).Select(static x => x.Text));
+
+		shown
+			.Should()
+			.StartWith(Glyphs.HorizontalEllipsis)
+			.And
+			.EndWith(" needle");
+
+		shown.Length
+			.Should()
+			.BeLessThan(text.Length);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: for a sensitive text the tip shows the number of the line and none of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Shows_Only_The_Line_Number_Of_A_Sensitive_Text()
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}"))),
+			IsSensitive = true
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		// Assert
+		GetTip(sut).Children
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<TextBlock>()
+			.Which
+			.Text
+			.Should()
+			.Contain("500")
+			.And
+			.NotContain("needle");
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the tip of the mark under the pointer shows the number of its line and the line
+	/// without its indentation, with the occurrence highlighted.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("needle")]
+	[TestCase("    needle and more")]
+	public void Hover_Shows_The_Line_Of_The_Mark_In_A_Tip(string text)
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(x => x switch
+				{
+					1 or 1000 => "needle",
+					500 => text,
+					_ => $"Line {x:D4}"
+				})))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		// Assert
+		StackPanel tip = GetTip(sut);
+
+		// The caption comes from the resources, so only its number is checked.
+		((TextBlock)tip.Children[0]).Text
+			.Should()
+			.Contain("500");
+
+		Run[] runs = GetRuns((TextBlock)tip.Children[1]);
+
+		string.Concat(runs.Select(static x => x.Text))
+			.Should()
+			.Be(text.TrimStart());
+
+		runs
+			.Where(static x => x.Background == TextHighlight.Brush)
+			.Select(static x => x.Text)
+			.Should()
+			.Equal("needle");
 	}
 
 	/// <summary>
@@ -350,6 +503,11 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// Returns the runs of a text block.
+	/// </summary>
+	private static Run[] GetRuns(TextBlock textBlock) => [.. textBlock.Inlines!.OfType<Run>()];
+
+	/// <summary>
 	/// Returns the scroll viewer of the editor.
 	/// </summary>
 	private static ScrollViewer GetScrollViewer(TestTextEditor editor)
@@ -370,6 +528,11 @@ internal class ScrollMarkMarginTests
 			.Where(x => x.Brush is ISolidColorBrush brush && brush.Color == color)
 			.Select(static x => x.GetBounds())];
 	}
+
+	/// <summary>
+	/// Returns the tip of the margin.
+	/// </summary>
+	private static StackPanel GetTip(ScrollMarkMargin margin) => (StackPanel)ToolTip.GetTip(margin)!;
 
 	/// <summary>
 	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.

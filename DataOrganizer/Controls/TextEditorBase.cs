@@ -18,8 +18,25 @@ namespace DataOrganizer.Controls;
 internal abstract class TextEditorBase : TextEditor
 {
 	#region Properties
+	/// <summary>
+	/// <c>True</c> when the text must not appear outside the text area, as the text of an encrypted file.
+	/// </summary>
+	public bool IsSensitive
+	{
+		get => GetValue(IsSensitiveProperty);
+		set => SetValue(IsSensitiveProperty, value);
+	}
+
 	/// <inheritdoc />
 	protected override Type StyleKeyOverride { get; } = typeof(TextEditor);
+	#endregion
+
+	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="IsSensitive" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
+		.Register<TextEditorBase, bool>(name: nameof(IsSensitive));
 	#endregion
 
 	#region Commands
@@ -115,6 +132,9 @@ internal abstract class TextEditorBase : TextEditor
 			.Add(new SelectionOccurrenceRenderer(TextArea));
 
 		_scrollMarkMargin = new ScrollMarkMargin(this);
+
+		// The tips of the scroll marks take their styles through the logical tree.
+		LogicalChildren.Add(_scrollMarkMargin);
 
 		CopyCommand = new(CopySelection, CanCopySelection);
 

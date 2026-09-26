@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
@@ -161,6 +162,24 @@ internal class TextEditorBaseTests
 		sut.TextArea.TextView.Margin.Left
 			.Should()
 			.BeApproximately(expected, 1e-9);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: belongs to the logical tree of the editor, which gives the tips of the marks
+	/// their styles.
+	/// </summary>
+	[AvaloniaTest]
+	public void ScrollMarkMargin_Belongs_To_The_Logical_Tree_Of_The_Editor()
+	{
+		// Arrange, Act
+		TestTextEditor sut = new();
+
+		// Assert
+		sut
+			.GetLogicalChildren()
+			.OfType<ScrollMarkMargin>()
+			.Should()
+			.ContainSingle();
 	}
 
 	/// <summary>

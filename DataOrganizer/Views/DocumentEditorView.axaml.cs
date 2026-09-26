@@ -57,6 +57,15 @@ internal sealed partial class DocumentEditorView : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when the text must not appear outside the text area, as the text of an encrypted file.
+	/// </summary>
+	public bool IsSensitive
+	{
+		get => GetValue(IsSensitiveProperty);
+		set => SetValue(IsSensitiveProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when line endings are shown.
 	/// </summary>
 	public bool ShowEndOfLine
@@ -138,6 +147,12 @@ internal sealed partial class DocumentEditorView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
 		.Register<DocumentEditorView, bool>(name: nameof(IsReadOnly));
+
+	/// <summary>
+	/// Identifies the <see cref="IsSensitive" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(IsSensitive));
 
 	/// <summary>
 	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.

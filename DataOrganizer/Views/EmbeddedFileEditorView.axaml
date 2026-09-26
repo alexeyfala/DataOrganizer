@@ -16,6 +16,7 @@
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
 		EncodingName="{Binding EncodingName, Mode=OneWay}"
 		IsReadOnly="{Binding !IsEditingEnabled, Mode=OneWay}"
+		IsSensitive="{Binding IsEncrypted, Mode=OneWay}"
 		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
 		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"
 		ShowTabs="{Binding ShowTabs, Mode=TwoWay}"

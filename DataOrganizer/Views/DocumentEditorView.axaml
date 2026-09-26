@@ -113,6 +113,7 @@
 			FontSize="{Binding DocumentFontSize, Mode=TwoWay}"
 			Foreground="{StaticResource MaterialBodyBrush}"
 			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
+			IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 			ShowEndOfLine="{Binding ShowEndOfLine, Mode=OneWay}"
 			ShowSpaces="{Binding ShowSpaces, Mode=OneWay}"
 			ShowTabs="{Binding ShowTabs, Mode=OneWay}"
