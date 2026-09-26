@@ -92,6 +92,12 @@
 		<Setter Property="VerticalAlignment" Value="Center" />
 	</Style>
 
+	<Style Selector="GridSplitter.HorizontalGridSplitterStyle">
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="3.0" />
+		<Setter Property="ResizeDirection" Value="Rows" />
+	</Style>
+
 	<Style Selector="GridSplitter.VerticalGridSplitterStyle">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 		<Setter Property="BorderThickness" Value="3.0" />

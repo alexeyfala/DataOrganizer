@@ -22,9 +22,14 @@ internal class DocumentEditorViewTests
 {
 	#region Data
 	/// <summary>
-	/// Name of the text editor in the markup.
+	/// Name of the text editor of the upper half in the markup.
 	/// </summary>
 	private const string EditorName = "Editor";
+
+	/// <summary>
+	/// Name of the grid with the halves in the markup.
+	/// </summary>
+	private const string EditorsHostName = "EditorsHost";
 
 	/// <summary>
 	/// Name of the caption of the encoding in the markup.
@@ -35,6 +40,11 @@ internal class DocumentEditorViewTests
 	/// Name of the scroll viewer in the template of the text editor.
 	/// </summary>
 	private const string ScrollViewerName = "PART_ScrollViewer";
+
+	/// <summary>
+	/// Name of the text editor of the lower half in the markup.
+	/// </summary>
+	private const string SplitEditorName = "SplitEditor";
 	#endregion
 
 	#region Methods
@@ -147,6 +157,30 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.Document" />: the lower half shows the same document.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Reaches_The_Lower_Half()
+	{
+		// Arrange
+		TextDocument document = CreateDocument(lineCount: 10);
+
+		DocumentEditorView sut = new()
+		{
+			Document = document,
+			IsSplit = true
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).Document
+			.Should()
+			.BeSameAs(document);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.DocumentFontSize" />: a notch of the wheel with Ctrl changes the size by one step.
 	/// </summary>
 	[AvaloniaTest]
@@ -201,6 +235,39 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.DocumentFontSize" />: a notch of the wheel with Ctrl in the lower half zooms both halves.
+	/// </summary>
+	[AvaloniaTest]
+	public void DocumentFontSize_Follows_A_Ctrl_Wheel_Notch_In_The_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100),
+			DocumentFontSize = 14.0,
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
+
+		// Act
+		window.MouseWheel(Center(window, splitEditor), new(0.0, 1.0), RawInputModifiers.Control);
+
+		// Assert
+		sut.DocumentFontSize
+			.Should()
+			.Be(14.5);
+
+		editor.FontSize
+			.Should()
+			.Be(14.5);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.EncodingName" />: the name of the encoding reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
@@ -243,6 +310,28 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.IsReadOnly" />: the read-only mode reaches the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsReadOnly_Reaches_The_Lower_Half([Values] bool isReadOnly)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsReadOnly = isReadOnly,
+			IsSplit = true
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).IsReadOnly
+			.Should()
+			.Be(isReadOnly);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.IsSensitive" />: the sensitivity of the text reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -261,6 +350,226 @@ internal class DocumentEditorViewTests
 		sut.GetControl<DocumentTextEditor>(EditorName).IsSensitive
 			.Should()
 			.Be(isSensitive);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSensitive" />: the sensitivity of the text reaches the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSensitive_Reaches_The_Lower_Half([Values] bool isSensitive)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSensitive = isSensitive,
+			IsSplit = true
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<DocumentTextEditor>(SplitEditorName).IsSensitive
+			.Should()
+			.Be(isSensitive);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: the halves share the height equally.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Divides_The_Height_Between_The_Halves()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
+
+		// Act
+		sut.IsSplit = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		splitEditor.Bounds.Height
+			.Should()
+			.BeApproximately(editor.Bounds.Height, 1.0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half takes the whole height back.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Gives_The_Whole_Height_Back_To_The_Upper_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		double height = editor.Bounds.Height;
+
+		sut.IsSplit = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = false;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.Bounds.Height
+			.Should()
+			.Be(height);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: without a split the upper half takes the whole height of the halves.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Leaves_The_Whole_Height_To_The_Upper_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(EditorName).Bounds.Height
+			.Should()
+			.Be(sut.GetControl<Grid>(EditorsHostName).Bounds.Height);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: the lower half opens at the caret, the selection and the scroll position
+	/// of the upper one.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Opens_The_Lower_Half_Where_The_Upper_One_Stands()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
+
+		editor.Select(20, 4);
+
+		// The caret at the start of the selection, where the selection alone would not put it.
+		editor
+			.TextArea
+			.Caret
+			.Position = new(line: 3, column: 1);
+
+		Vector offset = new(0.0, 500.0);
+
+		GetScrollViewer(sut).Offset = offset;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		splitEditor.SelectionStart
+			.Should()
+			.Be(20);
+
+		splitEditor.SelectionLength
+			.Should()
+			.Be(4);
+
+		splitEditor.TextArea.Caret.Position
+			.Should()
+			.Be(editor.TextArea.Caret.Position);
+
+		GetSplitScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: the lower half and the splitter are shown only in a split view.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Shows_The_Lower_Half_Only_When_Set([Values] bool isSplit)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = isSplit
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).IsVisible
+			.Should()
+			.Be(isSplit);
+
+		sut.GetVisualDescendants().OfType<GridSplitter>().Single().IsVisible
+			.Should()
+			.Be(isSplit);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: a new split starts in the middle, whatever shares a drag of the splitter left.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Starts_In_The_Middle_After_A_Drag_Of_The_Splitter()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
+
+		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+
+		Point end = start.WithY(start.Y + 100.0);
+
+		window.MouseDown(start, MouseButton.Left);
+
+		window.MouseMove(end);
+
+		window.MouseUp(end, MouseButton.Left);
+
+		sut.IsSplit = false;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		splitEditor.Bounds.Height
+			.Should()
+			.BeApproximately(editor.Bounds.Height, 1.0);
 	}
 
 	/// <summary>
@@ -440,6 +749,28 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ShowEndOfLine" />: the glyphs of line endings reach the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowEndOfLine_Reaches_The_Lower_Half([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true,
+			ShowEndOfLine = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowEndOfLine
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ShowSpaces" />: the glyphs of spaces reach the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -461,6 +792,28 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ShowSpaces" />: the glyphs of spaces reach the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowSpaces_Reaches_The_Lower_Half([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true,
+			ShowSpaces = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowSpaces
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ShowTabs" />: the glyphs of tabs reach the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -477,6 +830,28 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		sut.GetControl<TextEditor>(EditorName).Options.ShowTabs
+			.Should()
+			.Be(isShown);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ShowTabs" />: the glyphs of tabs reach the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowTabs_Reaches_The_Lower_Half([Values] bool isShown)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true,
+			ShowTabs = isShown
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowTabs
 			.Should()
 			.Be(isShown);
 	}
@@ -788,6 +1163,28 @@ internal class DocumentEditorViewTests
 			.Should()
 			.Be(offset);
 	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.WordWrap" />: the wrapping of long lines reaches the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void WordWrap_Reaches_The_Lower_Half([Values] bool isWrapped)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true,
+			WordWrap = isWrapped
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).WordWrap
+			.Should()
+			.Be(isWrapped);
+	}
 	#endregion
 
 	#region Helpers
@@ -820,6 +1217,18 @@ internal class DocumentEditorViewTests
 	{
 		return editor
 			.GetControl<TextEditor>(EditorName)
+			.GetVisualDescendants()
+			.OfType<ScrollViewer>()
+			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// Returns the scroll viewer of the text editor of the lower half.
+	/// </summary>
+	private static ScrollViewer GetSplitScrollViewer(DocumentEditorView editor)
+	{
+		return editor
+			.GetControl<TextEditor>(SplitEditorName)
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);

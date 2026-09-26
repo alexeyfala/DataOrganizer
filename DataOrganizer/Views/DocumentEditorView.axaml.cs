@@ -68,6 +68,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	}
 
 	/// <summary>
+	/// <c>True</c> when the document is shown in two halves, one above the other.
+	/// </summary>
+	public bool IsSplit
+	{
+		get => GetValue(IsSplitProperty);
+		set => SetValue(IsSplitProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when line endings are shown.
 	/// </summary>
 	public bool ShowEndOfLine
@@ -157,6 +166,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		.Register<DocumentEditorView, bool>(name: nameof(IsSensitive));
 
 	/// <summary>
+	/// Identifies the <see cref="IsSplit" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSplitProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(IsSplit));
+
+	/// <summary>
 	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
@@ -215,9 +230,14 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	private DocumentViewState? _pendingViewState;
 
 	/// <summary>
-	/// Scroll viewer of <see cref="TextEditor" />.
+	/// Scroll viewer of <see cref="Editor" />.
 	/// </summary>
 	private ScrollViewer? _scrollViewer;
+
+	/// <summary>
+	/// Scroll viewer of <see cref="SplitEditor" />.
+	/// </summary>
+	private ScrollViewer? _splitScrollViewer;
 	#endregion
 
 	#region Constructors
@@ -225,8 +245,10 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	{
 		InitializeComponent();
 
-		// The editor never outlives this control, so none of the handlers below is ever removed.
+		// The editors never outlive this control, so none of the handlers below is ever removed.
 		Editor.TemplateApplied += Editor_TemplateApplied;
+
+		SplitEditor.TemplateApplied += SplitEditor_TemplateApplied;
 
 		TextArea area = Editor.TextArea;
 
@@ -242,16 +264,52 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		this
 			.GetObservable(ViewStateProperty)
 			.Subscribe(ViewStateProperty_Changed);
+
+		this
+			.GetObservable(IsSplitProperty)
+			.Subscribe(IsSplitProperty_Changed);
 	}
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="TextEditor" />.
+	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="Editor" />.
 	/// </summary>
 	private void Editor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
 	{
 		_scrollViewer = e.NameScope.Find<ScrollViewer>(ScrollViewerPartName);
+	}
+
+	/// <summary>
+	/// <see cref="IsSplitProperty" /> changed handler.
+	/// </summary>
+	private void IsSplitProperty_Changed(bool value)
+	{
+		RowDefinitions rows = EditorsHost.RowDefinitions;
+
+		// A drag of the splitter leaves its own shares in both rows, so every split starts in the middle.
+		rows[Grid.GetRow(Editor)].Height = GridLength.Star;
+
+		// The row of the hidden lower half shrinks to nothing and leaves the whole height to the upper one.
+		rows[Grid.GetRow(SplitEditor)].Height = value ? GridLength.Star : GridLength.Auto;
+
+		if (!value)
+		{
+			return;
+		}
+
+		// The lower half gets its layout only once it is shown.
+		Dispatcher.UIThread.Post(CopyViewToSplitEditor, DispatcherPriority.Loaded);
+	}
+
+	/// <summary>
+	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="SplitEditor" />.
+	/// </summary>
+	private void SplitEditor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
+	{
+		_splitScrollViewer = e
+			.NameScope
+			.Find<ScrollViewer>(ScrollViewerPartName);
 	}
 
 	/// <summary>
@@ -367,6 +425,28 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
+	/// </summary>
+	private void CopyViewToSplitEditor()
+	{
+		if (!IsSplit
+			|| _scrollViewer is not { } scrollViewer
+			|| _splitScrollViewer is not { } splitScrollViewer)
+		{
+			return;
+		}
+
+		SplitEditor.Select(Editor.SelectionStart, Editor.SelectionLength);
+
+		SplitEditor
+			.TextArea
+			.Caret
+			.Position = Editor.TextArea.Caret.Position;
+
+		splitScrollViewer.Offset = scrollViewer.Offset;
+	}
+
 	/// <summary>
 	/// Applies the pending view state to the laid out document.
 	/// </summary>
