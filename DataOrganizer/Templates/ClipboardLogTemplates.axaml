@@ -16,14 +16,6 @@
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
-	<SolidColorBrush
-		x:Key="SearchHighlightBrush"
-		Color="Yellow" />
-
-	<SolidColorBrush
-		x:Key="SearchHighlightForegroundBrush"
-		Color="Black" />
-
 	<!-- ClipboardTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
@@ -39,8 +31,6 @@
 				TextWrapping="Wrap">
 				<Interaction.Behaviors>
 					<text:SearchHighlightBehavior
-						HighlightBrush="{StaticResource SearchHighlightBrush}"
-						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
 						Query="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>

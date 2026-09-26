@@ -1,5 +1,4 @@
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
@@ -15,12 +14,6 @@ namespace DataOrganizer.Helpers.Text;
 internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 {
 	#region Data
-	/// <summary>
-	/// Brush of the occurrences.
-	/// </summary>
-	private static readonly IImmutableSolidColorBrush OccurrenceBrush =
-		new ImmutableSolidColorBrush(Color.FromArgb(0x66, 0xFF, 0xEB, 0x3B));
-
 	/// <summary>
 	/// Text area with the selection to look for.
 	/// </summary>
@@ -61,7 +54,10 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 				continue;
 			}
 
-			drawingContext.DrawGeometry(OccurrenceBrush, null, geometry);
+			drawingContext.DrawGeometry(
+				TextHighlight.Brush,
+				null,
+				geometry);
 		}
 	}
 

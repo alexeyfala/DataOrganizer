@@ -18,13 +18,12 @@ namespace DataOrganizer.UnitTests.Helpers.Text;
 [TestFixture(Description = $@"Tests of ""{nameof(SelectionOccurrenceRenderer)}"" type")]
 internal class SelectionOccurrenceRendererTests
 {
-	internal static readonly int[] sourceArray = new[] { 4, 15 };
 	#region Methods
 	/// <summary>
-	/// <see cref="SelectionOccurrenceRenderer.Draw" />: paints a shape over each occurrence.
+	/// <see cref="SelectionOccurrenceRenderer.Draw" />: paints each occurrence with the text highlight.
 	/// </summary>
 	[AvaloniaTest]
-	public void Draw_Paints_A_Shape_Over_Each_Occurrence()
+	public void Draw_Paints_Each_Occurrence_With_The_Text_Highlight()
 	{
 		// Arrange
 		TextEditor editor = new()
@@ -51,7 +50,10 @@ internal class SelectionOccurrenceRendererTests
 		}
 
 		// Assert
-		Point[] centers = [.. sourceArray.Select(x => BackgroundGeometryBuilder
+		// "Log" and "LOG", but not "logger".
+		int[] offsets = [4, 15];
+
+		Point[] centers = [.. offsets.Select(x => BackgroundGeometryBuilder
 			.GetRectsForSegment(textView, new SimpleSegment(x, 3))
 			.Single()
 			.Center)];
@@ -62,6 +64,16 @@ internal class SelectionOccurrenceRendererTests
 			.SatisfyRespectively(
 				x => x.Contains(centers[0]).Should().BeTrue(),
 				x => x.Contains(centers[1]).Should().BeTrue());
+
+		drawing.Children
+			.Should()
+			.AllSatisfy(static x => x
+				.Should()
+				.BeOfType<GeometryDrawing>()
+				.Which
+				.Brush
+				.Should()
+				.BeSameAs(TextHighlight.Brush));
 	}
 
 	/// <summary>
