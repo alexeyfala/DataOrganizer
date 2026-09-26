@@ -164,6 +164,44 @@ internal class TextEditorBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: takes a column of its own at the right edge, next to the scroll viewer.
+	/// </summary>
+	[AvaloniaTest]
+	public void ScrollMarkMargin_Takes_A_Column_At_The_Right_Edge()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 100)
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		ScrollMarkMargin margin = sut
+			.GetVisualChildren()
+			.OfType<ScrollMarkMargin>()
+			.Single();
+
+		margin.Bounds.Width
+			.Should()
+			.BePositive();
+
+		margin.Bounds.Right
+			.Should()
+			.Be(sut.Bounds.Width);
+
+		ScrollViewer scrollViewer = GetScrollViewer(sut);
+
+		double? right = scrollViewer.TranslatePoint(new(scrollViewer.Bounds.Width, 0.0), sut)?.X;
+
+		right
+			.Should()
+			.Be(margin.Bounds.Left);
+	}
+
+	/// <summary>
 	/// <see cref="TextEditorBase.ScrollToEndCommand" />: scrolls to the end and moves the caret to the last line.
 	/// </summary>
 	[AvaloniaTest]

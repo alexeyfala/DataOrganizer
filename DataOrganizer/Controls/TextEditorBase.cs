@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
@@ -70,9 +71,19 @@ internal abstract class TextEditorBase : TextEditor
 	private const double MinFontSize = 6.0;
 
 	/// <summary>
+	/// Width of the column with the scroll marks at the right edge.
+	/// </summary>
+	private const double ScrollMarksWidth = 10.0;
+
+	/// <summary>
 	/// Width of the gap before the text as a share of the font size.
 	/// </summary>
 	private const double TextGapRatio = 0.4;
+
+	/// <summary>
+	/// Column with the marks of the selected text and the caret along the scroll range.
+	/// </summary>
+	private readonly ScrollMarkMargin _scrollMarkMargin;
 	#endregion
 
 	#region Constructors
@@ -102,6 +113,8 @@ internal abstract class TextEditorBase : TextEditor
 			.TextView
 			.BackgroundRenderers
 			.Add(new SelectionOccurrenceRenderer(TextArea));
+
+		_scrollMarkMargin = new ScrollMarkMargin(this);
 
 		CopyCommand = new(CopySelection, CanCopySelection);
 
@@ -163,6 +176,54 @@ internal abstract class TextEditorBase : TextEditor
 		}
 
 		Zoom(direction);
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	protected override Size ArrangeOverride(Size finalSize)
+	{
+		double textWidth = Math.Max(0.0, finalSize.Width - ScrollMarksWidth);
+
+		foreach (Visual child in VisualChildren)
+		{
+			if (child is not Layoutable layoutable)
+			{
+				continue;
+			}
+
+			layoutable.Arrange(layoutable == _scrollMarkMargin
+				? new Rect(
+					x: textWidth,
+					y: 0.0,
+					width: ScrollMarksWidth,
+					height: finalSize.Height)
+				: new Rect(
+					x: 0.0,
+					y: 0.0,
+					width: textWidth,
+					height: finalSize.Height));
+		}
+
+		return finalSize;
+	}
+
+	/// <inheritdoc />
+	protected override Size MeasureOverride(Size availableSize)
+	{
+		// The scroll marks take a column of their own right of the scroll bar.
+		Size size = base.MeasureOverride(availableSize.WithWidth(Math.Max(0.0, availableSize.Width - ScrollMarksWidth)));
+
+		return size.WithWidth(size.Width + ScrollMarksWidth);
+	}
+
+	/// <inheritdoc />
+	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+	{
+		base.OnApplyTemplate(e);
+
+		// A template replaces all the visual children, the scroll marks included.
+		VisualChildren.Add(_scrollMarkMargin);
 	}
 	#endregion
 

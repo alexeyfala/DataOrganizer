@@ -66,46 +66,23 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	/// </summary>
 	internal IEnumerable<SimpleSegment> FindOccurrences(TextView textView)
 	{
-		Selection selection = _textArea.Selection;
-
-		// Only a piece of one line is looked for.
 		if (textView.Document is not { } document
 			|| !textView.VisualLinesValid
-			|| textView.VisualLines.Count == 0
-			|| selection is RectangleSelection
-			|| selection.IsMultiline
-			|| selection.SurroundingSegment is not { Length: > 0 } selected)
+			|| textView.VisualLines.Count == 0)
 		{
-			yield break;
+			return [];
 		}
-
-		string pattern = document.GetText(selected);
-
-		if (string.IsNullOrWhiteSpace(pattern))
-		{
-			yield break;
-		}
-
-		// A selected word matches whole words only, any other piece matches inside words too.
-		bool isWord = pattern.All(IsWordPart) && HasWordBoundaries(document, selected.Offset, selected.Length);
 
 		int start = textView.VisualLines[0].FirstDocumentLine.Offset;
 
-		string text = document.GetText(start, textView.VisualLines[^1].LastDocumentLine.EndOffset - start);
+		int end = textView.VisualLines[^1].LastDocumentLine.EndOffset;
 
-		int index = 0;
+		int? selectedOffset = _textArea.Selection.SurroundingSegment?.Offset;
 
-		while ((index = text.IndexOf(pattern, index, StringComparison.OrdinalIgnoreCase)) >= 0)
-		{
-			int offset = start + index;
-
-			if (offset != selected.Offset && (!isWord || HasWordBoundaries(document, offset, pattern.Length)))
-			{
-				yield return new SimpleSegment(offset, pattern.Length);
-			}
-
-			index += pattern.Length;
-		}
+		// The selected piece keeps the pure color of the selection.
+		return SelectionOccurrenceFinder
+			.Find(document, _textArea.Selection, start, end)
+			.Where(x => x.Offset != selectedOffset);
 	}
 	#endregion
 
@@ -116,27 +93,6 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	private void TextArea_SelectionChanged(object? sender, EventArgs e)
 	{
 		_textArea.TextView.InvalidateLayer(Layer);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Returns <c>true</c> when no word character adjoins the segment.
-	/// </summary>
-	private static bool HasWordBoundaries(TextDocument document, int offset, int length)
-	{
-		int end = offset + length;
-
-		return (offset == 0 || !IsWordPart(document.GetCharAt(offset - 1)))
-			&& (end == document.TextLength || !IsWordPart(document.GetCharAt(end)));
-	}
-
-	/// <summary>
-	/// Returns <c>true</c> for a character of a word.
-	/// </summary>
-	private static bool IsWordPart(char c)
-	{
-		return TextUtilities.GetCharacterClass(c) is CharacterClass.IdentifierPart or CharacterClass.CombiningMark;
 	}
 	#endregion
 }

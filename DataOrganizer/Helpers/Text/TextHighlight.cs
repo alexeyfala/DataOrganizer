@@ -17,5 +17,13 @@ internal static class TextHighlight
 		r: 0xFF,
 		g: 0xEB,
 		b: 0x3B));
+
+	/// <summary>
+	/// Brush of the marks that show the highlighted pieces of text along the scroll range.
+	/// </summary>
+	public static IImmutableSolidColorBrush MarkBrush { get; } = new ImmutableSolidColorBrush(Color.FromRgb(
+		r: 0xFB,
+		g: 0xC0,
+		b: 0x2D));
 	#endregion
 }
