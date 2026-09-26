@@ -165,6 +165,54 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the tip hangs from the mark under the pointer, down to the left of it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Hangs_The_Tip_Down_To_The_Left_Of_The_Mark()
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		// The tip opens at once instead of after the usual delay.
+		ToolTip.SetShowDelay(sut, 0);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ToolTip tip = GetTip(sut).FindAncestorOfType<ToolTip>()!;
+
+		PixelPoint tipCorner = tip.PointToScreen(new(tip.Bounds.Width, 0.0));
+
+		PixelPoint markCorner = sut.PointToScreen(new(0.0, row));
+
+		(tipCorner.X - markCorner.X)
+			.Should()
+			.BeInRange(-2, 2);
+
+		(tipCorner.Y - markCorner.Y)
+			.Should()
+			.BeInRange(0, 6);
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin" />: the tip cuts a long line at its start, so that the occurrence stays in view.
 	/// </summary>
 	[AvaloniaTest]
@@ -312,6 +360,54 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: a long line of the tip wraps within the width of the tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Wraps_A_Long_Line_In_The_Tip()
+	{
+		// Arrange
+		string text = $"needle {string.Join(' ', Enumerable.Repeat("word", 30))}";
+
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(x => x switch
+				{
+					1 or 1000 => "needle",
+					500 => text,
+					_ => $"Line {x:D4}"
+				})))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		// The tip opens at once instead of after the usual delay, so that it is laid out.
+		ToolTip.SetShowDelay(sut, 0);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		StackPanel tip = GetTip(sut);
+
+		// The caption takes one row.
+		tip.Children[1].Bounds.Height
+			.Should()
+			.BeGreaterThan(tip.Children[0].Bounds.Height * 1.5);
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the caret line stands at the place of the caret in the whole document.
 	/// </summary>
 	[AvaloniaTest]
@@ -451,6 +547,33 @@ internal class ScrollMarkMarginTests
 			.NotBeEmpty()
 			.And
 			.OnlyContain(x => x >= thumbTop && x <= thumbTop + thumb.Bounds.Height);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the tips take the tooltip theme of the application rather than the Fluent one
+	/// of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void Resources_Hold_The_Tooltip_Theme_Of_The_Application()
+	{
+		// Arrange
+		TestTextEditor editor = new();
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		// Act
+		bool isFound = sut.TryFindResource(typeof(ToolTip), out object? theme);
+
+		// Assert
+		isFound
+			.Should()
+			.BeTrue();
+
+		theme
+			.Should()
+			.BeSameAs(Application.Current!.FindResource(typeof(ToolTip)));
 	}
 	#endregion
 

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Primitives.PopupPositioning;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -66,9 +67,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	private const int TipTextLength = 200;
 
 	/// <summary>
-	/// The widest line of text in a tip.
+	/// The widest the text of a tip gets; a longer line wraps.
 	/// </summary>
-	private const double TipTextWidth = 600.0;
+	private const double TipTextWidth = 320.0;
 
 	/// <summary>
 	/// Pause after the last change of the selection or the text before the marks are found again.
@@ -103,7 +104,23 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 
 		TextView = editor.TextArea.TextView;
 
-		editor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
+		// The tips take the look of the application rather than the Fluent one the editor brings for itself.
+		if (Application
+			.Current?
+			.TryFindResource(typeof(ToolTip), out object? toolTipTheme) == true)
+		{
+			Resources[typeof(ToolTip)] = toolTipTheme;
+		}
+
+		// A tip hangs down to the left of its mark, inside the window.
+		ToolTip.SetPlacement(this, PlacementMode.Custom);
+
+		ToolTip.SetCustomPopupPlacementCallback(this, PlaceTip);
+
+		editor
+			.TextArea
+			.Caret
+			.PositionChanged += Caret_PositionChanged;
 
 		// A pass over the whole document follows a run of changes rather than every step of a mouse selection.
 		Observable
@@ -130,9 +147,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	public override void Render(DrawingContext context)
 	{
 		// A background of its own lets the margin take clicks.
-		context.FillRectangle(
-			Brushes.Transparent,
-			new Rect(Bounds.Size));
+		context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
 
 		_marks.Clear();
 
@@ -371,7 +386,8 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			FontFamily = TextArea.FontFamily,
 			Inlines = CreateLineInlines(document, document.GetLineByNumber(line)),
 			MaxWidth = TipTextWidth,
-			TextTrimming = TextTrimming.CharacterEllipsis
+			TextTrimming = TextTrimming.CharacterEllipsis,
+			TextWrapping = TextWrapping.Wrap
 		});
 
 		return tip;
@@ -432,6 +448,33 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	}
 
 	/// <summary>
+	/// Places a tip below the mark under the pointer, reaching out to the left of it.
+	/// </summary>
+	private void PlaceTip(CustomPopupPlacement placement)
+	{
+		if (_hoveredRow is not { } row)
+		{
+			return;
+		}
+
+		// The anchor comes as the bounds of the margin in the coordinates of the window, and goes back in them too.
+		Rect bounds = placement.AnchorRectangle;
+
+		placement.AnchorRectangle = new Rect(
+			x: bounds.X,
+			y: bounds.Y + row - (HoveredMarkHeight / 2.0),
+			width: bounds.Width,
+			height: HoveredMarkHeight);
+
+		placement.Anchor = PopupAnchor.BottomLeft;
+
+		placement.Gravity = PopupGravity.BottomLeft;
+
+		// The offset meant to keep a tip clear of the pointer would leave a gap under the mark.
+		placement.Offset = default;
+	}
+
+	/// <summary>
 	/// Repaints the margin when another mark comes under the pointer.
 	/// </summary>
 	private void SetHoveredRow(double? row)
@@ -441,10 +484,20 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			return;
 		}
 
+		bool isTipOpen = ToolTip.GetIsOpen(this);
+
 		_hoveredRow = row;
 
 		// The tip is built for the mark under the pointer only, and the tooltip service shows it after its delay.
 		ToolTip.SetTip(this, CreateTip(row));
+
+		// An open tip stays where it opened, so it opens again at the new mark.
+		if (isTipOpen && row is not null)
+		{
+			ToolTip.SetIsOpen(this, false);
+
+			ToolTip.SetIsOpen(this, true);
+		}
 
 		InvalidateVisual();
 	}
