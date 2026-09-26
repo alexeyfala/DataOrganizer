@@ -96,6 +96,43 @@ internal class BookmarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="BookmarkMargin" />: the pointer stays an arrow over the margin after a click in the text,
+	/// which gives the text area the I-beam.
+	/// </summary>
+	[AvaloniaTest]
+	public void Cursor_Stays_An_Arrow_After_A_Click_In_The_Text()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Window window = Show(editor);
+
+		BookmarkMargin sut = GetMargin(editor);
+
+		TextView textView = editor.TextArea.TextView;
+
+		// In the text of the second line.
+		Point point = textView.TranslatePoint(
+			new(
+				textView.WideSpaceWidth * 3.0,
+				textView.DefaultLineHeight * 1.5),
+			window) ?? default;
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		// Assert
+		sut.Cursor?.ToString()
+			.Should()
+			.Be(nameof(StandardCursorType.Arrow));
+	}
+
+	/// <summary>
 	/// <see cref="BookmarkMargin" />: the margin widens with the zoom, like the line numbers.
 	/// </summary>
 	[AvaloniaTest]

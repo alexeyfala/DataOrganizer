@@ -6,9 +6,11 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using AvaloniaEdit;
+using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Helpers.Text;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.Controls;
 
@@ -111,6 +113,13 @@ internal abstract class TextEditorBase : TextEditor
 		HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
 
 		ShowLineNumbers = true;
+
+		// A cursor of their own, as the line numbers would inherit the I-beam the text area takes on a click.
+		TextArea
+			.LeftMargins
+			.OfType<LineNumberMargin>()
+			.Single()
+			.Cursor = new Cursor(StandardCursorType.Arrow);
 
 		Options.HighlightCurrentLine = true;
 

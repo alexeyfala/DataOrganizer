@@ -165,6 +165,47 @@ internal class TextEditorBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="LineNumberMargin" />: the pointer stays an arrow over the line numbers after a click in the text,
+	/// which gives the text area the I-beam.
+	/// </summary>
+	[AvaloniaTest]
+	public void LineNumberMargin_Keeps_The_Arrow_Cursor_After_A_Click_In_The_Text()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		Window window = Show(sut);
+
+		TextView textView = sut.TextArea.TextView;
+
+		// In the text of the second line.
+		Point point = textView.TranslatePoint(
+			new(
+				textView.WideSpaceWidth * 3.0,
+				textView.DefaultLineHeight * 1.5),
+			window) ?? default;
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		// Assert
+		LineNumberMargin lineNumbers = sut
+			.TextArea
+			.LeftMargins
+			.OfType<LineNumberMargin>()
+			.Single();
+
+		lineNumbers.Cursor?.ToString()
+			.Should()
+			.Be(nameof(StandardCursorType.Arrow));
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin" />: belongs to the logical tree of the editor, which gives the tips of the marks
 	/// their styles.
 	/// </summary>

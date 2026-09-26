@@ -55,6 +55,9 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	{
 		_bookmarks = bookmarks;
 
+		// A cursor of its own, as the margin would inherit the I-beam the text area takes on a click.
+		Cursor = new Cursor(StandardCursorType.Arrow);
+
 		// The margin widens with the zoom, like the line numbers.
 		this
 			.GetObservable(TextElement.FontSizeProperty)
