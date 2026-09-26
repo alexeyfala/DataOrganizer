@@ -12,6 +12,7 @@ using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;
 
@@ -19,6 +20,43 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class DocumentTextEditorTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="BookmarkMargin" />: stands left of the line numbers, as in Visual Studio.
+	/// </summary>
+	[AvaloniaTest]
+	public void BookmarkMargin_Stands_Left_Of_The_Line_Numbers()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		BookmarkMargin margin = sut
+			.TextArea
+			.LeftMargins
+			.OfType<BookmarkMargin>()
+			.Single();
+
+		LineNumberMargin lineNumbers = sut
+			.TextArea
+			.LeftMargins
+			.OfType<LineNumberMargin>()
+			.Single();
+
+		margin.Bounds.Width
+			.Should()
+			.BePositive();
+
+		margin.Bounds.Right
+			.Should()
+			.BeLessThanOrEqualTo(lineNumbers.Bounds.Left);
+	}
+
 	/// <summary>
 	/// <see cref="DocumentTextEditor.ConvertLineEndingsCommand" />: every line break takes the style, including those
 	/// of empty lines, where a carriage return meets the line feed of the next line.
@@ -229,6 +267,34 @@ internal class DocumentTextEditorTests
 		canExecute
 			.Should()
 			.Be(isSelected);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the bookmarks pass to a new document and start there without the bookmarks
+	/// of the old one.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Resets_The_Bookmarks()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		sut.Bookmarks.Toggle(2);
+
+		// Act
+		sut.Document = new("Four\nFive\nSix");
+
+		// Assert
+		sut.Bookmarks.Document
+			.Should()
+			.BeSameAs(sut.Document);
+
+		sut.Bookmarks.GetLines()
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>

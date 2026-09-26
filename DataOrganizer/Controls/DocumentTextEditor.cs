@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -20,6 +21,11 @@ namespace DataOrganizer.Controls;
 internal sealed class DocumentTextEditor : TextEditorBase
 {
 	#region Properties
+	/// <summary>
+	/// Bookmarks of the lines of the document.
+	/// </summary>
+	public LineBookmarks Bookmarks { get; }
+
 	/// <summary>
 	/// <c>True</c> when line endings are shown.
 	/// </summary>
@@ -178,6 +184,14 @@ internal sealed class DocumentTextEditor : TextEditorBase
 			.GetObservable(ShowTabsProperty)
 			.Subscribe(ShowTabsProperty_Changed);
 
+		Bookmarks = new()
+		{
+			Document = Document
+		};
+
+		// Left of the line numbers, as in Visual Studio, the bookmarks keep clear of clicks at the start of a line.
+		TextArea.LeftMargins.Insert(0, new BookmarkMargin(Bookmarks));
+
 		TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
 		TextArea.SelectionChanged += TextArea_SelectionChanged;
@@ -225,7 +239,13 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// <summary>
 	/// <see cref="TextEditor.DocumentChanged" /> event handler.
 	/// </summary>
-	private void DocumentTextEditor_DocumentChanged(object? sender, DocumentChangedEventArgs e) => UpdateLineEnding();
+	private void DocumentTextEditor_DocumentChanged(object? sender, DocumentChangedEventArgs e)
+	{
+		// The bookmarks belong to the lines of one document.
+		Bookmarks.Document = Document;
+
+		UpdateLineEnding();
+	}
 
 	/// <summary>
 	/// <see cref="TextEditor.TextChanged" /> event handler.
