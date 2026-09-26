@@ -1,10 +1,11 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 
 namespace DataOrganizer.Helpers.Text;
 
 /// <summary>
-/// Look of the highlighted pieces of text, common to the whole application.
+/// Look of the highlighted pieces of text and of the bookmarks, common to the whole application.
 /// </summary>
 internal static class TextHighlight
 {
@@ -25,5 +26,24 @@ internal static class TextHighlight
 		r: 0xFB,
 		g: 0xC0,
 		b: 0x2D));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Resource key of the primary brush of the theme.
+	/// </summary>
+	private const string BookmarkBrushKey = "MaterialPrimaryMidBrush";
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Returns the brush of the bookmarks, the primary brush of the theme.
+	/// </summary>
+	public static IBrush FindBookmarkBrush(IResourceHost host)
+	{
+		return host.TryFindResource(BookmarkBrushKey, out object? resource) && resource is IBrush brush
+			? brush
+			: Brushes.DodgerBlue;
+	}
 	#endregion
 }

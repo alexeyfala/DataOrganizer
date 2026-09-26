@@ -11,10 +11,12 @@ using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Converters;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Messages.Documents;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -25,10 +27,10 @@ using System.Reactive.Linq;
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// Margin that marks the occurrences of the selected text and the caret line along the whole document,
+/// Margin that marks the occurrences of the selected text, the bookmarks and the caret line along the whole document,
 /// in the scale of the scroll bar.
 /// </summary>
-internal sealed class ScrollMarkMargin : AbstractMargin
+internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksChangedMessage>
 {
 	#region Data
 	/// <summary>
@@ -87,6 +89,11 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	private readonly List<(double Row, int Line)> _marks = [];
 
 	/// <summary>
+	/// Bookmarks of the document, known from the last message about them.
+	/// </summary>
+	private LineBookmarks? _bookmarks;
+
+	/// <summary>
 	/// Row of pixels of the mark under the pointer.
 	/// </summary>
 	private double? _hoveredRow;
@@ -143,6 +150,23 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Takes the bookmarks of the document and repaints the margin when they change.
+	/// </summary>
+	public void Receive(BookmarksChangedMessage message)
+	{
+		// Every open editor sends the message about the bookmarks of its own document.
+		// Document, unlike TextView, is a plain property, so the check turns a message away safely on any thread.
+		if (Document is not { } document || message.Bookmarks.Document != document)
+		{
+			return;
+		}
+
+		_bookmarks = message.Bookmarks;
+
+		InvalidateVisual();
+	}
+
 	/// <inheritdoc />
 	public override void Render(DrawingContext context)
 	{
@@ -157,6 +181,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		}
 
 		(double top, double height) = GetTrackRange();
+
+		// The bookmarks lie under the occurrences, whose narrower marks leave the edges of a bookmark in view.
+		DrawBookmarkMarks(context, textView, top, height);
 
 		foreach (int line in _markLines)
 		{
@@ -217,6 +244,27 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			: [];
 
 		InvalidateVisual();
+	}
+
+	/// <inheritdoc />
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		// The bookmarks belong to the editors of documents, which the margin knows nothing about.
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
+	}
+
+	/// <inheritdoc />
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
+
+		base.OnDetachedFromVisualTree(e);
 	}
 
 	/// <inheritdoc />
@@ -391,6 +439,42 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		});
 
 		return tip;
+	}
+
+	/// <summary>
+	/// Draws the marks of the bookmarked lines across the whole width of the margin.
+	/// </summary>
+	private void DrawBookmarkMarks(DrawingContext context, TextView textView, double top, double height)
+	{
+		if (_bookmarks is not { } bookmarks)
+		{
+			return;
+		}
+
+		IBrush brush = TextHighlight.FindBookmarkBrush(this);
+
+		double? lastRow = null;
+
+		foreach (int line in bookmarks.GetLines())
+		{
+			double row = GetRow(textView, line, top, height);
+
+			// The marks of one row of pixels are drawn once.
+			if (row == lastRow)
+			{
+				continue;
+			}
+
+			lastRow = row;
+
+			context.FillRectangle(
+				brush,
+				new Rect(
+					x: 0.0,
+					y: row - (MarkHeight / 2.0),
+					width: Bounds.Width,
+					height: MarkHeight));
+		}
 	}
 
 	/// <summary>

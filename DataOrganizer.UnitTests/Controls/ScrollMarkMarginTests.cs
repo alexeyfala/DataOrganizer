@@ -13,10 +13,13 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Messages.Documents;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;
@@ -25,6 +28,11 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class ScrollMarkMarginTests
 {
 	#region Data
+	/// <summary>
+	/// Resource key of the primary brush of the theme.
+	/// </summary>
+	private const string PrimaryBrushKey = "MaterialPrimaryMidBrush";
+
 	/// <summary>
 	/// Name of the scroll viewer in the template of the text editor.
 	/// </summary>
@@ -408,6 +416,123 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: listens to the messages about the bookmarks once it stands in a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnAttachedToVisualTree_Registers_For_The_Bookmark_Messages()
+	{
+		// Arrange
+		TestTextEditor editor = new();
+
+		// Act
+		Show(editor);
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(GetMargin(editor))
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: stops listening to the messages about the bookmarks when it leaves the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnDetachedFromVisualTree_Unregisters_From_The_Bookmark_Messages()
+	{
+		// Arrange
+		TestTextEditor editor = new();
+
+		Window window = Show(editor);
+
+		// Act
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(GetMargin(editor))
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin.Receive" />: the bookmarks of another document leave the margin alone.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Ignores_The_Bookmarks_Of_Another_Document()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		LineBookmarks other = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		// Act
+		other.Toggle(500);
+
+		// Assert
+		GetShapes(Draw(sut), GetBookmarkBrush())
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: a bookmark mark lies under the narrower occurrence mark of its line,
+	/// so both stay in view.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Draws_The_Bookmarks_Under_The_Occurrence_Marks()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x == 500 ? "needle" : $"Line {x:D4}")))
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Bookmarks.Toggle(500);
+
+		editor.Select(editor.Document.GetLineByNumber(500).Offset, 6);
+
+		sut.UpdateMarks();
+
+		IBrush bookmarkBrush = GetBookmarkBrush();
+
+		// Act
+		List<GeometryDrawing> shapes = [.. Draw(sut).Children.OfType<GeometryDrawing>()];
+
+		// Assert
+		int bookmark = shapes.FindIndex(x => x.Brush == bookmarkBrush);
+
+		int occurrence = shapes.FindIndex(static x => x.Brush == TextHighlight.MarkBrush);
+
+		// Painted, and before the occurrence.
+		bookmark
+			.Should()
+			.BeInRange(0, occurrence - 1);
+
+		shapes[bookmark].GetBounds().Width
+			.Should()
+			.BeGreaterThan(shapes[occurrence].GetBounds().Width);
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the caret line stands at the place of the caret in the whole document.
 	/// </summary>
 	[AvaloniaTest]
@@ -435,6 +560,43 @@ internal class ScrollMarkMarginTests
 			.Which
 			.Should()
 			.BeApproximately(sut.Bounds.Height / 2.0, 2.0);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: the bookmarks are marked in the whole document, out of the view too.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Marks_Every_Bookmark_In_The_Document()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Bookmarks.Toggle(1);
+
+		editor.Bookmarks.Toggle(500);
+
+		editor.Bookmarks.Toggle(1000);
+
+		double height = sut.Bounds.Height;
+
+		// Act
+		Rect[] marks = GetShapes(Draw(sut), GetBookmarkBrush());
+
+		// Assert
+		marks
+			.Select(static x => x.Center.Y)
+			.Should()
+			.SatisfyRespectively(
+				x => x.Should().BeLessThan(height * 0.1),
+				x => x.Should().BeApproximately(height / 2.0, height * 0.05),
+				x => x.Should().BeGreaterThan(height * 0.9));
 	}
 
 	/// <summary>
@@ -472,6 +634,39 @@ internal class ScrollMarkMarginTests
 				x => x.Should().BeLessThan(height * 0.1),
 				x => x.Should().BeApproximately(height / 2.0, height * 0.05),
 				x => x.Should().BeGreaterThan(height * 0.9));
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: the bookmark marks that fall on one row of pixels are drawn once.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Merges_The_Bookmark_Marks_Of_One_Row()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		foreach (int line in Enumerable.Range(1, 1000))
+		{
+			editor.Bookmarks.Toggle(line);
+		}
+
+		// Act
+		Rect[] marks = GetShapes(Draw(sut), GetBookmarkBrush());
+
+		// Assert
+		marks
+			.Select(static x => x.Center.Y)
+			.Should()
+			.NotBeEmpty()
+			.And
+			.OnlyHaveUniqueItems();
 	}
 
 	/// <summary>
@@ -604,9 +799,14 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// Returns the primary brush of the theme.
+	/// </summary>
+	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(PrimaryBrushKey)!;
+
+	/// <summary>
 	/// Returns the scroll mark margin of the editor.
 	/// </summary>
-	private static ScrollMarkMargin GetMargin(TestTextEditor editor)
+	private static ScrollMarkMargin GetMargin(TextEditorBase editor)
 	{
 		return editor
 			.GetVisualChildren()
@@ -653,6 +853,17 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// Returns the bounds of the shapes painted with the brush.
+	/// </summary>
+	private static Rect[] GetShapes(DrawingGroup drawing, IBrush brush)
+	{
+		return [.. drawing.Children
+			.OfType<GeometryDrawing>()
+			.Where(x => x.Brush == brush)
+			.Select(static x => x.GetBounds())];
+	}
+
+	/// <summary>
 	/// Returns the tip of the margin.
 	/// </summary>
 	private static StackPanel GetTip(ScrollMarkMargin margin) => (StackPanel)ToolTip.GetTip(margin)!;
@@ -660,7 +871,7 @@ internal class ScrollMarkMarginTests
 	/// <summary>
 	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
 	/// </summary>
-	private static Window Show(TestTextEditor editor)
+	private static Window Show(TextEditorBase editor)
 	{
 		Interaction
 			.GetBehaviors(editor)

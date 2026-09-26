@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -24,11 +23,6 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	/// Side of the square the Material icons are drawn in.
 	/// </summary>
 	private const double IconBoxSize = 24.0;
-
-	/// <summary>
-	/// Resource key of the primary brush of the theme.
-	/// </summary>
-	private const string IconBrushKey = "MaterialPrimaryMidBrush";
 
 	/// <summary>
 	/// Opacity of the icon that shows where a click puts a bookmark.
@@ -94,7 +88,7 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 			return;
 		}
 
-		IBrush brush = FindIconBrush();
+		IBrush brush = TextHighlight.FindBookmarkBrush(this);
 
 		VisualLine? pointedLine = FindPointedLine();
 
@@ -219,16 +213,6 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 				null,
 				Icon);
 		}
-	}
-
-	/// <summary>
-	/// Returns the primary brush of the theme.
-	/// </summary>
-	private IBrush FindIconBrush()
-	{
-		return this.TryFindResource(IconBrushKey, out object? resource) && resource is IBrush brush
-			? brush
-			: Brushes.DodgerBlue;
 	}
 
 	/// <summary>
