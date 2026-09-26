@@ -76,6 +76,89 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: a mark goes back to its size when the pointer leaves the margin.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Ends_When_The_Pointer_Leaves()
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		// Act
+		window.MouseMove(new(10.0, 10.0));
+
+		// Assert
+		GetShapes(Draw(sut), TextHighlight.MarkBrush.Color)
+			.Select(static x => x.Height)
+			.Distinct()
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the mark within reach of the pointer grows.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Enlarges_The_Mark_Under_The_Pointer()
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+
+		// A little off the mark, which is hard to hit exactly.
+		Point point = sut.TranslatePoint(new(sut.Bounds.Width / 2.0, rows[1] + 3.0), window) ?? default;
+
+		// Act
+		window.MouseMove(point);
+
+		// Assert
+		Rect[] marks = GetShapes(Draw(sut), TextHighlight.MarkBrush.Color);
+
+		Rect hovered = marks.Single(x => x.Center.Y == rows[1]);
+
+		Rect other = marks.Single(x => x.Center.Y == rows[0]);
+
+		hovered.Height
+			.Should()
+			.BeGreaterThan(other.Height);
+
+		hovered.Width
+			.Should()
+			.BeGreaterThan(other.Width);
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the caret line stands at the place of the caret in the whole document.
 	/// </summary>
 	[AvaloniaTest]
@@ -275,6 +358,17 @@ internal class ScrollMarkMarginTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// Returns the bounds of the shapes painted in the color.
+	/// </summary>
+	private static Rect[] GetShapes(DrawingGroup drawing, Color color)
+	{
+		return [.. drawing.Children
+			.OfType<GeometryDrawing>()
+			.Where(x => x.Brush is ISolidColorBrush brush && brush.Color == color)
+			.Select(static x => x.GetBounds())];
 	}
 
 	/// <summary>

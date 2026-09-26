@@ -12,6 +12,7 @@ using AvaloniaEdit.Rendering;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 
@@ -30,9 +31,19 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	private const double CaretLineHeight = 2.0;
 
 	/// <summary>
+	/// Height of the mark under the pointer.
+	/// </summary>
+	private const double HoveredMarkHeight = 6.0;
+
+	/// <summary>
 	/// Height of a mark.
 	/// </summary>
 	private const double MarkHeight = 4.0;
+
+	/// <summary>
+	/// Distance from a mark within which the pointer is taken to be over it.
+	/// </summary>
+	private const double MarkHitTolerance = 2.0;
 
 	/// <summary>
 	/// Gap between a mark and the sides of the margin.
@@ -43,6 +54,16 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	/// Pause after the last change of the selection or the text before the marks are found again.
 	/// </summary>
 	private static readonly TimeSpan MarksDelay = TimeSpan.FromSeconds(0.2);
+
+	/// <summary>
+	/// Rows of pixels of the marks drawn last.
+	/// </summary>
+	private readonly List<double> _markRows = [];
+
+	/// <summary>
+	/// Row of pixels of the mark under the pointer.
+	/// </summary>
+	private double? _hoveredRow;
 
 	/// <summary>
 	/// Lines with the occurrences of the selected text, in the order of the document.
@@ -58,12 +79,13 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		editor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
 		// A pass over the whole document follows a run of changes rather than every step of a mouse selection.
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => editor.TextArea.SelectionChanged += x,
-					x => editor.TextArea.SelectionChanged -= x)
+		Observable
+			.FromEventPattern<EventHandler, EventArgs>(
+				x => editor.TextArea.SelectionChanged += x,
+				x => editor.TextArea.SelectionChanged -= x)
 			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => editor.TextChanged += x,
-					x => editor.TextChanged -= x))
+				x => editor.TextChanged += x,
+				x => editor.TextChanged -= x))
 			.SetDelay(MarksDelay)
 			.Subscribe(_ => UpdateMarks());
 	}
@@ -85,14 +107,14 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			Brushes.Transparent,
 			new Rect(Bounds.Size));
 
+		_markRows.Clear();
+
 		if (TextView is not { Document: { } document, DocumentHeight: > 0.0 } textView)
 		{
 			return;
 		}
 
 		(double top, double height) = GetTrackRange();
-
-		double lastRow = double.NaN;
 
 		foreach (int line in _markLines)
 		{
@@ -105,20 +127,28 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			double row = GetRow(textView, line, top, height);
 
 			// The marks of one row of pixels are drawn once.
-			if (row == lastRow)
+			if (_markRows.Count > 0 && _markRows[^1] == row)
 			{
 				continue;
 			}
 
-			lastRow = row;
+			_markRows.Add(row);
+		}
 
-			context.FillRectangle(
-				TextHighlight.MarkBrush,
-				new Rect(
-					x: MarkInset,
-					y: row - (MarkHeight / 2.0),
-					width: Bounds.Width - (2.0 * MarkInset),
-					height: MarkHeight));
+		foreach (double row in _markRows)
+		{
+			if (row == _hoveredRow)
+			{
+				continue;
+			}
+
+			DrawMark(context, row, MarkInset, MarkHeight);
+		}
+
+		// The mark under the pointer grows to the whole width and comes above its neighbours.
+		if (_hoveredRow is { } hoveredRow && _markRows.Contains(hoveredRow))
+		{
+			DrawMark(context, hoveredRow, 0.0, HoveredMarkHeight);
 		}
 
 		double caretRow = GetRow(textView, TextArea.Caret.Line, top, height);
@@ -145,6 +175,22 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 			: [];
 
 		InvalidateVisual();
+	}
+
+	/// <inheritdoc />
+	protected override void OnPointerExited(PointerEventArgs e)
+	{
+		base.OnPointerExited(e);
+
+		SetHoveredRow(null);
+	}
+
+	/// <inheritdoc />
+	protected override void OnPointerMoved(PointerEventArgs e)
+	{
+		base.OnPointerMoved(e);
+
+		SetHoveredRow(FindMarkRow(e.GetPosition(this).Y));
 	}
 
 	/// <inheritdoc />
@@ -191,6 +237,32 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 	}
 
 	/// <summary>
+	/// Draws a mark on a row of pixels, set in from the sides of the margin.
+	/// </summary>
+	private void DrawMark(DrawingContext context, double row, double inset, double height)
+	{
+		context.FillRectangle(
+			TextHighlight.MarkBrush,
+			new Rect(
+				x: inset,
+				y: row - (height / 2.0),
+				width: Bounds.Width - (2.0 * inset),
+				height: height));
+	}
+
+	/// <summary>
+	/// Returns the row of the mark within reach of the pointer, the nearest one where marks stand close.
+	/// </summary>
+	private double? FindMarkRow(double y)
+	{
+		return _markRows
+			.Where(x => Math.Abs(x - y) <= ((MarkHeight / 2.0) + MarkHitTolerance))
+			.OrderBy(x => Math.Abs(x - y))
+			.Select(static x => (double?)x)
+			.FirstOrDefault();
+	}
+
+	/// <summary>
 	/// Finds the scroll viewer around the text area.
 	/// </summary>
 	private ScrollViewer? FindScrollViewer() => TextArea?.FindAncestorOfType<ScrollViewer>();
@@ -215,6 +287,21 @@ internal sealed class ScrollMarkMargin : AbstractMargin
 		}
 
 		return (0.0, Bounds.Height);
+	}
+
+	/// <summary>
+	/// Repaints the margin when another mark comes under the pointer.
+	/// </summary>
+	private void SetHoveredRow(double? row)
+	{
+		if (row == _hoveredRow)
+		{
+			return;
+		}
+
+		_hoveredRow = row;
+
+		InvalidateVisual();
 	}
 	#endregion
 }
