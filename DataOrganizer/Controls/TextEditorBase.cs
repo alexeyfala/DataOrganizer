@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -66,6 +67,11 @@ internal abstract class TextEditorBase : TextEditor
 	/// The smallest font size.
 	/// </summary>
 	private const double MinFontSize = 6.0;
+
+	/// <summary>
+	/// Width of the gap before the text as a share of the font size, about half a character.
+	/// </summary>
+	private const double TextGapRatio = 0.4;
 	#endregion
 
 	#region Constructors
@@ -82,6 +88,14 @@ internal abstract class TextEditorBase : TextEditor
 		Options.EnableEmailHyperlinks = false;
 
 		Options.AllowScrollBelowDocument = false;
+
+		// Without a background the gap before the text lets clicks through, and the caret cannot be put at the line start.
+		TextArea.Background = Brushes.Transparent;
+
+		// The gap before the text grows with the zoom, like the line numbers.
+		this
+			.GetObservable(FontSizeProperty)
+			.Subscribe(FontSizeProperty_Changed);
 
 		CopyCommand = new(CopySelection, CanCopySelection);
 
@@ -104,6 +118,14 @@ internal abstract class TextEditorBase : TextEditor
 	#endregion
 
 	#region Event Handlers
+	/// <summary>
+	/// <see cref="TemplatedControl.FontSizeProperty" /> changed handler.
+	/// </summary>
+	private void FontSizeProperty_Changed(double value)
+	{
+		TextArea.TextView.Margin = new(value * TextGapRatio, 0.0, 0.0, 0.0);
+	}
+
 	/// <summary>
 	/// <see cref="InputElement.PointerWheelChangedEvent" /> handler, which zooms on a notch with Ctrl.
 	/// </summary>

@@ -8,6 +8,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
+using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
@@ -26,6 +28,43 @@ internal class TextEditorBaseTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="TextArea.Caret" />: a click in the gap between the line numbers and the text puts the caret
+	/// at the start of the line.
+	/// </summary>
+	[AvaloniaTest]
+	public void Caret_Goes_To_The_Line_Start_On_A_Click_Before_The_Text()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 3)
+		};
+
+		Window window = Show(sut);
+
+		TextView textView = sut.TextArea.TextView;
+
+		// In the middle of the gap, level with the second line.
+		Point point = textView.TranslatePoint(
+			new(
+				-textView.Margin.Left / 2.0,
+				textView.DefaultLineHeight * 1.5),
+			window) ?? default;
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.TextArea.Caret.Offset
+			.Should()
+			.Be(sut.Document.GetLineByNumber(2).Offset);
+	}
+
 	/// <summary>
 	/// <see cref="TextEditorBase.CopyCommand" />: there is something to copy only when text is selected.
 	/// </summary>
@@ -101,6 +140,26 @@ internal class TextEditorBaseTests
 		sut.FontSize
 			.Should()
 			.Be(isCtrlPressed ? 14.5 : 14.0);
+	}
+
+	/// <summary>
+	/// <see cref="TemplatedControl.FontSize" />: the gap between the line numbers and the text grows with the font size.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(10.0, 3.0)]
+	[TestCase(40.0, 12.0)]
+	public void FontSize_Sets_The_Gap_Before_The_Text(double fontSize, double expected)
+	{
+		// Arrange, Act
+		TestTextEditor sut = new()
+		{
+			FontSize = fontSize
+		};
+
+		// Assert
+		sut.TextArea.TextView.Margin.Left
+			.Should()
+			.BeApproximately(expected, 1e-9);
 	}
 
 	/// <summary>
