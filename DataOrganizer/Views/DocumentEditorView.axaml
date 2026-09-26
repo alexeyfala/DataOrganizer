@@ -90,8 +90,6 @@
 
 					<Interaction.Behaviors>
 						<EventTriggerBehavior EventName="Spin">
-							<!--<InvokeCommandAction Command="{Binding SpinCommand}" PassEventArgsToCommand="True" />-->
-
 							<InvokeCommandAction Command="{Binding #Editor.SpinCommand}" PassEventArgsToCommand="True" />
 						</EventTriggerBehavior>
 					</Interaction.Behaviors>
