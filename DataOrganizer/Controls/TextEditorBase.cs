@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Helpers.Text;
 using System;
 
 namespace DataOrganizer.Controls;
@@ -96,6 +97,11 @@ internal abstract class TextEditorBase : TextEditor
 		this
 			.GetObservable(FontSizeProperty)
 			.Subscribe(FontSizeProperty_Changed);
+
+		TextArea
+			.TextView
+			.BackgroundRenderers
+			.Add(new SelectionOccurrenceRenderer(TextArea));
 
 		CopyCommand = new(CopySelection, CanCopySelection);
 

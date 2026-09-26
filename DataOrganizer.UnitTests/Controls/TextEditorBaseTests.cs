@@ -13,6 +13,7 @@ using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
+using DataOrganizer.Helpers.Text;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;
@@ -272,6 +273,37 @@ internal class TextEditorBaseTests
 		sut.SelectionLength
 			.Should()
 			.Be(document.TextLength);
+	}
+
+	/// <summary>
+	/// <see cref="TextArea.Selection" />: the occurrences of the selected text are painted.
+	/// </summary>
+	[AvaloniaTest]
+	public void Selection_Highlights_Its_Occurrences()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = new("log log")
+		};
+
+		Show(sut);
+
+		// Act
+		sut.Select(0, 3);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		TextView textView = sut.TextArea.TextView;
+
+		textView.BackgroundRenderers
+			.OfType<SelectionOccurrenceRenderer>()
+			.Single()
+			.FindOccurrences(textView)
+			.Select(static x => x.Offset)
+			.Should()
+			.Equal(4);
 	}
 
 	/// <summary>
