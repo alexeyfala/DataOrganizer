@@ -9,8 +9,10 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
+using DataOrganizer.Messages.Documents;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;
@@ -210,6 +212,54 @@ internal class BookmarkMarginTests
 		icon.Bounds.Center.Y
 			.Should()
 			.BeApproximately(GetLineMiddle(sut, line: 5), 1.0);
+	}
+
+	/// <summary>
+	/// <see cref="BookmarkMargin" />: listens to the messages about the bookmarks once it stands in a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnAttachedToVisualTree_Registers_For_The_Bookmark_Messages()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		// Act
+		Show(editor);
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(GetMargin(editor))
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="BookmarkMargin" />: stops listening to the messages about the bookmarks when it leaves the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnDetachedFromVisualTree_Unregisters_From_The_Bookmark_Messages()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Window window = Show(editor);
+
+		// Act
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<BookmarksChangedMessage>(GetMargin(editor))
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

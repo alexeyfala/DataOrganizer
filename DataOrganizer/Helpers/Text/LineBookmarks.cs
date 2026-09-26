@@ -1,5 +1,6 @@
 using AvaloniaEdit.Document;
-using System;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,13 +30,6 @@ internal sealed class LineBookmarks
 			_anchors.Clear();
 		}
 	}
-	#endregion
-
-	#region Events
-	/// <summary>
-	/// Occurs when a bookmark is set or removed in the document.
-	/// </summary>
-	public event EventHandler? Changed;
 	#endregion
 
 	#region Data
@@ -130,8 +124,13 @@ internal sealed class LineBookmarks
 
 	#region Helpers
 	/// <summary>
-	/// Raises <see cref="Changed" />.
+	/// Sends <see cref="BookmarksChangedMessage" /> about these bookmarks.
 	/// </summary>
-	private void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
+	private void RaiseChanged()
+	{
+		WeakReferenceMessenger
+			.Default
+			.Send(new BookmarksChangedMessage(this));
+	}
 	#endregion
 }

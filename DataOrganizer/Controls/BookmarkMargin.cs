@@ -6,7 +6,9 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Messages.Documents;
 using Material.Icons;
 using System;
 
@@ -15,7 +17,7 @@ namespace DataOrganizer.Controls;
 /// <summary>
 /// Margin with the bookmarks of the lines, where a click sets or removes the bookmark of a line.
 /// </summary>
-internal sealed class BookmarkMargin : AbstractMargin
+internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChangedMessage>
 {
 	#region Data
 	/// <summary>
@@ -59,9 +61,6 @@ internal sealed class BookmarkMargin : AbstractMargin
 	{
 		_bookmarks = bookmarks;
 
-		// The keys and the menu change the bookmarks too.
-		_bookmarks.Changed += Bookmarks_Changed;
-
 		// The margin widens with the zoom, like the line numbers.
 		this
 			.GetObservable(TextElement.FontSizeProperty)
@@ -69,14 +68,21 @@ internal sealed class BookmarkMargin : AbstractMargin
 	}
 	#endregion
 
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="LineBookmarks.Changed" /> event handler.
-	/// </summary>
-	private void Bookmarks_Changed(object? sender, EventArgs e) => InvalidateVisual();
-	#endregion
-
 	#region Methods
+	/// <summary>
+	/// Repaints the margin when its bookmarks change.
+	/// </summary>
+	public void Receive(BookmarksChangedMessage message)
+	{
+		// Every open editor sends the message about its own bookmarks.
+		if (message.Bookmarks != _bookmarks)
+		{
+			return;
+		}
+
+		InvalidateVisual();
+	}
+
 	/// <inheritdoc />
 	public override void Render(DrawingContext context)
 	{
@@ -120,6 +126,27 @@ internal sealed class BookmarkMargin : AbstractMargin
 	}
 
 	/// <inheritdoc />
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		// The keys and the menu change the bookmarks too.
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
+	}
+
+	/// <inheritdoc />
+	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
+
+		base.OnDetachedFromVisualTree(e);
+	}
+
+	/// <inheritdoc />
 	protected override void OnPointerExited(PointerEventArgs e)
 	{
 		base.OnPointerExited(e);
@@ -140,7 +167,9 @@ internal sealed class BookmarkMargin : AbstractMargin
 	{
 		base.OnPointerPressed(e);
 
-		if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+		if (!e.GetCurrentPoint(this)
+			.Properties
+			.IsLeftButtonPressed)
 		{
 			return;
 		}

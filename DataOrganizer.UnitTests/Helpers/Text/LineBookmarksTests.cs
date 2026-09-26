@@ -1,6 +1,9 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Messages.Documents;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;
@@ -9,36 +12,6 @@ namespace DataOrganizer.UnitTests.Helpers.Text;
 internal class LineBookmarksTests
 {
 	#region Methods
-	/// <summary>
-	/// <see cref="LineBookmarks.Clear" />: reports a change only when there were bookmarks to remove.
-	/// </summary>
-	[Test]
-	public void Clear_Raises_Changed_Only_With_Bookmarks([Values] bool hasBookmarks)
-	{
-		// Arrange
-		LineBookmarks sut = new()
-		{
-			Document = new("One\nTwo\nThree")
-		};
-
-		if (hasBookmarks)
-		{
-			sut.Toggle(2);
-		}
-
-		int changeCount = 0;
-
-		sut.Changed += (_, _) => changeCount++;
-
-		// Act
-		sut.Clear();
-
-		// Assert
-		changeCount
-			.Should()
-			.Be(hasBookmarks ? 1 : 0);
-	}
-
 	/// <summary>
 	/// <see cref="LineBookmarks.Clear" />: removes every bookmark.
 	/// </summary>
@@ -62,6 +35,34 @@ internal class LineBookmarksTests
 		sut.GetLines()
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.Clear" />: sends the message only when there were bookmarks to remove.
+	/// </summary>
+	[Test]
+	public void Clear_Sends_A_Message_Only_With_Bookmarks([Values] bool hasBookmarks)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		if (hasBookmarks)
+		{
+			sut.Toggle(2);
+		}
+
+		List<BookmarksChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.Clear();
+
+		// Assert
+		messages
+			.Should()
+			.HaveCount(hasBookmarks ? 1 : 0);
 	}
 
 	/// <summary>
@@ -383,36 +384,6 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
-	/// <see cref="LineBookmarks.Toggle" />: reports a change once, both when it sets a bookmark and when it removes one.
-	/// </summary>
-	[Test]
-	public void Toggle_Raises_Changed([Values] bool isBookmarked)
-	{
-		// Arrange
-		LineBookmarks sut = new()
-		{
-			Document = new("One\nTwo\nThree")
-		};
-
-		if (isBookmarked)
-		{
-			sut.Toggle(2);
-		}
-
-		int changeCount = 0;
-
-		sut.Changed += (_, _) => changeCount++;
-
-		// Act
-		sut.Toggle(2);
-
-		// Assert
-		changeCount
-			.Should()
-			.Be(1);
-	}
-
-	/// <summary>
 	/// <see cref="LineBookmarks.Toggle" />: removes every bookmark of a line, those that came with a joined line too.
 	/// </summary>
 	[Test]
@@ -445,6 +416,34 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
+	/// <see cref="LineBookmarks.Toggle" />: sends the message once, both when it sets a bookmark and when it removes one.
+	/// </summary>
+	[Test]
+	public void Toggle_Sends_A_Message([Values] bool isBookmarked)
+	{
+		// Arrange
+		LineBookmarks sut = new()
+		{
+			Document = new("One\nTwo\nThree")
+		};
+
+		if (isBookmarked)
+		{
+			sut.Toggle(2);
+		}
+
+		List<BookmarksChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.Toggle(2);
+
+		// Assert
+		messages
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="LineBookmarks.Toggle" />: sets a bookmark on a line without one.
 	/// </summary>
 	[Test]
@@ -466,7 +465,7 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
-	/// <see cref="LineBookmarks.Toggle" />: a line out of the document gets no bookmark and reports no change.
+	/// <see cref="LineBookmarks.Toggle" />: a line out of the document gets no bookmark and sends no message.
 	/// </summary>
 	[Test]
 	public void Toggle_Skips_A_Line_Out_Of_The_Document([Values(0, 4)] int line)
@@ -477,9 +476,7 @@ internal class LineBookmarksTests
 			Document = new("One\nTwo\nThree")
 		};
 
-		int changeCount = 0;
-
-		sut.Changed += (_, _) => changeCount++;
+		List<BookmarksChangedMessage> messages = Capture(sut);
 
 		// Act
 		sut.Toggle(line);
@@ -489,9 +486,36 @@ internal class LineBookmarksTests
 			.Should()
 			.BeEmpty();
 
-		changeCount
+		messages
 			.Should()
-			.Be(0);
+			.BeEmpty();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Records every <see cref="BookmarksChangedMessage" /> sent about the bookmarks.
+	/// </summary>
+	private static List<BookmarksChangedMessage> Capture(LineBookmarks bookmarks)
+	{
+		List<BookmarksChangedMessage> received = [];
+
+		WeakReferenceMessenger
+			.Default
+			.Register<List<BookmarksChangedMessage>, BookmarksChangedMessage>(
+				received,
+				(recipient, message) =>
+				{
+					// The messenger is shared, and other tests send messages about their own bookmarks.
+					if (message.Bookmarks != bookmarks)
+					{
+						return;
+					}
+
+					recipient.Add(message);
+				});
+
+		return received;
 	}
 	#endregion
 }
