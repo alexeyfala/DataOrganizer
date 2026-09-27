@@ -954,6 +954,89 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="SplitDocumentEditor.SplitShare" />: the share divides the height between the halves.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Divides_The_Height_Between_The_Halves()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true,
+			SplitShare = 0.25
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		double upperHeight = sut.PrimaryEditor.Bounds.Height;
+
+		(upperHeight / (upperHeight + sut.SecondaryEditor!.Bounds.Height))
+			.Should()
+			.BeApproximately(0.25, 0.01);
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.SplitShare" />: a drag of the splitter sets the share of the upper half.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Follows_A_Drag_Of_The_Splitter()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+
+		Point end = start.WithY(start.Y + 100.0);
+
+		// Act
+		window.MouseDown(start, MouseButton.Left);
+
+		window.MouseMove(end);
+
+		window.MouseUp(end, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		double upperHeight = sut.PrimaryEditor.Bounds.Height;
+
+		sut.SplitShare
+			.Should()
+			.BeApproximately(upperHeight / (upperHeight + sut.SecondaryEditor!.Bounds.Height), 0.01);
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.SplitShare" />: the end of the split sets the share back to the middle.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Returns_To_The_Middle_When_The_Split_Ends()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true,
+			SplitShare = 0.25
+		};
+
+		Show(sut);
+
+		// Act
+		sut.IsSplit = false;
+
+		// Assert
+		sut.SplitShare
+			.Should()
+			.Be(0.5);
+	}
+
+	/// <summary>
 	/// The splitter between the halves takes the double line theme.
 	/// </summary>
 	[AvaloniaTest]

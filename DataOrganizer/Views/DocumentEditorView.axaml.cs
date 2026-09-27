@@ -106,6 +106,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	}
 
 	/// <summary>
+	/// Share of the height that the upper half takes while the document is split.
+	/// </summary>
+	public double SplitShare
+	{
+		get => GetValue(SplitShareProperty);
+		set => SetValue(SplitShareProperty, value);
+	}
+
+	/// <summary>
 	/// Content placed at the end of the toolbar.
 	/// </summary>
 	public object? ToolBarContent
@@ -190,6 +199,14 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
 		.Register<DocumentEditorView, bool>(name: nameof(ShowTabs));
+
+	/// <summary>
+	/// Identifies the <see cref="SplitShare" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<double> SplitShareProperty = AvaloniaProperty
+		.Register<DocumentEditorView, double>(
+			name: nameof(SplitShare),
+			defaultValue: 0.5);
 
 	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
@@ -395,7 +412,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	private void RestoreViewState()
 	{
-		// The upper half is the one shown without a split, which is not remembered.
+		// The upper half takes the state, and a lower half, when there is one, follows it.
 		DocumentTextEditor editor = Editor.PrimaryEditor;
 
 		if (_pendingViewState is not { } state
@@ -430,6 +447,9 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		editor
 			.Bookmarks
 			.SetLines(state.Bookmarks ?? []);
+
+		// A split that came before the document opens the lower half at the restored place only now.
+		Editor.CopyViewToSecondaryEditor();
 	}
 
 	/// <summary>

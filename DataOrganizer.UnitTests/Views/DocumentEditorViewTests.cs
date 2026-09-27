@@ -815,6 +815,61 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.SplitShare" />: a drag of the splitter comes back from the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Follows_A_Drag_Of_The_Splitter()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+
+		Point end = start.WithY(start.Y + 100.0);
+
+		// Act
+		window.MouseDown(start, MouseButton.Left);
+
+		window.MouseMove(end);
+
+		window.MouseUp(end, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SplitShare
+			.Should()
+			.BeGreaterThan(0.5);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.SplitShare" />: the share of the upper half reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Reaches_The_Editor()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true,
+			SplitShare = 0.25
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<SplitDocumentEditor>(EditorName).SplitShare
+			.Should()
+			.Be(0.25);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: in a window too narrow for the status bar the block on the right edge stays whole
 	/// and in view, while the blocks on the left give way.
 	/// </summary>
@@ -1080,6 +1135,42 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		GetScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a split that came before the document, as on a new opening of the file,
+	/// opens the lower half at the restored offset too.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Offset_Into_The_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		Vector offset = new(0.0, 500.0);
+
+		// Act
+		sut.Document = CreateDocument(lineCount: 1000);
+
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 30, column: 1),
+			ScrollOffset = offset,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetSplitScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
 	}

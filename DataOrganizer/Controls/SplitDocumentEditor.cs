@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -122,6 +123,16 @@ internal sealed class SplitDocumentEditor : Control
 	}
 
 	/// <summary>
+	/// Share of the height that the upper half takes while the document is split.
+	/// A drag of the splitter changes it, and the end of the split sets it back to the middle.
+	/// </summary>
+	public double SplitShare
+	{
+		get => GetValue(SplitShareProperty);
+		set => SetValue(SplitShareProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when long lines are wrapped.
 	/// </summary>
 	public bool WordWrap
@@ -189,6 +200,14 @@ internal sealed class SplitDocumentEditor : Control
 		.Register<SplitDocumentEditor, bool>(name: nameof(ShowTabs));
 
 	/// <summary>
+	/// Identifies the <see cref="SplitShare" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<double> SplitShareProperty = AvaloniaProperty
+		.Register<SplitDocumentEditor, double>(
+			name: nameof(SplitShare),
+			defaultValue: MiddleSplitShare);
+
+	/// <summary>
 	/// Identifies the <see cref="WordWrap" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> WordWrapProperty = AvaloniaProperty
@@ -206,6 +225,11 @@ internal sealed class SplitDocumentEditor : Control
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Share of the upper half that divides the height in the middle.
+	/// </summary>
+	private const double MiddleSplitShare = 0.5;
+
 	/// <summary>
 	/// The least height of a half in a split view.
 	/// </summary>
@@ -274,6 +298,8 @@ internal sealed class SplitDocumentEditor : Control
 		// The splitter is not part of the text, so the menu of the text stays closed there.
 		_splitter.ContextRequested += GridSplitter_ContextRequested;
 
+		_splitter.DragCompleted += GridSplitter_DragCompleted;
+
 		Grid.SetRow(_splitter, SplitterRow);
 
 		_grid = new Grid
@@ -292,6 +318,10 @@ internal sealed class SplitDocumentEditor : Control
 		this
 			.GetObservable(IsSplitProperty)
 			.Subscribe(IsSplitProperty_Changed);
+
+		this
+			.GetObservable(SplitShareProperty)
+			.Subscribe(SplitShareProperty_Changed);
 	}
 	#endregion
 
@@ -336,17 +366,38 @@ internal sealed class SplitDocumentEditor : Control
 	}
 
 	/// <summary>
+	/// <see cref="Thumb.DragCompleted" /> event handler of the splitter.
+	/// </summary>
+	private void GridSplitter_DragCompleted(object? sender, VectorEventArgs e)
+	{
+		RowDefinitions rows = _grid.RowDefinitions;
+
+		// The splitter leaves the new heights of the halves in their rows.
+		double upperHeight = rows[PrimaryRow].Height.Value;
+
+		double lowerHeight = rows[SecondaryRow].Height.Value;
+
+		SetCurrentValue(SplitShareProperty, upperHeight / (upperHeight + lowerHeight));
+	}
+
+	/// <summary>
 	/// <see cref="IsSplitProperty" /> changed handler.
 	/// </summary>
 	private void IsSplitProperty_Changed(bool value)
 	{
 		RowDefinitions rows = _grid.RowDefinitions;
 
-		// A drag of the splitter leaves its own shares in both rows, so every split starts in the middle.
-		rows[PrimaryRow].Height = GridLength.Star;
+		if (value)
+		{
+			ApplySplitShare();
+		}
+		else
+		{
+			rows[PrimaryRow].Height = GridLength.Star;
 
-		// The row of the hidden lower half shrinks to nothing and leaves the whole height to the upper one.
-		rows[SecondaryRow].Height = value ? GridLength.Star : GridLength.Auto;
+			// The row of the hidden lower half shrinks to nothing and leaves the whole height to the upper one.
+			rows[SecondaryRow].Height = GridLength.Auto;
+		}
 
 		// A drag of the splitter to an edge leaves the half there in view, while a hidden half takes no room.
 		double minHeight = value ? MinHalfHeight : 0.0;
@@ -359,6 +410,9 @@ internal sealed class SplitDocumentEditor : Control
 
 		if (!value)
 		{
+			// The next split starts in the middle again.
+			SetCurrentValue(SplitShareProperty, MiddleSplitShare);
+
 			if (SecondaryEditor is not { } secondaryEditor)
 			{
 				return;
@@ -390,6 +444,34 @@ internal sealed class SplitDocumentEditor : Control
 		// The lower half gets its layout only once it is shown.
 		Dispatcher.UIThread.Post(CopyViewToSecondaryEditor, DispatcherPriority.Loaded);
 	}
+
+	/// <summary>
+	/// <see cref="SplitShareProperty" /> changed handler.
+	/// </summary>
+	private void SplitShareProperty_Changed(double value)
+	{
+		if (!IsSplit)
+		{
+			return;
+		}
+
+		ApplySplitShare();
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
+	/// </summary>
+	internal void CopyViewToSecondaryEditor()
+	{
+		if (!IsSplit || SecondaryEditor is not { } secondaryEditor)
+		{
+			return;
+		}
+
+		CopyView(PrimaryEditor, secondaryEditor);
+	}
 	#endregion
 
 	#region Helpers
@@ -415,16 +497,15 @@ internal sealed class SplitDocumentEditor : Control
 	}
 
 	/// <summary>
-	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
+	/// Divides the height between the halves by <see cref="SplitShare" />.
 	/// </summary>
-	private void CopyViewToSecondaryEditor()
+	private void ApplySplitShare()
 	{
-		if (!IsSplit || SecondaryEditor is not { } secondaryEditor)
-		{
-			return;
-		}
+		RowDefinitions rows = _grid.RowDefinitions;
 
-		CopyView(PrimaryEditor, secondaryEditor);
+		rows[PrimaryRow].Height = new GridLength(SplitShare, GridUnitType.Star);
+
+		rows[SecondaryRow].Height = new GridLength(1.0 - SplitShare, GridUnitType.Star);
 	}
 
 	/// <summary>

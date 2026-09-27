@@ -73,15 +73,17 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 	/// <summary>
 	/// Creates a control for editing a file.
 	/// </summary>
-	private bool CreateEditingFileControl(
-		FileDto file,
-		[NotNullWhen(true)] out Control? control)
+	private bool CreateEditingFileControl(FileDto file, [NotNullWhen(true)] out Control? control)
 	{
 		control = null;
 
 		if (file.Kind == EntityKind.File)
 		{
 			EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
+
+			viewModel.InitialEditorSplit = file.EditorSplit;
+
+			viewModel.SetEditorSplitCallback = SetEditorSplit;
 
 			Initialize(viewModel);
 
@@ -120,6 +122,8 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 
 			viewModel.Initialize();
 		}
+
+		void SetEditorSplit(double? split) => file.EditorSplit = split;
 
 		void SetEditorState(string state) => file.EditorState = state;
 

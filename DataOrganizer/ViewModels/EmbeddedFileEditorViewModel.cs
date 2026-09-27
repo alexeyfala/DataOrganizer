@@ -52,6 +52,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
+	/// <summary>
+	/// Split of the document to start from: the share of the height of the upper half, or <c>null</c> when it is not split.
+	/// </summary>
+	public double? InitialEditorSplit { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when the document is shown in two halves, one above the other.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsSplit { get; set; }
+
+	/// <summary>
+	/// Callback that reports the split of the document: the share of the height of the upper half, or <c>null</c> when it is not split.
+	/// </summary>
+	public Action<double?>? SetEditorSplitCallback { get; set; }
+
 	/// <inheritdoc cref="FileEditorState.ShowEndOfLine" />
 	[ObservableProperty]
 	public partial bool ShowEndOfLine { get; set; }
@@ -63,6 +79,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc cref="FileEditorState.ShowTabs" />
 	[ObservableProperty]
 	public partial bool ShowTabs { get; set; }
+
+	/// <summary>
+	/// Share of the height that the upper half takes while the document is split.
+	/// </summary>
+	[ObservableProperty]
+	public partial double SplitShare { get; set; } = 0.5;
 
 	/// <summary>
 	/// Caret, selection, scroll position and bookmarks of <see cref="Document" />.
@@ -85,6 +107,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		if (IsInitialized)
 		{
 			return;
+		}
+
+		// The file keeps the split for the session only, apart from the editor state in the database.
+		if (InitialEditorSplit is { } split)
+		{
+			SplitShare = split;
+
+			IsSplit = true;
 		}
 
 		try
@@ -298,6 +328,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
 
 	/// <summary>
+	/// Called when <see cref="IsSplit" /> changes.
+	/// </summary>
+	partial void OnIsSplitChanged(bool value) => ReportEditorSplit();
+
+	/// <summary>
 	/// Called when <see cref="ShowEndOfLine" /> changes.
 	/// </summary>
 	partial void OnShowEndOfLineChanged(bool value) => TrySavePersistentEditorState();
@@ -311,6 +346,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Called when <see cref="ShowTabs" /> changes.
 	/// </summary>
 	partial void OnShowTabsChanged(bool value) => TrySavePersistentEditorState();
+
+	/// <summary>
+	/// Called when <see cref="SplitShare" /> changes.
+	/// </summary>
+	partial void OnSplitShareChanged(double value) => ReportEditorSplit();
 
 	/// <summary>
 	/// Called when <see cref="ViewState" /> changes.
@@ -562,6 +602,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			}
 		}
 	}
+
+	/// <summary>
+	/// Reports the split of the document through <see cref="SetEditorSplitCallback" />.
+	/// </summary>
+	private void ReportEditorSplit() => SetEditorSplitCallback?.Invoke(IsSplit ? SplitShare : null);
 
 	/// <summary>
 	/// Tries to save the editor state.

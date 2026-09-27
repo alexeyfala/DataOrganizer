@@ -17,9 +17,11 @@
 		EncodingName="{Binding EncodingName, Mode=OneWay}"
 		IsReadOnly="{Binding !IsEditingEnabled, Mode=OneWay}"
 		IsSensitive="{Binding IsEncrypted, Mode=OneWay}"
+		IsSplit="{Binding IsSplit, Mode=TwoWay}"
 		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
 		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"
 		ShowTabs="{Binding ShowTabs, Mode=TwoWay}"
+		SplitShare="{Binding SplitShare, Mode=TwoWay}"
 		ViewState="{Binding ViewState, Mode=TwoWay}"
 		WordWrap="{Binding WordWrap, Mode=TwoWay}">
 
