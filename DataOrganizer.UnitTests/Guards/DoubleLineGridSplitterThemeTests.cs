@@ -11,10 +11,15 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
-[TestFixture(Description = "Guards the look of the double line splitter: a line along the edge of each side, with the grip of the single line splitter")]
+[TestFixture(Description = "Guards the look of the double line splitter: a filled band between two lines, with the grip of the single line splitter")]
 internal class DoubleLineGridSplitterThemeTests
 {
 	#region Data
+	/// <summary>
+	/// Resource key of the brush that fills the band between the lines.
+	/// </summary>
+	private const string FillBrushKey = "MaterialTextFieldBoxBackgroundBrush";
+
 	/// <summary>
 	/// Name of the template part that shows where to grab the splitter.
 	/// </summary>
@@ -37,6 +42,28 @@ internal class DoubleLineGridSplitterThemeTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// The band between the lines is filled.
+	/// </summary>
+	[AvaloniaTest]
+	public void Band_Is_Filled_Between_The_Lines()
+	{
+		// Arrange
+		GridSplitter sut = new()
+		{
+			ResizeDirection = GridResizeDirection.Rows,
+			Theme = GetTheme()
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetVisualChildren().OfType<Panel>().Single().Background
+			.Should()
+			.BeSameAs(Application.Current!.FindResource(FillBrushKey));
+	}
+
 	/// <summary>
 	/// The grip of a splitter between rows lies flat.
 	/// </summary>

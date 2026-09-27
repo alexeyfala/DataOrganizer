@@ -136,13 +136,14 @@
 	</ControlTheme>
 
 	<!--
-		Two lines, one along the edge of each side.
+		Two lines, one along the edge of each side, with a filled band between them.
 		The grip and its states come from the single line theme through the part name.
 	-->
 	<ControlTheme
 		x:Key="DoubleLineGridSplitterTheme"
 		BasedOn="{StaticResource SingleLineGridSplitterTheme}"
 		TargetType="GridSplitter">
+		<Setter Property="Background" Value="{StaticResource MaterialTextFieldBoxBackgroundBrush}" />
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Panel Background="{TemplateBinding Background}">
