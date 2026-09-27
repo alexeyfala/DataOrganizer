@@ -29,9 +29,9 @@ internal class ScrollMarkMarginTests
 {
 	#region Data
 	/// <summary>
-	/// Resource key of the primary brush of the theme.
+	/// Resource key of the brush of the bookmarks.
 	/// </summary>
-	private const string PrimaryBrushKey = "MaterialPrimaryMidBrush";
+	private const string BookmarkBrushKey = "BookmarkBrush";
 
 	/// <summary>
 	/// Name of the scroll viewer in the template of the text editor.
@@ -823,9 +823,9 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
-	/// Returns the primary brush of the theme.
+	/// Returns the brush of the bookmarks.
 	/// </summary>
-	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(PrimaryBrushKey)!;
+	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(BookmarkBrushKey)!;
 
 	/// <summary>
 	/// Returns the scroll mark margin of the editor.
