@@ -31,6 +31,7 @@
 			</StackPanel.Styles>
 
 			<StackPanel
+				x:Name="ToolBar"
 				DataContext="{Binding #View}"
 				Orientation="Horizontal"
 				Spacing="4.0">
@@ -66,7 +67,7 @@
 
 				<ToggleButton
 					Classes="primary"
-					Content="{materialIcons:MaterialIconTextExt Kind=ViewSplitHorizontal,
+					Content="{materialIcons:MaterialIconTextExt Kind=ViewAgendaOutline,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					IsChecked="{Binding IsSplit, Mode=TwoWay}"
 					ToolTip.Tip="{x:Static prop:Strings.SplitWindow}" />
@@ -75,14 +76,14 @@
 
 				<Button
 					Classes="primary"
-					Command="{Binding #Editor.ScrollToTopCommand}"
+					Command="{Binding #View.ActiveEditor.ScrollToTopCommand}"
 					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
 
 				<Button
 					Classes="primary"
-					Command="{Binding #Editor.ScrollToEndCommand}"
+					Command="{Binding #View.ActiveEditor.ScrollToEndCommand}"
 					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 					                                            IconSize={StaticResource ToolBarIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
@@ -99,7 +100,7 @@
 
 					<Interaction.Behaviors>
 						<EventTriggerBehavior EventName="Spin">
-							<InvokeCommandAction Command="{Binding #Editor.SpinCommand}" PassEventArgsToCommand="True" />
+							<InvokeCommandAction Command="{Binding #View.ActiveEditor.SpinCommand}" PassEventArgsToCommand="True" />
 						</EventTriggerBehavior>
 					</Interaction.Behaviors>
 
@@ -139,19 +140,19 @@
 				<controls:DocumentTextEditor.ContextMenu>
 					<ContextMenu Padding="4.0,0.0">
 						<MenuItem
-							Command="{Binding #Editor.CutCommand}"
+							Command="{Binding #View.ActiveEditor.CutCommand}"
 							Header="{x:Static prop:Strings.Cut}"
 							InputGesture="{OnPlatform Default='Ctrl+X',
 							                          macOS='⌘+X'}" />
 
 						<MenuItem
-							Command="{Binding #Editor.CopyCommand}"
+							Command="{Binding #View.ActiveEditor.CopyCommand}"
 							Header="{x:Static prop:Strings.Copy}"
 							InputGesture="{OnPlatform Default='Ctrl+C',
 							                          macOS='⌘+C'}" />
 
 						<MenuItem
-							Command="{Binding #Editor.PasteCommand}"
+							Command="{Binding #View.ActiveEditor.PasteCommand}"
 							Header="{x:Static prop:Strings.Paste}"
 							InputGesture="{OnPlatform Default='Ctrl+V',
 							                          macOS='⌘+V'}" />
@@ -159,13 +160,13 @@
 						<Separator />
 
 						<MenuItem
-							Command="{Binding #Editor.UndoCommand}"
+							Command="{Binding #View.ActiveEditor.UndoCommand}"
 							Header="{x:Static prop:Strings.Undo}"
 							InputGesture="{OnPlatform Default='Ctrl+Z',
 							                          macOS='⌘+Z'}" />
 
 						<MenuItem
-							Command="{Binding #Editor.RedoCommand}"
+							Command="{Binding #View.ActiveEditor.RedoCommand}"
 							Header="{x:Static prop:Strings.Redo}"
 							InputGesture="{OnPlatform Default='Ctrl+Y',
 							                          macOS='⌘+Y'}" />
@@ -173,7 +174,7 @@
 						<Separator />
 
 						<MenuItem
-							Command="{Binding #Editor.SelectAllCommand}"
+							Command="{Binding #View.ActiveEditor.SelectAllCommand}"
 							Header="{x:Static prop:Strings.SelectAll}"
 							InputGesture="{OnPlatform Default='Ctrl+A',
 							                          macOS='⌘+A'}" />
@@ -182,50 +183,50 @@
 
 						<MenuItem Header="{x:Static prop:Strings.Transform}">
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.UpperCase}"
 								Header="{x:Static prop:Strings.Uppercase}"
 								InputGesture="{OnPlatform Default='Ctrl+Shift+U',
 								                          macOS='⌘+Shift+U'}" />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.LowerCase}"
 								Header="{x:Static prop:Strings.Lowercase}"
 								InputGesture="{OnPlatform Default='Ctrl+U',
 								                          macOS='⌘+U'}" />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.TitleCase}"
 								Header="{x:Static prop:Strings.TitleCase}" />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.InvertCase}"
 								Header="{x:Static prop:Strings.InvertCase}" />
 
 							<Separator />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
 								Header="{x:Static prop:Strings.RemoveTrailingSpaces}" />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
 								Header="{x:Static prop:Strings.RemoveLeadingSpaces}" />
 
 							<Separator />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
 								Header="{x:Static prop:Strings.IndentsTabsToSpaces}" />
 
 							<MenuItem
-								Command="{Binding #Editor.TransformCommand}"
+								Command="{Binding #View.ActiveEditor.TransformCommand}"
 								CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
 								Header="{x:Static prop:Strings.IndentsSpacesToTabs}" />
 
@@ -234,17 +235,17 @@
 							<!--  The same captions as in the status bar.  -->
 							<MenuItem Header="{x:Static prop:Strings.LineEndings}">
 								<MenuItem
-									Command="{Binding #Editor.ConvertLineEndingsCommand}"
+									Command="{Binding #View.ActiveEditor.ConvertLineEndingsCommand}"
 									CommandParameter="{x:Static documents:LineEnding.CrLf}"
 									Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
 
 								<MenuItem
-									Command="{Binding #Editor.ConvertLineEndingsCommand}"
+									Command="{Binding #View.ActiveEditor.ConvertLineEndingsCommand}"
 									CommandParameter="{x:Static documents:LineEnding.Lf}"
 									Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
 
 								<MenuItem
-									Command="{Binding #Editor.ConvertLineEndingsCommand}"
+									Command="{Binding #View.ActiveEditor.ConvertLineEndingsCommand}"
 									CommandParameter="{x:Static documents:LineEnding.Cr}"
 									Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
 							</MenuItem>
@@ -253,31 +254,31 @@
 						<Separator />
 
 						<MenuItem
-							Command="{Binding #Editor.FindCommand}"
+							Command="{Binding #View.ActiveEditor.FindCommand}"
 							Header="{x:Static prop:Strings.Find}"
 							InputGesture="{OnPlatform Default='Ctrl+F',
 							                          macOS='⌘+F'}" />
 
 						<MenuItem Header="{x:Static prop:Strings.Bookmarks}">
 							<MenuItem
-								Command="{Binding #Editor.ToggleBookmarkCommand}"
+								Command="{Binding #View.ActiveEditor.ToggleBookmarkCommand}"
 								Header="{x:Static prop:Strings.ToggleBookmark}"
 								InputGesture="{OnPlatform Default='Ctrl+F2',
 								                          macOS='⌘+F2'}" />
 
 							<MenuItem
-								Command="{Binding #Editor.NextBookmarkCommand}"
+								Command="{Binding #View.ActiveEditor.NextBookmarkCommand}"
 								Header="{x:Static prop:Strings.NextBookmark}"
 								InputGesture="F2" />
 
 							<MenuItem
-								Command="{Binding #Editor.PreviousBookmarkCommand}"
+								Command="{Binding #View.ActiveEditor.PreviousBookmarkCommand}"
 								Header="{x:Static prop:Strings.PreviousBookmark}"
 								InputGesture="Shift+F2" />
 
 							<Separator />
 
-							<MenuItem Command="{Binding #Editor.ClearBookmarksCommand}" Header="{x:Static prop:Strings.RemoveAllBookmarks}" />
+							<MenuItem Command="{Binding #View.ActiveEditor.ClearBookmarksCommand}" Header="{x:Static prop:Strings.RemoveAllBookmarks}" />
 						</MenuItem>
 					</ContextMenu>
 				</controls:DocumentTextEditor.ContextMenu>
@@ -288,9 +289,11 @@
 				Classes="HorizontalGridSplitterStyle"
 				IsVisible="{Binding #View.IsSplit, Mode=OneWay}" />
 
+			<!--  The menu of the upper half serves both halves, as it acts on the active one.  -->
 			<controls:DocumentTextEditor
 				x:Name="SplitEditor"
 				Grid.Row="2"
+				ContextMenu="{Binding #Editor.ContextMenu, Mode=OneWay}"
 				DataContext="{Binding #View}"
 				Document="{Binding Document, Mode=OneWay}"
 				Focusable="True"
@@ -336,7 +339,7 @@
 					<TextBlock
 						MinWidth="110.0"
 						Margin="8.0,4.0"
-						Text="{Binding #Editor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						Text="{Binding #View.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
 						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
 				</Border>
 
@@ -344,15 +347,16 @@
 
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<StackPanel
+						x:Name="CaretBlock"
 						MinWidth="240.0"
 						Margin="8.0,4.0"
 						Orientation="Horizontal"
 						Spacing="{StaticResource ElementSpacing}">
-						<TextBlock Text="{Binding #Editor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+						<TextBlock Text="{Binding #View.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+						<TextBlock Text="{Binding #View.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
+						<TextBlock Text="{Binding #View.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
 					</StackPanel>
 				</Border>
 
@@ -364,9 +368,9 @@
 						Margin="8.0,4.0"
 						Orientation="Horizontal"
 						Spacing="{StaticResource ElementSpacing}">
-						<TextBlock Text="{Binding #Editor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+						<TextBlock Text="{Binding #View.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+						<TextBlock Text="{Binding #View.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
 					</StackPanel>
 				</Border>
 			</DockPanel>

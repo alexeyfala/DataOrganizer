@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -14,6 +15,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
 using System.Linq;
+using System.Windows.Input;
 
 namespace DataOrganizer.UnitTests.Views;
 
@@ -21,6 +23,11 @@ namespace DataOrganizer.UnitTests.Views;
 internal class DocumentEditorViewTests
 {
 	#region Data
+	/// <summary>
+	/// Name of the status bar block with the caret position in the markup.
+	/// </summary>
+	private const string CaretBlockName = "CaretBlock";
+
 	/// <summary>
 	/// Name of the text editor of the upper half in the markup.
 	/// </summary>
@@ -45,9 +52,335 @@ internal class DocumentEditorViewTests
 	/// Name of the text editor of the lower half in the markup.
 	/// </summary>
 	private const string SplitEditorName = "SplitEditor";
+
+	/// <summary>
+	/// Name of the panel with the buttons of the control in the toolbar in the markup.
+	/// </summary>
+	private const string ToolBarName = "ToolBar";
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: a right click beside the text, where the text area takes no focus,
+	/// makes its half the active one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Follows_A_Right_Click_Beside_The_Text()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		ScrollMarkMargin scrollMarks = splitEditor
+			.GetVisualDescendants()
+			.OfType<ScrollMarkMargin>()
+			.Single();
+
+		Point point = Center(window, scrollMarks);
+
+		// Act
+		window.MouseDown(point, MouseButton.Right);
+
+		window.MouseUp(point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(SplitEditorName);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: a right click in the text makes its half the active one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Follows_A_Right_Click_In_The_Text()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Window window = Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		Point point = Center(window, splitEditor);
+
+		// Act
+		window.MouseDown(point, MouseButton.Right);
+
+		window.MouseUp(point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(SplitEditorName);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the focus that comes back to the upper half makes it the active one again.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Follows_The_Focus_Back_Into_The_Upper_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+
+		sut
+			.GetControl<DocumentTextEditor>(SplitEditorName)
+			.TextArea
+			.Focus();
+
+		// Act
+		editor
+			.TextArea
+			.Focus();
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(EditorName);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the focus that goes into the lower half makes it the active one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Follows_The_Focus_Into_The_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		// Act
+		splitEditor
+			.TextArea
+			.Focus();
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(SplitEditorName);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: every command of the context menu acts on the active half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Reaches_The_Context_Menu()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		// Act
+		splitEditor
+			.TextArea
+			.Focus();
+
+		// Assert
+		ICommand?[] commands = GetMenuCommands(sut.GetControl<DocumentTextEditor>(EditorName).ContextMenu!);
+
+		commands
+			.Should()
+			.NotBeEmpty()
+			.And
+			.BeSubsetOf(GetCommands(splitEditor));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the status bar shows the caret of the active half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		StackPanel caretBlock = sut.GetControl<StackPanel>(CaretBlockName);
+
+		editor
+			.TextArea
+			.Caret
+			.Position = new(line: 3, column: 1);
+
+		splitEditor
+			.TextArea
+			.Caret
+			.Position = new(line: 7, column: 5);
+
+		string?[] texts = [.. caretBlock.Children.OfType<TextBlock>().Select(static x => x.Text)];
+
+		// Act
+		splitEditor
+			.TextArea
+			.Focus();
+
+		// Assert
+		caretBlock.Children.OfType<TextBlock>().Select(static x => x.Text)
+			.Should()
+			.NotEqual(texts);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the scroll buttons of the toolbar act on the active half.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Reaches_The_Toolbar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		// Act
+		splitEditor
+			.TextArea
+			.Focus();
+
+		// Assert
+		ICommand[] commands = [.. sut
+			.GetControl<StackPanel>(ToolBarName)
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Select(static x => x.Command)
+			.OfType<ICommand>()];
+
+		commands
+			.Should()
+			.Equal(splitEditor.ScrollToTopCommand, splitEditor.ScrollToEndCommand);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the scroll buttons of the toolbar act on the upper half
+	/// before any half takes the focus.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Reaches_The_Toolbar_From_The_Start()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+
+		ICommand[] commands = [.. sut
+			.GetControl<StackPanel>(ToolBarName)
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Select(static x => x.Command)
+			.OfType<ICommand>()];
+
+		commands
+			.Should()
+			.Equal(editor.ScrollToTopCommand, editor.ScrollToEndCommand);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: a new active half reports its caret, selection and offset at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Reports_The_View_State_Of_The_New_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		splitEditor.Select(40, 3);
+
+		Vector offset = new(0.0, 700.0);
+
+		GetSplitScrollViewer(sut).Offset = offset;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		splitEditor
+			.TextArea
+			.Focus();
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.Be(new DocumentViewState
+			{
+				CaretPosition = splitEditor.TextArea.Caret.Position,
+				ScrollOffset = offset,
+				SelectionLength = 3,
+				SelectionStart = 40
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ActiveEditor" />: the upper half is the active one from the start.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Starts_With_The_Upper_Half()
+	{
+		// Act
+		DocumentEditorView sut = new();
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(EditorName);
+	}
+
 	/// <summary>
 	/// <see cref="DocumentEditorView.CaptureViewState" />: the reported state is not restored back,
 	/// so a later scroll stays where it is.
@@ -115,6 +448,50 @@ internal class DocumentEditorViewTests
 		sut.ViewState
 			.Should()
 			.Be(state);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.CaptureViewState" />: reports the caret, the selection and the offset of the active half.
+	/// </summary>
+	[AvaloniaTest]
+	public void CaptureViewState_Reports_The_Active_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		splitEditor
+			.TextArea
+			.Focus();
+
+		splitEditor.Select(40, 3);
+
+		Vector offset = new(0.0, 700.0);
+
+		GetSplitScrollViewer(sut).Offset = offset;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.CaptureViewState();
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.Be(new DocumentViewState
+			{
+				CaretPosition = splitEditor.TextArea.Caret.Position,
+				ScrollOffset = offset,
+				SelectionLength = 3,
+				SelectionStart = 40
+			});
 	}
 
 	/// <summary>
@@ -431,6 +808,101 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half takes over the caret, the selection
+	/// and the scroll position of an active lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Keeps_The_Place_Of_The_Active_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+
+		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
+
+		splitEditor
+			.TextArea
+			.Focus();
+
+		splitEditor.Select(40, 3);
+
+		// The caret at the start of the selection, where the selection alone would not put it.
+		splitEditor
+			.TextArea
+			.Caret
+			.Position = new(line: 5, column: 1);
+
+		Vector offset = new(0.0, 700.0);
+
+		GetSplitScrollViewer(sut).Offset = offset;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = false;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.SelectionStart
+			.Should()
+			.Be(40);
+
+		editor.SelectionLength
+			.Should()
+			.Be(3);
+
+		editor.TextArea.Caret.Location
+			.Should()
+			.Be(new TextLocation(5, 1));
+
+		GetScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: without the split an active upper half stays where it is.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Keeps_The_Place_Of_The_Active_Upper_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		Vector offset = new(0.0, 200.0);
+
+		GetScrollViewer(sut).Offset = offset;
+
+		GetSplitScrollViewer(sut).Offset = new(0.0, 700.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = false;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.IsSplit" />: without a split the upper half takes the whole height of the halves.
 	/// </summary>
 	[AvaloniaTest]
@@ -446,6 +918,43 @@ internal class DocumentEditorViewTests
 		sut.GetControl<TextEditor>(EditorName).Bounds.Height
 			.Should()
 			.Be(sut.GetControl<Grid>(EditorsHostName).Bounds.Height);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half is the active one again,
+	/// even when the focus has already left the lower half.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Makes_The_Upper_Half_Active()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		sut
+			.GetControl<DocumentTextEditor>(SplitEditorName)
+			.TextArea
+			.Focus();
+
+		// The split toggle takes the focus when it is clicked.
+		sut
+			.GetControl<StackPanel>(ToolBarName)
+			.Children
+			.OfType<ToggleButton>()
+			.First()
+			.Focus();
+
+		// Act
+		sut.IsSplit = false;
+
+		// Assert
+		sut.ActiveEditor.Name
+			.Should()
+			.Be(EditorName);
 	}
 
 	/// <summary>
@@ -857,6 +1366,26 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: the lower half opens the same context menu as the upper one.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitEditor_Shares_The_Context_Menu()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<TextEditor>(SplitEditorName).ContextMenu
+			.Should()
+			.NotBeNull()
+			.And
+			.BeSameAs(sut.GetControl<TextEditor>(EditorName).ContextMenu);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: in a window too narrow for the status bar the block on the right edge stays whole
 	/// and in view, while the blocks on the left give way.
 	/// </summary>
@@ -1208,6 +1737,29 @@ internal class DocumentEditorViewTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
+	}
+
+	/// <summary>
+	/// Returns the commands of a text editor.
+	/// </summary>
+	private static ICommand[] GetCommands(TextEditor editor)
+	{
+		return [.. editor
+			.GetType()
+			.GetProperties()
+			.Where(static x => typeof(ICommand).IsAssignableFrom(x.PropertyType))
+			.Select(x => (ICommand)x.GetValue(editor)!)];
+	}
+
+	/// <summary>
+	/// Returns the commands of the items of a menu that open no submenu.
+	/// </summary>
+	private static ICommand?[] GetMenuCommands(ItemsControl menu)
+	{
+		return [.. menu
+			.Items
+			.OfType<MenuItem>()
+			.SelectMany(static x => x.ItemCount > 0 ? GetMenuCommands(x) : [x.Command])];
 	}
 
 	/// <summary>
