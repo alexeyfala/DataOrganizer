@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
@@ -10,8 +11,8 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
-[TestFixture(Description = "Guards the look of the splitters: a hairline with a grip that shows on hover and takes the primary brush when pressed")]
-internal class GridSplitterThemeTests
+[TestFixture(Description = "Guards the look of the single line splitter: a hairline with a grip that shows on hover and takes the primary brush when pressed")]
+internal class SingleLineGridSplitterThemeTests
 {
 	#region Data
 	/// <summary>
@@ -28,6 +29,11 @@ internal class GridSplitterThemeTests
 	/// Resource key of the primary brush of the theme.
 	/// </summary>
 	private const string PrimaryBrushKey = "MaterialPrimaryMidBrush";
+
+	/// <summary>
+	/// Resource key of the theme under test.
+	/// </summary>
+	private const string ThemeKey = "SingleLineGridSplitterTheme";
 	#endregion
 
 	#region Methods
@@ -40,7 +46,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Rows
+			ResizeDirection = GridResizeDirection.Rows,
+			Theme = GetTheme()
 		};
 
 		// Act
@@ -63,7 +70,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Columns
+			ResizeDirection = GridResizeDirection.Columns,
+			Theme = GetTheme()
 		};
 
 		Window window = Show(sut);
@@ -90,7 +98,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Columns
+			ResizeDirection = GridResizeDirection.Columns,
+			Theme = GetTheme()
 		};
 
 		// Act
@@ -113,7 +122,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Columns
+			ResizeDirection = GridResizeDirection.Columns,
+			Theme = GetTheme()
 		};
 
 		// Act
@@ -136,7 +146,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Rows
+			ResizeDirection = GridResizeDirection.Rows,
+			Theme = GetTheme()
 		};
 
 		// Act
@@ -159,7 +170,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Columns
+			ResizeDirection = GridResizeDirection.Columns,
+			Theme = GetTheme()
 		};
 
 		// Act
@@ -182,7 +194,8 @@ internal class GridSplitterThemeTests
 		// Arrange
 		GridSplitter sut = new()
 		{
-			ResizeDirection = GridResizeDirection.Columns
+			ResizeDirection = GridResizeDirection.Columns,
+			Theme = GetTheme()
 		};
 
 		Window window = Show(sut);
@@ -229,6 +242,11 @@ internal class GridSplitterThemeTests
 	/// Returns the value the styles give a property, which a transition reaches only later.
 	/// </summary>
 	private static T GetStyledValue<T>(AvaloniaObject target, StyledProperty<T> property) => target.GetBaseValue(property).Value;
+
+	/// <summary>
+	/// Returns the theme under test.
+	/// </summary>
+	private static ControlTheme GetTheme() => (ControlTheme)Application.Current!.FindResource(ThemeKey)!;
 
 	/// <summary>
 	/// Shows the splitter between two cells of a grid in a window of a fixed size and lets the layout settle.

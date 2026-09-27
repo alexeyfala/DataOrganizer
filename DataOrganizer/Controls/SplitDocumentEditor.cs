@@ -232,14 +232,14 @@ internal sealed class SplitDocumentEditor : Control
 	private const int SecondaryRow = 2;
 
 	/// <summary>
-	/// Style class of the splitter between the halves.
-	/// </summary>
-	private const string SplitterClass = "HorizontalGridSplitterStyle";
-
-	/// <summary>
 	/// Row of the splitter between the halves.
 	/// </summary>
 	private const int SplitterRow = 1;
+
+	/// <summary>
+	/// Resource key of the theme of the splitter between the halves.
+	/// </summary>
+	private const string SplitterThemeKey = "DoubleLineGridSplitterTheme";
 
 	/// <summary>
 	/// Grid of the halves and the splitter between them.
@@ -265,10 +265,11 @@ internal sealed class SplitDocumentEditor : Control
 		// A drag of the splitter leaves the focus in the text, so the keys still type into it.
 		_splitter = new GridSplitter
 		{
-			Focusable = false
+			Focusable = false,
+			ResizeDirection = GridResizeDirection.Rows
 		};
 
-		_splitter.Classes.Add(SplitterClass);
+		_splitter.Bind(ThemeProperty, _splitter.GetResourceObservable(SplitterThemeKey));
 
 		// The splitter is not part of the text, so the menu of the text stays closed there.
 		_splitter.ContextRequested += GridSplitter_ContextRequested;

@@ -64,9 +64,9 @@
 	</ControlTheme>
 
 	<!--
-		Replaces the Material theme of every GridSplitter: a hairline in a wider hit area, with a grip that shows on hover.
+		A hairline in a wider hit area, with a grip that shows on hover.
 	-->
-	<ControlTheme x:Key="{x:Type GridSplitter}" TargetType="GridSplitter">
+	<ControlTheme x:Key="SingleLineGridSplitterTheme" TargetType="GridSplitter">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="Focusable" Value="True" />
 		<Setter Property="MinHeight" Value="8.0" />
@@ -132,6 +132,56 @@
 			<Style Selector="^ /template/ Border#PART_Line">
 				<Setter Property="Background" Value="{StaticResource MaterialPrimaryMidBrush}" />
 			</Style>
+		</Style>
+	</ControlTheme>
+
+	<!--
+		Two lines, one along the edge of each side.
+		The grip and its states come from the single line theme through the part name.
+	-->
+	<ControlTheme
+		x:Key="DoubleLineGridSplitterTheme"
+		BasedOn="{StaticResource SingleLineGridSplitterTheme}"
+		TargetType="GridSplitter">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel Background="{TemplateBinding Background}">
+					<Border
+						Name="PART_Lines"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0,0.0">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+
+					<Border
+						Name="PART_Grip"
+						Width="4.0"
+						Height="36.0"
+						Background="{StaticResource MaterialBodyLightBrush}"
+						CornerRadius="2.0"
+						Opacity="0.0">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.15" />
+
+								<DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^[ResizeDirection=Rows] /template/ Border#PART_Lines">
+			<Setter Property="BorderThickness" Value="0.0,1.0" />
+		</Style>
+
+		<Style Selector="^:pressed /template/ Border#PART_Lines">
+			<Setter Property="BorderBrush" Value="{StaticResource MaterialPrimaryMidBrush}" />
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

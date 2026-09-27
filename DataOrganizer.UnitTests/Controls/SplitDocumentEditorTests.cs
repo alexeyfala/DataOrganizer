@@ -26,6 +26,11 @@ internal class SplitDocumentEditorTests
 	/// Name of the editor of the lower half.
 	/// </summary>
 	private const string SecondaryEditorName = "SecondaryEditor";
+
+	/// <summary>
+	/// Resource key of the theme of the splitter between the halves.
+	/// </summary>
+	private const string SplitterThemeKey = "DoubleLineGridSplitterTheme";
 	#endregion
 
 	#region Methods
@@ -946,6 +951,27 @@ internal class SplitDocumentEditorTests
 		sut.SecondaryEditor!.Options.ShowTabs
 			.Should()
 			.Be(isShown);
+	}
+
+	/// <summary>
+	/// The splitter between the halves takes the double line theme.
+	/// </summary>
+	[AvaloniaTest]
+	public void Splitter_Takes_The_Double_Line_Theme()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetVisualDescendants().OfType<GridSplitter>().Single().Theme
+			.Should()
+			.BeSameAs(Application.Current!.FindResource(SplitterThemeKey));
 	}
 
 	/// <summary>
