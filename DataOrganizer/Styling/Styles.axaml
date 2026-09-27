@@ -5,6 +5,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties">
 
@@ -152,6 +153,20 @@
 	<!--  Keys of a command in a flyout, dimmed as secondary text.  -->
 	<Style Selector="TextBlock.GestureInFlyoutTextBlockStyle">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyLightBrush}" />
+	</Style>
+
+	<!--
+		The white card of a menu blends into the light page, so it gets an outline. The card of a flyout
+		is a Material card of its own, which takes no border from the presenter.
+	-->
+	<Style Selector="FlyoutPresenter /template/ materialControls|Card#LayoutRoot">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
+	</Style>
+
+	<Style Selector="MenuFlyoutPresenter">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
 	</Style>
 
 	<Style Selector="TextBlock.HeaderTextBlockStyle">
