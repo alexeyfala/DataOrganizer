@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DataOrganizer.Helpers.Text;
 
@@ -13,36 +14,43 @@ internal sealed class LineBookmarks
 {
 	#region Properties
 	/// <summary>
-	/// Document with the lines; another document starts without bookmarks.
+	/// Document with the lines.
 	/// </summary>
-	public TextDocument? Document
-	{
-		get => _document;
-		set
-		{
-			if (value == _document)
-			{
-				return;
-			}
-
-			_document = value;
-
-			_anchors.Clear();
-		}
-	}
+	public TextDocument? Document { get; init; }
 	#endregion
 
 	#region Data
 	/// <summary>
+	/// Bookmarks of each document, which live as long as their document.
+	/// </summary>
+	private static readonly ConditionalWeakTable<TextDocument, LineBookmarks> ByDocument = [];
+
+	/// <summary>
 	/// Anchors at the starts of the bookmarked lines.
 	/// </summary>
 	private readonly List<TextAnchor> _anchors = [];
-
-	/// <inheritdoc cref="Document" />
-	private TextDocument? _document;
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Returns the bookmarks of a document without creating them; <c>null</c> for a document that has none.
+	/// </summary>
+	public static LineBookmarks? Find(TextDocument document)
+	{
+		return ByDocument.TryGetValue(document, out LineBookmarks? bookmarks) ? bookmarks : null;
+	}
+
+	/// <summary>
+	/// Returns the one set of bookmarks of a document, created on first use.
+	/// </summary>
+	public static LineBookmarks Of(TextDocument document)
+	{
+		return ByDocument.GetValue(document, static x => new LineBookmarks
+		{
+			Document = x
+		});
+	}
+
 	/// <summary>
 	/// Removes all bookmarks.
 	/// </summary>
@@ -97,7 +105,7 @@ internal sealed class LineBookmarks
 	{
 		_anchors.Clear();
 
-		if (_document is { } document)
+		if (Document is { } document)
 		{
 			_anchors.AddRange(lines
 				.Distinct()
@@ -114,7 +122,7 @@ internal sealed class LineBookmarks
 	/// </summary>
 	public void Toggle(int line)
 	{
-		if (_document is not { } document || line < 1 || line > document.LineCount)
+		if (Document is not { } document || line < 1 || line > document.LineCount)
 		{
 			return;
 		}

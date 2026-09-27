@@ -1237,6 +1237,36 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.Receive" />: a bookmark set in the lower half reaches the view state too,
+	/// as both halves share the bookmarks of the document.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Reports_The_Bookmarks_Of_The_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+
+		// Act
+		splitEditor.Bookmarks.Toggle(3);
+
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
+		int[]? bookmarks = sut.ViewState?.Bookmarks;
+
+		bookmarks
+			.Should()
+			.Equal(3);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ShowEndOfLine" />:the glyphs of line endings reach the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -1585,6 +1615,39 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		sut.GetControl<DocumentTextEditor>(EditorName).Bookmarks.GetLines()
+			.Should()
+			.Equal(2, 4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: the restored bookmarks show in the lower half as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Bookmarks_Into_The_Lower_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 100),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			Bookmarks = [2, 4],
+			CaretPosition = new(line: 1, column: 1),
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetControl<DocumentTextEditor>(SplitEditorName).Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
 	}

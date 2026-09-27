@@ -24,7 +24,7 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// <summary>
 	/// Bookmarks of the lines of the document.
 	/// </summary>
-	public LineBookmarks Bookmarks { get; }
+	public LineBookmarks Bookmarks { get; private set; }
 
 	/// <summary>
 	/// <c>True</c> when line endings are shown.
@@ -230,13 +230,10 @@ internal sealed class DocumentTextEditor : TextEditorBase
 			.GetObservable(ShowTabsProperty)
 			.Subscribe(ShowTabsProperty_Changed);
 
-		Bookmarks = new()
-		{
-			Document = Document
-		};
+		Bookmarks = GetBookmarks(Document);
 
 		// Left of the line numbers, as in Visual Studio, the bookmarks keep clear of clicks at the start of a line.
-		TextArea.LeftMargins.Insert(0, new BookmarkMargin(Bookmarks));
+		TextArea.LeftMargins.Insert(0, new BookmarkMargin(this));
 
 		TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
@@ -288,7 +285,7 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	private void DocumentTextEditor_DocumentChanged(object? sender, DocumentChangedEventArgs e)
 	{
 		// The bookmarks belong to the lines of one document.
-		Bookmarks.Document = Document;
+		Bookmarks = GetBookmarks(Document);
 
 		UpdateLineEnding();
 	}
@@ -410,6 +407,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 
 		return found;
 	}
+
+	/// <summary>
+	/// Returns the bookmarks of a document, or an empty set of its own without a document.
+	/// </summary>
+	private static LineBookmarks GetBookmarks(TextDocument? document) => document is null ? new() : LineBookmarks.Of(document);
 
 	/// <summary>
 	/// Returns the command of the engine that performs a transformation.

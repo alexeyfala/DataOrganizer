@@ -40,9 +40,9 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	private static readonly Geometry Icon = Geometry.Parse(MaterialIconDataProvider.GetData(MaterialIconKind.Bookmark));
 
 	/// <summary>
-	/// Bookmarks the margin shows and changes.
+	/// Editor whose bookmarks the margin shows and changes.
 	/// </summary>
-	private readonly LineBookmarks _bookmarks;
+	private readonly DocumentTextEditor _editor;
 
 	/// <summary>
 	/// Height of the pointer over the margin.
@@ -51,9 +51,10 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	#endregion
 
 	#region Constructors
-	public BookmarkMargin(LineBookmarks bookmarks)
+	public BookmarkMargin(DocumentTextEditor editor)
 	{
-		_bookmarks = bookmarks;
+		//_bookmarks = bookmarks;
+		_editor = editor;
 
 		// A cursor of its own, as the margin would inherit the I-beam the text area takes on a click.
 		Cursor = new Cursor(StandardCursorType.Arrow);
@@ -71,8 +72,8 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	/// </summary>
 	public void Receive(BookmarksChangedMessage message)
 	{
-		// Every open editor sends the message about its own bookmarks.
-		if (message.Bookmarks != _bookmarks)
+		// Every open document has bookmarks of its own.
+		if (message.Bookmarks != _editor.Bookmarks)
 		{
 			return;
 		}
@@ -95,9 +96,11 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 
 		VisualLine? pointedLine = FindPointedLine();
 
+		LineBookmarks bookmarks = _editor.Bookmarks;
+
 		foreach (VisualLine visualLine in textView.VisualLines)
 		{
-			bool isBookmarked = _bookmarks.Contains(visualLine.FirstDocumentLine.LineNumber);
+			bool isBookmarked = bookmarks.Contains(visualLine.FirstDocumentLine.LineNumber);
 
 			// The icon under the pointer shows where a click puts a bookmark.
 			if (!isBookmarked && visualLine != pointedLine)
@@ -180,7 +183,9 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 			return;
 		}
 
-		_bookmarks.Toggle(visualLine.FirstDocumentLine.LineNumber);
+		_editor
+			.Bookmarks
+			.Toggle(visualLine.FirstDocumentLine.LineNumber);
 	}
 	#endregion
 

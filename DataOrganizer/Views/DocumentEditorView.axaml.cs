@@ -451,7 +451,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	public void Receive(BookmarksChangedMessage message)
 	{
-		// Every open editor sends the message about its own bookmarks.
+		// Every open document has bookmarks of its own, which both halves share.
 		if (message.Bookmarks != Editor.Bookmarks)
 		{
 			return;
@@ -477,8 +477,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 
 		DocumentViewState state = new()
 		{
-			// Until the halves share their bookmarks, the saved ones are those of the upper half.
-			Bookmarks = Editor.Bookmarks.GetLines(),
+			Bookmarks = editor.Bookmarks.GetLines(),
 			CaretPosition = editor.TextArea.Caret.Position,
 			ScrollOffset = scrollViewer.Offset,
 			SelectionLength = editor.SelectionLength,

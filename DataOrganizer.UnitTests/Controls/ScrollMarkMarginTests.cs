@@ -637,6 +637,30 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: a bookmark set before the margin was shown is marked too,
+	/// as with the lower half of a split editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Marks_The_Bookmarks_Set_Before_It_Was_Shown()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		editor.Bookmarks.Toggle(500);
+
+		// Act
+		Show(editor);
+
+		// Assert
+		GetShapes(Draw(GetMargin(editor)), GetBookmarkBrush())
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the bookmark marks that fall on one row of pixels are drawn once.
 	/// </summary>
 	[AvaloniaTest]
