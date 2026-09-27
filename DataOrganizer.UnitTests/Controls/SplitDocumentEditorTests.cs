@@ -202,26 +202,23 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="Control.ContextMenu" />: the menu of the control opens on a right click in the lower half too.
+	/// <see cref="Control.ContextFlyout" />: the menu of the control opens on a right click in the lower half too.
 	/// </summary>
 	[AvaloniaTest]
-	public void ContextMenu_Opens_In_The_Lower_Half()
+	public void ContextFlyout_Opens_In_The_Lower_Half()
 	{
 		// Arrange
-		ContextMenu menu = new()
+		Flyout flyout = new()
 		{
-			Items =
+			Content = new TextBlock
 			{
-				new MenuItem
-				{
-					Header = "Item"
-				}
+				Text = "Item"
 			}
 		};
 
 		SplitDocumentEditor sut = new()
 		{
-			ContextMenu = menu,
+			ContextFlyout = flyout,
 			IsSplit = true
 		};
 
@@ -237,32 +234,29 @@ internal class SplitDocumentEditorTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		menu.IsOpen
+		flyout.IsOpen
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="Control.ContextMenu" />: a right click on the splitter opens no menu of the text.
+	/// <see cref="Control.ContextFlyout" />: a right click on the splitter opens no menu of the text.
 	/// </summary>
 	[AvaloniaTest]
-	public void ContextMenu_Stays_Closed_On_The_Splitter()
+	public void ContextFlyout_Stays_Closed_On_The_Splitter()
 	{
 		// Arrange
-		ContextMenu menu = new()
+		Flyout flyout = new()
 		{
-			Items =
+			Content = new TextBlock
 			{
-				new MenuItem
-				{
-					Header = "Item"
-				}
+				Text = "Item"
 			}
 		};
 
 		SplitDocumentEditor sut = new()
 		{
-			ContextMenu = menu,
+			ContextFlyout = flyout,
 			IsSplit = true
 		};
 
@@ -278,7 +272,7 @@ internal class SplitDocumentEditorTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		menu.IsOpen
+		flyout.IsOpen
 			.Should()
 			.BeFalse();
 	}

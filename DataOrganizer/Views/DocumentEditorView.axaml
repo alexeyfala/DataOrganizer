@@ -128,152 +128,210 @@
 			ShowTabs="{Binding ShowTabs, Mode=OneWay}"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
+			<controls:SplitDocumentEditor.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+					<Setter Property="Cursor" Value="Arrow" />
+					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+				</Style>
+			</controls:SplitDocumentEditor.Styles>
+
 			<!--  One menu serves both halves, as it acts on the active one.  -->
-			<controls:SplitDocumentEditor.ContextMenu>
-				<ContextMenu Padding="4.0,0.0">
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.CutCommand}"
-						Header="{x:Static prop:Strings.Cut}"
-						InputGesture="{OnPlatform Default='Ctrl+X',
-						                          macOS='⌘+X'}" />
+			<controls:SplitDocumentEditor.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
 
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.CopyCommand}"
-						Header="{x:Static prop:Strings.Copy}"
-						InputGesture="{OnPlatform Default='Ctrl+C',
-						                          macOS='⌘+C'}" />
+						<!--  The commands used most stand in one row of icons, which keeps the menu short.  -->
+						<StackPanel Orientation="Horizontal">
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.CutCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ContentCut}"
+								Gesture="{OnPlatform Default='Ctrl+X',
+								                     macOS='⌘+X'}"
+								ToolTip.Tip="{x:Static prop:Strings.Cut}" />
 
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.PasteCommand}"
-						Header="{x:Static prop:Strings.Paste}"
-						InputGesture="{OnPlatform Default='Ctrl+V',
-						                          macOS='⌘+V'}" />
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.CopyCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+								Gesture="{OnPlatform Default='Ctrl+C',
+								                     macOS='⌘+C'}"
+								ToolTip.Tip="{x:Static prop:Strings.Copy}" />
 
-					<Separator />
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.PasteCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ContentPaste}"
+								Gesture="{OnPlatform Default='Ctrl+V',
+								                     macOS='⌘+V'}"
+								ToolTip.Tip="{x:Static prop:Strings.Paste}" />
 
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.UndoCommand}"
-						Header="{x:Static prop:Strings.Undo}"
-						InputGesture="{OnPlatform Default='Ctrl+Z',
-						                          macOS='⌘+Z'}" />
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.UndoCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=UndoVariant}"
+								Gesture="{OnPlatform Default='Ctrl+Z',
+								                     macOS='⌘+Z'}"
+								ToolTip.Tip="{x:Static prop:Strings.Undo}" />
 
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.RedoCommand}"
-						Header="{x:Static prop:Strings.Redo}"
-						InputGesture="{OnPlatform Default='Ctrl+Y',
-						                          macOS='⌘+Y'}" />
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.RedoCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=RedoVariant}"
+								Gesture="{OnPlatform Default='Ctrl+Y',
+								                     macOS='⌘+Y'}"
+								ToolTip.Tip="{x:Static prop:Strings.Redo}" />
 
-					<Separator />
-
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.SelectAllCommand}"
-						Header="{x:Static prop:Strings.SelectAll}"
-						InputGesture="{OnPlatform Default='Ctrl+A',
-						                          macOS='⌘+A'}" />
-
-					<Separator />
-
-					<MenuItem Header="{x:Static prop:Strings.Transform}">
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.UpperCase}"
-							Header="{x:Static prop:Strings.Uppercase}"
-							InputGesture="{OnPlatform Default='Ctrl+Shift+U',
-							                          macOS='⌘+Shift+U'}" />
-
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.LowerCase}"
-							Header="{x:Static prop:Strings.Lowercase}"
-							InputGesture="{OnPlatform Default='Ctrl+U',
-							                          macOS='⌘+U'}" />
-
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.TitleCase}"
-							Header="{x:Static prop:Strings.TitleCase}" />
-
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.InvertCase}"
-							Header="{x:Static prop:Strings.InvertCase}" />
+							<controls:FlyoutButton
+								Command="{Binding #Editor.ActiveEditor.SelectAllCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=SelectAll}"
+								Gesture="{OnPlatform Default='Ctrl+A',
+								                     macOS='⌘+A'}"
+								ToolTip.Tip="{x:Static prop:Strings.SelectAll}" />
+						</StackPanel>
 
 						<Separator />
 
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
-							Header="{x:Static prop:Strings.RemoveTrailingSpaces}" />
+						<controls:FlyoutButton Header="{x:Static prop:Strings.Transform}" Icon="FormatLetterCase">
+							<Button.Flyout>
+								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.UpperCase}"
+											Gesture="{OnPlatform Default='Ctrl+Shift+U',
+											                     macOS='⌘+Shift+U'}"
+											Header="{x:Static prop:Strings.Uppercase}"
+											Icon="FormatLetterCaseUpper" />
 
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
-							Header="{x:Static prop:Strings.RemoveLeadingSpaces}" />
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.LowerCase}"
+											Gesture="{OnPlatform Default='Ctrl+U',
+											                     macOS='⌘+U'}"
+											Header="{x:Static prop:Strings.Lowercase}"
+											Icon="FormatLetterCaseLower" />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.TitleCase}"
+											Header="{x:Static prop:Strings.TitleCase}"
+											Icon="FormatLetterStartsWith" />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.InvertCase}"
+											Header="{x:Static prop:Strings.InvertCase}"
+											Icon="SwapVertical" />
+
+										<Separator />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
+											Header="{x:Static prop:Strings.RemoveTrailingSpaces}"
+											Icon="Eraser" />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
+											Header="{x:Static prop:Strings.RemoveLeadingSpaces}"
+											Icon="FormatIndentDecrease" />
+
+										<Separator />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
+											Header="{x:Static prop:Strings.IndentsTabsToSpaces}"
+											Icon="KeyboardSpace" />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
+											CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
+											Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
+											Icon="KeyboardTab" />
+
+										<Separator />
+
+										<controls:FlyoutButton Header="{x:Static prop:Strings.LineEndings}" Icon="FormatPilcrow">
+											<Button.Flyout>
+												<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
+													<StackPanel Orientation="Vertical">
+														<!--  The same captions as in the status bar.  -->
+														<controls:FlyoutButton
+															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
+															CommandParameter="{x:Static documents:LineEnding.CrLf}"
+															Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+															Icon="KeyboardReturn" />
+
+														<controls:FlyoutButton
+															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
+															CommandParameter="{x:Static documents:LineEnding.Lf}"
+															Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+															Icon="KeyboardReturn" />
+
+														<controls:FlyoutButton
+															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
+															CommandParameter="{x:Static documents:LineEnding.Cr}"
+															Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+															Icon="KeyboardReturn" />
+													</StackPanel>
+												</Flyout>
+											</Button.Flyout>
+										</controls:FlyoutButton>
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</controls:FlyoutButton>
 
 						<Separator />
 
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
-							Header="{x:Static prop:Strings.IndentsTabsToSpaces}" />
+						<controls:FlyoutButton
+							Command="{Binding #Editor.ActiveEditor.FindCommand}"
+							Gesture="{OnPlatform Default='Ctrl+F',
+							                     macOS='⌘+F'}"
+							Header="{x:Static prop:Strings.Find}"
+							Icon="Magnify" />
 
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-							CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
-							Header="{x:Static prop:Strings.IndentsSpacesToTabs}" />
+						<controls:FlyoutButton Header="{x:Static prop:Strings.Bookmarks}" Icon="BookmarkMultipleOutline">
+							<Button.Flyout>
+								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.ToggleBookmarkCommand}"
+											Gesture="{OnPlatform Default='Ctrl+F2',
+											                     macOS='⌘+F2'}"
+											Header="{x:Static prop:Strings.ToggleBookmark}"
+											Icon="Bookmark" />
 
-						<Separator />
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.NextBookmarkCommand}"
+											Gesture="F2"
+											Header="{x:Static prop:Strings.NextBookmark}"
+											Icon="ArrowDown" />
 
-						<!--  The same captions as in the status bar.  -->
-						<MenuItem Header="{x:Static prop:Strings.LineEndings}">
-							<MenuItem
-								Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-								CommandParameter="{x:Static documents:LineEnding.CrLf}"
-								Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.PreviousBookmarkCommand}"
+											Gesture="Shift+F2"
+											Header="{x:Static prop:Strings.PreviousBookmark}"
+											Icon="ArrowUp" />
 
-							<MenuItem
-								Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-								CommandParameter="{x:Static documents:LineEnding.Lf}"
-								Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
+										<Separator />
 
-							<MenuItem
-								Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-								CommandParameter="{x:Static documents:LineEnding.Cr}"
-								Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}" />
-						</MenuItem>
-					</MenuItem>
-
-					<Separator />
-
-					<MenuItem
-						Command="{Binding #Editor.ActiveEditor.FindCommand}"
-						Header="{x:Static prop:Strings.Find}"
-						InputGesture="{OnPlatform Default='Ctrl+F',
-						                          macOS='⌘+F'}" />
-
-					<MenuItem Header="{x:Static prop:Strings.Bookmarks}">
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.ToggleBookmarkCommand}"
-							Header="{x:Static prop:Strings.ToggleBookmark}"
-							InputGesture="{OnPlatform Default='Ctrl+F2',
-							                          macOS='⌘+F2'}" />
-
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.NextBookmarkCommand}"
-							Header="{x:Static prop:Strings.NextBookmark}"
-							InputGesture="F2" />
-
-						<MenuItem
-							Command="{Binding #Editor.ActiveEditor.PreviousBookmarkCommand}"
-							Header="{x:Static prop:Strings.PreviousBookmark}"
-							InputGesture="Shift+F2" />
-
-						<Separator />
-
-						<MenuItem Command="{Binding #Editor.ActiveEditor.ClearBookmarksCommand}" Header="{x:Static prop:Strings.RemoveAllBookmarks}" />
-					</MenuItem>
-				</ContextMenu>
-			</controls:SplitDocumentEditor.ContextMenu>
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.ClearBookmarksCommand}"
+											Header="{x:Static prop:Strings.RemoveAllBookmarks}"
+											Icon="BookmarkRemoveOutline" />
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</controls:FlyoutButton>
+					</StackPanel>
+				</Flyout>
+			</controls:SplitDocumentEditor.ContextFlyout>
 		</controls:SplitDocumentEditor>
 
 		<Border

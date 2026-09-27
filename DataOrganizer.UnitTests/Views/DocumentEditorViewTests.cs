@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
@@ -71,7 +73,7 @@ internal class DocumentEditorViewTests
 			.Focus();
 
 		// Assert
-		ICommand?[] commands = GetMenuCommands(sut.GetControl<SplitDocumentEditor>(EditorName).ContextMenu!);
+		ICommand?[] commands = GetFlyoutCommands(sut.GetControl<SplitDocumentEditor>(EditorName).ContextFlyout);
 
 		commands
 			.Should()
@@ -378,6 +380,53 @@ internal class DocumentEditorViewTests
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
+	}
+
+	/// <summary>
+	/// <see cref="Control.ContextFlyout" />: the buttons of the menu check their commands again whenever it opens,
+	/// as a selection changed while it was closed tells no command.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextFlyout_Checks_The_Commands_When_Opened()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		FlyoutBase flyout = editor.ContextFlyout!;
+
+		Button copy = ((Control)((Flyout)flyout).Content!)
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => x.Command == editor.PrimaryEditor.CopyCommand);
+
+		editor.PrimaryEditor.Select(0, 4);
+
+		flyout.ShowAt(editor);
+
+		Dispatcher.UIThread.RunJobs();
+
+		flyout.Hide();
+
+		Dispatcher.UIThread.RunJobs();
+
+		editor.PrimaryEditor.Select(0, 0);
+
+		// Act
+		flyout.ShowAt(editor);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		copy.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1164,14 +1213,19 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// Returns the commands of the items of a menu that open no submenu.
+	/// Returns the commands of the buttons of a flyout that open no flyout, with those of the flyouts the others open.
 	/// </summary>
-	private static ICommand?[] GetMenuCommands(ItemsControl menu)
+	private static ICommand?[] GetFlyoutCommands(FlyoutBase? flyout)
 	{
-		return [.. menu
-			.Items
-			.OfType<MenuItem>()
-			.SelectMany(static x => x.ItemCount > 0 ? GetMenuCommands(x) : [x.Command])];
+		if (flyout is not Flyout { Content: Control content })
+		{
+			return [];
+		}
+
+		return [.. content
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.SelectMany(static x => x.Flyout is null ? [x.Command] : GetFlyoutCommands(x.Flyout))];
 	}
 
 	/// <summary>
