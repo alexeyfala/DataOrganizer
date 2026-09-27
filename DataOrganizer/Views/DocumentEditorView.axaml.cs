@@ -20,7 +20,10 @@ namespace DataOrganizer.Views;
 /// <summary>
 /// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
 /// </summary>
-internal sealed partial class DocumentEditorView : UserControl, IRecipient<BookmarksChangedMessage>
+internal sealed partial class DocumentEditorView :
+	UserControl,
+	IDisposable,
+	IRecipient<BookmarksChangedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -112,6 +115,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	{
 		get => GetValue(SplitShareProperty);
 		set => SetValue(SplitShareProperty, value);
+	}
+
+	/// <summary>
+	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
+	/// </summary>
+	public string? SyntaxLanguage
+	{
+		get => GetValue(SyntaxLanguageProperty);
+		set => SetValue(SyntaxLanguageProperty, value);
 	}
 
 	/// <summary>
@@ -209,6 +221,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 			defaultValue: 0.5);
 
 	/// <summary>
+	/// Identifies the <see cref="SyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> SyntaxLanguageProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(SyntaxLanguage));
+
+	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<object?> ToolBarContentProperty = AvaloniaProperty
@@ -299,6 +317,11 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Removes the syntax highlighting of the editor, whose tokenizers keep it in memory.
+	/// </summary>
+	public void Dispose() => Editor.Dispose();
+
 	/// <summary>
 	/// Reports the view state again when the bookmarks of the document change.
 	/// </summary>

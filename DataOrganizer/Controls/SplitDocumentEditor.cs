@@ -16,10 +16,9 @@ using System.Reactive.Linq;
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// Editor of a <see cref="TextDocument" /> that can be split into two halves one above the other,
-/// like the code window of Visual Studio.
+/// Editor of a <see cref="TextDocument" /> that can be split into two halves one above the other.
 /// </summary>
-internal sealed class SplitDocumentEditor : Control
+internal sealed class SplitDocumentEditor : Control, IDisposable
 {
 	#region Properties
 	/// <summary>
@@ -133,6 +132,15 @@ internal sealed class SplitDocumentEditor : Control
 	}
 
 	/// <summary>
+	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
+	/// </summary>
+	public string? SyntaxLanguage
+	{
+		get => GetValue(SyntaxLanguageProperty);
+		set => SetValue(SyntaxLanguageProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when long lines are wrapped.
 	/// </summary>
 	public bool WordWrap
@@ -206,6 +214,12 @@ internal sealed class SplitDocumentEditor : Control
 		.Register<SplitDocumentEditor, double>(
 			name: nameof(SplitShare),
 			defaultValue: MiddleSplitShare);
+
+	/// <summary>
+	/// Identifies the <see cref="SyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> SyntaxLanguageProperty = AvaloniaProperty
+		.Register<SplitDocumentEditor, string?>(name: nameof(SyntaxLanguage));
 
 	/// <summary>
 	/// Identifies the <see cref="WordWrap" /> avalonia property.
@@ -424,6 +438,7 @@ internal sealed class SplitDocumentEditor : Control
 				CopyView(secondaryEditor, PrimaryEditor);
 			}
 
+			// The hidden half gives up its highlighting until it is shown again.
 			secondaryEditor.IsVisible = false;
 
 			ActiveEditor = PrimaryEditor;
@@ -460,6 +475,16 @@ internal sealed class SplitDocumentEditor : Control
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Removes the syntax highlighting of both halves, whose tokenizers keep the editors in memory.
+	/// </summary>
+	public void Dispose()
+	{
+		PrimaryEditor.Dispose();
+
+		SecondaryEditor?.Dispose();
+	}
+
 	/// <summary>
 	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
 	/// </summary>
@@ -536,6 +561,8 @@ internal sealed class SplitDocumentEditor : Control
 		editor.Bind(DocumentTextEditor.ShowSpacesProperty, this.GetObservable(ShowSpacesProperty));
 
 		editor.Bind(DocumentTextEditor.ShowTabsProperty, this.GetObservable(ShowTabsProperty));
+
+		editor.Bind(DocumentTextEditor.SyntaxLanguageProperty, this.GetObservable(SyntaxLanguageProperty));
 
 		editor.Bind(TextEditor.WordWrapProperty, this.GetObservable(WordWrapProperty));
 

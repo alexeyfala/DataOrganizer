@@ -713,6 +713,50 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the extension of the file name gives the language of the text.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("script.ps1", "powershell")]
+	[TestCase("notes.txt", null)]
+	[TestCase(null, null)]
+	public async Task EditorLoaded_Takes_The_Syntax_Language_From_The_File_Name(string? fileName, string? expected)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileName = fileName;
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.SyntaxLanguage
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.ShowEndOfLine" />, <see cref="EmbeddedFileEditorViewModel.ShowSpaces" />
 	/// and <see cref="EmbeddedFileEditorViewModel.ShowTabs" />: each switch turned on saves the editor state with it.
 	/// </summary>

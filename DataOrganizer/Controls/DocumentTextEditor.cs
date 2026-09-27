@@ -1,8 +1,11 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Styling;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
@@ -12,13 +15,14 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
+using TextMateSharp.Themes;
 
 namespace DataOrganizer.Controls;
 
 /// <summary>
 /// <see cref="TextEditorBase" /> for documents.
 /// </summary>
-internal sealed class DocumentTextEditor : TextEditorBase
+internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 {
 	#region Properties
 	/// <summary>
@@ -61,6 +65,15 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		get => _status;
 		private set => SetAndRaise(StatusProperty, ref _status, value);
 	}
+
+	/// <summary>
+	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
+	/// </summary>
+	public string? SyntaxLanguage
+	{
+		get => GetValue(SyntaxLanguageProperty);
+		set => SetValue(SyntaxLanguageProperty, value);
+	}
 	#endregion
 
 	#region Styled Properties
@@ -81,6 +94,12 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
 		.Register<DocumentTextEditor, bool>(name: nameof(ShowTabs));
+
+	/// <summary>
+	/// Identifies the <see cref="SyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> SyntaxLanguageProperty = AvaloniaProperty
+		.Register<DocumentTextEditor, string?>(name: nameof(SyntaxLanguage));
 	#endregion
 
 	#region Direct Properties
@@ -146,6 +165,26 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
+	/// </summary>
+	private const int MaxHighlightedLength = 5 * 1024 * 1024;
+
+	/// <summary>
+	/// Syntax highlighting of the text; <c>null</c> while the text is plain.
+	/// </summary>
+	private TextMate.Installation? _highlighting;
+
+	/// <summary>
+	/// Scope name of the grammar of <see cref="_highlighting" />.
+	/// </summary>
+	private string? _highlightingScope;
+
+	/// <summary>
+	/// <c>True</c> once the editor has been disposed, after which the text stays plain.
+	/// </summary>
+	private bool _isDisposed;
+
 	/// <inheritdoc cref="Status" />
 	private DocumentStatus _status;
 	#endregion
@@ -230,6 +269,20 @@ internal sealed class DocumentTextEditor : TextEditorBase
 			.GetObservable(ShowTabsProperty)
 			.Subscribe(ShowTabsProperty_Changed);
 
+		// The highlighting needs a language, and a hidden editor keeps none, as nothing of it is seen.
+		this
+			.GetObservable(SyntaxLanguageProperty)
+			.Subscribe(SyntaxLanguageProperty_Changed);
+
+		this
+			.GetObservable(IsVisibleProperty)
+			.Subscribe(IsVisibleProperty_Changed);
+
+		// Only the colors of the words follow the theme: the background and the plain text keep those of the application.
+		this
+			.GetObservable(ThemeVariantScope.ActualThemeVariantProperty)
+			.Subscribe(ActualThemeVariantProperty_Changed);
+
 		Bookmarks = GetBookmarks(Document);
 
 		// Left of the line numbers, as in Visual Studio, the bookmarks keep clear of clicks at the start of a line.
@@ -267,6 +320,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 
 	#region Event Handlers
 	/// <summary>
+	/// <see cref="ThemeVariantScope.ActualThemeVariantProperty" /> changed handler.
+	/// </summary>
+	private void ActualThemeVariantProperty_Changed(ThemeVariant value) => _highlighting?.SetTheme(GetColorTheme(value));
+
+	/// <summary>
 	/// <see cref="Caret.PositionChanged" /> event handler.
 	/// </summary>
 	private void Caret_PositionChanged(object? sender, EventArgs e)
@@ -288,6 +346,9 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		Bookmarks = GetBookmarks(Document);
 
 		UpdateLineEnding();
+
+		// The highlighting moves to a new document by itself, but not to a missing or too long one.
+		UpdateHighlighting();
 	}
 
 	/// <summary>
@@ -305,6 +366,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	}
 
 	/// <summary>
+	/// <see cref="Visual.IsVisibleProperty" /> changed handler.
+	/// </summary>
+	private void IsVisibleProperty_Changed(bool value) => UpdateHighlighting();
+
+	/// <summary>
 	/// <see cref="ShowEndOfLineProperty" /> changed handler.
 	/// </summary>
 	private void ShowEndOfLineProperty_Changed(bool value) => Options.ShowEndOfLine = value;
@@ -318,6 +384,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// <see cref="ShowTabsProperty" /> changed handler.
 	/// </summary>
 	private void ShowTabsProperty_Changed(bool value) => Options.ShowTabs = value;
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProperty" /> changed handler.
+	/// </summary>
+	private void SyntaxLanguageProperty_Changed(string? value) => UpdateHighlighting();
 
 	/// <summary>
 	/// <see cref="TextArea.SelectionChanged" /> event handler.
@@ -348,11 +419,24 @@ internal sealed class DocumentTextEditor : TextEditorBase
 
 	#region Methods
 	/// <summary>
+	/// Removes the syntax highlighting, whose tokenizer holds a thread and keeps the editor and its text in memory.
+	/// </summary>
+	public void Dispose()
+	{
+		_isDisposed = true;
+
+		RemoveHighlighting();
+	}
+
+	/// <summary>
 	/// Finds the line endings of the document with a pass over all its lines.
 	/// </summary>
 	internal void UpdateLineEnding()
 	{
-		Status = Status with { LineEnding = FindLineEnding(Document) };
+		Status = Status with
+		{
+			LineEnding = FindLineEnding(Document)
+		};
 	}
 	#endregion
 
@@ -412,6 +496,11 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	/// Returns the bookmarks of a document, or an empty set of its own without a document.
 	/// </summary>
 	private static LineBookmarks GetBookmarks(TextDocument? document) => document is null ? new() : LineBookmarks.Of(document);
+
+	/// <summary>
+	/// Returns the color theme of the words for a theme of the application.
+	/// </summary>
+	private static IRawTheme GetColorTheme(ThemeVariant variant) => SyntaxRegistry.Instance.GetColorTheme(variant == ThemeVariant.Dark);
 
 	/// <summary>
 	/// Returns the command of the engine that performs a transformation.
@@ -556,6 +645,24 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	}
 
 	/// <summary>
+	/// Returns the scope name of the grammar that highlights the text; <c>null</c> when the text stays plain.
+	/// </summary>
+	private string? FindHighlightedScope()
+	{
+		if (_isDisposed
+			|| !IsVisible
+			|| SyntaxLanguage is not { } language
+			|| Document is not { TextLength: <= MaxHighlightedLength })
+		{
+			return null;
+		}
+
+		return SyntaxRegistry
+			.Instance
+			.FindScope(language);
+	}
+
+	/// <summary>
 	/// Moves the caret to the next bookmarked line, going round to the first one.
 	/// </summary>
 	private void GoToNextBookmark() => MoveCaretToLine(Bookmarks.FindNext(TextArea.Caret.Line));
@@ -608,6 +715,23 @@ internal sealed class DocumentTextEditor : TextEditorBase
 	}
 
 	/// <summary>
+	/// Removes the syntax highlighting and stops its tokenizer.
+	/// </summary>
+	private void RemoveHighlighting()
+	{
+		if (_highlighting is not { } highlighting)
+		{
+			return;
+		}
+
+		_highlighting = null;
+
+		_highlightingScope = null;
+
+		highlighting.Dispose();
+	}
+
+	/// <summary>
 	/// Sets or removes the bookmark of the caret line.
 	/// </summary>
 	private void ToggleBookmark() => Bookmarks.Toggle(TextArea.Caret.Line);
@@ -637,6 +761,36 @@ internal sealed class DocumentTextEditor : TextEditorBase
 		ApplicationCommands
 			.Undo
 			.Execute(null, TextArea);
+	}
+
+	/// <summary>
+	/// Brings the syntax highlighting in line with the language, the document and the visibility of the editor.
+	/// </summary>
+	private void UpdateHighlighting()
+	{
+		string? scope = FindHighlightedScope();
+
+		if (scope == _highlightingScope)
+		{
+			return;
+		}
+
+		// A grammar swapped under a running tokenizer may leave the tokens of the old one, so the highlighting starts anew.
+		RemoveHighlighting();
+
+		if (scope is null)
+		{
+			return;
+		}
+
+		// Kept before it is set up, so that a failed setup leaves nothing running unseen.
+		_highlighting = this.InstallTextMate(SyntaxRegistry.Instance);
+
+		_highlightingScope = scope;
+
+		_highlighting.SetTheme(GetColorTheme(ActualThemeVariant));
+
+		_highlighting.SetGrammar(scope);
 	}
 	#endregion
 }

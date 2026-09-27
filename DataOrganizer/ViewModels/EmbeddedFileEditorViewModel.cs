@@ -48,6 +48,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[ObservableProperty]
 	public partial string? EncodingName { get; private set; }
 
+	/// <summary>
+	/// Name of the file, whose extension gives the language of its text.
+	/// </summary>
+	public string? FileName { get; set; }
+
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
@@ -85,6 +90,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	[ObservableProperty]
 	public partial double SplitShare { get; set; } = 0.5;
+
+	/// <summary>
+	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? SyntaxLanguage { get; private set; }
 
 	/// <summary>
 	/// Caret, selection, scroll position and bookmarks of <see cref="Document" />.
@@ -188,6 +199,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				.GetString(output.AsSpan(_hasByteOrderMark ? Encoding.UTF8.Preamble.Length : 0)));
 
 			Document = document;
+
+			// The language comes after the text, so the highlighting starts on the document it colors.
+			SyntaxLanguage = SyntaxRegistry
+				.Instance
+				.FindLanguage(FileName);
 
 			EncodingName = _hasByteOrderMark
 				? Utf8WithByteOrderMarkName

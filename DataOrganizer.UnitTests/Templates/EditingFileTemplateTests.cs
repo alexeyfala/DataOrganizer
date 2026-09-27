@@ -6,7 +6,11 @@ using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Templates;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
@@ -16,10 +20,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Views;
+namespace DataOrganizer.UnitTests.Templates;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorView)}"" type")]
-internal class EmbeddedFileEditorViewTests
+[TestFixture(Description = $@"Tests of ""{nameof(EditingFileTemplate)}"" type")]
+internal class EditingFileTemplateTests
 {
 	#region Data
 	/// <summary>
@@ -40,13 +44,17 @@ internal class EmbeddedFileEditorViewTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorView.Dispose" />: the highlighting of the editor goes away.
+	/// <see cref="EditingFileTemplate.Build" />: the name of the file gives the language of its text to the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Dispose_Removes_The_Highlighting()
+	public async Task Build_Gives_The_Language_Of_The_File_To_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
+
+		file.IsEditing = true;
+
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -67,98 +75,109 @@ internal class EmbeddedFileEditorViewTests
 			builder.RegisterInstance(dbAccess);
 		});
 
-		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.FileName = PowerShellFileName;
+		using EmbeddedFileEditorView view = new(viewModel);
 
-		await viewModel.EditorLoaded();
-
-		EmbeddedFileEditorView sut = new(viewModel);
-
-		// Act
-		sut.Dispose();
-
-		// Assert
-		HasHighlighting(sut
-			.GetLogicalDescendants()
-			.OfType<DocumentTextEditor>()
-			.Single())
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: the text of an encrypted file reaches the editor
-	/// as sensitive.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsEncrypted_Reaches_The_Editor([Values] bool isEncrypted)
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
-
-		viewModel.KeeperId = isEncrypted ? Guid.NewGuid() : null;
-
-		// Act
-		EmbeddedFileEditorView sut = new(viewModel);
-
-		// Assert
-		sut
-			.GetLogicalDescendants()
-			.OfType<DocumentEditorView>()
-			.Single()
-			.IsSensitive
-			.Should()
-			.Be(isEncrypted);
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: the language of the file reaches the text editor.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task SyntaxLanguage_Reaches_The_Text_Editor()
-	{
-		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(viewModel);
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(view);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(viewFactory);
 		});
 
-		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+		EditingFileTemplate sut = mock.Create<EditingFileTemplate>();
 
-		viewModel.FileName = PowerShellFileName;
+		// Act
+		sut.Build(file);
 
 		await viewModel.EditorLoaded();
 
-		// Act
-		using EmbeddedFileEditorView sut = new(viewModel);
-
 		// Assert
-		sut
+		view
 			.GetLogicalDescendants()
 			.OfType<DocumentTextEditor>()
 			.Single()
 			.SyntaxLanguage
 			.Should()
 			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
+	/// <see cref="EditingFileTemplate.Remove" />: the control of a closed file gives up the highlighting of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Remove_Disposes_The_Control()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
+
+		file.IsEditing = true;
+
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		using EmbeddedFileEditorView view = new(viewModel);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(view);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EditingFileTemplate sut = mock.Create<EditingFileTemplate>();
+
+		sut.Build(file);
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		sut.Remove(file);
+
+		// Assert
+		HasHighlighting(view
+			.GetLogicalDescendants()
+			.OfType<DocumentTextEditor>()
+			.Single())
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 

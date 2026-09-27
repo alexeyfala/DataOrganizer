@@ -1,27 +1,77 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
+using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
+using Shared.Extensions;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentTextEditor)}"" type")]
 internal class DocumentTextEditorTests
 {
+	#region Data
+	/// <summary>
+	/// Language of <see cref="PowerShellText" />.
+	/// </summary>
+	private const string PowerShellLanguage = "powershell";
+
+	/// <summary>
+	/// A line of PowerShell that starts with a keyword, followed by words of other kinds.
+	/// </summary>
+	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="StyledElement.ActualThemeVariant" />: the words take the colors of the new theme of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ActualThemeVariant_Changes_The_Colors_Of_The_Words()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.RequestedThemeVariant = ThemeVariant.Light;
+
+		await WaitForColors(sut, static x => x.Distinct().Count() > 1);
+
+		Color lightColor = GetWordColors(sut)[0];
+
+		// Act
+		window.RequestedThemeVariant = ThemeVariant.Dark;
+
+		// Assert
+		bool isRecolored = await WaitForColors(sut, x => x.Length > 1 && x[0] != lightColor);
+
+		isRecolored
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="BookmarkMargin" />: stands left of the line numbers, as in Visual Studio.
 	/// </summary>
@@ -351,6 +401,51 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: a disposed editor gets no highlighting for a language set later.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Keeps_The_Text_Plain_Afterwards()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText)
+		};
+
+		sut.Dispose();
+
+		// Act
+		sut.SyntaxLanguage = PowerShellLanguage;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: the highlighting goes away with its tokenizer.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Removes_The_Highlighting()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: a document that comes back brings its bookmarks with it.
 	/// </summary>
 	[AvaloniaTest]
@@ -375,6 +470,54 @@ internal class DocumentTextEditorTests
 		sut.Bookmarks.GetLines()
 			.Should()
 			.Equal(2);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the highlighting moves on to a new document.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Document_Keeps_The_Highlighting_On_A_New_Document()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut.Document = new(PowerShellText);
+
+		// Assert
+		bool isColored = await WaitForColors(sut, static x => x.Distinct().Count() > 1);
+
+		isColored
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: without a document the highlighting goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Missing_Removes_The_Highlighting()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document = null;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -467,6 +610,29 @@ internal class DocumentTextEditorTests
 		sut.Text
 			.Should()
 			.Be("Some text");
+	}
+
+	/// <summary>
+	/// <see cref="Visual.IsVisible" />: a hidden editor gives up its highlighting and takes it again when shown.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsVisible_Keeps_The_Highlighting_Only_While_Shown([Values] bool isVisible)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			IsVisible = !isVisible,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.IsVisible = isVisible;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.Be(isVisible);
 	}
 
 	/// <summary>
@@ -1041,6 +1207,110 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the words of the language take colors of their kinds.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SyntaxLanguage_Colors_The_Words()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText)
+		};
+
+		Show(sut);
+
+		// Act
+		sut.SyntaxLanguage = PowerShellLanguage;
+
+		// Assert
+		bool isColored = await WaitForColors(sut, static x => x.Distinct().Count() > 1);
+
+		isColored
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a text too long for the highlighting stays plain.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Plain()
+	{
+		// Arrange, Act
+		// Past the longest text that gets the highlighting.
+		DocumentTextEditor sut = new()
+		{
+			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a shown editor of a dark theme colors the words for a dark background.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SyntaxLanguage_Takes_The_Colors_Of_A_Dark_Theme()
+	{
+		// Arrange
+		using DocumentTextEditor lightEditor = new()
+		{
+			Document = new(PowerShellText)
+		};
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText)
+		};
+
+		Show(lightEditor).RequestedThemeVariant = ThemeVariant.Light;
+
+		Show(sut).RequestedThemeVariant = ThemeVariant.Dark;
+
+		lightEditor.SyntaxLanguage = PowerShellLanguage;
+
+		await WaitForColors(lightEditor, static x => x.Distinct().Count() > 1);
+
+		Color lightColor = GetWordColors(lightEditor)[0];
+
+		// Act
+		sut.SyntaxLanguage = PowerShellLanguage;
+
+		// Assert
+		bool isDark = await WaitForColors(sut, x => x.Distinct().Count() > 1 && x[0] != lightColor);
+
+		isDark
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: without a language that has a grammar the text stays plain.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(null)]
+	[TestCase("unknown")]
+	public void SyntaxLanguage_Without_A_Grammar_Leaves_The_Text_Plain(string? language)
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = language
+		};
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.ToggleBookmarkCommand" />: runs on Ctrl+F2, with ⌘ for Ctrl on macOS, as in Notepad++.
 	/// </summary>
 	[AvaloniaTest]
@@ -1447,6 +1717,39 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// Returns the colors of the parts the first line of the view is drawn in.
+	/// </summary>
+	private static Color[] GetWordColors(TextEditor editor)
+	{
+		TextView view = editor.TextArea.TextView;
+
+		if (!view.VisualLinesValid || view.VisualLines.Count == 0)
+		{
+			return [];
+		}
+
+		return [.. view
+			.VisualLines[0]
+			.Elements
+			.Select(static x => x.TextRunProperties.ForegroundBrush)
+			.OfType<ISolidColorBrush>()
+			.Select(static x => x.Color)];
+	}
+
+	/// <summary>
+	/// <c>True</c> when the editor has the syntax highlighting.
+	/// </summary>
+	private static bool HasHighlighting(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.TextView
+			.LineTransformers
+			.OfType<TextMateColoringTransformer>()
+			.Any();
+	}
+
+	/// <summary>
 	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
 	/// </summary>
 	private static Window Show(DocumentTextEditor editor)
@@ -1467,6 +1770,22 @@ internal class DocumentTextEditorTests
 		Dispatcher.UIThread.RunJobs();
 
 		return window;
+	}
+
+	/// <summary>
+	/// Waits until the colors of the first line meet a condition, as the tokenizer colors the words on a thread of its own.
+	/// </summary>
+	private static ValueTask<bool> WaitForColors(TextEditor editor, Func<Color[], bool> condition)
+	{
+		Func<bool> isMet = () =>
+		{
+			// The tokenizer posts the redraws of the colored lines to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return condition(GetWordColors(editor));
+		};
+
+		return isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
 	}
 	#endregion
 }

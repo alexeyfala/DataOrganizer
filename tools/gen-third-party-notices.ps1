@@ -12,14 +12,20 @@
 
     The manual "libuiohook (LGPL)" section is always emitted first: libuiohook is
     a native library bundled inside the SharpHook package and does not appear as a
-    NuGet package in the graph, so it cannot be discovered automatically.
+    NuGet package in the graph, so it cannot be discovered automatically. The manual
+    "Oniguruma (BSD-2-Clause)" section follows for the same reason: Oniguruma is
+    built into the native library of the Onigwrap package.
+
+    The section on the grammars bundled in TextMateSharp.Grammars is read from the
+    component manifests (cgmanifest.json) that the package embeds next to each grammar.
 
     Run this before a release (or whenever the set of dependencies changes).
     Restore the project first (dotnet restore / build) so project.assets.json is
     up to date.
 
     Keep $libuiohookVersion in sync with the SharpHook package reference: libuiohook is
-    bundled inside SharpHook and its version cannot be read from the graph.
+    bundled inside SharpHook and its version cannot be read from the graph. Keep
+    $onigurumaVersion in sync with the Onigwrap package reference in the same way.
 
 .PARAMETER AssetsFile
     One or more project.assets.json files to union. Defaults to the Desktop host.
@@ -65,10 +71,14 @@ if (-not $OutputFile) {
     $OutputFile = Join-Path $repoRoot 'THIRD-PARTY-NOTICES.txt'
 }
 
-# --- The bundled native library that is not a NuGet package ---------------------
+# --- The bundled native libraries that are not NuGet packages -------------------
 # libuiohook ships inside SharpHook, so its version is not in the dependency graph.
 # Update it together with the SharpHook package reference.
 $libuiohookVersion = "2.0.0"
+
+# Oniguruma ships inside the native library of Onigwrap, built from the tag that the
+# Onigwrap CI checks out (ONIGURUMA_REF). Update it together with the Onigwrap reference.
+$onigurumaVersion = "6.9.10"
 
 # --- Overrides for packages whose .nuspec does not carry an SPDX expression -----
 # Keyed by lowercase package id. Verified manually against the package/repository.
@@ -123,6 +133,29 @@ $bsd3Text = @'
     CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     POSSIBILITY OF SUCH DAMAGE.
+'@
+
+$bsd2Text = @'
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+    SUCH DAMAGE.
 '@
 
 $iscText = @'
@@ -211,6 +244,45 @@ $components = foreach ($key in $packages.Keys) {
     [pscustomobject]@{ Id = $id; Version = $ver; Spdx = $spdx; Authors = $authors }
 }
 
+# --- Read the origins of the grammars bundled in TextMateSharp.Grammars ----------
+# Visual Studio Code keeps a component manifest next to each grammar, and the package
+# embeds these manifests as resources, so the upstream projects are read from there.
+$grammarsPackage = $components | Where-Object { $_.Id -eq 'TextMateSharp.Grammars' } | Select-Object -First 1
+$grammars = @()
+if ($grammarsPackage) {
+    $grammarsDll = $null
+    foreach ($root in $pkgFolders) {
+        $libDir = Join-Path $root ("{0}\{1}\lib" -f $grammarsPackage.Id, $grammarsPackage.Version)
+        if (-not (Test-Path $libDir)) { continue }
+        $found = Get-ChildItem -Path $libDir -Filter 'TextMateSharp.Grammars.dll' -Recurse | Select-Object -First 1
+        if ($found) { $grammarsDll = $found.FullName; break }
+    }
+    if (-not $grammarsDll) {
+        throw "TextMateSharp.Grammars.dll $($grammarsPackage.Version) not found in the package folders."
+    }
+    $grammarsAssembly = [System.Reflection.Assembly]::LoadFile($grammarsDll)
+    $manifestNames = $grammarsAssembly.GetManifestResourceNames() | Where-Object { $_ -like '*.cgmanifest.json' } | Sort-Object
+    $grammars = foreach ($manifestName in $manifestNames) {
+        $reader = New-Object System.IO.StreamReader($grammarsAssembly.GetManifestResourceStream($manifestName), [System.Text.Encoding]::UTF8)
+        try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+        foreach ($registration in $manifest.registrations) {
+            $git = $registration.component.git
+            $other = $registration.component.other
+            $license = "$($registration.license)"
+            if ($license -eq 'Apache2') { $license = 'Apache-2.0' }
+            [pscustomobject]@{
+                Name    = if ($git) { $git.name } else { $other.name }
+                Version = "$($registration.version)"
+                License = $license
+                Url     = if ($git) { $git.repositoryUrl } else { $other.downloadUrl }
+                Detail  = if ($registration.licenseDetail) { $registration.licenseDetail -join "`r`n" } else { '' }
+            }
+        }
+    }
+    # A grammar that several packages include is listed once.
+    $grammars = @($grammars | Sort-Object Name -Unique)
+}
+
 # --- Compose the file -----------------------------------------------------------
 $nl = "`r`n"
 $sb = New-Object System.Text.StringBuilder
@@ -225,8 +297,10 @@ Add-Line 'authors and is used under the license indicated. This file is provided
 Add-Line 'comply with the attribution and notice requirements of those licenses.'
 Add-Line
 Add-Line 'This file is generated by tools/gen-third-party-notices.ps1 from the resolved'
-Add-Line 'NuGet dependency graph. The libuiohook (LGPL) section below is maintained'
-Add-Line 'manually because it is a native library bundled inside the SharpHook package.'
+Add-Line 'NuGet dependency graph. The libuiohook (LGPL) and Oniguruma (BSD-2-Clause)'
+Add-Line 'sections below are maintained manually because they are native libraries'
+Add-Line 'bundled inside the SharpHook and Onigwrap packages. The section on the grammars'
+Add-Line 'is read from the component manifests inside the TextMateSharp.Grammars package.'
 
 $section = 0
 function Add-Header([string]$title) {
@@ -262,6 +336,45 @@ Add-Line '    https://www.gnu.org/licenses/gpl-3.0.txt'
 Add-Line
 Add-Line 'The corresponding source code for libuiohook is available from the fork'
 Add-Line 'listed above, which is the source of the binaries bundled with SharpHook.'
+
+# Section 2: manual BSD-2-Clause (Oniguruma)
+Add-Header 'BSD 2-Clause License (BSD-2-Clause)'
+Add-Line ("  * Oniguruma {0}" -f $onigurumaVersion)
+Add-Line '      Copyright (c) 2002-2021 K.Kosako <kkosako0@gmail.com>'
+Add-Line ("      https://github.com/kkos/oniguruma/tree/v{0}" -f $onigurumaVersion)
+Add-Line
+Add-Line 'Oniguruma is a native C library of regular expressions that the syntax'
+Add-Line 'highlighting runs on. It is built into the native library of the Onigwrap'
+Add-Line 'NuGet package, together with the onigwrap wrapper of Fluent Solutions'
+Add-Line '(Copyright (c) 2015 Fluent Solutions, MIT License): libonigwrap.dll on'
+Add-Line 'Windows, libonigwrap.dylib on macOS and libonigwrap.so on Linux.'
+Add-Line
+Add-Line 'This component is licensed under the BSD 2-Clause License:'
+Add-Line
+Add-Line $bsd2Text
+
+# Section 3: the grammars of TextMateSharp.Grammars, read from its component manifests
+if ($grammars.Count -gt 0) {
+    Add-Header 'Grammars and color themes bundled in TextMateSharp.Grammars'
+    Add-Line ("TextMateSharp.Grammars {0} bundles the TextMate grammars, language" -f $grammarsPackage.Version)
+    Add-Line 'configurations and color themes of Visual Studio Code (Copyright (c)'
+    Add-Line 'Microsoft Corporation, MIT License) along with a few other open source color'
+    Add-Line 'themes. The grammars come from the projects listed below, under the licenses'
+    Add-Line 'shown. The MIT, BSD 3-Clause and Apache 2.0 texts appear in the sections that'
+    Add-Line 'follow, and the license texts that the projects give with their grammars close'
+    Add-Line 'this section.'
+    Add-Line
+    foreach ($g in $grammars) {
+        $version = if ($g.Version -and $g.Version -ne '0.0.0') { " $($g.Version)" } else { '' }
+        Add-Line ("  * {0}{1} - {2} - {3}" -f $g.Name, $version, $g.License, "$($g.Url)".Trim().TrimEnd('/'))
+    }
+    foreach ($detail in ($grammars | Where-Object { $_.Detail } | Group-Object Detail)) {
+        Add-Line
+        Add-Line ("License of {0}:" -f (($detail.Group | ForEach-Object { $_.Name }) -join ', '))
+        Add-Line
+        foreach ($line in ($detail.Name -split "`r`n")) { Add-Line (("    " + $line).TrimEnd()) }
+    }
+}
 
 # Remaining sections: generated groups, in a stable, sensible order.
 $order = @('Apache-2.0', 'MIT', 'BSD-3-Clause', 'ISC')

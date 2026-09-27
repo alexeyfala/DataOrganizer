@@ -6,7 +6,9 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using System.Linq;
@@ -17,6 +19,16 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class SplitDocumentEditorTests
 {
 	#region Data
+	/// <summary>
+	/// Language of <see cref="PowerShellText" />.
+	/// </summary>
+	private const string PowerShellLanguage = "powershell";
+
+	/// <summary>
+	/// A line of PowerShell.
+	/// </summary>
+	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
+
 	/// <summary>
 	/// Name of the editor of the upper half.
 	/// </summary>
@@ -283,6 +295,33 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="SplitDocumentEditor.Dispose" />: the highlighting of both halves goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Removes_The_Highlighting_Of_Both_Halves()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasHighlighting(sut.PrimaryEditor)
+			.Should()
+			.BeFalse();
+
+		HasHighlighting(sut.SecondaryEditor!)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="SplitDocumentEditor.Document" />: both halves show the document.
 	/// </summary>
 	[AvaloniaTest]
@@ -527,6 +566,31 @@ internal class SplitDocumentEditorTests
 		editor.Bounds.Height
 			.Should()
 			.BeGreaterThan(editor.TextArea.TextView.DefaultLineHeight);
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.IsSplit" />: the lower half has the highlighting only while it is shown.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Keeps_The_Highlighting_Of_The_Lower_Half_Only_While_Split([Values] bool isSplit)
+	{
+		// Arrange
+		using SplitDocumentEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.IsSplit = false;
+
+		// Act
+		sut.IsSplit = isSplit;
+
+		// Assert
+		HasHighlighting(sut.SecondaryEditor!)
+			.Should()
+			.Be(isSplit);
 	}
 
 	/// <summary>
@@ -1058,6 +1122,32 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="SplitDocumentEditor.SyntaxLanguage" />: the language of the text reaches both halves.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Reaches_Both_Halves()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.PrimaryEditor.SyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+
+		sut.SecondaryEditor!.SyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
 	/// <see cref="SplitDocumentEditor.WordWrap" />: the wrapping of long lines reaches both halves.
 	/// </summary>
 	[AvaloniaTest]
@@ -1105,6 +1195,19 @@ internal class SplitDocumentEditorTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
+	}
+
+	/// <summary>
+	/// <c>True</c> when the editor has the syntax highlighting.
+	/// </summary>
+	private static bool HasHighlighting(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.TextView
+			.LineTransformers
+			.OfType<TextMateColoringTransformer>()
+			.Any();
 	}
 
 	/// <summary>
