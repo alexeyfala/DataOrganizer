@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaEdit;
@@ -13,6 +12,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Messages.Documents;
 using System;
+using System.Reactive;
 using System.Reactive.Linq;
 
 namespace DataOrganizer.Views;
@@ -23,15 +23,6 @@ namespace DataOrganizer.Views;
 internal sealed partial class DocumentEditorView : UserControl, IRecipient<BookmarksChangedMessage>
 {
 	#region Properties
-	/// <summary>
-	/// Editor of the half focused last.
-	/// </summary>
-	public DocumentTextEditor ActiveEditor
-	{
-		get => _activeEditor;
-		private set => SetAndRaise(ActiveEditorProperty, ref _activeEditor, value);
-	}
-
 	/// <summary>
 	/// The document being edited.
 	/// </summary>
@@ -219,25 +210,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		.Register<DocumentEditorView, bool>(name: nameof(WordWrap));
 	#endregion
 
-	#region Direct Properties
-	/// <summary>
-	/// Identifies the <see cref="ActiveEditor" /> avalonia property.
-	/// </summary>
-	public static readonly DirectProperty<DocumentEditorView, DocumentTextEditor> ActiveEditorProperty = AvaloniaProperty
-		.RegisterDirect<DocumentEditorView, DocumentTextEditor>(
-			name: nameof(ActiveEditor),
-			getter: static x => x.ActiveEditor);
-	#endregion
-
 	#region Data
-	/// <summary>
-	/// Name of the scroll viewer in the template of <see cref="TextEditor" />.
-	/// </summary>
-	private const string ScrollViewerPartName = "PART_ScrollViewer";
-
-	/// <inheritdoc cref="ActiveEditor" />
-	private DocumentTextEditor _activeEditor = null!;
-
 	/// <summary>
 	/// <c>True</c> once the control has been loaded.
 	/// </summary>
@@ -252,16 +225,6 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// View state set from outside and not restored yet.
 	/// </summary>
 	private DocumentViewState? _pendingViewState;
-
-	/// <summary>
-	/// Scroll viewer of <see cref="Editor" />.
-	/// </summary>
-	private ScrollViewer? _scrollViewer;
-
-	/// <summary>
-	/// Scroll viewer of <see cref="SplitEditor" />.
-	/// </summary>
-	private ScrollViewer? _splitScrollViewer;
 	#endregion
 
 	#region Constructors
@@ -269,55 +232,11 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	{
 		InitializeComponent();
 
-		// The markup binds to the active half before the halves are built, so the change has to reach it.
-		ActiveEditor = Editor;
-
-		// The editors never outlive this control, so none of the handlers below is ever removed.
-		Editor.TemplateApplied += Editor_TemplateApplied;
-
-		SplitEditor.TemplateApplied += SplitEditor_TemplateApplied;
-
-		// The editor marks every focus event within it handled.
-		Editor.AddHandler(
-			GotFocusEvent,
-			DocumentTextEditor_GotFocus,
-			RoutingStrategies.Bubble,
-			handledEventsToo: true);
-
-		SplitEditor.AddHandler(
-			GotFocusEvent,
-			DocumentTextEditor_GotFocus,
-			RoutingStrategies.Bubble,
-			handledEventsToo: true);
-
-		// On the tunnel a right click reaches its half before the context menu opens.
-		Editor.AddHandler(
-			PointerPressedEvent,
-			DocumentTextEditor_PointerPressed,
-			RoutingStrategies.Tunnel);
-
-		SplitEditor.AddHandler(
-			PointerPressedEvent,
-			DocumentTextEditor_PointerPressed,
-			RoutingStrategies.Tunnel);
-
-		TextArea area = Editor.TextArea;
-
-		TextArea splitArea = SplitEditor.TextArea;
-
-		// The state is that of the active half, so the moves of either half count.
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => area.Caret.PositionChanged += x,
-			x => area.Caret.PositionChanged -= x)
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => area.TextView.ScrollOffsetChanged += x,
-				x => area.TextView.ScrollOffsetChanged -= x))
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => splitArea.Caret.PositionChanged += x,
-				x => splitArea.Caret.PositionChanged -= x))
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => splitArea.TextView.ScrollOffsetChanged += x,
-				x => splitArea.TextView.ScrollOffsetChanged -= x))
+		// The state is that of the active half, so only its moves count.
+		Editor
+			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
+			.Select(BuildMoveTrigger)
+			.Switch()
 			.SetDelay(TimeSpan.FromSeconds(0.5))
 			.Subscribe(_ => CaptureViewState());
 
@@ -325,103 +244,20 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 			.GetObservable(ViewStateProperty)
 			.Subscribe(ViewStateProperty_Changed);
 
-		this
-			.GetObservable(IsSplitProperty)
-			.Subscribe(IsSplitProperty_Changed);
-
-		this
-			.GetObservable(ActiveEditorProperty)
+		Editor
+			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
 			.Subscribe(ActiveEditorProperty_Changed);
 	}
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="ActiveEditorProperty" /> changed handler.
+	/// <see cref="SplitDocumentEditor.ActiveEditorProperty" /> changed handler of <see cref="Editor" />.
 	/// </summary>
 	private void ActiveEditorProperty_Changed(DocumentTextEditor value)
 	{
 		// The state is that of the active half, which a move of the focus changes without a move of the caret or the view.
 		CaptureViewState();
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.GotFocus" /> event handler of both halves.
-	/// </summary>
-	private void DocumentTextEditor_GotFocus(object? sender, FocusChangedEventArgs e)
-	{
-		if (sender is not DocumentTextEditor editor)
-		{
-			return;
-		}
-
-		ActiveEditor = editor;
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" /> handler of both halves, which gives a half the focus on a right click too.
-	/// </summary>
-	private void DocumentTextEditor_PointerPressed(object? sender, PointerPressedEventArgs e)
-	{
-		// The text area takes the focus on any press, but beside it, on the scroll bar or the scroll marks,
-		// only the left button moves the focus, while the context menu serves the active half.
-		if (sender is not DocumentTextEditor { IsKeyboardFocusWithin: false } editor
-			|| !e.GetCurrentPoint(editor).Properties.IsRightButtonPressed)
-		{
-			return;
-		}
-
-		editor
-			.TextArea
-			.Focus();
-	}
-
-	/// <summary>
-	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="Editor" />.
-	/// </summary>
-	private void Editor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
-	{
-		_scrollViewer = e.NameScope.Find<ScrollViewer>(ScrollViewerPartName);
-	}
-
-	/// <summary>
-	/// <see cref="IsSplitProperty" /> changed handler.
-	/// </summary>
-	private void IsSplitProperty_Changed(bool value)
-	{
-		RowDefinitions rows = EditorsHost.RowDefinitions;
-
-		// A drag of the splitter leaves its own shares in both rows, so every split starts in the middle.
-		rows[Grid.GetRow(Editor)].Height = GridLength.Star;
-
-		// The row of the hidden lower half shrinks to nothing and leaves the whole height to the upper one.
-		rows[Grid.GetRow(SplitEditor)].Height = value ? GridLength.Star : GridLength.Auto;
-
-		if (!value)
-		{
-			// The upper half stays, so it takes over the place of an active lower half.
-			if (ActiveEditor == SplitEditor)
-			{
-				CopyViewToEditor();
-			}
-
-			ActiveEditor = Editor;
-
-			return;
-		}
-
-		// The lower half gets its layout only once it is shown.
-		Dispatcher.UIThread.Post(CopyViewToSplitEditor, DispatcherPriority.Loaded);
-	}
-
-	/// <summary>
-	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="SplitEditor" />.
-	/// </summary>
-	private void SplitEditor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
-	{
-		_splitScrollViewer = e
-			.NameScope
-			.Find<ScrollViewer>(ScrollViewerPartName);
 	}
 
 	/// <summary>
@@ -452,7 +288,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	public void Receive(BookmarksChangedMessage message)
 	{
 		// Every open document has bookmarks of its own, which both halves share.
-		if (message.Bookmarks != Editor.Bookmarks)
+		if (message.Bookmarks != Editor.ActiveEditor.Bookmarks)
 		{
 			return;
 		}
@@ -465,11 +301,11 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	internal void CaptureViewState()
 	{
-		DocumentTextEditor editor = ActiveEditor;
+		DocumentTextEditor editor = Editor.ActiveEditor;
 
 		// A capture before the restore would overwrite the state that is still to be shown.
 		if (_pendingViewState is not null
-			|| GetScrollViewer(editor) is not { } scrollViewer
+			|| editor.ScrollViewer is not { } scrollViewer
 			|| editor.Document is null)
 		{
 			return;
@@ -534,80 +370,37 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 
 		_hasBeenLoaded = true;
 
-		DispatcherTimer.RunOnce(() => Editor.Focus(), TimeSpan.FromMilliseconds(100));
+		DispatcherTimer.RunOnce(() => Editor.ActiveEditor.Focus(), TimeSpan.FromMilliseconds(100));
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Puts the caret, the selection and the scroll position of one editor into another one on the same document.
+	/// Emits when the caret or the view of an editor moves.
 	/// </summary>
-	private static void CopyView(
-		TextEditor source,
-		ScrollViewer sourceScrollViewer,
-		TextEditor target,
-		ScrollViewer targetScrollViewer)
+	private static IObservable<EventPattern<EventArgs>> BuildMoveTrigger(TextEditor editor)
 	{
-		target.Select(source.SelectionStart, source.SelectionLength);
+		TextArea area = editor.TextArea;
 
-		target
-			.TextArea
-			.Caret
-			.Position = source.TextArea.Caret.Position;
-
-		targetScrollViewer.Offset = sourceScrollViewer.Offset;
+		return Observable.FromEventPattern<EventHandler, EventArgs>(
+			x => area.Caret.PositionChanged += x,
+			x => area.Caret.PositionChanged -= x)
+			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => area.TextView.ScrollOffsetChanged += x,
+				x => area.TextView.ScrollOffsetChanged -= x));
 	}
-
-	/// <summary>
-	/// Puts the caret, the selection and the scroll position of the lower half into the upper one.
-	/// </summary>
-	private void CopyViewToEditor()
-	{
-		if (_scrollViewer is not { } scrollViewer
-			|| _splitScrollViewer is not { } splitScrollViewer)
-		{
-			return;
-		}
-
-		CopyView(
-			SplitEditor,
-			splitScrollViewer,
-			Editor,
-			scrollViewer);
-	}
-
-	/// <summary>
-	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
-	/// </summary>
-	private void CopyViewToSplitEditor()
-	{
-		if (!IsSplit
-			|| _scrollViewer is not { } scrollViewer
-			|| _splitScrollViewer is not { } splitScrollViewer)
-		{
-			return;
-		}
-
-		CopyView(
-			Editor,
-			scrollViewer,
-			SplitEditor,
-			splitScrollViewer);
-	}
-
-	/// <summary>
-	/// Returns the scroll viewer of a half.
-	/// </summary>
-	private ScrollViewer? GetScrollViewer(DocumentTextEditor editor) => editor == SplitEditor ? _splitScrollViewer : _scrollViewer;
 
 	/// <summary>
 	/// Applies the pending view state to the laid out document.
 	/// </summary>
 	private void RestoreViewState()
 	{
+		// The upper half is the one shown without a split, which is not remembered.
+		DocumentTextEditor editor = Editor.PrimaryEditor;
+
 		if (_pendingViewState is not { } state
-			|| _scrollViewer is not { } scrollViewer
-			|| Editor.Document is not { } document)
+			|| editor.ScrollViewer is not { } scrollViewer
+			|| editor.Document is not { } document)
 		{
 			return;
 		}
@@ -624,9 +417,9 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 			0,
 			document.TextLength - start);
 
-		Editor.Select(start, length);
+		editor.Select(start, length);
 
-		Editor
+		editor
 			.TextArea
 			.Caret
 			.Position = state.CaretPosition;
@@ -634,7 +427,7 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		// The offset, not the caret line, brings the view back the way it was left.
 		scrollViewer.Offset = state.ScrollOffset;
 
-		Editor
+		editor
 			.Bookmarks
 			.SetLines(state.Bookmarks ?? []);
 	}

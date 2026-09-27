@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -29,14 +28,9 @@ internal class DocumentEditorViewTests
 	private const string CaretBlockName = "CaretBlock";
 
 	/// <summary>
-	/// Name of the text editor of the upper half in the markup.
+	/// Name of the editor with the halves in the markup.
 	/// </summary>
 	private const string EditorName = "Editor";
-
-	/// <summary>
-	/// Name of the grid with the halves in the markup.
-	/// </summary>
-	private const string EditorsHostName = "EditorsHost";
 
 	/// <summary>
 	/// Name of the caption of the encoding in the markup.
@@ -49,146 +43,14 @@ internal class DocumentEditorViewTests
 	private const string ScrollViewerName = "PART_ScrollViewer";
 
 	/// <summary>
-	/// Name of the text editor of the lower half in the markup.
-	/// </summary>
-	private const string SplitEditorName = "SplitEditor";
-
-	/// <summary>
 	/// Name of the panel with the buttons of the control in the toolbar in the markup.
 	/// </summary>
 	private const string ToolBarName = "ToolBar";
 	#endregion
 
-	#region Methods
+	#region Methods	
 	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: a right click beside the text, where the text area takes no focus,
-	/// makes its half the active one.
-	/// </summary>
-	[AvaloniaTest]
-	public void ActiveEditor_Follows_A_Right_Click_Beside_The_Text()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Window window = Show(sut);
-
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
-
-		ScrollMarkMargin scrollMarks = splitEditor
-			.GetVisualDescendants()
-			.OfType<ScrollMarkMargin>()
-			.Single();
-
-		Point point = Center(window, scrollMarks);
-
-		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(SplitEditorName);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: a right click in the text makes its half the active one.
-	/// </summary>
-	[AvaloniaTest]
-	public void ActiveEditor_Follows_A_Right_Click_In_The_Text()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Window window = Show(sut);
-
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
-
-		Point point = Center(window, splitEditor);
-
-		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(SplitEditorName);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the focus that comes back to the upper half makes it the active one again.
-	/// </summary>
-	[AvaloniaTest]
-	public void ActiveEditor_Follows_The_Focus_Back_Into_The_Upper_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Show(sut);
-
-		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
-
-		sut
-			.GetControl<DocumentTextEditor>(SplitEditorName)
-			.TextArea
-			.Focus();
-
-		// Act
-		editor
-			.TextArea
-			.Focus();
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(EditorName);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the focus that goes into the lower half makes it the active one.
-	/// </summary>
-	[AvaloniaTest]
-	public void ActiveEditor_Follows_The_Focus_Into_The_Lower_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Show(sut);
-
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
-
-		// Act
-		splitEditor
-			.TextArea
-			.Focus();
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(SplitEditorName);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: every command of the context menu acts on the active half.
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: every command of the context menu acts on the active half.
 	/// </summary>
 	[AvaloniaTest]
 	public void ActiveEditor_Reaches_The_Context_Menu()
@@ -201,7 +63,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		// Act
 		splitEditor
@@ -209,7 +71,7 @@ internal class DocumentEditorViewTests
 			.Focus();
 
 		// Assert
-		ICommand?[] commands = GetMenuCommands(sut.GetControl<DocumentTextEditor>(EditorName).ContextMenu!);
+		ICommand?[] commands = GetMenuCommands(sut.GetControl<SplitDocumentEditor>(EditorName).ContextMenu!);
 
 		commands
 			.Should()
@@ -219,7 +81,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the status bar shows the caret of the active half.
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: the status bar shows the caret of the active half.
 	/// </summary>
 	[AvaloniaTest]
 	public void ActiveEditor_Reaches_The_Status_Bar()
@@ -233,9 +95,9 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		StackPanel caretBlock = sut.GetControl<StackPanel>(CaretBlockName);
 
@@ -263,7 +125,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the scroll buttons of the toolbar act on the active half.
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: the scroll buttons of the toolbar act on the active half.
 	/// </summary>
 	[AvaloniaTest]
 	public void ActiveEditor_Reaches_The_Toolbar()
@@ -276,7 +138,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		// Act
 		splitEditor
@@ -297,7 +159,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the scroll buttons of the toolbar act on the upper half
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: the scroll buttons of the toolbar act on the upper half
 	/// before any half takes the focus.
 	/// </summary>
 	[AvaloniaTest]
@@ -310,7 +172,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		ICommand[] commands = [.. sut
 			.GetControl<StackPanel>(ToolBarName)
@@ -325,7 +187,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: a new active half reports its caret, selection and offset at once.
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: a new active half reports its caret, selection and offset at once.
 	/// </summary>
 	[AvaloniaTest]
 	public void ActiveEditor_Reports_The_View_State_Of_The_New_Half()
@@ -339,7 +201,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		splitEditor.Select(40, 3);
 
@@ -364,21 +226,6 @@ internal class DocumentEditorViewTests
 				SelectionLength = 3,
 				SelectionStart = 40
 			});
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ActiveEditor" />: the upper half is the active one from the start.
-	/// </summary>
-	[AvaloniaTest]
-	public void ActiveEditor_Starts_With_The_Upper_Half()
-	{
-		// Act
-		DocumentEditorView sut = new();
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(EditorName);
 	}
 
 	/// <summary>
@@ -465,7 +312,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		splitEditor
 			.TextArea
@@ -508,7 +355,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		editor.Select(20, 4);
 
@@ -534,30 +381,6 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Document" />: the lower half shows the same document.
-	/// </summary>
-	[AvaloniaTest]
-	public void Document_Reaches_The_Lower_Half()
-	{
-		// Arrange
-		TextDocument document = CreateDocument(lineCount: 10);
-
-		DocumentEditorView sut = new()
-		{
-			Document = document,
-			IsSplit = true
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).Document
-			.Should()
-			.BeSameAs(document);
-	}
-
-	/// <summary>
 	/// <see cref="DocumentEditorView.DocumentFontSize" />: a notch of the wheel with Ctrl changes the size by one step.
 	/// </summary>
 	[AvaloniaTest]
@@ -572,7 +395,7 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		// Act
 		window.MouseWheel(Center(window, editor), new(0.0, 1.0), RawInputModifiers.Control);
@@ -607,39 +430,6 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		sut.DocumentFontSize
-			.Should()
-			.Be(14.5);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.DocumentFontSize" />: a notch of the wheel with Ctrl in the lower half zooms both halves.
-	/// </summary>
-	[AvaloniaTest]
-	public void DocumentFontSize_Follows_A_Ctrl_Wheel_Notch_In_The_Lower_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			Document = CreateDocument(lineCount: 100),
-			DocumentFontSize = 14.0,
-			IsSplit = true
-		};
-
-		Window window = Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
-
-		// Act
-		window.MouseWheel(Center(window, splitEditor), new(0.0, 1.0), RawInputModifiers.Control);
-
-		// Assert
-		sut.DocumentFontSize
-			.Should()
-			.Be(14.5);
-
-		editor.FontSize
 			.Should()
 			.Be(14.5);
 	}
@@ -681,29 +471,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(EditorName).IsReadOnly
-			.Should()
-			.Be(isReadOnly);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsReadOnly" />: the read-only mode reaches the lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsReadOnly_Reaches_The_Lower_Half([Values] bool isReadOnly)
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsReadOnly = isReadOnly,
-			IsSplit = true
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).IsReadOnly
+		sut.GetControl<SplitDocumentEditor>(EditorName).IsReadOnly
 			.Should()
 			.Be(isReadOnly);
 	}
@@ -724,300 +492,16 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<DocumentTextEditor>(EditorName).IsSensitive
+		sut.GetControl<SplitDocumentEditor>(EditorName).IsSensitive
 			.Should()
 			.Be(isSensitive);
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.IsSensitive" />: the sensitivity of the text reaches the lower half.
+	/// <see cref="DocumentEditorView.IsSplit" />: the split reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public void IsSensitive_Reaches_The_Lower_Half([Values] bool isSensitive)
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSensitive = isSensitive,
-			IsSplit = true
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<DocumentTextEditor>(SplitEditorName).IsSensitive
-			.Should()
-			.Be(isSensitive);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: the halves share the height equally.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Divides_The_Height_Between_The_Halves()
-	{
-		// Arrange
-		DocumentEditorView sut = new();
-
-		Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
-
-		// Act
-		sut.IsSplit = true;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		splitEditor.Bounds.Height
-			.Should()
-			.BeApproximately(editor.Bounds.Height, 1.0);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half takes the whole height back.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Off_Gives_The_Whole_Height_Back_To_The_Upper_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new();
-
-		Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		double height = editor.Bounds.Height;
-
-		sut.IsSplit = true;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		sut.IsSplit = false;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		editor.Bounds.Height
-			.Should()
-			.Be(height);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half takes over the caret, the selection
-	/// and the scroll position of an active lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Off_Keeps_The_Place_Of_The_Active_Lower_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			Document = CreateDocument(lineCount: 1000),
-			IsSplit = true
-		};
-
-		Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
-
-		splitEditor
-			.TextArea
-			.Focus();
-
-		splitEditor.Select(40, 3);
-
-		// The caret at the start of the selection, where the selection alone would not put it.
-		splitEditor
-			.TextArea
-			.Caret
-			.Position = new(line: 5, column: 1);
-
-		Vector offset = new(0.0, 700.0);
-
-		GetSplitScrollViewer(sut).Offset = offset;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		sut.IsSplit = false;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		editor.SelectionStart
-			.Should()
-			.Be(40);
-
-		editor.SelectionLength
-			.Should()
-			.Be(3);
-
-		editor.TextArea.Caret.Location
-			.Should()
-			.Be(new TextLocation(5, 1));
-
-		GetScrollViewer(sut).Offset
-			.Should()
-			.Be(offset);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: without the split an active upper half stays where it is.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Off_Keeps_The_Place_Of_The_Active_Upper_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			Document = CreateDocument(lineCount: 1000),
-			IsSplit = true
-		};
-
-		Show(sut);
-
-		Vector offset = new(0.0, 200.0);
-
-		GetScrollViewer(sut).Offset = offset;
-
-		GetSplitScrollViewer(sut).Offset = new(0.0, 700.0);
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		sut.IsSplit = false;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		GetScrollViewer(sut).Offset
-			.Should()
-			.Be(offset);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: without a split the upper half takes the whole height of the halves.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Off_Leaves_The_Whole_Height_To_The_Upper_Half()
-	{
-		// Arrange
-		DocumentEditorView sut = new();
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(EditorName).Bounds.Height
-			.Should()
-			.Be(sut.GetControl<Grid>(EditorsHostName).Bounds.Height);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: without the split the upper half is the active one again,
-	/// even when the focus has already left the lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Off_Makes_The_Upper_Half_Active()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Show(sut);
-
-		sut
-			.GetControl<DocumentTextEditor>(SplitEditorName)
-			.TextArea
-			.Focus();
-
-		// The split toggle takes the focus when it is clicked.
-		sut
-			.GetControl<StackPanel>(ToolBarName)
-			.Children
-			.OfType<ToggleButton>()
-			.First()
-			.Focus();
-
-		// Act
-		sut.IsSplit = false;
-
-		// Assert
-		sut.ActiveEditor.Name
-			.Should()
-			.Be(EditorName);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: the lower half opens at the caret, the selection and the scroll position
-	/// of the upper one.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Opens_The_Lower_Half_Where_The_Upper_One_Stands()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			Document = CreateDocument(lineCount: 1000)
-		};
-
-		Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
-
-		editor.Select(20, 4);
-
-		// The caret at the start of the selection, where the selection alone would not put it.
-		editor
-			.TextArea
-			.Caret
-			.Position = new(line: 3, column: 1);
-
-		Vector offset = new(0.0, 500.0);
-
-		GetScrollViewer(sut).Offset = offset;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		sut.IsSplit = true;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		splitEditor.SelectionStart
-			.Should()
-			.Be(20);
-
-		splitEditor.SelectionLength
-			.Should()
-			.Be(4);
-
-		splitEditor.TextArea.Caret.Position
-			.Should()
-			.Be(editor.TextArea.Caret.Position);
-
-		GetSplitScrollViewer(sut).Offset
-			.Should()
-			.Be(offset);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: the lower half and the splitter are shown only in a split view.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Shows_The_Lower_Half_Only_When_Set([Values] bool isSplit)
+	public void IsSplit_Reaches_The_Editor([Values] bool isSplit)
 	{
 		// Arrange
 		DocumentEditorView sut = new()
@@ -1029,56 +513,9 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).IsVisible
+		sut.GetControl<SplitDocumentEditor>(EditorName).IsSplit
 			.Should()
 			.Be(isSplit);
-
-		sut.GetVisualDescendants().OfType<GridSplitter>().Single().IsVisible
-			.Should()
-			.Be(isSplit);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.IsSplit" />: a new split starts in the middle, whatever shares a drag of the splitter left.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsSplit_Starts_In_The_Middle_After_A_Drag_Of_The_Splitter()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true
-		};
-
-		Window window = Show(sut);
-
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
-
-		TextEditor splitEditor = sut.GetControl<TextEditor>(SplitEditorName);
-
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
-
-		Point end = start.WithY(start.Y + 100.0);
-
-		window.MouseDown(start, MouseButton.Left);
-
-		window.MouseMove(end);
-
-		window.MouseUp(end, MouseButton.Left);
-
-		sut.IsSplit = false;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		sut.IsSplit = true;
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Assert
-		splitEditor.Bounds.Height
-			.Should()
-			.BeApproximately(editor.Bounds.Height, 1.0);
 	}
 
 	/// <summary>
@@ -1096,7 +533,7 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		editor.Select(20, 4);
 
@@ -1199,7 +636,7 @@ internal class DocumentEditorViewTests
 		Show(other);
 
 		// Act
-		other.GetControl<DocumentTextEditor>(EditorName).Bookmarks.Toggle(3);
+		other.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.Bookmarks.Toggle(3);
 
 		// Assert
 		sut.ViewState
@@ -1222,7 +659,7 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<DocumentTextEditor>(EditorName);
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		// Act
 		editor.Bookmarks.Toggle(3);
@@ -1252,13 +689,12 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<DocumentTextEditor>(SplitEditorName);
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
 		// Act
 		splitEditor.Bookmarks.Toggle(3);
 
 		// Assert
-		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
 		int[]? bookmarks = sut.ViewState?.Bookmarks;
 
 		bookmarks
@@ -1282,29 +718,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(EditorName).Options.ShowEndOfLine
-			.Should()
-			.Be(isShown);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ShowEndOfLine" />: the glyphs of line endings reach the lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowEndOfLine_Reaches_The_Lower_Half([Values] bool isShown)
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true,
-			ShowEndOfLine = isShown
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowEndOfLine
+		sut.GetControl<SplitDocumentEditor>(EditorName).ShowEndOfLine
 			.Should()
 			.Be(isShown);
 	}
@@ -1325,29 +739,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(EditorName).Options.ShowSpaces
-			.Should()
-			.Be(isShown);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ShowSpaces" />: the glyphs of spaces reach the lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowSpaces_Reaches_The_Lower_Half([Values] bool isShown)
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true,
-			ShowSpaces = isShown
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowSpaces
+		sut.GetControl<SplitDocumentEditor>(EditorName).ShowSpaces
 			.Should()
 			.Be(isShown);
 	}
@@ -1368,51 +760,9 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(EditorName).Options.ShowTabs
+		sut.GetControl<SplitDocumentEditor>(EditorName).ShowTabs
 			.Should()
 			.Be(isShown);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView.ShowTabs" />: the glyphs of tabs reach the lower half.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowTabs_Reaches_The_Lower_Half([Values] bool isShown)
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			IsSplit = true,
-			ShowTabs = isShown
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).Options.ShowTabs
-			.Should()
-			.Be(isShown);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorView" />: the lower half opens the same context menu as the upper one.
-	/// </summary>
-	[AvaloniaTest]
-	public void SplitEditor_Shares_The_Context_Menu()
-	{
-		// Arrange
-		DocumentEditorView sut = new();
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).ContextMenu
-			.Should()
-			.NotBeNull()
-			.And
-			.BeSameAs(sut.GetControl<TextEditor>(EditorName).ContextMenu);
 	}
 
 	/// <summary>
@@ -1526,7 +876,7 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -1572,7 +922,7 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -1614,7 +964,7 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		sut.GetControl<DocumentTextEditor>(EditorName).Bookmarks.GetLines()
+		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
 	}
@@ -1647,7 +997,7 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		sut.GetControl<DocumentTextEditor>(SplitEditorName).Bookmarks.GetLines()
+		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
 	}
@@ -1711,7 +1061,7 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<TextEditor>(EditorName);
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -1757,15 +1107,14 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.WordWrap" />: the wrapping of long lines reaches the lower half.
+	/// <see cref="DocumentEditorView.WordWrap" />: the wrapping of long lines reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public void WordWrap_Reaches_The_Lower_Half([Values] bool isWrapped)
+	public void WordWrap_Reaches_The_Editor([Values] bool isWrapped)
 	{
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			IsSplit = true,
 			WordWrap = isWrapped
 		};
 
@@ -1773,7 +1122,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextEditor>(SplitEditorName).WordWrap
+		sut.GetControl<SplitDocumentEditor>(EditorName).WordWrap
 			.Should()
 			.Be(isWrapped);
 	}
@@ -1826,12 +1175,13 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// Returns the scroll viewer of the text editor.
+	/// Returns the scroll viewer of the text editor of the upper half.
 	/// </summary>
 	private static ScrollViewer GetScrollViewer(DocumentEditorView editor)
 	{
 		return editor
-			.GetControl<TextEditor>(EditorName)
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
@@ -1843,7 +1193,8 @@ internal class DocumentEditorViewTests
 	private static ScrollViewer GetSplitScrollViewer(DocumentEditorView editor)
 	{
 		return editor
-			.GetControl<TextEditor>(SplitEditorName)
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);

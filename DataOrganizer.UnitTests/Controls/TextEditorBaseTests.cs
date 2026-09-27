@@ -331,6 +331,27 @@ internal class TextEditorBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditorBase.ScrollViewer" />: is the scroll viewer of the template.
+	/// </summary>
+	[AvaloniaTest]
+	public void ScrollViewer_Comes_From_The_Template()
+	{
+		// Arrange
+		TestTextEditor sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is none.
+		string? name = sut.ScrollViewer?.Name;
+
+		name
+			.Should()
+			.Be(ScrollViewerName);
+	}
+
+	/// <summary>
 	/// <see cref="TextEditorBase.SelectAllCommand" />: there is something to select only when the document has text.
 	/// </summary>
 	[AvaloniaTest]
