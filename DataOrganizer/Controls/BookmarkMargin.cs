@@ -53,7 +53,6 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	#region Constructors
 	public BookmarkMargin(DocumentTextEditor editor)
 	{
-		//_bookmarks = bookmarks;
 		_editor = editor;
 
 		// A cursor of its own, as the margin would inherit the I-beam the text area takes on a click.

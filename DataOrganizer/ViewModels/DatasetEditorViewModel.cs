@@ -514,8 +514,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Scroll records to the end");
 
-		//scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
-
 		return SmoothScrollAsync(scrollViewer, toEnd: true);
 	}
 
@@ -531,8 +529,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 
 		_logger.LogInformation("Scroll records to the top");
-
-		//scrollViewer.Offset = default;
 
 		return SmoothScrollAsync(scrollViewer, toEnd: false);
 	}

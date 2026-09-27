@@ -121,8 +121,7 @@ public sealed partial class FileAssociationService : IFileAssociationService
 		Init_NoInternetOpenWith = 0x8000000,
 		Init_NoInternetDefault = 0x10000000,
 		Init_NoInternetProtocols = 0x20000000,
-		Init_NoInternetFileTypes = 0x40000000,
-		//Init_NoInternetSearch = 0x80000000
+		Init_NoInternetFileTypes = 0x40000000
 	}
 
 	private enum AssocStr

@@ -262,7 +262,6 @@ internal sealed class SplitDocumentEditor : Control
 
 		_activeEditor = PrimaryEditor;
 
-		//_splitter = new GridSplitter();
 		// A drag of the splitter leaves the focus in the text, so the keys still type into it.
 		_splitter = new GridSplitter
 		{
@@ -445,8 +444,6 @@ internal sealed class SplitDocumentEditor : Control
 		editor.Bind(TextEditor.DocumentProperty, this.GetObservable(DocumentProperty));
 
 		editor.Bind(FontSizeProperty, this.GetObservable(FontSizeProperty));
-
-		//editor.Bind(ForegroundProperty, this.GetObservable(ForegroundProperty));
 
 		editor.Bind(TextEditor.IsReadOnlyProperty, this.GetObservable(IsReadOnlyProperty));
 

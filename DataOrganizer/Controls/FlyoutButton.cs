@@ -124,38 +124,7 @@ internal sealed class FlyoutButton : Button
 			Text = Header
 		});
 
-		//if (Flyout is not null)
-		//{
-		//	stackPanel.Children.Add(new MaterialIcon
-		//	{
-		//		Kind = MaterialIconKind.Play,
-		//		HorizontalAlignment = HorizontalAlignment.Right
-		//	});
-		//}
-
 		Content = stackPanel;
 	}
-
-	///// <inheritdoc />
-	//protected override async void OnPointerEntered(PointerEventArgs e)
-	//{
-	//	base.OnPointerEntered(e);
-
-	//	if (Flyout is null)
-	//	{
-	//		return;
-	//	}
-
-	//	await System.Threading.Tasks.Task
-	//		.Delay(DataOrganizer.Helpers.UiConstants.TipDelay)
-	//		.ConfigureAwait(true);
-
-	//	if (!IsPointerOver)
-	//	{
-	//		return;
-	//	}
-
-	//	Flyout.ShowAt(this);
-	//}
 	#endregion
 }
