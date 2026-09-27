@@ -11,9 +11,7 @@
 
 	<Interaction.Behaviors>
 		<EventTriggerBehavior EventName="SizeChanged">
-			<InvokeCommandAction
-				Command="{Binding SizeChangedCommand}"
-				PassEventArgsToCommand="True" />
+			<InvokeCommandAction Command="{Binding SizeChangedCommand}" PassEventArgsToCommand="True" />
 		</EventTriggerBehavior>
 	</Interaction.Behaviors>
 
@@ -30,7 +28,9 @@
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding CategorySearch, Mode=TwoWay}" />
 
-		<!-- Virtualization is disabled because switching to edge elements does not work when using "Ctrl+Tab" -->
+		<!--
+			Virtualization is disabled because switching to edge elements does not work when using "Ctrl+Tab"
+		-->
 		<ListBox
 			Grid.Row="1"
 			Grid.Column="0"
@@ -39,9 +39,7 @@
 			ItemsSource="{Binding Categories, Mode=OneTime}"
 			SelectedItem="{Binding SelectedCategory, Mode=TwoWay}">
 			<ListBox.KeyBindings>
-				<KeyBinding
-					Command="{Binding SwitchToPreviousCommand}"
-					Gesture="Ctrl+Tab" />
+				<KeyBinding Command="{Binding SwitchToPreviousCommand}" Gesture="Ctrl+Tab" />
 			</ListBox.KeyBindings>
 
 			<Interaction.Behaviors>
@@ -53,9 +51,7 @@
 					<Setter Property="(Interaction.Behaviors)">
 						<BehaviorCollectionTemplate>
 							<BehaviorCollection>
-								<dragAndDrop:ItemDragBehavior
-									ItemDraggedCommand="{Binding CategoryDraggedCommand}"
-									Orientation="Vertical" />
+								<dragAndDrop:ItemDragBehavior ItemDraggedCommand="{Binding CategoryDraggedCommand}" Orientation="Vertical" />
 							</BehaviorCollection>
 						</BehaviorCollectionTemplate>
 					</Setter>
@@ -70,7 +66,8 @@
 			Grid.Row="0"
 			Grid.RowSpan="2"
 			Grid.Column="1"
-			Classes="VerticalGridSplitterStyle" />
+			ResizeDirection="Columns"
+			Theme="{StaticResource SingleLineGridSplitterTheme}" />
 
 		<TextBox
 			Grid.Row="0"

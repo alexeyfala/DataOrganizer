@@ -12,6 +12,12 @@ namespace DataOrganizer.Dto.Entities;
 public sealed partial class FileDto : ExplorerItemDtoBase
 {
 	#region Properties
+	/// <summary>
+	/// Split of the file in the built-in editor: the share of the height of the upper half, or <c>null</c> when it is not split.
+	/// It lasts while the application runs and never reaches the database.
+	/// </summary>
+	public double? EditorSplit { get; set; }
+
 	/// <inheritdoc cref="FileEntity.EditorState" />
 	public string? EditorState { get; set; }
 

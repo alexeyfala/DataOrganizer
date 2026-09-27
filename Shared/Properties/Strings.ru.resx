@@ -822,4 +822,7 @@
   <data name="RemoveAllBookmarks" xml:space="preserve">
     <value>Удалить все закладки</value>
   </data>
+  <data name="SplitWindow" xml:space="preserve">
+    <value>Разделение окна</value>
+  </data>
 </root>

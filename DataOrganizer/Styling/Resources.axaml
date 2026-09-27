@@ -20,6 +20,8 @@
 		on the light paper, on the dark paper and on the dark card background.
 	-->
 
+	<Brush x:Key="BookmarkBrush">#FF2196F3</Brush>
+
 	<Brush x:Key="EditingBrush">#FF2196F3</Brush>
 
 	<Brush x:Key="ExecutingBrush">#FF26A69A</Brush>

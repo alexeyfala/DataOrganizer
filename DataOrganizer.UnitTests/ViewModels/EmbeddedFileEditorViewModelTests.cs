@@ -561,6 +561,56 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the split the file keeps for the session comes back,
+	/// also without a stored editor state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_Split()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.InitialEditorSplit = 0.25;
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.IsSplit
+			.Should()
+			.BeTrue();
+
+		sut.SplitShare
+			.Should()
+			.Be(0.25);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored caret, selection and scroll position
 	/// become the view state.
 	/// </summary>
@@ -739,6 +789,58 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
 			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the end of the split reports that there is none.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Reports_No_Split()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.IsSplit = true;
+
+		List<double?> reported = [];
+
+		sut.SetEditorSplitCallback = reported.Add;
+
+		// Act
+		sut.IsSplit = false;
+
+		// Assert
+		reported
+			.Should()
+			.Equal((double?)null);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the split reports the share of the upper half.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Reports_The_Share_Of_The_Upper_Half()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SplitShare = 0.25;
+
+		List<double?> reported = [];
+
+		sut.SetEditorSplitCallback = reported.Add;
+
+		// Act
+		sut.IsSplit = true;
+
+		// Assert
+		reported
+			.Should()
+			.Equal(0.25);
 	}
 
 	/// <summary>
@@ -1089,6 +1191,32 @@ internal class EmbeddedFileEditorViewModelTests
 		responses
 			.Should()
 			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SplitShare" />: a new share of a split document is reported.
+	/// </summary>
+	[AvaloniaTest]
+	public void SplitShare_Reports_The_New_Share_While_Split()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.IsSplit = true;
+
+		List<double?> reported = [];
+
+		sut.SetEditorSplitCallback = reported.Add;
+
+		// Act
+		sut.SplitShare = 0.25;
+
+		// Assert
+		reported
+			.Should()
+			.Equal(0.25);
 	}
 
 	/// <summary>

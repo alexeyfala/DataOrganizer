@@ -418,7 +418,8 @@
 							<GridSplitter
 								Grid.Row="0"
 								Grid.Column="1"
-								Classes="VerticalGridSplitterStyle" />
+								ResizeDirection="Columns"
+								Theme="{StaticResource SingleLineGridSplitterTheme}" />
 
 							<ContentControl
 								Grid.Row="0"

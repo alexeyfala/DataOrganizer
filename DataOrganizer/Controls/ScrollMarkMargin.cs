@@ -89,11 +89,6 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	private readonly List<(double Row, int Line)> _marks = [];
 
 	/// <summary>
-	/// Bookmarks of the document, known from the last message about them.
-	/// </summary>
-	private LineBookmarks? _bookmarks;
-
-	/// <summary>
 	/// Row of pixels of the mark under the pointer.
 	/// </summary>
 	private double? _hoveredRow;
@@ -151,7 +146,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 
 	#region Methods
 	/// <summary>
-	/// Takes the bookmarks of the document and repaints the margin when they change.
+	/// Repaints the margin when the bookmarks of its document change.
 	/// </summary>
 	public void Receive(BookmarksChangedMessage message)
 	{
@@ -161,8 +156,6 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 		{
 			return;
 		}
-
-		_bookmarks = message.Bookmarks;
 
 		InvalidateVisual();
 	}
@@ -446,7 +439,8 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	/// </summary>
 	private void DrawBookmarkMarks(DrawingContext context, TextView textView, double top, double height)
 	{
-		if (_bookmarks is not { } bookmarks)
+		// The bookmarks are looked up at every draw, as a margin shown later has missed the messages sent before.
+		if (LineBookmarks.Find(textView.Document) is not { } bookmarks)
 		{
 			return;
 		}

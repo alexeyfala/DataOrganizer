@@ -802,4 +802,7 @@
   <data name="RemoveAllBookmarks" xml:space="preserve">
     <value>Remove All Bookmarks</value>
   </data>
+  <data name="SplitWindow" xml:space="preserve">
+    <value>Split Window</value>
+  </data>
 </root>

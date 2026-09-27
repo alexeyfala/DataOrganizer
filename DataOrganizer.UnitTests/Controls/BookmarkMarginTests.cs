@@ -22,9 +22,9 @@ internal class BookmarkMarginTests
 {
 	#region Data
 	/// <summary>
-	/// Resource key of the primary brush of the theme.
+	/// Resource key of the brush of the bookmarks.
 	/// </summary>
-	private const string PrimaryBrushKey = "MaterialPrimaryMidBrush";
+	private const string BookmarkBrushKey = "BookmarkBrush";
 	#endregion
 
 	#region Methods
@@ -305,7 +305,7 @@ internal class BookmarkMarginTests
 	}
 
 	/// <summary>
-	/// <see cref="BookmarkMargin.Render" />: the bookmarked lines get the icon in the primary brush of the theme.
+	/// <see cref="BookmarkMargin.Render" />: the bookmarked lines get the icon in the brush of the bookmarks.
 	/// </summary>
 	[AvaloniaTest]
 	public void Render_Draws_The_Icons_Of_The_Bookmarked_Lines()
@@ -339,7 +339,7 @@ internal class BookmarkMarginTests
 			.Should()
 			.AllSatisfy(static x => x.Brush
 				.Should()
-				.BeSameAs(Application.Current!.FindResource(PrimaryBrushKey)))
+				.BeSameAs(Application.Current!.FindResource(BookmarkBrushKey)))
 			.And
 			.OnlyContain(static x => x.Opacity == 1.0);
 	}

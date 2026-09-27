@@ -19,13 +19,6 @@ public sealed class ProcessManager : IProcessManager
 		return [.. Process
 			.GetProcesses()
 			.Where(x => GetParentProcessId(x, out int processId) && processId == parentProcessId)];
-
-		//// Nuget: System.Management
-		//return new ManagementObjectSearcher($"Select * From Win32_Process Where ParentProcessID={parentProcessId}")
-		//	.Get()
-		//	.Cast<ManagementObject>()
-		//	.Select(x => Process.GetProcessById(Convert.ToInt32(x["ProcessID"])))
-		//	.ToArray();
 	}
 
 	/// <inheritdoc />

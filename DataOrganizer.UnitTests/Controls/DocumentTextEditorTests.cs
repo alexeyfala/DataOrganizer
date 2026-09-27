@@ -60,6 +60,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Bookmarks" />: a bookmark set in one editor of a document shows in another one.
+	/// </summary>
+	[AvaloniaTest]
+	public void Bookmarks_Are_Shared_By_The_Editors_Of_A_Document()
+	{
+		// Arrange
+		TextDocument document = new("One\nTwo\nThree");
+
+		DocumentTextEditor other = new()
+		{
+			Document = document
+		};
+
+		DocumentTextEditor sut = new()
+		{
+			Document = document
+		};
+
+		// Act
+		other.Bookmarks.Toggle(2);
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(2);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.ClearBookmarksCommand" />: there is something to remove only with a bookmark.
 	/// </summary>
 	[AvaloniaTest]
@@ -323,8 +351,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="TextEditor.Document" />: the bookmarks pass to a new document and start there without the bookmarks
-	/// of the old one.
+	/// <see cref="TextEditor.Document" />: a document that comes back brings its bookmarks with it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Brings_Its_Bookmarks_Back()
+	{
+		// Arrange
+		TextDocument document = new("One\nTwo\nThree");
+
+		DocumentTextEditor sut = new()
+		{
+			Document = document
+		};
+
+		sut.Bookmarks.Toggle(2);
+
+		sut.Document = new("Four\nFive\nSix");
+
+		// Act
+		sut.Document = document;
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(2);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the editor shows the bookmarks of the new document, not those of the old one.
 	/// </summary>
 	[AvaloniaTest]
 	public void Document_Resets_The_Bookmarks()

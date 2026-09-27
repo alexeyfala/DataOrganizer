@@ -33,9 +33,7 @@
 		</Setter>
 	</ControlTheme>
 
-	<ControlTheme
-		x:Key="DialogTheme"
-		TargetType="UserControl">
+	<ControlTheme x:Key="DialogTheme" TargetType="UserControl">
 		<Setter Property="MinWidth" Value="300.0" />
 		<Setter Property="Padding" Value="{StaticResource DialogIndent}" />
 	</ControlTheme>
@@ -60,10 +58,131 @@
 		<Setter Property="ItemContainerTheme" Value="{StaticResource ContentSizedTabItemTheme}" />
 		<Setter Property="ItemsPanel">
 			<ItemsPanelTemplate>
-				<StackPanel
-					HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}"
-					Orientation="Horizontal" />
+				<StackPanel HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}" Orientation="Horizontal" />
 			</ItemsPanelTemplate>
 		</Setter>
+	</ControlTheme>
+
+	<!--
+		A hairline in a wider hit area, with a grip that shows on hover.
+	-->
+	<ControlTheme x:Key="SingleLineGridSplitterTheme" TargetType="GridSplitter">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Focusable" Value="True" />
+		<Setter Property="MinHeight" Value="8.0" />
+		<Setter Property="MinWidth" Value="8.0" />
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel Background="{TemplateBinding Background}">
+					<Border
+						Name="PART_Line"
+						Width="1.0"
+						HorizontalAlignment="Center"
+						Background="{StaticResource MaterialDividerBrush}">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+
+					<Border
+						Name="PART_Grip"
+						Width="4.0"
+						Height="36.0"
+						Background="{StaticResource MaterialBodyLightBrush}"
+						CornerRadius="2.0"
+						Opacity="0.0">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.15" />
+
+								<DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^[ResizeDirection=Rows]">
+			<Style Selector="^ /template/ Border#PART_Grip">
+				<Setter Property="Height" Value="4.0" />
+				<Setter Property="Width" Value="36.0" />
+			</Style>
+
+			<Style Selector="^ /template/ Border#PART_Line">
+				<Setter Property="Height" Value="1.0" />
+				<Setter Property="HorizontalAlignment" Value="Stretch" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Width" Value="{x:Static system:Double.NaN}" />
+			</Style>
+		</Style>
+
+		<Style Selector="^:pointerover /template/ Border#PART_Grip">
+			<Setter Property="Opacity" Value="1.0" />
+		</Style>
+
+		<Style Selector="^:pressed">
+			<Style Selector="^ /template/ Border#PART_Grip">
+				<Setter Property="Background" Value="{StaticResource MaterialPrimaryMidBrush}" />
+				<Setter Property="Opacity" Value="1.0" />
+			</Style>
+
+			<Style Selector="^ /template/ Border#PART_Line">
+				<Setter Property="Background" Value="{StaticResource MaterialPrimaryMidBrush}" />
+			</Style>
+		</Style>
+	</ControlTheme>
+
+	<!--
+		Two lines, one along the edge of each side, with a filled band between them.
+		The grip and its states come from the single line theme through the part name.
+	-->
+	<ControlTheme
+		x:Key="DoubleLineGridSplitterTheme"
+		BasedOn="{StaticResource SingleLineGridSplitterTheme}"
+		TargetType="GridSplitter">
+		<Setter Property="Background" Value="{StaticResource MaterialTextFieldBoxBackgroundBrush}" />
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel Background="{TemplateBinding Background}">
+					<Border
+						Name="PART_Lines"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0,0.0">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+
+					<Border
+						Name="PART_Grip"
+						Width="4.0"
+						Height="36.0"
+						Background="{StaticResource MaterialBodyLightBrush}"
+						CornerRadius="2.0"
+						Opacity="0.0">
+						<Border.Transitions>
+							<Transitions>
+								<BrushTransition Property="Background" Duration="0:0:0.15" />
+
+								<DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+							</Transitions>
+						</Border.Transitions>
+					</Border>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^[ResizeDirection=Rows] /template/ Border#PART_Lines">
+			<Setter Property="BorderThickness" Value="0.0,1.0" />
+		</Style>
+
+		<Style Selector="^:pressed /template/ Border#PART_Lines">
+			<Setter Property="BorderBrush" Value="{StaticResource MaterialPrimaryMidBrush}" />
+		</Style>
 	</ControlTheme>
 </ResourceDictionary>

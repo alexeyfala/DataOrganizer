@@ -29,9 +29,9 @@ internal class ScrollMarkMarginTests
 {
 	#region Data
 	/// <summary>
-	/// Resource key of the primary brush of the theme.
+	/// Resource key of the brush of the bookmarks.
 	/// </summary>
-	private const string PrimaryBrushKey = "MaterialPrimaryMidBrush";
+	private const string BookmarkBrushKey = "BookmarkBrush";
 
 	/// <summary>
 	/// Name of the scroll viewer in the template of the text editor.
@@ -637,6 +637,30 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: a bookmark set before the margin was shown is marked too,
+	/// as with the lower half of a split editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Marks_The_Bookmarks_Set_Before_It_Was_Shown()
+	{
+		// Arrange
+		DocumentTextEditor editor = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		editor.Bookmarks.Toggle(500);
+
+		// Act
+		Show(editor);
+
+		// Assert
+		GetShapes(Draw(GetMargin(editor)), GetBookmarkBrush())
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the bookmark marks that fall on one row of pixels are drawn once.
 	/// </summary>
 	[AvaloniaTest]
@@ -799,9 +823,9 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
-	/// Returns the primary brush of the theme.
+	/// Returns the brush of the bookmarks.
 	/// </summary>
-	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(PrimaryBrushKey)!;
+	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(BookmarkBrushKey)!;
 
 	/// <summary>
 	/// Returns the scroll mark margin of the editor.

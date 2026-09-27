@@ -42,38 +42,4 @@ public readonly partial record struct DocumentViewState
 	/// </summary>
 	public required int SelectionStart { get; init; }
 	#endregion
-
-	//#region Methods
-	///// <inheritdoc />
-	//public bool Equals(DocumentViewState other)
-	//{
-	//	// The bookmarks compare by their lines rather than by the array, so the same lines taken again make the same state.
-	//	return CaretPosition.Equals(other.CaretPosition)
-	//		&& ScrollOffset.Equals(other.ScrollOffset)
-	//		&& SelectionLength == other.SelectionLength
-	//		&& SelectionStart == other.SelectionStart
-	//		&& (Bookmarks ?? []).SequenceEqual(other.Bookmarks ?? []);
-	//}
-
-	///// <inheritdoc />
-	//public override int GetHashCode()
-	//{
-	//	HashCode hash = new();
-
-	//	hash.Add(CaretPosition);
-
-	//	hash.Add(ScrollOffset);
-
-	//	hash.Add(SelectionLength);
-
-	//	hash.Add(SelectionStart);
-
-	//	foreach (int line in Bookmarks ?? [])
-	//	{
-	//		hash.Add(line);
-	//	}
-
-	//	return hash.ToHashCode();
-	//}
-	//#endregion
 }

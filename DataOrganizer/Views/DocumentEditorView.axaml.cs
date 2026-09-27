@@ -7,10 +7,12 @@ using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Messages.Documents;
 using System;
+using System.Reactive;
 using System.Reactive.Linq;
 
 namespace DataOrganizer.Views;
@@ -68,6 +70,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	}
 
 	/// <summary>
+	/// <c>True</c> when the document is shown in two halves, one above the other.
+	/// </summary>
+	public bool IsSplit
+	{
+		get => GetValue(IsSplitProperty);
+		set => SetValue(IsSplitProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when line endings are shown.
 	/// </summary>
 	public bool ShowEndOfLine
@@ -92,6 +103,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	{
 		get => GetValue(ShowTabsProperty);
 		set => SetValue(ShowTabsProperty, value);
+	}
+
+	/// <summary>
+	/// Share of the height that the upper half takes while the document is split.
+	/// </summary>
+	public double SplitShare
+	{
+		get => GetValue(SplitShareProperty);
+		set => SetValue(SplitShareProperty, value);
 	}
 
 	/// <summary>
@@ -157,6 +177,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		.Register<DocumentEditorView, bool>(name: nameof(IsSensitive));
 
 	/// <summary>
+	/// Identifies the <see cref="IsSplit" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSplitProperty = AvaloniaProperty
+		.Register<DocumentEditorView, bool>(name: nameof(IsSplit));
+
+	/// <summary>
 	/// Identifies the <see cref="ShowEndOfLine" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowEndOfLineProperty = AvaloniaProperty
@@ -173,6 +199,14 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowTabsProperty = AvaloniaProperty
 		.Register<DocumentEditorView, bool>(name: nameof(ShowTabs));
+
+	/// <summary>
+	/// Identifies the <see cref="SplitShare" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<double> SplitShareProperty = AvaloniaProperty
+		.Register<DocumentEditorView, double>(
+			name: nameof(SplitShare),
+			defaultValue: 0.5);
 
 	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
@@ -195,11 +229,6 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 
 	#region Data
 	/// <summary>
-	/// Name of the scroll viewer in the template of <see cref="TextEditor" />.
-	/// </summary>
-	private const string ScrollViewerPartName = "PART_ScrollViewer";
-
-	/// <summary>
 	/// <c>True</c> once the control has been loaded.
 	/// </summary>
 	private bool _hasBeenLoaded;
@@ -213,11 +242,6 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// View state set from outside and not restored yet.
 	/// </summary>
 	private DocumentViewState? _pendingViewState;
-
-	/// <summary>
-	/// Scroll viewer of <see cref="TextEditor" />.
-	/// </summary>
-	private ScrollViewer? _scrollViewer;
 	#endregion
 
 	#region Constructors
@@ -225,33 +249,32 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	{
 		InitializeComponent();
 
-		// The editor never outlives this control, so none of the handlers below is ever removed.
-		Editor.TemplateApplied += Editor_TemplateApplied;
-
-		TextArea area = Editor.TextArea;
-
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => area.Caret.PositionChanged += x,
-			x => area.Caret.PositionChanged -= x)
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => area.TextView.ScrollOffsetChanged += x,
-				x => area.TextView.ScrollOffsetChanged -= x))
+		// The state is that of the active half, so only its moves count.
+		Editor
+			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
+			.Select(BuildMoveTrigger)
+			.Switch()
 			.SetDelay(TimeSpan.FromSeconds(0.5))
 			.Subscribe(_ => CaptureViewState());
 
 		this
 			.GetObservable(ViewStateProperty)
 			.Subscribe(ViewStateProperty_Changed);
+
+		Editor
+			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
+			.Subscribe(ActiveEditorProperty_Changed);
 	}
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="TemplatedControl.TemplateApplied" /> event handler of <see cref="TextEditor" />.
+	/// <see cref="SplitDocumentEditor.ActiveEditorProperty" /> changed handler of <see cref="Editor" />.
 	/// </summary>
-	private void Editor_TemplateApplied(object? sender, TemplateAppliedEventArgs e)
+	private void ActiveEditorProperty_Changed(DocumentTextEditor value)
 	{
-		_scrollViewer = e.NameScope.Find<ScrollViewer>(ScrollViewerPartName);
+		// The state is that of the active half, which a move of the focus changes without a move of the caret or the view.
+		CaptureViewState();
 	}
 
 	/// <summary>
@@ -281,8 +304,8 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	public void Receive(BookmarksChangedMessage message)
 	{
-		// Every open editor sends the message about its own bookmarks.
-		if (message.Bookmarks != Editor.Bookmarks)
+		// Every open document has bookmarks of its own, which both halves share.
+		if (message.Bookmarks != Editor.ActiveEditor.Bookmarks)
 		{
 			return;
 		}
@@ -295,21 +318,23 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	/// </summary>
 	internal void CaptureViewState()
 	{
+		DocumentTextEditor editor = Editor.ActiveEditor;
+
 		// A capture before the restore would overwrite the state that is still to be shown.
 		if (_pendingViewState is not null
-			|| _scrollViewer is not { } scrollViewer
-			|| Editor.Document is null)
+			|| editor.ScrollViewer is not { } scrollViewer
+			|| editor.Document is null)
 		{
 			return;
 		}
 
 		DocumentViewState state = new()
 		{
-			Bookmarks = Editor.Bookmarks.GetLines(),
-			CaretPosition = Editor.TextArea.Caret.Position,
+			Bookmarks = editor.Bookmarks.GetLines(),
+			CaretPosition = editor.TextArea.Caret.Position,
 			ScrollOffset = scrollViewer.Offset,
-			SelectionLength = Editor.SelectionLength,
-			SelectionStart = Editor.SelectionStart
+			SelectionLength = editor.SelectionLength,
+			SelectionStart = editor.SelectionStart
 		};
 
 		_isCapturing = true;
@@ -362,32 +387,56 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 
 		_hasBeenLoaded = true;
 
-		DispatcherTimer.RunOnce(() => Editor.Focus(), TimeSpan.FromMilliseconds(100));
+		DispatcherTimer.RunOnce(() => Editor.ActiveEditor.Focus(), TimeSpan.FromMilliseconds(100));
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
+	/// Emits when the caret or the view of an editor moves.
+	/// </summary>
+	private static IObservable<EventPattern<EventArgs>> BuildMoveTrigger(TextEditor editor)
+	{
+		TextArea area = editor.TextArea;
+
+		return Observable.FromEventPattern<EventHandler, EventArgs>(
+			x => area.Caret.PositionChanged += x,
+			x => area.Caret.PositionChanged -= x)
+			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => area.TextView.ScrollOffsetChanged += x,
+				x => area.TextView.ScrollOffsetChanged -= x));
+	}
+
+	/// <summary>
 	/// Applies the pending view state to the laid out document.
 	/// </summary>
 	private void RestoreViewState()
 	{
+		// The upper half takes the state, and a lower half, when there is one, follows it.
+		DocumentTextEditor editor = Editor.PrimaryEditor;
+
 		if (_pendingViewState is not { } state
-			|| _scrollViewer is not { } scrollViewer
-			|| Editor.Document is not { } document)
+			|| editor.ScrollViewer is not { } scrollViewer
+			|| editor.Document is not { } document)
 		{
 			return;
 		}
 
 		_pendingViewState = null;
 
-		int start = Math.Clamp(state.SelectionStart, 0, document.TextLength);
+		int start = Math.Clamp(
+			state.SelectionStart,
+			0,
+			document.TextLength);
 
-		int length = Math.Clamp(state.SelectionLength, 0, document.TextLength - start);
+		int length = Math.Clamp(
+			state.SelectionLength,
+			0,
+			document.TextLength - start);
 
-		Editor.Select(start, length);
+		editor.Select(start, length);
 
-		Editor
+		editor
 			.TextArea
 			.Caret
 			.Position = state.CaretPosition;
@@ -395,9 +444,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		// The offset, not the caret line, brings the view back the way it was left.
 		scrollViewer.Offset = state.ScrollOffset;
 
-		Editor
+		editor
 			.Bookmarks
 			.SetLines(state.Bookmarks ?? []);
+
+		// A split that came before the document opens the lower half at the restored place only now.
+		Editor.CopyViewToSecondaryEditor();
 	}
 
 	/// <summary>

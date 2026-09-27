@@ -90,26 +90,38 @@ internal class LineBookmarksTests
 	}
 
 	/// <summary>
-	/// <see cref="LineBookmarks.Document" />: another document starts without bookmarks.
+	/// <see cref="LineBookmarks.Find" />: a document whose bookmarks were never asked for has none.
 	/// </summary>
 	[Test]
-	public void Document_Starts_Without_Bookmarks()
+	public void Find_Returns_Nothing_For_A_Document_Without_Bookmarks()
 	{
-		// Arrange
-		LineBookmarks sut = new()
-		{
-			Document = new("One\nTwo\nThree")
-		};
-
-		sut.Toggle(2);
-
 		// Act
-		sut.Document = new("Four\nFive\nSix");
+		LineBookmarks? bookmarks = LineBookmarks.Find(new TextDocument("One\nTwo\nThree"));
 
 		// Assert
-		sut.GetLines()
+		bookmarks
 			.Should()
-			.BeEmpty();
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.Find" />: returns the bookmarks <see cref="LineBookmarks.Of" /> gave the document.
+	/// </summary>
+	[Test]
+	public void Find_Returns_The_Bookmarks_Of_A_Document()
+	{
+		// Arrange
+		TextDocument document = new("One\nTwo\nThree");
+
+		LineBookmarks expected = LineBookmarks.Of(document);
+
+		// Act
+		LineBookmarks? bookmarks = LineBookmarks.Find(document);
+
+		// Assert
+		bookmarks
+			.Should()
+			.BeSameAs(expected);
 	}
 
 	/// <summary>
@@ -363,6 +375,48 @@ internal class LineBookmarksTests
 		sut.GetLines()
 			.Should()
 			.Equal(2);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.Of" />: another document gets bookmarks of its own.
+	/// </summary>
+	[Test]
+	public void Of_Gives_Another_Document_Other_Bookmarks()
+	{
+		// Arrange
+		LineBookmarks first = LineBookmarks.Of(new TextDocument("One\nTwo\nThree"));
+
+		// Act
+		LineBookmarks sut = LineBookmarks.Of(new TextDocument("One\nTwo\nThree"));
+
+		// Assert
+		sut
+			.Should()
+			.NotBeSameAs(first);
+	}
+
+	/// <summary>
+	/// <see cref="LineBookmarks.Of" />: a document keeps one set of bookmarks, which belongs to it.
+	/// </summary>
+	[Test]
+	public void Of_Returns_The_Same_Bookmarks_For_A_Document()
+	{
+		// Arrange
+		TextDocument document = new("One\nTwo\nThree");
+
+		LineBookmarks first = LineBookmarks.Of(document);
+
+		// Act
+		LineBookmarks sut = LineBookmarks.Of(document);
+
+		// Assert
+		sut
+			.Should()
+			.BeSameAs(first);
+
+		sut.Document
+			.Should()
+			.BeSameAs(document);
 	}
 
 	/// <summary>

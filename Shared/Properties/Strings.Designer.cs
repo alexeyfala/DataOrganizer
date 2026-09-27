@@ -1915,6 +1915,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split Window.
+        /// </summary>
+        public static string SplitWindow {
+            get {
+                return ResourceManager.GetString("SplitWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to System.
         /// </summary>
         public static string System {

@@ -5,12 +5,12 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties">
 
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
-		<!--<Setter Property="Background" Value="{StaticResource MaterialSelectionBrush}" />-->
 	</Style>
 
 	<!--  Compact header, chevron on the left (custom MaterialIcon.HeaderChevron in HeaderTemplate).  -->
@@ -92,12 +92,6 @@
 		<Setter Property="VerticalAlignment" Value="Center" />
 	</Style>
 
-	<Style Selector="GridSplitter.VerticalGridSplitterStyle">
-		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
-		<Setter Property="BorderThickness" Value="3.0" />
-		<Setter Property="ResizeDirection" Value="Columns" />
-	</Style>
-
 	<Style Selector="materialIcons|MaterialIcon.FolderIconStyle">
 		<Setter Property="Foreground" Value="{StaticResource FolderBrush}" />
 		<Setter Property="Height" Value="{StaticResource EntityKindIconSize}" />
@@ -142,6 +136,25 @@
 		<Setter Property="Margin" Value="0.0,0.0,0.0,4.0" />
 		<Setter Property="MaxWidth" Value="200.0" />
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+
+	<!--  Keys of a command in a flyout, dimmed as secondary text.  -->
+	<Style Selector="TextBlock.GestureInFlyoutTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyLightBrush}" />
+	</Style>
+
+	<!--
+		The white card of a menu blends into the light page, so it gets an outline. The card of a flyout
+		is a Material card of its own, which takes no border from the presenter.
+	-->
+	<Style Selector="FlyoutPresenter /template/ materialControls|Card#LayoutRoot">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
+	</Style>
+
+	<Style Selector="MenuFlyoutPresenter">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
 	</Style>
 
 	<Style Selector="TextBlock.HeaderTextBlockStyle">

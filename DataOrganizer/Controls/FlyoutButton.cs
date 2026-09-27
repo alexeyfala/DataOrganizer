@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
+using System.Globalization;
 using System.Linq;
 using FontWeight = Avalonia.Media.FontWeight;
 
@@ -21,9 +22,22 @@ internal sealed class FlyoutButton : Button
 {
 	#region Properties
 	/// <summary>
+	/// Keys of the command, shown right of <see cref="Header" />, or added to the tip of a button without one.
+	/// </summary>
+	public string? Gesture
+	{
+		get => GetValue(GestureProperty);
+		set => SetValue(GestureProperty, value);
+	}
+
+	/// <summary>
 	/// Header.
 	/// </summary>
-	public string? Header { get; init; }
+	public string? Header
+	{
+		get => GetValue(HeaderProperty);
+		set => SetValue(HeaderProperty, value);
+	}
 
 	/// <summary>
 	/// Icon.
@@ -45,10 +59,39 @@ internal sealed class FlyoutButton : Button
 
 	#region Styled Properties
 	/// <summary>
+	/// Identifies the <see cref="Gesture" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> GestureProperty = AvaloniaProperty
+		.Register<FlyoutButton, string?>(name: nameof(Gesture));
+
+	/// <summary>
+	/// Identifies the <see cref="Header" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> HeaderProperty = AvaloniaProperty
+		.Register<FlyoutButton, string?>(name: nameof(Header));
+
+	/// <summary>
 	/// Identifies the <see cref="Icon" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<MaterialIconKind> IconProperty = AvaloniaProperty
 		.Register<FlyoutButton, MaterialIconKind>(name: nameof(Icon));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Style class of the text with the keys.
+	/// </summary>
+	private const string GestureClass = "GestureInFlyoutTextBlockStyle";
+
+	/// <summary>
+	/// Gap between the header and the keys.
+	/// </summary>
+	private const double GestureSpacing = 24.0;
+
+	/// <summary>
+	/// Format of a tip with the keys after it.
+	/// </summary>
+	private const string TipFormat = "{0} ({1})";
 	#endregion
 
 	#region Constructors
@@ -91,6 +134,22 @@ internal sealed class FlyoutButton : Button
 	}
 
 	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+
+		// A button without a header has only its tip to show the keys in.
+		if (Header is not null
+			|| Gesture is not { } gesture
+			|| ToolTip.GetTip(this) is not string tip)
+		{
+			return;
+		}
+
+		ToolTip.SetTip(this, string.Format(CultureInfo.CurrentCulture, TipFormat, tip, gesture));
+	}
+
+	/// <inheritdoc />
 	protected override void OnLoaded(RoutedEventArgs e)
 	{
 		base.OnLoaded(e);
@@ -124,38 +183,34 @@ internal sealed class FlyoutButton : Button
 			Text = Header
 		});
 
-		//if (Flyout is not null)
-		//{
-		//	stackPanel.Children.Add(new MaterialIcon
-		//	{
-		//		Kind = MaterialIconKind.Play,
-		//		HorizontalAlignment = HorizontalAlignment.Right
-		//	});
-		//}
+		if (Gesture is not { } gesture)
+		{
+			Content = stackPanel;
 
-		Content = stackPanel;
+			return;
+		}
+
+		// The keys stand at the right edge, which the content reaches only when it stretches.
+		HorizontalContentAlignment = HorizontalAlignment.Stretch;
+
+		TextBlock keys = new()
+		{
+			Margin = new Thickness(GestureSpacing, 0.0, 0.0, 0.0),
+			Text = gesture
+		};
+
+		keys.Classes.Add(GestureClass);
+
+		DockPanel.SetDock(keys, Dock.Right);
+
+		Content = new DockPanel
+		{
+			Children =
+			{
+				keys,
+				stackPanel
+			}
+		};
 	}
-
-	///// <inheritdoc />
-	//protected override async void OnPointerEntered(PointerEventArgs e)
-	//{
-	//	base.OnPointerEntered(e);
-
-	//	if (Flyout is null)
-	//	{
-	//		return;
-	//	}
-
-	//	await System.Threading.Tasks.Task
-	//		.Delay(DataOrganizer.Helpers.UiConstants.TipDelay)
-	//		.ConfigureAwait(true);
-
-	//	if (!IsPointerOver)
-	//	{
-	//		return;
-	//	}
-
-	//	Flyout.ShowAt(this);
-	//}
 	#endregion
 }

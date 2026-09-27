@@ -30,14 +30,14 @@ internal static class TextHighlight
 
 	#region Data
 	/// <summary>
-	/// Resource key of the primary brush of the theme.
+	/// Resource key of the brush of the bookmarks.
 	/// </summary>
-	private const string BookmarkBrushKey = "MaterialPrimaryMidBrush";
+	private const string BookmarkBrushKey = "BookmarkBrush";
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// Returns the brush of the bookmarks, the primary brush of the theme.
+	/// Returns the brush of the bookmarks, a color of its own outside the theme.
 	/// </summary>
 	public static IBrush FindBookmarkBrush(IResourceHost host)
 	{
