@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using System.Collections.Generic;
 
@@ -16,7 +17,7 @@ internal class SearchHighlightTests
 	public void SplitSegments_Blank_Query_Yields_Single_Plain_Segment(string? query)
 	{
 		// Act
-		IReadOnlyList<SearchHighlight.Segment> result = SearchHighlight.SplitSegments("hello world", query);
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments("hello world", query);
 
 		// Assert
 		result
@@ -24,7 +25,7 @@ internal class SearchHighlightTests
 			.ContainSingle()
 			.Which
 			.Should()
-			.Be(new SearchHighlight.Segment("hello world", IsMatch: false));
+			.Be(new SearchHighlightSegment("hello world", IsMatch: false));
 	}
 
 	/// <summary>
@@ -34,7 +35,7 @@ internal class SearchHighlightTests
 	public void SplitSegments_Empty_Text_Yields_Nothing()
 	{
 		// Act
-		IReadOnlyList<SearchHighlight.Segment> result = SearchHighlight.SplitSegments(string.Empty, "x");
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments(string.Empty, "x");
 
 		// Assert
 		result
@@ -49,17 +50,17 @@ internal class SearchHighlightTests
 	public void SplitSegments_Flags_Every_Occurrence()
 	{
 		// Act
-		IReadOnlyList<SearchHighlight.Segment> result = SearchHighlight.SplitSegments("a b a b a", "a");
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments("a b a b a", "a");
 
 		// Assert
 		result
 			.Should()
 			.Equal(
-				new SearchHighlight.Segment("a", IsMatch: true),
-				new SearchHighlight.Segment(" b ", IsMatch: false),
-				new SearchHighlight.Segment("a", IsMatch: true),
-				new SearchHighlight.Segment(" b ", IsMatch: false),
-				new SearchHighlight.Segment("a", IsMatch: true));
+				new SearchHighlightSegment("a", IsMatch: true),
+				new SearchHighlightSegment(" b ", IsMatch: false),
+				new SearchHighlightSegment("a", IsMatch: true),
+				new SearchHighlightSegment(" b ", IsMatch: false),
+				new SearchHighlightSegment("a", IsMatch: true));
 	}
 
 	/// <summary>
@@ -69,14 +70,14 @@ internal class SearchHighlightTests
 	public void SplitSegments_Matches_Case_Insensitively()
 	{
 		// Act
-		IReadOnlyList<SearchHighlight.Segment> result = SearchHighlight.SplitSegments("The Apple", "apple");
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments("The Apple", "apple");
 
 		// Assert
 		result
 			.Should()
 			.Equal(
-				new SearchHighlight.Segment("The ", IsMatch: false),
-				new SearchHighlight.Segment("Apple", IsMatch: true));
+				new SearchHighlightSegment("The ", IsMatch: false),
+				new SearchHighlightSegment("Apple", IsMatch: true));
 	}
 
 	/// <summary>
@@ -86,12 +87,12 @@ internal class SearchHighlightTests
 	public void SplitSegments_No_Match_Yields_Single_Plain_Segment()
 	{
 		// Act
-		IReadOnlyList<SearchHighlight.Segment> result = SearchHighlight.SplitSegments("hello world", "zzz");
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments("hello world", "zzz");
 
 		// Assert
 		result
 			.Should()
-			.Equal(new SearchHighlight.Segment("hello world", IsMatch: false));
+			.Equal(new SearchHighlightSegment("hello world", IsMatch: false));
 	}
 	#endregion
 }

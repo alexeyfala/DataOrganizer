@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
@@ -39,6 +40,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	private readonly ConcurrentDictionary<ThemeName, IRawTheme> _colorThemes = [];
 
 	/// <summary>
+	/// Folding rules built so far, by language, as each builds its regular expressions.
+	/// </summary>
+	private readonly ConcurrentDictionary<string, SyntaxFoldingRules?> _foldingRules = [];
+
+	/// <summary>
 	/// Grammars read so far, by scope name, as every highlighted editor would parse its grammar again.
 	/// </summary>
 	private readonly ConcurrentDictionary<string, IRawGrammar?> _grammars = [];
@@ -72,6 +78,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Returns the rules for folding the text of a language; <c>null</c> for a language without a grammar.
+	/// </summary>
+	public SyntaxFoldingRules? FindFoldingRules(string language) => _foldingRules.GetOrAdd(language, CreateFoldingRules);
+
 	/// <summary>
 	/// Returns the language of a file by the extension of its name; <c>null</c> when no grammar knows the extension.
 	/// </summary>
@@ -119,5 +130,39 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 
 	/// <inheritdoc />
 	public IRawTheme? GetTheme(string scopeName) => _themes.GetOrAdd(scopeName, _options.GetTheme);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Builds the folding rules of a language from its settings.
+	/// </summary>
+	private SyntaxFoldingRules? CreateFoldingRules(string language)
+	{
+		if (_options
+			.GetAvailableLanguages()
+			.FirstOrDefault(x => x.Id == language) is not { } found)
+		{
+			return null;
+		}
+
+		Folding? folding = found.Configuration?.Folding;
+
+		// A marker without its pair would open blocks that never close.
+		if (folding is not { IsEmpty: false, Markers: { } markers })
+		{
+			return new SyntaxFoldingRules
+			{
+				IsOffSide = folding?.OffSide == true
+			};
+		}
+
+		// The markers are regular expressions of VS Code, which .NET reads alike.
+		return new SyntaxFoldingRules
+		{
+			EndMarker = new Regex(markers.End),
+			IsOffSide = folding.OffSide,
+			StartMarker = new Regex(markers.Start)
+		};
+	}
 	#endregion
 }

@@ -14,6 +14,147 @@ internal class SyntaxRegistryTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: every language gets its rules, as .NET reads the markers of each.
+	/// </summary>
+	[Test]
+	public void FindFoldingRules_Builds_The_Rules_Of_Every_Language()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules?[] rules = [.. sut.Languages.Select(x => sut.FindFoldingRules(x.Id!))];
+
+		// Assert
+		rules
+			.Should()
+			.NotContainNulls();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: the rules of a language are built once and then shared.
+	/// </summary>
+	[Test]
+	public void FindFoldingRules_Builds_The_Rules_Once()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		SyntaxFoldingRules? first = sut.FindFoldingRules("powershell");
+
+		// Act
+		SyntaxFoldingRules? second = sut.FindFoldingRules("powershell");
+
+		// Assert
+		second
+			.Should()
+			.NotBeNull()
+			.And
+			.BeSameAs(first);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language whose settings mark no blocks gets no markers.
+	/// </summary>
+	[Test]
+	public void FindFoldingRules_Gives_No_Markers_To_A_Language_Without_Them()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules("json");
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.StartMarker
+			.Should()
+			.BeNull();
+
+		rules.EndMarker
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language without a grammar has no rules.
+	/// </summary>
+	[Test]
+	[TestCase(FileEditorState.PlainTextLanguage)]
+	[TestCase("unknown")]
+	public void FindFoldingRules_Returns_Null_Without_A_Grammar(string language)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the markers of its blocks from its settings.
+	/// </summary>
+	[Test]
+	[TestCase("    #region Data", true, false)]
+	[TestCase("    #endregion", false, true)]
+	[TestCase("    // #region", false, false)]
+	public void FindFoldingRules_Takes_The_Markers_Of_The_Language(string line, bool isStart, bool isEnd)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules("csharp");
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.StartMarker!.IsMatch(line)
+			.Should()
+			.Be(isStart);
+
+		rules.EndMarker!.IsMatch(line)
+			.Should()
+			.Be(isEnd);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the off-side rule from its settings.
+	/// </summary>
+	[Test]
+	[TestCase("python", true)]
+	[TestCase("yaml", true)]
+	[TestCase("csharp", false)]
+	[TestCase("json", false)]
+	public void FindFoldingRules_Takes_The_Off_Side_Rule_Of_The_Language(string language, bool expected)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.IsOffSide
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxRegistry.FindLanguage" />: the extension of the file name gives the language, whatever its case.
 	/// </summary>
 	[Test]

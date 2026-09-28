@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using System;
@@ -121,7 +122,7 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	{
 		InlineCollection inlines = [];
 
-		foreach (SearchHighlight.Segment segment in SearchHighlight.SplitSegments(text, query))
+		foreach (SearchHighlightSegment segment in SearchHighlight.SplitSegments(text, query))
 		{
 			Run run = new(segment.Text);
 

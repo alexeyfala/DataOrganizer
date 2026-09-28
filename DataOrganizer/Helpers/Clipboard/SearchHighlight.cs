@@ -1,3 +1,4 @@
+using DataOrganizer.Dto.Clipboard;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +14,7 @@ internal static class SearchHighlight
 	/// Splits <paramref name="text" /> into ordered segments, flagging each case-insensitive
 	/// occurrence of <paramref name="query" />. A blank query yields a single plain segment.
 	/// </summary>
-	public static IReadOnlyList<Segment> SplitSegments(string? text, string? query)
+	public static IReadOnlyList<SearchHighlightSegment> SplitSegments(string? text, string? query)
 	{
 		if (string.IsNullOrEmpty(text))
 		{
@@ -22,10 +23,10 @@ internal static class SearchHighlight
 
 		if (string.IsNullOrEmpty(query))
 		{
-			return [new Segment(text, IsMatch: false)];
+			return [new SearchHighlightSegment(text, IsMatch: false)];
 		}
 
-		List<Segment> segments = [];
+		List<SearchHighlightSegment> segments = [];
 
 		int index = 0;
 
@@ -35,29 +36,22 @@ internal static class SearchHighlight
 
 			if (matchStart < 0)
 			{
-				segments.Add(new Segment(text[index..], IsMatch: false));
+				segments.Add(new SearchHighlightSegment(text[index..], IsMatch: false));
 
 				break;
 			}
 
 			if (matchStart > index)
 			{
-				segments.Add(new Segment(text[index..matchStart], IsMatch: false));
+				segments.Add(new SearchHighlightSegment(text[index..matchStart], IsMatch: false));
 			}
 
-			segments.Add(new Segment(text.Substring(matchStart, query.Length), IsMatch: true));
+			segments.Add(new SearchHighlightSegment(text.Substring(matchStart, query.Length), IsMatch: true));
 
 			index = matchStart + query.Length;
 		}
 
 		return segments;
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// A contiguous run of text flagged as a query match or as plain text.
-	/// </summary>
-	internal readonly record struct Segment(string Text, bool IsMatch);
 	#endregion
 }
