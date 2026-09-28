@@ -214,6 +214,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (by extension).
+        /// </summary>
+        public static string ByExtension {
+            get {
+                return ResourceManager.GetString("ByExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Cancel {
@@ -1920,6 +1929,15 @@ namespace Shared.Properties {
         public static string SplitWindow {
             get {
                 return ResourceManager.GetString("SplitWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax Highlighting.
+        /// </summary>
+        public static string SyntaxHighlighting {
+            get {
+                return ResourceManager.GetString("SyntaxHighlighting", resourceCulture);
             }
         }
         

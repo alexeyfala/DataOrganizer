@@ -40,6 +40,53 @@ internal class EmbeddedFileEditorViewTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.DefaultSyntaxLanguage" />: the language of the file extension reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DefaultSyntaxLanguage_Reaches_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentEditorView>()
+			.Single()
+			.DefaultSyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorView.Dispose" />: the highlighting of the editor goes away.
 	/// </summary>
 	[AvaloniaTest]
@@ -112,6 +159,55 @@ internal class EmbeddedFileEditorViewTests
 			.IsSensitive
 			.Should()
 			.Be(isEncrypted);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: a language chosen in the editor comes back to the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SyntaxLanguage_Follows_A_Choice_In_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Act
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentEditorView>()
+			.Single()
+			.SetCurrentValue(DocumentEditorView.SyntaxLanguageProperty, "bat");
+
+		// Assert
+		viewModel.SyntaxLanguage
+			.Should()
+			.Be("bat");
 	}
 
 	/// <summary>

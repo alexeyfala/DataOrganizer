@@ -195,6 +195,40 @@ internal class AppConvertersTests
 			.And
 			.NotContain("777");
 	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SyntaxLanguageToName" />: a language takes the name its grammar gives it.
+	/// </summary>
+	[Test]
+	public void SyntaxLanguageToName_Gives_The_Name_Of_The_Grammar()
+	{
+		// Act
+		object? result = Convert(AppConverters.SyntaxLanguageToName, "powershell");
+
+		// Assert
+		result
+			.Should()
+			.Be("PowerShell");
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SyntaxLanguageToName" />: a language without a grammar is named as plain text.
+	/// </summary>
+	[Test]
+	[TestCase("unknown")]
+	[TestCase(FileEditorState.PlainTextLanguage)]
+	public void SyntaxLanguageToName_Names_A_Language_Without_A_Grammar_As_Plain_Text(string language)
+	{
+		// Act
+		object? result = Convert(AppConverters.SyntaxLanguageToName, language);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNull()
+			.And
+			.Be(Convert(AppConverters.SyntaxLanguageToName, null));
+	}
 	#endregion
 
 	#region Helpers
@@ -241,6 +275,18 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			status,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over a language of the syntax highlighting.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<string?, string> converter, string? language)
+	{
+		return converter.Convert(
+			language,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

@@ -27,6 +27,15 @@ internal sealed partial class DocumentEditorView :
 {
 	#region Properties
 	/// <summary>
+	/// Language that the text takes when none is chosen; <c>null</c> for plain text.
+	/// </summary>
+	public string? DefaultSyntaxLanguage
+	{
+		get => GetValue(DefaultSyntaxLanguageProperty);
+		set => SetValue(DefaultSyntaxLanguageProperty, value);
+	}
+
+	/// <summary>
 	/// The document being edited.
 	/// </summary>
 	public TextDocument? Document
@@ -156,6 +165,12 @@ internal sealed partial class DocumentEditorView :
 	#endregion
 
 	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="DefaultSyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DefaultSyntaxLanguageProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(DefaultSyntaxLanguage));
+
 	/// <summary>
 	/// Identifies the <see cref="DocumentFontSize" /> avalonia property.
 	/// </summary>

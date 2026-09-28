@@ -825,4 +825,10 @@
   <data name="SplitWindow" xml:space="preserve">
     <value>Разделение окна</value>
   </data>
+  <data name="ByExtension" xml:space="preserve">
+    <value>(по расширению)</value>
+  </data>
+  <data name="SyntaxHighlighting" xml:space="preserve">
+    <value>Подсветка синтаксиса</value>
+  </data>
 </root>

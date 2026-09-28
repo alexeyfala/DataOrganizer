@@ -8,6 +8,7 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
+using DataOrganizer.Helpers.Text;
 using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
@@ -197,6 +198,16 @@ internal static class AppConverters
 				Strings.PositionFormat,
 				// The position counts from one, like the line and the column.
 				FormatNumber(status.CaretOffset + 1)));
+
+	/// <summary>
+	/// Name of a language of the syntax highlighting; the one of plain text for <c>null</c> and for a language without a grammar.
+	/// </summary>
+	public static FuncValueConverter<string?, string> SyntaxLanguageToName { get; } =
+		new(language => SyntaxRegistry
+			.Instance
+			.Languages
+			.FirstOrDefault(x => x.Id == language)
+			?.Name ?? Strings.PlainText);
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();

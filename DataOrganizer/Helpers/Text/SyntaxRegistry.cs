@@ -1,3 +1,4 @@
+using DataOrganizer.Dto.Documents;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,6 +20,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	/// The registry of the application.
 	/// </summary>
 	public static SyntaxRegistry Instance => LazyInstance.Value;
+
+	/// <summary>
+	/// Languages that have a grammar, sorted by name.
+	/// </summary>
+	public IReadOnlyList<SyntaxLanguageChoice> Languages { get; }
 	#endregion
 
 	#region Data
@@ -51,6 +57,17 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	#region Constructors
 	private SyntaxRegistry()
 	{
+		// A language may come with more than one grammar package, as the one of diff does.
+		Languages = [.. _options
+			.GetAvailableLanguages()
+			.DistinctBy(static x => x.Id)
+			.Select(static x => new SyntaxLanguageChoice
+			{
+				Extensions = [.. x.Extensions ?? []],
+				Id = x.Id,
+				Name = x.Aliases[0]
+			})
+			.OrderBy(static x => x.Name, StringComparer.OrdinalIgnoreCase)];
 	}
 	#endregion
 

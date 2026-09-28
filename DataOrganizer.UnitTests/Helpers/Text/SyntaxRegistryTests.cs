@@ -1,5 +1,9 @@
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Themes;
 
@@ -113,6 +117,87 @@ internal class SyntaxRegistryTests
 			.NotBeNull()
 			.And
 			.BeSameAs(first);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.Languages" />: the languages are sorted by name, whatever its case.
+	/// </summary>
+	[Test]
+	public void Languages_Are_Sorted_By_Name()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+
+		// Assert
+		languages
+			.Should()
+			.BeInAscendingOrder(static x => x.Name, StringComparer.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.Languages" />: every language has a grammar, as the others would leave the text plain.
+	/// </summary>
+	[Test]
+	public void Languages_Have_A_Grammar_Each()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+
+		// Assert
+		languages
+			.Should()
+			.NotBeEmpty()
+			.And
+			.OnlyContain(x => sut.FindScope(x.Id!) != null);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.Languages" />: a language comes once, even with more than one grammar package.
+	/// </summary>
+	[Test]
+	public void Languages_Hold_Each_Language_Once()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+
+		// Assert
+		// Diff comes with two grammar packages.
+		languages.Select(static x => x.Id)
+			.Should()
+			.Contain("diff")
+			.And
+			.OnlyHaveUniqueItems();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.Languages" />: a language takes its name and the extensions of its files from its grammar package.
+	/// </summary>
+	[Test]
+	public void Languages_Take_The_Name_And_The_Extensions_Of_The_Grammar()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxLanguageChoice language = sut.Languages.Single(static x => x.Id == "powershell");
+
+		// Assert
+		language.Name
+			.Should()
+			.Be("PowerShell");
+
+		language.Extensions
+			.Should()
+			.Contain(".ps1");
 	}
 	#endregion
 }

@@ -411,6 +411,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 			state.Remove(nameof(FileEditorState.ShowTabs));
 
+			state.Remove(nameof(FileEditorState.SyntaxLanguage));
+
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns(state.ToJsonString());
@@ -487,6 +489,62 @@ internal class EmbeddedFileEditorViewModelTests
 		bookmarks
 			.Should()
 			.Equal(3, 7);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a stored language is restored, none keeps the language
+	/// of the extension, and a language without a grammar leaves the text plain.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(null, "powershell")]
+	[TestCase("bat", "bat")]
+	[TestCase(FileEditorState.PlainTextLanguage, null)]
+	[TestCase("unknown", null)]
+	public async Task EditorLoaded_Restores_The_Chosen_Syntax_Language(string? stored, string? expected)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				FontSize = 14.0,
+				SyntaxLanguage = stored
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileName = "script.ps1";
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.SyntaxLanguage
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -710,6 +768,50 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.Document.Text
 			.Should()
 			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the extension of the file name gives the language
+	/// that the text takes by default.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("script.ps1", "powershell")]
+	[TestCase("notes.txt", null)]
+	public async Task EditorLoaded_Takes_The_Default_Syntax_Language_From_The_File_Name(string fileName, string? expected)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileName = fileName;
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.DefaultSyntaxLanguage
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -1261,6 +1363,120 @@ internal class EmbeddedFileEditorViewModelTests
 		reported
 			.Should()
 			.Equal(0.25);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: a return to the language of the extension stores no choice.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("script.ps1", "powershell")]
+	[TestCase("notes.txt", null)]
+	public async Task SyntaxLanguage_Saves_No_Choice_For_The_Language_Of_The_Extension(string fileName, string? defaultLanguage)
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileName = fileName;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		sut.SyntaxLanguage = "bat";
+
+		// Act
+		sut.SyntaxLanguage = defaultLanguage;
+
+		// Assert
+		string? stored = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).SyntaxLanguage;
+
+		stored
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: a language other than the one of the extension is stored
+	/// in the editor state, plain text under an id of its own.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("script.ps1", "bat", "bat")]
+	[TestCase("script.ps1", null, FileEditorState.PlainTextLanguage)]
+	[TestCase("notes.txt", "bat", "bat")]
+	public async Task SyntaxLanguage_Saves_The_Chosen_Language(string fileName, string? chosen, string expected)
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileName = fileName;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.SyntaxLanguage = chosen;
+
+		// Assert
+		string? stored = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).SyntaxLanguage;
+
+		stored
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>

@@ -9,6 +9,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
 
@@ -343,6 +344,7 @@
 			<!--
 				The blocks are docked to the right edge, so they come in reverse order. Each one gets the width left
 				by the blocks on its right, and a block without enough room is cut at its right edge, as in Notepad++.
+				The language comes last and takes what is left at the left edge.
 			-->
 			<DockPanel LastChildFill="False">
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
@@ -395,6 +397,15 @@
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
 					</StackPanel>
+				</Border>
+
+				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+
+				<Border ClipToBounds="True" DockPanel.Dock="Left">
+					<views:SyntaxLanguageSelector
+						x:Name="LanguageBlock"
+						DefaultSyntaxLanguage="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
+						SyntaxLanguage="{Binding #View.SyntaxLanguage, Mode=TwoWay}" />
 				</Border>
 			</DockPanel>
 		</Border>

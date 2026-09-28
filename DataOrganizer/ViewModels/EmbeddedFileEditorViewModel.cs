@@ -37,6 +37,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 {
 	#region Properties
 	/// <summary>
+	/// Language that the extension of the file gives its text; <c>null</c> for plain text.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? DefaultSyntaxLanguage { get; private set; }
+
+	/// <summary>
 	/// The file contents as an editable document.
 	/// </summary>
 	[ObservableProperty]
@@ -95,7 +101,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
 	/// </summary>
 	[ObservableProperty]
-	public partial string? SyntaxLanguage { get; private set; }
+	public partial string? SyntaxLanguage { get; set; }
 
 	/// <summary>
 	/// Caret, selection, scroll position and bookmarks of <see cref="Document" />.
@@ -200,10 +206,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			Document = document;
 
-			// The language comes after the text, so the highlighting starts on the document it colors.
-			SyntaxLanguage = SyntaxRegistry
+			DefaultSyntaxLanguage = SyntaxRegistry
 				.Instance
 				.FindLanguage(FileName);
+
+			// The language comes after the text, so the highlighting starts on the document it colors.
+			SyntaxLanguage = DefaultSyntaxLanguage;
 
 			EncodingName = _hasByteOrderMark
 				? Utf8WithByteOrderMarkName
@@ -369,6 +377,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	partial void OnSplitShareChanged(double value) => ReportEditorSplit();
 
 	/// <summary>
+	/// Called when <see cref="SyntaxLanguage" /> changes.
+	/// </summary>
+	partial void OnSyntaxLanguageChanged(string? value) => TrySavePersistentEditorState();
+
+	/// <summary>
 	/// Called when <see cref="ViewState" /> changes.
 	/// </summary>
 	partial void OnViewStateChanged(DocumentViewState? value) => TrySavePersistentEditorState();
@@ -444,7 +457,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			SelectionStart = view.SelectionStart,
 			ShowEndOfLine = ShowEndOfLine,
 			ShowSpaces = ShowSpaces,
-			ShowTabs = ShowTabs
+			ShowTabs = ShowTabs,
+			SyntaxLanguage = GetStoredSyntaxLanguage()
 		};
 	}
 
@@ -479,6 +493,33 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
+	/// Returns the language to store in the editor state; <c>null</c> while the text keeps the one of the file extension.
+	/// </summary>
+	private string? GetStoredSyntaxLanguage()
+	{
+		if (SyntaxLanguage == DefaultSyntaxLanguage)
+		{
+			return null;
+		}
+
+		return SyntaxLanguage ?? FileEditorState.PlainTextLanguage;
+	}
+
+	/// <summary>
+	/// Returns the language of the text for the one stored in the editor state.
+	/// </summary>
+	private string? GetSyntaxLanguage(string? stored)
+	{
+		if (stored is null)
+		{
+			return DefaultSyntaxLanguage;
+		}
+
+		// Plain text is stored as a language without a grammar, and so is a language whose grammar is gone.
+		return SyntaxRegistry.Instance.FindScope(stored) is null ? null : stored;
+	}
+
+	/// <summary>
 	/// Restores the editor state from the database.
 	/// </summary>
 	private async Task InitializeEditorStateAsync(CancellationToken token = default)
@@ -504,6 +545,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			ShowSpaces = state.ShowSpaces;
 
 			ShowTabs = state.ShowTabs;
+
+			SyntaxLanguage = GetSyntaxLanguage(state.SyntaxLanguage);
 
 			WordWrap = state.WordWrap;
 
