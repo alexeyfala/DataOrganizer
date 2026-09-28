@@ -1,18 +1,139 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
+using AvaloniaEdit;
+using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
+using DataOrganizer.Controls;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using NSubstitute;
+using Repository.Dto;
+using Repository.Interfaces.Database;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorView)}"" type")]
 internal class EmbeddedFileEditorViewTests
 {
+	#region Data
+	/// <summary>
+	/// Name of a PowerShell script.
+	/// </summary>
+	private const string PowerShellFileName = "script.ps1";
+
+	/// <summary>
+	/// Language of <see cref="PowerShellFileName" />.
+	/// </summary>
+	private const string PowerShellLanguage = "powershell";
+
+	/// <summary>
+	/// A line of PowerShell.
+	/// </summary>
+	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.DefaultSyntaxLanguage" />: the language of the file extension reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DefaultSyntaxLanguage_Reaches_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentEditorView>()
+			.Single()
+			.DefaultSyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorView.Dispose" />: the highlighting of the editor goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Dispose_Removes_The_Highlighting()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		EmbeddedFileEditorView sut = new(viewModel);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasHighlighting(sut
+			.GetLogicalDescendants()
+			.OfType<DocumentTextEditor>()
+			.Single())
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: the text of an encrypted file reaches the editor
 	/// as sensitive.
@@ -38,6 +159,117 @@ internal class EmbeddedFileEditorViewTests
 			.IsSensitive
 			.Should()
 			.Be(isEncrypted);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: a language chosen in the editor comes back to the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SyntaxLanguage_Follows_A_Choice_In_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Act
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentEditorView>()
+			.Single()
+			.SetCurrentValue(DocumentEditorView.SyntaxLanguageProperty, "bat");
+
+		// Assert
+		viewModel.SyntaxLanguage
+			.Should()
+			.Be("bat");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.SyntaxLanguage" />: the language of the file reaches the text editor.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SyntaxLanguage_Reaches_The_Text_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.FileName = PowerShellFileName;
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentTextEditor>()
+			.Single()
+			.SyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> when the editor has the syntax highlighting.
+	/// </summary>
+	private static bool HasHighlighting(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.TextView
+			.LineTransformers
+			.OfType<TextMateColoringTransformer>()
+			.Any();
 	}
 	#endregion
 }

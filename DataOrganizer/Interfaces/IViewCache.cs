@@ -9,8 +9,8 @@ public interface IViewCache
 {
 	#region Methods
 	/// <summary>
-	/// Removes the cached control associated with the specified key and disposes its
-	/// <see cref="IDisposable" /> data context, if any.
+	/// Removes the cached control associated with the specified key and disposes the control and its data context,
+	/// where they are <see cref="IDisposable" />.
 	/// </summary>
 	void Remove<T>(T key) where T : notnull;
 	#endregion

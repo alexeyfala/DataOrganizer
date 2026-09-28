@@ -20,9 +20,21 @@ namespace DataOrganizer.Views;
 /// <summary>
 /// Text editor of a <see cref="TextDocument" /> with its toolbar, context menu, status bar and zoom.
 /// </summary>
-internal sealed partial class DocumentEditorView : UserControl, IRecipient<BookmarksChangedMessage>
+internal sealed partial class DocumentEditorView :
+	UserControl,
+	IDisposable,
+	IRecipient<BookmarksChangedMessage>
 {
 	#region Properties
+	/// <summary>
+	/// Language that the text takes when none is chosen; <c>null</c> for plain text.
+	/// </summary>
+	public string? DefaultSyntaxLanguage
+	{
+		get => GetValue(DefaultSyntaxLanguageProperty);
+		set => SetValue(DefaultSyntaxLanguageProperty, value);
+	}
+
 	/// <summary>
 	/// The document being edited.
 	/// </summary>
@@ -115,6 +127,15 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	}
 
 	/// <summary>
+	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
+	/// </summary>
+	public string? SyntaxLanguage
+	{
+		get => GetValue(SyntaxLanguageProperty);
+		set => SetValue(SyntaxLanguageProperty, value);
+	}
+
+	/// <summary>
 	/// Content placed at the end of the toolbar.
 	/// </summary>
 	public object? ToolBarContent
@@ -144,6 +165,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	#endregion
 
 	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="DefaultSyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DefaultSyntaxLanguageProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(DefaultSyntaxLanguage));
+
 	/// <summary>
 	/// Identifies the <see cref="DocumentFontSize" /> avalonia property.
 	/// </summary>
@@ -207,6 +234,12 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 		.Register<DocumentEditorView, double>(
 			name: nameof(SplitShare),
 			defaultValue: 0.5);
+
+	/// <summary>
+	/// Identifies the <see cref="SyntaxLanguage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> SyntaxLanguageProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(SyntaxLanguage));
 
 	/// <summary>
 	/// Identifies the <see cref="ToolBarContent" /> avalonia property.
@@ -299,6 +332,11 @@ internal sealed partial class DocumentEditorView : UserControl, IRecipient<Bookm
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Removes the syntax highlighting of the editor, whose tokenizers keep it in memory.
+	/// </summary>
+	public void Dispose() => Editor.Dispose();
+
 	/// <summary>
 	/// Reports the view state again when the bookmarks of the document change.
 	/// </summary>

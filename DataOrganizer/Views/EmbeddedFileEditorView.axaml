@@ -12,6 +12,8 @@
 	mc:Ignorable="d">
 
 	<views:DocumentEditorView
+		x:Name="Editor"
+		DefaultSyntaxLanguage="{Binding DefaultSyntaxLanguage, Mode=OneWay}"
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
 		EncodingName="{Binding EncodingName, Mode=OneWay}"
@@ -22,6 +24,7 @@
 		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"
 		ShowTabs="{Binding ShowTabs, Mode=TwoWay}"
 		SplitShare="{Binding SplitShare, Mode=TwoWay}"
+		SyntaxLanguage="{Binding SyntaxLanguage, Mode=TwoWay}"
 		ViewState="{Binding ViewState, Mode=TwoWay}"
 		WordWrap="{Binding WordWrap, Mode=TwoWay}">
 

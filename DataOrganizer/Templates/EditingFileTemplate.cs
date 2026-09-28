@@ -60,6 +60,12 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 	{
 		_cache.Remove(key, out Control? control);
 
+		// The control holds more than its view model does, such as the highlighting of the text.
+		if (control is IDisposable view)
+		{
+			view.Dispose();
+		}
+
 		if (control?.DataContext is not IDisposable disposable)
 		{
 			return;
@@ -80,6 +86,8 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 		if (file.Kind == EntityKind.File)
 		{
 			EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
+
+			viewModel.FileName = file.Name;
 
 			viewModel.InitialEditorSplit = file.EditorSplit;
 

@@ -8,6 +8,13 @@ namespace DataOrganizer.Dto.Documents;
 /// </summary>
 public readonly struct FileEditorState
 {
+	#region Data
+	/// <summary>
+	/// Value of <see cref="SyntaxLanguage" /> for a text kept plain, although the extension of its file has a grammar.
+	/// </summary>
+	public const string PlainTextLanguage = "plaintext";
+	#endregion
+
 	#region Properties
 	/// <summary>
 	/// Numbers of the bookmarked lines.
@@ -53,6 +60,11 @@ public readonly struct FileEditorState
 	/// <c>True</c> when tabs are shown.
 	/// </summary>
 	public bool ShowTabs { get; init; }
+
+	/// <summary>
+	/// Language chosen for the syntax highlighting; <c>null</c> when the text takes the one of the file extension.
+	/// </summary>
+	public string? SyntaxLanguage { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when long lines are wrapped.

@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
@@ -38,6 +39,21 @@ internal class DocumentEditorViewTests
 	/// Name of the caption of the encoding in the markup.
 	/// </summary>
 	private const string EncodingCaptionName = "EncodingCaption";
+
+	/// <summary>
+	/// Name of the status bar block with the language of the text in the markup.
+	/// </summary>
+	private const string LanguageBlockName = "LanguageBlock";
+
+	/// <summary>
+	/// Language of <see cref="PowerShellText" />.
+	/// </summary>
+	private const string PowerShellLanguage = "powershell";
+
+	/// <summary>
+	/// A line of PowerShell.
+	/// </summary>
+	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
 
 	/// <summary>
 	/// Name of the scroll viewer in the template of the text editor.
@@ -425,6 +441,51 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		copy.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.DefaultSyntaxLanguage" />: the language that the text takes by default reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultSyntaxLanguage_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			DefaultSyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).DefaultSyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Dispose" />: the highlighting of the editor goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Removes_The_Highlighting()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasHighlighting(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
 			.Should()
 			.BeFalse();
 	}
@@ -927,6 +988,73 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.SyntaxLanguage" />: a language chosen in the status bar becomes the language of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Follows_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut
+			.GetControl<SyntaxLanguageSelector>(LanguageBlockName)
+			.SetCurrentValue(SyntaxLanguageSelector.SyntaxLanguageProperty, "bat");
+
+		// Assert
+		sut.SyntaxLanguage
+			.Should()
+			.Be("bat");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.SyntaxLanguage" />: the language of the text reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Reaches_The_Editor()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<SplitDocumentEditor>(EditorName).SyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.SyntaxLanguage" />: the language of the text reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).SyntaxLanguage
+			.Should()
+			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ToolBarContent" />: the content placed in the toolbar keeps the data context of the control.
 	/// </summary>
 	[AvaloniaTest]
@@ -1343,6 +1471,19 @@ internal class DocumentEditorViewTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// <c>True</c> when the editor has the syntax highlighting.
+	/// </summary>
+	private static bool HasHighlighting(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.TextView
+			.LineTransformers
+			.OfType<TextMateColoringTransformer>()
+			.Any();
 	}
 
 	/// <summary>

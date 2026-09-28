@@ -1,0 +1,67 @@
+<UserControl
+	x:Class="DataOrganizer.Views.SyntaxLanguageSelector"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:documents="using:DataOrganizer.Dto.Documents"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	x:Name="View"
+	mc:Ignorable="d">
+
+	<!--  The button takes no focus, so the keys type into the text again once a language is taken.  -->
+	<Button
+		x:Name="CurrentLanguage"
+		MinHeight="0.0"
+		Padding="8.0,4.0"
+		Content="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+		CornerRadius="0.0"
+		Focusable="False"
+		FontWeight="Normal"
+		Foreground="{StaticResource MaterialBodyBrush}"
+		Theme="{StaticResource MaterialFlatButton}"
+		ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}">
+
+		<Button.Styles>
+			<Style Selector="FlyoutPresenter">
+				<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				<Setter Property="Cursor" Value="Arrow" />
+				<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+			</Style>
+		</Button.Styles>
+
+		<Button.Flyout>
+			<Flyout Placement="TopEdgeAlignedLeft">
+				<DockPanel
+					x:Name="ChoicesHost"
+					Width="280.0"
+					Height="340.0">
+					<Border
+						Padding="6.0,0.0"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0"
+						DockPanel.Dock="Top">
+						<TextBox x:Name="SearchInput" Classes="clearButton SearchTextBoxStyle" />
+					</Border>
+
+					<ListBox x:Name="LanguagesList" Margin="0.0,4.0,0.0,0.0">
+						<ListBox.ItemTemplate>
+							<DataTemplate x:DataType="documents:SyntaxLanguageChoice">
+								<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+									<TextBlock Text="{Binding Name, Mode=OneWay}" />
+
+									<TextBlock
+										Foreground="{StaticResource MaterialBodyLightBrush}"
+										IsVisible="{Binding IsDefault, Mode=OneWay}"
+										Text="{x:Static prop:Strings.ByExtension}" />
+								</StackPanel>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
+				</DockPanel>
+			</Flyout>
+		</Button.Flyout>
+	</Button>
+</UserControl>
