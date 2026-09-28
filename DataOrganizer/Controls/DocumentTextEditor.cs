@@ -171,6 +171,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private const int MaxHighlightedLength = 5 * 1024 * 1024;
 
 	/// <summary>
+	/// Folding of the blocks of the text; <c>null</c> while the text is plain.
+	/// </summary>
+	private SyntaxFolding? _folding;
+
+	/// <summary>
 	/// Syntax highlighting of the text; <c>null</c> while the text is plain.
 	/// </summary>
 	private TextMate.Installation? _highlighting;
@@ -269,7 +274,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			.GetObservable(ShowTabsProperty)
 			.Subscribe(ShowTabsProperty_Changed);
 
-		// The highlighting needs a language, and a hidden editor keeps none, as nothing of it is seen.
+		// The highlighting and the folding need a language, and a hidden editor keeps neither, as nothing of them is seen.
 		this
 			.GetObservable(SyntaxLanguageProperty)
 			.Subscribe(SyntaxLanguageProperty_Changed);
@@ -296,12 +301,17 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		TextChanged += DocumentTextEditor_TextChanged;
 
-		// The line endings take a pass over all lines, so a run of edits is followed by a single pass.
+		// The line endings and the blocks take a pass over all lines, so a run of edits is followed by a single pass.
 		Observable.FromEventPattern<EventHandler, EventArgs>(
 			x => TextChanged += x,
 			x => TextChanged -= x)
 			.SetDelay(TimeSpan.FromSeconds(0.5))
-			.Subscribe(_ => UpdateLineEnding());
+			.Subscribe(_ =>
+			{
+				UpdateLineEnding();
+
+				UpdateFoldings();
+			});
 
 		// The handlers above follow the changes only, so the status starts from the current state.
 		Status = new()
@@ -347,8 +357,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		UpdateLineEnding();
 
-		// The highlighting moves to a new document by itself, but not to a missing or too long one.
-		UpdateHighlighting();
+		// The highlighting moves to a new document by itself, but not to a missing or too long one, and the folding
+		// serves one document only.
+		UpdateSyntax();
 	}
 
 	/// <summary>
@@ -368,7 +379,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// <see cref="Visual.IsVisibleProperty" /> changed handler.
 	/// </summary>
-	private void IsVisibleProperty_Changed(bool value) => UpdateHighlighting();
+	private void IsVisibleProperty_Changed(bool value) => UpdateSyntax();
 
 	/// <summary>
 	/// <see cref="ShowEndOfLineProperty" /> changed handler.
@@ -388,7 +399,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// <see cref="SyntaxLanguageProperty" /> changed handler.
 	/// </summary>
-	private void SyntaxLanguageProperty_Changed(string? value) => UpdateHighlighting();
+	private void SyntaxLanguageProperty_Changed(string? value) => UpdateSyntax();
 
 	/// <summary>
 	/// <see cref="TextArea.SelectionChanged" /> event handler.
@@ -419,14 +430,22 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Methods
 	/// <summary>
-	/// Removes the syntax highlighting, whose tokenizer holds a thread and keeps the editor and its text in memory.
+	/// Removes the syntax highlighting, whose tokenizer holds a thread and keeps the editor and its text in memory,
+	/// and the folding.
 	/// </summary>
 	public void Dispose()
 	{
 		_isDisposed = true;
 
 		RemoveHighlighting();
+
+		RemoveFolding();
 	}
+
+	/// <summary>
+	/// Finds the blocks that fold with a pass over all lines.
+	/// </summary>
+	internal void UpdateFoldings() => _folding?.Update();
 
 	/// <summary>
 	/// Finds the line endings of the document with a pass over all its lines.
@@ -715,6 +734,21 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Removes the folding, and the folded text comes back into view.
+	/// </summary>
+	private void RemoveFolding()
+	{
+		if (_folding is not { } folding)
+		{
+			return;
+		}
+
+		_folding = null;
+
+		folding.Dispose();
+	}
+
+	/// <summary>
 	/// Removes the syntax highlighting and stops its tokenizer.
 	/// </summary>
 	private void RemoveHighlighting()
@@ -749,8 +783,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			return;
 		}
 
-		GetEngineCommand(transform)
-			.Execute(null, TextArea);
+		GetEngineCommand(transform).Execute(null, TextArea);
 	}
 
 	/// <summary>
@@ -761,6 +794,31 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		ApplicationCommands
 			.Undo
 			.Execute(null, TextArea);
+	}
+
+	/// <summary>
+	/// Brings the folding in line with the language, the document and the visibility of the editor.
+	/// </summary>
+	private void UpdateFolding()
+	{
+		// A text folds while it is highlighted, by the rules of its language.
+		string? language = FindHighlightedScope() is null ? null : SyntaxLanguage;
+
+		if (language == _folding?.Language && Document == _folding?.Document)
+		{
+			return;
+		}
+
+		RemoveFolding();
+
+		if (language is null || SyntaxRegistry
+			.Instance
+			.FindFoldingRules(language) is not { } rules)
+		{
+			return;
+		}
+
+		_folding = new SyntaxFolding(TextArea, language, rules);
 	}
 
 	/// <summary>
@@ -791,6 +849,17 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		_highlighting.SetTheme(GetColorTheme(ActualThemeVariant));
 
 		_highlighting.SetGrammar(scope);
+	}
+
+	/// <summary>
+	/// Brings the syntax highlighting and the folding in line with the language, the document and the visibility of
+	/// the editor.
+	/// </summary>
+	private void UpdateSyntax()
+	{
+		UpdateHighlighting();
+
+		UpdateFolding();
 	}
 	#endregion
 }

@@ -157,11 +157,12 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 		}
 
 		// The markers are regular expressions of VS Code, which .NET reads alike.
+		// They are compiled, as every pass tries them on each line.
 		return new SyntaxFoldingRules
 		{
-			EndMarker = new Regex(markers.End),
+			EndMarker = new Regex(markers.End, RegexOptions.Compiled),
 			IsOffSide = folding.OffSide,
-			StartMarker = new Regex(markers.Start)
+			StartMarker = new Regex(markers.Start, RegexOptions.Compiled)
 		};
 	}
 	#endregion

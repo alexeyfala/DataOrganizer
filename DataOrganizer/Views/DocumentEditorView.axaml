@@ -6,6 +6,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:documents="using:DataOrganizer.Enums.Documents"
+	xmlns:folding="using:AvaloniaEdit.Folding"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -136,6 +137,13 @@
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 					<Setter Property="Cursor" Value="Arrow" />
 					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+				</Style>
+
+				<!--  The folding markers keep the gray of the line numbers, while their fill and their hover follow the theme.  -->
+				<Style Selector="folding|FoldingMargin">
+					<Setter Property="FoldingMarkerBackgroundBrush" Value="Transparent" />
+					<Setter Property="SelectedFoldingMarkerBackgroundBrush" Value="Transparent" />
+					<Setter Property="SelectedFoldingMarkerBrush" Value="{StaticResource MaterialBodyBrush}" />
 				</Style>
 			</controls:SplitDocumentEditor.Styles>
 

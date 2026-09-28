@@ -10,6 +10,7 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
@@ -28,6 +29,11 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class DocumentTextEditorTests
 {
 	#region Data
+	/// <summary>
+	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
+	/// </summary>
+	private const string FoldedText = "if ($value)\n{\n    Write-Host 'Text'\n}";
+
 	/// <summary>
 	/// Language of <see cref="PowerShellText" />.
 	/// </summary>
@@ -424,6 +430,28 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: the folding goes away with the highlighting.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Removes_The_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Dispose" />: the highlighting goes away with its tokenizer.
 	/// </summary>
 	[AvaloniaTest]
@@ -499,6 +527,28 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: without a document the folding goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Missing_Removes_The_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document = null;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: without a document the highlighting goes away.
 	/// </summary>
 	[AvaloniaTest]
@@ -518,6 +568,28 @@ internal class DocumentTextEditorTests
 		HasHighlighting(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the folding moves on to a new document and finds its blocks.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Moves_The_Folding_To_A_New_Document()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document = new(FoldedText);
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
 	}
 
 	/// <summary>
@@ -610,6 +682,29 @@ internal class DocumentTextEditorTests
 		sut.Text
 			.Should()
 			.Be("Some text");
+	}
+
+	/// <summary>
+	/// <see cref="Visual.IsVisible" />: a hidden editor gives up its folding and takes it again when shown.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsVisible_Keeps_The_Folding_Only_While_Shown([Values] bool isVisible)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			IsVisible = !isVisible,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.IsVisible = isVisible;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.Be(isVisible);
 	}
 
 	/// <summary>
@@ -1232,6 +1327,27 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the blocks of the text fold by the rules of the language.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Folds_The_Blocks_Of_The_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText)
+		};
+
+		// Act
+		sut.SyntaxLanguage = PowerShellLanguage;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a text too long for the highlighting stays plain.
 	/// </summary>
 	[AvaloniaTest]
@@ -1247,6 +1363,26 @@ internal class DocumentTextEditorTests
 
 		// Assert
 		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a text too long for the highlighting does not fold either.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Unfolded()
+	{
+		// Arrange, Act
+		// Past the longest text that gets the highlighting.
+		DocumentTextEditor sut = new()
+		{
+			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Assert
+		HasFolding(sut)
 			.Should()
 			.BeFalse();
 	}
@@ -1290,6 +1426,50 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the blocks of the text fold by the rules of the new language.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Takes_The_Rules_Of_A_New_Language()
+	{
+		// Arrange
+		// PowerShell folds the marked block, while JSON has no markers and folds by indentation alone.
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("#region A\nx\n    y\n#endregion"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.SyntaxLanguage = "json";
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((2, 3));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: without a language that has a grammar the text does not fold.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(null)]
+	[TestCase("unknown")]
+	public void SyntaxLanguage_Without_A_Grammar_Folds_Nothing(string? language)
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = language
+		};
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: without a language that has a grammar the text stays plain.
 	/// </summary>
 	[AvaloniaTest]
@@ -1308,6 +1488,38 @@ internal class DocumentTextEditorTests
 		HasHighlighting(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.TextChanged" />: a pause after an edit brings the blocks that fold up to date.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task TextChanged_Finds_The_Blocks_After_A_Pause()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Func<bool> isFolded = () =>
+		{
+			// The pause ends on a timer, which posts the pass over the lines to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return GetFoldedLines(sut).Length > 0;
+		};
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+
+		// Assert
+		bool result = await isFolded.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+
+		result
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1681,6 +1893,30 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.UpdateFoldings" />: a block that an edit makes folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void UpdateFoldings_Follows_An_Edit()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+
+		// Act
+		sut.UpdateFoldings();
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((2, 3));
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.UpdateLineEnding" />: a line ending of another style brought in by an edit
 	/// makes the endings mixed.
 	/// </summary>
@@ -1717,6 +1953,35 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// Returns the numbers of the first and the last lines of the blocks that fold.
+	/// </summary>
+	private static (int Start, int End)[] GetFoldedLines(TextEditor editor)
+	{
+		TextDocument document = editor.Document;
+
+		return [.. GetFoldings(editor).Select(x => (
+			document.GetLineByOffset(x.StartOffset).LineNumber,
+			document.GetLineByOffset(x.EndOffset).LineNumber))];
+	}
+
+	/// <summary>
+	/// Returns the blocks that fold; none without the folding.
+	/// </summary>
+	private static FoldingSection[] GetFoldings(TextEditor editor)
+	{
+		if (editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.SingleOrDefault() is not { } margin)
+		{
+			return [];
+		}
+
+		return [.. margin.FoldingManager.AllFoldings];
+	}
+
+	/// <summary>
 	/// Returns the colors of the parts the first line of the view is drawn in.
 	/// </summary>
 	private static Color[] GetWordColors(TextEditor editor)
@@ -1734,6 +1999,18 @@ internal class DocumentTextEditorTests
 			.Select(static x => x.TextRunProperties.ForegroundBrush)
 			.OfType<ISolidColorBrush>()
 			.Select(static x => x.Color)];
+	}
+
+	/// <summary>
+	/// <c>True</c> when the editor has the folding.
+	/// </summary>
+	private static bool HasFolding(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.Any();
 	}
 
 	/// <summary>

@@ -68,18 +68,18 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 		// Indentation reads any text.
 		firstErrorOffset = -1;
 
-		List<(int Start, int End)> blocks = FindBlocks(document);
+		using FoldingText text = new(document);
+
+		List<(int Start, int End)> blocks = FindBlocks(text);
 
 		// A language of the off-side rule sets its blocks by indentation alone.
 		if (!_rules.IsOffSide)
 		{
-			AttachBrackets(document, blocks);
+			AttachBrackets(text, blocks);
 		}
 
 		// The first line of a block stays in view, and the rest of the block folds into it.
-		return [.. blocks.Select(x => new NewFolding(
-			document.GetLineByNumber(x.Start).EndOffset,
-			document.GetLineByNumber(x.End).EndOffset))];
+		return [.. blocks.Select(x => new NewFolding(text.GetLineEnd(x.Start), text.GetLineEnd(x.End)))];
 	}
 	#endregion
 
@@ -113,11 +113,6 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 	}
 
 	/// <summary>
-	/// Returns the text of a line without its line break.
-	/// </summary>
-	private static string GetLineText(TextDocument document, int number) => document.GetText(document.GetLineByNumber(number));
-
-	/// <summary>
 	/// Returns <c>true</c> when the trimmed text of a line starts with a closing bracket and goes on with nothing
 	/// but closing characters.
 	/// </summary>
@@ -137,24 +132,22 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 	/// Starts the block of a lone opening bracket on the line above it and takes the line of the closing bracket into
 	/// the block, so that a folded block shows its head alone, as in Visual Studio.
 	/// </summary>
-	private void AttachBrackets(TextDocument document, List<(int Start, int End)> blocks)
+	private void AttachBrackets(FoldingText text, List<(int Start, int End)> blocks)
 	{
 		for (int i = 0; i < blocks.Count; i++)
 		{
 			(int start, int end) = blocks[i];
 
 			// The line of the opening bracket, whose indentation the closing one shares.
-			string opening = GetLineText(document, start);
+			ReadOnlySpan<char> opening = text.GetLine(start);
 
-			ReadOnlySpan<char> content = opening
-				.AsSpan()
-				.Trim();
+			ReadOnlySpan<char> content = opening.Trim();
 
 			int indent = GetIndent(opening, _tabSize);
 
 			if (content is [var bracket]
 				&& OpeningBrackets.Contains(bracket)
-				&& FindHead(document, start, indent) is { } head)
+				&& FindHead(text, start, indent) is { } head)
 			{
 				start = head;
 			}
@@ -163,12 +156,12 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 
 			int next = end + 1;
 
-			if (bracketIndex >= 0 && next <= document.LineCount)
+			if (bracketIndex >= 0 && next <= text.LineCount)
 			{
-				string closing = GetLineText(document, next);
+				ReadOnlySpan<char> closing = text.GetLine(next);
 
 				if (GetIndent(closing, _tabSize) == indent
-					&& IsClosingLine(closing.AsSpan().Trim(), ClosingBrackets[bracketIndex]))
+					&& IsClosingLine(closing.Trim(), ClosingBrackets[bracketIndex]))
 				{
 					end = next;
 				}
@@ -181,11 +174,11 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 	/// <summary>
 	/// Returns the blocks by indentation and by markers as the numbers of their first and last lines, sorted by the first.
 	/// </summary>
-	private List<(int Start, int End)> FindBlocks(TextDocument document)
+	private List<(int Start, int End)> FindBlocks(FoldingText text)
 	{
 		List<(int Start, int End)> blocks = [];
 
-		int lineCount = document.LineCount;
+		int lineCount = text.LineCount;
 
 		// The lines are read upwards, as VS Code reads them; the bottom of the list lies under the last line.
 		List<OpenFoldingBlock> openBlocks =
@@ -195,9 +188,9 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 
 		for (int number = lineCount; number > 0; number--)
 		{
-			string text = GetLineText(document, number);
+			ReadOnlySpan<char> line = text.GetLine(number);
 
-			int indent = GetIndent(text, _tabSize);
+			int indent = GetIndent(line, _tabSize);
 
 			if (indent == NoIndent)
 			{
@@ -213,7 +206,7 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 				continue;
 			}
 
-			if (_rules.StartMarker?.IsMatch(text) == true)
+			if (_rules.StartMarker?.IsMatch(line) == true)
 			{
 				int index = openBlocks.FindLastIndex(static x => x.Indent == EndMarkerIndent);
 
@@ -230,7 +223,7 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 					continue;
 				}
 			}
-			else if (_rules.EndMarker?.IsMatch(text) == true)
+			else if (_rules.EndMarker?.IsMatch(line) == true)
 			{
 				openBlocks.Add(new OpenFoldingBlock(Indent: EndMarkerIndent, EndAbove: number, Line: number));
 
@@ -282,13 +275,13 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 	/// Returns the line that a lone opening bracket below it continues, as the head of a method or of a statement;
 	/// <c>null</c> when the bracket stands on its own.
 	/// </summary>
-	private int? FindHead(TextDocument document, int line, int indent)
+	private int? FindHead(FoldingText text, int line, int indent)
 	{
 		for (int number = line - 1; number > 0; number--)
 		{
-			string text = GetLineText(document, number);
+			ReadOnlySpan<char> head = text.GetLine(number);
 
-			int headIndent = GetIndent(text, _tabSize);
+			int headIndent = GetIndent(head, _tabSize);
 
 			// Blank lines may stand between the head and its bracket.
 			if (headIndent == NoIndent)
@@ -298,9 +291,9 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 
 			// The head goes on into the bracket, while a marker heads a block of its own.
 			if (headIndent != indent
-				|| IsFinishedLine(text.AsSpan().Trim())
-				|| _rules.StartMarker?.IsMatch(text) == true
-				|| _rules.EndMarker?.IsMatch(text) == true)
+				|| IsFinishedLine(head.Trim())
+				|| _rules.StartMarker?.IsMatch(head) == true
+				|| _rules.EndMarker?.IsMatch(head) == true)
 			{
 				return null;
 			}

@@ -5,10 +5,12 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -39,6 +41,11 @@ internal class DocumentEditorViewTests
 	/// Name of the caption of the encoding in the markup.
 	/// </summary>
 	private const string EncodingCaptionName = "EncodingCaption";
+
+	/// <summary>
+	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
+	/// </summary>
+	private const string FoldedText = "if ($value)\n{\n    Write-Host 'Text'\n}";
 
 	/// <summary>
 	/// Name of the status bar block with the language of the text in the markup.
@@ -563,6 +570,67 @@ internal class DocumentEditorViewTests
 		sut.GetControl<TextBlock>(EncodingCaptionName).Text
 			.Should()
 			.Be("UTF-8-BOM");
+	}
+
+	/// <summary>
+	/// <see cref="FoldingMargin" />: the folding markers keep the gray of the line numbers.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldingMargin_Keeps_The_Gray_Of_The_Line_Numbers()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		GetFoldingMargin(editor).FoldingMarkerBrush
+			.Should()
+			.BeSameAs(editor.LineNumbersForeground);
+	}
+
+	/// <summary>
+	/// <see cref="FoldingMargin" />: the folding markers have no fill of their own and take the color of the text on hover.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldingMargin_Takes_The_Fill_And_The_Hover_Of_The_Theme()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		FoldingMargin margin = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor);
+
+		// Locals keep the assertions from being skipped by the null-conditional operator when a brush is not a color.
+		Color? fill = (margin.FoldingMarkerBackgroundBrush as ISolidColorBrush)?.Color;
+
+		Color? hoverFill = (margin.SelectedFoldingMarkerBackgroundBrush as ISolidColorBrush)?.Color;
+
+		fill
+			.Should()
+			.Be(Colors.Transparent);
+
+		hoverFill
+			.Should()
+			.Be(Colors.Transparent);
+
+		margin.SelectedFoldingMarkerBrush
+			.Should()
+			.BeSameAs(sut.FindResource("MaterialBodyBrush"));
 	}
 
 	/// <summary>
@@ -1445,6 +1513,18 @@ internal class DocumentEditorViewTests
 			.GetLogicalDescendants()
 			.OfType<Button>()
 			.SelectMany(static x => x.Flyout is null ? [x.Command] : GetFlyoutCommands(x.Flyout))];
+	}
+
+	/// <summary>
+	/// Returns the margin of the folding markers of a text editor.
+	/// </summary>
+	private static FoldingMargin GetFoldingMargin(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.Single();
 	}
 
 	/// <summary>
