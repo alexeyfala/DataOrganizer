@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Styling;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
@@ -29,6 +30,15 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Bookmarks of the lines of the document.
 	/// </summary>
 	public LineBookmarks Bookmarks { get; private set; }
+
+	/// <summary>
+	/// <c>True</c> while the text folds by the rules of its language.
+	/// </summary>
+	public bool CanFold
+	{
+		get => _canFold;
+		private set => SetAndRaise(CanFoldProperty, ref _canFold, value);
+	}
 
 	/// <summary>
 	/// <c>True</c> when line endings are shown.
@@ -104,6 +114,14 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Direct Properties
 	/// <summary>
+	/// Identifies the <see cref="CanFold" /> avalonia property.
+	/// </summary>
+	public static readonly DirectProperty<DocumentTextEditor, bool> CanFoldProperty = AvaloniaProperty
+		.RegisterDirect<DocumentTextEditor, bool>(
+			name: nameof(CanFold),
+			getter: static x => x.CanFold);
+
+	/// <summary>
 	/// Identifies the <see cref="Status" /> avalonia property.
 	/// </summary>
 	public static readonly DirectProperty<DocumentTextEditor, DocumentStatus> StatusProperty = AvaloniaProperty
@@ -127,6 +145,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Cuts the selected text.
 	/// </summary>
 	public RelayCommand CutCommand { get; }
+
+	/// <summary>
+	/// Folds every block of the text.
+	/// </summary>
+	public RelayCommand FoldAllCommand { get; }
 
 	/// <summary>
 	/// Moves the caret to the next bookmarked line, going round to the first one.
@@ -154,6 +177,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	public RelayCommand ToggleBookmarkCommand { get; }
 
 	/// <summary>
+	/// Folds or unfolds the innermost block of the caret line.
+	/// </summary>
+	public RelayCommand ToggleFoldingCommand { get; }
+
+	/// <summary>
 	/// Transforms the selected text, or the whole document where the transformation allows it.
 	/// </summary>
 	public RelayCommand<TextTransform> TransformCommand { get; }
@@ -162,6 +190,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Undoes the last edit.
 	/// </summary>
 	public RelayCommand UndoCommand { get; }
+
+	/// <summary>
+	/// Unfolds every block of the text.
+	/// </summary>
+	public RelayCommand UnfoldAllCommand { get; }
 	#endregion
 
 	#region Data
@@ -169,6 +202,14 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
 	/// </summary>
 	private const int MaxHighlightedLength = 5 * 1024 * 1024;
+
+	/// <summary>
+	/// Modifier of the keys of the commands: ⌘ on macOS, like the keys of the engine, and Ctrl elsewhere.
+	/// </summary>
+	private static readonly KeyModifiers CommandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+
+	/// <inheritdoc cref="CanFold" />
+	private bool _canFold;
 
 	/// <summary>
 	/// Folding of the blocks of the text; <c>null</c> while the text is plain.
@@ -184,6 +225,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Scope name of the grammar of <see cref="_highlighting" />.
 	/// </summary>
 	private string? _highlightingScope;
+
+	/// <summary>
+	/// <c>True</c> after the first key of a chord, while its second key is awaited.
+	/// </summary>
+	private bool _isChordStarted;
 
 	/// <summary>
 	/// <c>True</c> once the editor has been disposed, after which the text stays plain.
@@ -203,6 +249,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		CutCommand = new(CutSelection, CanCutSelection);
 
+		FoldAllCommand = new(FoldAll, CanFoldAll);
+
 		NextBookmarkCommand = new(GoToNextBookmark, HasBookmarks);
 
 		PasteCommand = new(PasteText, CanPasteText);
@@ -213,31 +261,33 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		ToggleBookmarkCommand = new(ToggleBookmark);
 
+		ToggleFoldingCommand = new(ToggleFolding, CanToggleFolding);
+
 		TransformCommand = new(TransformText, CanTransformText);
 
 		UndoCommand = new(UndoEdit, CanUndoEdit);
 
-		// The keys of Visual Studio and Notepad++, with ⌘ for Ctrl on macOS like the keys of the engine.
-		KeyModifiers commandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+		UnfoldAllCommand = new(UnfoldAll, CanUnfoldAll);
 
+		// The keys of Visual Studio and Notepad++.
 		KeyBindings.Add(new KeyBinding
 		{
 			Command = TransformCommand,
 			CommandParameter = TextTransform.LowerCase,
-			Gesture = new KeyGesture(Key.U, commandModifier)
+			Gesture = new KeyGesture(Key.U, CommandModifier)
 		});
 
 		KeyBindings.Add(new KeyBinding
 		{
 			Command = TransformCommand,
 			CommandParameter = TextTransform.UpperCase,
-			Gesture = new KeyGesture(Key.U, commandModifier | KeyModifiers.Shift)
+			Gesture = new KeyGesture(Key.U, CommandModifier | KeyModifiers.Shift)
 		});
 
 		KeyBindings.Add(new KeyBinding
 		{
 			Command = ToggleBookmarkCommand,
-			Gesture = new KeyGesture(Key.F2, commandModifier)
+			Gesture = new KeyGesture(Key.F2, CommandModifier)
 		});
 
 		KeyBindings.Add(new KeyBinding
@@ -260,6 +310,19 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		{
 			binding.CanExecute += UndoRedoBinding_CanExecute;
 		}
+
+		// The chords of the folding, which key bindings cannot express, reach the editor on the tunnel before its text,
+		// and so do the keys that key bindings have taken, as those end a chord too.
+		AddHandler(
+			KeyDownEvent,
+			DocumentTextEditor_KeyDown,
+			RoutingStrategies.Tunnel,
+			handledEventsToo: true);
+
+		// A chord ends with the focus, so that a key typed on the return is not taken for its second key.
+		this
+			.GetObservable(IsKeyboardFocusWithinProperty)
+			.Subscribe(IsKeyboardFocusWithinProperty_Changed);
 
 		// The engine keeps these switches in its options, which markup cannot bind to.
 		this
@@ -363,6 +426,66 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.KeyDownEvent" /> handler, which folds on the chords of Visual Studio: Ctrl+M, Ctrl+M for
+	/// the block of the caret line and Ctrl+M, Ctrl+L for every block.
+	/// </summary>
+	private void DocumentTextEditor_KeyDown(object? sender, KeyEventArgs e)
+	{
+		// A modifier held through a chord repeats its key, and a modifier pressed anew comes before the second key.
+		if (IsModifierKey(e.Key))
+		{
+			return;
+		}
+
+		// Key bindings take their keys before the event is raised, and such a key ends a chord without acting in it.
+		if (e.Handled)
+		{
+			_isChordStarted = false;
+
+			return;
+		}
+
+		if (!_isChordStarted)
+		{
+			if (e.Key != Key.M || e.KeyModifiers != CommandModifier)
+			{
+				return;
+			}
+
+			_isChordStarted = true;
+
+			e.Handled = true;
+
+			return;
+		}
+
+		_isChordStarted = false;
+
+		// The second key works with the modifier of the first one or without it, and any other key acts as usual.
+		if (e.KeyModifiers != KeyModifiers.None && e.KeyModifiers != CommandModifier)
+		{
+			return;
+		}
+
+		switch (e.Key)
+		{
+			case Key.L:
+				ToggleAllFoldings();
+				break;
+
+			case Key.M:
+				ToggleFolding();
+				break;
+
+			default:
+				return;
+		}
+
+		// A chord with nothing to fold does nothing, rather than type its second key into the text.
+		e.Handled = true;
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.TextChanged" /> event handler.
 	/// </summary>
 	private void DocumentTextEditor_TextChanged(object? sender, EventArgs e)
@@ -374,6 +497,19 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			LineCount = LineCount,
 			TextLength = Document?.TextLength ?? 0
 		};
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.IsKeyboardFocusWithinProperty" /> changed handler.
+	/// </summary>
+	private void IsKeyboardFocusWithinProperty_Changed(bool value)
+	{
+		if (value)
+		{
+			return;
+		}
+
+		_isChordStarted = false;
 	}
 
 	/// <summary>
@@ -548,6 +684,21 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	};
 
 	/// <summary>
+	/// <c>True</c> for the key of a modifier.
+	/// </summary>
+	private static bool IsModifierKey(Key key)
+	{
+		return key is Key.LeftCtrl
+			or Key.RightCtrl
+			or Key.LeftShift
+			or Key.RightShift
+			or Key.LeftAlt
+			or Key.RightAlt
+			or Key.LWin
+			or Key.RWin;
+	}
+
+	/// <summary>
 	/// Validates <see cref="ConvertLineEndingsCommand" />.
 	/// </summary>
 	private bool CanConvertLineEndings(LineEnding lineEnding)
@@ -568,6 +719,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Validates <see cref="FoldAllCommand" />.
+	/// </summary>
+	private bool CanFoldAll() => _folding is { HasUnfoldedBlocks: true };
+
+	/// <summary>
 	/// Validates <see cref="PasteCommand" />.
 	/// </summary>
 	private bool CanPasteText() => CanPaste;
@@ -576,6 +732,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Validates <see cref="RedoCommand" />.
 	/// </summary>
 	private bool CanRedoEdit() => CanRedo;
+
+	/// <summary>
+	/// Validates <see cref="ToggleFoldingCommand" />.
+	/// </summary>
+	private bool CanToggleFolding() => _folding?.FindBlock(TextArea.Caret.Line) is not null;
 
 	/// <summary>
 	/// Validates <see cref="TransformCommand" />.
@@ -602,6 +763,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Validates <see cref="UndoCommand" />.
 	/// </summary>
 	private bool CanUndoEdit() => CanUndo;
+
+	/// <summary>
+	/// Validates <see cref="UnfoldAllCommand" />.
+	/// </summary>
+	private bool CanUnfoldAll() => _folding is { HasFoldedBlocks: true };
 
 	/// <summary>
 	/// Removes all bookmarks.
@@ -682,6 +848,21 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Folds every block and moves the caret out of the folded text.
+	/// </summary>
+	private void FoldAll()
+	{
+		if (_folding is not { } folding)
+		{
+			return;
+		}
+
+		folding.FoldAll();
+
+		MoveCaretOutOfFolding();
+	}
+
+	/// <summary>
 	/// Moves the caret to the next bookmarked line, going round to the first one.
 	/// </summary>
 	private void GoToNextBookmark() => MoveCaretToLine(Bookmarks.FindNext(TextArea.Caret.Line));
@@ -696,6 +877,24 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <see cref="PreviousBookmarkCommand" />.
 	/// </summary>
 	private bool HasBookmarks() => Bookmarks.GetLines().Length > 0;
+
+	/// <summary>
+	/// Moves the caret out of the folded block that hides it to the start of the block, which stays in view.
+	/// </summary>
+	private void MoveCaretOutOfFolding()
+	{
+		if (_folding?.FindFoldedBlock(TextArea.Caret.Offset) is not { } block)
+		{
+			return;
+		}
+
+		// A selection left behind would reach into the hidden text.
+		Select(block.StartOffset, 0);
+
+		TextArea
+			.Caret
+			.BringCaretToView();
+	}
 
 	/// <summary>
 	/// Puts the caret at the start of a line and brings the line into view.
@@ -745,6 +944,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		_folding = null;
 
+		CanFold = false;
+
 		folding.Dispose();
 	}
 
@@ -766,9 +967,39 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Unfolds every block when a block is folded, and folds every block otherwise, as Visual Studio does.
+	/// </summary>
+	private void ToggleAllFoldings()
+	{
+		if (_folding is { HasFoldedBlocks: true } folding)
+		{
+			folding.UnfoldAll();
+
+			return;
+		}
+
+		FoldAll();
+	}
+
+	/// <summary>
 	/// Sets or removes the bookmark of the caret line.
 	/// </summary>
 	private void ToggleBookmark() => Bookmarks.Toggle(TextArea.Caret.Line);
+
+	/// <summary>
+	/// Folds or unfolds the innermost block of the caret line, and moves the caret out of it when it folds.
+	/// </summary>
+	private void ToggleFolding()
+	{
+		if (_folding?.FindBlock(TextArea.Caret.Line) is not { } block)
+		{
+			return;
+		}
+
+		block.IsFolded = !block.IsFolded;
+
+		MoveCaretOutOfFolding();
+	}
 
 	/// <summary>
 	/// Applies a transformation to the selected text, or to the whole document where the transformation allows it.
@@ -797,6 +1028,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Unfolds every block.
+	/// </summary>
+	private void UnfoldAll() => _folding?.UnfoldAll();
+
+	/// <summary>
 	/// Brings the folding in line with the language, the document and the visibility of the editor.
 	/// </summary>
 	private void UpdateFolding()
@@ -819,6 +1055,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		}
 
 		_folding = new SyntaxFolding(TextArea, language, rules);
+
+		CanFold = true;
 	}
 
 	/// <summary>

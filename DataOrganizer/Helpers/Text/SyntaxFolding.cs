@@ -23,6 +23,16 @@ internal sealed class SyntaxFolding : IDisposable
 	public TextDocument Document { get; }
 
 	/// <summary>
+	/// <c>True</c> when a block is folded.
+	/// </summary>
+	public bool HasFoldedBlocks => _manager.AllFoldings.Any(static x => x.IsFolded);
+
+	/// <summary>
+	/// <c>True</c> when a block is unfolded.
+	/// </summary>
+	public bool HasUnfoldedBlocks => _manager.AllFoldings.Any(static x => !x.IsFolded);
+
+	/// <summary>
 	/// Language whose rules find the blocks.
 	/// </summary>
 	public string Language { get; }
@@ -86,6 +96,67 @@ internal sealed class SyntaxFolding : IDisposable
 	public void Dispose() => FoldingManager.Uninstall(_manager);
 
 	/// <summary>
+	/// Returns the innermost block in view whose lines hold a line; <c>null</c> when no block holds it.
+	/// </summary>
+	public FoldingSection? FindBlock(int line)
+	{
+		DocumentLine documentLine = Document.GetLineByNumber(line);
+
+		FoldingSection? found = null;
+
+		// The end of the last folded block, before which a block is hidden in it.
+		int hiddenEnd = -1;
+
+		// The blocks come in the order of their starts, so the last one to hold the line is the innermost.
+		foreach (FoldingSection block in _manager.AllFoldings)
+		{
+			if (block.StartOffset > documentLine.EndOffset)
+			{
+				break;
+			}
+
+			if (block.StartOffset < hiddenEnd)
+			{
+				continue;
+			}
+
+			if (block.IsFolded)
+			{
+				hiddenEnd = block.EndOffset;
+			}
+
+			if (block.EndOffset >= documentLine.Offset)
+			{
+				found = block;
+			}
+		}
+
+		return found;
+	}
+
+	/// <summary>
+	/// Returns the outermost folded block that hides an offset; <c>null</c> when the offset is in view.
+	/// </summary>
+	public FoldingSection? FindFoldedBlock(int offset)
+	{
+		// The ends of a folded block stay in view, before and after the box of its hidden text.
+		return _manager
+			.GetFoldingsContaining(offset)
+			.Where(x => x.IsFolded && x.StartOffset < offset && offset < x.EndOffset)
+			.MinBy(static x => x.StartOffset);
+	}
+
+	/// <summary>
+	/// Folds every block.
+	/// </summary>
+	public void FoldAll() => SetAllFolded(isFolded: true);
+
+	/// <summary>
+	/// Unfolds every block.
+	/// </summary>
+	public void UnfoldAll() => SetAllFolded(isFolded: false);
+
+	/// <summary>
 	/// Finds the blocks anew with a pass over all lines; a folded block that is found again stays folded.
 	/// </summary>
 	public void Update()
@@ -107,5 +178,16 @@ internal sealed class SyntaxFolding : IDisposable
 		XmlLanguage or XslLanguage => new XmlTagFoldingStrategy(),
 		_ => new IndentFoldingStrategy(rules, tabSize)
 	};
+
+	/// <summary>
+	/// Folds or unfolds every block.
+	/// </summary>
+	private void SetAllFolded(bool isFolded)
+	{
+		foreach (FoldingSection block in _manager.AllFoldings)
+		{
+			block.IsFolded = isFolded;
+		}
+	}
 	#endregion
 }

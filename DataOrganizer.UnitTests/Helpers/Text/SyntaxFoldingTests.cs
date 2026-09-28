@@ -19,6 +19,16 @@ internal class SyntaxFoldingTests
 	private const string Language = "csharp";
 
 	/// <summary>
+	/// A block from line 1 to line 4 that holds a block from line 2 to line 3.
+	/// </summary>
+	private const string NestedText = "a\n    b\n        c\n    d\ne";
+
+	/// <summary>
+	/// Two blocks one after the other, from line 1 to line 2 and from line 3 to line 4.
+	/// </summary>
+	private const string SiblingText = "a\n    b\nc\n    d";
+
+	/// <summary>
 	/// Rules of a language without markers.
 	/// </summary>
 	private static readonly SyntaxFoldingRules Rules = new();
@@ -150,6 +160,276 @@ internal class SyntaxFoldingTests
 		textArea.TextView.ElementGenerators.OfType<FoldingElementGenerator>()
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindBlock" />: a line that no block holds has no block.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindBlock_Returns_Nothing_Outside_The_Blocks()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		// Act
+		FoldingSection? block = sut.FindBlock(5);
+
+		// Assert
+		block
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindBlock" />: a block that starts inside a folded one is out of view, so the folded one is
+	/// found instead.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindBlock_Skips_A_Block_Hidden_In_A_Folded_One()
+	{
+		// Arrange
+		// Both elements start on the first line.
+		TextArea textArea = new()
+		{
+			Document = new("<a><b>\n</b>\n</a>")
+		};
+
+		using SyntaxFolding sut = new(textArea, "xml", Rules);
+
+		FoldingSection outer = GetFoldings(textArea)[0];
+
+		outer.IsFolded = true;
+
+		// Act
+		FoldingSection? block = sut.FindBlock(1);
+
+		// Assert
+		block
+			.Should()
+			.BeSameAs(outer);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindBlock" />: of the blocks that hold a line, the innermost one is found, which is the one
+	/// that starts on the line when there is one.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(1, 1)]
+	[TestCase(2, 2)]
+	[TestCase(3, 2)]
+	[TestCase(4, 1)]
+	public void FindBlock_Takes_The_Innermost_Block_Of_A_Line(int line, int startLine)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		// Act
+		FoldingSection block = sut.FindBlock(line)!;
+
+		// Assert
+		textArea.Document.GetLineByOffset(block.StartOffset).LineNumber
+			.Should()
+			.Be(startLine);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindFoldedBlock" />: the ends of a folded block stay in view, before and after the box of
+	/// its hidden text.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindFoldedBlock_Keeps_The_Ends_Of_A_Folded_Block_In_View([Values] bool isEnd)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("a\n    b")
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection folded = GetFoldings(textArea).Single();
+
+		folded.IsFolded = true;
+
+		// Act
+		FoldingSection? block = sut.FindFoldedBlock(isEnd ? folded.EndOffset : folded.StartOffset);
+
+		// Assert
+		block
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindFoldedBlock" />: the text of an unfolded block is in view.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindFoldedBlock_Returns_Nothing_Inside_An_Unfolded_Block()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("a\n    b")
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		// Act
+		FoldingSection? block = sut.FindFoldedBlock(textArea.Document.GetLineByNumber(2).Offset);
+
+		// Assert
+		block
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FindFoldedBlock" />: of the folded blocks around an offset, the outermost one is found, as
+	/// it hides the others.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindFoldedBlock_Takes_The_Outermost_Folded_Block()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[0].IsFolded = true;
+
+		blocks[1].IsFolded = true;
+
+		// Act
+		FoldingSection? block = sut.FindFoldedBlock(textArea.Document.GetLineByNumber(3).Offset);
+
+		// Assert
+		block
+			.Should()
+			.BeSameAs(blocks[0]);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.FoldAll" />: every block folds, the inner ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAll_Folds_Every_Block()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		// Act
+		sut.FoldAll();
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.HasFoldedBlocks" />: one folded block is enough.
+	/// </summary>
+	[AvaloniaTest]
+	public void HasFoldedBlocks_Tells_Whether_A_Block_Is_Folded([Values] bool isFolded)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(SiblingText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		if (isFolded)
+		{
+			GetFoldings(textArea)[1].IsFolded = true;
+		}
+
+		// Act
+		bool hasFoldedBlocks = sut.HasFoldedBlocks;
+
+		// Assert
+		hasFoldedBlocks
+			.Should()
+			.Be(isFolded);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.HasUnfoldedBlocks" />: one unfolded block is enough.
+	/// </summary>
+	[AvaloniaTest]
+	public void HasUnfoldedBlocks_Tells_Whether_A_Block_Is_Unfolded([Values] bool isUnfolded)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(SiblingText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[0].IsFolded = true;
+
+		blocks[1].IsFolded = !isUnfolded;
+
+		// Act
+		bool hasUnfoldedBlocks = sut.HasUnfoldedBlocks;
+
+		// Assert
+		hasUnfoldedBlocks
+			.Should()
+			.Be(isUnfolded);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.UnfoldAll" />: every block unfolds, the inner ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAll_Unfolds_Every_Block()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[0].IsFolded = true;
+
+		blocks[1].IsFolded = true;
+
+		// Act
+		sut.UnfoldAll();
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, false);
 	}
 
 	/// <summary>

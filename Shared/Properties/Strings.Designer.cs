@@ -898,6 +898,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fold All.
+        /// </summary>
+        public static string FoldAll {
+            get {
+                return ResourceManager.GetString("FoldAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Folder.
         /// </summary>
         public static string Folder {
@@ -912,6 +921,15 @@ namespace Shared.Properties {
         public static string Folders {
             get {
                 return ResourceManager.GetString("Folders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folding.
+        /// </summary>
+        public static string Folding {
+            get {
+                return ResourceManager.GetString("Folding", resourceCulture);
             }
         }
         
@@ -2050,6 +2068,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toggle Block.
+        /// </summary>
+        public static string ToggleFolding {
+            get {
+                return ResourceManager.GetString("ToggleFolding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Topmost.
         /// </summary>
         public static string Topmost {
@@ -2100,6 +2127,15 @@ namespace Shared.Properties {
         public static string Undo {
             get {
                 return ResourceManager.GetString("Undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unfold All.
+        /// </summary>
+        public static string UnfoldAll {
+            get {
+                return ResourceManager.GetString("UnfoldAll", resourceCulture);
             }
         }
         

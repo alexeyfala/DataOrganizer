@@ -453,6 +453,38 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="Control.ContextFlyout" />: the submenu of the folding opens only while the text of the active half folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextFlyout_Enables_The_Folding_Only_While_The_Text_Folds([Values] bool hasLanguage)
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = hasLanguage ? null : PowerShellLanguage
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		// The submenu is the button whose flyout holds the command of the block at the caret.
+		Button folding = ((Control)((Flyout)editor.ContextFlyout!).Content!)
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => GetFlyoutCommands(x.Flyout).Contains(editor.PrimaryEditor.ToggleFoldingCommand));
+
+		// Act
+		sut.SyntaxLanguage = hasLanguage ? PowerShellLanguage : null;
+
+		// Assert
+		folding.IsEnabled
+			.Should()
+			.Be(hasLanguage);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.DefaultSyntaxLanguage" />: the language that the text takes by default reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]

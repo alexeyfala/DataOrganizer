@@ -340,6 +340,39 @@
 								</Flyout>
 							</Button.Flyout>
 						</controls:FlyoutButton>
+
+						<controls:FlyoutButton
+							Header="{x:Static prop:Strings.Folding}"
+							Icon="UnfoldLessHorizontal"
+							IsEnabled="{Binding #Editor.ActiveEditor.CanFold, Mode=OneWay}">
+							<Button.Flyout>
+								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.ToggleFoldingCommand}"
+											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+M',
+											                     macOS='⌘+M, ⌘+M'}"
+											Header="{x:Static prop:Strings.ToggleFolding}"
+											Icon="PlusMinusBox" />
+
+										<!--  One chord serves both, as it unfolds every block when one is folded.  -->
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.FoldAllCommand}"
+											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+											                     macOS='⌘+M, ⌘+L'}"
+											Header="{x:Static prop:Strings.FoldAll}"
+											Icon="CollapseAllOutline" />
+
+										<controls:FlyoutButton
+											Command="{Binding #Editor.ActiveEditor.UnfoldAllCommand}"
+											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+											                     macOS='⌘+M, ⌘+L'}"
+											Header="{x:Static prop:Strings.UnfoldAll}"
+											Icon="ExpandAllOutline" />
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</controls:FlyoutButton>
 					</StackPanel>
 				</Flyout>
 			</controls:SplitDocumentEditor.ContextFlyout>
