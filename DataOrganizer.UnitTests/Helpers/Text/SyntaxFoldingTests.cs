@@ -47,6 +47,55 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: Markdown folds the section of a heading, which
+	/// has no indentation.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_Markdown_By_Its_Headings()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("# A\ntext")
+		};
+
+		SyntaxFoldingRules rules = new()
+		{
+			IsOffSide = true
+		};
+
+		// Act
+		using SyntaxFolding sut = new(textArea, "markdown", rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal((textArea.Document.GetLineByNumber(1).EndOffset, textArea.Document.GetLineByNumber(2).EndOffset));
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: XML folds an element from its start tag, which
+	/// is where the line of the element starts.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_XML_By_Its_Tags([Values("xml", "xsl")] string language)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("<a>\n  <b />\n</a>")
+		};
+
+		// Act
+		using SyntaxFolding sut = new(textArea, language, Rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal((0, textArea.Document.TextLength));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: the margin of the markers keeps an arrow cursor,
 	/// as it would inherit the I-beam of the text area.
 	/// </summary>

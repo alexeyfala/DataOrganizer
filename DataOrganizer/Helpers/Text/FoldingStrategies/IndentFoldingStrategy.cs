@@ -70,6 +70,14 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 
 		using FoldingText text = new(document);
 
+		return CreateNewFoldings(text);
+	}
+
+	/// <summary>
+	/// Returns the blocks of a text read at once, sorted by their start.
+	/// </summary>
+	internal NewFolding[] CreateNewFoldings(FoldingText text)
+	{
 		List<(int Start, int End)> blocks = FindBlocks(text);
 
 		// A language of the off-side rule sets its blocks by indentation alone.

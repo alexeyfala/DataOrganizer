@@ -30,6 +30,21 @@ internal sealed class SyntaxFolding : IDisposable
 
 	#region Data
 	/// <summary>
+	/// Language of Markdown, whose headings fold their sections.
+	/// </summary>
+	private const string MarkdownLanguage = "markdown";
+
+	/// <summary>
+	/// Language of XML, whose tags fold their elements.
+	/// </summary>
+	private const string XmlLanguage = "xml";
+
+	/// <summary>
+	/// Language of XSL, which is XML as well.
+	/// </summary>
+	private const string XslLanguage = "xsl";
+
+	/// <summary>
 	/// Blocks of the document, with the margin of their markers in the text area.
 	/// </summary>
 	private readonly FoldingManager _manager;
@@ -37,7 +52,7 @@ internal sealed class SyntaxFolding : IDisposable
 	/// <summary>
 	/// Way of finding the blocks of the language.
 	/// </summary>
-	private readonly IndentFoldingStrategy _strategy;
+	private readonly IFoldingStrategy _strategy;
 	#endregion
 
 	#region Constructors
@@ -48,7 +63,7 @@ internal sealed class SyntaxFolding : IDisposable
 
 		Language = language;
 
-		_strategy = new(rules, textArea.Options.IndentationSize);
+		_strategy = CreateStrategy(language, rules, textArea.Options.IndentationSize);
 
 		_manager = FoldingManager.Install(textArea);
 
@@ -79,5 +94,18 @@ internal sealed class SyntaxFolding : IDisposable
 
 		_manager.UpdateFoldings(foldings, firstErrorOffset);
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns the way of finding the blocks of a language: by tags for XML, by headings for Markdown and by indentation
+	/// for the others.
+	/// </summary>
+	private static IFoldingStrategy CreateStrategy(string language, SyntaxFoldingRules rules, int tabSize) => language switch
+	{
+		MarkdownLanguage => new MarkdownFoldingStrategy(rules, tabSize),
+		XmlLanguage or XslLanguage => new XmlTagFoldingStrategy(),
+		_ => new IndentFoldingStrategy(rules, tabSize)
+	};
 	#endregion
 }
