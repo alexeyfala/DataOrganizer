@@ -16,12 +16,13 @@ internal partial class CommentFoldingStrategyTests
 {
 	#region Data
 	/// <summary>
-	/// Rules of a language with the comments of C and the block markers of JavaScript.
+	/// Rules of a language with the comments of C#, the documentation included, and the block markers of JavaScript.
 	/// </summary>
 	private static readonly SyntaxFoldingRules Rules = new()
 	{
 		BlockCommentEnd = "*/",
 		BlockCommentStart = "/*",
+		DocComment = "///",
 		EndMarker = EndMarkerRegex(),
 		LineComment = LineCommentRegex(),
 		StartMarker = StartMarkerRegex()
@@ -50,6 +51,29 @@ internal partial class CommentFoldingStrategyTests
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
 			.Should()
 			.Equal((2, document.Text.IndexOf("*/", StringComparison.Ordinal) + 2));
+	}
+
+	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a documentation comment ends at a blank line, as in C#, and
+	/// the lines after it start another one.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Ends_A_Doc_Comment_At_A_Blank_Line()
+	{
+		// Arrange
+		TextDocument document = new("/// a\n/// b\n\n/// c\n/// d");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2), (4, 5));
 	}
 
 	/// <summary>
@@ -186,6 +210,29 @@ internal partial class CommentFoldingStrategyTests
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 2));
+	}
+
+	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the lines of a documentation comment fold apart from the
+	/// line comments around them.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Folds_Doc_Comments_Apart_From_Line_Comments()
+	{
+		// Arrange
+		TextDocument document = new("// a\n// b\n/// c\n/// d\n// e\n// f");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2), (3, 4), (5, 6));
 	}
 
 	/// <summary>
@@ -352,6 +399,52 @@ internal partial class CommentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded documentation comment shows the plain
+	/// text of its summary, and the comment starts unfolded.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Names_A_Doc_Comment_After_Its_Summary()
+	{
+		// Arrange
+		TextDocument document = new("  /// <summary>\n  /// Calls <see cref=\"Run\"/>.\n  /// </summary>");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings.Select(static x => (x.Name, x.DefaultClosed))
+			.Should()
+			.Equal(("/// <summary> Calls Run.", false));
+	}
+
+	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded documentation comment without a summary
+	/// shows its first line with dots after it.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Names_A_Doc_Comment_Without_A_Summary_After_Its_First_Line()
+	{
+		// Arrange
+		TextDocument document = new("/// <param name=\"x\">X</param>  \n/// <returns>Y</returns>");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings.Select(static x => x.Name)
+			.Should()
+			.Equal($"/// <param name=\"x\">X</param> {Glyphs.ThreeDots}");
+	}
+
+	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded group shows its first line with dots
 	/// after it, and the group starts unfolded.
 	/// </summary>
@@ -394,6 +487,29 @@ internal partial class CommentFoldingStrategyTests
 		foldings
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the summary of a documentation comment is read up to the
+	/// end of its last line, where a summary without its end tag stops.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Reads_A_Summary_Up_To_The_End_Of_The_Doc_Comment()
+	{
+		// Arrange
+		TextDocument document = new("/// <summary>\n/// Calls Run\nx");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings.Select(static x => x.Name)
+			.Should()
+			.Equal("/// <summary> Calls Run");
 	}
 
 	/// <summary>
@@ -447,6 +563,29 @@ internal partial class CommentFoldingStrategyTests
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 2));
+	}
+
+	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a longer run of slashes than the token of a documentation
+	/// comment starts a line comment, as in C#.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_A_Longer_Run_Of_Slashes_For_A_Line_Comment()
+	{
+		// Arrange
+		TextDocument document = new("/// a\n/// b\n//// c\n//// d");
+
+		using FoldingText text = new(document);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2), (3, 4));
 	}
 
 	/// <summary>

@@ -25,6 +25,12 @@ public sealed record SyntaxFoldingRules
 	public Regex? DirectiveLine { get; init; }
 
 	/// <summary>
+	/// Token that opens a line of a documentation comment of XML, such as <c>///</c>; <c>null</c> when the language has no
+	/// such comments.
+	/// </summary>
+	public string? DocComment { get; init; }
+
+	/// <summary>
 	/// Pattern of the line that closes a marked block; <c>null</c> when the language marks no blocks.
 	/// </summary>
 	public Regex? EndMarker { get; init; }

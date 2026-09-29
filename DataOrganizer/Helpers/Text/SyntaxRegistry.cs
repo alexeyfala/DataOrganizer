@@ -166,6 +166,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 			BlockCommentEnd = blockComment?.End,
 			BlockCommentStart = blockComment?.Start,
 			DirectiveLine = SyntaxLinePatterns.FindDirective(language),
+			DocComment = SyntaxLinePatterns.FindDocComment(language),
 			EndMarker = markers is null ? null : new Regex(markers.End, RegexOptions.Compiled),
 			ImportLine = SyntaxLinePatterns.FindImport(language),
 			IsOffSide = folding?.OffSide == true,

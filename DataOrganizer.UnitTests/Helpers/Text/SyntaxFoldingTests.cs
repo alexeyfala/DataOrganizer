@@ -58,6 +58,35 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a documentation comment folds into a box with its
+	/// summary, by the token of its language.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("csharp", "///")]
+	[TestCase("fsharp", "///")]
+	[TestCase("vb", "'''")]
+	public void Constructor_Folds_A_Doc_Comment_Into_Its_Summary(string language, string token)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new($"{token} <summary>\n{token} Text.\n{token} </summary>\nx")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules(language)!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, language, rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset, x.Title))
+			.Should()
+			.Equal((0, textArea.Document.GetLineByNumber(3).EndOffset, $"{token} <summary> Text."));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a block comment whose inner lines are indented
 	/// folds once, as a comment with its first line in the box.
 	/// </summary>

@@ -8,7 +8,7 @@ namespace DataOrganizer.Helpers.Text.FoldingStrategies;
 
 /// <summary>
 /// <see cref="ILineFoldingStrategy" /> that folds a group of line comments and a block comment of several lines into a
-/// box with their first line, as Visual Studio folds comments.
+/// box with their first line, and a documentation comment into a box with its summary, as Visual Studio folds comments.
 /// </summary>
 internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 {
@@ -42,7 +42,8 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 	{
 		List<NewFolding> blocks = [];
 
-		// The group under way: its first and last lines, the number of its lines and the blanks before each of them.
+		// The group under way: its first and last lines, the number of its lines, the blanks before each of them and whether
+		// they are lines of a documentation comment.
 		int first = 0;
 
 		int last = 0;
@@ -51,15 +52,24 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 
 		ReadOnlySpan<char> groupIndentation = [];
 
+		bool isDocGroup = false;
+
 		for (int number = 1; number <= text.LineCount; number++)
 		{
 			ReadOnlySpan<char> line = text.GetLine(number);
 
 			int indentLength = line.IndexOfAnyExcept(Blanks);
 
-			// Blank lines may stand inside a group, as in Visual Studio.
+			// Blank lines may stand inside a group, as in Visual Studio, while a documentation comment ends at one, as in C#.
 			if (indentLength < 0)
 			{
+				if (isDocGroup)
+				{
+					AddGroup(text, blocks, first, last, lineCount, isDocGroup);
+
+					lineCount = 0;
+				}
+
 				continue;
 			}
 
@@ -70,7 +80,7 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 				&& _rules.BlockCommentEnd is { } end
 				&& content.StartsWith(start))
 			{
-				AddGroup(text, blocks, first, last, lineCount);
+				AddGroup(text, blocks, first, last, lineCount, isDocGroup);
 
 				lineCount = 0;
 
@@ -94,20 +104,25 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 				continue;
 			}
 
-			if (IsGroupLine(line, content))
+			// A line of a documentation comment comes before a line comment, as its token starts with the other one.
+			bool isDocLine = IsDocLine(content);
+
+			if (isDocLine || IsGroupLine(line, content))
 			{
 				ReadOnlySpan<char> indentation = line[..indentLength];
 
-				// A line of another indentation starts a group of its own.
-				if (lineCount == 0 || !indentation.SequenceEqual(groupIndentation))
+				// A line of another kind or of another indentation starts a group of its own.
+				if (lineCount == 0 || isDocLine != isDocGroup || !indentation.SequenceEqual(groupIndentation))
 				{
-					AddGroup(text, blocks, first, last, lineCount);
+					AddGroup(text, blocks, first, last, lineCount, isDocGroup);
 
 					first = number;
 
 					lineCount = 0;
 
 					groupIndentation = indentation;
+
+					isDocGroup = isDocLine;
 				}
 
 				last = number;
@@ -118,39 +133,19 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 			}
 
 			// Any other line ends the group under way.
-			AddGroup(text, blocks, first, last, lineCount);
+			AddGroup(text, blocks, first, last, lineCount, isDocGroup);
 
 			lineCount = 0;
 		}
 
 		// The blank lines after the last line of a group stay out of it.
-		AddGroup(text, blocks, first, last, lineCount);
+		AddGroup(text, blocks, first, last, lineCount, isDocGroup);
 
 		return [.. blocks];
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Adds the block of a group that holds enough lines, from the token of its first line to the end of its last line.
-	/// </summary>
-	private static void AddGroup(FoldingText text, List<NewFolding> blocks, int first, int last, int lineCount)
-	{
-		if (lineCount < MinGroupLineCount)
-		{
-			return;
-		}
-
-		ReadOnlySpan<char> line = text.GetLine(first);
-
-		int indentLength = line.IndexOfAnyExcept(Blanks);
-
-		blocks.Add(new NewFolding(text.GetLineStart(first) + indentLength, text.GetLineEnd(last))
-		{
-			Name = CreateName(line[indentLength..])
-		});
-	}
-
 	/// <summary>
 	/// Returns the name that the box of a folded comment shows: its first line with dots after it, as in Visual Studio.
 	/// </summary>
@@ -178,6 +173,46 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Adds the block of a group that holds enough lines, from the token of its first line to the end of its last line.
+	/// </summary>
+	private void AddGroup(FoldingText text, List<NewFolding> blocks, int first, int last, int lineCount, bool isDoc)
+	{
+		if (lineCount < MinGroupLineCount)
+		{
+			return;
+		}
+
+		ReadOnlySpan<char> line = text.GetLine(first);
+
+		int indentLength = line.IndexOfAnyExcept(Blanks);
+
+		int start = text.GetLineStart(first) + indentLength;
+
+		int end = text.GetLineEnd(last);
+
+		// A documentation comment shows its summary, as in Visual Studio, and its first line when it has none.
+		string? summary = isDoc && _rules.DocComment is { } token
+			? DocCommentBanner.Create(token, text.GetText(start, end))
+			: null;
+
+		blocks.Add(new NewFolding(start, end)
+		{
+			Name = summary ?? CreateName(line[indentLength..])
+		});
+	}
+
+	/// <summary>
+	/// Returns <c>true</c> when a text starts with the token of a documentation comment, but not with a longer run of its
+	/// last mark, which makes a plain comment, as in C#.
+	/// </summary>
+	private bool IsDocLine(ReadOnlySpan<char> content)
+	{
+		return _rules.DocComment is { } token
+			&& content.StartsWith(token, StringComparison.Ordinal)
+			&& !content[token.Length..].StartsWith(token[^1]);
 	}
 
 	/// <summary>

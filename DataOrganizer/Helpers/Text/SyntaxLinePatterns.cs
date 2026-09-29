@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Helpers.Text;
 
 /// <summary>
-/// Patterns of the lines of a language that folding tells apart: imports, directives and line comments.
+/// Patterns and tokens of the lines of a language that folding tells apart: imports, directives and comments.
 /// </summary>
 internal static partial class SyntaxLinePatterns
 {
@@ -24,6 +24,17 @@ internal static partial class SyntaxLinePatterns
 		// The preprocessor of the C family, C#, F#, Swift and Visual Basic, the attributes of Rust and PHP.
 		"c" or "cpp" or "cuda-cpp" or "hlsl" or "objective-c" or "objective-cpp" or "shaderlab" => DirectiveRegex(),
 		"csharp" or "fsharp" or "php" or "rust" or "swift" or "vb" => DirectiveRegex(),
+		_ => null
+	};
+
+	/// <summary>
+	/// Returns the token that opens a line of a documentation comment of XML in a language; <c>null</c> when the language
+	/// has no such comments.
+	/// </summary>
+	public static string? FindDocComment(string language) => language switch
+	{
+		"csharp" or "fsharp" => "///",
+		"vb" => "'''",
 		_ => null
 	};
 

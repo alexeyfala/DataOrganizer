@@ -53,6 +53,40 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindDocComment" />: a language whose documentation is no XML, or that has none, gets
+	/// no token.
+	/// </summary>
+	[TestCase("python")]
+	[TestCase("rust")]
+	public void FindDocComment_Returns_Null_Without_Doc_Comments_Of_XML(string language)
+	{
+		// Act
+		string? token = SyntaxLinePatterns.FindDocComment(language);
+
+		// Assert
+		token
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindDocComment" />: a language with documentation comments of XML gets their token.
+	/// </summary>
+	[TestCase("csharp", "///")]
+	[TestCase("fsharp", "///")]
+	[TestCase("vb", "'''")]
+	public void FindDocComment_Returns_The_Token_Of_The_Language(string language, string expected)
+	{
+		// Act
+		string? token = SyntaxLinePatterns.FindDocComment(language);
+
+		// Assert
+		token
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxLinePatterns.FindImport" />: a line that only looks like an import, such as a statement, a call or
 	/// a variable, starts none.
 	/// </summary>

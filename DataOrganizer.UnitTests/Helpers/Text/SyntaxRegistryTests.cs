@@ -207,6 +207,30 @@ internal class SyntaxRegistryTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language with documentation comments of XML takes their token.
+	/// </summary>
+	[Test]
+	[TestCase("csharp", "///")]
+	[TestCase("vb", "'''")]
+	public void FindFoldingRules_Takes_The_Doc_Comment_Of_The_Language(string language, string expected)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.DocComment
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the pattern of its import statements.
 	/// </summary>
 	[Test]

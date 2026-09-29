@@ -99,5 +99,10 @@ internal sealed class FoldingText : IDisposable
 	/// Returns the offset of the start of a line.
 	/// </summary>
 	public int GetLineStart(int number) => _lineStarts[number];
+
+	/// <summary>
+	/// Returns the text between two offsets.
+	/// </summary>
+	public ReadOnlySpan<char> GetText(int start, int end) => _text.AsSpan(start, end - start);
 	#endregion
 }
