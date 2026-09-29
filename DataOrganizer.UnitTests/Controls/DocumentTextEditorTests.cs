@@ -16,13 +16,16 @@ using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers;
+using DataOrganizer.Messages.Documents;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -511,6 +514,35 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: the blocks that unfold with the folding leave the view state alone, as a
+	/// closed file keeps the blocks folded that were folded before.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Reports_No_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = true;
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: a document that comes back brings its bookmarks with it.
 	/// </summary>
 	[AvaloniaTest]
@@ -918,6 +950,45 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: tells that the blocks folded, from the menu and from the keys alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, CommandModifiers);
+
+			Press(window, PhysicalKey.L, CommandModifiers);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.FoldAllCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.FoldAllCommand" />: the key of a modifier held through a chord repeats, and the chord
 	/// waits through it for its second key.
 	/// </summary>
@@ -979,6 +1050,38 @@ internal class DocumentTextEditorTests
 		GetFoldings(sut).Select(static x => x.IsFolded)
 			.Should()
 			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.GetBlockStarts" />: returns where the folded blocks start; none for a text that does
+	/// not fold.
+	/// </summary>
+	[AvaloniaTest]
+	public void GetBlockStarts_Returns_The_Folded_Blocks_Of_A_Text_That_Folds([Values] bool isFolding)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		FoldingSection[] blocks = GetFoldings(sut);
+
+		blocks[1].IsFolded = true;
+
+		if (!isFolding)
+		{
+			sut.SyntaxLanguage = null;
+		}
+
+		// Act
+		int[] starts = sut.GetBlockStarts(isFolded: true);
+
+		// Assert
+		starts
+			.Should()
+			.Equal(isFolding ? [blocks[1].StartOffset] : []);
 	}
 
 	/// <summary>
@@ -1779,6 +1882,51 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SetBlocksFolded" />: folds the blocks of the text that start at the offsets.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Folds_The_Blocks_That_Start_At_The_Offsets()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		FoldingSection[] blocks = GetFoldings(sut);
+
+		// Act
+		sut.SetBlocksFolded([blocks[1].StartOffset], isFolded: true);
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SetBlocksFolded" />: a text that does not fold takes the offsets without a change.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Leaves_A_Text_That_Does_Not_Fold_Alone()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText)
+		};
+
+		// Act
+		sut.SetBlocksFolded([0, 7], isFolded: true);
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.ShowEndOfLine" />: turns the glyphs of line endings on and off.
 	/// </summary>
 	[AvaloniaTest]
@@ -2183,6 +2331,35 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the folded blocks that come back into view with the folding are
+	/// told, while nothing is told when no block was folded.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Reports_The_Folded_Blocks_That_Come_Back([Values] bool hasFoldedBlock)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = hasFoldedBlock;
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.SyntaxLanguage = null;
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(hasFoldedBlock ? 1 : 0);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a shown editor of a dark theme colors the words for a dark background.
 	/// </summary>
 	[AvaloniaTest]
@@ -2539,6 +2716,46 @@ internal class DocumentTextEditorTests
 		canExecute
 			.Should()
 			.Be(hasBlock);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: tells that the block folded, from the menu and from the keys
+	/// alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, CommandModifiers);
+
+			Press(window, PhysicalKey.M, CommandModifiers);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.ToggleFoldingCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
 	}
 
 	/// <summary>
@@ -2936,6 +3153,48 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: tells that the blocks unfolded, from the menu and from the keys
+	/// alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAllCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		GetFoldings(sut)[1].IsFolded = true;
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, CommandModifiers);
+
+			Press(window, PhysicalKey.L, CommandModifiers);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.UnfoldAllCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: runs on Ctrl+M, Ctrl+L while a block is folded, even when another
 	/// one is not, as in Visual Studio.
 	/// </summary>
@@ -3046,6 +3305,32 @@ internal class DocumentTextEditorTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Records every <see cref="FoldingChangedMessage" /> sent about the editor; tests check only their number, as a failed
+	/// check of a message would print the whole editor.
+	/// </summary>
+	private static List<FoldingChangedMessage> Capture(DocumentTextEditor editor)
+	{
+		List<FoldingChangedMessage> received = [];
+
+		WeakReferenceMessenger
+			.Default
+			.Register<List<FoldingChangedMessage>, FoldingChangedMessage>(
+				received,
+				(recipient, message) =>
+				{
+					// The messenger is shared, and other tests send messages about their own editors.
+					if (message.Editor != editor)
+					{
+						return;
+					}
+
+					recipient.Add(message);
+				});
+
+		return received;
+	}
+
 	/// <summary>
 	/// Creates a document of numbered lines.
 	/// </summary>

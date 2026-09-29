@@ -347,6 +347,33 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding.GetBlockStarts" />: returns where the blocks of the asked state start.
+	/// </summary>
+	[AvaloniaTest]
+	public void GetBlockStarts_Returns_The_Starts_Of_The_Blocks_In_A_State([Values] bool isFolded)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[1].IsFolded = true;
+
+		// Act
+		int[] starts = sut.GetBlockStarts(isFolded);
+
+		// Assert
+		starts
+			.Should()
+			.Equal(blocks[isFolded ? 1 : 0].StartOffset);
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding.HasFoldedBlocks" />: one folded block is enough.
 	/// </summary>
 	[AvaloniaTest]
@@ -401,6 +428,113 @@ internal class SyntaxFoldingTests
 		hasUnfoldedBlocks
 			.Should()
 			.Be(isUnfolded);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.SetBlocksFolded" />: without an unfolded block listed, every block folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Folds_Every_Block_When_None_Is_Listed_As_Unfolded()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		// Act
+		sut.SetBlocksFolded([], isFolded: false);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.SetBlocksFolded" />: the listed blocks fold and the others unfold.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Folds_The_Listed_Blocks_And_Unfolds_The_Others()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[0].IsFolded = true;
+
+		// Act
+		sut.SetBlocksFolded([blocks[1].StartOffset], isFolded: true);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, true);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.SetBlocksFolded" />: an offset where no block starts changes nothing, whether it is out of
+	/// the text, inside a block or given twice, so no stored offset can hide a text that no block holds.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Skips_The_Offsets_Where_No_Block_Starts([Values] bool isFolded)
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		int start = blocks[1].StartOffset;
+
+		// Act
+		sut.SetBlocksFolded(
+			[int.MinValue, -1, 0, start + 1, NestedText.Length, NestedText.Length + 1, int.MaxValue, start, start],
+			isFolded);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(!isFolded, isFolded);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding.SetBlocksFolded" />: the listed blocks unfold and the others fold.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Unfolds_The_Listed_Blocks_And_Folds_The_Others()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new(NestedText)
+		};
+
+		using SyntaxFolding sut = new(textArea, Language, Rules);
+
+		FoldingSection[] blocks = GetFoldings(textArea);
+
+		blocks[0].IsFolded = true;
+
+		// Act
+		sut.SetBlocksFolded([blocks[0].StartOffset], isFolded: false);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, true);
 	}
 
 	/// <summary>

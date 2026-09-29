@@ -9,11 +9,14 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Messages.Documents;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
@@ -637,6 +640,17 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Returns the offsets where the folded blocks start, or the unfolded ones; none while the text does not fold.
+	/// </summary>
+	public int[] GetBlockStarts(bool isFolded) => _folding?.GetBlockStarts(isFolded) ?? [];
+
+	/// <summary>
+	/// Folds or unfolds the blocks that start at the offsets and turns the other blocks the other way; an offset where no
+	/// block starts is skipped.
+	/// </summary>
+	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded) => _folding?.SetBlocksFolded(starts, isFolded);
+
+	/// <summary>
 	/// Finds the blocks that fold with a pass over all lines.
 	/// </summary>
 	internal void UpdateFoldings() => _folding?.Update();
@@ -923,6 +937,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		folding.FoldAll();
 
 		MoveCaretOutOfFolding();
+
+		ReportFolding();
 	}
 
 	/// <summary>
@@ -1033,13 +1049,23 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// Tells that blocks of the editor folded or unfolded.
+	/// </summary>
+	private void ReportFolding()
+	{
+		WeakReferenceMessenger
+			.Default
+			.Send(new FoldingChangedMessage(this));
+	}
+
+	/// <summary>
 	/// Unfolds every block when a block is folded, and folds every block otherwise, as Visual Studio does.
 	/// </summary>
 	private void ToggleAllFoldings()
 	{
-		if (_folding is { HasFoldedBlocks: true } folding)
+		if (_folding is { HasFoldedBlocks: true })
 		{
-			folding.UnfoldAll();
+			UnfoldAll();
 
 			return;
 		}
@@ -1065,6 +1091,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		block.IsFolded = !block.IsFolded;
 
 		MoveCaretOutOfFolding();
+
+		ReportFolding();
 	}
 
 	/// <summary>
@@ -1096,7 +1124,17 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Unfolds every block.
 	/// </summary>
-	private void UnfoldAll() => _folding?.UnfoldAll();
+	private void UnfoldAll()
+	{
+		if (_folding is not { } folding)
+		{
+			return;
+		}
+
+		folding.UnfoldAll();
+
+		ReportFolding();
+	}
 
 	/// <summary>
 	/// Brings the folding in line with the language, the document and the visibility of the editor.
@@ -1111,7 +1149,15 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			return;
 		}
 
+		// The folded text comes back into view with the folding, while neither the caret nor the view moves.
+		bool hadFoldedBlocks = _folding is { HasFoldedBlocks: true };
+
 		RemoveFolding();
+
+		if (hadFoldedBlocks)
+		{
+			ReportFolding();
+		}
 
 		if (language is null || SyntaxRegistry
 			.Instance

@@ -27,6 +27,11 @@ public readonly struct FileEditorState
 	public TextViewPosition CaretPosition { get; init; }
 
 	/// <summary>
+	/// Offsets where the folded blocks start, while the other blocks are unfolded.
+	/// </summary>
+	public int[]? FoldedBlocks { get; init; }
+
+	/// <summary>
 	/// Font size.
 	/// </summary>
 	public double FontSize { get; init; }
@@ -65,6 +70,11 @@ public readonly struct FileEditorState
 	/// Language chosen for the syntax highlighting; <c>null</c> when the text takes the one of the file extension.
 	/// </summary>
 	public string? SyntaxLanguage { get; init; }
+
+	/// <summary>
+	/// Offsets where the unfolded blocks start, while the other blocks are folded; an empty set folds every block.
+	/// </summary>
+	public int[]? UnfoldedBlocks { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when long lines are wrapped.

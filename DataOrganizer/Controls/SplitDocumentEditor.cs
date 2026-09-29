@@ -486,7 +486,7 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	}
 
 	/// <summary>
-	/// Opens the lower half at the caret, the selection and the scroll position of the upper one.
+	/// Opens the lower half at the caret, the selection, the folded blocks and the scroll position of the upper one.
 	/// </summary>
 	internal void CopyViewToSecondaryEditor()
 	{
@@ -501,9 +501,9 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 
 	#region Helpers
 	/// <summary>
-	/// Puts the caret, the selection and the scroll position of one half into the other one.
+	/// Puts the caret, the selection, the folded blocks and the scroll position of one half into the other one.
 	/// </summary>
-	private static void CopyView(TextEditorBase source, TextEditorBase target)
+	private static void CopyView(DocumentTextEditor source, DocumentTextEditor target)
 	{
 		if (source.ScrollViewer is not { } sourceScrollViewer
 			|| target.ScrollViewer is not { } targetScrollViewer)
@@ -517,6 +517,10 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 			.TextArea
 			.Caret
 			.Position = source.TextArea.Caret.Position;
+
+		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
+		// folded text.
+		target.SetBlocksFolded(source.GetBlockStarts(isFolded: true), isFolded: true);
 
 		targetScrollViewer.Offset = sourceScrollViewer.Offset;
 	}

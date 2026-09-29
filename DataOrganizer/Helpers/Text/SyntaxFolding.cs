@@ -208,6 +208,32 @@ internal sealed class SyntaxFolding : IDisposable
 	public void FoldAll() => SetAllFolded(isFolded: true);
 
 	/// <summary>
+	/// Returns the offsets where the folded blocks start, or the unfolded ones, in the order of the text.
+	/// </summary>
+	public int[] GetBlockStarts(bool isFolded)
+	{
+		return [.. _manager
+			.AllFoldings
+			.Where(x => x.IsFolded == isFolded)
+			.Select(static x => x.StartOffset)];
+	}
+
+	/// <summary>
+	/// Folds or unfolds the blocks that start at the offsets and turns the other blocks the other way; an offset where no
+	/// block starts is skipped.
+	/// </summary>
+	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded)
+	{
+		// Only the blocks found in the text change, so an offset cannot hide a text that no block holds.
+		HashSet<int> listed = [.. starts];
+
+		foreach (FoldingSection block in _manager.AllFoldings)
+		{
+			block.IsFolded = listed.Contains(block.StartOffset) ? isFolded : !isFolded;
+		}
+	}
+
+	/// <summary>
 	/// Unfolds every block.
 	/// </summary>
 	public void UnfoldAll() => SetAllFolded(isFolded: false);

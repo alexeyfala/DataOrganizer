@@ -104,7 +104,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public partial string? SyntaxLanguage { get; set; }
 
 	/// <summary>
-	/// Caret, selection, scroll position and bookmarks of <see cref="Document" />.
+	/// Caret, selection, scroll position, bookmarks and folded blocks of <see cref="Document" />.
 	/// </summary>
 	[ObservableProperty]
 	public partial DocumentViewState? ViewState { get; set; }
@@ -450,6 +450,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		{
 			Bookmarks = view.Bookmarks,
 			CaretPosition = view.CaretPosition,
+			// The blocks of a protected text would give away its outline, which its ciphertext does not.
+			FoldedBlocks = IsEncrypted ? null : view.FoldedBlocks,
 			FontSize = FontSize,
 			WordWrap = WordWrap,
 			ScrollOffset = new((int)view.ScrollOffset.X, (int)view.ScrollOffset.Y),
@@ -458,7 +460,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			ShowEndOfLine = ShowEndOfLine,
 			ShowSpaces = ShowSpaces,
 			ShowTabs = ShowTabs,
-			SyntaxLanguage = GetStoredSyntaxLanguage()
+			SyntaxLanguage = GetStoredSyntaxLanguage(),
+			UnfoldedBlocks = IsEncrypted ? null : view.UnfoldedBlocks
 		};
 	}
 
@@ -554,9 +557,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				Bookmarks = state.Bookmarks,
 				CaretPosition = state.CaretPosition,
+				FoldedBlocks = state.FoldedBlocks,
 				ScrollOffset = new(state.ScrollOffset.X, state.ScrollOffset.Y),
 				SelectionLength = state.SelectionLength,
-				SelectionStart = state.SelectionStart
+				SelectionStart = state.SelectionStart,
+				UnfoldedBlocks = state.UnfoldedBlocks
 			};
 
 			_logger.LogDebug(

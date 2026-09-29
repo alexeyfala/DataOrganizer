@@ -548,6 +548,67 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored folded or unfolded blocks become part of the view
+	/// state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Restores_The_Folded_Blocks([Values] bool isMostlyFolded)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				FoldedBlocks = isMostlyFolded ? null : [3, 9],
+				FontSize = 14.0,
+				UnfoldedBlocks = isMostlyFolded ? [3, 9] : null
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		DocumentViewState? view = sut.ViewState;
+
+		int[]? kept = isMostlyFolded ? view?.UnfoldedBlocks : view?.FoldedBlocks;
+
+		int[]? left = isMostlyFolded ? view?.FoldedBlocks : view?.UnfoldedBlocks;
+
+		kept
+			.Should()
+			.Equal(3, 9);
+
+		left
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: each stored switch of invisible characters
 	/// reaches its own property.
 	/// </summary>
@@ -1480,6 +1541,86 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: the folded and unfolded blocks of a protected file stay out of
+	/// the editor state, as they would give away the outline of its text, while its bookmarks are saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_No_Folded_Blocks_Of_An_Encrypted_File()
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			// A protected file hands its contents to the cipher, which gives them back as they are.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			Bookmarks = [2],
+			CaretPosition = new(line: 1, column: 1),
+			FoldedBlocks = [10, 40],
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0,
+			UnfoldedBlocks = [70]
+		};
+
+		// Assert
+		FileEditorState state = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!);
+
+		state.Bookmarks
+			.Should()
+			.Equal(2);
+
+		state.FoldedBlocks
+			.Should()
+			.BeNull();
+
+		state.UnfoldedBlocks
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: a view state reported after the editor has been closed
 	/// is not saved.
 	/// </summary>
@@ -1659,6 +1800,70 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
 			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.ViewState" />: the folded and unfolded blocks of a new view state go into the
+	/// editor state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ViewState_Saves_The_Folded_Blocks()
+	{
+		// Arrange
+		string? reported = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 1, column: 1),
+			FoldedBlocks = [10, 40],
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0,
+			UnfoldedBlocks = [70]
+		};
+
+		// Assert
+		FileEditorState state = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!);
+
+		state.FoldedBlocks
+			.Should()
+			.Equal(10, 40);
+
+		state.UnfoldedBlocks
+			.Should()
+			.Equal(70);
 	}
 	#endregion
 
