@@ -4,6 +4,7 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using System.Linq;
 
@@ -57,6 +58,32 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a block comment whose inner lines are indented
+	/// folds once, as a comment with its first line in the box.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_An_Indented_Block_Comment_Once()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("/*\n * a\n */\nx")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules(Language)!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, Language, rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.Title))
+			.Should()
+			.Equal((0, $"/* {Glyphs.ThreeDots}"));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: Markdown folds the section of a heading, which
 	/// has no indentation.
 	/// </summary>
@@ -81,6 +108,60 @@ internal class SyntaxFoldingTests
 		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
 			.Should()
 			.Equal((textArea.Document.GetLineByNumber(1).EndOffset, textArea.Document.GetLineByNumber(2).EndOffset));
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a group of line comments folds into a box with
+	/// its first line.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_The_Comments()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("// a\n// b\nx")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules(Language)!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, Language, rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset, x.Title))
+			.Should()
+			.Equal((0, textArea.Document.GetLineByNumber(2).EndOffset, $"// a {Glyphs.ThreeDots}"));
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: Markdown folds its comments beside the sections of
+	/// its headings.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_The_Comments_Of_Markdown()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("# A\n<!--\nb\n-->\ntext")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules("markdown")!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, "markdown", rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal(
+				(textArea.Document.GetLineByNumber(1).EndOffset, textArea.Document.TextLength),
+				(textArea.Document.GetLineByNumber(2).Offset, textArea.Document.GetLineByNumber(4).EndOffset));
 	}
 
 	/// <summary>

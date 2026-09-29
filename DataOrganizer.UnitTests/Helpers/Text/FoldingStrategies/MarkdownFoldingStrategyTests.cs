@@ -39,10 +39,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\ntext\n# B\nmore");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -59,10 +61,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("<!-- #region A -->\ntext\n<!-- #endregion -->\nmore");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -79,10 +83,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("- a\n  - b\n- c");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -100,10 +106,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("A\n===\ntext\nB\n---\nmore");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -121,10 +129,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\ntext\n\n# B\nmore");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -141,10 +151,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n## B\ntext\n# C\nmore");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -162,35 +174,17 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n    code\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 3));
-	}
-
-	/// <summary>
-	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: any text reads as Markdown, so there is no error to report.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Reports_No_Error()
-	{
-		// Arrange
-		TextDocument document = new("# A\ntext");
-
-		MarkdownFoldingStrategy sut = new(Rules, TabSize);
-
-		// Act
-		sut.CreateNewFoldings(document, out int firstErrorOffset);
-
-		// Assert
-		firstErrorOffset
-			.Should()
-			.Be(-1);
 	}
 
 	/// <summary>
@@ -203,10 +197,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n```\n# B\n```\n# C\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -223,10 +219,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("    # A\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -244,10 +242,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("---\ntitle: A\n---\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -267,10 +267,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"{line}\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -287,10 +289,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("- a\n---\ntext");
 
+		using FoldingText text = new(document);
+
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings

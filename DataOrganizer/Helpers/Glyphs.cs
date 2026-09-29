@@ -71,5 +71,10 @@ internal static class Glyphs
 	/// Page facing up.
 	/// </summary>
 	public const string PageFacingUp = "📄";
+
+	/// <summary>
+	/// <c>...</c> — three full stops, the ellipsis of plain text.
+	/// </summary>
+	public const string ThreeDots = "...";
 	#endregion
 }

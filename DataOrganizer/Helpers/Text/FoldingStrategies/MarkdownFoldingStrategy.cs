@@ -1,4 +1,3 @@
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
@@ -9,10 +8,10 @@ using System.Linq;
 namespace DataOrganizer.Helpers.Text.FoldingStrategies;
 
 /// <summary>
-/// <see cref="IFoldingStrategy" /> of Markdown, which folds the section of each heading, as VS Code does, and the other
-/// blocks by indentation and by markers.
+/// <see cref="ILineFoldingStrategy" /> of Markdown, which folds the section of each heading, as VS Code does, and the
+/// other blocks by indentation and by markers.
 /// </summary>
-internal sealed class MarkdownFoldingStrategy : IFoldingStrategy
+internal sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 {
 	#region Data
 	/// <summary>
@@ -60,13 +59,8 @@ internal sealed class MarkdownFoldingStrategy : IFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public IEnumerable<NewFolding> CreateNewFoldings(TextDocument document, out int firstErrorOffset)
+	public NewFolding[] CreateNewFoldings(FoldingText text)
 	{
-		// Markdown reads any text.
-		firstErrorOffset = -1;
-
-		using FoldingText text = new(document);
-
 		Dictionary<int, NewFolding> foldings = [];
 
 		foreach (NewFolding section in FindSections(text))
