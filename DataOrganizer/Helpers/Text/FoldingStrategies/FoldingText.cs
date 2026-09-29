@@ -83,5 +83,21 @@ internal sealed class FoldingText : IDisposable
 	/// Returns the offset of the end of a line, before its line break.
 	/// </summary>
 	public int GetLineEnd(int number) => _lineEnds[number];
+
+	/// <summary>
+	/// Returns the number of the line that holds an offset, where the end of a line belongs to the line.
+	/// </summary>
+	public int GetLineNumber(int offset)
+	{
+		// The starts rise from line to line, so the line is the last one that starts at the offset or before it.
+		int index = Array.BinarySearch(_lineStarts, 1, LineCount, offset);
+
+		return index >= 0 ? index : ~index - 1;
+	}
+
+	/// <summary>
+	/// Returns the offset of the start of a line.
+	/// </summary>
+	public int GetLineStart(int number) => _lineStarts[number];
 	#endregion
 }

@@ -54,6 +54,59 @@ internal class SyntaxRegistryTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a block comment whose end is a token of blanks in the settings of
+	/// a language is none, as it would close anywhere.
+	/// </summary>
+	[Test]
+	[TestCase("diff")]
+	[TestCase("ini")]
+	[TestCase("properties")]
+	public void FindFoldingRules_Gives_No_Block_Comments_For_A_Token_Of_Blanks(string language)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.BlockCommentStart
+			.Should()
+			.BeNull();
+
+		rules.BlockCommentEnd
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: an empty token of line comments in the settings of a language gives
+	/// no line comments, as it would find one on every line.
+	/// </summary>
+	[Test]
+	public void FindFoldingRules_Gives_No_Line_Comment_For_An_Empty_Token()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules("xsl");
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.LineComment
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language whose settings mark no blocks gets no markers.
 	/// </summary>
 	[Test]
@@ -97,6 +150,111 @@ internal class SyntaxRegistryTests
 		rules
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the tokens of its block comments from its settings.
+	/// </summary>
+	[Test]
+	[TestCase("csharp", "/*", "*/")]
+	[TestCase("lua", "--[[", "]]")]
+	[TestCase("powershell", "<#", "#>")]
+	public void FindFoldingRules_Takes_The_Block_Comments_Of_The_Language(string language, string start, string end)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.BlockCommentStart
+			.Should()
+			.Be(start);
+
+		rules.BlockCommentEnd
+			.Should()
+			.Be(end);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language of a preprocessor or of attributes takes the pattern of
+	/// their lines.
+	/// </summary>
+	[Test]
+	[TestCase("csharp", "#if DEBUG")]
+	[TestCase("rust", "#[cfg(test)]")]
+	public void FindFoldingRules_Takes_The_Directives_Of_The_Language(string language, string line)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.DirectiveLine!.IsMatch(line)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the pattern of its import statements.
+	/// </summary>
+	[Test]
+	[TestCase("csharp", "using System;")]
+	[TestCase("python", "import os")]
+	public void FindFoldingRules_Takes_The_Imports_Of_The_Language(string language, string line)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.ImportLine!.IsMatch(line)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the token of its line comments from its settings,
+	/// and Batch takes its remarks.
+	/// </summary>
+	[Test]
+	[TestCase("csharp", "// note")]
+	[TestCase("python", "# note")]
+	[TestCase("vb", "' note")]
+	[TestCase("bat", ":: note")]
+	public void FindFoldingRules_Takes_The_Line_Comment_Of_The_Language(string language, string text)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.LineComment!.IsMatch(text)
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

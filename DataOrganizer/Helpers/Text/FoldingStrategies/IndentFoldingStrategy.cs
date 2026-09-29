@@ -1,4 +1,3 @@
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
@@ -9,9 +8,9 @@ using System.Linq;
 namespace DataOrganizer.Helpers.Text.FoldingStrategies;
 
 /// <summary>
-/// <see cref="IFoldingStrategy" /> that folds by indentation and by the block markers of a language, as VS Code does.
+/// <see cref="ILineFoldingStrategy" /> that folds by indentation and by the block markers of a language, as VS Code does.
 /// </summary>
-internal sealed class IndentFoldingStrategy : IFoldingStrategy
+internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 {
 	#region Data
 	/// <summary>
@@ -63,20 +62,7 @@ internal sealed class IndentFoldingStrategy : IFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public IEnumerable<NewFolding> CreateNewFoldings(TextDocument document, out int firstErrorOffset)
-	{
-		// Indentation reads any text.
-		firstErrorOffset = -1;
-
-		using FoldingText text = new(document);
-
-		return CreateNewFoldings(text);
-	}
-
-	/// <summary>
-	/// Returns the blocks of a text read at once, sorted by their start.
-	/// </summary>
-	internal NewFolding[] CreateNewFoldings(FoldingText text)
+	public NewFolding[] CreateNewFoldings(FoldingText text)
 	{
 		List<(int Start, int End)> blocks = FindBlocks(text);
 

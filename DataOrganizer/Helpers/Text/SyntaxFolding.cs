@@ -252,13 +252,15 @@ internal sealed class SyntaxFolding : IDisposable
 	#region Helpers
 	/// <summary>
 	/// Returns the way of finding the blocks of a language: by tags for XML, by headings for Markdown and by indentation
-	/// for the others.
+	/// and imports for the others.
 	/// </summary>
 	private static IFoldingStrategy CreateStrategy(string language, SyntaxFoldingRules rules, int tabSize) => language switch
 	{
 		MarkdownLanguage => new MarkdownFoldingStrategy(rules, tabSize),
 		XmlLanguage or XslLanguage => new XmlTagFoldingStrategy(),
-		_ => new IndentFoldingStrategy(rules, tabSize)
+		_ => new CompositeFoldingStrategy(
+			new IndentFoldingStrategy(rules, tabSize),
+			new ImportFoldingStrategy(rules))
 	};
 
 	/// <summary>

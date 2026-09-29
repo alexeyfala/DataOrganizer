@@ -51,10 +51,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n  \tb\n    c");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		// Two spaces and a tab reach the column of four spaces, so the two lines make one block.
@@ -80,10 +82,12 @@ internal partial class IndentFoldingStrategyTests
 			IsOffSide = isOffSide
 		};
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(rules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -105,10 +109,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -126,10 +132,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n    c\nd");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
@@ -146,10 +154,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new(string.Empty);
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -166,10 +176,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\nb\nc");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -191,10 +203,12 @@ internal partial class IndentFoldingStrategyTests
 			// #endregion
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -211,10 +225,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n    c\nd");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -238,10 +254,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -268,10 +286,12 @@ internal partial class IndentFoldingStrategyTests
 			]
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -295,10 +315,12 @@ internal partial class IndentFoldingStrategyTests
 			// #endregion
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -316,10 +338,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n        c\n    d\ne");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -341,35 +365,17 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(OffSideRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
 			.Should()
 			.Equal((2, 3));
-	}
-
-	/// <summary>
-	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: indentation reads any text, so there is no error to report.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Reports_No_Error()
-	{
-		// Arrange
-		TextDocument document = new("a\n    b");
-
-		IndentFoldingStrategy sut = new(PlainRules, TabSize);
-
-		// Act
-		sut.CreateNewFoldings(document, out int firstErrorOffset);
-
-		// Assert
-		firstErrorOffset
-			.Should()
-			.Be(-1);
 	}
 
 	/// <summary>
@@ -387,10 +393,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -416,10 +424,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -441,10 +451,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -467,10 +479,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
+		using FoldingText text = new(document);
+
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)

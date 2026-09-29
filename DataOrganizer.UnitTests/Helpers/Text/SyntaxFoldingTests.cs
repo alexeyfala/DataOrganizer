@@ -84,6 +84,34 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a run of imports folds behind its keyword, beside
+	/// the blocks by indentation.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_The_Imports()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("using System;\nusing System.Linq;\nclass C\n{\n    int x;\n}")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules(Language)!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, Language, rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal(
+				("using ".Length, textArea.Document.GetLineByNumber(2).EndOffset),
+				(textArea.Document.GetLineByNumber(3).EndOffset, textArea.Document.TextLength));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: XML folds an element from its start tag, which
 	/// is where the line of the element starts.
 	/// </summary>

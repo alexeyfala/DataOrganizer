@@ -134,7 +134,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 
 	#region Helpers
 	/// <summary>
-	/// Builds the folding rules of a language from its settings.
+	/// Builds the folding rules of a language from its settings and from the patterns of its lines.
 	/// </summary>
 	private SyntaxFoldingRules? CreateFoldingRules(string language)
 	{
@@ -145,24 +145,32 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 			return null;
 		}
 
+		Comments? comments = found.Configuration?.Comments;
+
 		Folding? folding = found.Configuration?.Folding;
 
+		// A token of blanks, as some languages have for the end, would close a block comment anywhere.
+		(string Start, string End)? blockComment = comments?.BlockComment is [var start, var end]
+			&& !string.IsNullOrWhiteSpace(start)
+			&& !string.IsNullOrWhiteSpace(end)
+				? (start, end)
+				: null;
+
 		// A marker without its pair would open blocks that never close.
-		if (folding is not { IsEmpty: false, Markers: { } markers })
-		{
-			return new SyntaxFoldingRules
-			{
-				IsOffSide = folding?.OffSide == true
-			};
-		}
+		Markers? markers = folding is { IsEmpty: false, Markers: { } pair } ? pair : null;
 
 		// The markers are regular expressions of VS Code, which .NET reads alike.
 		// They are compiled, as every pass tries them on each line.
 		return new SyntaxFoldingRules
 		{
-			EndMarker = new Regex(markers.End, RegexOptions.Compiled),
-			IsOffSide = folding.OffSide,
-			StartMarker = new Regex(markers.Start, RegexOptions.Compiled)
+			BlockCommentEnd = blockComment?.End,
+			BlockCommentStart = blockComment?.Start,
+			DirectiveLine = SyntaxLinePatterns.FindDirective(language),
+			EndMarker = markers is null ? null : new Regex(markers.End, RegexOptions.Compiled),
+			ImportLine = SyntaxLinePatterns.FindImport(language),
+			IsOffSide = folding?.OffSide == true,
+			LineComment = SyntaxLinePatterns.FindLineComment(language, comments?.LineComment),
+			StartMarker = markers is null ? null : new Regex(markers.Start, RegexOptions.Compiled)
 		};
 	}
 	#endregion
