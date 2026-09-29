@@ -1,7 +1,9 @@
+using Avalonia;
 using Avalonia.Input;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
+using AvaloniaEdit.Rendering;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.Interfaces.Text;
@@ -45,6 +47,16 @@ internal sealed class SyntaxFolding : IDisposable
 	private const string MarkdownLanguage = "markdown";
 
 	/// <summary>
+	/// The most lines of a hidden text that its tip shows.
+	/// </summary>
+	private const int MaxTipLineCount = 20;
+
+	/// <summary>
+	/// The most characters of a line of a hidden text that its tip shows.
+	/// </summary>
+	private const int MaxTipLineLength = 120;
+
+	/// <summary>
 	/// Language of XML, whose tags fold their elements.
 	/// </summary>
 	private const string XmlLanguage = "xml";
@@ -63,6 +75,11 @@ internal sealed class SyntaxFolding : IDisposable
 	/// Way of finding the blocks of the language.
 	/// </summary>
 	private readonly IFoldingStrategy _strategy;
+
+	/// <summary>
+	/// View of the text area, where the folded blocks show as boxes.
+	/// </summary>
+	private readonly TextView _textView;
 	#endregion
 
 	#region Constructors
@@ -74,6 +91,8 @@ internal sealed class SyntaxFolding : IDisposable
 		Language = language;
 
 		_strategy = CreateStrategy(language, rules, textArea.Options.IndentationSize);
+
+		_textView = textArea.TextView;
 
 		_manager = FoldingManager.Install(textArea);
 
@@ -147,6 +166,43 @@ internal sealed class SyntaxFolding : IDisposable
 	}
 
 	/// <summary>
+	/// Returns the first lines of the text that the box of a folded block hides at a point of the view; <c>null</c> when
+	/// no box is there.
+	/// </summary>
+	public string? FindHiddenText(Point point)
+	{
+		// The visual lines stand in the coordinates of the document, which the view scrolls.
+		Point position = point + _textView.ScrollOffset;
+
+		if (_textView.GetVisualLineFromVisualTop(position.Y) is not { } visualLine)
+		{
+			return null;
+		}
+
+		int column = visualLine.GetVisualColumnFloor(position);
+
+		// The element under the point, found the way the view finds the one that a click goes to.
+		if (visualLine
+			.Elements
+			.FirstOrDefault(x => x.VisualColumn + x.VisualLength > column) is not { } element)
+		{
+			return null;
+		}
+
+		int start = visualLine.StartOffset + element.RelativeTextOffset;
+
+		// The box is the only element that starts where a folded block does, as it takes the whole text of the block.
+		if (!_manager
+			.GetFoldingsAt(start)
+			.Any(static x => x.IsFolded))
+		{
+			return null;
+		}
+
+		return GetHiddenText(Document, start, start + element.DocumentLength);
+	}
+
+	/// <summary>
 	/// Folds every block.
 	/// </summary>
 	public void FoldAll() => SetAllFolded(isFolded: true);
@@ -178,6 +234,42 @@ internal sealed class SyntaxFolding : IDisposable
 		XmlLanguage or XslLanguage => new XmlTagFoldingStrategy(),
 		_ => new IndentFoldingStrategy(rules, tabSize)
 	};
+
+	/// <summary>
+	/// Returns the first lines of a hidden text, each cut to a length, with an ellipsis for what is left out.
+	/// </summary>
+	private static string GetHiddenText(TextDocument document, int start, int end)
+	{
+		DocumentLine firstLine = document.GetLineByOffset(start);
+
+		// A block that starts at the end of a line hides no text of that line, only its line break.
+		if (start == firstLine.EndOffset && firstLine.NextLine is { } nextLine)
+		{
+			firstLine = nextLine;
+		}
+
+		List<string> lines = [];
+
+		for (DocumentLine? line = firstLine; line is not null && line.Offset < end; line = line.NextLine)
+		{
+			if (lines.Count == MaxTipLineCount)
+			{
+				lines.Add(Glyphs.HorizontalEllipsis);
+
+				break;
+			}
+
+			int from = Math.Max(line.Offset, start);
+
+			int length = Math.Min(line.EndOffset, end) - from;
+
+			lines.Add(length > MaxTipLineLength
+				? document.GetText(from, MaxTipLineLength) + Glyphs.HorizontalEllipsis
+				: document.GetText(from, length));
+		}
+
+		return string.Join('\n', lines);
+	}
 
 	/// <summary>
 	/// Folds or unfolds every block.

@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
@@ -360,6 +361,30 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		TextArea.SelectionChanged += TextArea_SelectionChanged;
 
+		TextView textView = TextArea.TextView;
+
+		// The tip of a folded block takes the look of the application rather than the Fluent one the editor brings for itself.
+		if (Application
+			.Current?
+			.TryFindResource(typeof(ToolTip), out object? toolTipTheme) == true)
+		{
+			textView.Resources[typeof(ToolTip)] = toolTipTheme;
+		}
+
+		// The tip opens and closes with the hover over a box of the text, not with the pointer over the whole view.
+		ToolTip.SetServiceEnabled(textView, false);
+
+		textView.PointerHover += TextView_PointerHover;
+
+		textView.PointerHoverStopped += TextView_PointerHoverStopped;
+
+		// A click on a box unfolds its block, which the tip would still cover; the box marks the click handled.
+		textView.AddHandler(
+			PointerPressedEvent,
+			TextView_PointerPressed,
+			RoutingStrategies.Tunnel,
+			handledEventsToo: true);
+
 		DocumentChanged += DocumentTextEditor_DocumentChanged;
 
 		TextChanged += DocumentTextEditor_TextChanged;
@@ -549,6 +574,39 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			SelectionLineCount = CountSelectedLines(TextArea.Selection)
 		};
 	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" /> event handler, which shows the text that the box of a folded block under the
+	/// pointer hides.
+	/// </summary>
+	private void TextView_PointerHover(object? sender, PointerEventArgs e)
+	{
+		TextView textView = TextArea.TextView;
+
+		// The text of an encrypted file stays in the text area.
+		if (IsSensitive || _folding?.FindHiddenText(e.GetPosition(textView)) is not { } text)
+		{
+			return;
+		}
+
+		ToolTip.SetTip(textView, new TextBlock
+		{
+			FontFamily = TextArea.FontFamily,
+			Text = text
+		});
+
+		ToolTip.SetIsOpen(textView, true);
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" /> event handler.
+	/// </summary>
+	private void TextView_PointerHoverStopped(object? sender, PointerEventArgs e) => CloseFoldingTip();
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view.
+	/// </summary>
+	private void TextView_PointerPressed(object? sender, PointerPressedEventArgs e) => CloseFoldingTip();
 
 	/// <summary>
 	/// <see cref="RoutedCommandBinding.CanExecute" /> handler of undo and redo, which denies them in read-only mode.
@@ -775,6 +833,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private void ClearBookmarks() => Bookmarks.Clear();
 
 	/// <summary>
+	/// Takes away the tip of a folded block with its text, which closes the tip.
+	/// </summary>
+	private void CloseFoldingTip() => ToolTip.SetTip(TextArea.TextView, null);
+
+	/// <summary>
 	/// Brings every line break of the document to a style, as one step to undo.
 	/// </summary>
 	private void ConvertLineEndings(LineEnding lineEnding)
@@ -945,6 +1008,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		_folding = null;
 
 		CanFold = false;
+
+		// The tip shows the text of a block that goes away with the folding.
+		CloseFoldingTip();
 
 		folding.Dispose();
 	}

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -19,6 +20,7 @@ using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers;
 using Shared.Extensions;
 using System;
 using System.Linq;
@@ -1236,6 +1238,400 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextView.PointerHover" />: a long line of the hidden text is cut, so that the tip keeps to the screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Cuts_A_Long_Line_Of_The_Hidden_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"if ($value)\n{{\n    {new string('x', 200)}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be($"{{\n    {new string('x', 116)}{Glyphs.HorizontalEllipsis}\n}}");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip shows the first lines of a long block and an ellipsis for the rest.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Cuts_The_Hidden_Text_To_Its_First_Lines()
+	{
+		// Arrange
+		string[] lines = [.. Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}")];
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"if ($value)\n{{\n{string.Join('\n', lines)}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		string[] expected = ["{", .. lines[..19], Glyphs.HorizontalEllipsis];
+
+		GetTipText(textView)!.Split('\n')
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the box of a folded block is found in a scrolled view too.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Follows_The_Scroll_Of_The_View()
+	{
+		// Arrange
+		// A block from line 100 to line 300 among lines without indentation.
+		string text = string.Join('\n', Enumerable
+			.Range(1, 600)
+			.Select(static x => x is > 100 and <= 300 ? $"    Line {x:D4}" : $"Line {x:D4}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(text),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		sut.ScrollToLine(100);
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.StartWith("    Line 0101");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip of a folded element starts at its tag, without the indentation before
+	/// it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_A_Folded_Element_From_Its_Tag()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("<r>\n  <a>\n    <b />\n  </a>\n</r>"),
+			SyntaxLanguage = "xml"
+		};
+
+		Show(sut);
+
+		// The inner element starts after the indentation of its line.
+		FoldingSection block = GetFoldings(sut)[1];
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be("<a>\n    <b />\n  </a>");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the text beside the box of a folded block is in view, so it gets no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Beside_The_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the text of an encrypted file stays in the text area, so a folded block gets
+	/// no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Over_A_Sensitive_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			IsSensitive = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the start of an unfolded block is text in view, so it gets no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Over_An_Unfolded_Block()
+	{
+		// Arrange
+		// The element starts where its line does, so its first text stands where the box would.
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("<a>\n  <b />\n</a>"),
+			SyntaxLanguage = "xml"
+		};
+
+		Show(sut);
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the box of a folded block opens a tip with the text it hides, which starts on
+	/// the line after the first one of the block.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_The_Hidden_Text_In_A_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be("{\n    Write-Host 'Text'\n}");
+
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip shows the hidden text in the font of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_The_Hidden_Text_In_The_Editor_Font()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		((TextBlock)ToolTip.GetTip(textView)!).FontFamily
+			.Should()
+			.Be(sut.FontFamily);
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: the tip of a folded block closes and lets go of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Closes_The_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click on the box of a folded block unfolds it, and the tip of
+	/// its hidden text closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Closes_The_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.PreviousBookmarkCommand" />: the caret goes to the start of the previous bookmarked
 	/// line, and the selection goes away.
 	/// </summary>
@@ -1662,6 +2058,45 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the tip of a folded block closes with the folding, as its block
+	/// goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Closes_The_Tip_With_The_Folding()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Act
+		sut.SyntaxLanguage = null;
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the words of the language take colors of their kinds.
 	/// </summary>
 	[AvaloniaTest]
@@ -1880,6 +2315,47 @@ internal class DocumentTextEditorTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextArea.TextView" />: the tips of the folded blocks take the tooltip theme of the application rather
+	/// than the Fluent one of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void TextView_Holds_The_Tooltip_Theme_Of_The_Application()
+	{
+		// Arrange
+		DocumentTextEditor sut = new();
+
+		Show(sut);
+
+		// Act
+		bool isFound = sut.TextArea.TextView.TryFindResource(typeof(ToolTip), out object? theme);
+
+		// Assert
+		isFound
+			.Should()
+			.BeTrue();
+
+		theme
+			.Should()
+			.BeSameAs(Application.Current!.FindResource(typeof(ToolTip)));
+	}
+
+	/// <summary>
+	/// <see cref="TextArea.TextView" />: the tooltip service keeps away from the view, whose tips open and close with the
+	/// hover over the boxes of the folded blocks.
+	/// </summary>
+	[AvaloniaTest]
+	public void TextView_Opens_Its_Tips_Without_The_Tooltip_Service()
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new();
+
+		// Assert
+		ToolTip.GetServiceEnabled(sut.TextArea.TextView)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -2581,6 +3057,25 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// Returns the middle of the element that starts at an offset of the text view, in the coordinates of its window.
+	/// </summary>
+	private static Point GetColumnCenter(TextView textView, int offset)
+	{
+		VisualLine visualLine = textView.GetVisualLine(textView.Document.GetLineByOffset(offset).LineNumber)!;
+
+		int column = visualLine.GetVisualColumn(offset - visualLine.StartOffset);
+
+		Point left = visualLine.GetVisualPosition(column, VisualYPosition.LineMiddle);
+
+		Point right = visualLine.GetVisualPosition(column + 1, VisualYPosition.LineMiddle);
+
+		// The visual positions stand in the coordinates of the document, which the view scrolls.
+		Point center = new Point((left.X + right.X) / 2.0, left.Y) - textView.ScrollOffset;
+
+		return textView.TranslatePoint(center, TopLevel.GetTopLevel(textView)!) ?? default;
+	}
+
+	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks that fold.
 	/// </summary>
 	private static (int Start, int End)[] GetFoldedLines(TextEditor editor)
@@ -2608,6 +3103,11 @@ internal class DocumentTextEditorTests
 
 		return [.. margin.FoldingManager.AllFoldings];
 	}
+
+	/// <summary>
+	/// Returns the text of the tip of the text view; <c>null</c> without a tip.
+	/// </summary>
+	private static string? GetTipText(TextView textView) => (ToolTip.GetTip(textView) as TextBlock)?.Text;
 
 	/// <summary>
 	/// Returns the colors of the parts the first line of the view is drawn in.
@@ -2662,6 +3162,22 @@ internal class DocumentTextEditorTests
 		window.KeyPressQwerty(key, modifiers);
 
 		window.KeyReleaseQwerty(key, modifiers);
+	}
+
+	/// <summary>
+	/// Raises a pointer event of the text view at a point of its window.
+	/// </summary>
+	private static void Raise(TextView textView, RoutedEvent<PointerEventArgs> routedEvent, Point point)
+	{
+		textView.RaiseEvent(new PointerEventArgs(
+			routedEvent,
+			textView,
+			new Pointer(0, PointerType.Mouse, isPrimary: true),
+			TopLevel.GetTopLevel(textView),
+			point,
+			0,
+			PointerPointProperties.None,
+			KeyModifiers.None));
 	}
 
 	/// <summary>
