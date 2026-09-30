@@ -6,7 +6,6 @@ using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
 using Shared.Common;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -141,7 +140,7 @@ internal sealed class SampleHierarchy
 
 		_plainContents = TextDefaults
 			.Encoding
-			.GetBytes(CreatePlainText());
+			.GetBytes(SampleDocuments.CreateText(_faker));
 
 		// Each set makes records of its own, with values of their own.
 		IEnumerable<DatasetRecordBase> records = Enumerable
@@ -162,11 +161,6 @@ internal sealed class SampleHierarchy
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the text of the files whose contents do not matter.
-	/// </summary>
-	private static string CreatePlainText() => SampleText.LoremIpsum.Repeat(5, Environment.NewLine + Environment.NewLine);
-
 	/// <summary>
 	/// Returns the text of a dataset that holds records.
 	/// </summary>
@@ -228,9 +222,17 @@ internal sealed class SampleHierarchy
 		// One row is one object, and the rows go in the order of the objects in their folders.
 		(string Folder, string Name, EntityKind Kind, string Text)[] files =
 		[
+			("Web", "index.html", EntityKind.File, SampleDocuments.CreateHtml(_faker)),
+			("Web", "styles.css", EntityKind.File, SampleDocuments.CreateCss(_faker)),
 			("Data", "appsettings.json", EntityKind.File, SampleDocuments.CreateJson(_faker)),
 			("Data", "catalog.xml", EntityKind.File, SampleDocuments.CreateXml(_faker)),
-			("Documents", "notes.txt", EntityKind.File, CreatePlainText()),
+			("Data", "config.yaml", EntityKind.File, SampleDocuments.CreateYaml(_faker)),
+			("Data", "settings.ini", EntityKind.File, SampleDocuments.CreateIni(_faker)),
+			("Data", "query.sql", EntityKind.File, SampleDocuments.CreateSql(_faker)),
+			("Data", "users.csv", EntityKind.File, SampleDocuments.CreateCsv(_faker)),
+			("Documents", "README.md", EntityKind.File, SampleDocuments.CreateMarkdown(_faker)),
+			("Documents", "notes.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Documents", "app.log", EntityKind.File, SampleDocuments.CreateLog(_faker)),
 			("Datasets", "Values", EntityKind.Dataset, SerializeRecords(_records.CreateValueRecords(DatasetRecordCount))),
 			("Datasets", "Key values", EntityKind.Dataset, SerializeRecords(_records.CreateKeyValueRecords(DatasetRecordCount))),
 			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels)))
