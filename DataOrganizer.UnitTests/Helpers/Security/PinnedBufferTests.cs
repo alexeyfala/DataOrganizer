@@ -11,6 +11,26 @@ internal class PinnedBufferTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="PinnedBuffer.AsReadOnlySpan" />: a disposed buffer hands out no view of its zeros.
+	/// </summary>
+	[Test]
+	public void AsReadOnlySpan_Throws_After_Dispose()
+	{
+		// Arrange
+		PinnedBuffer sut = new(CreatePattern(16));
+
+		sut.Dispose();
+
+		// Act
+		Action act = () => sut.AsReadOnlySpan();
+
+		// Assert
+		act
+			.Should()
+			.Throw<ObjectDisposedException>();
+	}
+
+	/// <summary>
 	/// <see cref="PinnedBuffer.AsSpan" /> + <see cref="PinnedBuffer.AsReadOnlySpan" />: data written through the span round-trips when read back through the read-only span.
 	/// </summary>
 	[Test]
@@ -31,6 +51,26 @@ internal class PinnedBufferTests
 			.ToArray()
 			.Should()
 			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="PinnedBuffer.AsSpan" />: a disposed buffer hands out no view of its zeros.
+	/// </summary>
+	[Test]
+	public void AsSpan_Throws_After_Dispose()
+	{
+		// Arrange
+		PinnedBuffer sut = new(CreatePattern(16));
+
+		sut.Dispose();
+
+		// Act
+		Action act = () => sut.AsSpan();
+
+		// Assert
+		act
+			.Should()
+			.Throw<ObjectDisposedException>();
 	}
 
 	/// <summary>
@@ -93,7 +133,10 @@ internal class PinnedBufferTests
 		// Arrange
 		PinnedBuffer sut = new(CreatePattern(16));
 
-		sut.AsReadOnlySpan()
+		// The view is taken before the disposal, after which none is handed out.
+		ReadOnlySpan<byte> view = sut.AsReadOnlySpan();
+
+		view
 			.ToArray()
 			.Should()
 			.NotContain(0);
@@ -102,7 +145,7 @@ internal class PinnedBufferTests
 		sut.Dispose();
 
 		// Assert
-		sut.AsReadOnlySpan()
+		view
 			.ToArray()
 			.Should()
 			.OnlyContain(b => b == 0);

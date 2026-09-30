@@ -48,12 +48,24 @@ public sealed class PinnedBuffer : IDisposable
 	/// <summary>
 	/// Read-only view over the contents.
 	/// </summary>
-	public ReadOnlySpan<byte> AsReadOnlySpan() => _buffer.AsSpan();
+	/// <exception cref="ObjectDisposedException">The buffer has been disposed.</exception>
+	public ReadOnlySpan<byte> AsReadOnlySpan()
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+		return _buffer.AsSpan();
+	}
 
 	/// <summary>
 	/// Writable view over the contents.
 	/// </summary>
-	public Span<byte> AsSpan() => _buffer.AsSpan();
+	/// <exception cref="ObjectDisposedException">The buffer has been disposed.</exception>
+	public Span<byte> AsSpan()
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+		return _buffer.AsSpan();
+	}
 
 	/// <inheritdoc />
 	public void Dispose()
