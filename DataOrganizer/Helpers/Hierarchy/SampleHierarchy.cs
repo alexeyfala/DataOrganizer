@@ -222,8 +222,21 @@ internal sealed class SampleHierarchy
 		// One row is one object, and the rows go in the order of the objects in their folders.
 		(string Folder, string Name, EntityKind Kind, string Text)[] files =
 		[
+			("Code", "Program.cs", EntityKind.File, SampleText.CSharp),
+			("Code", "Module.fs", EntityKind.File, SampleText.FSharp),
+			("Code", "Module.vb", EntityKind.File, SampleText.VisualBasic),
+			("Code", "main.cpp", EntityKind.File, SampleText.CPlusPlus),
+			("Code", "Main.java", EntityKind.File, SampleText.Java),
+			("Code", "main.go", EntityKind.File, SampleText.Go),
+			("Code", "main.rs", EntityKind.File, SampleText.Rust),
+			("Scripts", "script.py", EntityKind.File, SampleText.Python),
+			("Scripts", "script.js", EntityKind.File, SampleText.JavaScript),
+			("Scripts", "script.ps1", EntityKind.File, SampleText.PowerShell),
+			("Scripts", "script.sh", EntityKind.File, SampleText.Shell),
+			("Scripts", "script.bat", EntityKind.File, SampleText.Batch),
 			("Web", "index.html", EntityKind.File, SampleDocuments.CreateHtml(_faker)),
 			("Web", "styles.css", EntityKind.File, SampleDocuments.CreateCss(_faker)),
+			("Web", "app.ts", EntityKind.File, SampleText.TypeScript),
 			("Data", "appsettings.json", EntityKind.File, SampleDocuments.CreateJson(_faker)),
 			("Data", "catalog.xml", EntityKind.File, SampleDocuments.CreateXml(_faker)),
 			("Data", "config.yaml", EntityKind.File, SampleDocuments.CreateYaml(_faker)),
