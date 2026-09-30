@@ -174,6 +174,7 @@ public sealed class App : Application
 		services.AddTransient<INoteReader, NoteReader>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
+		services.AddTransient<ISampleSeeder, SampleSeeder>();
 		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();

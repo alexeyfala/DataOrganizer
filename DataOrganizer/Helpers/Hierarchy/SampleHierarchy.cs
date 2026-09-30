@@ -1,4 +1,5 @@
 using Bogus;
+using DataOrganizer.Dto.Hierarchy;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Text;
@@ -23,6 +24,11 @@ internal sealed class SampleHierarchy
 {
 	#region Data
 	/// <summary>
+	/// Password of the encrypted folders.
+	/// </summary>
+	public const string KeeperPassword = "123456789";
+
+	/// <summary>
 	/// Number of records in a dataset of one type of records.
 	/// </summary>
 	private const int DatasetRecordCount = 20;
@@ -41,7 +47,6 @@ internal sealed class SampleHierarchy
 	/// Number of records of each type on each level of the dataset of groups.
 	/// </summary>
 	private const int GroupedRecordCount = 2;
-
 	/// <summary>
 	/// Number of records of each type in the large dataset.
 	/// </summary>
@@ -123,6 +128,11 @@ internal sealed class SampleHierarchy
 	private readonly List<ExplorerItemBase> _items = [];
 
 	/// <summary>
+	/// Identifiers of the folders made so far that are to be encrypted.
+	/// </summary>
+	private readonly List<Guid> _keeperIds = [];
+
+	/// <summary>
 	/// Time of the run, when every object is created and updated.
 	/// </summary>
 	private readonly DateTime _now;
@@ -172,7 +182,7 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Creates the objects of a run under a folder of its own at a position of the root; each object comes after its folder.
 	/// </summary>
-	public static ExplorerItemBase[] Create(int rootIndex, DateTime now) => new SampleHierarchy(now).Build(rootIndex);
+	public static SampleObjects Create(int rootIndex, DateTime now) => new SampleHierarchy(now).Build(rootIndex);
 	#endregion
 
 	#region Helpers
@@ -246,7 +256,8 @@ internal sealed class SampleHierarchy
 	}
 
 	/// <summary>
-	/// Adds the files of known types and the datasets, each into the folder of its row, which is made on first use.
+	/// Adds the files of known types and the datasets, each into the folder of its row; a row names the folder by its path,
+	/// and the folders of the path are made on first use.
 	/// </summary>
 	private void AddKnownFiles(FolderEntity root)
 	{
@@ -300,34 +311,58 @@ internal sealed class SampleHierarchy
 			("Datasets", "Values", EntityKind.Dataset, SerializeRecords(_records.CreateValueRecords(DatasetRecordCount))),
 			("Datasets", "Key values", EntityKind.Dataset, SerializeRecords(_records.CreateKeyValueRecords(DatasetRecordCount))),
 			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels))),
-			("Datasets", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
+			("Datasets", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount))),
+			("Encrypted/Private/Documents", "diary.md", EntityKind.File, SampleDocuments.CreateMarkdown(_faker)),
+			("Encrypted/Private/Documents", "contacts.csv", EntityKind.File, SampleDocuments.CreateCsv(_faker)),
+			("Encrypted/Private/Scripts", "backup.bat", EntityKind.File, SampleText.Batch),
+			("Encrypted/Private", "Records", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels))),
+			("Encrypted/Private", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
 		];
 
 		// Only a few folders have a note.
 		Dictionary<string, string> folderNotes = new()
 		{
+			["Encrypted"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
 			["Scripts"] = SampleNotes.Scripts
 		};
 
+		// The folders that are encrypted once the objects are saved.
+		HashSet<string> keepers = ["Encrypted/Private"];
+
 		Dictionary<string, FolderEntity> folders = [];
 
-		foreach ((string folderName, string name, EntityKind kind, string text) in files)
+		foreach ((string folderPath, string name, EntityKind kind, string text) in files)
 		{
-			if (!folders.TryGetValue(folderName, out FolderEntity? folder))
-			{
-				folder = AddFolder(
-					root,
-					folderName,
-					folderNotes.GetValueOrDefault(folderName));
-
-				folders.Add(folderName, folder);
-			}
-
 			AddFile(
-				folder,
+				GetOrAddFolder(folderPath),
 				name,
 				kind,
 				TextDefaults.Encoding.GetBytes(text));
+		}
+
+		// Returns the folder of a path, made on first use after the folders above it.
+		FolderEntity GetOrAddFolder(string path)
+		{
+			if (folders.TryGetValue(path, out FolderEntity? folder))
+			{
+				return folder;
+			}
+
+			int separator = path.LastIndexOf('/');
+
+			folder = AddFolder(
+				separator < 0 ? root : GetOrAddFolder(path[..separator]),
+				path[(separator + 1)..],
+				folderNotes.GetValueOrDefault(path));
+
+			folders.Add(path, folder);
+
+			if (keepers.Contains(path))
+			{
+				_keeperIds.Add(folder.Id);
+			}
+
+			return folder;
 		}
 	}
 
@@ -379,7 +414,7 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Makes the objects of the run, the folder of the run first.
 	/// </summary>
-	private ExplorerItemBase[] Build(int rootIndex)
+	private SampleObjects Build(int rootIndex)
 	{
 		FolderEntity root = AddFolder(
 			parentId: null,
@@ -399,7 +434,9 @@ internal sealed class SampleHierarchy
 			path: string.Empty,
 			level: 0);
 
-		return [.. _items];
+		return new SampleObjects(
+			[.. _items],
+			[.. _keeperIds]);
 	}
 
 	/// <summary>

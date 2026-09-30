@@ -63,6 +63,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="ISampleSeeder" />
+	private readonly ISampleSeeder _sampleSeeder;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -90,6 +93,7 @@ public sealed class AppController : IAppController
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
 		INotificationService notification,
+		ISampleSeeder sampleSeeder,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -116,6 +120,8 @@ public sealed class AppController : IAppController
 		_notification = notification;
 
 		_options = options;
+
+		_sampleSeeder = sampleSeeder;
 
 		_sandbox = sandbox;
 
@@ -182,8 +188,8 @@ public sealed class AppController : IAppController
 			{
 				try
 				{
-					await _dbAccess
-						.AddSampleObjectsAsync()
+					await _sampleSeeder
+						.SeedAsync(token)
 						.ConfigureAwait(true);
 				}
 				catch (Exception ex)

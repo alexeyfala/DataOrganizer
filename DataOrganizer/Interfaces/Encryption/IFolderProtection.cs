@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Helpers.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,11 +26,20 @@ public interface IFolderProtection
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Encrypts the files in a folder.
+	/// Encrypts the files in a folder with a password asked for.
 	/// </summary>
 	Task EncryptFolderAsync(
 		FolderDto folder,
 		FileDto[] files,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Encrypts the files in a folder with the given password; an empty one changes nothing.
+	/// </summary>
+	Task EncryptFolderAsync(
+		FolderDto folder,
+		FileDto[] files,
+		PinnedSecret password,
 		CancellationToken token = default);
 	#endregion
 }

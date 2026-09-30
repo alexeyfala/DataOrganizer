@@ -88,6 +88,14 @@ internal static class SampleNotes
 	/// Returns a made-up note whose shape follows from its number, so that the shapes take turns.
 	/// </summary>
 	public static string Create(Faker faker, int number) => Shapes[number % Shapes.Length](faker);
+
+	/// <summary>
+	/// Returns the note that gives the password of the encrypted folders inside a folder.
+	/// </summary>
+	public static string CreateEncryptedFolder(string password) => $"""
+		The folders inside are encrypted.
+		Password: {password}
+		""".ReplaceLineEndings();
 	#endregion
 
 	#region Helpers
