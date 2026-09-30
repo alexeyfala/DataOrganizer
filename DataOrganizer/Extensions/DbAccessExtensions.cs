@@ -1,14 +1,13 @@
+using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Dataset;
-using Entities.Enums;
-using Repository.Dto;
+using Entities.Models;
 using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Extensions;
@@ -16,35 +15,24 @@ namespace DataOrganizer.Extensions;
 internal static class DbAccessExtensions
 {
 	#region Methods
-	/// <inheritdoc cref="AddRandomObjectsAsync(IDbAccess, int, int, int, int, int, byte[], byte[], Guid?)" />
-	public static async Task AddRandomObjectsAsync(
-		this IDbAccess dbAccess,
-		int folders,
-		int files,
-		int datasets,
-		int levels)
+	/// <summary>
+	/// Adds a sample hierarchy after the objects of the root.
+	/// </summary>
+	public static async Task AddSampleObjectsAsync(this IDbAccess dbAccess)
 	{
-		int total = await dbAccess
+		int rootIndex = await dbAccess
 			.CountOfAsync(x => x.ParentId == null)
 			.ConfigureAwait(false);
 
-		string fileText = SampleText
-			.LoremIpsum
-			.Repeat(5, Environment.NewLine + Environment.NewLine);
+		ExplorerItemBase[] items = SampleHierarchy.Create(rootIndex, DateTime.Now);
 
-		string records = JsonSerializer.Serialize(Enumerable
-			.Repeat(CreateRandomRecords(levels: levels), 20)
-			.SelectMany(x => x), JsonDefaults.Options);
+		await dbAccess
+			.AddFoldersAsync(items.OfType<FolderEntity>())
+			.ConfigureAwait(false);
 
-		await AddRandomObjectsAsync(
-			dbAccess,
-			folders: folders,
-			files: files,
-			levels: levels,
-			datasets: datasets,
-			startIndex: total,
-			fileContents: TextDefaults.Encoding.GetBytes(fileText),
-			datasetContents: TextDefaults.Encoding.GetBytes(records)).ConfigureAwait(false);
+		await dbAccess
+			.AddFilesAsync(items.OfType<FileEntity>())
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -135,89 +123,6 @@ internal static class DbAccessExtensions
 				Value = $"Value_{RandomString.Create(10)}",
 				Note = note
 			};
-		}
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Adds random entities to the database.
-	/// </summary>
-	private static async Task AddRandomObjectsAsync(
-		IDbAccess dbAccess,
-		int folders,
-		int files,
-		int levels,
-		int datasets,
-		int startIndex,
-		byte[] fileContents,
-		byte[] datasetContents,
-		Guid? parentId = null)
-	{
-		if (levels <= 0)
-		{
-			return;
-		}
-
-		--levels;
-
-		for (int i = 0; i < folders; i++)
-		{
-			AddEntityParameters parameters = new()
-			{
-				Index = startIndex++,
-				Kind = EntityKind.Folder,
-				Name = $"{i + 1}_Folder_{RandomString.Create(6)}",
-				ParentId = parentId
-			};
-
-			if (await dbAccess
-				.AddEntityAsync(parameters)
-				.ConfigureAwait(false) is { } folder)
-			{
-				await AddRandomObjectsAsync(
-					dbAccess,
-					folders: folders,
-					files: files,
-					levels: levels,
-					datasets: datasets,
-					startIndex: 0,
-					fileContents: fileContents,
-					datasetContents: datasetContents,
-					parentId: folder.Id).ConfigureAwait(false);
-			}
-		}
-
-		for (int i = 0; i < files; i++)
-		{
-			AddEntityParameters parameters = new()
-			{
-				FileContents = fileContents,
-				Index = startIndex++,
-				Kind = EntityKind.File,
-				Name = $"{i + 1}_File_{RandomString.Create(6)}.{RandomString.Create(3).ToLower()}",
-				ParentId = parentId
-			};
-
-			await dbAccess
-				.AddEntityAsync(parameters)
-				.ConfigureAwait(false);
-		}
-
-		for (int i = 0; i < datasets; i++)
-		{
-			AddEntityParameters parameters = new()
-			{
-				FileContents = datasetContents,
-				Index = startIndex++,
-				Kind = EntityKind.Dataset,
-				Name = $"{i + 1}_Dataset_{RandomString.Create(6)}",
-				ParentId = parentId
-			};
-
-			await dbAccess
-				.AddEntityAsync(parameters)
-				.ConfigureAwait(false);
 		}
 	}
 	#endregion

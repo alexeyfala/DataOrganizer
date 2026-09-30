@@ -180,13 +180,17 @@ public sealed class AppController : IAppController
 
 			if (isConnected && _options.FillObjects)
 			{
-				const int total = 3;
-
-				await _dbAccess.AddRandomObjectsAsync(
-					folders: total,
-					files: total,
-					datasets: total,
-					levels: total).ConfigureAwait(true);
+				try
+				{
+					await _dbAccess
+						.AddSampleObjectsAsync()
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					// The samples only serve to try the application, so the launch goes on without them.
+					_logger.LogException("The sample objects could not be added, the launch continues.", ex);
+				}
 			}
 
 			// Nothing is read from a database that is not there: the toast above has already said so.
