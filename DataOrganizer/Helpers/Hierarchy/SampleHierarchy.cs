@@ -312,6 +312,9 @@ internal sealed class SampleHierarchy
 			("Datasets", "Key values", EntityKind.Dataset, SerializeRecords(_records.CreateKeyValueRecords(DatasetRecordCount))),
 			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels))),
 			("Datasets", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount))),
+			("Encrypted/Passwords", "recovery-codes.txt", EntityKind.File, SampleDocuments.CreateRecoveryCodes(_faker)),
+			("Encrypted/Passwords", "secrets.json", EntityKind.File, SampleDocuments.CreateSecrets(_faker)),
+			("Encrypted/Passwords", "Accounts", EntityKind.Dataset, SerializeRecords(_records.CreateAccounts(DatasetRecordCount))),
 			("Encrypted/Private/Documents", "diary.md", EntityKind.File, SampleDocuments.CreateMarkdown(_faker)),
 			("Encrypted/Private/Documents", "contacts.csv", EntityKind.File, SampleDocuments.CreateCsv(_faker)),
 			("Encrypted/Private/Scripts", "backup.bat", EntityKind.File, SampleText.Batch),
@@ -319,15 +322,19 @@ internal sealed class SampleHierarchy
 			("Encrypted/Private", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
 		];
 
-		// Only a few folders have a note.
-		Dictionary<string, string> folderNotes = new()
+		// Only a few objects have a note, found by their path.
+		Dictionary<string, string> notes = new()
 		{
 			["Encrypted"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
+			["Encrypted/Passwords"] = SampleNotes.Keeper,
+			["Encrypted/Passwords/recovery-codes.txt"] = SampleNotes.RecoveryCodes,
+			["Encrypted/Private"] = SampleNotes.Keeper,
+			["Encrypted/Private/Scripts/backup.bat"] = SampleNotes.EncryptedScript,
 			["Scripts"] = SampleNotes.Scripts
 		};
 
 		// The folders that are encrypted once the objects are saved.
-		HashSet<string> keepers = ["Encrypted/Private"];
+		HashSet<string> keepers = ["Encrypted/Passwords", "Encrypted/Private"];
 
 		Dictionary<string, FolderEntity> folders = [];
 
@@ -337,7 +344,8 @@ internal sealed class SampleHierarchy
 				GetOrAddFolder(folderPath),
 				name,
 				kind,
-				TextDefaults.Encoding.GetBytes(text));
+				TextDefaults.Encoding.GetBytes(text),
+				notes.GetValueOrDefault($"{folderPath}/{name}"));
 		}
 
 		// Returns the folder of a path, made on first use after the folders above it.
@@ -353,7 +361,7 @@ internal sealed class SampleHierarchy
 			folder = AddFolder(
 				separator < 0 ? root : GetOrAddFolder(path[..separator]),
 				path[(separator + 1)..],
-				folderNotes.GetValueOrDefault(path));
+				notes.GetValueOrDefault(path));
 
 			folders.Add(path, folder);
 

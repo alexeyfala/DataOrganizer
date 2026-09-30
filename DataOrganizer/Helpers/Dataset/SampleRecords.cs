@@ -12,6 +12,11 @@ internal sealed class SampleRecords
 {
 	#region Data
 	/// <summary>
+	/// Share of the accounts with a note.
+	/// </summary>
+	private const float AccountNoteShare = 0.3f;
+
+	/// <summary>
 	/// Share of the values that are secrets and stay hidden.
 	/// </summary>
 	private const float HiddenShare = 0.3f;
@@ -23,6 +28,41 @@ internal sealed class SampleRecords
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Creates the required number of accounts, each a group named after a site that holds a login, a hidden password
+	/// and an email.
+	/// </summary>
+	public IEnumerable<RecordsGroup> CreateAccounts(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return new RecordsGroup
+			{
+				Children =
+				[
+					new KeyValueRecord
+					{
+						Key = "Login",
+						Value = _faker.Internet.UserName()
+					},
+					new KeyValueRecord
+					{
+						IsHidden = true,
+						Key = "Password",
+						Value = _faker.Internet.Password()
+					},
+					new KeyValueRecord
+					{
+						Key = "Email",
+						Value = _faker.Internet.Email()
+					}
+				],
+				Name = _faker.Internet.DomainName(),
+				Note = _faker.Random.Bool(AccountNoteShare) ? _faker.Lorem.Sentence() : null
+			};
+		}
+	}
+
 	/// <summary>
 	/// Creates the required number of <see cref="RecordsGroup" /> objects.
 	/// </summary>

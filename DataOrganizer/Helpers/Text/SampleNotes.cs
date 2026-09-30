@@ -53,12 +53,33 @@ internal static class SampleNotes
 
 	#region Properties
 	/// <summary>
+	/// Note that tells how an encrypted script is run.
+	/// </summary>
+	public static string EncryptedScript { get; } = """
+		The script runs from a decrypted copy in the sandbox.
+		The copy is erased afterwards.
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a folder under a password, which is encrypted together with the folder.
+	/// </summary>
+	public static string Keeper { get; } = """
+		This note is encrypted together with the folder.
+		It shows once the password is entered.
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// Note that explains why the files with made-up extensions open as plain text.
 	/// </summary>
 	public static string RandomFolder { get; } = """
 		The extensions are made up, and no grammar knows them.
 		So the files open as plain text.
 		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of the recovery codes of an account.
+	/// </summary>
+	public static string RecoveryCodes { get; } = "Each code works once.";
 
 	/// <summary>
 	/// Note that tells what each folder of a run of samples holds.
@@ -69,6 +90,7 @@ internal static class SampleNotes
 		Scripts: running files.
 		Data, Documents: data and text formats.
 		Datasets: records of every type.
+		Encrypted: folders under a password.
 		Random: files of unknown types.
 		""".ReplaceLineEndings();
 

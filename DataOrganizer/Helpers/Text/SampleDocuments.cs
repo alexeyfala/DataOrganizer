@@ -65,6 +65,21 @@ internal static partial class SampleDocuments
 	private const int ProductCount = 12;
 
 	/// <summary>
+	/// Number of recovery codes of an account.
+	/// </summary>
+	private const int RecoveryCodeCount = 10;
+
+	/// <summary>
+	/// Pattern of a recovery code, where each star stands for a letter or a digit.
+	/// </summary>
+	private const string RecoveryCodeFormat = "****-****";
+
+	/// <summary>
+	/// Number of bytes of the signing key among the secrets.
+	/// </summary>
+	private const int SigningKeySize = 32;
+
+	/// <summary>
 	/// Number of rows that the SQL script inserts.
 	/// </summary>
 	private const int SqlRowCount = 20;
@@ -444,6 +459,18 @@ internal static partial class SampleDocuments
 	}
 
 	/// <summary>
+	/// Returns one-time recovery codes of an account, one on each line.
+	/// </summary>
+	public static string CreateRecoveryCodes(Faker faker)
+	{
+		IEnumerable<string> codes = Enumerable
+			.Range(0, RecoveryCodeCount)
+			.Select(_ => faker.Random.Replace(RecoveryCodeFormat));
+
+		return string.Join(Environment.NewLine, [.. codes, string.Empty]);
+	}
+
+	/// <summary>
 	/// Returns an SCSS text of a style sheet with modules, variables, nesting, a mixin, comments and a region.
 	/// </summary>
 	public static string CreateScss(Faker faker)
@@ -485,6 +512,39 @@ internal static partial class SampleDocuments
 			}
 
 			""".ReplaceLineEndings();
+	}
+
+	/// <summary>
+	/// Returns secrets of an application in JSON: a connection string, a mail account, API keys and a signing key.
+	/// </summary>
+	public static string CreateSecrets(Faker faker)
+	{
+		string host = faker.Internet.DomainName();
+
+		JsonObject secrets = new()
+		{
+			["ConnectionStrings"] = new JsonObject
+			{
+				["Default"] = $"Server={host};Database={faker.Hacker.Noun()};User Id={faker.Internet.UserName()};Password={faker.Internet.Password()}"
+			},
+			["Smtp"] = new JsonObject
+			{
+				["Host"] = $"smtp.{host}",
+				["User"] = faker.Internet.Email(),
+				["Password"] = faker.Internet.Password()
+			},
+			["ApiKeys"] = new JsonObject
+			{
+				["Maps"] = faker.Random.Hash(),
+				["Payments"] = faker.Random.Hash()
+			},
+			["Jwt"] = new JsonObject
+			{
+				["SigningKey"] = Convert.ToBase64String(faker.Random.Bytes(SigningKeySize))
+			}
+		};
+
+		return secrets.ToJsonString(JsonOptions);
 	}
 
 	/// <summary>
