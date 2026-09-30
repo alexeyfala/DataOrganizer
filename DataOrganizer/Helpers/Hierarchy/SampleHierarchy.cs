@@ -74,7 +74,7 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Format of the time of a run in the name of its folder.
 	/// </summary>
-	private const string RunFolderDateFormat = "yyyy-MM-dd HH-mm-ss";
+	private const string RunFolderDateFormat = "dd.MM.yyyy HH:mm:ss";
 
 	/// <summary>
 	/// Start of the name of the folder of a run.

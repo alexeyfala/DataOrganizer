@@ -282,7 +282,7 @@ public sealed class App : Application
 		{
 			return args
 				//.AddHelpArg()
-				//.AddFillObjectsArg()
+				.AddFillObjectsArg()
 				.AddConsoleArg()
 				.AddDebugArg();
 		}
