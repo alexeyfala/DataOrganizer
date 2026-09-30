@@ -48,6 +48,11 @@ internal sealed class SampleHierarchy
 	private const int LargeRecordCount = 350;
 
 	/// <summary>
+	/// Share of the objects of the random branch with a made-up note.
+	/// </summary>
+	private const float NoteShare = 0.25f;
+
+	/// <summary>
 	/// Number of datasets in each folder of the random branch.
 	/// </summary>
 	private const int RandomDatasetCount = 1;
@@ -136,6 +141,11 @@ internal sealed class SampleHierarchy
 	/// Source of the records of the datasets.
 	/// </summary>
 	private readonly SampleRecords _records = new();
+
+	/// <summary>
+	/// Number of made-up notes given out so far.
+	/// </summary>
+	private int _noteCount;
 	#endregion
 
 	#region Constructors
@@ -167,6 +177,11 @@ internal sealed class SampleHierarchy
 
 	#region Helpers
 	/// <summary>
+	/// Returns a note of an object that is not encrypted in its stored binary form.
+	/// </summary>
+	private static byte[]? EncodeNote(string? note) => note is null ? null : TextDefaults.Encoding.GetBytes(note);
+
+	/// <summary>
 	/// Returns the text of a dataset that holds records.
 	/// </summary>
 	private static string SerializeRecords(IEnumerable<DatasetRecordBase> records) => JsonSerializer.Serialize(records, JsonDefaults.Options);
@@ -178,7 +193,8 @@ internal sealed class SampleHierarchy
 		FolderEntity parent,
 		string name,
 		EntityKind kind,
-		byte[] contents)
+		byte[] contents,
+		string? note = null)
 	{
 		_items.Add(new FileEntity
 		{
@@ -188,6 +204,7 @@ internal sealed class SampleHierarchy
 			Index = TakeIndex(parent.Id),
 			Kind = kind,
 			Name = name,
+			Note = EncodeNote(note),
 			ParentId = parent.Id,
 			UpdatedAt = _now
 		});
@@ -196,12 +213,20 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Adds a folder at the end of another one.
 	/// </summary>
-	private FolderEntity AddFolder(FolderEntity parent, string name) => AddFolder(parent.Id, TakeIndex(parent.Id), name);
+	private FolderEntity AddFolder(FolderEntity parent, string name, string? note = null) => AddFolder(
+		parent.Id,
+		TakeIndex(parent.Id),
+		name,
+		note);
 
 	/// <summary>
 	/// Adds a folder at a position among the children of its parent, or of the root when there is no parent.
 	/// </summary>
-	private FolderEntity AddFolder(Guid? parentId, int index, string name)
+	private FolderEntity AddFolder(
+		Guid? parentId,
+		int index,
+		string name,
+		string? note = null)
 	{
 		FolderEntity folder = new()
 		{
@@ -210,6 +235,7 @@ internal sealed class SampleHierarchy
 			Index = index,
 			Kind = EntityKind.Folder,
 			Name = name,
+			Note = EncodeNote(note),
 			ParentId = parentId,
 			UpdatedAt = _now
 		};
@@ -277,13 +303,22 @@ internal sealed class SampleHierarchy
 			("Datasets", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
 		];
 
+		// Only a few folders have a note.
+		Dictionary<string, string> folderNotes = new()
+		{
+			["Scripts"] = SampleNotes.Scripts
+		};
+
 		Dictionary<string, FolderEntity> folders = [];
 
 		foreach ((string folderName, string name, EntityKind kind, string text) in files)
 		{
 			if (!folders.TryGetValue(folderName, out FolderEntity? folder))
 			{
-				folder = AddFolder(root, folderName);
+				folder = AddFolder(
+					root,
+					folderName,
+					folderNotes.GetValueOrDefault(folderName));
 
 				folders.Add(folderName, folder);
 			}
@@ -308,8 +343,13 @@ internal sealed class SampleHierarchy
 				// The name holds the path of the folder in the branch, such as 1.2.1.
 				string childPath = path.Length == 0 ? $"{number}" : $"{path}.{number}";
 
+				FolderEntity subfolder = AddFolder(
+					folder,
+					$"Folder {childPath}",
+					CreateRandomNote());
+
 				AddRandomContents(
-					AddFolder(folder, $"Folder {childPath}"),
+					subfolder,
 					childPath,
 					level + 1);
 			}
@@ -321,7 +361,8 @@ internal sealed class SampleHierarchy
 				folder,
 				CreateRandomFileName(number),
 				EntityKind.File,
-				_plainContents);
+				_plainContents,
+				CreateRandomNote());
 		}
 
 		for (int number = 1; number <= RandomDatasetCount; number++)
@@ -330,7 +371,8 @@ internal sealed class SampleHierarchy
 				folder,
 				$"Dataset {number}",
 				EntityKind.Dataset,
-				_datasetContents);
+				_datasetContents,
+				CreateRandomNote());
 		}
 	}
 
@@ -342,12 +384,18 @@ internal sealed class SampleHierarchy
 		FolderEntity root = AddFolder(
 			parentId: null,
 			index: rootIndex,
-			name: $"{RunFolderPrefix} {_now.ToString(RunFolderDateFormat, CultureInfo.InvariantCulture)}");
+			name: $"{RunFolderPrefix} {_now.ToString(RunFolderDateFormat, CultureInfo.InvariantCulture)}",
+			note: SampleNotes.RunFolder);
 
 		AddKnownFiles(root);
 
+		FolderEntity randomFolder = AddFolder(
+			root,
+			RandomFolderName,
+			SampleNotes.RandomFolder);
+
 		AddRandomContents(
-			AddFolder(root, RandomFolderName),
+			randomFolder,
 			path: string.Empty,
 			level: 0);
 
@@ -372,6 +420,13 @@ internal sealed class SampleHierarchy
 			}
 		}
 	}
+
+	/// <summary>
+	/// Returns a made-up note for a share of the objects of the random branch, or <c>null</c> for the others.
+	/// </summary>
+	private string? CreateRandomNote() => _faker.Random.Bool(NoteShare)
+		? SampleNotes.Create(_faker, _noteCount++)
+		: null;
 
 	/// <summary>
 	/// Returns the position of the next child of a folder.
