@@ -1,5 +1,8 @@
 using Bogus;
+using DataOrganizer.Extensions;
+using Repository.Dto;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DataOrganizer.Helpers.Text;
@@ -118,6 +121,23 @@ internal static class SampleNotes
 		The folders inside are encrypted.
 		Password: {password}
 		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Returns the note that lists the hotkeys of the snippets by the names of their files and gives the password of
+	/// their encrypted folder.
+	/// </summary>
+	public static string CreateSnippetsFolder(IEnumerable<(string Name, KeyStroke[] Hotkey)> snippets, string password)
+	{
+		IEnumerable<string> hotkeys = snippets.Select(static x => $"{x.Hotkey.GetHotkeysPresentation()}  {x.Name}");
+
+		return string.Join(
+			Environment.NewLine,
+			[
+				.. hotkeys,
+				$"Password of the encrypted folder: {password}",
+				"A hotkey that another file already has stays with that file."
+			]);
+	}
 	#endregion
 
 	#region Helpers

@@ -6,6 +6,8 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
+using Repository.Dto;
+using SharpHook.Data;
 using Shared.Common;
 using System;
 using System.Collections.Generic;
@@ -108,6 +110,11 @@ internal sealed class SampleHierarchy
 	private const string RunFolderPrefix = "Samples";
 
 	/// <summary>
+	/// Modifier held down for every key of the hotkey of a snippet.
+	/// </summary>
+	private const EventMask SnippetMask = EventMask.LeftCtrl;
+
+	/// <summary>
 	/// Order of the names in a folder: regardless of case, with numbers compared by their value.
 	/// </summary>
 	private static readonly StringComparer NameComparer = StringComparer.Create(
@@ -189,6 +196,37 @@ internal sealed class SampleHierarchy
 
 	#region Helpers
 	/// <summary>
+	/// Returns a hotkey whose keys are all pressed with the modifier of the snippets.
+	/// </summary>
+	private static KeyStroke[] CreateHotkey(params ReadOnlySpan<KeyCode> keys)
+	{
+		KeyStroke[] hotkey = new KeyStroke[keys.Length];
+
+		for (int i = 0; i < keys.Length; i++)
+		{
+			hotkey[i] = new KeyStroke
+			{
+				Code = keys[i],
+				Mask = SnippetMask
+			};
+		}
+
+		return hotkey;
+	}
+
+	/// <summary>
+	/// Returns the stored keys of the hotkey of a file, in the order they are pressed.
+	/// </summary>
+	private static List<HotkeyEntity> CreateHotkeyEntities(KeyStroke[] hotkey, Guid ownerId) => [.. hotkey.Select((x, index) => new HotkeyEntity
+	{
+		Code = x.Code,
+		Id = Guid.NewGuid(),
+		Index = index,
+		Mask = x.Mask,
+		OwnerId = ownerId
+	})];
+
+	/// <summary>
 	/// Returns a note of an object that is not encrypted in its stored binary form.
 	/// </summary>
 	private static byte[]? EncodeNote(string? note) => note is null ? null : TextDefaults.Encoding.GetBytes(note);
@@ -199,20 +237,25 @@ internal sealed class SampleHierarchy
 	private static string SerializeRecords(IEnumerable<DatasetRecordBase> records) => JsonSerializer.Serialize(records, JsonDefaults.Options);
 
 	/// <summary>
-	/// Adds a file or a dataset to a folder.
+	/// Adds a file or a dataset to a folder; a file with a hotkey is a favorite as well.
 	/// </summary>
 	private void AddFile(
 		FolderEntity parent,
 		string name,
 		EntityKind kind,
 		byte[] contents,
-		string? note = null)
+		string? note = null,
+		KeyStroke[]? hotkey = null)
 	{
+		Guid id = Guid.NewGuid();
+
 		_items.Add(new FileEntity
 		{
 			Contents = contents,
 			CreatedAt = _now,
-			Id = Guid.NewGuid(),
+			Hotkeys = hotkey is null ? [] : CreateHotkeyEntities(hotkey, id),
+			Id = id,
+			IsFavorite = hotkey is not null,
 			Kind = kind,
 			Name = name,
 			Note = EncodeNote(note),
@@ -309,8 +352,32 @@ internal sealed class SampleHierarchy
 			("Encrypted/Private/Documents", "contacts.csv", EntityKind.File, SampleDocuments.CreateCsv(_faker)),
 			("Encrypted/Private/Scripts", "backup.bat", EntityKind.File, SampleText.Batch),
 			("Encrypted/Private", "Records", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels))),
-			("Encrypted/Private", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
+			("Encrypted/Private", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount))),
+			("Snippets", "address.txt", EntityKind.File, SampleSnippets.CreateAddress(_faker)),
+			("Snippets", "bank.txt", EntityKind.File, SampleSnippets.CreateBankDetails(_faker)),
+			("Snippets", "email.txt", EntityKind.File, SampleSnippets.CreateEmail(_faker)),
+			("Snippets", "phone.txt", EntityKind.File, SampleSnippets.CreatePhoneNumber(_faker)),
+			("Snippets", "signature.txt", EntityKind.File, SampleSnippets.CreateSignature(_faker)),
+			("Snippets/Secret", "card.txt", EntityKind.File, SampleSnippets.CreateCardPin(_faker)),
+			("Snippets/Secret", "door.txt", EntityKind.File, SampleSnippets.CreateDoorCode(_faker)),
+			("Snippets/Secret", "router.txt", EntityKind.File, SampleSnippets.CreateRouterPassword(_faker)),
+			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker))
 		];
+
+		// The snippets are favorites with a hotkey: Q, then two keys along a column of the keyboard, down it for the
+		// plain snippets and up it for the encrypted ones.
+		Dictionary<string, KeyStroke[]> snippets = new()
+		{
+			["Snippets/address.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcA, KeyCode.VcZ),
+			["Snippets/bank.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcS, KeyCode.VcX),
+			["Snippets/email.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcD, KeyCode.VcC),
+			["Snippets/phone.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcF, KeyCode.VcV),
+			["Snippets/signature.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcG, KeyCode.VcB),
+			["Snippets/Secret/card.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcZ, KeyCode.VcA),
+			["Snippets/Secret/door.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcX, KeyCode.VcS),
+			["Snippets/Secret/router.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcC, KeyCode.VcD),
+			["Snippets/Secret/wifi.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcV, KeyCode.VcF)
+		};
 
 		// Only a few objects have a note, found by their path.
 		Dictionary<string, string> notes = new()
@@ -320,22 +387,29 @@ internal sealed class SampleHierarchy
 			["Encrypted/Passwords/recovery-codes.txt"] = SampleNotes.RecoveryCodes,
 			["Encrypted/Private"] = SampleNotes.Keeper,
 			["Encrypted/Private/Scripts/backup.bat"] = SampleNotes.EncryptedScript,
-			["Scripts"] = SampleNotes.Scripts
+			["Scripts"] = SampleNotes.Scripts,
+			["Snippets"] = SampleNotes.CreateSnippetsFolder(
+				snippets.Select(static x => (x.Key["Snippets/".Length..], x.Value)),
+				KeeperPassword),
+			["Snippets/Secret"] = SampleNotes.Keeper
 		};
 
 		// The folders that are encrypted once the objects are saved.
-		HashSet<string> keepers = ["Encrypted/Passwords", "Encrypted/Private"];
+		HashSet<string> keepers = ["Encrypted/Passwords", "Encrypted/Private", "Snippets/Secret"];
 
 		Dictionary<string, FolderEntity> folders = [];
 
 		foreach ((string folderPath, string name, EntityKind kind, string text) in files)
 		{
+			string path = $"{folderPath}/{name}";
+
 			AddFile(
 				GetOrAddFolder(folderPath),
 				name,
 				kind,
 				TextDefaults.Encoding.GetBytes(text),
-				notes.GetValueOrDefault($"{folderPath}/{name}"));
+				notes.GetValueOrDefault(path),
+				snippets.GetValueOrDefault(path));
 		}
 
 		// Returns the folder of a path, made on first use after the folders above it.
