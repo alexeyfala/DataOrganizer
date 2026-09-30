@@ -2,8 +2,10 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
+using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,7 +146,7 @@ internal class SampleHierarchyTests
 			{
 				Index = 7,
 				Kind = EntityKind.Folder,
-				Name = "Samples 2026-09-30 14-05-37"
+				Name = "Samples 30.09.2026 14:05:37"
 			});
 	}
 
@@ -184,6 +186,26 @@ internal class SampleHierarchyTests
 		items
 			.Should()
 			.OnlyContain(x => x.CreatedAt == now && x.UpdatedAt == now);
+	}
+
+	/// <summary>
+	/// <see cref="SampleHierarchy.Create" />: every dataset holds records in the form that datasets are read in.
+	/// </summary>
+	[Test]
+	public void Create_Writes_Datasets_That_Read_As_Records()
+	{
+		// Arrange
+		SystemTextJsonSerializer serializer = new();
+
+		// Act
+		ExplorerItemBase[] items = SampleHierarchy.Create(rootIndex: 0, DateTime.Now);
+
+		// Assert
+		items.OfType<FileEntity>().Where(x => x.Kind == EntityKind.Dataset)
+			.Should()
+			.NotBeEmpty()
+			.And
+			.AllSatisfy(x => serializer.Deserialize<DatasetRecordBase[]>(x.Contents).Should().NotBeNullOrEmpty());
 	}
 	#endregion
 }

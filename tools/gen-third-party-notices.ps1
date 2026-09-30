@@ -84,6 +84,7 @@ $onigurumaVersion = "6.9.10"
 # Keyed by lowercase package id. Verified manually against the package/repository.
 $licenseOverrides = @{
     'avalonia.angle.windows.natives' = 'BSD-3-Clause'   # ANGLE, file-based license
+    'bogus'                          = 'MIT'            # file-based LICENSE (MIT)
     'interop.uiautomationclient'     = 'MIT'            # file-based LICENSE.txt (MIT)
     'proitemsrepeater'               = 'MIT'            # package omits license; author publishes under MIT
 }

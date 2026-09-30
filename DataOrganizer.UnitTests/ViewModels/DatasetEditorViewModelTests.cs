@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
@@ -410,7 +410,7 @@ internal class DatasetEditorViewModelTests
 	public async Task ContainerLoaded_Adds_Records()
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
+		DatasetRecordBase[] records = [.. new SampleRecords().CreateRandomRecords()];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -588,7 +588,7 @@ internal class DatasetEditorViewModelTests
 	public async Task DeleteRecordAsync_Deletes_Record()
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
+		DatasetRecordBase[] records = [.. new SampleRecords().CreateRandomRecords()];
 
 		DatasetRecordBase toBeDeleted = records[0];
 
@@ -634,7 +634,7 @@ internal class DatasetEditorViewModelTests
 	public async Task DeleteRecordAsync_Keeps_The_Record_Out_When_The_Save_Fails()
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
+		DatasetRecordBase[] records = [.. new SampleRecords().CreateRandomRecords()];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1102,7 +1102,7 @@ internal class DatasetEditorViewModelTests
 		[Values] bool inGroup)
 	{
 		// Arrange
-		RecordsGroup[] groups = [.. DbAccessExtensions
+		RecordsGroup[] groups = [.. new SampleRecords()
 			.CreateGroups(50)
 			.ToArray()
 			.ForEach(x => x.IsExpanded = !expand)];
@@ -1327,9 +1327,11 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		const int count = 50;
 
-		ValueRecord[] records = [.. DbAccessExtensions
+		SampleRecords samples = new();
+
+		ValueRecord[] records = [.. samples
 			.CreateValueRecords(count)
-			.Concat(DbAccessExtensions.CreateKeyValueRecords(count))
+			.Concat(samples.CreateKeyValueRecords(count))
 			.ToArray()
 			.ForEach(x => x.IsHidden = !hide)];
 
@@ -1405,7 +1407,7 @@ internal class DatasetEditorViewModelTests
 
 		sut
 			.Records
-			.AddRange(DbAccessExtensions.CreateRandomRecords(eachTypes: 5));
+			.AddRange(new SampleRecords().CreateRandomRecords(eachTypes: 5));
 
 		// Act
 		await sut.SortAsync(group: null, ListSortDirection.Ascending);
@@ -1425,7 +1427,7 @@ internal class DatasetEditorViewModelTests
 		[Values] bool inGroup)
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords(eachTypes: 5)];
+		DatasetRecordBase[] records = [.. new SampleRecords().CreateRandomRecords(eachTypes: 5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -1461,17 +1463,18 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.HaveCount(records.Length);
 
+		// The records follow the order of the current culture, as the assertions would compare by code point otherwise.
 		if (direction == ListSortDirection.Ascending)
 		{
 			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
-				.BeInAscendingOrder(x => x.Value);
+				.BeInAscendingOrder(x => x.Value, StringComparer.CurrentCulture);
 		}
 		else
 		{
 			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
 				.Should()
-				.BeInDescendingOrder(x => x.Value);
+				.BeInDescendingOrder(x => x.Value, StringComparer.CurrentCulture);
 		}
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(

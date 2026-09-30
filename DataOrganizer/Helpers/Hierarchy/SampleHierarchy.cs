@@ -1,6 +1,8 @@
-using DataOrganizer.Extensions;
+using Bogus;
+using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
 using Shared.Common;
@@ -22,6 +24,11 @@ internal sealed class SampleHierarchy
 {
 	#region Data
 	/// <summary>
+	/// Number of records in a dataset of one type of records.
+	/// </summary>
+	private const int DatasetRecordCount = 20;
+
+	/// <summary>
 	/// Characters of a made-up extension.
 	/// </summary>
 	private const string ExtensionAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -30,6 +37,11 @@ internal sealed class SampleHierarchy
 	/// Length of a made-up extension.
 	/// </summary>
 	private const int ExtensionLength = 3;
+
+	/// <summary>
+	/// Number of records of each type on each level of the dataset of groups.
+	/// </summary>
+	private const int GroupedRecordCount = 2;
 
 	/// <summary>
 	/// Number of datasets in each folder of the random branch.
@@ -67,7 +79,7 @@ internal sealed class SampleHierarchy
 	private const int RecordLevels = 3;
 
 	/// <summary>
-	/// Number of sets of records in a dataset.
+	/// Number of sets of records in a dataset of the random branch.
 	/// </summary>
 	private const int RecordRepeats = 20;
 
@@ -82,23 +94,19 @@ internal sealed class SampleHierarchy
 	private const string RunFolderPrefix = "Samples";
 
 	/// <summary>
-	/// Files of known types: the folder, the name and the source of the text of each; the order of the rows is the order
-	/// of the files in their folders.
-	/// </summary>
-	private static readonly (string Folder, string Name, Func<string> CreateText)[] KnownFiles =
-	[
-		("Documents", "notes.txt", CreatePlainText)
-	];
-
-	/// <summary>
 	/// Number of children given out so far, by the identifier of their folder.
 	/// </summary>
 	private readonly Dictionary<Guid, int> _childCounts = [];
 
 	/// <summary>
-	/// Contents of every dataset.
+	/// Contents of every dataset of the random branch.
 	/// </summary>
 	private readonly byte[] _datasetContents;
+
+	/// <summary>
+	/// Source of the made-up values of the texts.
+	/// </summary>
+	private readonly Faker _faker = SampleFaker.Create();
 
 	/// <summary>
 	/// Objects made so far, each after its folder.
@@ -119,6 +127,11 @@ internal sealed class SampleHierarchy
 	/// Source of the made-up extensions.
 	/// </summary>
 	private readonly Random _random = new(RandomSeed);
+
+	/// <summary>
+	/// Source of the records of the datasets.
+	/// </summary>
+	private readonly SampleRecords _records = new();
 	#endregion
 
 	#region Constructors
@@ -131,11 +144,13 @@ internal sealed class SampleHierarchy
 			.GetBytes(CreatePlainText());
 
 		// Each set makes records of its own, with values of their own.
-		_datasetContents = TextDefaults.Encoding.GetBytes(JsonSerializer.Serialize(
-			Enumerable
-				.Range(0, RecordRepeats)
-				.SelectMany(static _ => DbAccessExtensions.CreateRandomRecords(levels: RecordLevels)),
-			JsonDefaults.Options));
+		IEnumerable<DatasetRecordBase> records = Enumerable
+			.Range(0, RecordRepeats)
+			.SelectMany(_ => _records.CreateRandomRecords(levels: RecordLevels));
+
+		_datasetContents = TextDefaults
+			.Encoding
+			.GetBytes(SerializeRecords(records));
 	}
 	#endregion
 
@@ -151,6 +166,11 @@ internal sealed class SampleHierarchy
 	/// Returns the text of the files whose contents do not matter.
 	/// </summary>
 	private static string CreatePlainText() => SampleText.LoremIpsum.Repeat(5, Environment.NewLine + Environment.NewLine);
+
+	/// <summary>
+	/// Returns the text of a dataset that holds records.
+	/// </summary>
+	private static string SerializeRecords(IEnumerable<DatasetRecordBase> records) => JsonSerializer.Serialize(records, JsonDefaults.Options);
 
 	/// <summary>
 	/// Adds a file or a dataset at the end of a folder.
@@ -201,13 +221,24 @@ internal sealed class SampleHierarchy
 	}
 
 	/// <summary>
-	/// Adds the files of known types, each into the folder of its row, which is made on first use.
+	/// Adds the files of known types and the datasets, each into the folder of its row, which is made on first use.
 	/// </summary>
 	private void AddKnownFiles(FolderEntity root)
 	{
+		// One row is one object, and the rows go in the order of the objects in their folders.
+		(string Folder, string Name, EntityKind Kind, string Text)[] files =
+		[
+			("Data", "appsettings.json", EntityKind.File, SampleDocuments.CreateJson(_faker)),
+			("Data", "catalog.xml", EntityKind.File, SampleDocuments.CreateXml(_faker)),
+			("Documents", "notes.txt", EntityKind.File, CreatePlainText()),
+			("Datasets", "Values", EntityKind.Dataset, SerializeRecords(_records.CreateValueRecords(DatasetRecordCount))),
+			("Datasets", "Key values", EntityKind.Dataset, SerializeRecords(_records.CreateKeyValueRecords(DatasetRecordCount))),
+			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels)))
+		];
+
 		Dictionary<string, FolderEntity> folders = [];
 
-		foreach ((string folderName, string name, Func<string> createText) in KnownFiles)
+		foreach ((string folderName, string name, EntityKind kind, string text) in files)
 		{
 			if (!folders.TryGetValue(folderName, out FolderEntity? folder))
 			{
@@ -219,8 +250,8 @@ internal sealed class SampleHierarchy
 			AddFile(
 				folder,
 				name,
-				EntityKind.File,
-				TextDefaults.Encoding.GetBytes(createText()));
+				kind,
+				TextDefaults.Encoding.GetBytes(text));
 		}
 	}
 
