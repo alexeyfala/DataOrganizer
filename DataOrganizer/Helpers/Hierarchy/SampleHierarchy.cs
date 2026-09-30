@@ -43,6 +43,11 @@ internal sealed class SampleHierarchy
 	private const int GroupedRecordCount = 2;
 
 	/// <summary>
+	/// Number of records of each type in the large dataset.
+	/// </summary>
+	private const int LargeRecordCount = 350;
+
+	/// <summary>
 	/// Number of datasets in each folder of the random branch.
 	/// </summary>
 	private const int RandomDatasetCount = 1;
@@ -225,20 +230,32 @@ internal sealed class SampleHierarchy
 			("Code", "Program.cs", EntityKind.File, SampleText.CSharp),
 			("Code", "Module.fs", EntityKind.File, SampleText.FSharp),
 			("Code", "Module.vb", EntityKind.File, SampleText.VisualBasic),
+			("Code", "main.c", EntityKind.File, SampleText.C),
 			("Code", "main.cpp", EntityKind.File, SampleText.CPlusPlus),
 			("Code", "Main.java", EntityKind.File, SampleText.Java),
 			("Code", "main.go", EntityKind.File, SampleText.Go),
 			("Code", "main.rs", EntityKind.File, SampleText.Rust),
+			("Code", "Main.swift", EntityKind.File, SampleText.Swift),
+			("Code", "main.dart", EntityKind.File, SampleText.Dart),
 			("Scripts", "script.py", EntityKind.File, SampleText.Python),
 			("Scripts", "script.js", EntityKind.File, SampleText.JavaScript),
 			("Scripts", "script.ps1", EntityKind.File, SampleText.PowerShell),
 			("Scripts", "script.sh", EntityKind.File, SampleText.Shell),
 			("Scripts", "script.bat", EntityKind.File, SampleText.Batch),
+			("Scripts", "script.rb", EntityKind.File, SampleText.Ruby),
+			("Scripts", "script.lua", EntityKind.File, SampleText.Lua),
+			("Scripts", "script.pl", EntityKind.File, SampleText.Perl),
+			("Scripts", "script.php", EntityKind.File, SampleText.Php),
 			("Web", "index.html", EntityKind.File, SampleDocuments.CreateHtml(_faker)),
 			("Web", "styles.css", EntityKind.File, SampleDocuments.CreateCss(_faker)),
+			("Web", "styles.scss", EntityKind.File, SampleDocuments.CreateScss(_faker)),
 			("Web", "app.ts", EntityKind.File, SampleText.TypeScript),
+			("Web", "App.tsx", EntityKind.File, SampleText.TypeScriptReact),
+			("Web", "Index.cshtml", EntityKind.File, SampleText.Razor),
 			("Data", "appsettings.json", EntityKind.File, SampleDocuments.CreateJson(_faker)),
+			("Data", "settings.jsonc", EntityKind.File, SampleDocuments.CreateJsonWithComments(_faker)),
 			("Data", "catalog.xml", EntityKind.File, SampleDocuments.CreateXml(_faker)),
+			("Data", "transform.xsl", EntityKind.File, SampleText.Xsl),
 			("Data", "config.yaml", EntityKind.File, SampleDocuments.CreateYaml(_faker)),
 			("Data", "settings.ini", EntityKind.File, SampleDocuments.CreateIni(_faker)),
 			("Data", "query.sql", EntityKind.File, SampleDocuments.CreateSql(_faker)),
@@ -246,9 +263,18 @@ internal sealed class SampleHierarchy
 			("Documents", "README.md", EntityKind.File, SampleDocuments.CreateMarkdown(_faker)),
 			("Documents", "notes.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
 			("Documents", "app.log", EntityKind.File, SampleDocuments.CreateLog(_faker)),
+			("Documents", "article.tex", EntityKind.File, SampleDocuments.CreateLatex(_faker)),
+			("Documents", "changes.diff", EntityKind.File, SampleDocuments.CreateDiff(_faker)),
+			("Project", "App.csproj", EntityKind.File, SampleText.MsBuild),
+			("Project", "MainWindow.axaml", EntityKind.File, SampleText.Xaml),
+			("Project", "build.dockerfile", EntityKind.File, SampleText.Dockerfile),
+			("Project", "build.mk", EntityKind.File, SampleText.Makefile),
+			("Project", ".gitignore", EntityKind.File, SampleText.GitIgnore),
+			("Project", ".editorconfig", EntityKind.File, SampleText.EditorConfig),
 			("Datasets", "Values", EntityKind.Dataset, SerializeRecords(_records.CreateValueRecords(DatasetRecordCount))),
 			("Datasets", "Key values", EntityKind.Dataset, SerializeRecords(_records.CreateKeyValueRecords(DatasetRecordCount))),
-			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels)))
+			("Datasets", "Groups", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(GroupedRecordCount, RecordLevels))),
+			("Datasets", "Large", EntityKind.Dataset, SerializeRecords(_records.CreateRandomRecords(LargeRecordCount)))
 		];
 
 		Dictionary<string, FolderEntity> folders = [];

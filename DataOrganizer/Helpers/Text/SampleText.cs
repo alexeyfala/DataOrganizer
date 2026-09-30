@@ -41,6 +41,62 @@ internal static class SampleText
 		""".ReplaceLineEndings("\r\n");
 
 	/// <summary>
+	/// A C source file of a stack of numbers.
+	/// </summary>
+	public static string C { get; } = """
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+
+		// A stack of numbers on the heap.
+		// It grows when it runs out of room.
+
+		/*
+		 * The stack doubles its room each time it is full,
+		 * so a push stays fast on average.
+		 */
+
+		typedef struct
+		{
+		    int *items;
+		    size_t count;
+		    size_t capacity;
+		} Stack;
+
+		#pragma region Stack
+		static void push(Stack *stack, int value)
+		{
+		    if (stack->count == stack->capacity)
+		    {
+		        stack->capacity = stack->capacity ? stack->capacity * 2 : 4;
+		        stack->items = realloc(stack->items, stack->capacity * sizeof(int));
+		    }
+		    stack->items[stack->count++] = value;
+		}
+
+		static int pop(Stack *stack)
+		{
+		    return stack->items[--stack->count];
+		}
+		#pragma endregion
+
+		int main(void)
+		{
+		    Stack stack = { 0 };
+		    for (int i = 1; i <= 10; i++)
+		    {
+		        push(&stack, i * i);
+		    }
+		    while (stack.count > 0)
+		    {
+		        printf("%d\n", pop(&stack));
+		    }
+		    free(stack.items);
+		    return 0;
+		}
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// A C++ source file of a queue of tasks.
 	/// </summary>
 	public static string CPlusPlus { get; } = """
@@ -181,6 +237,100 @@ internal static class SampleText
 		""".ReplaceLineEndings();
 
 	/// <summary>
+	/// A Dart source file of a deck of cards.
+	/// </summary>
+	public static string Dart { get; } = """
+		import 'dart:collection';
+		import 'dart:math';
+
+		// A deck of cards that deals hands.
+		// The seed of the shuffle keeps the hands the same.
+
+		/*
+		 * A deck holds every card once,
+		 * and a deal takes the cards from the top.
+		 */
+
+		/// A card with its rank and suit.
+		class Card {
+		  const Card(this.rank, this.suit);
+
+		  final String rank;
+		  final String suit;
+
+		  @override
+		  String toString() => '$rank$suit';
+		}
+
+		class Deck {
+		  Deck(int seed) {
+		    for (final suit in ['S', 'H', 'D', 'C']) {
+		      for (final rank in ['A', 'K', 'Q', 'J', '10']) {
+		        _cards.add(Card(rank, suit));
+		      }
+		    }
+		    final shuffled = _cards.toList()..shuffle(Random(seed));
+		    _cards
+		      ..clear()
+		      ..addAll(shuffled);
+		  }
+
+		  final Queue<Card> _cards = Queue<Card>();
+
+		  List<Card> deal(int count) => [for (var i = 0; i < count; i++) _cards.removeFirst()];
+		}
+
+		void main() {
+		  final deck = Deck(42);
+		  print(deck.deal(5).join(' '));
+		}
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A Dockerfile that builds the samples in one stage and runs them in another.
+	/// </summary>
+	public static string Dockerfile { get; } = """
+		# Builds the samples and runs them in a small image.
+		# The build and the run use two stages.
+
+		FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+		WORKDIR /src
+		COPY . .
+		RUN dotnet publish App.csproj \
+		    --configuration Release \
+		    --output /app
+
+		FROM mcr.microsoft.com/dotnet/runtime:10.0
+		WORKDIR /app
+		COPY --from=build /app .
+		ENV DOTNET_ENVIRONMENT=Production
+		ENTRYPOINT ["dotnet", "App.dll"]
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// An EditorConfig file of the style of the samples.
+	/// </summary>
+	public static string EditorConfig { get; } = """
+		# The style of the code of the samples.
+		# The file nearest to a source file wins.
+
+		root = true
+
+		[*]
+		charset = utf-8
+		end_of_line = lf
+		insert_final_newline = true
+		indent_style = space
+		indent_size = 4
+
+		[*.{json,yml,yaml}]
+		indent_size = 2
+
+		[Makefile]
+		indent_style = tab
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// An F# source file of shapes and their areas.
 	/// </summary>
 	public static string FSharp { get; } = """
@@ -234,6 +384,25 @@ internal static class SampleText
 		#if DEBUG
 		printfn "%s" (describe [ Circle 1.0; Rectangle (2.0, 3.0); Triangle (3.0, 4.0, 5.0) ])
 		#endif
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A Git ignore file of the results of a build and the files of editors.
+	/// </summary>
+	public static string GitIgnore { get; } = """
+		# Results of the build.
+		bin/
+		obj/
+
+		# Files of the editors.
+		.vs/
+		.idea/
+		*.user
+		*.suo
+
+		# Files that the samples make.
+		*.log
+		*.tmp
 		""".ReplaceLineEndings();
 
 	/// <summary>
@@ -397,6 +566,176 @@ internal static class SampleText
 		.Paragraph();
 
 	/// <summary>
+	/// A Lua script that prints a greeting and waits for Enter.
+	/// </summary>
+	public static string Lua { get; } = """
+		-- Prints a short greeting and the time, then waits for Enter.
+		-- Nothing else happens: no files, no network.
+
+		local string = require("string")
+		local table = require("table")
+
+		--[[
+		The greeting depends on the hour of the day,
+		as in the other scripts of the samples.
+		]]
+
+		local function greeting(hour)
+		  if hour < 12 then
+		    return "Good morning!"
+		  elseif hour < 18 then
+		    return "Good afternoon!"
+		  else
+		    return "Good evening!"
+		  end
+		end
+
+		local lines = { greeting(tonumber(os.date("%H"))) }
+		for step = 1, 3 do
+		  table.insert(lines, string.format("Step %d", step))
+		end
+		print(table.concat(lines, "\n"))
+		io.write("Press Enter to close...")
+		io.read()
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A makefile that builds, tests and cleans the samples, with its recipes indented by tabs.
+	/// </summary>
+	public static string Makefile { get; } = """
+		# Builds, tests and cleans the samples.
+		# Every target is a phony one.
+
+		include config.mk
+		-include local.mk
+
+		CONFIGURATION ?= Debug
+		OUTPUT := bin/$(CONFIGURATION)
+
+		.PHONY: all build test clean
+
+		all: build test
+
+		build:
+			dotnet build App.csproj --configuration $(CONFIGURATION)
+
+		test: build
+			dotnet test --no-build --configuration $(CONFIGURATION)
+
+		clean:
+			rm -rf $(OUTPUT)
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// An MSBuild project of a console application.
+	/// </summary>
+	public static string MsBuild { get; } = """
+		<Project Sdk="Microsoft.NET.Sdk">
+
+		  <!--
+		    A console application of the samples,
+		    with the settings of its build in one group.
+		  -->
+		  <PropertyGroup>
+		    <OutputType>Exe</OutputType>
+		    <TargetFramework>net10.0</TargetFramework>
+		    <Nullable>enable</Nullable>
+		    <ImplicitUsings>enable</ImplicitUsings>
+		    <RootNamespace>Samples</RootNamespace>
+		  </PropertyGroup>
+
+		  <ItemGroup>
+		    <PackageReference Include="Serilog" Version="4.3.0" />
+		    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		  </ItemGroup>
+
+		  <ItemGroup>
+		    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+		  </ItemGroup>
+
+		</Project>
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A Perl script that prints a greeting and waits for Enter.
+	/// </summary>
+	public static string Perl { get; } = """
+		#!/usr/bin/env perl
+		# Prints a short greeting and the date, then waits for Enter.
+		# Nothing else happens: no files, no network.
+
+		use strict;
+		use warnings;
+		use POSIX qw(strftime);
+
+		=pod
+
+		The greeting depends on the hour of the day,
+		as in the other scripts of the samples.
+
+		=cut
+
+		#region Greeting
+		sub greeting {
+		    my ($hour) = @_;
+		    if ($hour < 12) {
+		        return 'Good morning!';
+		    }
+		    elsif ($hour < 18) {
+		        return 'Good afternoon!';
+		    }
+		    return 'Good evening!';
+		}
+		#endregion
+
+		my $hour = (localtime)[2];
+		print greeting($hour), "\n";
+		print strftime('Today is %Y-%m-%d.', localtime), "\n";
+		print 'Press Enter to close...';
+		my $answer = <STDIN>;
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A PHP script that prints a greeting and waits for Enter.
+	/// </summary>
+	public static string Php { get; } = """
+		<?php
+		/*
+		 * Prints a short greeting, then waits for Enter.
+		 * Nothing else happens: no files, no network.
+		 */
+
+		declare(strict_types=1);
+
+		namespace Samples;
+
+		use DateTimeImmutable;
+		use InvalidArgumentException;
+
+		// Messages of the sample.
+		// They stay in ASCII to print in any console.
+
+		#region Greeting
+		#[\JetBrains\PhpStorm\Pure]
+		function greeting(int $hour): string
+		{
+		    if ($hour < 0 || $hour > 23) {
+		        throw new InvalidArgumentException("No such hour: $hour");
+		    }
+		    if ($hour < 12) {
+		        return 'Good morning!';
+		    }
+		    return $hour < 18 ? 'Good afternoon!' : 'Good evening!';
+		}
+		#endregion
+
+		$now = new DateTimeImmutable();
+		echo greeting((int) $now->format('G')), PHP_EOL;
+		echo 'Press Enter to close...';
+		fgets(STDIN);
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// A PowerShell script that prints a greeting and waits for Enter.
 	/// </summary>
 	public static string PowerShell { get; } = """
@@ -486,6 +825,94 @@ internal static class SampleText
 		if __name__ == "__main__":
 		    main()
 		"""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A Razor page of the orders of a day.
+	/// </summary>
+	public static string Razor { get; } = """
+		@page
+		@using System.Globalization
+		@using Samples.Models
+		@model IndexModel
+
+		@{
+		    ViewData["Title"] = "Orders";
+		}
+
+		<!--
+		    The orders of the day,
+		    each with its total.
+		-->
+
+		<h1>@ViewData["Title"]</h1>
+
+		@if (Model.Orders.Count == 0)
+		{
+		    <p>No orders yet.</p>
+		}
+		else
+		{
+		    <table>
+		        <thead>
+		            <tr>
+		                <th>Number</th>
+		                <th>Total</th>
+		            </tr>
+		        </thead>
+		        <tbody>
+		            @foreach (var order in Model.Orders)
+		            {
+		                <tr>
+		                    <td>@order.Number</td>
+		                    <td>@order.Total.ToString("C", CultureInfo.CurrentCulture)</td>
+		                </tr>
+		            }
+		        </tbody>
+		    </table>
+		}
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A Ruby script that prints a greeting and waits for Enter.
+	/// </summary>
+	public static string Ruby { get; } = """
+		#!/usr/bin/env ruby
+		# Prints a short greeting and the date, then waits for Enter.
+		# Nothing else happens: no files, no network.
+
+		require 'date'
+		require 'json'
+
+		=begin
+		The greeting depends on the hour of the day,
+		as in the other scripts of the samples.
+		=end
+
+		# A greeting for a person.
+		class Greeter
+		  def initialize(name)
+		    @name = name
+		  end
+
+		  def greet
+		    hour = Time.now.hour
+		    part =
+		      if hour < 12
+		        'morning'
+		      elsif hour < 18
+		        'afternoon'
+		      else
+		        'evening'
+		      end
+		    "Good #{part}, #{@name}!"
+		  end
+		end
+
+		puts Greeter.new(ENV.fetch('USERNAME', ENV.fetch('USER', 'friend'))).greet
+		puts JSON.generate({ today: Date.today.to_s })
+		print 'Press Enter to close...'
+		$stdin.gets
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// A Rust source file of a small bank.
@@ -588,6 +1015,51 @@ internal static class SampleText
 		""".ReplaceLineEndings("\n");
 
 	/// <summary>
+	/// A Swift source file of a countdown.
+	/// </summary>
+	public static string Swift { get; } = """
+		import Dispatch
+		import Foundation
+
+		// A timer that counts down in seconds.
+		// The values are made up for the sample.
+
+		/*
+		 A countdown ends when it reaches zero,
+		 and each tick prints the seconds that are left.
+		 */
+
+		/// A countdown of whole seconds.
+		struct Countdown {
+		    private(set) var seconds: Int
+
+		    mutating func tick() -> Bool {
+		        guard seconds > 0 else {
+		            return false
+		        }
+		        seconds -= 1
+		        return true
+		    }
+		}
+
+		enum Level: String, CaseIterable {
+		    case low, medium, high
+		}
+
+		#if DEBUG
+		print("Debug build")
+		#endif
+
+		var countdown = Countdown(seconds: 3)
+		while countdown.tick() {
+		    print("\(countdown.seconds) left")
+		}
+		for level in Level.allCases {
+		    print(level.rawValue)
+		}
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// A TypeScript module of a list of tasks.
 	/// </summary>
 	public static string TypeScript { get; } = """
@@ -638,6 +1110,55 @@ internal static class SampleText
 
 		export function describe(store: TaskStore): string[] {
 		  return store.open().map((task) => `${task.id}. ${task.title} (${formatDate(task.createdAt)})`);
+		}
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// A TypeScript module of React components that show notes.
+	/// </summary>
+	public static string TypeScriptReact { get; } = """
+		import { useState } from "react";
+		import type { ReactNode } from "react";
+		import { formatDate } from "./format";
+
+		// A card that shows a note and its date.
+		// The data stays in the memory of the page.
+
+		/**
+		 * The props of a card of a note.
+		 */
+		interface NoteCardProps {
+		  title: string;
+		  createdAt: Date;
+		  children?: ReactNode;
+		}
+
+		//#region Components
+		export function NoteCard({ title, createdAt, children }: NoteCardProps) {
+		  const [open, setOpen] = useState(false);
+		  return (
+		    <article className="note">
+		      <header onClick={() => setOpen(!open)}>
+		        <h2>{title}</h2>
+		        <time>{formatDate(createdAt)}</time>
+		      </header>
+		      {open && <section>{children}</section>}
+		    </article>
+		  );
+		}
+		//#endregion
+
+		export default function App() {
+		  return (
+		    <main>
+		      <NoteCard title="Groceries" createdAt={new Date()}>
+		        <ul>
+		          <li>Milk</li>
+		          <li>Bread</li>
+		        </ul>
+		      </NoteCard>
+		    </main>
+		  );
 		}
 		""".ReplaceLineEndings();
 
@@ -703,6 +1224,65 @@ internal static class SampleText
 		    End Module
 
 		End Namespace
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// An Avalonia window in XAML with a list of notes and the text of the chosen one.
+	/// </summary>
+	public static string Xaml { get; } = """
+		<Window xmlns="https://github.com/avaloniaui"
+		        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		        x:Class="Samples.MainWindow"
+		        Title="Samples"
+		        Width="480"
+		        Height="320">
+
+		  <!--
+		    A list of notes on the left
+		    and the text of the chosen note on the right.
+		  -->
+		  <Grid ColumnDefinitions="200,*">
+		    <ListBox x:Name="Notes" Grid.Column="0">
+		      <ListBoxItem>First note</ListBoxItem>
+		      <ListBoxItem>Second note</ListBoxItem>
+		    </ListBox>
+
+		    <StackPanel Grid.Column="1" Margin="8" Orientation="Vertical" Spacing="4">
+		      <TextBlock Text="Title" FontWeight="Bold" />
+		      <TextBox AcceptsReturn="True" TextWrapping="Wrap" />
+		    </StackPanel>
+		  </Grid>
+		</Window>
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// An XSL transformation that turns a catalog of products into a table of HTML.
+	/// </summary>
+	public static string Xsl { get; } = """
+		<?xml version="1.0" encoding="utf-8"?>
+		<!--
+		  Turns the catalog of products into a page of HTML,
+		  one row of a table for each product.
+		-->
+		<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+		  <xsl:output method="html" indent="yes" />
+
+		  <xsl:template match="/catalog">
+		    <html>
+		      <body>
+		        <table>
+		          <xsl:for-each select="product">
+		            <xsl:sort select="name" />
+		            <tr>
+		              <td><xsl:value-of select="name" /></td>
+		              <td><xsl:value-of select="price" /></td>
+		            </tr>
+		          </xsl:for-each>
+		        </table>
+		      </body>
+		    </html>
+		  </xsl:template>
+		</xsl:stylesheet>
 		""".ReplaceLineEndings();
 	#endregion
 }

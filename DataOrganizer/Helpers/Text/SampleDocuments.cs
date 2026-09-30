@@ -164,6 +164,33 @@ internal static partial class SampleDocuments
 	}
 
 	/// <summary>
+	/// Returns a unified diff of two versions of a text, in two hunks.
+	/// </summary>
+	public static string CreateDiff(Faker faker)
+	{
+		return $"""
+			diff --git a/notes.txt b/notes.txt
+			index {faker.Random.Hexadecimal(7, string.Empty)}..{faker.Random.Hexadecimal(7, string.Empty)} 100644
+			--- a/notes.txt
+			+++ b/notes.txt
+			@@ -1,5 +1,6 @@
+			 {faker.Lorem.Sentence()}
+			 {faker.Lorem.Sentence()}
+			-{faker.Lorem.Sentence()}
+			+{faker.Lorem.Sentence()}
+			+{faker.Lorem.Sentence()}
+			 {faker.Lorem.Sentence()}
+			 {faker.Lorem.Sentence()}
+			@@ -12,3 +13,3 @@
+			 {faker.Lorem.Sentence()}
+			-{faker.Lorem.Sentence()}
+			+{faker.Lorem.Sentence()}
+			 {faker.Lorem.Sentence()}
+
+			""".ReplaceLineEndings();
+	}
+
+	/// <summary>
 	/// Returns an HTML text of a page with navigation, sections, a table and a comment of several lines.
 	/// </summary>
 	public static string CreateHtml(Faker faker)
@@ -251,6 +278,87 @@ internal static partial class SampleDocuments
 	public static string CreateJson(Faker faker) => CreateSettings(faker).ToJsonString(JsonOptions);
 
 	/// <summary>
+	/// Returns a JSON text with comments of the settings of an editor.
+	/// </summary>
+	public static string CreateJsonWithComments(Faker faker)
+	{
+		return $$"""
+			// Settings of an editor.
+			// Comments like these are allowed in this format.
+			{
+			  /* The look of the editor. */
+			  "theme": {{QuoteJson(faker.PickRandom("Light", "Dark"))}},
+			  "fontSize": {{faker.Random.Int(10, 18)}},
+			  "wordWrap": {{(faker.Random.Bool() ? "true" : "false")}},
+
+			  // Files that open on start.
+			  "recentFiles": [
+			    {{QuoteJson(faker.System.FilePath())}},
+			    {{QuoteJson(faker.System.FilePath())}},
+			    {{QuoteJson(faker.System.FilePath())}}
+			  ],
+
+			  /*
+			   * Keys of the commands,
+			   * each a key with its modifiers.
+			   */
+			  "keys": {
+			    "save": "Ctrl+S",
+			    "find": "Ctrl+F",
+			    "fold": "Ctrl+M"
+			  }
+			}
+
+			""".ReplaceLineEndings();
+	}
+
+	/// <summary>
+	/// Returns a LaTeX article with packages, sections, a list, an equation, comments and a region.
+	/// </summary>
+	public static string CreateLatex(Faker faker)
+	{
+		return $$"""
+			\documentclass[11pt]{article}
+
+			\usepackage[utf8]{inputenc}
+			\usepackage{amsmath}
+			\usepackage{hyperref}
+
+			% {{faker.Lorem.Sentence()}}
+			% {{faker.Lorem.Sentence()}}
+
+			\title{{{faker.Commerce.ProductName()}}}
+			\author{{{faker.Name.FullName()}}}
+			\date{\today}
+
+			\begin{document}
+
+			\maketitle
+
+			% region Introduction
+			\section{{{CreateHeading(faker)}}}
+			{{faker.Lorem.Paragraph()}}
+			% endregion
+
+			\section{{{CreateHeading(faker)}}}
+			{{faker.Lorem.Paragraph()}}
+
+			\begin{itemize}
+			  \item {{faker.Lorem.Sentence()}}
+			  \item {{faker.Lorem.Sentence()}}
+			  \item {{faker.Lorem.Sentence()}}
+			\end{itemize}
+
+			\begin{equation}
+			  E = mc^2
+			\end{equation}
+
+			\end{document}
+
+			""".ReplaceLineEndings();
+	}
+
+	/// <summary>
 	/// Returns a log of an application, where each error carries its exception.
 	/// </summary>
 	public static string CreateLog(Faker faker)
@@ -331,6 +439,50 @@ internal static partial class SampleDocuments
 			```
 
 			[{faker.Company.CompanyName()}]({faker.Internet.Url()})
+
+			""".ReplaceLineEndings();
+	}
+
+	/// <summary>
+	/// Returns an SCSS text of a style sheet with modules, variables, nesting, a mixin, comments and a region.
+	/// </summary>
+	public static string CreateScss(Faker faker)
+	{
+		return $$"""
+			@use "sass:color";
+			@use "sass:math";
+
+			// Colors of the theme.
+			// A generator made them up.
+
+			$primary: {{faker.Internet.Color()}};
+			$accent: {{faker.Internet.Color()}};
+			$gap: {{faker.Random.Int(4, 16)}}px;
+
+			/* #region Layout */
+			.{{faker.Lorem.Word()}} {
+			  color: $primary;
+			  padding: math.div($gap, 2);
+
+			  &:hover {
+			    color: color.adjust($primary, $lightness: 10%);
+			  }
+
+			  .{{faker.Lorem.Word()}} {
+			    margin: $gap;
+			    border: 1px solid $accent;
+			  }
+			}
+			/* #endregion */
+
+			@mixin card($radius: 4px) {
+			  border-radius: $radius;
+			  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+			}
+
+			.{{faker.Lorem.Word()}} {
+			  @include card({{faker.Random.Int(2, 12)}}px);
+			}
 
 			""".ReplaceLineEndings();
 	}
@@ -744,6 +896,11 @@ internal static partial class SampleDocuments
 			? $"\"{value.Replace("\"", "\"\"")}\""
 			: value;
 	}
+
+	/// <summary>
+	/// Returns a string of JSON.
+	/// </summary>
+	private static string QuoteJson(string value) => JsonSerializer.Serialize(value, JsonOptions);
 
 	/// <summary>
 	/// Returns a text literal of SQL.
