@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace DataOrganizer.Helpers.Hierarchy;
@@ -47,6 +46,7 @@ internal sealed class SampleHierarchy
 	/// Number of records of each type on each level of the dataset of groups.
 	/// </summary>
 	private const int GroupedRecordCount = 2;
+
 	/// <summary>
 	/// Number of records of each type in the large dataset.
 	/// </summary>
@@ -108,9 +108,11 @@ internal sealed class SampleHierarchy
 	private const string RunFolderPrefix = "Samples";
 
 	/// <summary>
-	/// Number of children given out so far, by the identifier of their folder.
+	/// Order of the names in a folder: regardless of case, with numbers compared by their value.
 	/// </summary>
-	private readonly Dictionary<Guid, int> _childCounts = [];
+	private static readonly StringComparer NameComparer = StringComparer.Create(
+		CultureInfo.InvariantCulture,
+		CompareOptions.IgnoreCase | CompareOptions.NumericOrdering);
 
 	/// <summary>
 	/// Contents of every dataset of the random branch.
@@ -197,7 +199,7 @@ internal sealed class SampleHierarchy
 	private static string SerializeRecords(IEnumerable<DatasetRecordBase> records) => JsonSerializer.Serialize(records, JsonDefaults.Options);
 
 	/// <summary>
-	/// Adds a file or a dataset at the end of a folder.
+	/// Adds a file or a dataset to a folder.
 	/// </summary>
 	private void AddFile(
 		FolderEntity parent,
@@ -211,7 +213,6 @@ internal sealed class SampleHierarchy
 			Contents = contents,
 			CreatedAt = _now,
 			Id = Guid.NewGuid(),
-			Index = TakeIndex(parent.Id),
 			Kind = kind,
 			Name = name,
 			Note = EncodeNote(note),
@@ -221,20 +222,10 @@ internal sealed class SampleHierarchy
 	}
 
 	/// <summary>
-	/// Adds a folder at the end of another one.
-	/// </summary>
-	private FolderEntity AddFolder(FolderEntity parent, string name, string? note = null) => AddFolder(
-		parent.Id,
-		TakeIndex(parent.Id),
-		name,
-		note);
-
-	/// <summary>
-	/// Adds a folder at a position among the children of its parent, or of the root when there is no parent.
+	/// Adds a folder to another one, or to the root when there is no parent.
 	/// </summary>
 	private FolderEntity AddFolder(
-		Guid? parentId,
-		int index,
+		FolderEntity? parent,
 		string name,
 		string? note = null)
 	{
@@ -242,11 +233,10 @@ internal sealed class SampleHierarchy
 		{
 			CreatedAt = _now,
 			Id = Guid.NewGuid(),
-			Index = index,
 			Kind = EntityKind.Folder,
 			Name = name,
 			Note = EncodeNote(note),
-			ParentId = parentId,
+			ParentId = parent?.Id,
 			UpdatedAt = _now
 		};
 
@@ -261,7 +251,7 @@ internal sealed class SampleHierarchy
 	/// </summary>
 	private void AddKnownFiles(FolderEntity root)
 	{
-		// One row is one object, and the rows go in the order of the objects in their folders.
+		// One row is one object; its place in the folder comes from its name.
 		(string Folder, string Name, EntityKind Kind, string Text)[] files =
 		[
 			("Code", "Program.cs", EntityKind.File, SampleText.CSharp),
@@ -375,7 +365,7 @@ internal sealed class SampleHierarchy
 	}
 
 	/// <summary>
-	/// Fills a folder of the random branch: subfolders above the last level, then files, then datasets.
+	/// Fills a folder of the random branch with subfolders above the last level, files and datasets.
 	/// </summary>
 	private void AddRandomContents(FolderEntity folder, string path, int level)
 	{
@@ -425,10 +415,11 @@ internal sealed class SampleHierarchy
 	private SampleObjects Build(int rootIndex)
 	{
 		FolderEntity root = AddFolder(
-			parentId: null,
-			index: rootIndex,
+			parent: null,
 			name: $"{RunFolderPrefix} {_now.ToString(RunFolderDateFormat, CultureInfo.InvariantCulture)}",
 			note: SampleNotes.RunFolder);
+
+		root.Index = rootIndex;
 
 		AddKnownFiles(root);
 
@@ -441,6 +432,8 @@ internal sealed class SampleHierarchy
 			randomFolder,
 			path: string.Empty,
 			level: 0);
+
+		SortChildren();
 
 		return new SampleObjects(
 			[.. _items],
@@ -474,13 +467,25 @@ internal sealed class SampleHierarchy
 		: null;
 
 	/// <summary>
-	/// Returns the position of the next child of a folder.
+	/// Numbers the children of every folder: subfolders first, then files and datasets, each group by name.
 	/// </summary>
-	private int TakeIndex(Guid parentId)
+	private void SortChildren()
 	{
-		ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(_childCounts, parentId, out _);
+		// The folder of the run keeps the position it was given among the objects of the root.
+		IEnumerable<IGrouping<Guid?, ExplorerItemBase>> families = _items
+			.Where(x => x.ParentId is not null)
+			.GroupBy(x => x.ParentId);
 
-		return count++;
+		foreach (IGrouping<Guid?, ExplorerItemBase> children in families)
+		{
+			foreach ((int index, ExplorerItemBase child) in children
+				.OrderBy(x => x.Kind != EntityKind.Folder)
+				.ThenBy(x => x.Name, NameComparer)
+				.Index())
+			{
+				child.Index = index;
+			}
+		}
 	}
 	#endregion
 }
