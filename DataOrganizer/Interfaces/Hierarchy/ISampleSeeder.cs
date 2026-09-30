@@ -11,7 +11,7 @@ public interface ISampleSeeder
 	#region Methods
 	/// <summary>
 	/// Adds a run of samples after the objects of the root and encrypts the folders of the run meant to be encrypted;
-	/// a sample whose hotkey clashes with one already saved goes without it.
+	/// the hotkeys of the samples keep clear of those already saved.
 	/// </summary>
 	Task SeedAsync(CancellationToken token = default);
 	#endregion

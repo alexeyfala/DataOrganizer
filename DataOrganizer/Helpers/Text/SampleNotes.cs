@@ -126,16 +126,16 @@ internal static class SampleNotes
 	/// Returns the note that lists the hotkeys of the snippets by the names of their files and gives the password of
 	/// their encrypted folder.
 	/// </summary>
-	public static string CreateSnippetsFolder(IEnumerable<(string Name, KeyStroke[] Hotkey)> snippets, string password)
+	public static string CreateSnippetsFolder(IEnumerable<(string Name, KeyStroke[]? Hotkey)> snippets, string password)
 	{
-		IEnumerable<string> hotkeys = snippets.Select(static x => $"{x.Hotkey.GetHotkeysPresentation()}  {x.Name}");
+		IEnumerable<string> hotkeys = snippets.Select(static x => $"{x.Hotkey?.GetHotkeysPresentation() ?? "No free hotkey"}  {x.Name}");
 
 		return string.Join(
 			Environment.NewLine,
 			[
 				.. hotkeys,
 				$"Password of the encrypted folder: {password}",
-				"A hotkey that another file already has stays with that file."
+				"When a hotkey is taken, its first key moves to the right: Q, W, E and so on."
 			]);
 	}
 	#endregion

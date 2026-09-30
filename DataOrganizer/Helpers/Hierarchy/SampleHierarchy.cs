@@ -115,6 +115,16 @@ internal sealed class SampleHierarchy
 	private const EventMask SnippetMask = EventMask.LeftCtrl;
 
 	/// <summary>
+	/// First keys of the hotkeys of the snippets, tried from left to right along the rows of the keyboard, the top row first.
+	/// </summary>
+	private static readonly KeyCode[] HotkeyLeaders =
+	[
+		KeyCode.VcQ, KeyCode.VcW, KeyCode.VcE, KeyCode.VcR, KeyCode.VcT, KeyCode.VcY, KeyCode.VcU, KeyCode.VcI, KeyCode.VcO, KeyCode.VcP,
+		KeyCode.VcA, KeyCode.VcS, KeyCode.VcD, KeyCode.VcF, KeyCode.VcG, KeyCode.VcH, KeyCode.VcJ, KeyCode.VcK, KeyCode.VcL,
+		KeyCode.VcZ, KeyCode.VcX, KeyCode.VcC, KeyCode.VcV, KeyCode.VcB, KeyCode.VcN, KeyCode.VcM
+	];
+
+	/// <summary>
 	/// Order of the names in a folder: regardless of case, with numbers compared by their value.
 	/// </summary>
 	private static readonly StringComparer NameComparer = StringComparer.Create(
@@ -162,15 +172,22 @@ internal sealed class SampleHierarchy
 	private readonly SampleRecords _records = new();
 
 	/// <summary>
+	/// Hotkeys a snippet must not clash with: those of the saved files and those given out so far.
+	/// </summary>
+	private readonly List<KeyStroke[]> _takenHotkeys;
+
+	/// <summary>
 	/// Number of made-up notes given out so far.
 	/// </summary>
 	private int _noteCount;
 	#endregion
 
 	#region Constructors
-	private SampleHierarchy(DateTime now)
+	private SampleHierarchy(DateTime now, KeyStroke[][] takenHotkeys)
 	{
 		_now = now;
+
+		_takenHotkeys = [.. takenHotkeys];
 
 		_plainContents = TextDefaults
 			.Encoding
@@ -189,12 +206,29 @@ internal sealed class SampleHierarchy
 
 	#region Methods
 	/// <summary>
-	/// Creates the objects of a run under a folder of its own at a position of the root; each object comes after its folder.
+	/// Creates the objects of a run under a folder of its own at a position of the root; each object comes after its folder,
+	/// and the hotkeys of the snippets keep clear of the given ones.
 	/// </summary>
-	public static SampleObjects Create(int rootIndex, DateTime now) => new SampleHierarchy(now).Build(rootIndex);
+	public static SampleObjects Create(
+		int rootIndex,
+		DateTime now,
+		KeyStroke[][] takenHotkeys)
+	{
+		return new SampleHierarchy(now, takenHotkeys).Build(rootIndex);
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// <c>True</c> when one hotkey is a run of keys inside the other, so that typing the longer one fires both.
+	/// </summary>
+	private static bool Clashes(KeyStroke[] first, KeyStroke[] second)
+	{
+		return first.Length >= second.Length
+			? first.AsSpan().IndexOf(second) >= 0
+			: second.AsSpan().IndexOf(first) >= 0;
+	}
+
 	/// <summary>
 	/// Returns a hotkey whose keys are all pressed with the modifier of the snippets.
 	/// </summary>
@@ -237,7 +271,7 @@ internal sealed class SampleHierarchy
 	private static string SerializeRecords(IEnumerable<DatasetRecordBase> records) => JsonSerializer.Serialize(records, JsonDefaults.Options);
 
 	/// <summary>
-	/// Adds a file or a dataset to a folder; a file with a hotkey is a favorite as well.
+	/// Adds a file or a dataset to a folder.
 	/// </summary>
 	private void AddFile(
 		FolderEntity parent,
@@ -245,6 +279,7 @@ internal sealed class SampleHierarchy
 		EntityKind kind,
 		byte[] contents,
 		string? note = null,
+		bool isFavorite = false,
 		KeyStroke[]? hotkey = null)
 	{
 		Guid id = Guid.NewGuid();
@@ -255,7 +290,7 @@ internal sealed class SampleHierarchy
 			CreatedAt = _now,
 			Hotkeys = hotkey is null ? [] : CreateHotkeyEntities(hotkey, id),
 			Id = id,
-			IsFavorite = hotkey is not null,
+			IsFavorite = isFavorite,
 			Kind = kind,
 			Name = name,
 			Note = EncodeNote(note),
@@ -364,20 +399,22 @@ internal sealed class SampleHierarchy
 			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker))
 		];
 
-		// The snippets are favorites with a hotkey: Q, then two keys along a column of the keyboard, down it for the
-		// plain snippets and up it for the encrypted ones.
-		Dictionary<string, KeyStroke[]> snippets = new()
+		// The snippets are favorites with a hotkey: a first key, then two keys along a column of the keyboard, down it for
+		// the plain snippets and up it for the encrypted ones.
+		Dictionary<string, KeyCode[]> snippets = new()
 		{
-			["Snippets/address.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcA, KeyCode.VcZ),
-			["Snippets/bank.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcS, KeyCode.VcX),
-			["Snippets/email.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcD, KeyCode.VcC),
-			["Snippets/phone.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcF, KeyCode.VcV),
-			["Snippets/signature.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcG, KeyCode.VcB),
-			["Snippets/Secret/card.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcZ, KeyCode.VcA),
-			["Snippets/Secret/door.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcX, KeyCode.VcS),
-			["Snippets/Secret/router.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcC, KeyCode.VcD),
-			["Snippets/Secret/wifi.txt"] = CreateHotkey(KeyCode.VcQ, KeyCode.VcV, KeyCode.VcF)
+			["Snippets/address.txt"] = [KeyCode.VcA, KeyCode.VcZ],
+			["Snippets/bank.txt"] = [KeyCode.VcS, KeyCode.VcX],
+			["Snippets/email.txt"] = [KeyCode.VcD, KeyCode.VcC],
+			["Snippets/phone.txt"] = [KeyCode.VcF, KeyCode.VcV],
+			["Snippets/signature.txt"] = [KeyCode.VcG, KeyCode.VcB],
+			["Snippets/Secret/card.txt"] = [KeyCode.VcZ, KeyCode.VcA],
+			["Snippets/Secret/door.txt"] = [KeyCode.VcX, KeyCode.VcS],
+			["Snippets/Secret/router.txt"] = [KeyCode.VcC, KeyCode.VcD],
+			["Snippets/Secret/wifi.txt"] = [KeyCode.VcV, KeyCode.VcF]
 		};
+
+		Dictionary<string, KeyStroke[]?> hotkeys = snippets.ToDictionary(static x => x.Key, x => TakeHotkey(x.Value));
 
 		// Only a few objects have a note, found by their path.
 		Dictionary<string, string> notes = new()
@@ -389,7 +426,7 @@ internal sealed class SampleHierarchy
 			["Encrypted/Private/Scripts/backup.bat"] = SampleNotes.EncryptedScript,
 			["Scripts"] = SampleNotes.Scripts,
 			["Snippets"] = SampleNotes.CreateSnippetsFolder(
-				snippets.Select(static x => (x.Key["Snippets/".Length..], x.Value)),
+				hotkeys.Select(static x => (x.Key["Snippets/".Length..], x.Value)),
 				KeeperPassword),
 			["Snippets/Secret"] = SampleNotes.Keeper
 		};
@@ -409,7 +446,8 @@ internal sealed class SampleHierarchy
 				kind,
 				TextDefaults.Encoding.GetBytes(text),
 				notes.GetValueOrDefault(path),
-				snippets.GetValueOrDefault(path));
+				snippets.ContainsKey(path),
+				hotkeys.GetValueOrDefault(path));
 		}
 
 		// Returns the folder of a path, made on first use after the folders above it.
@@ -560,6 +598,29 @@ internal sealed class SampleHierarchy
 				child.Index = index;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Gives out the hotkey of a snippet: the first key that leaves it clear of the hotkeys in use, then the keys of the
+	/// snippet; <c>null</c> when every first key is taken.
+	/// </summary>
+	private KeyStroke[]? TakeHotkey(KeyCode[] keys)
+	{
+		foreach (KeyCode leader in HotkeyLeaders)
+		{
+			KeyStroke[] hotkey = CreateHotkey([leader, .. keys]);
+
+			if (_takenHotkeys.Any(x => Clashes(x, hotkey)))
+			{
+				continue;
+			}
+
+			_takenHotkeys.Add(hotkey);
+
+			return hotkey;
+		}
+
+		return null;
 	}
 	#endregion
 }
