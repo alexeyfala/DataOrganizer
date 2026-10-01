@@ -823,4 +823,7 @@
   <data name="UnfoldAll" xml:space="preserve">
     <value>Unfold All</value>
   </data>
+  <data name="FailedToOpenInOS" xml:space="preserve">
+    <value>Failed to open in OS</value>
+  </data>
 </root>

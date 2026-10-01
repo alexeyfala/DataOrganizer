@@ -843,4 +843,7 @@
   <data name="UnfoldAll" xml:space="preserve">
     <value>Развернуть все</value>
   </data>
+  <data name="FailedToOpenInOS" xml:space="preserve">
+    <value>Не удалось открыть в ОС</value>
+  </data>
 </root>

@@ -727,6 +727,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to open in OS.
+        /// </summary>
+        public static string FailedToOpenInOS {
+            get {
+                return ResourceManager.GetString("FailedToOpenInOS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to process contents.
         /// </summary>
         public static string FailedToProcessContents {

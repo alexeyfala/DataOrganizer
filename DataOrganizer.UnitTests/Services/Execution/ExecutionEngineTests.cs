@@ -4,13 +4,16 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Serilog;
 using Shared.Interfaces;
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -492,6 +495,66 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: tells the user that a file could not be opened.
+	/// </summary>
+	[Test]
+	public async Task ExecuteAsync_Reports_A_File_That_Could_Not_Be_Opened()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			fileSystem
+				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+				.Throws(new IOException());
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(fileAssociation);
+
+			builder.RegisterInstance(notification);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = true
+		};
+
+		// Act
+		bool result = await sut.ExecuteAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.ExecuteAsync" />: returns false without starting a process once the engine is disposed.
 	/// </summary>
 	[Test]
@@ -593,6 +656,60 @@ internal class ExecutionEngineTests
 		processManager
 			.Received(1)
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file into the sandbox under a name that the file system accepts.
+	/// </summary>
+	[Test]
+	public async Task ExecuteAsync_Writes_The_File_Under_A_Name_The_File_System_Accepts()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		string directoryPath = RandomValues.CreateDirectoryName();
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		dto.Name = "report?.txt";
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			sandbox
+				.GetFileDirectoryPath(dto.Id)
+				.Returns(directoryPath);
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(AssociatedAppPath);
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(fileAssociation);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		// Act
+		await sut.ExecuteAsync(parameters);
+
+		// Assert
+		await fileSystem
+			.Received(1)
+			.WriteAllBytesAsync(Path.Combine(directoryPath, "report_.txt"), Arg.Any<byte[]>());
 	}
 	#endregion
 }

@@ -1,11 +1,14 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Notifications;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -40,6 +43,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IProcessManager" />
 	private readonly IProcessManager _processManager;
 
@@ -62,6 +68,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
+		INotificationService notification,
 		IProcessManager processManager,
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
@@ -77,6 +84,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
+
+		_notification = notification;
 
 		_processManager = processManager;
 
@@ -297,8 +306,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		string directoryPath = _sandbox.GetFileDirectoryPath(parameters.File.Id);
 
-		// To prevent a directory traversal attack, all directory components must be removed from the file name.
-		string fileName = Path.GetFileName(parameters
+		// The name has no directory components, so the file cannot be written outside its directory.
+		string fileName = SandboxFileName.Create(parameters
 			.File
 			.Name);
 
@@ -402,6 +411,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			_notification.ShowErrorSnackbar($@"{Strings.FailedToOpenInOS} ""{parameters.File.Name}""");
 
 			return false;
 		}
