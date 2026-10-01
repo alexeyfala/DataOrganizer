@@ -212,9 +212,15 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<Separator Margin="16.0,0.0" IsVisible="{x:Static common:AppInfo.IsDebug}" />
+								<Separator
+									x:Name="SeedingSeparator"
+									Margin="16.0,0.0"
+									IsVisible="{x:Static common:AppInfo.IsDebug}" />
 
-								<MenuItem Command="{Binding SeedSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
+								<MenuItem
+									x:Name="SampleSeeding"
+									Command="{Binding SeedSamplesCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="SeedPlusOutline" />
@@ -224,7 +230,10 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem Command="{Binding SeedLargeSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
+								<MenuItem
+									x:Name="LargeSampleSeeding"
+									Command="{Binding SeedLargeSamplesCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="SeedPlus" />
