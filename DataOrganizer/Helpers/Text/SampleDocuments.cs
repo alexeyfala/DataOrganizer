@@ -75,6 +75,11 @@ internal static partial class SampleDocuments
 	private const string RecoveryCodeFormat = "****-****";
 
 	/// <summary>
+	/// Locale of the texts in Russian.
+	/// </summary>
+	private const string RussianLocale = "ru";
+
+	/// <summary>
 	/// Number of bytes of the signing key among the secrets.
 	/// </summary>
 	private const int SigningKeySize = 32;
@@ -468,6 +473,20 @@ internal static partial class SampleDocuments
 			.Select(_ => faker.Random.Replace(RecoveryCodeFormat));
 
 		return string.Join(Environment.NewLine, [.. codes, string.Empty]);
+	}
+
+	/// <summary>
+	/// Returns a paragraph in Russian.
+	/// </summary>
+	public static string CreateRussianText(Faker faker)
+	{
+		// The generator in Russian draws from the same source, so its text stays the same from run to run.
+		Faker russian = new(RussianLocale)
+		{
+			Random = faker.Random
+		};
+
+		return russian.Lorem.Paragraph();
 	}
 
 	/// <summary>

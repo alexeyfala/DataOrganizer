@@ -35,11 +35,6 @@ internal static class SampleNotes
 	private const int LongTextParagraphCount = 6;
 
 	/// <summary>
-	/// Locale of the notes in Russian.
-	/// </summary>
-	private const string RussianLocale = "ru";
-
-	/// <summary>
 	/// Makers of the made-up notes, one for each shape, in the order the shapes take turns.
 	/// </summary>
 	private static readonly Func<Faker, string>[] Shapes =
@@ -50,7 +45,7 @@ internal static class SampleNotes
 		CreateChecklist,
 		CreateLinks,
 		CreateLongLink,
-		CreateRussianText
+		SampleDocuments.CreateRussianText
 	];
 	#endregion
 
@@ -129,8 +124,7 @@ internal static class SampleNotes
 		Data, Documents: data and text formats.
 		Datasets: records of every type.
 		Encrypted: folders under a password.
-		Broken: files with damaged contents.
-		Names: unusual file names.
+		Edge cases: damaged contents, unusual names, other encodings.
 		Random: files of unknown types.
 		""".ReplaceLineEndings();
 
@@ -153,6 +147,21 @@ internal static class SampleNotes
 	/// Note of a dataset whose records break off in the middle.
 	/// </summary>
 	public static string TruncatedRecords { get; } = "The JSON of the records breaks off in the middle.";
+
+	/// <summary>
+	/// Note of a text in UTF-16.
+	/// </summary>
+	public static string Utf16Text { get; } = "The text is in UTF-16 with a byte order mark.";
+
+	/// <summary>
+	/// Note of a text in UTF-8 that starts with a byte order mark.
+	/// </summary>
+	public static string Utf8BomText { get; } = "The text is in UTF-8 with a byte order mark.";
+
+	/// <summary>
+	/// Note of a text in the Cyrillic code page of Windows.
+	/// </summary>
+	public static string Windows1251Text { get; } = "The text is in Windows-1251.";
 	#endregion
 
 	#region Methods
@@ -226,19 +235,5 @@ internal static class SampleNotes
 	private static string CreateLongText(Faker faker) => faker.Lorem.Paragraphs(
 		LongTextParagraphCount,
 		Environment.NewLine + Environment.NewLine);
-
-	/// <summary>
-	/// Returns a paragraph in Russian.
-	/// </summary>
-	private static string CreateRussianText(Faker faker)
-	{
-		// The generator in Russian draws from the same source, so its text stays the same from run to run.
-		Faker russian = new(RussianLocale)
-		{
-			Random = faker.Random
-		};
-
-		return russian.Lorem.Paragraph();
-	}
 	#endregion
 }

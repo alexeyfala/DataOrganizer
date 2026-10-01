@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 namespace DataOrganizer.Helpers.Hierarchy;
@@ -157,6 +158,11 @@ internal sealed class SampleHierarchy
 		CompareOptions.IgnoreCase | CompareOptions.NumericOrdering);
 
 	/// <summary>
+	/// Cyrillic code page of Windows, which .NET provides apart from its built-in encodings.
+	/// </summary>
+	private static readonly Encoding Windows1251 = CodePagesEncodingProvider.Instance.GetEncoding("windows-1251")!;
+
+	/// <summary>
 	/// Identifiers of the files made so far whose contents are to be damaged once they are encrypted.
 	/// </summary>
 	private readonly List<Guid> _damagedFileIds = [];
@@ -294,6 +300,11 @@ internal sealed class SampleHierarchy
 	/// Returns the first half of a text, so that a structured text breaks off unfinished.
 	/// </summary>
 	private static string CutInHalf(string text) => text[..(text.Length / 2)];
+
+	/// <summary>
+	/// Returns a text in an encoding, after the byte order mark of the encoding when it has one.
+	/// </summary>
+	private static byte[] Encode(string text, Encoding encoding) => [.. encoding.GetPreamble(), .. encoding.GetBytes(text)];
 
 	/// <summary>
 	/// Returns a note of an object that is not encrypted in its stored binary form.
@@ -436,15 +447,15 @@ internal sealed class SampleHierarchy
 			("Snippets/Secret", "door.txt", EntityKind.File, SampleSnippets.CreateDoorCode(_faker)),
 			("Snippets/Secret", "router.txt", EntityKind.File, SampleSnippets.CreateRouterPassword(_faker)),
 			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker)),
-			("Broken", "Records", EntityKind.Dataset, CutInHalf(SerializeRecords(_records.CreateValueRecords(DatasetRecordCount)))),
-			("Broken/Protected", "letter.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", LongName, EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", "CON.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", ForbiddenName, EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", "notes.txt.", EntityKind.File, SampleDocuments.CreateText(_faker)),
-			("Names", EmojiName, EntityKind.File, SampleDocuments.CreateText(_faker))
+			("Edge cases/Broken", "Records", EntityKind.Dataset, CutInHalf(SerializeRecords(_records.CreateValueRecords(DatasetRecordCount)))),
+			("Edge cases/Broken/Protected", "letter.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", LongName, EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", "CON.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", ForbiddenName, EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", "notes.txt.", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Edge cases/Names", EmojiName, EntityKind.File, SampleDocuments.CreateText(_faker))
 		];
 
 		// The snippets are favorites with a hotkey: a first key, then two keys along a column of the keyboard, down it for
@@ -467,20 +478,24 @@ internal sealed class SampleHierarchy
 		// Only a few objects have a note, found by their path.
 		Dictionary<string, string> notes = new()
 		{
-			["Broken"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
-			["Broken/Protected/letter.txt"] = SampleNotes.DamagedContents,
-			["Broken/Records"] = SampleNotes.TruncatedRecords,
+			["Edge cases/Broken"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
+			["Edge cases/Broken/Protected/letter.txt"] = SampleNotes.DamagedContents,
+			["Edge cases/Broken/Records"] = SampleNotes.TruncatedRecords,
+			["Edge cases/Broken/report.txt"] = SampleNotes.BinaryContents,
+			["Edge cases/Encodings/utf-16.txt"] = SampleNotes.Utf16Text,
+			["Edge cases/Encodings/utf-8-bom.txt"] = SampleNotes.Utf8BomText,
+			["Edge cases/Encodings/windows-1251.txt"] = SampleNotes.Windows1251Text,
+			[$"Edge cases/Names/{LongName}"] = SampleNotes.LongName,
+			["Edge cases/Names/CON.txt"] = SampleNotes.DeviceName,
+			["Edge cases/Names/copy.txt"] = SampleNotes.DuplicateName,
+			[$"Edge cases/Names/{ForbiddenName}"] = SampleNotes.ForbiddenCharacters,
+			["Edge cases/Names/notes.txt."] = SampleNotes.TrailingDot,
+			[$"Edge cases/Names/{EmojiName}"] = SampleNotes.EmojiName,
 			["Encrypted"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
 			["Encrypted/Passwords"] = SampleNotes.Keeper,
 			["Encrypted/Passwords/recovery-codes.txt"] = SampleNotes.RecoveryCodes,
 			["Encrypted/Private"] = SampleNotes.Keeper,
 			["Encrypted/Private/Scripts/backup.bat"] = SampleNotes.EncryptedScript,
-			[$"Names/{LongName}"] = SampleNotes.LongName,
-			["Names/CON.txt"] = SampleNotes.DeviceName,
-			["Names/copy.txt"] = SampleNotes.DuplicateName,
-			[$"Names/{ForbiddenName}"] = SampleNotes.ForbiddenCharacters,
-			["Names/notes.txt."] = SampleNotes.TrailingDot,
-			[$"Names/{EmojiName}"] = SampleNotes.EmojiName,
 			["Scripts"] = SampleNotes.Scripts,
 			["Snippets"] = SampleNotes.CreateSnippetsFolder(
 				hotkeys.Select(static x => (x.Key["Snippets/".Length..], x.Value)),
@@ -489,10 +504,10 @@ internal sealed class SampleHierarchy
 		};
 
 		// The folders that are encrypted once the objects are saved.
-		HashSet<string> keepers = ["Broken/Protected", "Encrypted/Passwords", "Encrypted/Private", "Snippets/Secret"];
+		HashSet<string> keepers = ["Edge cases/Broken/Protected", "Encrypted/Passwords", "Encrypted/Private", "Snippets/Secret"];
 
 		// The files whose ciphertext is damaged once their folder is encrypted.
-		HashSet<string> damaged = ["Broken/Protected/letter.txt"];
+		HashSet<string> damaged = ["Edge cases/Broken/Protected/letter.txt"];
 
 		Dictionary<string, FolderEntity> folders = [];
 
@@ -515,13 +530,26 @@ internal sealed class SampleHierarchy
 			}
 		}
 
-		// Binary contents cannot pass through a string, so this file stays out of the table.
-		AddFile(
-			GetOrAddFolder("Broken"),
-			"report.txt",
-			EntityKind.File,
-			_faker.Random.Bytes(BinaryLength),
-			SampleNotes.BinaryContents);
+		// These contents are written byte for byte rather than as UTF-8 text, so the files have a table of their own.
+		string russianText = SampleDocuments.CreateRussianText(_faker);
+
+		(string Folder, string Name, byte[] Contents)[] rawFiles =
+		[
+			("Edge cases/Broken", "report.txt", _faker.Random.Bytes(BinaryLength)),
+			("Edge cases/Encodings", "utf-16.txt", Encode(russianText, Encoding.Unicode)),
+			("Edge cases/Encodings", "utf-8-bom.txt", Encode(russianText, Encoding.UTF8)),
+			("Edge cases/Encodings", "windows-1251.txt", Encode(russianText, Windows1251))
+		];
+
+		foreach ((string folderPath, string name, byte[] contents) in rawFiles)
+		{
+			AddFile(
+				GetOrAddFolder(folderPath),
+				name,
+				EntityKind.File,
+				contents,
+				notes.GetValueOrDefault($"{folderPath}/{name}"));
+		}
 
 		// Returns the folder of a path, made on first use after the folders above it.
 		FolderEntity GetOrAddFolder(string path)
