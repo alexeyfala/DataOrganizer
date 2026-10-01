@@ -40,6 +40,11 @@ internal sealed class SampleHierarchy
 	private const int DatasetRecordCount = 20;
 
 	/// <summary>
+	/// Name of a file with emoji, two of them made of several characters.
+	/// </summary>
+	private const string EmojiName = "Party \U0001F389 family \U0001F468‍\U0001F469‍\U0001F467 flag \U0001F1E9\U0001F1EA.txt";
+
+	/// <summary>
 	/// Characters of a made-up extension.
 	/// </summary>
 	private const string ExtensionAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -50,6 +55,11 @@ internal sealed class SampleHierarchy
 	private const int ExtensionLength = 3;
 
 	/// <summary>
+	/// Name of a file with every character that Windows refuses in a file name.
+	/// </summary>
+	private const string ForbiddenName = "Forbidden \" * / : < > ? \\ |.txt";
+
+	/// <summary>
 	/// Number of records of each type on each level of the dataset of groups.
 	/// </summary>
 	private const int GroupedRecordCount = 2;
@@ -58,6 +68,11 @@ internal sealed class SampleHierarchy
 	/// Number of records of each type in the large dataset.
 	/// </summary>
 	private const int LargeRecordCount = 350;
+
+	/// <summary>
+	/// Number of times the words of a file name too long for a file system repeat.
+	/// </summary>
+	private const int LongNameRepeats = 12;
 
 	/// <summary>
 	/// Share of the objects of the random branch with a made-up note.
@@ -128,6 +143,11 @@ internal sealed class SampleHierarchy
 		KeyCode.VcA, KeyCode.VcS, KeyCode.VcD, KeyCode.VcF, KeyCode.VcG, KeyCode.VcH, KeyCode.VcJ, KeyCode.VcK, KeyCode.VcL,
 		KeyCode.VcZ, KeyCode.VcX, KeyCode.VcC, KeyCode.VcV, KeyCode.VcB, KeyCode.VcN, KeyCode.VcM
 	];
+
+	/// <summary>
+	/// Name of a file longer than a file system allows.
+	/// </summary>
+	private static readonly string LongName = $"{string.Join(", ", Enumerable.Repeat("a name that goes on and on", LongNameRepeats))}.txt";
 
 	/// <summary>
 	/// Order of the names in a folder: regardless of case, with numbers compared by their value.
@@ -417,7 +437,14 @@ internal sealed class SampleHierarchy
 			("Snippets/Secret", "router.txt", EntityKind.File, SampleSnippets.CreateRouterPassword(_faker)),
 			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker)),
 			("Broken", "Records", EntityKind.Dataset, CutInHalf(SerializeRecords(_records.CreateValueRecords(DatasetRecordCount)))),
-			("Broken/Protected", "letter.txt", EntityKind.File, SampleDocuments.CreateText(_faker))
+			("Broken/Protected", "letter.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", LongName, EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", "CON.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", "copy.txt", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", ForbiddenName, EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", "notes.txt.", EntityKind.File, SampleDocuments.CreateText(_faker)),
+			("Names", EmojiName, EntityKind.File, SampleDocuments.CreateText(_faker))
 		];
 
 		// The snippets are favorites with a hotkey: a first key, then two keys along a column of the keyboard, down it for
@@ -448,6 +475,12 @@ internal sealed class SampleHierarchy
 			["Encrypted/Passwords/recovery-codes.txt"] = SampleNotes.RecoveryCodes,
 			["Encrypted/Private"] = SampleNotes.Keeper,
 			["Encrypted/Private/Scripts/backup.bat"] = SampleNotes.EncryptedScript,
+			[$"Names/{LongName}"] = SampleNotes.LongName,
+			["Names/CON.txt"] = SampleNotes.DeviceName,
+			["Names/copy.txt"] = SampleNotes.DuplicateName,
+			[$"Names/{ForbiddenName}"] = SampleNotes.ForbiddenCharacters,
+			["Names/notes.txt."] = SampleNotes.TrailingDot,
+			[$"Names/{EmojiName}"] = SampleNotes.EmojiName,
 			["Scripts"] = SampleNotes.Scripts,
 			["Snippets"] = SampleNotes.CreateSnippetsFolder(
 				hotkeys.Select(static x => (x.Key["Snippets/".Length..], x.Value)),

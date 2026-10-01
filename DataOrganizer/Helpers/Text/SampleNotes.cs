@@ -66,6 +66,21 @@ internal static class SampleNotes
 	public static string DamagedContents { get; } = "One byte of the encrypted contents has been changed.";
 
 	/// <summary>
+	/// Note of a file named after a device.
+	/// </summary>
+	public static string DeviceName { get; } = "Windows reserves this name for a device.";
+
+	/// <summary>
+	/// Note of a file that shares its name with another one in its folder.
+	/// </summary>
+	public static string DuplicateName { get; } = "Another file in this folder has the same name.";
+
+	/// <summary>
+	/// Note of a file with emoji in its name.
+	/// </summary>
+	public static string EmojiName { get; } = "The name holds emoji, some of them made of several characters.";
+
+	/// <summary>
 	/// Note that tells how an encrypted script is run.
 	/// </summary>
 	public static string EncryptedScript { get; } = """
@@ -74,12 +89,22 @@ internal static class SampleNotes
 		""".ReplaceLineEndings();
 
 	/// <summary>
+	/// Note of a file with characters in its name that Windows refuses.
+	/// </summary>
+	public static string ForbiddenCharacters { get; } = "Windows does not allow these characters in a file name.";
+
+	/// <summary>
 	/// Note of a folder under a password, which is encrypted together with the folder.
 	/// </summary>
 	public static string Keeper { get; } = """
 		This note is encrypted together with the folder.
 		It shows once the password is entered.
 		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a file whose name is longer than a file system allows.
+	/// </summary>
+	public static string LongName { get; } = "The name is longer than a file system allows.";
 
 	/// <summary>
 	/// Note that explains why the files with made-up extensions open as plain text.
@@ -105,6 +130,7 @@ internal static class SampleNotes
 		Datasets: records of every type.
 		Encrypted: folders under a password.
 		Broken: files with damaged contents.
+		Names: unusual file names.
 		Random: files of unknown types.
 		""".ReplaceLineEndings();
 
@@ -117,6 +143,11 @@ internal static class SampleNotes
 		.ps1 opens in Notepad by default.
 		The others run only if their interpreter is installed.
 		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a file whose name ends with a dot.
+	/// </summary>
+	public static string TrailingDot { get; } = "Windows drops a dot at the end of a file name.";
 
 	/// <summary>
 	/// Note of a dataset whose records break off in the middle.
