@@ -18,6 +18,11 @@ public interface IDbContextService : IDisposable
 	/// <inheritdoc cref="DatabaseFacade.CanConnectAsync(CancellationToken)" />
 	Task<bool> CanConnectAsync(CancellationToken token = default);
 
+	/// <summary>
+	/// Forgets every entity the context tracks, so that the objects of a failed save are not written by the next one.
+	/// </summary>
+	void ClearTracking();
+
 	/// <inheritdoc cref="DatabaseFacade.EnsureCreated" />
 	void EnsureCreated();
 

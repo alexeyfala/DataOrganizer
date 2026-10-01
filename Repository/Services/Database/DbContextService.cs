@@ -38,6 +38,14 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public void ClearTracking()
+	{
+		_dbContext
+			.ChangeTracker
+			.Clear();
+	}
+
+	/// <inheritdoc />
 	public void Dispose()
 	{
 		if (Interlocked.Exchange(ref _isDisposed, true))

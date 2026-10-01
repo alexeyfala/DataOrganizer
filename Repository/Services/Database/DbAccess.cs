@@ -125,6 +125,8 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
+			_dbContextService.ClearTracking();
+
 			try
 			{
 				_semaphore.Release();
@@ -157,6 +159,8 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
+			_dbContextService.ClearTracking();
+
 			try
 			{
 				_semaphore.Release();
@@ -189,6 +193,8 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
+			_dbContextService.ClearTracking();
+
 			try
 			{
 				_semaphore.Release();
@@ -231,6 +237,8 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
+			_dbContextService.ClearTracking();
+
 			try
 			{
 				_semaphore.Release();
