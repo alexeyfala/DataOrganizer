@@ -12,8 +12,8 @@ internal class EditorWindowTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EditorWindow()" />: the separator and the items of the sample seeding at the end of the menu are shown only
-	/// in a debug build.
+	/// <see cref="EditorWindow()" />: the separator and the seeding items at the end of the menu are shown only in a debug
+	/// build.
 	/// </summary>
 	[AvaloniaTest]
 	public void Constructor_Shows_The_Seeding_Items_Only_In_A_Debug_Build()
@@ -26,7 +26,8 @@ internal class EditorWindowTests
 		[
 			sut.SeedingSeparator,
 			sut.SampleSeeding,
-			sut.LargeSampleSeeding
+			sut.LargeSampleSeeding,
+			sut.ClipboardHistorySeeding
 		];
 
 		// The failure names the elements: in an optimized build the message can quote another assertion.

@@ -126,6 +126,8 @@ public partial class EditorViewModel :
 	/// </summary>
 	partial void OnIsLeftDrawerOpenedChanged(bool value)
 	{
+		SeedClipboardHistoryCommand.NotifyCanExecuteChanged();
+
 		SeedLargeSamplesCommand.NotifyCanExecuteChanged();
 
 		SeedSamplesCommand.NotifyCanExecuteChanged();
@@ -1000,6 +1002,28 @@ public partial class EditorViewModel :
 	private void RestartAutoLock() => _autoLock.Arm();
 
 	/// <summary>
+	/// Adds entries made up for trying the clipboard history to it.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedClipboardHistory))]
+	private async Task SeedClipboardHistory()
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation("Seed clipboard history");
+
+		try
+		{
+			await _clipboardLogSeeder
+				.SeedAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException("The sample clipboard entries could not be added.", ex);
+		}
+	}
+
+	/// <summary>
 	/// Adds a run of many sample objects with large contents to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
@@ -1141,6 +1165,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
+	/// <inheritdoc cref="IClipboardLogSeeder" />
+	private readonly IClipboardLogSeeder _clipboardLogSeeder;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1195,6 +1222,7 @@ public partial class EditorViewModel :
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IClipboardLogSeeder clipboardLogSeeder,
 		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
@@ -1240,6 +1268,8 @@ public partial class EditorViewModel :
 		_clipboardLog = clipboardLog;
 
 		_clipboardLogPersistence = clipboardLogPersistence;
+
+		_clipboardLogSeeder = clipboardLogSeeder;
 
 		_dataExchange = dataExchange;
 
@@ -1795,6 +1825,11 @@ public partial class EditorViewModel :
 	/// Validates <see cref="ResetSelectedObjectCommand" />.
 	/// </summary>
 	private bool CanResetSelectedObject() => SelectedObject is not null;
+
+	/// <summary>
+	/// Validates <see cref="SeedClipboardHistoryCommand" />.
+	/// </summary>
+	private bool CanSeedClipboardHistory() => IsClipboardHistoryEnabled;
 
 	/// <summary>
 	/// Validates <see cref="SeedLargeSamplesCommand" /> and <see cref="SeedSamplesCommand" />.

@@ -242,6 +242,19 @@
 										</StackPanel>
 									</MenuItem.Header>
 								</MenuItem>
+
+								<MenuItem
+									x:Name="ClipboardHistorySeeding"
+									Command="{Binding SeedClipboardHistoryCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="ClipboardPlusOutline" />
+
+											<TextBlock Text="Clipboard History Seeding" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
 							</Menu>
 						</StackPanel>
 					</materialControls:NavigationDrawer.LeftDrawerContent>
