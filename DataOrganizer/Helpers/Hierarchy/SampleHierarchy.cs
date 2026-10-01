@@ -31,6 +31,11 @@ internal sealed class SampleHierarchy
 	public const string KeeperPassword = "123456789";
 
 	/// <summary>
+	/// Format of the time of a run in the name of its folder.
+	/// </summary>
+	public const string RunFolderDateFormat = "dd.MM.yyyy HH:mm:ss";
+
+	/// <summary>
 	/// Length of the binary contents of a file, in bytes.
 	/// </summary>
 	private const int BinaryLength = 512;
@@ -119,11 +124,6 @@ internal sealed class SampleHierarchy
 	/// Number of sets of records in a dataset of the random branch.
 	/// </summary>
 	private const int RecordRepeats = 20;
-
-	/// <summary>
-	/// Format of the time of a run in the name of its folder.
-	/// </summary>
-	private const string RunFolderDateFormat = "dd.MM.yyyy HH:mm:ss";
 
 	/// <summary>
 	/// Start of the name of the folder of a run.

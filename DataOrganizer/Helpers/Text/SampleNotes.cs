@@ -97,6 +97,17 @@ internal static class SampleNotes
 		""".ReplaceLineEndings();
 
 	/// <summary>
+	/// Note that tells what each folder of a large run of samples holds.
+	/// </summary>
+	public static string LargeRunFolder { get; } = """
+		Large samples made by "Large Sample Seeding" in the menu.
+		Deep: folders nested far down.
+		Large: a long C# file, a JSON written on one line, and datasets with many records.
+		Tree: thousands of folders and files.
+		Wide: thousands of files in one folder.
+		""".ReplaceLineEndings();
+
+	/// <summary>
 	/// Note of a file whose name is longer than a file system allows.
 	/// </summary>
 	public static string LongName { get; } = "The name is longer than a file system allows.";

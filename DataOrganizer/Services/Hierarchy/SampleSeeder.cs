@@ -63,22 +63,11 @@ public sealed class SampleSeeder : ISampleSeeder
 			DateTime.Now,
 			takenHotkeys);
 
-		FolderEntity[] folders = [.. samples.Items.OfType<FolderEntity>()];
-
-		FileEntity[] files = [.. samples.Items.OfType<FileEntity>()];
-
-		await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false);
-
-		await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false);
+		FolderDto run = await WriteAsync(samples.Items, token).ConfigureAwait(false);
 
 		// The folders are encrypted the way the menu does it, over a tree made of the saved objects.
-		ExplorerItemDtoBase[] hierarchy = _entityLoader.Map(folders, files);
-
-		foreach (FolderDto keeper in hierarchy
+		foreach (FolderDto keeper in run
+			.Children
 			.GetFoldersBy(x => samples.KeeperIds.Contains(x.Id))
 			.ToArray())
 		{
@@ -98,10 +87,26 @@ public sealed class SampleSeeder : ISampleSeeder
 			await DamageContentsAsync(id, token).ConfigureAwait(false);
 		}
 
-		// The folder of the run is the only root of the samples.
-		return hierarchy
-			.OfType<FolderDto>()
-			.Single();
+		return run;
+	}
+
+	/// <inheritdoc />
+	public async Task<FolderDto> SeedLargeAsync(CancellationToken token = default)
+	{
+		// The database answers synchronously and the run is large, so the work leaves the caller's thread.
+		await Task
+			.CompletedTask
+			.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+
+		int rootIndex = await _dbAccess
+			.CountOfAsync(x => x.ParentId == null, token)
+			.ConfigureAwait(false);
+
+		ExplorerItemBase[] items = LargeSampleHierarchy.Create(
+			rootIndex,
+			DateTime.Now);
+
+		return await WriteAsync(items, token).ConfigureAwait(false);
 	}
 	#endregion
 
@@ -165,6 +170,30 @@ public sealed class SampleSeeder : ISampleSeeder
 		return [.. saved
 			.Where(x => x.Hotkeys.Count > 0)
 			.Select(ToHotkey)];
+	}
+
+	/// <summary>
+	/// Saves the objects of a run and returns the folder of the run as a tree made of the saved objects.
+	/// </summary>
+	private async Task<FolderDto> WriteAsync(ExplorerItemBase[] items, CancellationToken token)
+	{
+		FolderEntity[] folders = [.. items.OfType<FolderEntity>()];
+
+		FileEntity[] files = [.. items.OfType<FileEntity>()];
+
+		await _dbAccess
+			.AddFoldersAsync(folders, token)
+			.ConfigureAwait(false);
+
+		await _dbAccess
+			.AddFilesAsync(files, token)
+			.ConfigureAwait(false);
+
+		// The folder of the run is the only root of the samples.
+		return _entityLoader
+			.Map(folders, files)
+			.OfType<FolderDto>()
+			.Single();
 	}
 	#endregion
 }

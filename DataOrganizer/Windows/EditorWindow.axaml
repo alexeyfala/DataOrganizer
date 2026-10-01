@@ -190,16 +190,6 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem Command="{Binding SeedSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
-									<MenuItem.Header>
-										<StackPanel>
-											<materialIcons:MaterialIcon Kind="SeedPlusOutline" />
-
-											<TextBlock Text="Sample Seeding" />
-										</StackPanel>
-									</MenuItem.Header>
-								</MenuItem>
-
 								<Separator Margin="16.0,0.0" />
 
 								<MenuItem Command="{Binding RestartApplicationCommand}" CommandParameter="{Binding $parent[Window]}">
@@ -218,6 +208,28 @@
 											<materialIcons:MaterialIcon Kind="LocationExit" />
 
 											<TextBlock Text="{x:Static prop:Strings.Exit}" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<Separator Margin="16.0,0.0" IsVisible="{x:Static common:AppInfo.IsDebug}" />
+
+								<MenuItem Command="{Binding SeedSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="SeedPlusOutline" />
+
+											<TextBlock Text="Sample Seeding" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<MenuItem Command="{Binding SeedLargeSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="SeedPlus" />
+
+											<TextBlock Text="Large Sample Seeding" />
 										</StackPanel>
 									</MenuItem.Header>
 								</MenuItem>

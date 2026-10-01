@@ -126,6 +126,8 @@ public partial class EditorViewModel :
 	/// </summary>
 	partial void OnIsLeftDrawerOpenedChanged(bool value)
 	{
+		SeedLargeSamplesCommand.NotifyCanExecuteChanged();
+
 		SeedSamplesCommand.NotifyCanExecuteChanged();
 
 		ShowFavoritesCommand.NotifyCanExecuteChanged();
@@ -998,30 +1000,16 @@ public partial class EditorViewModel :
 	private void RestartAutoLock() => _autoLock.Arm();
 
 	/// <summary>
+	/// Adds a run of many sample objects with large contents to the database and the tree.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
+	private Task SeedLargeSamples() => SeedAsync("Seed large samples", _sampleSeeder.SeedLargeAsync);
+
+	/// <summary>
 	/// Adds a run of sample objects to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
-	private async Task SeedSamples()
-	{
-		IsLeftDrawerOpened = false;
-
-		_logger.LogInformation("Seed samples");
-
-		try
-		{
-			using ProgressScope _ = _messenger.ShowProgress();
-
-			FolderDto run = await _sampleSeeder
-				.SeedAsync()
-				.ConfigureAwait(true);
-
-			AddHierarchy([run]);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException("The sample objects could not be added.", ex);
-		}
-	}
+	private Task SeedSamples() => SeedAsync("Seed samples", _sampleSeeder.SeedAsync);
 
 	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
@@ -1809,7 +1797,7 @@ public partial class EditorViewModel :
 	private bool CanResetSelectedObject() => SelectedObject is not null;
 
 	/// <summary>
-	/// Validates <see cref="SeedSamplesCommand" />.
+	/// Validates <see cref="SeedLargeSamplesCommand" /> and <see cref="SeedSamplesCommand" />.
 	/// </summary>
 	private bool CanSeedSamples() => !IsReadOnly && !IsActionInProgress;
 
@@ -1869,6 +1857,30 @@ public partial class EditorViewModel :
 			.Remove(file.Id);
 
 		_copyHistory?.Remove(file);
+	}
+
+	/// <summary>
+	/// Adds to the tree the run of samples that <paramref name="seed" /> writes to the database, with the menu closed and the
+	/// progress bar on.
+	/// </summary>
+	private async Task SeedAsync(string logMessage, Func<CancellationToken, Task<FolderDto>> seed)
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation(logMessage);
+
+		try
+		{
+			using ProgressScope _ = _messenger.ShowProgress();
+
+			FolderDto run = await seed(CancellationToken.None).ConfigureAwait(true);
+
+			AddHierarchy([run]);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException("The sample objects could not be added.", ex);
+		}
 	}
 
 	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
