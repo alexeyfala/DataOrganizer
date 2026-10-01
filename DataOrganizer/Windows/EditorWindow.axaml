@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
+	xmlns:common="using:Shared.Common"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -185,6 +186,16 @@
 											<materialIcons:MaterialIcon Kind="CogOutline" />
 
 											<TextBlock Text="{x:Static prop:Strings.Settings}" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<MenuItem Command="{Binding SeedSamplesCommand}" IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="SeedPlusOutline" />
+
+											<TextBlock Text="Sample Seeding" />
 										</StackPanel>
 									</MenuItem.Header>
 								</MenuItem>

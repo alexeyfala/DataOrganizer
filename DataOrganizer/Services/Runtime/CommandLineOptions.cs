@@ -15,9 +15,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool FillObjects { get; }
-
-	/// <inheritdoc />
 	public LogEventLevel MinimumLogEventLevel { get; }
 
 	/// <inheritdoc />
@@ -34,9 +31,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	/// <inheritdoc cref="MinimumLogEventLevel" />
 	internal const string DebugArg = "--debug";
 
-	/// <inheritdoc cref="FillObjects" />
-	internal const string FillObjectsArg = "--fillobjects";
-
 	/// <inheritdoc cref="PrintHelp" />
 	internal const string HelpArg = "--help";
 	#endregion
@@ -44,8 +38,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#region Constructors
 	public CommandLineOptions(string[] args)
 	{
-		FillObjects = args.Contains(FillObjectsArg);
-
 		ShowConsole = args.Contains(ConsoleArg);
 
 		MinimumLogEventLevel = args.Contains(DebugArg)
@@ -104,7 +96,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	{
 		{ ConsoleArg, GetDescription(nameof(ICommandLineOptions.ShowConsole)) },
 		{ DebugArg, GetDescription(nameof(ICommandLineOptions.MinimumLogEventLevel)) },
-		{ FillObjectsArg, GetDescription(nameof(ICommandLineOptions.FillObjects)) },
 		{ HelpArg, GetDescription(nameof(ICommandLineOptions.PrintHelp)) }
 	};
 

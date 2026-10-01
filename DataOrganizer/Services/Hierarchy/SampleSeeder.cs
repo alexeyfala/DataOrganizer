@@ -45,8 +45,13 @@ public sealed class SampleSeeder : ISampleSeeder
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task SeedAsync(CancellationToken token = default)
+	public async Task<FolderDto> SeedAsync(CancellationToken token = default)
 	{
+		// The database answers synchronously and the encryption is costly, so the work leaves the caller's thread.
+		await Task
+			.CompletedTask
+			.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+
 		int rootIndex = await _dbAccess
 			.CountOfAsync(x => x.ParentId == null, token)
 			.ConfigureAwait(false);
@@ -71,9 +76,9 @@ public sealed class SampleSeeder : ISampleSeeder
 			.ConfigureAwait(false);
 
 		// The folders are encrypted the way the menu does it, over a tree made of the saved objects.
-		FolderDto[] keepers = [.. _entityLoader
-			.Map(folders, files)
-			.GetFoldersBy(x => samples.KeeperIds.Contains(x.Id))];
+		ExplorerItemDtoBase[] hierarchy = _entityLoader.Map(folders, files);
+
+		FolderDto[] keepers = [.. hierarchy.GetFoldersBy(x => samples.KeeperIds.Contains(x.Id))];
 
 		foreach (FolderDto keeper in keepers)
 		{
@@ -87,6 +92,11 @@ public sealed class SampleSeeder : ISampleSeeder
 					token)
 				.ConfigureAwait(false);
 		}
+
+		// The folder of the run is the only root of the samples.
+		return hierarchy
+			.OfType<FolderDto>()
+			.Single();
 	}
 	#endregion
 

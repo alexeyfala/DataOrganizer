@@ -17,6 +17,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -123,7 +124,12 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Called when <see cref="IsLeftDrawerOpened" /> changes.
 	/// </summary>
-	partial void OnIsLeftDrawerOpenedChanged(bool value) => ShowFavoritesCommand.NotifyCanExecuteChanged();
+	partial void OnIsLeftDrawerOpenedChanged(bool value)
+	{
+		SeedSamplesCommand.NotifyCanExecuteChanged();
+
+		ShowFavoritesCommand.NotifyCanExecuteChanged();
+	}
 
 	/// <summary>
 	/// Called when <see cref="IsReadOnly" /> changes.
@@ -992,6 +998,32 @@ public partial class EditorViewModel :
 	private void RestartAutoLock() => _autoLock.Arm();
 
 	/// <summary>
+	/// Adds a run of sample objects to the database and the tree.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
+	private async Task SeedSamples()
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation("Seed samples");
+
+		try
+		{
+			using ProgressScope _ = _messenger.ShowProgress();
+
+			FolderDto run = await _sampleSeeder
+				.SeedAsync()
+				.ConfigureAwait(true);
+
+			AddHierarchy([run]);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException("The sample objects could not be added.", ex);
+		}
+	}
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -1136,6 +1168,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <inheritdoc cref="INoteEditor" />
 	private readonly INoteEditor _noteEditor;
 
@@ -1148,8 +1183,16 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
 
+	/// <inheritdoc cref="ISampleSeeder" />
+	private readonly ISampleSeeder _sampleSeeder;
+
 	/// <inheritdoc cref="IAppThemeService" />
 	private readonly IAppThemeService _themeService;
+
+	/// <summary>
+	/// Number of operations showing the progress bar.
+	/// </summary>
+	private int _actionsInProgress;
 
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
@@ -1182,6 +1225,7 @@ public partial class EditorViewModel :
 		INoteReader noteReader,
 		INotificationService notification,
 		IProcessManager processManager,
+		ISampleSeeder sampleSeeder,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1224,6 +1268,8 @@ public partial class EditorViewModel :
 		_processManager = processManager;
 
 		_propertyWriter = propertyWriter;
+
+		_sampleSeeder = sampleSeeder;
 
 		_themeService = themeService;
 	}
@@ -1332,7 +1378,13 @@ public partial class EditorViewModel :
 	/// <inheritdoc />
 	public void Receive(ShowProgressBarMessage message)
 	{
-		IsActionInProgress = message.IsVisible;
+		// Operations can nest, so the bar stays until the last of them ends.
+		lock (_mutex)
+		{
+			_actionsInProgress += message.IsVisible ? 1 : -1;
+
+			IsActionInProgress = _actionsInProgress > 0;
+		}
 	}
 
 	/// <summary>
@@ -1755,6 +1807,11 @@ public partial class EditorViewModel :
 	/// Validates <see cref="ResetSelectedObjectCommand" />.
 	/// </summary>
 	private bool CanResetSelectedObject() => SelectedObject is not null;
+
+	/// <summary>
+	/// Validates <see cref="SeedSamplesCommand" />.
+	/// </summary>
+	private bool CanSeedSamples() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="SetFavoriteCommand" />.

@@ -63,9 +63,6 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
-	/// <inheritdoc cref="ISampleSeeder" />
-	private readonly ISampleSeeder _sampleSeeder;
-
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -93,7 +90,6 @@ public sealed class AppController : IAppController
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
 		INotificationService notification,
-		ISampleSeeder sampleSeeder,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -120,8 +116,6 @@ public sealed class AppController : IAppController
 		_notification = notification;
 
 		_options = options;
-
-		_sampleSeeder = sampleSeeder;
 
 		_sandbox = sandbox;
 
@@ -182,21 +176,6 @@ public sealed class AppController : IAppController
 				_logger.LogError("The database is unavailable, the launch continues without it.", breakInDebugger: false);
 
 				_notification.ShowToast(Strings.DatabaseIsUnavailable);
-			}
-
-			if (isConnected && _options.FillObjects)
-			{
-				try
-				{
-					await _sampleSeeder
-						.SeedAsync(token)
-						.ConfigureAwait(true);
-				}
-				catch (Exception ex)
-				{
-					// The samples only serve to try the application, so the launch goes on without them.
-					_logger.LogException("The sample objects could not be added, the launch continues.", ex);
-				}
 			}
 
 			// Nothing is read from a database that is not there: the toast above has already said so.

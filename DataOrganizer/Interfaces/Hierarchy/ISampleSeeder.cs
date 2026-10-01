@@ -1,3 +1,4 @@
+using DataOrganizer.Dto.Entities;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,9 +11,9 @@ public interface ISampleSeeder
 {
 	#region Methods
 	/// <summary>
-	/// Adds a run of samples after the objects of the root and encrypts the folders of the run meant to be encrypted;
-	/// the hotkeys of the samples keep clear of those already saved.
+	/// Adds a run of samples after the objects of the root, encrypts the folders of the run meant to be encrypted
+	/// and returns the folder of the run; the hotkeys of the samples keep clear of those already saved.
 	/// </summary>
-	Task SeedAsync(CancellationToken token = default);
+	Task<FolderDto> SeedAsync(CancellationToken token = default);
 	#endregion
 }

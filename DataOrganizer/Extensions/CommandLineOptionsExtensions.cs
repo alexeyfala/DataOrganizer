@@ -16,11 +16,6 @@ internal static class CommandLineOptionsExtensions
 	public static string[] AddDebugArg(this string[] args) => [.. args, CommandLineOptions.DebugArg];
 
 	/// <summary>
-	/// Appends the argument <see cref="CommandLineOptions.FillObjectsArg" /> to the array.
-	/// </summary>
-	public static string[] AddFillObjectsArg(this string[] args) => [.. args, CommandLineOptions.FillObjectsArg];
-
-	/// <summary>
 	/// Appends the argument <see cref="CommandLineOptions.HelpArg" /> to the array.
 	/// </summary>
 	public static string[] AddHelpArg(this string[] args) => [.. args, CommandLineOptions.HelpArg];

@@ -88,7 +88,7 @@ internal static class SampleNotes
 	/// Note that tells what each folder of a run of samples holds.
 	/// </summary>
 	public static string RunFolder { get; } = """
-		Samples made by --fillobjects.
+		Samples made by "Sample Seeding" in the menu.
 		Code, Web, Project: highlighting and folding.
 		Scripts: running files.
 		Data, Documents: data and text formats.
