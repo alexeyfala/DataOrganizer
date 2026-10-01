@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -70,6 +71,162 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the keys of a hotkey that fired do not start the next one.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Clears_The_Input_After_A_Hotkey_Fires()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(dto);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		sut.InputStack
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a key typed without a modifier ends the hotkey being typed,
+	/// whichever lock is on.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Clears_The_Input_On_A_Key_Without_Modifiers(
+		[Values(EventMask.None, EventMask.CapsLock, EventMask.NumLock, EventMask.ScrollLock)] EventMask lockState)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(ItemDtoFactory.CreateFileDto());
+
+		sut
+			.InputStack
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(3));
+
+		// Act
+		await sut.HandleKeyReleasedAsync(lockState, KeyCode.VcK);
+
+		// Assert
+		sut.InputStack
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the lock states count neither in the typed keys nor in the
+	/// stored hotkey.
+	/// </summary>
+	[TestCase(EventMask.LeftCtrl, EventMask.LeftCtrl | EventMask.CapsLock)]
+	[TestCase(EventMask.LeftCtrl | EventMask.CapsLock, EventMask.LeftCtrl)]
+	public async Task HandleKeyReleasedAsync_Fires_A_Hotkey_Whatever_The_Lock_State(EventMask storedMask, EventMask typedMask)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = storedMask
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(dto);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(typedMask, KeyCode.VcA);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetTextAsync(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -143,6 +300,85 @@ internal class KeyboardInputHookTests
 		await clipboard
 			.DidNotReceive()
 			.SetTextAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a released modifier or lock key neither adds a key nor ends
+	/// the hotkey being typed.
+	/// </summary>
+	[TestCase(KeyCode.VcLeftControl, EventMask.None)]
+	[TestCase(KeyCode.VcLeftShift, EventMask.LeftCtrl)]
+	[TestCase(KeyCode.VcCapsLock, EventMask.LeftCtrl)]
+	public async Task HandleKeyReleasedAsync_Keeps_The_Input_On_A_Modifier_Key(KeyCode code, EventMask mask)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(ItemDtoFactory.CreateFileDto());
+
+		KeyStroke[] typed = [.. KeyStrokeFactory.CreateKeyStrokes(3)];
+
+		sut
+			.InputStack
+			.AddRange(typed);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		sut.InputStack
+			.Should()
+			.Equal(typed);
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a long pause between two keys starts a new hotkey.
+	/// </summary>
+	[TestCase(2.5, 2)]
+	[TestCase(3.5, 1)]
+	public async Task HandleKeyReleasedAsync_Keeps_The_Input_Only_Within_The_Pause(double pause, int keyCount)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcZ,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(dto);
+
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcQ);
+
+		time.Advance(TimeSpan.FromSeconds(pause));
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		sut.InputStack
+			.Should()
+			.HaveCount(keyCount);
 	}
 
 	/// <summary>

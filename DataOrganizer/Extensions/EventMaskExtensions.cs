@@ -6,8 +6,9 @@ internal static class EventMaskExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Removes flag <paramref name="toRemove"/> from <paramref name="source"/>.
+	/// Returns the modifier keys of <paramref name="source"/>, without the lock states, the mouse buttons and the flags of
+	/// the event.
 	/// </summary>
-	public static EventMask RemoveFlag(this EventMask source, EventMask toRemove) => source &= ~toRemove;
+	public static EventMask ToModifiers(this EventMask source) => source & (EventMask.Shift | EventMask.Ctrl | EventMask.Alt | EventMask.Meta);
 	#endregion
 }
