@@ -56,6 +56,16 @@ internal static class SampleNotes
 
 	#region Properties
 	/// <summary>
+	/// Note of a file whose contents are binary data.
+	/// </summary>
+	public static string BinaryContents { get; } = "The contents are binary data, not text.";
+
+	/// <summary>
+	/// Note of an encrypted file with one byte of its contents changed.
+	/// </summary>
+	public static string DamagedContents { get; } = "One byte of the encrypted contents has been changed.";
+
+	/// <summary>
 	/// Note that tells how an encrypted script is run.
 	/// </summary>
 	public static string EncryptedScript { get; } = """
@@ -94,6 +104,7 @@ internal static class SampleNotes
 		Data, Documents: data and text formats.
 		Datasets: records of every type.
 		Encrypted: folders under a password.
+		Broken: files with damaged contents.
 		Random: files of unknown types.
 		""".ReplaceLineEndings();
 
@@ -106,6 +117,11 @@ internal static class SampleNotes
 		.ps1 opens in Notepad by default.
 		The others run only if their interpreter is installed.
 		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a dataset whose records break off in the middle.
+	/// </summary>
+	public static string TruncatedRecords { get; } = "The JSON of the records breaks off in the middle.";
 	#endregion
 
 	#region Methods

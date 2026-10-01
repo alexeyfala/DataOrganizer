@@ -81,7 +81,7 @@ public sealed class ContentCipher : IContentCipher
 		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
 		{
 			// The caller renders or saves content, so the failure only reaches the log.
-			_logger.LogException(ex);
+			_logger.LogException(ex, breakInDebugger: false);
 
 			return null;
 		}

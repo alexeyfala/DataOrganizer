@@ -78,9 +78,9 @@ public sealed class SampleSeeder : ISampleSeeder
 		// The folders are encrypted the way the menu does it, over a tree made of the saved objects.
 		ExplorerItemDtoBase[] hierarchy = _entityLoader.Map(folders, files);
 
-		FolderDto[] keepers = [.. hierarchy.GetFoldersBy(x => samples.KeeperIds.Contains(x.Id))];
-
-		foreach (FolderDto keeper in keepers)
+		foreach (FolderDto keeper in hierarchy
+			.GetFoldersBy(x => samples.KeeperIds.Contains(x.Id))
+			.ToArray())
 		{
 			using PinnedSecret password = CreatePassword();
 
@@ -91,6 +91,11 @@ public sealed class SampleSeeder : ISampleSeeder
 					password,
 					token)
 				.ConfigureAwait(false);
+		}
+
+		foreach (Guid id in samples.DamagedFileIds)
+		{
+			await DamageContentsAsync(id, token).ConfigureAwait(false);
 		}
 
 		// The folder of the run is the only root of the samples.
@@ -126,6 +131,27 @@ public sealed class SampleSeeder : ISampleSeeder
 			Code = x.Code,
 			Mask = x.Mask
 		})];
+
+	/// <summary>
+	/// Changes the last byte of the stored contents of a file, which belongs to the tag of its ciphertext.
+	/// </summary>
+	private async Task DamageContentsAsync(Guid id, CancellationToken token)
+	{
+		ValidatedContents stored = await _dbAccess
+			.GetFileContentsAsync(id, token)
+			.ConfigureAwait(false);
+
+		byte[] contents = stored.Contents;
+
+		contents[^1] ^= byte.MaxValue;
+
+		await _dbAccess
+			.UpdateFilePropertiesAsync(
+				id,
+				[builder => builder.SetProperty(x => x.Contents, contents)],
+				token)
+			.ConfigureAwait(false);
+	}
 
 	/// <summary>
 	/// Returns the hotkeys of the saved files.

@@ -7,8 +7,8 @@ using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
 using Repository.Dto;
-using SharpHook.Data;
 using Shared.Common;
+using SharpHook.Data;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +28,11 @@ internal sealed class SampleHierarchy
 	/// Password of the encrypted folders.
 	/// </summary>
 	public const string KeeperPassword = "123456789";
+
+	/// <summary>
+	/// Length of the binary contents of a file, in bytes.
+	/// </summary>
+	private const int BinaryLength = 512;
 
 	/// <summary>
 	/// Number of records in a dataset of one type of records.
@@ -130,6 +135,11 @@ internal sealed class SampleHierarchy
 	private static readonly StringComparer NameComparer = StringComparer.Create(
 		CultureInfo.InvariantCulture,
 		CompareOptions.IgnoreCase | CompareOptions.NumericOrdering);
+
+	/// <summary>
+	/// Identifiers of the files made so far whose contents are to be damaged once they are encrypted.
+	/// </summary>
+	private readonly List<Guid> _damagedFileIds = [];
 
 	/// <summary>
 	/// Contents of every dataset of the random branch.
@@ -261,6 +271,11 @@ internal sealed class SampleHierarchy
 	})];
 
 	/// <summary>
+	/// Returns the first half of a text, so that a structured text breaks off unfinished.
+	/// </summary>
+	private static string CutInHalf(string text) => text[..(text.Length / 2)];
+
+	/// <summary>
 	/// Returns a note of an object that is not encrypted in its stored binary form.
 	/// </summary>
 	private static byte[]? EncodeNote(string? note) => note is null ? null : TextDefaults.Encoding.GetBytes(note);
@@ -273,7 +288,7 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Adds a file or a dataset to a folder.
 	/// </summary>
-	private void AddFile(
+	private FileEntity AddFile(
 		FolderEntity parent,
 		string name,
 		EntityKind kind,
@@ -284,7 +299,7 @@ internal sealed class SampleHierarchy
 	{
 		Guid id = Guid.NewGuid();
 
-		_items.Add(new FileEntity
+		FileEntity file = new()
 		{
 			Contents = contents,
 			CreatedAt = _now,
@@ -296,7 +311,11 @@ internal sealed class SampleHierarchy
 			Note = EncodeNote(note),
 			ParentId = parent.Id,
 			UpdatedAt = _now
-		});
+		};
+
+		_items.Add(file);
+
+		return file;
 	}
 
 	/// <summary>
@@ -396,7 +415,9 @@ internal sealed class SampleHierarchy
 			("Snippets/Secret", "card.txt", EntityKind.File, SampleSnippets.CreateCardPin(_faker)),
 			("Snippets/Secret", "door.txt", EntityKind.File, SampleSnippets.CreateDoorCode(_faker)),
 			("Snippets/Secret", "router.txt", EntityKind.File, SampleSnippets.CreateRouterPassword(_faker)),
-			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker))
+			("Snippets/Secret", "wifi.txt", EntityKind.File, SampleSnippets.CreateWifi(_faker)),
+			("Broken", "Records", EntityKind.Dataset, CutInHalf(SerializeRecords(_records.CreateValueRecords(DatasetRecordCount)))),
+			("Broken/Protected", "letter.txt", EntityKind.File, SampleDocuments.CreateText(_faker))
 		];
 
 		// The snippets are favorites with a hotkey: a first key, then two keys along a column of the keyboard, down it for
@@ -419,6 +440,9 @@ internal sealed class SampleHierarchy
 		// Only a few objects have a note, found by their path.
 		Dictionary<string, string> notes = new()
 		{
+			["Broken"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
+			["Broken/Protected/letter.txt"] = SampleNotes.DamagedContents,
+			["Broken/Records"] = SampleNotes.TruncatedRecords,
 			["Encrypted"] = SampleNotes.CreateEncryptedFolder(KeeperPassword),
 			["Encrypted/Passwords"] = SampleNotes.Keeper,
 			["Encrypted/Passwords/recovery-codes.txt"] = SampleNotes.RecoveryCodes,
@@ -432,7 +456,10 @@ internal sealed class SampleHierarchy
 		};
 
 		// The folders that are encrypted once the objects are saved.
-		HashSet<string> keepers = ["Encrypted/Passwords", "Encrypted/Private", "Snippets/Secret"];
+		HashSet<string> keepers = ["Broken/Protected", "Encrypted/Passwords", "Encrypted/Private", "Snippets/Secret"];
+
+		// The files whose ciphertext is damaged once their folder is encrypted.
+		HashSet<string> damaged = ["Broken/Protected/letter.txt"];
 
 		Dictionary<string, FolderEntity> folders = [];
 
@@ -440,7 +467,7 @@ internal sealed class SampleHierarchy
 		{
 			string path = $"{folderPath}/{name}";
 
-			AddFile(
+			FileEntity file = AddFile(
 				GetOrAddFolder(folderPath),
 				name,
 				kind,
@@ -448,7 +475,20 @@ internal sealed class SampleHierarchy
 				notes.GetValueOrDefault(path),
 				snippets.ContainsKey(path),
 				hotkeys.GetValueOrDefault(path));
+
+			if (damaged.Contains(path))
+			{
+				_damagedFileIds.Add(file.Id);
+			}
 		}
+
+		// Binary contents cannot pass through a string, so this file stays out of the table.
+		AddFile(
+			GetOrAddFolder("Broken"),
+			"report.txt",
+			EntityKind.File,
+			_faker.Random.Bytes(BinaryLength),
+			SampleNotes.BinaryContents);
 
 		// Returns the folder of a path, made on first use after the folders above it.
 		FolderEntity GetOrAddFolder(string path)
@@ -547,9 +587,12 @@ internal sealed class SampleHierarchy
 
 		SortChildren();
 
-		return new SampleObjects(
-			[.. _items],
-			[.. _keeperIds]);
+		return new()
+		{
+			DamagedFileIds = [.. _damagedFileIds],
+			Items = [.. _items],
+			KeeperIds = [.. _keeperIds]
+		};
 	}
 
 	/// <summary>
