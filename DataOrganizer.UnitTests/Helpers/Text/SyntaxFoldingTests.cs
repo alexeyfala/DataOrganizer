@@ -140,6 +140,48 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a block takes in the directives at the start of
+	/// its lines and the regions they mark, as they stay out of the indentation of the code.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_The_Blocks_Around_The_Directives()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("""
+				namespace n
+				{
+				#pragma region R
+				    int a;
+				#pragma endregion
+				}
+				int main()
+				{
+				#ifdef X
+				    a();
+				#endif
+				}
+				""")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules("cpp")!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, "cpp", rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal(
+				(textArea.Document.GetLineByNumber(1).EndOffset, textArea.Document.GetLineByNumber(6).EndOffset),
+				(textArea.Document.GetLineByNumber(3).EndOffset, textArea.Document.GetLineByNumber(5).EndOffset),
+				(textArea.Document.GetLineByNumber(7).EndOffset, textArea.Document.TextLength));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a group of line comments folds into a box with
 	/// its first line.
 	/// </summary>

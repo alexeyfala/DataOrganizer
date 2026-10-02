@@ -94,6 +94,19 @@ internal static partial class SyntaxLinePatterns
 		// Compiled, as a pass may try it on each line.
 		return new Regex("^" + Regex.Escape(token), RegexOptions.Compiled);
 	}
+
+	/// <summary>
+	/// Returns the pattern of a line of a language that holds a directive standing apart from the indentation of the code,
+	/// such as a condition of the preprocessor; <c>null</c> when the lines with a number sign belong to the code.
+	/// </summary>
+	public static Regex? FindPreprocessor(string language) => language switch
+	{
+		// A directive of C#, F# and Visual Basic takes one line, so every line with a number sign holds one.
+		"csharp" or "fsharp" or "vb" => DirectiveRegex(),
+		"c" or "cpp" or "cuda-cpp" or "hlsl" or "objective-c" or "objective-cpp" or "shaderlab" => CPreprocessorRegex(),
+		"swift" => SwiftDirectiveRegex(),
+		_ => null
+	};
 	#endregion
 
 	#region Helpers
@@ -108,6 +121,13 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*#[ \t]*include\b")]
 	private static partial Regex CIncludeRegex();
+
+	/// <summary>
+	/// Matches a line of a directive of the C family that takes one line, such as a condition or a pragma, but not
+	/// a definition, which may go on over the next lines.
+	/// </summary>
+	[GeneratedRegex(@"^[ \t]*#[ \t]*(?:if(?:n?def)?|elif(?:n?def)?|else|endif|pragma|error|warning|line|undef)\b")]
+	private static partial Regex CPreprocessorRegex();
 
 	/// <summary>
 	/// Matches a line of a using directive or an extern alias of C#, but not a using statement or declaration.
@@ -246,6 +266,12 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*(?:source|\.)[ \t]+\S")]
 	private static partial Regex ShellSourceRegex();
+
+	/// <summary>
+	/// Matches a line of a condition or a diagnostic of the compiler of Swift, but not a macro, which may have a body.
+	/// </summary>
+	[GeneratedRegex(@"^[ \t]*#(?:if|elseif|else|endif|warning|error|sourceLocation)\b")]
+	private static partial Regex SwiftDirectiveRegex();
 
 	/// <summary>
 	/// Matches a line that imports a module of Swift, also with attributes before it.

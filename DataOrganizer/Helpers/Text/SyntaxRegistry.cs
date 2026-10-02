@@ -171,6 +171,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 			ImportLine = SyntaxLinePatterns.FindImport(language),
 			IsOffSide = folding?.OffSide == true,
 			LineComment = SyntaxLinePatterns.FindLineComment(language, comments?.LineComment),
+			PreprocessorLine = SyntaxLinePatterns.FindPreprocessor(language),
 			StartMarker = markers is null ? null : new Regex(markers.Start, RegexOptions.Compiled)
 		};
 	}

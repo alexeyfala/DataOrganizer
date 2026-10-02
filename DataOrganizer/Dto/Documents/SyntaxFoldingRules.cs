@@ -53,6 +53,12 @@ public sealed record SyntaxFoldingRules
 	public Regex? LineComment { get; init; }
 
 	/// <summary>
+	/// Pattern of a line of a directive that stays out of the indentation of the code, such as a condition of the
+	/// preprocessor at the start of a line; <c>null</c> when the language has no such lines.
+	/// </summary>
+	public Regex? PreprocessorLine { get; init; }
+
+	/// <summary>
 	/// Pattern of the line that opens a marked block; <c>null</c> when the language marks no blocks.
 	/// </summary>
 	public Regex? StartMarker { get; init; }

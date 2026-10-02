@@ -300,5 +300,71 @@ internal class SyntaxLinePatternsTests
 			.Should()
 			.Be(expected);
 	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a directive that may span lines, such as a definition of the C
+	/// family or a macro of Swift with a body, does not match.
+	/// </summary>
+	[TestCase("c", "#define MAX(a, b) \\")]
+	[TestCase("objective-c", "#define ANSWER 42")]
+	[TestCase("swift", "#Preview {")]
+	public void FindPreprocessor_Leaves_Out_A_Directive_That_May_Span_Lines(string language, string line)
+	{
+		// Act
+		bool? isMatch = SyntaxLinePatterns
+			.FindPreprocessor(language)?
+			.IsMatch(line);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a directive of one line matches, indented or not.
+	/// </summary>
+	[TestCase("c", "#ifdef _WIN32")]
+	[TestCase("cpp", "#pragma region Queue")]
+	[TestCase("cpp", "  # endif")]
+	[TestCase("csharp", "#if DEBUG")]
+	[TestCase("csharp", "    #nullable enable")]
+	[TestCase("fsharp", "#if DEBUG")]
+	[TestCase("hlsl", "#pragma vertex vert")]
+	[TestCase("objective-c", "#elif TARGET_OS_IOS")]
+	[TestCase("swift", "#if os(iOS)")]
+	[TestCase("swift", "#elseif DEBUG")]
+	[TestCase("vb", "#If DEBUG Then")]
+	[TestCase("vb", "#End Region")]
+	public void FindPreprocessor_Matches_A_Directive_Of_One_Line(string language, string line)
+	{
+		// Act
+		bool? isMatch = SyntaxLinePatterns
+			.FindPreprocessor(language)?
+			.IsMatch(line);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a language where a number sign starts an attribute, which may
+	/// span lines, or a comment has no directives of one line.
+	/// </summary>
+	[TestCase("php")]
+	[TestCase("python")]
+	[TestCase("rust")]
+	public void FindPreprocessor_Returns_Null_Where_A_Number_Sign_Starts_An_Attribute_Or_A_Comment(string language)
+	{
+		// Act
+		Regex? pattern = SyntaxLinePatterns.FindPreprocessor(language);
+
+		// Assert
+		pattern
+			.Should()
+			.BeNull();
+	}
 	#endregion
 }

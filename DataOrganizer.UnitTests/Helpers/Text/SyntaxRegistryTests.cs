@@ -337,6 +337,31 @@ internal class SyntaxRegistryTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language of a preprocessor takes the pattern of its directives of
+	/// one line.
+	/// </summary>
+	[Test]
+	[TestCase("cpp", "#ifdef _DEBUG")]
+	[TestCase("vb", "#End If")]
+	public void FindFoldingRules_Takes_The_Preprocessor_Lines_Of_The_Language(string language, string line)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.PreprocessorLine!.IsMatch(line)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxRegistry.FindLanguage" />: the extension of the file name gives the language, whatever its case.
 	/// </summary>
 	[Test]

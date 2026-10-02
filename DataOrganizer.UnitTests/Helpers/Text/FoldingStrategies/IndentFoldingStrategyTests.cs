@@ -19,6 +19,16 @@ internal partial class IndentFoldingStrategyTests
 	private const int TabSize = 4;
 
 	/// <summary>
+	/// Rules of a language with the directives and the block markers of C#.
+	/// </summary>
+	private static readonly SyntaxFoldingRules DirectiveRules = new()
+	{
+		EndMarker = DirectiveEndMarkerRegex(),
+		PreprocessorLine = DirectiveRegex(),
+		StartMarker = DirectiveStartMarkerRegex()
+	};
+
+	/// <summary>
 	/// Rules of a language with the block markers of JavaScript.
 	/// </summary>
 	private static readonly SyntaxFoldingRules MarkedRules = new()
@@ -300,6 +310,36 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a lone opening bracket under a marker that is a directive
+	/// starts its block itself, as the marker heads a block of its own.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Keeps_A_Lone_Bracket_Under_A_Directive_Marker()
+	{
+		// Arrange
+		TextDocument document = new("""
+			void F()
+			#region A
+			{
+			    x();
+			}
+			#endregion
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((2, 6), (3, 5));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a lone opening bracket under a marker starts its block
 	/// itself, as the marker heads a block of its own.
 	/// </summary>
@@ -379,6 +419,139 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: under the off-side rule a directive at the end of a block
+	/// stays in the block, unlike a blank line.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Off_Side_Passes_Over_The_Directives()
+	{
+		// Arrange
+		TextDocument document = new("""
+			let f x =
+			    a
+			#if DEBUG
+			    b
+			#endif
+			c
+			""");
+
+		SyntaxFoldingRules rules = DirectiveRules with
+		{
+			IsOffSide = true
+		};
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(rules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 5));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: the block of a lone opening bracket starts on its head,
+	/// above the directives that stand between the two.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Passes_Over_A_Directive_Between_A_Head_And_Its_Bracket()
+	{
+		// Arrange
+		TextDocument document = new("""
+			#if NET8
+			void F(int a)
+			#else
+			void F(long a)
+			#endif
+			{
+			    x();
+			}
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((4, 8));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a start marker that is a directive and has no end marker
+	/// below it ends no block around it.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Passes_Over_A_Directive_Marker_Without_An_End()
+	{
+		// Arrange
+		TextDocument document = new("""
+			class C
+			{
+			#region A
+			    int x;
+			}
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 5));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: directives at the start of their lines neither end the
+	/// blocks around them nor start blocks of their own.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Passes_Over_The_Directives_At_The_Start_Of_A_Line()
+	{
+		// Arrange
+		TextDocument document = new("""
+			class P
+			{
+			    void M()
+			    {
+			#if DEBUG
+			        a();
+			#endif
+			        b();
+			#if TRACE
+			        c();
+			#endif
+			    }
+			}
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 13), (3, 12));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: the block of a lone opening bracket starts on the line
 	/// above it and takes in the line of the closing bracket.
 	/// </summary>
@@ -438,6 +611,38 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block marked by directives at the start of their lines
+	/// stands for the blocks around it at the indentation of the lines it holds, so it does not end them.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_A_Marked_Block_Of_Directives_At_The_Indentation_Of_Its_Lines()
+	{
+		// Arrange
+		TextDocument document = new("""
+			namespace N
+			{
+			    int a;
+			#region R
+			    int b;
+			    int c;
+			#endregion
+			}
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 8), (4, 7));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a start marker without an end marker below it is an
 	/// ordinary line.
 	/// </summary>
@@ -462,6 +667,35 @@ internal partial class IndentFoldingStrategyTests
 		foldings
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block marked by directives that holds no lines stands for
+	/// the blocks around it at the indentation of its start marker.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_An_Empty_Marked_Block_Of_Directives_At_The_Indentation_Of_Its_Marker()
+	{
+		// Arrange
+		TextDocument document = new("""
+			class C
+			{
+			    #region R
+			    #endregion
+			}
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 5), (3, 4));
 	}
 
 	/// <summary>
@@ -494,6 +728,24 @@ internal partial class IndentFoldingStrategyTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Matches the line that closes a block marked in the way of C#.
+	/// </summary>
+	[GeneratedRegex(@"^\s*#endregion\b")]
+	private static partial Regex DirectiveEndMarkerRegex();
+
+	/// <summary>
+	/// Matches a line of a directive of C#.
+	/// </summary>
+	[GeneratedRegex(@"^[ \t]*#")]
+	private static partial Regex DirectiveRegex();
+
+	/// <summary>
+	/// Matches the line that opens a block marked in the way of C#.
+	/// </summary>
+	[GeneratedRegex(@"^\s*#region\b")]
+	private static partial Regex DirectiveStartMarkerRegex();
+
 	/// <summary>
 	/// Matches the line that closes a block marked in the way of JavaScript.
 	/// </summary>

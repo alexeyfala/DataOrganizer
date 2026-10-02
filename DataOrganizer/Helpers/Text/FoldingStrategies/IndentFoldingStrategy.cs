@@ -209,10 +209,15 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 				{
 					blocks.Add((number, openBlocks[index].Line));
 
+					// A marker of a directive stays out of the indentation, so its block takes that of the lines it holds.
+					int blockIndent = IsPreprocessorLine(line) && index + 1 < openBlocks.Count
+						? openBlocks.Skip(index + 1).Min(static x => x.Indent)
+						: indent;
+
 					openBlocks.RemoveRange(index + 1, openBlocks.Count - index - 1);
 
-					// The blocks above take the start marker for an ordinary line of its indentation.
-					openBlocks[index] = new OpenFoldingBlock(Indent: indent, EndAbove: number, Line: number);
+					// The blocks above take the marked block for an ordinary line of its indentation.
+					openBlocks[index] = new OpenFoldingBlock(Indent: blockIndent, EndAbove: number, Line: number);
 
 					continue;
 				}
@@ -221,6 +226,12 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 			{
 				openBlocks.Add(new OpenFoldingBlock(Indent: EndMarkerIndent, EndAbove: number, Line: number));
 
+				continue;
+			}
+
+			// A directive stays out of the indentation of the code, so it neither ends the blocks around it nor starts one.
+			if (IsPreprocessorLine(line))
+			{
 				continue;
 			}
 
@@ -283,6 +294,14 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 				continue;
 			}
 
+			// So may directives, but not markers, which head blocks of their own.
+			if (IsPreprocessorLine(head)
+				&& _rules.StartMarker?.IsMatch(head) != true
+				&& _rules.EndMarker?.IsMatch(head) != true)
+			{
+				continue;
+			}
+
 			// The head goes on into the bracket, while a marker heads a block of its own.
 			if (headIndent != indent
 				|| IsFinishedLine(head.Trim())
@@ -297,5 +316,10 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 
 		return null;
 	}
+
+	/// <summary>
+	/// Returns <c>true</c> when a line holds a directive that stays out of the indentation of the code.
+	/// </summary>
+	private bool IsPreprocessorLine(ReadOnlySpan<char> line) => _rules.PreprocessorLine?.IsMatch(line) == true;
 	#endregion
 }
