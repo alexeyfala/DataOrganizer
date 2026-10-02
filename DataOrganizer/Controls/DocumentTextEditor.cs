@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
@@ -528,6 +530,16 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.PointerExited" /> event handler of the host of a tip that took the pointer.
+	/// </summary>
+	private void FoldingTipHost_PointerExited(object? sender, PointerEventArgs e) => CloseFoldingTip();
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressed" /> event handler of the host of a tip that took the pointer.
+	/// </summary>
+	private void FoldingTipHost_PointerPressed(object? sender, PointerPressedEventArgs e) => CloseFoldingTip();
+
+	/// <summary>
 	/// <see cref="InputElement.IsKeyboardFocusWithinProperty" /> changed handler.
 	/// </summary>
 	private void IsKeyboardFocusWithinProperty_Changed(bool value)
@@ -602,9 +614,26 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// <see cref="TextView.PointerHoverStopped" /> event handler.
+	/// <see cref="TextView.PointerHoverStopped" /> event handler, which closes the tip, unless the tip opened under the
+	/// pointer and so took the pointer from the view.
 	/// </summary>
-	private void TextView_PointerHoverStopped(object? sender, PointerEventArgs e) => CloseFoldingTip();
+	private void TextView_PointerHoverStopped(object? sender, PointerEventArgs e)
+	{
+		TextView textView = TextArea.TextView;
+
+		// Closed, such a tip would leave the pointer to the view, whose hover would open it again, so it stays until the
+		// pointer leaves it or presses it, as in Visual Studio Code.
+		if (!textView.IsPointerOver && FindFoldingTipHost(e.GetPosition(textView)) is { } host)
+		{
+			host.PointerExited += FoldingTipHost_PointerExited;
+
+			host.PointerPressed += FoldingTipHost_PointerPressed;
+
+			return;
+		}
+
+		CloseFoldingTip();
+	}
 
 	/// <summary>
 	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view.
@@ -904,6 +933,33 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		ApplicationCommands
 			.Cut
 			.Execute(null, TextArea);
+	}
+
+	/// <summary>
+	/// Returns the host of the open tip, the window or the element that shows it, when it covers a point of the view;
+	/// <c>null</c> when no open tip covers the point.
+	/// </summary>
+	private InputElement? FindFoldingTipHost(Point point)
+	{
+		TextView textView = TextArea.TextView;
+
+		// A popup shows in a window of its own, or in the overlay of the window where windows of their own are not at hand.
+		if ((ToolTip.GetTip(textView) as Visual)?
+			.GetVisualAncestors()
+			.FirstOrDefault(static x => x is PopupRoot or OverlayPopupHost) is not InputElement host)
+		{
+			return null;
+		}
+
+		// A tip at the pointer starts right where the pointer stands, which rounding to pixels may move by one pixel.
+		PixelVector rounding = new(1, 1);
+
+		// The view and the tip may stand in windows of their own, so they meet on the screen.
+		PixelRect bounds = new(
+			host.PointToScreen(default) - rounding,
+			host.PointToScreen(new Point(host.Bounds.Width, host.Bounds.Height)) + rounding);
+
+		return bounds.Contains(textView.PointToScreen(point)) ? host : null;
 	}
 
 	/// <summary>

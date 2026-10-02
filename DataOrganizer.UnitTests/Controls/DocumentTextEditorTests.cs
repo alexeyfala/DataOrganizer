@@ -1341,6 +1341,60 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.PointerExitedEvent" />: a tip that took the pointer closes when the pointer leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerExited_Closes_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Act
+		window.MouseMove(new Point(window.Bounds.Width - 5.0, point.Y));
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="TextView.PointerHover" />: a long line of the hidden text is cut, so that the tip keeps to the screen.
 	/// </summary>
 	[AvaloniaTest]
@@ -1676,6 +1730,9 @@ internal class DocumentTextEditorTests
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
+		// The tip takes its place before the pointer can move on.
+		Dispatcher.UIThread.RunJobs();
+
 		// Act
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
@@ -1687,6 +1744,168 @@ internal class DocumentTextEditorTests
 		ToolTip.GetTip(textView)
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: a tip that covers the pointer closes while the pointer stays over the
+	/// view, as the hover then stops by a move in the view.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Closes_The_Tip_While_The_Pointer_Is_Over_The_View()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, and the pointer then moves to the view beside the tip.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		window.MouseMove(GetColumnCenter(textView, 0));
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: a tip that opened under the pointer and took it from the view stays
+	/// open, as the hover would open a closed one again and again.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Keeps_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click on a tip that took the pointer closes it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Closes_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
