@@ -1383,6 +1383,10 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
+
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
 		// Act
@@ -1845,6 +1849,10 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
+
 		// Act
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
@@ -1896,6 +1904,10 @@ internal class DocumentTextEditorTests
 		Raise(textView, TextView.PointerHoverEvent, point);
 
 		Dispatcher.UIThread.RunJobs();
+
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
 
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
