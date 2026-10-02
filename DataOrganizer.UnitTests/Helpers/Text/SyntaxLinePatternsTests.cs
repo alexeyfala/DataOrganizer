@@ -87,6 +87,91 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a line that does more than end a block, with a condition, a call,
+	/// a comment or other text, or that only starts like an end line, is no end line.
+	/// </summary>
+	[TestCase("html", "</p> text")]
+	[TestCase("html", "<div>")]
+	[TestCase("latex", "\\end{itemize} % list")]
+	[TestCase("lua", "until done")]
+	[TestCase("makefile", "endif # os")]
+	[TestCase("ruby", "end.compact")]
+	[TestCase("ruby", "END")]
+	[TestCase("ruby", "endpoint = 1")]
+	[TestCase("shellscript", "done < input.txt")]
+	[TestCase("vb", "End")]
+	[TestCase("vb", "End Sub ' done")]
+	[TestCase("vb", "Loop While x > 0")]
+	[TestCase("vb", "#End If")]
+	public void FindEndLine_Leaves_Out_A_Line_That_Does_More_Than_End_A_Block(string language, string text)
+	{
+		// Act
+		bool? isMatch = SyntaxLinePatterns
+			.FindEndLine(language)?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a word or a tag that ends a block in a language, followed by closing
+	/// brackets at most, is an end line.
+	/// </summary>
+	[TestCase("html", "</div>")]
+	[TestCase("html", "</li></ul>")]
+	[TestCase("julia", "end")]
+	[TestCase("latex", "\\end{itemize}")]
+	[TestCase("lua", "end)")]
+	[TestCase("makefile", "endif")]
+	[TestCase("makefile", "endef")]
+	[TestCase("razor", "</table>")]
+	[TestCase("ruby", "end")]
+	[TestCase("shellscript", "fi")]
+	[TestCase("shellscript", "done")]
+	[TestCase("shellscript", "esac")]
+	[TestCase("tex", "\\end{center}")]
+	[TestCase("vb", "End Sub")]
+	[TestCase("vb", "end if")]
+	[TestCase("vb", "End Function)")]
+	[TestCase("vb", "Next")]
+	[TestCase("vb", "Next j, i")]
+	[TestCase("vb", "Loop")]
+	public void FindEndLine_Matches_The_End_Lines_Of_A_Language(string language, string text)
+	{
+		// Act
+		bool? isMatch = SyntaxLinePatterns
+			.FindEndLine(language)?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a language whose blocks end with brackets or by indentation, or
+	/// start with a word on a line of its own, gets no pattern.
+	/// </summary>
+	[TestCase("csharp")]
+	[TestCase("pascal")]
+	[TestCase("python")]
+	[TestCase("sql")]
+	public void FindEndLine_Returns_Null_Without_End_Lines(string language)
+	{
+		// Act
+		Regex? pattern = SyntaxLinePatterns.FindEndLine(language);
+
+		// Assert
+		pattern
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxLinePatterns.FindImport" />: a line that only looks like an import, such as a statement, a call or
 	/// a variable, starts none.
 	/// </summary>

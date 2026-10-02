@@ -31,6 +31,12 @@ public sealed record SyntaxFoldingRules
 	public string? DocComment { get; init; }
 
 	/// <summary>
+	/// Pattern of the text of a line that ends the block above it with a word or a tag alone, such as <c>End Sub</c> or
+	/// <c>&lt;/div&gt;</c>; <c>null</c> when the language has no such lines.
+	/// </summary>
+	public Regex? EndLine { get; init; }
+
+	/// <summary>
 	/// Pattern of the line that closes a marked block; <c>null</c> when the language marks no blocks.
 	/// </summary>
 	public Regex? EndMarker { get; init; }

@@ -3,7 +3,8 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Helpers.Text;
 
 /// <summary>
-/// Patterns and tokens of the lines of a language that folding tells apart: imports, directives and comments.
+/// Patterns and tokens of the lines of a language that folding tells apart: imports, directives, comments and the ends
+/// of blocks.
 /// </summary>
 internal static partial class SyntaxLinePatterns
 {
@@ -35,6 +36,21 @@ internal static partial class SyntaxLinePatterns
 	{
 		"csharp" or "fsharp" => "///",
 		"vb" => "'''",
+		_ => null
+	};
+
+	/// <summary>
+	/// Returns the pattern of the text of a line of a language that ends the block above it with a word or a tag alone;
+	/// <c>null</c> when the blocks of the language end with brackets, or start with a word on a line of its own.
+	/// </summary>
+	public static Regex? FindEndLine(string language) => language switch
+	{
+		"html" or "razor" => HtmlEndTagRegex(),
+		"julia" or "lua" or "ruby" => EndWordRegex(),
+		"latex" or "tex" => LatexEndRegex(),
+		"makefile" => MakefileEndRegex(),
+		"shellscript" => ShellEndRegex(),
+		"vb" => VisualBasicEndRegex(),
 		_ => null
 	};
 
@@ -154,6 +170,13 @@ internal static partial class SyntaxLinePatterns
 	private static partial Regex DirectiveRegex();
 
 	/// <summary>
+	/// Matches the text of a line that ends a block of Ruby, Lua or Julia with its word, followed by closing brackets
+	/// at most.
+	/// </summary>
+	[GeneratedRegex(@"^end[)\]},;]*$")]
+	private static partial Regex EndWordRegex();
+
+	/// <summary>
 	/// Matches a line that opens a module or a namespace of F#.
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*open[ \t]+[\w`]")]
@@ -164,6 +187,12 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*import(?:[ \t]+[\w.""(`]|[(""`])")]
 	private static partial Regex GoImportRegex();
+
+	/// <summary>
+	/// Matches the text of a line that holds end tags alone.
+	/// </summary>
+	[GeneratedRegex(@"^(?:</[\w:.-]+[ \t]*>[ \t]*)+$")]
+	private static partial Regex HtmlEndTagRegex();
 
 	/// <summary>
 	/// Matches a line that imports a type or a package of Java or Groovy.
@@ -184,6 +213,12 @@ internal static partial class SyntaxLinePatterns
 	private static partial Regex JuliaImportRegex();
 
 	/// <summary>
+	/// Matches the text of a line that ends an environment of LaTeX alone.
+	/// </summary>
+	[GeneratedRegex(@"^\\end\{[^{}]*\}$")]
+	private static partial Regex LatexEndRegex();
+
+	/// <summary>
 	/// Matches a line that loads a package of LaTeX.
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*\\(?:usepackage|RequirePackage)\b")]
@@ -194,6 +229,12 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*(?:(?:local[ \t]+)?[\w.]+[ \t]*=[ \t]*)?require[ \t]*[(""']")]
 	private static partial Regex LuaRequireRegex();
+
+	/// <summary>
+	/// Matches the text of a line that ends a condition or a definition of a makefile.
+	/// </summary>
+	[GeneratedRegex(@"^(?:endif|endef)$")]
+	private static partial Regex MakefileEndRegex();
 
 	/// <summary>
 	/// Matches a line that includes another makefile, but not a line of a recipe, which starts with a tab.
@@ -262,6 +303,13 @@ internal static partial class SyntaxLinePatterns
 	private static partial Regex RustUseRegex();
 
 	/// <summary>
+	/// Matches the text of a line that ends a condition, a loop or a case of the shell, followed by a separator or
+	/// a closing bracket at most.
+	/// </summary>
+	[GeneratedRegex(@"^(?:fi|done|esac)[;)]*$")]
+	private static partial Regex ShellEndRegex();
+
+	/// <summary>
 	/// Matches a line that sources a script of the shell, but not a line that runs a script by its path.
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*(?:source|\.)[ \t]+\S")]
@@ -284,6 +332,13 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*#(?:import|include)\b")]
 	private static partial Regex TypstImportRegex();
+
+	/// <summary>
+	/// Matches the text of a line that ends a block of Visual Basic: an end statement, the next of a loop or a loop
+	/// without a condition, followed by closing brackets at most.
+	/// </summary>
+	[GeneratedRegex(@"^(?:End[ \t]+[a-z]+|Next(?:[ \t]+\w+(?:[ \t]*,[ \t]*\w+)*)?|Loop)[)\]},]*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex VisualBasicEndRegex();
 
 	/// <summary>
 	/// Matches a line that imports a namespace of Visual Basic.

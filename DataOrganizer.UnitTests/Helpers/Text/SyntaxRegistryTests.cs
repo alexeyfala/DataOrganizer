@@ -231,6 +231,39 @@ internal class SyntaxRegistryTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language whose blocks end with a word or a tag takes the pattern
+	/// of such lines.
+	/// </summary>
+	[Test]
+	[TestCase("html", "</div>")]
+	[TestCase("julia", "end")]
+	[TestCase("latex", "\\end{itemize}")]
+	[TestCase("lua", "end")]
+	[TestCase("makefile", "endif")]
+	[TestCase("razor", "</div>")]
+	[TestCase("ruby", "end")]
+	[TestCase("shellscript", "fi")]
+	[TestCase("tex", "\\end{center}")]
+	[TestCase("vb", "End Sub")]
+	public void FindFoldingRules_Takes_The_End_Lines_Of_The_Language(string language, string text)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		SyntaxFoldingRules? rules = sut.FindFoldingRules(language);
+
+		// Assert
+		rules
+			.Should()
+			.NotBeNull();
+
+		rules!.EndLine!.IsMatch(text)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxRegistry.FindFoldingRules" />: a language takes the pattern of its import statements.
 	/// </summary>
 	[Test]

@@ -236,6 +236,40 @@ internal class SyntaxFoldingTests
 	}
 
 	/// <summary>
+	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a block folds with the line of the word that
+	/// ends it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Constructor_Folds_The_End_Lines_With_Their_Blocks()
+	{
+		// Arrange
+		TextArea textArea = new()
+		{
+			Document = new("""
+				Module M
+				    Sub F()
+				        x = 1
+				    End Sub
+				End Module
+				""")
+		};
+
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules("vb")!;
+
+		// Act
+		using SyntaxFolding sut = new(textArea, "vb", rules);
+
+		// Assert
+		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
+			.Should()
+			.Equal(
+				(textArea.Document.GetLineByNumber(1).EndOffset, textArea.Document.TextLength),
+				(textArea.Document.GetLineByNumber(2).EndOffset, textArea.Document.GetLineByNumber(4).EndOffset));
+	}
+
+	/// <summary>
 	/// <see cref="SyntaxFolding(TextArea, string, SyntaxFoldingRules)" />: a run of imports folds behind its keyword, beside
 	/// the blocks by indentation.
 	/// </summary>

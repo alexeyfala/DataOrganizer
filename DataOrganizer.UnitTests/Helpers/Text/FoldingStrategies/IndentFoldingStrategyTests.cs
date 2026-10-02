@@ -29,6 +29,14 @@ internal partial class IndentFoldingStrategyTests
 	};
 
 	/// <summary>
+	/// Rules of a language whose blocks end with a word.
+	/// </summary>
+	private static readonly SyntaxFoldingRules EndLineRules = new()
+	{
+		EndLine = EndWordRegex()
+	};
+
+	/// <summary>
 	/// Rules of a language with the block markers of JavaScript.
 	/// </summary>
 	private static readonly SyntaxFoldingRules MarkedRules = new()
@@ -369,6 +377,66 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: an end line that does not line up with the first line of
+	/// a block stays out of the block.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Leaves_Out_An_End_Line_That_Does_Not_Line_Up()
+	{
+		// Arrange
+		TextDocument document = new("""
+			    if a
+			        x
+			end
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a marked block ends at its end marker, and the end line
+	/// after it stays out of the block.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Leaves_The_End_Line_After_A_Marked_Block_Out()
+	{
+		// Arrange
+		TextDocument document = new("""
+			// #region A
+			x
+			// #endregion
+			end
+			""");
+
+		SyntaxFoldingRules rules = MarkedRules with
+		{
+			EndLine = EndWordRegex()
+		};
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(rules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 3));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block inside a block folds on its own, and the blocks
 	/// come in the order of their first lines.
 	/// </summary>
@@ -699,6 +767,34 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block whose first line opens a bracket that closes on it
+	/// takes in the end line after it all the same.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_An_End_Line_Into_A_Block_That_Opens_A_Bracket()
+	{
+		// Arrange
+		TextDocument document = new("""
+			sub f(
+			    a)
+			    x
+			end
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block that opens a bracket at the end of its first line
 	/// takes in the line of the closing bracket.
 	/// </summary>
@@ -716,6 +812,34 @@ internal partial class IndentFoldingStrategyTests
 		using FoldingText text = new(document);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
+
+		// Act
+		NewFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 3));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block takes in the end line that lines up with its first
+	/// line.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_The_End_Line_Into_A_Block()
+	{
+		// Arrange
+		TextDocument document = new("""
+			def f
+			    x
+			end
+			y
+			""");
+
+		using FoldingText text = new(document);
+
+		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
 
 		// Act
 		NewFolding[] foldings = sut.CreateNewFoldings(text);
@@ -751,6 +875,12 @@ internal partial class IndentFoldingStrategyTests
 	/// </summary>
 	[GeneratedRegex(@"^\s*//\s*#endregion\b")]
 	private static partial Regex EndMarkerRegex();
+
+	/// <summary>
+	/// Matches the text of a line that ends a block with a word alone.
+	/// </summary>
+	[GeneratedRegex("^end$")]
+	private static partial Regex EndWordRegex();
 
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.

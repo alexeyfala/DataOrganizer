@@ -69,7 +69,7 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 		// A language of the off-side rule sets its blocks by indentation alone.
 		if (!_rules.IsOffSide)
 		{
-			AttachBrackets(text, blocks);
+			AttachHeadsAndEndLines(text, blocks);
 		}
 
 		// The first line of a block stays in view, and the rest of the block folds into it.
@@ -123,16 +123,16 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 	private static bool IsFinishedLine(ReadOnlySpan<char> content) => content[^1] is ',' or ';' || !content.ContainsAnyExcept(ClosingCharacters);
 
 	/// <summary>
-	/// Starts the block of a lone opening bracket on the line above it and takes the line of the closing bracket into
-	/// the block, so that a folded block shows its head alone, as in Visual Studio.
+	/// Starts the block of a lone opening bracket on the line above it and takes the line that closes the block into it,
+	/// so that a folded block shows its head alone, as in Visual Studio.
 	/// </summary>
-	private void AttachBrackets(FoldingText text, List<(int Start, int End)> blocks)
+	private void AttachHeadsAndEndLines(FoldingText text, List<(int Start, int End)> blocks)
 	{
 		for (int i = 0; i < blocks.Count; i++)
 		{
 			(int start, int end) = blocks[i];
 
-			// The line of the opening bracket, whose indentation the closing one shares.
+			// The first line of the block, whose indentation the line that closes it shares.
 			ReadOnlySpan<char> opening = text.GetLine(start);
 
 			ReadOnlySpan<char> content = opening.Trim();
@@ -146,19 +146,9 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 				start = head;
 			}
 
-			int bracketIndex = OpeningBrackets.IndexOf(content[^1]);
-
-			int next = end + 1;
-
-			if (bracketIndex >= 0 && next <= text.LineCount)
+			if (end < text.LineCount && IsEndLine(opening, text.GetLine(end + 1)))
 			{
-				ReadOnlySpan<char> closing = text.GetLine(next);
-
-				if (GetIndent(closing, _tabSize) == indent
-					&& IsClosingLine(closing.Trim(), ClosingBrackets[bracketIndex]))
-				{
-					end = next;
-				}
+				end++;
 			}
 
 			blocks[i] = (start, end);
@@ -315,6 +305,26 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Returns <c>true</c> when a line lines up with the first line of a block and only closes it: with the bracket that
+	/// matches the one the first line ends with, or with a word or a tag of the language, which no marked block takes.
+	/// </summary>
+	private bool IsEndLine(ReadOnlySpan<char> opening, ReadOnlySpan<char> line)
+	{
+		if (GetIndent(line, _tabSize) != GetIndent(opening, _tabSize))
+		{
+			return false;
+		}
+
+		ReadOnlySpan<char> content = line.Trim();
+
+		int bracketIndex = OpeningBrackets.IndexOf(opening.Trim()[^1]);
+
+		// A marked block ends at its end marker, and the line after it belongs to the blocks around it.
+		return (bracketIndex >= 0 && IsClosingLine(content, ClosingBrackets[bracketIndex]))
+			|| (_rules.EndLine?.IsMatch(content) == true && _rules.StartMarker?.IsMatch(opening) != true);
 	}
 
 	/// <summary>
