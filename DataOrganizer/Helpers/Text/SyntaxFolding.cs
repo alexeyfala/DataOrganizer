@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
@@ -103,6 +104,12 @@ internal sealed class SyntaxFolding : IDisposable
 			.Single(x => x.FoldingManager == _manager)
 			.Cursor = new Cursor(StandardCursorType.Arrow);
 
+		// The engine unfolds a block on any press of its box, of which only a double click gets through.
+		_textView.AddHandler(
+			InputElement.PointerPressedEvent,
+			TextView_PointerPressed,
+			RoutingStrategies.Tunnel);
+
 		// The blocks come with the text.
 		Update();
 	}
@@ -112,7 +119,14 @@ internal sealed class SyntaxFolding : IDisposable
 	/// <summary>
 	/// Removes the blocks and their margin from the text area, and the folded text comes back into view.
 	/// </summary>
-	public void Dispose() => FoldingManager.Uninstall(_manager);
+	public void Dispose()
+	{
+		_textView.RemoveHandler(
+			InputElement.PointerPressedEvent,
+			TextView_PointerPressed);
+
+		FoldingManager.Uninstall(_manager);
+	}
 
 	/// <summary>
 	/// Returns the innermost block in view whose lines hold a line; <c>null</c> when no block holds it.
@@ -171,35 +185,7 @@ internal sealed class SyntaxFolding : IDisposable
 	/// </summary>
 	public string? FindHiddenText(Point point)
 	{
-		// The visual lines stand in the coordinates of the document, which the view scrolls.
-		Point position = point + _textView.ScrollOffset;
-
-		if (_textView.GetVisualLineFromVisualTop(position.Y) is not { } visualLine)
-		{
-			return null;
-		}
-
-		int column = visualLine.GetVisualColumnFloor(position);
-
-		// The element under the point, found the way the view finds the one that a click goes to.
-		if (visualLine
-			.Elements
-			.FirstOrDefault(x => x.VisualColumn + x.VisualLength > column) is not { } element)
-		{
-			return null;
-		}
-
-		int start = visualLine.StartOffset + element.RelativeTextOffset;
-
-		// The box is the only element that starts where a folded block does, as it takes the whole text of the block.
-		if (!_manager
-			.GetFoldingsAt(start)
-			.Any(static x => x.IsFolded))
-		{
-			return null;
-		}
-
-		return GetHiddenText(Document, start, start + element.DocumentLength);
+		return FindBox(point) is { } box ? GetHiddenText(Document, box.Start, box.End) : null;
 	}
 
 	/// <summary>
@@ -246,6 +232,26 @@ internal sealed class SyntaxFolding : IDisposable
 		IEnumerable<NewFolding> foldings = _strategy.CreateNewFoldings(Document, out int firstErrorOffset);
 
 		_manager.UpdateFoldings(foldings, firstErrorOffset);
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view, which leaves the unfolding of a block to a
+	/// double click on its box, as in Visual Studio.
+	/// </summary>
+	private void TextView_PointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		bool isDoubleClick = e.ClickCount == 2
+			&& e.GetCurrentPoint(_textView).Properties.PointerUpdateKind is PointerUpdateKind.LeftButtonPressed;
+
+		// Only the second press of a double click goes on to the box, which then unfolds its block.
+		if (isDoubleClick || FindBox(e.GetPosition(_textView)) is null)
+		{
+			return;
+		}
+
+		e.Handled = true;
 	}
 	#endregion
 
@@ -300,6 +306,43 @@ internal sealed class SyntaxFolding : IDisposable
 		}
 
 		return string.Join('\n', lines);
+	}
+
+	/// <summary>
+	/// Returns the start and the end of the text that the box of a folded block hides at a point of the view; <c>null</c>
+	/// when no box is there.
+	/// </summary>
+	private (int Start, int End)? FindBox(Point point)
+	{
+		// The visual lines stand in the coordinates of the document, which the view scrolls.
+		Point position = point + _textView.ScrollOffset;
+
+		if (_textView.GetVisualLineFromVisualTop(position.Y) is not { } visualLine)
+		{
+			return null;
+		}
+
+		int column = visualLine.GetVisualColumnFloor(position);
+
+		// The element under the point, found the way the view finds the one that a click goes to.
+		if (visualLine
+			.Elements
+			.FirstOrDefault(x => x.VisualColumn + x.VisualLength > column) is not { } element)
+		{
+			return null;
+		}
+
+		int start = visualLine.StartOffset + element.RelativeTextOffset;
+
+		// The box is the only element that starts where a folded block does, as it takes the whole text of the block.
+		if (!_manager
+			.GetFoldingsAt(start)
+			.Any(static x => x.IsFolded))
+		{
+			return null;
+		}
+
+		return (start, start + element.DocumentLength);
 	}
 
 	/// <summary>

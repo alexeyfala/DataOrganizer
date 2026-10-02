@@ -1690,8 +1690,8 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" />: a click on the box of a folded block unfolds it, and the tip of
-	/// its hidden text closes.
+	/// <see cref="InputElement.PointerPressedEvent" />: a click on the box of a folded block closes the tip of its hidden
+	/// text.
 	/// </summary>
 	[AvaloniaTest]
 	public void PointerPressed_Closes_The_Tip()
@@ -1732,6 +1732,146 @@ internal class DocumentTextEditorTests
 		ToolTip.GetTip(textView)
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a double click of another button than the left one leaves a folded
+	/// block folded.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(MouseButton.Middle)]
+	[TestCase(MouseButton.Right)]
+	public void PointerPressed_Keeps_A_Block_Folded_On_A_Double_Click_Of_Another_Button(MouseButton button)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, button);
+
+		Click(window, point, button);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a single click of any button on the box of a folded block leaves
+	/// the block folded.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(MouseButton.Left)]
+	[TestCase(MouseButton.Middle)]
+	[TestCase(MouseButton.Right)]
+	public void PointerPressed_Keeps_A_Block_Folded_On_A_Single_Click_On_Its_Box(MouseButton button)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, button);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click beside the box of a folded block moves the caret as usual.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Moves_The_Caret_On_A_Click_Beside_A_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{FoldedText}\nx"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, sut.Document.TextLength - 1);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(sut.Document.LineCount);
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a double click on the box of a folded block unfolds it, as in
+	/// Visual Studio.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Unfolds_A_Block_On_A_Double_Click_On_Its_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -3329,6 +3469,16 @@ internal class DocumentTextEditorTests
 				});
 
 		return received;
+	}
+
+	/// <summary>
+	/// Presses and releases a button of the mouse at a point of a window.
+	/// </summary>
+	private static void Click(Window window, Point point, MouseButton button)
+	{
+		window.MouseDown(point, button);
+
+		window.MouseUp(point, button);
 	}
 
 	/// <summary>

@@ -381,7 +381,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		textView.PointerHoverStopped += TextView_PointerHoverStopped;
 
-		// A click on a box unfolds its block, which the tip would still cover; the box marks the click handled.
+		// A double click on a box unfolds its block, which the tip would still cover, and the presses on a box are handled.
 		textView.AddHandler(
 			PointerPressedEvent,
 			TextView_PointerPressed,
