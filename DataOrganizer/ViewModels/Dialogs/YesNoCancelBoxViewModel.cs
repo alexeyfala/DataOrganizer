@@ -69,6 +69,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
 	public Task<YesNoCancelAnswer> GetResultAsync(
+		Task dialogClosed,
 		YesNoCancelButtons variant,
 		CancellationToken token = default)
 	{
@@ -99,6 +100,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 		}
 
 		return GetResultAsync(
+			dialogClosed,
 			defaultResult: YesNoCancelAnswer.Cancel,
 			token: token);
 	}

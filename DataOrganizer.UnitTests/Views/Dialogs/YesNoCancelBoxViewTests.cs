@@ -43,7 +43,7 @@ internal class YesNoCancelBoxViewTests
 
 		window.Show();
 
-		Task<YesNoCancelAnswer> answer = viewModel.GetResultAsync(variant);
+		Task<YesNoCancelAnswer> answer = viewModel.GetResultAsync(new TaskCompletionSource().Task, variant);
 
 		Dispatcher.UIThread.RunJobs();
 

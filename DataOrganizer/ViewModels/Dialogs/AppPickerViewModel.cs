@@ -113,8 +113,10 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<AssociatedAppInfo?> GetResultAsync(CancellationToken token = default) =>
-		GetResultAsync(defaultResult: null, token: token);
+	public Task<AssociatedAppInfo?> GetResultAsync(Task dialogClosed, CancellationToken token = default)
+	{
+		return GetResultAsync(dialogClosed, defaultResult: null, token: token);
+	}
 	#endregion
 
 	#region Helpers

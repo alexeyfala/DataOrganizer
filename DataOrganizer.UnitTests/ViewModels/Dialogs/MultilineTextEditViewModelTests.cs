@@ -23,7 +23,7 @@ internal class MultilineTextEditViewModelTests
 		// Act
 		_ = Task.Run(() => sut.CancelCommand.Execute(null));
 
-		bool result = await sut.GetResultAsync();
+		bool result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result
@@ -45,7 +45,7 @@ internal class MultilineTextEditViewModelTests
 		// Act
 		_ = Task.Run(() => sut.SaveCommand.Execute(null));
 
-		bool result = await sut.GetResultAsync();
+		bool result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result

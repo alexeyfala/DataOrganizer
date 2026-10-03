@@ -70,9 +70,10 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<ImportMode> GetResultAsync(CancellationToken token = default)
+	public Task<ImportMode> GetResultAsync(Task dialogClosed, CancellationToken token = default)
 	{
 		return GetResultAsync(
+			dialogClosed,
 			defaultResult: ImportMode.None,
 			token: token);
 	}

@@ -20,9 +20,10 @@ public class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<bool> GetResultAsync(in CancellationToken token = default)
+	public Task<bool> GetResultAsync(Task dialogClosed, in CancellationToken token = default)
 	{
 		return GetResultAsync(
+			dialogClosed,
 			defaultResult: false,
 			token: token);
 	}
