@@ -32,7 +32,6 @@
 	WindowDecorations="{OnPlatform Default=BorderOnly,
 	                               Windows=Full,
 	                               macOS=Full}"
-	WindowDecorationsTheme="{StaticResource EmptyWindowDecorationsControlTheme}"
 	mc:Ignorable="d">
 
 	<!--
@@ -49,6 +48,11 @@
 
 	<Window.Styles>
 		<StyleInclude Source="/Styling/TitleBarStyles.axaml" />
+
+		<!--  Avalonia draws its own title bar only with full decorations; BorderOnly keeps the theme of Material.  -->
+		<Style Selector="Window[WindowDecorations=Full]">
+			<Setter Property="WindowDecorationsTheme" Value="{StaticResource EmptyWindowDecorationsControlTheme}" />
+		</Style>
 	</Window.Styles>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
