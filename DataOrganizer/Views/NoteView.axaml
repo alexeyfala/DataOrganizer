@@ -13,6 +13,7 @@
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
 	mc:Ignorable="d">
 
 	<UserControl.Styles>
@@ -49,12 +50,17 @@
 			</Interaction.Behaviors>
 		</materialIcons:MaterialIcon>
 
+		<!--
+			The light dismiss overlay must not cover the icon: once it went away, the icon would take
+			the pointer back and the hover would open the popup again.
+		-->
 		<Popup
 			Grid.Row="1"
 			MaxWidth="500.0"
 			MaxHeight="500.0"
 			IsLightDismissEnabled="True"
 			IsOpen="{Binding IsNoteOpen, Mode=TwoWay}"
+			OverlayInputPassThroughElement="{Binding #View}"
 			Placement="Bottom"
 			PlacementTarget="{Binding #ReadableIcon}"
 			VerticalOffset="8.0">
