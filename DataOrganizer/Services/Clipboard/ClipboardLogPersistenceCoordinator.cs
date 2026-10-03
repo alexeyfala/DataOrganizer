@@ -262,7 +262,12 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		{
 			await Task
 				.Delay(_saveDebounce, _timeProvider, cancellation.Token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+			if (cancellation.IsCancellationRequested)
+			{
+				return;
+			}
 
 			await SaveSnapshotAsync(cancellation.Token).ConfigureAwait(false);
 		}

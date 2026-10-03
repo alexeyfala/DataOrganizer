@@ -450,7 +450,7 @@ public sealed class KeyboardInputHook :
 
 			await Task
 				.Delay(TimeSpan.FromSeconds(10), token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 		}
 	}
 	#endregion
