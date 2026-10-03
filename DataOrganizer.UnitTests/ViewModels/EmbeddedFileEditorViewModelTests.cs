@@ -29,6 +29,52 @@ namespace DataOrganizer.UnitTests.ViewModels;
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorViewModel)}"" type")]
 internal class EmbeddedFileEditorViewModelTests
 {
+	#region Data
+	/// <summary>
+	/// Editor state of a file as an earlier build stored it, with every field set, the caret position of the engine
+	/// included.
+	/// </summary>
+	private const string RecordedEditorState = """
+		{
+		  "Bookmarks": [
+		    3,
+		    7
+		  ],
+		  "CaretPosition": {
+		    "Location": {
+		      "Line": 3,
+		      "Column": 5,
+		      "IsEmpty": false
+		    },
+		    "Line": 3,
+		    "Column": 5,
+		    "VisualColumn": 4,
+		    "IsAtEndOfLine": true
+		  },
+		  "FoldedBlocks": [
+		    12,
+		    40
+		  ],
+		  "FontSize": 16.5,
+		  "ScrollOffset": {
+		    "IsEmpty": false,
+		    "X": 15,
+		    "Y": 480
+		  },
+		  "SelectionLength": 4,
+		  "SelectionStart": 20,
+		  "ShowEndOfLine": true,
+		  "ShowSpaces": true,
+		  "ShowTabs": true,
+		  "SyntaxLanguage": "python",
+		  "UnfoldedBlocks": [
+		    25
+		  ],
+		  "WordWrap": true
+		}
+		""";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored state reaches the bound properties
@@ -369,6 +415,90 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsEditingEnabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a state stored by an earlier build reaches every property
+	/// and is not written over.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Reads_A_State_Recorded_By_An_Earlier_Build()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(RecordedEditorState);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.FontSize
+			.Should()
+			.Be(16.5);
+
+		sut.ShowEndOfLine
+			.Should()
+			.BeTrue();
+
+		sut.ShowSpaces
+			.Should()
+			.BeTrue();
+
+		sut.ShowTabs
+			.Should()
+			.BeTrue();
+
+		sut.SyntaxLanguage
+			.Should()
+			.Be("python");
+
+		sut.ViewState
+			.Should()
+			.Be(new DocumentViewState
+			{
+				Bookmarks = [3, 7],
+				CaretPosition = new(line: 3, column: 5, visualColumn: 4)
+				{
+					IsAtEndOfLine = true
+				},
+				FoldedBlocks = [12, 40],
+				ScrollOffset = new(15.0, 480.0),
+				SelectionLength = 4,
+				SelectionStart = 20,
+				UnfoldedBlocks = [25]
+			});
+
+		sut.WordWrap
+			.Should()
+			.BeTrue();
+
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 
 	/// <summary>
