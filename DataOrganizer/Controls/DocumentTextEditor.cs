@@ -205,6 +205,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Data
 	/// <summary>
+	/// Modifier of the keys of the folding chords, the same on every system, as macOS keeps ⌘M for minimizing a window.
+	/// </summary>
+	private const KeyModifiers ChordModifier = KeyModifiers.Control;
+
+	/// <summary>
 	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
 	/// </summary>
 	private const int MaxHighlightedLength = 5 * 1024 * 1024;
@@ -477,7 +482,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		if (!_isChordStarted)
 		{
-			if (e.Key != Key.M || e.KeyModifiers != CommandModifier)
+			if (e.Key != Key.M || e.KeyModifiers != ChordModifier)
 			{
 				return;
 			}
@@ -492,7 +497,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		_isChordStarted = false;
 
 		// The second key works with the modifier of the first one or without it, and any other key acts as usual.
-		if (e.KeyModifiers != KeyModifiers.None && e.KeyModifiers != CommandModifier)
+		if (e.KeyModifiers != KeyModifiers.None && e.KeyModifiers != ChordModifier)
 		{
 			return;
 		}

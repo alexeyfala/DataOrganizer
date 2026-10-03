@@ -351,7 +351,7 @@
 										<controls:FlyoutButton
 											Command="{Binding #Editor.ActiveEditor.ToggleFoldingCommand}"
 											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+M',
-											                     macOS='⌘+M, ⌘+M'}"
+											                     macOS='⌃+M, ⌃+M'}"
 											Header="{x:Static prop:Strings.ToggleFolding}"
 											Icon="PlusMinusBox" />
 
@@ -359,14 +359,14 @@
 										<controls:FlyoutButton
 											Command="{Binding #Editor.ActiveEditor.FoldAllCommand}"
 											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
-											                     macOS='⌘+M, ⌘+L'}"
+											                     macOS='⌃+M, ⌃+L'}"
 											Header="{x:Static prop:Strings.FoldAll}"
 											Icon="CollapseAllOutline" />
 
 										<controls:FlyoutButton
 											Command="{Binding #Editor.ActiveEditor.UnfoldAllCommand}"
 											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
-											                     macOS='⌘+M, ⌘+L'}"
+											                     macOS='⌃+M, ⌃+L'}"
 											Header="{x:Static prop:Strings.UnfoldAll}"
 											Icon="ExpandAllOutline" />
 									</StackPanel>

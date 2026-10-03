@@ -747,17 +747,17 @@ internal class DocumentTextEditorTests
 		sut.KeyBindings.Add(new KeyBinding
 		{
 			Command = new RelayCommand(static () => { }),
-			Gesture = new KeyGesture(Key.M, OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control)
+			Gesture = new KeyGesture(Key.M, KeyModifiers.Control)
 		});
 
 		Window window = Show(sut);
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -785,13 +785,13 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// The key of the bookmarks.
 		Press(window, PhysicalKey.F2, CommandModifiers);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -819,12 +819,12 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		Press(window, PhysicalKey.A, RawInputModifiers.None);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -852,14 +852,14 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		window.FocusManager!.Focus(null, NavigationMethod.Unspecified, KeyModifiers.None);
 
 		sut.TextArea.Focus();
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -971,9 +971,9 @@ internal class DocumentTextEditorTests
 		// Act
 		if (isChord)
 		{
-			Press(window, PhysicalKey.M, CommandModifiers);
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-			Press(window, PhysicalKey.L, CommandModifiers);
+			Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 			Dispatcher.UIThread.RunJobs();
 		}
@@ -1006,12 +1006,12 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-		window.KeyPressQwerty(PhysicalKey.ControlLeft, CommandModifiers);
+		window.KeyPressQwerty(PhysicalKey.ControlLeft, RawInputModifiers.Control);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1023,7 +1023,7 @@ internal class DocumentTextEditorTests
 
 	/// <summary>
 	/// <see cref="DocumentTextEditor.FoldAllCommand" />: runs on Ctrl+M, Ctrl+L while no block is folded, as in Visual
-	/// Studio, with ⌘ for Ctrl on macOS.
+	/// Studio, on macOS as well.
 	/// </summary>
 	[AvaloniaTest]
 	public void FoldAllCommand_Runs_On_Ctrl_M_Ctrl_L_Without_A_Folded_Block()
@@ -1039,10 +1039,12 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		//Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		//Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -3004,6 +3006,37 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: a chord starts with Ctrl on macOS too, not with ⌘, as macOS
+	/// keeps ⌘M for minimizing a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Does_Not_Run_On_Meta_M_Meta_M()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
+
+		// Act
+		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: a key other than the second key of a chord is left to the
 	/// text as usual.
 	/// </summary>
@@ -3021,7 +3054,7 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		KeyEventArgs args = new()
 		{
@@ -3112,9 +3145,9 @@ internal class DocumentTextEditorTests
 		// Act
 		if (isChord)
 		{
-			Press(window, PhysicalKey.M, CommandModifiers);
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-			Press(window, PhysicalKey.M, CommandModifiers);
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 			Dispatcher.UIThread.RunJobs();
 		}
@@ -3131,7 +3164,7 @@ internal class DocumentTextEditorTests
 
 	/// <summary>
 	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: runs on Ctrl+M, Ctrl+M, as in Visual Studio, with or without
-	/// Ctrl on the second key and with ⌘ for Ctrl on macOS.
+	/// Ctrl on the second key and on macOS as well.
 	/// </summary>
 	[AvaloniaTest]
 	public void ToggleFoldingCommand_Runs_On_Ctrl_M_Ctrl_M([Values] bool isCtrlHeld)
@@ -3147,10 +3180,10 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
-		Press(window, PhysicalKey.M, isCtrlHeld ? CommandModifiers : RawInputModifiers.None);
+		Press(window, PhysicalKey.M, isCtrlHeld ? RawInputModifiers.Control : RawInputModifiers.None);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -3548,9 +3581,9 @@ internal class DocumentTextEditorTests
 		// Act
 		if (isChord)
 		{
-			Press(window, PhysicalKey.M, CommandModifiers);
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-			Press(window, PhysicalKey.L, CommandModifiers);
+			Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 			Dispatcher.UIThread.RunJobs();
 		}
@@ -3585,10 +3618,10 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
-		Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();
 
