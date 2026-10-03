@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
@@ -39,6 +40,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	private readonly ConcurrentDictionary<ThemeName, IRawTheme> _colorThemes = [];
 
 	/// <summary>
+	/// Folding rules built so far, by language, as each builds its regular expressions.
+	/// </summary>
+	private readonly ConcurrentDictionary<string, SyntaxFoldingRules?> _foldingRules = [];
+
+	/// <summary>
 	/// Grammars read so far, by scope name, as every highlighted editor would parse its grammar again.
 	/// </summary>
 	private readonly ConcurrentDictionary<string, IRawGrammar?> _grammars = [];
@@ -72,6 +78,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Returns the rules for folding the text of a language; <c>null</c> for a language without a grammar.
+	/// </summary>
+	public SyntaxFoldingRules? FindFoldingRules(string language) => _foldingRules.GetOrAdd(language, CreateFoldingRules);
+
 	/// <summary>
 	/// Returns the language of a file by the extension of its name; <c>null</c> when no grammar knows the extension.
 	/// </summary>
@@ -119,5 +130,51 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 
 	/// <inheritdoc />
 	public IRawTheme? GetTheme(string scopeName) => _themes.GetOrAdd(scopeName, _options.GetTheme);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Builds the folding rules of a language from its settings and from the patterns of its lines.
+	/// </summary>
+	private SyntaxFoldingRules? CreateFoldingRules(string language)
+	{
+		if (_options
+			.GetAvailableLanguages()
+			.FirstOrDefault(x => x.Id == language) is not { } found)
+		{
+			return null;
+		}
+
+		Comments? comments = found.Configuration?.Comments;
+
+		Folding? folding = found.Configuration?.Folding;
+
+		// A token of blanks, as some languages have for the end, would close a block comment anywhere.
+		(string Start, string End)? blockComment = comments?.BlockComment is [var start, var end]
+			&& !string.IsNullOrWhiteSpace(start)
+			&& !string.IsNullOrWhiteSpace(end)
+				? (start, end)
+				: null;
+
+		// A marker without its pair would open blocks that never close.
+		Markers? markers = folding is { IsEmpty: false, Markers: { } pair } ? pair : null;
+
+		// The markers are regular expressions of VS Code, which .NET reads alike.
+		// They are compiled, as every pass tries them on each line.
+		return new SyntaxFoldingRules
+		{
+			BlockCommentEnd = blockComment?.End,
+			BlockCommentStart = blockComment?.Start,
+			DirectiveLine = SyntaxLinePatterns.FindDirective(language),
+			DocComment = SyntaxLinePatterns.FindDocComment(language),
+			EndLine = SyntaxLinePatterns.FindEndLine(language),
+			EndMarker = markers is null ? null : new Regex(markers.End, RegexOptions.Compiled),
+			ImportLine = SyntaxLinePatterns.FindImport(language),
+			IsOffSide = folding?.OffSide == true,
+			LineComment = SyntaxLinePatterns.FindLineComment(language, comments?.LineComment),
+			PreprocessorLine = SyntaxLinePatterns.FindPreprocessor(language),
+			StartMarker = markers is null ? null : new Regex(markers.Start, RegexOptions.Compiled)
+		};
+	}
 	#endregion
 }

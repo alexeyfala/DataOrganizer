@@ -10,6 +10,26 @@ internal class PinnedSecretTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="PinnedSecret.AsReadOnlySpan" />: a disposed secret hands out no view of its zeros.
+	/// </summary>
+	[Test]
+	public void AsReadOnlySpan_Throws_After_Dispose()
+	{
+		// Arrange
+		PinnedSecret sut = new(4);
+
+		sut.Dispose();
+
+		// Act
+		Action act = () => sut.AsReadOnlySpan();
+
+		// Assert
+		act
+			.Should()
+			.Throw<ObjectDisposedException>();
+	}
+
+	/// <summary>
 	/// <see cref="PinnedSecret.AsSpan" /> + <see cref="PinnedSecret.AsReadOnlySpan" />: data written through the span round-trips when read back through the read-only span.
 	/// </summary>
 	[Test]
@@ -28,6 +48,26 @@ internal class PinnedSecretTests
 			.ToArray()
 			.Should()
 			.BeEquivalentTo(['a', 'b', 'c', 'd', 'e']);
+	}
+
+	/// <summary>
+	/// <see cref="PinnedSecret.AsSpan" />: a disposed secret hands out no view of its zeros.
+	/// </summary>
+	[Test]
+	public void AsSpan_Throws_After_Dispose()
+	{
+		// Arrange
+		PinnedSecret sut = new(4);
+
+		sut.Dispose();
+
+		// Act
+		Action act = () => sut.AsSpan();
+
+		// Assert
+		act
+			.Should()
+			.Throw<ObjectDisposedException>();
 	}
 
 	/// <summary>
@@ -64,7 +104,10 @@ internal class PinnedSecretTests
 
 		"keys".AsSpan().CopyTo(sut.AsSpan());
 
-		sut.AsReadOnlySpan().ToArray()
+		// The view is taken before the disposal, after which none is handed out.
+		ReadOnlySpan<char> view = sut.AsReadOnlySpan();
+
+		view.ToArray()
 			.Should()
 			.NotContain('\0');
 
@@ -72,7 +115,7 @@ internal class PinnedSecretTests
 		sut.Dispose();
 
 		// Assert
-		sut.AsReadOnlySpan().ToArray()
+		view.ToArray()
 			.Should()
 			.OnlyContain(c => c == '\0');
 	}
@@ -160,6 +203,31 @@ internal class PinnedSecretTests
 		buffer.Length
 			.Should()
 			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="PinnedSecret.ToUtf8Buffer" />: a disposed secret is not encoded into a key of zeros.
+	/// </summary>
+	[Test]
+	public void ToUtf8Buffer_Throws_After_Dispose()
+	{
+		// Arrange
+		PinnedSecret sut = new(4);
+
+		"keys".AsSpan().CopyTo(sut.AsSpan());
+
+		sut.Dispose();
+
+		// Act
+		Action act = () =>
+		{
+			using PinnedBuffer buffer = sut.ToUtf8Buffer();
+		};
+
+		// Assert
+		act
+			.Should()
+			.Throw<ObjectDisposedException>();
 	}
 	#endregion
 }

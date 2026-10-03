@@ -23,7 +23,8 @@ namespace DataOrganizer.Views;
 internal sealed partial class DocumentEditorView :
 	UserControl,
 	IDisposable,
-	IRecipient<BookmarksChangedMessage>
+	IRecipient<BookmarksChangedMessage>,
+	IRecipient<FoldingChangedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -145,7 +146,7 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
-	/// Caret, selection, scroll position and bookmarks of the document.
+	/// Caret, selection, scroll position, bookmarks and folded blocks of the document.
 	/// A value set from outside is restored once the document has been laid out.
 	/// </summary>
 	public DocumentViewState? ViewState
@@ -282,10 +283,10 @@ internal sealed partial class DocumentEditorView :
 	{
 		InitializeComponent();
 
-		// The state is that of the active half, so only its moves count.
+		// The state is that of the active half, so only its changes count.
 		Editor
 			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
-			.Select(BuildMoveTrigger)
+			.Select(BuildChangeTrigger)
 			.Switch()
 			.SetDelay(TimeSpan.FromSeconds(0.5))
 			.Subscribe(_ => CaptureViewState());
@@ -352,7 +353,21 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
-	/// Reports the caret, selection, scroll position and bookmarks through <see cref="ViewState" />.
+	/// Reports the view state again when blocks of the active half fold or unfold.
+	/// </summary>
+	public void Receive(FoldingChangedMessage message)
+	{
+		// Each half folds on its own, and the state is that of the active one.
+		if (message.Editor != Editor.ActiveEditor)
+		{
+			return;
+		}
+
+		CaptureViewState();
+	}
+
+	/// <summary>
+	/// Reports the caret, selection, scroll position, bookmarks and folded blocks through <see cref="ViewState" />.
 	/// </summary>
 	internal void CaptureViewState()
 	{
@@ -366,13 +381,22 @@ internal sealed partial class DocumentEditorView :
 			return;
 		}
 
+		int[] foldedBlocks = editor.GetBlockStarts(isFolded: true);
+
+		int[] unfoldedBlocks = editor.GetBlockStarts(isFolded: false);
+
+		// The shorter list is kept, so a text with every block folded costs as little as one with none.
+		bool isMostlyFolded = unfoldedBlocks.Length < foldedBlocks.Length;
+
 		DocumentViewState state = new()
 		{
 			Bookmarks = editor.Bookmarks.GetLines(),
 			CaretPosition = editor.TextArea.Caret.Position,
+			FoldedBlocks = isMostlyFolded ? null : foldedBlocks,
 			ScrollOffset = scrollViewer.Offset,
 			SelectionLength = editor.SelectionLength,
-			SelectionStart = editor.SelectionStart
+			SelectionStart = editor.SelectionStart,
+			UnfoldedBlocks = isMostlyFolded ? unfoldedBlocks : null
 		};
 
 		_isCapturing = true;
@@ -392,7 +416,7 @@ internal sealed partial class DocumentEditorView :
 	{
 		base.OnAttachedToVisualTree(e);
 
-		// A click on the bookmark margin moves neither the caret nor the view, whose moves the state follows otherwise.
+		// Bookmarks and folds change while neither the caret nor the view moves, whose moves the state follows otherwise.
 		WeakReferenceMessenger
 			.Default
 			.RegisterAll(this);
@@ -431,9 +455,10 @@ internal sealed partial class DocumentEditorView :
 
 	#region Helpers
 	/// <summary>
-	/// Emits when the caret or the view of an editor moves.
+	/// Emits when the caret or the view of an editor moves, or when the view builds its lines anew, as a click that
+	/// folds a block makes it do.
 	/// </summary>
-	private static IObservable<EventPattern<EventArgs>> BuildMoveTrigger(TextEditor editor)
+	private static IObservable<EventPattern<EventArgs>> BuildChangeTrigger(TextEditor editor)
 	{
 		TextArea area = editor.TextArea;
 
@@ -442,7 +467,10 @@ internal sealed partial class DocumentEditorView :
 			x => area.Caret.PositionChanged -= x)
 			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
 				x => area.TextView.ScrollOffsetChanged += x,
-				x => area.TextView.ScrollOffsetChanged -= x));
+				x => area.TextView.ScrollOffsetChanged -= x))
+			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => area.TextView.VisualLinesChanged += x,
+				x => area.TextView.VisualLinesChanged -= x));
 	}
 
 	/// <summary>
@@ -478,6 +506,17 @@ internal sealed partial class DocumentEditorView :
 			.TextArea
 			.Caret
 			.Position = state.CaretPosition;
+
+		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
+		// folded text.
+		if (state.UnfoldedBlocks is { } unfoldedBlocks)
+		{
+			editor.SetBlocksFolded(unfoldedBlocks, isFolded: false);
+		}
+		else
+		{
+			editor.SetBlocksFolded(state.FoldedBlocks ?? [], isFolded: true);
+		}
 
 		// The offset, not the caret line, brings the view back the way it was left.
 		scrollViewer.Offset = state.ScrollOffset;

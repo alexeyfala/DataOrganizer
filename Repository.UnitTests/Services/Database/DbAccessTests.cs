@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -11,7 +12,9 @@ using Repository.Enums;
 using Repository.Exceptions;
 using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
 using Repository.Services.Database;
+using Repository.UnitTests.Fixtures;
 using Shared.Common;
 using Shared.Interfaces;
 using System;
@@ -39,7 +42,49 @@ internal class DbAccessTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
+	/// <see cref="DbAccess.AddEntityAsync" />: a failed save leaves no entity tracked for the next save to write.
+	/// </summary>
+	[Test]
+	public async Task AddEntityAsync_Clears_The_Tracking_When_The_Save_Fails()
+	{
+		// Arrange
+		AddEntityParameters parameters = new()
+		{
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = EntityKind.Folder,
+			Name = RandomString.Create(10),
+			ParentId = null
+		};
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.SaveChangesAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		Func<Task> act = () => sut.AddEntityAsync(parameters);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<InvalidOperationException>();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters, saves changes and
+	/// clears the tracking.
 	/// </summary>
 	[Test]
 	public async Task AddEntityAsync_Returns_Entity([Values] EntityKind type)
@@ -96,6 +141,10 @@ internal class DbAccessTests
 			.Received(1)
 			.SaveChangesAsync();
 
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+
 		if (type == EntityKind.Folder)
 		{
 			entity
@@ -119,7 +168,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository and saves changes.
+	/// <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository, saves changes and clears the tracking.
 	/// </summary>
 	[Test]
 	public async Task AddFilesAsync_Adds_Files_To_Database()
@@ -151,10 +200,108 @@ internal class DbAccessTests
 		await dbContextService
 			.Received(1)
 			.SaveChangesAsync();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository and saves changes.
+	/// <see cref="DbAccess.AddFilesAsync" />: a failed save leaves no file tracked for the next save to write.
+	/// </summary>
+	[Test]
+	public async Task AddFilesAsync_Clears_The_Tracking_When_The_Save_Fails()
+	{
+		// Arrange
+		FileEntity[] files = [.. EntityFactory.CreateFiles(5)];
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.SaveChangesAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		Func<Task> act = () => sut.AddFilesAsync(files);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<InvalidOperationException>();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddFilesAsync" />, <see cref="DbAccess.AddEntityAsync" />: a file the database refuses is not
+	/// written again by the next save, which goes through.
+	/// </summary>
+	[Test]
+	public async Task AddFilesAsync_Leaves_Nothing_Behind_When_The_Save_Fails()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// A file whose folder does not exist breaks the foreign key.
+		Func<Task> refused = () => sut.AddFilesAsync([EntityFactory.CreateFile(parentId: Guid.NewGuid())]);
+
+		await refused
+			.Should()
+			.ThrowAsync<DbUpdateException>();
+
+		// Act
+		await sut.AddEntityAsync(new()
+		{
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = EntityKind.Folder,
+			Name = RandomString.Create(10),
+			ParentId = null
+		});
+
+		// Assert
+		FolderEntity[] folders = await sut.GetAllFoldersAsync();
+
+		FileEntity[] files = await sut.GetAllFilesAsync(OptionalFileProperties.None);
+
+		folders
+			.Should()
+			.ContainSingle();
+
+		files
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository, saves changes and clears the tracking.
 	/// </summary>
 	[Test]
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
@@ -186,10 +333,50 @@ internal class DbAccessTests
 		await dbContextService
 			.Received(1)
 			.SaveChangesAsync();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per key stroke owned by the given file and saves changes.
+	/// <see cref="DbAccess.AddFoldersAsync" />: a failed save leaves no folder tracked for the next save to write.
+	/// </summary>
+	[Test]
+	public async Task AddFoldersAsync_Clears_The_Tracking_When_The_Save_Fails()
+	{
+		// Arrange
+		FolderEntity[] folders = [.. EntityFactory.CreateFolders(5)];
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.SaveChangesAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		Func<Task> act = () => sut.AddFoldersAsync(folders);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<InvalidOperationException>();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per key stroke owned by the given file, saves changes and
+	/// clears the tracking.
 	/// </summary>
 	[Test]
 	public async Task AddHotkeysAsync_Adds_Hotkeys_To_Database_And_Returns_Created_Models()
@@ -231,6 +418,45 @@ internal class DbAccessTests
 		await dbContextService
 			.Received(1)
 			.SaveChangesAsync();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddHotkeysAsync" />: a failed save leaves no hotkey tracked for the next save to write.
+	/// </summary>
+	[Test]
+	public async Task AddHotkeysAsync_Clears_The_Tracking_When_The_Save_Fails()
+	{
+		// Arrange
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.SaveChangesAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		Func<Task> act = () => sut.AddHotkeysAsync(Guid.NewGuid(), keyStrokes);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<InvalidOperationException>();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
 	}
 
 	/// <summary>

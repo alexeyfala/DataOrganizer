@@ -622,6 +622,63 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="SplitDocumentEditor.IsSplit" />: without the split the upper half takes over the folded blocks of an active
+	/// lower half and shows the lines it showed, as the offset is measured over the folded text.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Keeps_The_Folded_Blocks_And_The_Place_Of_The_Active_Lower_Half()
+	{
+		// Arrange
+		using SplitDocumentEditor sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 200),
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
+
+		secondaryEditor
+			.TextArea
+			.Focus();
+
+		secondaryEditor.FoldAllCommand.Execute(null);
+
+		secondaryEditor.ScrollViewer!.Offset = new(0.0, 1000.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		int[] foldedBlocks = secondaryEditor.GetBlockStarts(isFolded: true);
+
+		int[] shownLines = GetShownLines(secondaryEditor, count: 5);
+
+		// Act
+		sut.IsSplit = false;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
+
+		primaryEditor.GetBlockStarts(isFolded: true)
+			.Should()
+			.Equal(foldedBlocks);
+
+		int[] primaryShownLines = GetShownLines(primaryEditor, count: 5);
+
+		primaryShownLines
+			.Should()
+			.Equal(shownLines);
+
+		// Every block is folded, so only the first line of each block shows.
+		primaryShownLines
+			.Should()
+			.OnlyContain(static x => x % 4 == 1);
+	}
+
+	/// <summary>
 	/// <see cref="SplitDocumentEditor.IsSplit" />: without the split the upper half takes over the caret, the selection
 	/// and the scroll position of an active lower half.
 	/// </summary>
@@ -830,6 +887,54 @@ internal class SplitDocumentEditorTests
 		secondaryEditor.ScrollViewer!.Offset
 			.Should()
 			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.IsSplit" />: the lower half opens with the folded blocks of the upper one and shows the
+	/// lines it shows, as the offset is measured over the folded text.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Opens_The_Lower_Half_With_The_Folded_Blocks_Of_The_Upper_One()
+	{
+		// Arrange
+		using SplitDocumentEditor sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 200),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
+
+		primaryEditor.FoldAllCommand.Execute(null);
+
+		primaryEditor.ScrollViewer!.Offset = new(0.0, 1000.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.IsSplit = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
+
+		secondaryEditor.GetBlockStarts(isFolded: true)
+			.Should()
+			.Equal(primaryEditor.GetBlockStarts(isFolded: true));
+
+		int[] shownLines = GetShownLines(secondaryEditor, count: 5);
+
+		shownLines
+			.Should()
+			.Equal(GetShownLines(primaryEditor, count: 5));
+
+		// Every block is folded, so only the first line of each block shows.
+		shownLines
+			.Should()
+			.OnlyContain(static x => x % 4 == 1);
 	}
 
 	/// <summary>
@@ -1188,6 +1293,17 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
+	/// the numbered line to the end of the block.
+	/// </summary>
+	private static TextDocument CreateBlockDocument(int blockCount)
+	{
+		return new(string.Join('\n', Enumerable
+			.Range(1, blockCount)
+			.Select(static x => $"Block {x:D4}\n    One\n    Two\n    Three")));
+	}
+
+	/// <summary>
 	/// Creates a document of numbered lines of the same length.
 	/// </summary>
 	private static TextDocument CreateDocument(int lineCount)
@@ -1195,6 +1311,19 @@ internal class SplitDocumentEditorTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
+	}
+
+	/// <summary>
+	/// Returns the numbers of the lines that start the first lines of the view of an editor, from its top.
+	/// </summary>
+	private static int[] GetShownLines(TextEditor editor, int count)
+	{
+		return [.. editor
+			.TextArea
+			.TextView
+			.VisualLines
+			.Take(count)
+			.Select(static x => x.FirstDocumentLine.LineNumber)];
 	}
 
 	/// <summary>

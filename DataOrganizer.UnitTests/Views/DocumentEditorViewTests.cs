@@ -5,10 +5,12 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -16,7 +18,10 @@ using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
+using Shared.Extensions;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace DataOrganizer.UnitTests.Views;
@@ -39,6 +44,11 @@ internal class DocumentEditorViewTests
 	/// Name of the caption of the encoding in the markup.
 	/// </summary>
 	private const string EncodingCaptionName = "EncodingCaption";
+
+	/// <summary>
+	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
+	/// </summary>
+	private const string FoldedText = "if ($value)\n{\n    Write-Host 'Text'\n}";
 
 	/// <summary>
 	/// Name of the status bar block with the language of the text in the markup.
@@ -283,6 +293,46 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.CaptureViewState" />: a block that the engine folds by itself, as on a click on its
+	/// marker, reaches the view state after a pause, as the engine tells no fold and neither the caret nor the view moves.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CaptureViewState_Follows_A_Fold_Of_The_Engine_After_A_Pause()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
+			.FoldingManager
+			.AllFoldings
+			.ElementAt(1);
+
+		Func<bool> isReported = () =>
+		{
+			// The pause ends on a timer, which posts the capture to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset;
+		};
+
+		// Act
+		block.IsFolded = true;
+
+		// Assert
+		bool result = await isReported.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.CaptureViewState" />: a view state that is still to be restored is not overwritten.
 	/// </summary>
 	[AvaloniaTest]
@@ -313,6 +363,47 @@ internal class DocumentEditorViewTests
 		sut.ViewState
 			.Should()
 			.Be(state);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.CaptureViewState" />: a text with every block folded is kept as no unfolded block,
+	/// whatever the number of its blocks.
+	/// </summary>
+	[AvaloniaTest]
+	public void CaptureViewState_Reports_Every_Block_Folded_As_No_Unfolded_Block()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		foreach (FoldingSection block in GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
+			.FoldingManager
+			.AllFoldings)
+		{
+			block.IsFolded = true;
+		}
+
+		// Act
+		sut.CaptureViewState();
+
+		// Assert
+		// Locals keep the assertions from being skipped by the null-conditional operator when there is no state.
+		int[]? foldedBlocks = sut.ViewState?.FoldedBlocks;
+
+		int[]? unfoldedBlocks = sut.ViewState?.UnfoldedBlocks;
+
+		foldedBlocks
+			.Should()
+			.BeNull();
+
+		unfoldedBlocks
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -399,6 +490,54 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.CaptureViewState" />: keeps the folded blocks or the unfolded ones, whichever are fewer.
+	/// </summary>
+	[AvaloniaTest]
+	public void CaptureViewState_Reports_The_Fewer_Of_The_Folded_And_The_Unfolded_Blocks([Values] bool isMostlyFolded)
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection[] blocks = [.. GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
+			.FoldingManager
+			.AllFoldings];
+
+		foreach (FoldingSection block in blocks)
+		{
+			block.IsFolded = isMostlyFolded;
+		}
+
+		// One block stands apart from all the others.
+		blocks[1].IsFolded = !isMostlyFolded;
+
+		int start = blocks[1].StartOffset;
+
+		// Act
+		sut.CaptureViewState();
+
+		// Assert
+		DocumentViewState? state = sut.ViewState;
+
+		int[]? kept = isMostlyFolded ? state?.UnfoldedBlocks : state?.FoldedBlocks;
+
+		int[]? left = isMostlyFolded ? state?.FoldedBlocks : state?.UnfoldedBlocks;
+
+		kept
+			.Should()
+			.Equal(start);
+
+		left
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="Control.ContextFlyout" />: the buttons of the menu check their commands again whenever it opens,
 	/// as a selection changed while it was closed tells no command.
 	/// </summary>
@@ -443,6 +582,38 @@ internal class DocumentEditorViewTests
 		copy.IsEffectivelyEnabled
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="Control.ContextFlyout" />: the submenu of the folding opens only while the text of the active half folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextFlyout_Enables_The_Folding_Only_While_The_Text_Folds([Values] bool hasLanguage)
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = hasLanguage ? null : PowerShellLanguage
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		// The submenu is the button whose flyout holds the command of the block at the caret.
+		Button folding = ((Control)((Flyout)editor.ContextFlyout!).Content!)
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => GetFlyoutCommands(x.Flyout).Contains(editor.PrimaryEditor.ToggleFoldingCommand));
+
+		// Act
+		sut.SyntaxLanguage = hasLanguage ? PowerShellLanguage : null;
+
+		// Assert
+		folding.IsEnabled
+			.Should()
+			.Be(hasLanguage);
 	}
 
 	/// <summary>
@@ -563,6 +734,67 @@ internal class DocumentEditorViewTests
 		sut.GetControl<TextBlock>(EncodingCaptionName).Text
 			.Should()
 			.Be("UTF-8-BOM");
+	}
+
+	/// <summary>
+	/// <see cref="FoldingMargin" />: the folding markers keep the gray of the line numbers.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldingMargin_Keeps_The_Gray_Of_The_Line_Numbers()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		GetFoldingMargin(editor).FoldingMarkerBrush
+			.Should()
+			.BeSameAs(editor.LineNumbersForeground);
+	}
+
+	/// <summary>
+	/// <see cref="FoldingMargin" />: the folding markers have no fill of their own and take the color of the text on hover.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldingMargin_Takes_The_Fill_And_The_Hover_Of_The_Theme()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		FoldingMargin margin = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor);
+
+		// Locals keep the assertions from being skipped by the null-conditional operator when a brush is not a color.
+		Color? fill = (margin.FoldingMarkerBackgroundBrush as ISolidColorBrush)?.Color;
+
+		Color? hoverFill = (margin.SelectedFoldingMarkerBackgroundBrush as ISolidColorBrush)?.Color;
+
+		fill
+			.Should()
+			.Be(Colors.Transparent);
+
+		hoverFill
+			.Should()
+			.Be(Colors.Transparent);
+
+		margin.SelectedFoldingMarkerBrush
+			.Should()
+			.BeSameAs(sut.FindResource("MaterialBodyBrush"));
 	}
 
 	/// <summary>
@@ -699,6 +931,28 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: listens to the messages about the folding once it stands in a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnAttachedToVisualTree_Registers_For_The_Folding_Messages()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<FoldingChangedMessage>(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: stops listening to the messages about the bookmarks when it leaves the window.
 	/// </summary>
 	[AvaloniaTest]
@@ -725,7 +979,34 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive" />: the bookmarks of another editor leave the view state alone.
+	/// <see cref="DocumentEditorView" />: stops listening to the messages about the folding when it leaves the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void OnDetachedFromVisualTree_Unregisters_From_The_Folding_Messages()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		WeakReferenceMessenger.Default
+			.IsRegistered<FoldingChangedMessage>(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: the bookmarks of another editor leave the view
+	/// state alone.
 	/// </summary>
 	[AvaloniaTest]
 	public void Receive_Ignores_The_Bookmarks_Of_Another_Editor()
@@ -738,15 +1019,14 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentEditorView other = new()
+		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
+		DocumentTextEditor other = new()
 		{
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(other);
-
 		// Act
-		other.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.Bookmarks.Toggle(3);
+		other.Bookmarks.Toggle(3);
 
 		// Assert
 		sut.ViewState
@@ -755,8 +1035,66 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive" />: a change of the bookmarks reaches the view state at once,
-	/// as a click on the bookmark margin moves neither the caret nor the view.
+	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: the folding of another editor leaves the view state
+	/// alone.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Ignores_The_Folding_Of_Another_Editor()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
+		using DocumentTextEditor other = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		other.FoldAllCommand.Execute(null);
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: the folding of the inactive half leaves the view
+	/// state alone, as each half folds on its own and the state is that of the active one.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Ignores_The_Folding_Of_The_Inactive_Half()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.FoldAllCommand.Execute(null);
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: a change of the bookmarks reaches the view state
+	/// at once, as a click on the bookmark margin moves neither the caret nor the view.
 	/// </summary>
 	[AvaloniaTest]
 	public void Receive_Reports_The_Bookmarks_At_Once()
@@ -784,8 +1122,8 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive" />: a bookmark set in the lower half reaches the view state too,
-	/// as both halves share the bookmarks of the document.
+	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: a bookmark set in the lower half reaches the view
+	/// state too, as both halves share the bookmarks of the document.
 	/// </summary>
 	[AvaloniaTest]
 	public void Receive_Reports_The_Bookmarks_Of_The_Lower_Half()
@@ -810,6 +1148,33 @@ internal class DocumentEditorViewTests
 		bookmarks
 			.Should()
 			.Equal(3);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: a fold by a command reaches the view state at once,
+	/// as it may fold only blocks out of view, which the view does not draw anew.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_Reports_The_Folding_At_Once()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.FoldAllCommand.Execute(null);
+
+		// Assert
+		int[]? unfoldedBlocks = sut.ViewState?.UnfoldedBlocks;
+
+		unfoldedBlocks
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -1170,6 +1535,45 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a block folded over the caret, as a click on its marker leaves it, stays
+	/// folded, as the caret goes in before the block folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Keeps_A_Block_Folded_Over_The_Caret()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		int start = editor.GetBlockStarts(isFolded: false)[0];
+
+		// Act
+		// The caret inside the first block, which folds from the end of line 1 to the end of line 4.
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 3),
+			FoldedBlocks = [start],
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.GetBlockStarts(isFolded: true)
+			.Should()
+			.Equal(start);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ViewState" />: restores the bookmarks.
 	/// </summary>
 	[AvaloniaTest]
@@ -1232,6 +1636,81 @@ internal class DocumentEditorViewTests
 		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: restores the folded blocks, and the other blocks stay unfolded.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Folded_Blocks()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		int[] starts = editor.GetBlockStarts(isFolded: false);
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 1, column: 1),
+			FoldedBlocks = [starts[1], starts[3]],
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.GetBlockStarts(isFolded: true)
+			.Should()
+			.Equal(starts[1], starts[3]);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: the restored folded blocks fold in the lower half as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Folded_Blocks_Into_The_Lower_Half()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			IsSplit = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		int start = editor.PrimaryEditor.GetBlockStarts(isFolded: false)[1];
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 1, column: 1),
+			FoldedBlocks = [start],
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.SecondaryEditor!.GetBlockStarts(isFolded: true)
+			.Should()
+			.Equal(start);
 	}
 
 	/// <summary>
@@ -1304,6 +1783,58 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a file opened again shows the lines at the top that it showed, although
+	/// the folded blocks change the height of the text that the offset is measured over.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Place_Over_The_Folded_Blocks()
+	{
+		// Arrange
+		using DocumentEditorView source = new()
+		{
+			Document = CreateBlockDocument(blockCount: 200),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(source);
+
+		DocumentTextEditor sourceEditor = source.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		sourceEditor.FoldAllCommand.Execute(null);
+
+		GetScrollViewer(source).Offset = new(0.0, 1000.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		source.CaptureViewState();
+
+		using DocumentEditorView sut = new()
+		{
+			Document = new(source.Document!.Text),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		// Act
+		sut.ViewState = source.ViewState;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		int[] shownLines = GetShownLines(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor, count: 5);
+
+		shownLines
+			.Should()
+			.Equal(GetShownLines(sourceEditor, count: 5));
+
+		// Every block is folded, so only the first line of each block shows.
+		shownLines
+			.Should()
+			.OnlyContain(static x => x % 4 == 1);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ViewState" />: restores the selection and the caret.
 	/// </summary>
 	[AvaloniaTest]
@@ -1345,6 +1876,43 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: restores the unfolded blocks, and every other block folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Unfolded_Blocks()
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		int start = editor.GetBlockStarts(isFolded: false)[1];
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 1, column: 1),
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0,
+			UnfoldedBlocks = [start]
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.GetBlockStarts(isFolded: false)
+			.Should()
+			.Equal(start);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ViewState" />: a value set before the control is loaded is restored once it is.
 	/// </summary>
 	[AvaloniaTest]
@@ -1372,6 +1940,59 @@ internal class DocumentEditorViewTests
 		GetScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: offsets where no block starts, as an outdated state may hold, fold
+	/// nothing, and the text shows every line that no restored block hides.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Shows_The_Text_Over_Blocks_That_Are_Not_There([Values] bool isMostlyFolded)
+	{
+		// Arrange
+		using DocumentEditorView sut = new()
+		{
+			Document = CreateBlockDocument(blockCount: 10),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		int length = editor.Document.TextLength;
+
+		// The second block, which holds lines 5 to 8, among offsets where no block starts.
+		int[] blocks =
+		[
+			int.MinValue,
+			-1,
+			0,
+			3,
+			editor.GetBlockStarts(isFolded: false)[1],
+			length,
+			length + 1,
+			int.MaxValue
+		];
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 1, column: 1),
+			FoldedBlocks = isMostlyFolded ? null : blocks,
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0,
+			UnfoldedBlocks = isMostlyFolded ? blocks : null
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		// Either every block but the second one folds, or the second one alone.
+		GetShownLines(editor, count: 7)
+			.Should()
+			.Equal(isMostlyFolded ? [1, 5, 6, 7, 8, 9, 13] : [1, 2, 3, 4, 5, 9, 10]);
 	}
 
 	/// <summary>
@@ -1407,6 +2028,17 @@ internal class DocumentEditorViewTests
 				target.Bounds.Width / 2.0,
 				target.Bounds.Height / 2.0),
 			root) ?? default;
+	}
+
+	/// <summary>
+	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
+	/// the numbered line to the end of the block.
+	/// </summary>
+	private static TextDocument CreateBlockDocument(int blockCount)
+	{
+		return new(string.Join('\n', Enumerable
+			.Range(1, blockCount)
+			.Select(static x => $"Block {x:D4}\n    One\n    Two\n    Three")));
 	}
 
 	/// <summary>
@@ -1448,6 +2080,18 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// Returns the margin of the folding markers of a text editor.
+	/// </summary>
+	private static FoldingMargin GetFoldingMargin(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.Single();
+	}
+
+	/// <summary>
 	/// Returns the scroll viewer of the text editor of the upper half.
 	/// </summary>
 	private static ScrollViewer GetScrollViewer(DocumentEditorView editor)
@@ -1458,6 +2102,19 @@ internal class DocumentEditorViewTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// Returns the numbers of the lines that start the first lines of the view of an editor, from its top.
+	/// </summary>
+	private static int[] GetShownLines(TextEditor editor, int count)
+	{
+		return [.. editor
+			.TextArea
+			.TextView
+			.VisualLines
+			.Take(count)
+			.Select(static x => x.FirstDocumentLine.LineNumber)];
 	}
 
 	/// <summary>

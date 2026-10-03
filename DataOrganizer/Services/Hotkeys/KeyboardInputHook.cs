@@ -49,6 +49,11 @@ public sealed class KeyboardInputHook :
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Longest pause between the keys of one hotkey; a longer one starts a new hotkey.
+	/// </summary>
+	private static readonly TimeSpan StrokeTimeout = TimeSpan.FromSeconds(3);
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -82,10 +87,18 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
+
+	/// <summary>
+	/// Moment of the last key put on the input stack, or <c>null</c> before the first one.
+	/// </summary>
+	private long? _lastStrokeTimestamp;
 	#endregion
 
 	#region Constructors
@@ -99,7 +112,8 @@ public sealed class KeyboardInputHook :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		ITaskExceptionHandler exceptionHandler)
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider)
 	{
 		_app = app;
 
@@ -120,6 +134,8 @@ public sealed class KeyboardInputHook :
 		_messenger = messenger;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 
 		messenger.RegisterAll(this);
 	}
@@ -237,12 +253,30 @@ public sealed class KeyboardInputHook :
 				return;
 			}
 
-			EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
-
-			if (mask.IsDefault())
+			// A modifier or a lock key takes part in a hotkey only through the mask, so releasing one breaks nothing.
+			if (code.IsModifierOrLock())
 			{
 				return;
 			}
+
+			EventMask mask = rawMask.ToModifiers();
+
+			// A key typed without a modifier ends the hotkey being typed.
+			if (mask.IsDefault())
+			{
+				InputStack.Clear();
+
+				return;
+			}
+
+			long timestamp = _timeProvider.GetTimestamp();
+
+			if (_lastStrokeTimestamp is { } lastTimestamp && _timeProvider.GetElapsedTime(lastTimestamp, timestamp) > StrokeTimeout)
+			{
+				InputStack.Clear();
+			}
+
+			_lastStrokeTimestamp = timestamp;
 
 			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
 			{
@@ -257,12 +291,15 @@ public sealed class KeyboardInputHook :
 
 			foreach (FileDto file in Files)
 			{
-				KeyStroke[] hotkeys = [.. file.Hotkeys.ToKeyStrokes()];
+				KeyStroke[] hotkeys = ReadHotkey(file);
 
 				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
 				{
 					continue;
 				}
+
+				// The keys of a hotkey that fired do not start the next one.
+				InputStack.Clear();
 
 				ValidatedContents result = await _dbAccess
 					.GetFileContentsAsync(file.Id, token)
@@ -346,6 +383,17 @@ public sealed class KeyboardInputHook :
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the keys of the hotkey of a file with only the modifiers in their masks, as the typed keys have them.
+	/// </summary>
+	private static KeyStroke[] ReadHotkey(FileDto file) => [.. file
+		.Hotkeys
+		.ToKeyStrokes()
+		.Select(static x => x with
+		{
+			Mask = x.Mask.ToModifiers()
+		})];
+
 	/// <summary>
 	/// Activates the main window.
 	/// </summary>

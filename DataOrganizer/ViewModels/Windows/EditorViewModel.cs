@@ -17,6 +17,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -123,7 +124,16 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Called when <see cref="IsLeftDrawerOpened" /> changes.
 	/// </summary>
-	partial void OnIsLeftDrawerOpenedChanged(bool value) => ShowFavoritesCommand.NotifyCanExecuteChanged();
+	partial void OnIsLeftDrawerOpenedChanged(bool value)
+	{
+		SeedClipboardHistoryCommand.NotifyCanExecuteChanged();
+
+		SeedLargeSamplesCommand.NotifyCanExecuteChanged();
+
+		SeedSamplesCommand.NotifyCanExecuteChanged();
+
+		ShowFavoritesCommand.NotifyCanExecuteChanged();
+	}
 
 	/// <summary>
 	/// Called when <see cref="IsReadOnly" /> changes.
@@ -992,6 +1002,40 @@ public partial class EditorViewModel :
 	private void RestartAutoLock() => _autoLock.Arm();
 
 	/// <summary>
+	/// Adds entries made up for trying the clipboard history to it.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedClipboardHistory))]
+	private async Task SeedClipboardHistory()
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation("Seed clipboard history");
+
+		try
+		{
+			await _clipboardLogSeeder
+				.SeedAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException("The sample clipboard entries could not be added.", ex);
+		}
+	}
+
+	/// <summary>
+	/// Adds a run of many sample objects with large contents to the database and the tree.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
+	private Task SeedLargeSamples() => SeedAsync("Seed large samples", _sampleSeeder.SeedLargeAsync);
+
+	/// <summary>
+	/// Adds a run of sample objects to the database and the tree.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
+	private Task SeedSamples() => SeedAsync("Seed samples", _sampleSeeder.SeedAsync);
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -1121,6 +1165,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
+	/// <inheritdoc cref="IClipboardLogSeeder" />
+	private readonly IClipboardLogSeeder _clipboardLogSeeder;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1136,6 +1183,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <inheritdoc cref="INoteEditor" />
 	private readonly INoteEditor _noteEditor;
 
@@ -1148,8 +1198,16 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
 
+	/// <inheritdoc cref="ISampleSeeder" />
+	private readonly ISampleSeeder _sampleSeeder;
+
 	/// <inheritdoc cref="IAppThemeService" />
 	private readonly IAppThemeService _themeService;
+
+	/// <summary>
+	/// Number of operations showing the progress bar.
+	/// </summary>
+	private int _actionsInProgress;
 
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
@@ -1164,6 +1222,7 @@ public partial class EditorViewModel :
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IClipboardLogSeeder clipboardLogSeeder,
 		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
@@ -1182,6 +1241,7 @@ public partial class EditorViewModel :
 		INoteReader noteReader,
 		INotificationService notification,
 		IProcessManager processManager,
+		ISampleSeeder sampleSeeder,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1209,6 +1269,8 @@ public partial class EditorViewModel :
 
 		_clipboardLogPersistence = clipboardLogPersistence;
 
+		_clipboardLogSeeder = clipboardLogSeeder;
+
 		_dataExchange = dataExchange;
 
 		_dbFailureReporter = dbFailureReporter;
@@ -1224,6 +1286,8 @@ public partial class EditorViewModel :
 		_processManager = processManager;
 
 		_propertyWriter = propertyWriter;
+
+		_sampleSeeder = sampleSeeder;
 
 		_themeService = themeService;
 	}
@@ -1332,7 +1396,13 @@ public partial class EditorViewModel :
 	/// <inheritdoc />
 	public void Receive(ShowProgressBarMessage message)
 	{
-		IsActionInProgress = message.IsVisible;
+		// Operations can nest, so the bar stays until the last of them ends.
+		lock (_mutex)
+		{
+			_actionsInProgress += message.IsVisible ? 1 : -1;
+
+			IsActionInProgress = _actionsInProgress > 0;
+		}
 	}
 
 	/// <summary>
@@ -1757,6 +1827,16 @@ public partial class EditorViewModel :
 	private bool CanResetSelectedObject() => SelectedObject is not null;
 
 	/// <summary>
+	/// Validates <see cref="SeedClipboardHistoryCommand" />.
+	/// </summary>
+	private bool CanSeedClipboardHistory() => IsClipboardHistoryEnabled;
+
+	/// <summary>
+	/// Validates <see cref="SeedLargeSamplesCommand" /> and <see cref="SeedSamplesCommand" />.
+	/// </summary>
+	private bool CanSeedSamples() => !IsReadOnly && !IsActionInProgress;
+
+	/// <summary>
 	/// Validates <see cref="SetFavoriteCommand" />.
 	/// </summary>
 	private bool CanSetFavorite() => !IsReadOnly && !IsActionInProgress;
@@ -1812,6 +1892,30 @@ public partial class EditorViewModel :
 			.Remove(file.Id);
 
 		_copyHistory?.Remove(file);
+	}
+
+	/// <summary>
+	/// Adds to the tree the run of samples that <paramref name="seed" /> writes to the database, with the menu closed and the
+	/// progress bar on.
+	/// </summary>
+	private async Task SeedAsync(string logMessage, Func<CancellationToken, Task<FolderDto>> seed)
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation(logMessage);
+
+		try
+		{
+			using ProgressScope _ = _messenger.ShowProgress();
+
+			FolderDto run = await seed(CancellationToken.None).ConfigureAwait(true);
+
+			AddHierarchy([run]);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException("The sample objects could not be added.", ex);
+		}
 	}
 
 	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />

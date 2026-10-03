@@ -156,10 +156,10 @@ public sealed partial class HotkeysEditorViewModel :
 	/// </summary>
 	internal void HandleKeyReleased(EventMask rawMask, KeyCode code)
 	{
-		EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
+		EventMask mask = rawMask.ToModifiers();
 
 		if (mask.IsDefault()
-			|| IsModifierKey(code)
+			|| code.IsModifierOrLock()
 			|| (Buffer.Any() && mask != Buffer.Last().Mask))
 		{
 			return;
@@ -201,26 +201,5 @@ public sealed partial class HotkeysEditorViewModel :
 
 		Buffer.Clear();
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// <c>True</c> when <see cref="KeyCode" /> is mask.
-	/// </summary>
-	private static bool IsModifierKey(KeyCode code) => code switch
-	{
-		KeyCode.VcCapsLock => true,
-		KeyCode.VcScrollLock => true,
-		KeyCode.VcNumLock => true,
-		KeyCode.VcLeftShift => true,
-		KeyCode.VcRightShift => true,
-		KeyCode.VcLeftControl => true,
-		KeyCode.VcRightControl => true,
-		KeyCode.VcLeftAlt => true,
-		KeyCode.VcRightAlt => true,
-		KeyCode.VcLeftMeta => true,
-		KeyCode.VcRightMeta => true,
-		_ => false
-	};
 	#endregion
 }

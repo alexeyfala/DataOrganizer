@@ -831,4 +831,19 @@
   <data name="SyntaxHighlighting" xml:space="preserve">
     <value>Подсветка синтаксиса</value>
   </data>
+  <data name="Folding" xml:space="preserve">
+    <value>Сворачивание</value>
+  </data>
+  <data name="ToggleFolding" xml:space="preserve">
+    <value>Свернуть/развернуть блок</value>
+  </data>
+  <data name="FoldAll" xml:space="preserve">
+    <value>Свернуть все</value>
+  </data>
+  <data name="UnfoldAll" xml:space="preserve">
+    <value>Развернуть все</value>
+  </data>
+  <data name="FailedToOpenInOS" xml:space="preserve">
+    <value>Не удалось открыть в ОС</value>
+  </data>
 </root>

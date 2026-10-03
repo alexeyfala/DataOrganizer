@@ -178,17 +178,6 @@ public sealed class AppController : IAppController
 				_notification.ShowToast(Strings.DatabaseIsUnavailable);
 			}
 
-			if (isConnected && _options.FillObjects)
-			{
-				const int total = 3;
-
-				await _dbAccess.AddRandomObjectsAsync(
-					folders: total,
-					files: total,
-					datasets: total,
-					levels: total).ConfigureAwait(true);
-			}
-
 			// Nothing is read from a database that is not there: the toast above has already said so.
 			ExplorerItemDtoBase[]? hierarchy = isConnected
 				? await _entityLoader

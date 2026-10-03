@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
+	xmlns:common="using:Shared.Common"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -207,6 +208,50 @@
 											<materialIcons:MaterialIcon Kind="LocationExit" />
 
 											<TextBlock Text="{x:Static prop:Strings.Exit}" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<Separator
+									x:Name="SeedingSeparator"
+									Margin="16.0,0.0"
+									IsVisible="{x:Static common:AppInfo.IsDebug}" />
+
+								<MenuItem
+									x:Name="SampleSeeding"
+									Command="{Binding SeedSamplesCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="SeedPlusOutline" />
+
+											<TextBlock Text="Sample Seeding" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<MenuItem
+									x:Name="LargeSampleSeeding"
+									Command="{Binding SeedLargeSamplesCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="SeedPlus" />
+
+											<TextBlock Text="Large Sample Seeding" />
+										</StackPanel>
+									</MenuItem.Header>
+								</MenuItem>
+
+								<MenuItem
+									x:Name="ClipboardHistorySeeding"
+									Command="{Binding SeedClipboardHistoryCommand}"
+									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									<MenuItem.Header>
+										<StackPanel>
+											<materialIcons:MaterialIcon Kind="ClipboardPlusOutline" />
+
+											<TextBlock Text="Clipboard History Seeding" />
 										</StackPanel>
 									</MenuItem.Header>
 								</MenuItem>

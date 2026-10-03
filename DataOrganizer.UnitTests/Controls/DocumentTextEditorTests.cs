@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -10,15 +11,21 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers;
+using DataOrganizer.Messages.Documents;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,6 +36,16 @@ internal class DocumentTextEditorTests
 {
 	#region Data
 	/// <summary>
+	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
+	/// </summary>
+	private const string FoldedText = "if ($value)\n{\n    Write-Host 'Text'\n}";
+
+	/// <summary>
+	/// Two blocks of PowerShell, one inside the other, which fold from line 1 to line 7 and from line 3 to line 6.
+	/// </summary>
+	private const string NestedText = "if ($a)\n{\n    if ($b)\n    {\n        Write-Host 'Text'\n    }\n}";
+
+	/// <summary>
 	/// Language of <see cref="PowerShellText" />.
 	/// </summary>
 	private const string PowerShellLanguage = "powershell";
@@ -37,6 +54,13 @@ internal class DocumentTextEditorTests
 	/// A line of PowerShell that starts with a keyword, followed by words of other kinds.
 	/// </summary>
 	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
+
+	/// <summary>
+	/// Modifier of the keys of the commands: ⌘ on macOS and Ctrl elsewhere.
+	/// </summary>
+	private static readonly RawInputModifiers CommandModifiers = OperatingSystem.IsMacOS()
+		? RawInputModifiers.Meta
+		: RawInputModifiers.Control;
 	#endregion
 
 	#region Methods
@@ -135,6 +159,28 @@ internal class DocumentTextEditorTests
 		sut.Bookmarks.GetLines()
 			.Should()
 			.Equal(2);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.CanFold" />: the text folds while it has a language with a grammar.
+	/// </summary>
+	[AvaloniaTest]
+	public void CanFold_Follows_The_Language([Values] bool hasLanguage)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = hasLanguage ? null : PowerShellLanguage
+		};
+
+		// Act
+		sut.SyntaxLanguage = hasLanguage ? PowerShellLanguage : null;
+
+		// Assert
+		sut.CanFold
+			.Should()
+			.Be(hasLanguage);
 	}
 
 	/// <summary>
@@ -424,6 +470,28 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: the folding goes away with the highlighting.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Removes_The_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Dispose" />: the highlighting goes away with its tokenizer.
 	/// </summary>
 	[AvaloniaTest]
@@ -443,6 +511,35 @@ internal class DocumentTextEditorTests
 		HasHighlighting(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: the blocks that unfold with the folding leave the view state alone, as a
+	/// closed file keeps the blocks folded that were folded before.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Reports_No_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = true;
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(0);
 	}
 
 	/// <summary>
@@ -499,6 +596,28 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: without a document the folding goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Missing_Removes_The_Folding()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document = null;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: without a document the highlighting goes away.
 	/// </summary>
 	[AvaloniaTest]
@@ -518,6 +637,28 @@ internal class DocumentTextEditorTests
 		HasHighlighting(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the folding moves on to a new document and finds its blocks.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Moves_The_Folding_To_A_New_Document()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document = new(FoldedText);
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
 	}
 
 	/// <summary>
@@ -545,6 +686,404 @@ internal class DocumentTextEditorTests
 		sut.Bookmarks.GetLines()
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: the caret that leaves a long block for its first line comes into
+	/// view.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Brings_The_Caret_Into_View()
+	{
+		// Arrange
+		// A block from line 100 to line 300 among lines without indentation.
+		string text = string.Join('\n', Enumerable
+			.Range(1, 600)
+			.Select(static x => x is > 100 and <= 300 ? $"    Line {x:D4}" : $"Line {x:D4}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(text),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		sut.CaretOffset = sut.Document.GetLineByNumber(250).Offset;
+
+		sut.ScrollToLine(250);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.FoldAllCommand.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		TextView textView = sut.TextArea.TextView;
+
+		textView.GetVisualTopByDocumentLine(100)
+			.Should()
+			.BeInRange(
+				textView.VerticalOffset,
+				textView.VerticalOffset + sut.ViewportHeight - textView.DefaultLineHeight);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: a Ctrl+M that a key binding takes starts no chord, so the Ctrl+L
+	/// after it folds nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Does_Not_Run_On_Ctrl_L_After_A_Ctrl_M_Of_A_Binding()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.KeyBindings.Add(new KeyBinding
+		{
+			Command = new RelayCommand(static () => { }),
+			Gesture = new KeyGesture(Key.M, KeyModifiers.Control)
+		});
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: a key that a key binding takes ends a chord as well, so the Ctrl+L
+	/// after it folds nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Does_Not_Run_On_Ctrl_L_After_A_Key_Of_A_Binding()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		// The key of the bookmarks.
+		Press(window, PhysicalKey.F2, CommandModifiers);
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: a key other than the second key of a chord ends the chord, so the
+	/// Ctrl+L after it folds nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Does_Not_Run_On_Ctrl_L_After_Another_Key()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		Press(window, PhysicalKey.A, RawInputModifiers.None);
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: a chord ends when the focus leaves the editor, so the Ctrl+L on
+	/// its return folds nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Does_Not_Run_On_Ctrl_L_After_The_Focus_Leaves()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		window.FocusManager!.Focus(null, NavigationMethod.Unspecified, KeyModifiers.None);
+
+		sut.TextArea.Focus();
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: every block folds, the inner ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Folds_Every_Block()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.FoldAllCommand.Execute(null);
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: the caret inside the blocks goes to the end of the first line of the
+	/// outermost one, which stays in view, and the selection goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Moves_The_Caret_Out_Of_The_Folded_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
+
+		// Act
+		sut.FoldAllCommand.Execute(null);
+
+		// Assert
+		sut.CaretOffset
+			.Should()
+			.Be(sut.Document.GetLineByNumber(1).EndOffset);
+
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: there is something to fold only with an unfolded block.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Needs_An_Unfolded_Block([Values] bool hasUnfoldedBlock)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		if (!hasUnfoldedBlock)
+		{
+			GetFoldings(sut)
+				.Single()
+				.IsFolded = true;
+		}
+
+		// Act
+		bool canExecute = sut.FoldAllCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasUnfoldedBlock);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: tells that the blocks folded, from the menu and from the keys alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+			Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.FoldAllCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: the key of a modifier held through a chord repeats, and the chord
+	/// waits through it for its second key.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Runs_On_Ctrl_M_Ctrl_L_Through_A_Repeated_Ctrl()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		window.KeyPressQwerty(PhysicalKey.ControlLeft, RawInputModifiers.Control);
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.FoldAllCommand" />: runs on Ctrl+M, Ctrl+L while no block is folded, as in Visual
+	/// Studio, on macOS as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void FoldAllCommand_Runs_On_Ctrl_M_Ctrl_L_Without_A_Folded_Block()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		//Press(window, PhysicalKey.M, CommandModifiers);
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		// Act
+		//Press(window, PhysicalKey.L, CommandModifiers);
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.GetBlockStarts" />: returns where the folded blocks start; none for a text that does
+	/// not fold.
+	/// </summary>
+	[AvaloniaTest]
+	public void GetBlockStarts_Returns_The_Folded_Blocks_Of_A_Text_That_Folds([Values] bool isFolding)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		FoldingSection[] blocks = GetFoldings(sut);
+
+		blocks[1].IsFolded = true;
+
+		if (!isFolding)
+		{
+			sut.SyntaxLanguage = null;
+		}
+
+		// Act
+		int[] starts = sut.GetBlockStarts(isFolded: true);
+
+		// Assert
+		starts
+			.Should()
+			.Equal(isFolding ? [blocks[1].StartOffset] : []);
 	}
 
 	/// <summary>
@@ -610,6 +1149,29 @@ internal class DocumentTextEditorTests
 		sut.Text
 			.Should()
 			.Be("Some text");
+	}
+
+	/// <summary>
+	/// <see cref="Visual.IsVisible" />: a hidden editor gives up its folding and takes it again when shown.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsVisible_Keeps_The_Folding_Only_While_Shown([Values] bool isVisible)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			IsVisible = !isVisible,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.IsVisible = isVisible;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.Be(isVisible);
 	}
 
 	/// <summary>
@@ -781,6 +1343,771 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.PointerExitedEvent" />: a tip that took the pointer closes when the pointer leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerExited_Closes_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Act
+		window.MouseMove(new Point(window.Bounds.Width - 5.0, point.Y));
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: a long line of the hidden text is cut, so that the tip keeps to the screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Cuts_A_Long_Line_Of_The_Hidden_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"if ($value)\n{{\n    {new string('x', 200)}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be($"{{\n    {new string('x', 116)}{Glyphs.HorizontalEllipsis}\n}}");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip shows the first lines of a long block and an ellipsis for the rest.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Cuts_The_Hidden_Text_To_Its_First_Lines()
+	{
+		// Arrange
+		string[] lines = [.. Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}")];
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"if ($value)\n{{\n{string.Join('\n', lines)}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		string[] expected = ["{", .. lines[..19], Glyphs.HorizontalEllipsis];
+
+		GetTipText(textView)!.Split('\n')
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the box of a folded block is found in a scrolled view too.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Follows_The_Scroll_Of_The_View()
+	{
+		// Arrange
+		// A block from line 100 to line 300 among lines without indentation.
+		string text = string.Join('\n', Enumerable
+			.Range(1, 600)
+			.Select(static x => x is > 100 and <= 300 ? $"    Line {x:D4}" : $"Line {x:D4}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(text),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		sut.ScrollToLine(100);
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.StartWith("    Line 0101");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip of a folded element starts at its tag, without the indentation before
+	/// it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_A_Folded_Element_From_Its_Tag()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("<r>\n  <a>\n    <b />\n  </a>\n</r>"),
+			SyntaxLanguage = "xml"
+		};
+
+		Show(sut);
+
+		// The inner element starts after the indentation of its line.
+		FoldingSection block = GetFoldings(sut)[1];
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be("<a>\n    <b />\n  </a>");
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the text beside the box of a folded block is in view, so it gets no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Beside_The_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the text of an encrypted file stays in the text area, so a folded block gets
+	/// no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Over_A_Sensitive_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			IsSensitive = true,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the start of an unfolded block is text in view, so it gets no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_No_Tip_Over_An_Unfolded_Block()
+	{
+		// Arrange
+		// The element starts where its line does, so its first text stands where the box would.
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("<a>\n  <b />\n</a>"),
+			SyntaxLanguage = "xml"
+		};
+
+		Show(sut);
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+
+		// Assert
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the box of a folded block opens a tip with the text it hides, which starts on
+	/// the line after the first one of the block.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_The_Hidden_Text_In_A_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		GetTipText(textView)
+			.Should()
+			.Be("{\n    Write-Host 'Text'\n}");
+
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHover" />: the tip shows the hidden text in the font of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHover_Shows_The_Hidden_Text_In_The_Editor_Font()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		// Act
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Assert
+		((TextBlock)ToolTip.GetTip(textView)!).FontFamily
+			.Should()
+			.Be(sut.FontFamily);
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: the tip of a folded block closes and lets go of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Closes_The_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		// The tip takes its place before the pointer can move on.
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: a tip that covers the pointer closes while the pointer stays over the
+	/// view, as the hover then stops by a move in the view.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Closes_The_Tip_While_The_Pointer_Is_Over_The_View()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, and the pointer then moves to the view beside the tip.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		window.MouseMove(GetColumnCenter(textView, 0));
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextView.PointerHoverStopped" />: a tip that opened under the pointer and took it from the view stays
+	/// open, as the hover would open a closed one again and again.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerHoverStopped_Keeps_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
+
+		// Act
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click on a tip that took the pointer closes it.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Closes_A_Tip_That_Took_The_Pointer()
+	{
+		// Arrange
+		// A block of thirty lines in a low window, whose tip fits neither below nor above the pointer.
+		string filler = string.Join('\n', Enumerable
+			.Range(1, 7)
+			.Select(static x => $"Line {x:D2}"));
+
+		string body = string.Join('\n', Enumerable
+			.Range(1, 30)
+			.Select(static x => $"    Line {x:D2}"));
+
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{filler}\nif ($value)\n{{\n{body}\n}}"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		window.Height = 300.0;
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		// The tip opens at the pointer and covers it, which takes the pointer from the view.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
+		// while a move to the same place hands it over at once.
+		window.MouseMove(point);
+
+		Raise(textView, TextView.PointerHoverStoppedEvent, point);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click on the box of a folded block closes the tip of its hidden
+	/// text.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Closes_The_Tip()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Point point = GetColumnCenter(textView, block.StartOffset);
+
+		Raise(textView, TextView.PointerHoverEvent, point);
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a double click of another button than the left one leaves a folded
+	/// block folded.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(MouseButton.Middle)]
+	[TestCase(MouseButton.Right)]
+	public void PointerPressed_Keeps_A_Block_Folded_On_A_Double_Click_Of_Another_Button(MouseButton button)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, button);
+
+		Click(window, point, button);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a single click of any button on the box of a folded block leaves
+	/// the block folded.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(MouseButton.Left)]
+	[TestCase(MouseButton.Middle)]
+	[TestCase(MouseButton.Right)]
+	public void PointerPressed_Keeps_A_Block_Folded_On_A_Single_Click_On_Its_Box(MouseButton button)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, button);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a click beside the box of a folded block moves the caret as usual.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Moves_The_Caret_On_A_Click_Beside_A_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{FoldedText}\nx"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, sut.Document.TextLength - 1);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(sut.Document.LineCount);
+	}
+
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" />: a double click on the box of a folded block unfolds it, as in
+	/// Visual Studio.
+	/// </summary>
+	[AvaloniaTest]
+	public void PointerPressed_Unfolds_A_Block_On_A_Double_Click_On_Its_Box()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		block.IsFolded
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.PreviousBookmarkCommand" />: the caret goes to the start of the previous bookmarked
 	/// line, and the selection goes away.
 	/// </summary>
@@ -925,6 +2252,51 @@ internal class DocumentTextEditorTests
 		canExecute
 			.Should()
 			.Be(isUndone);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SetBlocksFolded" />: folds the blocks of the text that start at the offsets.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Folds_The_Blocks_That_Start_At_The_Offsets()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		FoldingSection[] blocks = GetFoldings(sut);
+
+		// Act
+		sut.SetBlocksFolded([blocks[1].StartOffset], isFolded: true);
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SetBlocksFolded" />: a text that does not fold takes the offsets without a change.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetBlocksFolded_Leaves_A_Text_That_Does_Not_Fold_Alone()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText)
+		};
+
+		// Act
+		sut.SetBlocksFolded([0, 7], isFolded: true);
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1207,6 +2579,45 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the tip of a folded block closes with the folding, as its block
+	/// goes away.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Closes_The_Tip_With_The_Folding()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		FoldingSection block = GetFoldings(sut).Single();
+
+		block.IsFolded = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextView textView = sut.TextArea.TextView;
+
+		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+
+		// Act
+		sut.SyntaxLanguage = null;
+
+		// Assert
+		ToolTip.GetIsOpen(textView)
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(textView)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the words of the language take colors of their kinds.
 	/// </summary>
 	[AvaloniaTest]
@@ -1232,6 +2643,27 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the blocks of the text fold by the rules of the language.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Folds_The_Blocks_Of_The_Text()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText)
+		};
+
+		// Act
+		sut.SyntaxLanguage = PowerShellLanguage;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a text too long for the highlighting stays plain.
 	/// </summary>
 	[AvaloniaTest]
@@ -1249,6 +2681,55 @@ internal class DocumentTextEditorTests
 		HasHighlighting(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: a text too long for the highlighting does not fold either.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Unfolded()
+	{
+		// Arrange, Act
+		// Past the longest text that gets the highlighting.
+		DocumentTextEditor sut = new()
+		{
+			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the folded blocks that come back into view with the folding are
+	/// told, while nothing is told when no block was folded.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Reports_The_Folded_Blocks_That_Come_Back([Values] bool hasFoldedBlock)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		GetFoldings(sut)
+			.Single()
+			.IsFolded = hasFoldedBlock;
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		sut.SyntaxLanguage = null;
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(hasFoldedBlock ? 1 : 0);
 	}
 
 	/// <summary>
@@ -1290,6 +2771,50 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: the blocks of the text fold by the rules of the new language.
+	/// </summary>
+	[AvaloniaTest]
+	public void SyntaxLanguage_Takes_The_Rules_Of_A_New_Language()
+	{
+		// Arrange
+		// PowerShell folds the marked block, while JSON has no markers and folds by indentation alone.
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("#region A\nx\n    y\n#endregion"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.SyntaxLanguage = "json";
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((2, 3));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: without a language that has a grammar the text does not fold.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(null)]
+	[TestCase("unknown")]
+	public void SyntaxLanguage_Without_A_Grammar_Folds_Nothing(string? language)
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = language
+		};
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.SyntaxLanguage" />: without a language that has a grammar the text stays plain.
 	/// </summary>
 	[AvaloniaTest]
@@ -1306,6 +2831,79 @@ internal class DocumentTextEditorTests
 
 		// Assert
 		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.TextChanged" />: a pause after an edit brings the blocks that fold up to date.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task TextChanged_Finds_The_Blocks_After_A_Pause()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Func<bool> isFolded = () =>
+		{
+			// The pause ends on a timer, which posts the pass over the lines to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return GetFoldedLines(sut).Length > 0;
+		};
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+
+		// Assert
+		bool result = await isFolded.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextArea.TextView" />: the tips of the folded blocks take the tooltip theme of the application rather
+	/// than the Fluent one of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void TextView_Holds_The_Tooltip_Theme_Of_The_Application()
+	{
+		// Arrange
+		DocumentTextEditor sut = new();
+
+		Show(sut);
+
+		// Act
+		bool isFound = sut.TextArea.TextView.TryFindResource(typeof(ToolTip), out object? theme);
+
+		// Assert
+		isFound
+			.Should()
+			.BeTrue();
+
+		theme
+			.Should()
+			.BeSameAs(Application.Current!.FindResource(typeof(ToolTip)));
+	}
+
+	/// <summary>
+	/// <see cref="TextArea.TextView" />: the tooltip service keeps away from the view, whose tips open and close with the
+	/// hover over the boxes of the folded blocks.
+	/// </summary>
+	[AvaloniaTest]
+	public void TextView_Opens_Its_Tips_Without_The_Tooltip_Service()
+	{
+		// Arrange, Act
+		DocumentTextEditor sut = new();
+
+		// Assert
+		ToolTip.GetServiceEnabled(sut.TextArea.TextView)
 			.Should()
 			.BeFalse();
 	}
@@ -1374,6 +2972,255 @@ internal class DocumentTextEditorTests
 		sut.Bookmarks.GetLines()
 			.Should()
 			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: a chord starts with Ctrl only, as an M without it types into
+	/// the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Does_Not_Run_On_M_M()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.None);
+
+		// Act
+		Press(window, PhysicalKey.M, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: a chord starts with Ctrl on macOS too, not with ⌘, as macOS
+	/// keeps ⌘M for minimizing a window.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Does_Not_Run_On_Meta_M_Meta_M()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
+
+		// Act
+		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: a key other than the second key of a chord is left to the
+	/// text as usual.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Leaves_Another_Key_After_Ctrl_M_Alone()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		KeyEventArgs args = new()
+		{
+			Key = Key.A,
+			RoutedEvent = InputElement.KeyDownEvent,
+			Source = sut.TextArea
+		};
+
+		// Act
+		sut.TextArea.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: the caret inside a block that folds goes to the end of the
+	/// first line of the block, which stays in view.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Moves_The_Caret_Out_Of_A_Block_It_Folds()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.CaretOffset = sut.Document.GetLineByNumber(3).Offset;
+
+		// Act
+		sut.ToggleFoldingCommand.Execute(null);
+
+		// Assert
+		sut.CaretOffset
+			.Should()
+			.Be(sut.Document.GetLineByNumber(1).EndOffset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: there is something to fold only with a block at the caret line.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Needs_A_Block_At_The_Caret([Values] bool hasBlock)
+	{
+		// Arrange
+		// The block ends before the last line.
+		using DocumentTextEditor sut = new()
+		{
+			Document = new($"{FoldedText}\nWrite-Host 'End'"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.CaretOffset = sut.Document.GetLineByNumber(hasBlock ? 1 : 5).Offset;
+
+		// Act
+		bool canExecute = sut.ToggleFoldingCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasBlock);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: tells that the block folded, from the menu and from the keys
+	/// alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.ToggleFoldingCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: runs on Ctrl+M, Ctrl+M, as in Visual Studio, with or without
+	/// Ctrl on the second key and on macOS as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Runs_On_Ctrl_M_Ctrl_M([Values] bool isCtrlHeld)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		// Act
+		Press(window, PhysicalKey.M, isCtrlHeld ? RawInputModifiers.Control : RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.ToggleFoldingCommand" />: folds the block of the caret line when it is unfolded and
+	/// unfolds it when it is folded.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToggleFoldingCommand_Toggles_The_Block_Of_The_Caret_Line([Values] bool isFolded)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		if (isFolded)
+		{
+			GetFoldings(sut)
+				.Single()
+				.IsFolded = true;
+		}
+
+		// Act
+		sut.ToggleFoldingCommand.Execute(null);
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(!isFolded);
 	}
 
 	/// <summary>
@@ -1681,6 +3528,162 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: there is something to unfold only with a folded block.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAllCommand_Needs_A_Folded_Block([Values] bool hasFoldedBlock)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		if (hasFoldedBlock)
+		{
+			GetFoldings(sut)
+				.Single()
+				.IsFolded = true;
+		}
+
+		// Act
+		bool canExecute = sut.UnfoldAllCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasFoldedBlock);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: tells that the blocks unfolded, from the menu and from the keys
+	/// alike.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAllCommand_Reports_The_Folding([Values] bool isChord)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		GetFoldings(sut)[1].IsFolded = true;
+
+		sut.TextArea.Focus();
+
+		List<FoldingChangedMessage> messages = Capture(sut);
+
+		// Act
+		if (isChord)
+		{
+			Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+			Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		else
+		{
+			sut.UnfoldAllCommand.Execute(null);
+		}
+
+		// Assert
+		messages.Count
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: runs on Ctrl+M, Ctrl+L while a block is folded, even when another
+	/// one is not, as in Visual Studio.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAllCommand_Runs_On_Ctrl_M_Ctrl_L_With_A_Folded_Block()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Window window = Show(sut);
+
+		GetFoldings(sut)[1].IsFolded = true;
+
+		sut.TextArea.Focus();
+
+		Press(window, PhysicalKey.M, RawInputModifiers.Control);
+
+		// Act
+		Press(window, PhysicalKey.L, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.UnfoldAllCommand" />: every block unfolds, the inner ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnfoldAllCommand_Unfolds_Every_Block()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(NestedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		FoldingSection[] blocks = GetFoldings(sut);
+
+		blocks[0].IsFolded = true;
+
+		blocks[1].IsFolded = true;
+
+		// Act
+		sut.UnfoldAllCommand.Execute(null);
+
+		// Assert
+		GetFoldings(sut).Select(static x => x.IsFolded)
+			.Should()
+			.Equal(false, false);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.UpdateFoldings" />: a block that an edit makes folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void UpdateFoldings_Follows_An_Edit()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond"),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+
+		// Act
+		sut.UpdateFoldings();
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((2, 3));
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.UpdateLineEnding" />: a line ending of another style brought in by an edit
 	/// makes the endings mixed.
 	/// </summary>
@@ -1707,6 +3710,42 @@ internal class DocumentTextEditorTests
 
 	#region Helpers
 	/// <summary>
+	/// Records every <see cref="FoldingChangedMessage" /> sent about the editor; tests check only their number, as a failed
+	/// check of a message would print the whole editor.
+	/// </summary>
+	private static List<FoldingChangedMessage> Capture(DocumentTextEditor editor)
+	{
+		List<FoldingChangedMessage> received = [];
+
+		WeakReferenceMessenger
+			.Default
+			.Register<List<FoldingChangedMessage>, FoldingChangedMessage>(
+				received,
+				(recipient, message) =>
+				{
+					// The messenger is shared, and other tests send messages about their own editors.
+					if (message.Editor != editor)
+					{
+						return;
+					}
+
+					recipient.Add(message);
+				});
+
+		return received;
+	}
+
+	/// <summary>
+	/// Presses and releases a button of the mouse at a point of a window.
+	/// </summary>
+	private static void Click(Window window, Point point, MouseButton button)
+	{
+		window.MouseDown(point, button);
+
+		window.MouseUp(point, button);
+	}
+
+	/// <summary>
 	/// Creates a document of numbered lines.
 	/// </summary>
 	private static TextDocument CreateDocument(int lineCount)
@@ -1715,6 +3754,59 @@ internal class DocumentTextEditorTests
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
 	}
+
+	/// <summary>
+	/// Returns the middle of the element that starts at an offset of the text view, in the coordinates of its window.
+	/// </summary>
+	private static Point GetColumnCenter(TextView textView, int offset)
+	{
+		VisualLine visualLine = textView.GetVisualLine(textView.Document.GetLineByOffset(offset).LineNumber)!;
+
+		int column = visualLine.GetVisualColumn(offset - visualLine.StartOffset);
+
+		Point left = visualLine.GetVisualPosition(column, VisualYPosition.LineMiddle);
+
+		Point right = visualLine.GetVisualPosition(column + 1, VisualYPosition.LineMiddle);
+
+		// The visual positions stand in the coordinates of the document, which the view scrolls.
+		Point center = new Point((left.X + right.X) / 2.0, left.Y) - textView.ScrollOffset;
+
+		return textView.TranslatePoint(center, TopLevel.GetTopLevel(textView)!) ?? default;
+	}
+
+	/// <summary>
+	/// Returns the numbers of the first and the last lines of the blocks that fold.
+	/// </summary>
+	private static (int Start, int End)[] GetFoldedLines(TextEditor editor)
+	{
+		TextDocument document = editor.Document;
+
+		return [.. GetFoldings(editor).Select(x => (
+			document.GetLineByOffset(x.StartOffset).LineNumber,
+			document.GetLineByOffset(x.EndOffset).LineNumber))];
+	}
+
+	/// <summary>
+	/// Returns the blocks that fold; none without the folding.
+	/// </summary>
+	private static FoldingSection[] GetFoldings(TextEditor editor)
+	{
+		if (editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.SingleOrDefault() is not { } margin)
+		{
+			return [];
+		}
+
+		return [.. margin.FoldingManager.AllFoldings];
+	}
+
+	/// <summary>
+	/// Returns the text of the tip of the text view; <c>null</c> without a tip.
+	/// </summary>
+	private static string? GetTipText(TextView textView) => (ToolTip.GetTip(textView) as TextBlock)?.Text;
 
 	/// <summary>
 	/// Returns the colors of the parts the first line of the view is drawn in.
@@ -1737,6 +3829,18 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <c>True</c> when the editor has the folding.
+	/// </summary>
+	private static bool HasFolding(TextEditor editor)
+	{
+		return editor
+			.TextArea
+			.LeftMargins
+			.OfType<FoldingMargin>()
+			.Any();
+	}
+
+	/// <summary>
 	/// <c>True</c> when the editor has the syntax highlighting.
 	/// </summary>
 	private static bool HasHighlighting(TextEditor editor)
@@ -1747,6 +3851,32 @@ internal class DocumentTextEditorTests
 			.LineTransformers
 			.OfType<TextMateColoringTransformer>()
 			.Any();
+	}
+
+	/// <summary>
+	/// Presses and releases a key.
+	/// </summary>
+	private static void Press(Window window, PhysicalKey key, RawInputModifiers modifiers)
+	{
+		window.KeyPressQwerty(key, modifiers);
+
+		window.KeyReleaseQwerty(key, modifiers);
+	}
+
+	/// <summary>
+	/// Raises a pointer event of the text view at a point of its window.
+	/// </summary>
+	private static void Raise(TextView textView, RoutedEvent<PointerEventArgs> routedEvent, Point point)
+	{
+		textView.RaiseEvent(new PointerEventArgs(
+			routedEvent,
+			textView,
+			new Pointer(0, PointerType.Mouse, isPrimary: true),
+			TopLevel.GetTopLevel(textView),
+			point,
+			0,
+			PointerPointProperties.None,
+			KeyModifiers.None));
 	}
 
 	/// <summary>

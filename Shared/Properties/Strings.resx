@@ -811,4 +811,19 @@
   <data name="SyntaxHighlighting" xml:space="preserve">
     <value>Syntax Highlighting</value>
   </data>
+  <data name="Folding" xml:space="preserve">
+    <value>Folding</value>
+  </data>
+  <data name="ToggleFolding" xml:space="preserve">
+    <value>Toggle Block</value>
+  </data>
+  <data name="FoldAll" xml:space="preserve">
+    <value>Fold All</value>
+  </data>
+  <data name="UnfoldAll" xml:space="preserve">
+    <value>Unfold All</value>
+  </data>
+  <data name="FailedToOpenInOS" xml:space="preserve">
+    <value>Failed to open in OS</value>
+  </data>
 </root>

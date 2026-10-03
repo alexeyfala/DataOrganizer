@@ -44,6 +44,69 @@ internal class DocumentViewStateTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentViewState.Equals(DocumentViewState)" />: the folded blocks compare by their offsets,
+	/// and no folded blocks equal an empty set.
+	/// </summary>
+	[TestCase(new[] { 10, 40 }, new[] { 10, 40 }, true)]
+	[TestCase(null, new int[0], true)]
+	[TestCase(new[] { 10 }, new[] { 40 }, false)]
+	public void Equals_Compares_The_Folded_Blocks_By_Their_Offsets(
+		int[]? foldedBlocks,
+		int[]? otherFoldedBlocks,
+		bool expected)
+	{
+		// Arrange
+		DocumentViewState sut = Create(foldedBlocks: foldedBlocks);
+
+		// Act
+		bool isEqual = sut.Equals(Create(foldedBlocks: otherFoldedBlocks));
+
+		// Assert
+		isEqual
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentViewState.Equals(DocumentViewState)" />: the unfolded blocks compare by their offsets,
+	/// and an empty set, which folds every block, differs from none.
+	/// </summary>
+	[TestCase(new[] { 10, 40 }, new[] { 10, 40 }, true)]
+	[TestCase(null, new int[0], false)]
+	[TestCase(new[] { 10 }, new[] { 40 }, false)]
+	public void Equals_Compares_The_Unfolded_Blocks_By_Their_Offsets(
+		int[]? unfoldedBlocks,
+		int[]? otherUnfoldedBlocks,
+		bool expected)
+	{
+		// Arrange
+		DocumentViewState sut = Create(unfoldedBlocks: unfoldedBlocks);
+
+		// Act
+		bool isEqual = sut.Equals(Create(unfoldedBlocks: otherUnfoldedBlocks));
+
+		// Assert
+		isEqual
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentViewState.FoldedBlocks" />: an empty set of offsets is kept as <c>null</c>, the one form of none.
+	/// </summary>
+	[Test]
+	public void FoldedBlocks_Stores_An_Empty_Set_As_Null()
+	{
+		// Act
+		DocumentViewState sut = Create(foldedBlocks: []);
+
+		// Assert
+		sut.FoldedBlocks
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentViewState.GetHashCode" />: states with the same lines have the same hash.
 	/// </summary>
 	[TestCase(new[] { 2, 5 }, new[] { 2, 5 })]
@@ -61,21 +124,41 @@ internal class DocumentViewStateTests
 			.Should()
 			.Be(Create(otherBookmarks).GetHashCode());
 	}
+
+	/// <summary>
+	/// <see cref="DocumentViewState.UnfoldedBlocks" />: an empty set of offsets is kept, as it folds every block.
+	/// </summary>
+	[Test]
+	public void UnfoldedBlocks_Keeps_An_Empty_Set()
+	{
+		// Act
+		DocumentViewState sut = Create(unfoldedBlocks: []);
+
+		// Assert
+		sut.UnfoldedBlocks
+			.Should()
+			.BeEmpty();
+	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Creates a view state with the bookmarks, the rest of it the same every time.
+	/// Creates a view state with the bookmarks and the blocks, the rest of it the same every time.
 	/// </summary>
-	private static DocumentViewState Create(int[]? bookmarks)
+	private static DocumentViewState Create(
+		int[]? bookmarks = null,
+		int[]? foldedBlocks = null,
+		int[]? unfoldedBlocks = null)
 	{
 		return new()
 		{
 			Bookmarks = bookmarks,
 			CaretPosition = new(line: 3, column: 1),
+			FoldedBlocks = foldedBlocks,
 			ScrollOffset = new(0.0, 100.0),
 			SelectionLength = 4,
-			SelectionStart = 20
+			SelectionStart = 20,
+			UnfoldedBlocks = unfoldedBlocks
 		};
 	}
 	#endregion

@@ -264,11 +264,26 @@ public sealed class FolderProtection : IFolderProtection
 		FileDto[] files,
 		CancellationToken token = default)
 	{
+		// A cancelled prompt returns an empty password, which changes nothing.
 		using PinnedSecret password = await _dialogService.RequestPasswordAsync(
 			header: Strings.EncryptFiles,
 			mode: PasswordPromptMode.Create,
 			token: token).ConfigureAwait(false);
 
+		await EncryptFolderAsync(
+			folder,
+			files,
+			password,
+			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	public async Task EncryptFolderAsync(
+		FolderDto folder,
+		FileDto[] files,
+		PinnedSecret password,
+		CancellationToken token = default)
+	{
 		if (password.IsEmpty)
 		{
 			return;

@@ -19,7 +19,8 @@ public static class EntityFactory
 	public static FileEntity CreateFile(
 		in Guid id = default,
 		byte[]? contents = null,
-		string? editorState = null) => new()
+		string? editorState = null,
+		in Guid? parentId = null) => new()
 		{
 			Contents = contents ?? [],
 			CreatedAt = DateTime.Now,
@@ -28,6 +29,7 @@ public static class EntityFactory
 			Index = RandomValues.CreateIntFrom10To100(),
 			Kind = EntityKind.File,
 			Name = RandomString.Create(10),
+			ParentId = parentId,
 			UpdatedAt = DateTime.Now
 		};
 

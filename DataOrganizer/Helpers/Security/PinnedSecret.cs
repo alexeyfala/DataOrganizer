@@ -57,12 +57,24 @@ public sealed class PinnedSecret : IDisposable
 	/// <summary>
 	/// Read-only view over the contents.
 	/// </summary>
-	public ReadOnlySpan<char> AsReadOnlySpan() => _buffer.AsSpan();
+	/// <exception cref="ObjectDisposedException">The secret has been disposed.</exception>
+	public ReadOnlySpan<char> AsReadOnlySpan()
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+		return _buffer.AsSpan();
+	}
 
 	/// <summary>
 	/// Writable view over the contents.
 	/// </summary>
-	public Span<char> AsSpan() => _buffer.AsSpan();
+	/// <exception cref="ObjectDisposedException">The secret has been disposed.</exception>
+	public Span<char> AsSpan()
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+		return _buffer.AsSpan();
+	}
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -83,6 +95,7 @@ public sealed class PinnedSecret : IDisposable
 	/// Encodes the contents as UTF-8 into a new pinned buffer owned by the caller, normalizing the
 	/// characters to NFC first, so one secret spells one key whatever the input method produced.
 	/// </summary>
+	/// <exception cref="ObjectDisposedException">The secret has been disposed.</exception>
 	public PinnedBuffer ToUtf8Buffer()
 	{
 		ReadOnlySpan<char> characters = AsReadOnlySpan();

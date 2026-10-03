@@ -179,10 +179,11 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: strips the NumLock flag from the stored mask.
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: strips the lock states from the stored mask.
 	/// </summary>
 	[Test]
-	public void HandleKeyReleased_Strips_NumLock_From_Mask()
+	public void HandleKeyReleased_Strips_The_Lock_States_From_The_Mask(
+		[Values(EventMask.NumLock, EventMask.CapsLock, EventMask.ScrollLock)] EventMask lockState)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -190,7 +191,7 @@ internal class HotkeysEditorViewModelTests
 		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
 
 		// Act
-		sut.HandleKeyReleased(EventMask.LeftCtrl | EventMask.NumLock, KeyCode.VcA);
+		sut.HandleKeyReleased(EventMask.LeftCtrl | lockState, KeyCode.VcA);
 
 		// Assert
 		sut.Buffer

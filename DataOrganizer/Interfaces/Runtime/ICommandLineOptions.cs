@@ -10,12 +10,6 @@ public interface ICommandLineOptions
 {
 	#region Properties
 	/// <summary>
-	/// Fill the database with random objects for debugging.
-	/// </summary>
-	[Description("Fill the database with random objects for debugging.")]
-	bool FillObjects { get; }
-
-	/// <summary>
 	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information" />.
 	/// </summary>
 	[Description("Logging level entries Debug, default Information.")]

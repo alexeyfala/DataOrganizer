@@ -28,6 +28,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	private static readonly TimeSpan DefaultSaveDebounce = TimeSpan.FromMilliseconds(1500.0);
 
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
+
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -54,9 +57,6 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _сlipboardLog;
-
 	/// <summary>
 	/// <c>True</c> once <see cref="Start" /> has subscribed to change notifications.
 	/// </summary>
@@ -71,7 +71,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	#region Constructors
 	public ClipboardLogPersistenceCoordinator(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService сlipboardLog,
+		IClipboardLogService clipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -79,7 +79,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider) : this(
 			  settingsStore,
-			  сlipboardLog,
+			  clipboardLog,
 			  store,
 			  dispatcher,
 			  logger,
@@ -95,7 +95,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	internal ClipboardLogPersistenceCoordinator(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService сlipboardLog,
+		IClipboardLogService clipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -104,6 +104,8 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		TimeProvider timeProvider,
 		TimeSpan saveDebounce)
 	{
+		_clipboardLog = clipboardLog;
+
 		_dispatcher = dispatcher;
 
 		_exceptionHandler = exceptionHandler;
@@ -117,8 +119,6 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		_store = store;
 
 		_timeProvider = timeProvider;
-
-		_сlipboardLog = сlipboardLog;
 
 		_saveDebounce = saveDebounce;
 	}
@@ -213,7 +213,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		// Merge previous-session entries on the UI thread (Merge raises no notification),
 		// then write the merged set once.
 		await _dispatcher
-			.PostAsync(() => _сlipboardLog.Merge(result.Entries))
+			.PostAsync(() => _clipboardLog.Merge(result.Entries))
 			.ConfigureAwait(false);
 
 		await SaveSnapshotAsync(token).ConfigureAwait(false);
@@ -293,7 +293,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		}
 
 		ClipboardLogEntryBase[] snapshot = await _dispatcher
-			.PostAsync(() => _сlipboardLog.Entries.ToArray())
+			.PostAsync(() => _clipboardLog.Entries.ToArray())
 			.ConfigureAwait(false);
 
 		await _store

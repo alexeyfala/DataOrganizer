@@ -715,7 +715,7 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: the password of a new keeper is asked for
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: the password of a new keeper is asked for
 	/// with a confirmation, so a typo cannot lock the files away.
 	/// </summary>
 	[Test]
@@ -753,7 +753,7 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: nothing is persisted when a note cannot be encrypted.
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: nothing is persisted when a note cannot be encrypted.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolderAsync_Does_Not_Persist_When_A_Note_Cannot_Be_Encrypted()
@@ -818,7 +818,7 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: the copy of the database is erased when the operation ends.
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: the copy of the database is erased when the operation ends.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolderAsync_Erases_The_Database_Backup([Values] bool isUpdateFailing)
@@ -904,7 +904,7 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: encrypts the folder and persists the updated file properties.
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: encrypts the folder and persists the updated file properties.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolderAsync_Saves_The_Encrypted_Contents()
@@ -991,7 +991,7 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderProtection.EncryptFolderAsync" />: the plain text loaded for the conversion
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: the plain text loaded for the conversion
 	/// is wiped.
 	/// </summary>
 	[Test]
