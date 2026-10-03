@@ -28,18 +28,16 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid
-		DataContext="{Binding $parent[views:NoteView]}"
-		RowDefinitions="*,Auto">
+	<Grid DataContext="{Binding $parent[views:NoteView]}" RowDefinitions="*,Auto">
 
-		<!-- Encrypted -->
+		<!--  Encrypted  -->
 		<materialIcons:MaterialIcon
 			Grid.Row="0"
 			Classes="NoteIconStyle"
 			IsVisible="{Binding IsLocked, Mode=OneWay}"
 			ToolTip.Tip="{x:Static prop:Strings.ContentIsEncrypted}" />
 
-		<!-- Readable -->
+		<!--  Readable  -->
 		<materialIcons:MaterialIcon
 			x:Name="ReadableIcon"
 			Grid.Row="0"
@@ -65,6 +63,8 @@
 				<EventTriggerBehavior EventName="Closed">
 					<InvokeCommandAction Command="{Binding NoteClosedCommand}" />
 				</EventTriggerBehavior>
+
+				<input:ClosePopupOnEscapeBehavior />
 			</Interaction.Behaviors>
 
 			<Border
@@ -80,9 +80,7 @@
 					<DoubleTappedTrigger MarkAsHandled="True" />
 				</Interaction.Behaviors>
 
-				<Grid
-					ColumnDefinitions="*,Auto"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"
@@ -139,9 +137,7 @@
 							<Interaction.Behaviors>
 								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<security:SensitiveCopyBehavior
-									IsSensitive="{Binding IsSensitive, Mode=OneWay}"
-									Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 							</Interaction.Behaviors>
 						</SelectableTextBlock>
 					</ScrollViewer>
