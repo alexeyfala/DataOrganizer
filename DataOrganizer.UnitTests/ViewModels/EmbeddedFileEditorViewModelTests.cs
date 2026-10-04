@@ -1929,6 +1929,123 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush leaves
+	/// a change made in the mode unsaved, as the mode saves nothing after it turned on.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_In_Read_Only_Mode_Leaves_A_Change_Made_In_It_Unsaved()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		sut.Document.Text = RandomString.Create(10);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		await flush.GetResponsesAsync();
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush answers
+	/// only once the edit queued as the mode turned on is saved, so the contents are not hidden before it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_In_Read_Only_Mode_Waits_For_The_Queued_Save()
+	{
+		// Arrange
+		TaskCompletionSource<bool> written = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			// The save of the edit lasts until the test lets it end.
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(written.Task);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = RandomString.Create(10);
+
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		Task<IReadOnlyCollection<bool>> answer = flush.GetResponsesAsync();
+
+		bool isAnsweredBeforeTheSave = answer.IsCompleted;
+
+		written.SetResult(true);
+
+		IReadOnlyCollection<bool> responses = await answer;
+
+		// Assert
+		isAnsweredBeforeTheSave
+			.Should()
+			.BeFalse();
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text with a character that the encoding of
 	/// the file does not have is not saved, and the flush says so, so the contents are not hidden over the edit.
 	/// </summary>
@@ -2502,6 +2619,125 @@ internal class EmbeddedFileEditorViewModelTests
 		responses
 			.Should()
 			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(EditorReadOnlyModeChangedMessage)" />: an edit made just
+	/// before the read-only mode, still waiting for a pause in typing, is saved as the mode turns on.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_ReadOnly_Saves_The_Edit_Made_Before_It()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = text;
+
+		// Act
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		// A flush in read-only mode waits for the save queued as the mode turned on.
+		FlushEditorsMessage flush = new();
+
+		sut.Receive(flush);
+
+		await flush.GetResponsesAsync();
+
+		// Assert
+		saved
+			.Should()
+			.Equal(TextDefaults.Encoding.GetBytes(text));
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(EditorReadOnlyModeChangedMessage)" />: the read-only mode
+	/// turned on without an edit writes nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_ReadOnly_Writes_Nothing_Without_An_Edit()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		// A flush in read-only mode waits for the save queued as the mode turned on.
+		FlushEditorsMessage flush = new();
+
+		sut.Receive(flush);
+
+		await flush.GetResponsesAsync();
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 
 	/// <summary>

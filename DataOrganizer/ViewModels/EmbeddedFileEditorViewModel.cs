@@ -468,13 +468,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
 		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
-		if (!IsEditingEnabled)
+		// Nor is anything written over contents that could not be read.
+		if (!IsInitialized || IsContentUnavailable)
 		{
 			return true;
 		}
 
-		// The text change handler is debounced, so the newest text may not be queued yet.
-		EnqueueSave(Document);
+		// The text change handler is debounced, so the newest text may not be queued yet. The read-only mode queued it
+		// as it turned on and saves no change made after.
+		if (!IsReadOnly)
+		{
+			EnqueueSave(Document);
+		}
 
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
@@ -482,6 +487,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		return await isDrained
 			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
 			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !_isTextOutsideEncoding;
+	}
+
+	/// <inheritdoc />
+	protected override void QueuePendingChanges()
+	{
+		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
+		if (!IsEditingEnabled)
+		{
+			return;
+		}
+
+		EnqueueSave(Document);
 	}
 	#endregion
 

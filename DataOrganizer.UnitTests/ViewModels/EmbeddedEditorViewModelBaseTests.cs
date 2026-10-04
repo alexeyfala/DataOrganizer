@@ -102,6 +102,29 @@ internal class EmbeddedEditorViewModelBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsReadOnly" />: the changes that wait for a pause in typing are queued
+	/// once, before the read-only mode turns on, and not when it turns off.
+	/// </summary>
+	[Test]
+	public void IsReadOnly_Queues_The_Pending_Changes_Before_It_Turns_On()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		// Act
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		sut.Receive(new EditorReadOnlyModeChangedMessage(false));
+
+		// Assert
+		sut.QueuedWhileReadOnly
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
 	[Test]
@@ -330,9 +353,17 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	{
 	}
 
+	/// <summary>
+	/// For each queuing of the pending changes, <c>true</c> when the read-only mode was already on.
+	/// </summary>
+	public List<bool> QueuedWhileReadOnly { get; } = [];
+
 	public byte[]? InvokeTryDecrypt(byte[] input) => TryDecrypt(input);
 
 	public byte[]? InvokeTryEncrypt(byte[] input) => TryEncrypt(input);
 
 	public void MarkInitialized() => IsInitialized = true;
+
+	/// <inheritdoc />
+	protected override void QueuePendingChanges() => QueuedWhileReadOnly.Add(IsReadOnly);
 }
