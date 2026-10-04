@@ -2483,6 +2483,7 @@ internal class EmbeddedFileEditorViewModelTests
 	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: an edited file is saved in the encoding it was
 	/// loaded in, with its byte order mark, and a file that is not UTF-8 in the fallback code page.
+	/// Rarely it fails before its body runs, when a thread of an earlier test takes the new UI dispatcher of Avalonia.
 	/// </summary>
 	[AvaloniaTest]
 	[TestCaseSource(nameof(TypedEncodedContents))]
