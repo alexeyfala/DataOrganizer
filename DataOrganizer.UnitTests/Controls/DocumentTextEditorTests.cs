@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -659,6 +660,50 @@ internal class DocumentTextEditorTests
 		GetFoldedLines(sut)
 			.Should()
 			.Equal((1, 4));
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a new document reaches the text area of a highlighted and folded text while the
+	/// input method of Windows asks for the caret, which lays out a line of the new document before the change is reported.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Reaches_The_Text_Area_While_The_Input_Method_Asks_For_The_Caret()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		Show(sut);
+
+		sut.TextArea.Focus();
+
+		// Away from the start, so that the new document moves the caret, and the input method asks about the move.
+		sut.CaretOffset = FoldedText.Length;
+
+		// The client of the focused text area, which the input method of Windows asks for the caret on its every move.
+		TextInputMethodClientRequestedEventArgs request = new()
+		{
+			RoutedEvent = InputElement.TextInputMethodClientRequestedEvent
+		};
+
+		sut.TextArea.RaiseEvent(request);
+
+		TextInputMethodClient client = request.Client!;
+
+		client.CursorRectangleChanged += (_, _) => _ = client.CursorRectangle;
+
+		TextDocument document = new(FoldedText);
+
+		// Act
+		sut.Document = document;
+
+		// Assert
+		sut.TextArea.Document
+			.Should()
+			.BeSameAs(document);
 	}
 
 	/// <summary>

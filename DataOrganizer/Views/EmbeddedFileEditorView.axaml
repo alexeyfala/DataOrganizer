@@ -13,9 +13,11 @@
 
 	<views:DocumentEditorView
 		x:Name="Editor"
+		DefaultEncoding="{Binding DefaultEncoding, Mode=OneWay}"
 		DefaultSyntaxLanguage="{Binding DefaultSyntaxLanguage, Mode=OneWay}"
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
+		Encoding="{Binding Encoding, Mode=TwoWay}"
 		EncodingName="{Binding EncodingName, Mode=OneWay}"
 		IsReadOnly="{Binding !IsEditingEnabled, Mode=OneWay}"
 		IsSensitive="{Binding IsEncrypted, Mode=OneWay}"

@@ -16,6 +16,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
 using Shared.Extensions;
@@ -41,9 +42,9 @@ internal class DocumentEditorViewTests
 	private const string EditorName = "Editor";
 
 	/// <summary>
-	/// Name of the caption of the encoding in the markup.
+	/// Name of the status bar block with the encoding of the text in the markup.
 	/// </summary>
-	private const string EncodingCaptionName = "EncodingCaption";
+	private const string EncodingBlockName = "EncodingBlock";
 
 	/// <summary>
 	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
@@ -617,6 +618,28 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.DefaultEncoding" />: the encoding that the text takes by default reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultEncoding_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			DefaultEncoding = "windows-1251",
+			EncodingName = "Windows-1251"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).DefaultChoice
+			.Should()
+			.Be("windows-1251");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.DefaultSyntaxLanguage" />: the language that the text takes by default reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
@@ -632,7 +655,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).DefaultSyntaxLanguage
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).DefaultChoice
 			.Should()
 			.Be(PowerShellLanguage);
 	}
@@ -731,9 +754,57 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextBlock>(EncodingCaptionName).Text
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).Caption
 			.Should()
 			.Be("UTF-8-BOM");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Encoding" />: an encoding chosen in the status bar becomes the encoding of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Follows_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Encoding = "windows-1251",
+			EncodingName = "Windows-1251"
+		};
+
+		Show(sut);
+
+		// Act
+		sut
+			.GetControl<ChoiceSelector>(EncodingBlockName)
+			.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "cp866");
+
+		// Assert
+		sut.Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Encoding" />: the encoding of the text reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Encoding = "cp866",
+			EncodingName = "CP866"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).SelectedChoice
+			.Should()
+			.Be("cp866");
 	}
 
 	/// <summary>
@@ -906,6 +977,27 @@ internal class DocumentEditorViewTests
 		GetScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.LanguageChoices" />: the status bar offers plain text first and then every language with
+	/// a grammar.
+	/// </summary>
+	[AvaloniaTest]
+	public void LanguageChoices_Offer_Plain_Text_First_And_Then_Every_Language()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		string?[] expected = [null, .. SyntaxRegistry.Instance.Languages.Select(static x => x.Id)];
+
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).Choices!.Select(static x => x.Id)
+			.Should()
+			.Equal(expected);
 	}
 
 	/// <summary>
@@ -1310,9 +1402,9 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		TextBlock caption = sut.GetControl<TextBlock>(EncodingCaptionName);
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(EncodingBlockName);
 
-		double width = caption.Bounds.Width;
+		double width = block.Bounds.Width;
 
 		// Act
 		window.Width = 400.0;
@@ -1320,15 +1412,36 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		caption.Bounds.Width
+		block.Bounds.Width
 			.Should()
 			.Be(width);
 
-		double? right = caption.TranslatePoint(new(width, 0.0), sut)?.X;
+		double? right = block.TranslatePoint(new(width, 0.0), sut)?.X;
 
 		right
 			.Should()
 			.BeLessThanOrEqualTo(sut.Bounds.Width);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar offers every encoding that a text can be read in.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Offers_Every_Encoding()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).Choices
+			.Should()
+			.BeSameAs(FileTextCodec.EncodingChoices);
 	}
 
 	/// <summary>
@@ -1347,7 +1460,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextBlock>(EncodingCaptionName).IsVisible
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).IsVisible
 			.Should()
 			.Be(isGiven);
 	}
@@ -1368,8 +1481,8 @@ internal class DocumentEditorViewTests
 
 		// Act
 		sut
-			.GetControl<SyntaxLanguageSelector>(LanguageBlockName)
-			.SetCurrentValue(SyntaxLanguageSelector.SyntaxLanguageProperty, "bat");
+			.GetControl<ChoiceSelector>(LanguageBlockName)
+			.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "bat");
 
 		// Assert
 		sut.SyntaxLanguage
@@ -1414,7 +1527,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).SyntaxLanguage
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).SelectedChoice
 			.Should()
 			.Be(PowerShellLanguage);
 	}

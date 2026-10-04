@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
@@ -21,12 +22,15 @@ using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Extensions;
+using Shared.Interfaces;
+using Shared.Services;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Dto;
@@ -312,6 +316,86 @@ internal class KeyboardInputHookTests
 		await clipboard
 			.Received(1)
 			.SetTextAsync("Hi");
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a hotkey copies the text in the encoding chosen for the file
+	/// rather than in the one found from its contents.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Copies_The_Text_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		const string text = "Привет, мир";
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(editorState: new SystemTextJsonSerializer().Serialize(new FileEditorState
+		{
+			Encoding = "cp866"
+		}));
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		KeyStroke[] keyStrokes =
+		[
+			new()
+			{
+				Code = code,
+				Mask = mask
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(keyStrokes.ToHotkeyDtos());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text));
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetTextAsync(text);
 	}
 
 	/// <summary>

@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
+using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Security;
@@ -661,6 +662,65 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the text is read in the encoding chosen for the file, while
+	/// the default stays the one found from the contents.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Reads_The_Text_In_The_Stored_Encoding()
+	{
+		// Arrange
+		const string text = "Привет, мир";
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				Encoding = "cp866"
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(text);
+
+		sut.Encoding
+			.Should()
+			.Be("cp866");
+
+		sut.DefaultEncoding
+			.Should()
+			.Be(FileTextCodec.Fallback.WebName);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored bookmarks become part of the view state.
 	/// </summary>
 	[AvaloniaTest]
@@ -1097,6 +1157,59 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: an encoding chosen for the file that cannot read its contents
+	/// gives way to the one found from them: here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Takes_The_Found_Encoding_When_The_Stored_One_Cannot_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				Encoding = "utf-16"
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be("Hi!");
+
+		sut.Encoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the extension of the file name gives the language of the text.
 	/// </summary>
 	[AvaloniaTest]
@@ -1138,6 +1251,415 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.SyntaxLanguage
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: an encoding that cannot read the bytes is refused, and the text
+	/// stays in the encoding it was read in: here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Keeps_The_Text_When_The_Choice_Cannot_Read_It()
+	{
+		// Arrange
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		TextDocument document = sut.Document;
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = "utf-16";
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		sut.Encoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+
+		sut.Document
+			.Should()
+			.BeSameAs(document);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: another encoding is refused while an edit is not saved, as the
+	/// text read again from the saved bytes would drop it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Keeps_The_Text_While_An_Edit_Is_Not_Saved()
+	{
+		// Arrange
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				// Not UTF-8, so in the fallback code page, which has no emoji
+				Contents = [0xC0, 0xC1, 0xC2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text += "😀";
+
+		TextDocument document = sut.Document;
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = "cp866";
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		sut.Encoding
+			.Should()
+			.Be(FileTextCodec.Fallback.WebName);
+
+		sut.Document
+			.Should()
+			.BeSameAs(document);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: another encoding reads the text again from the same bytes into
+	/// a new document, which has nothing to undo.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Reads_The_Text_Again_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		const string text = "Привет, мир";
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				// Not UTF-8, so read in the fallback code page first
+				Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = "cp866";
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(text);
+
+		sut.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+
+		sut.EncodingName
+			.Should()
+			.Be("CP866");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: the encoding found from the contents is stored as no choice.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Saves_No_Choice_For_The_Encoding_Of_The_Contents()
+	{
+		// Arrange
+		string? reported = null;
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hello"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			FileEditorState state = new()
+			{
+				Encoding = "windows-1251"
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = Encoding.UTF8.WebName;
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		string? stored = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).Encoding;
+
+		stored
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: an encoding other than the one found from the contents is stored
+	/// in the editor state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Saves_The_Chosen_Encoding()
+	{
+		// Arrange
+		string? reported = null;
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hello"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.EditorLoaded();
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = "cp866";
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		string? stored = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).Encoding;
+
+		stored
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: an edit is saved in the encoding it was typed in before the text
+	/// is read again in another one, so the file keeps it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Encoding_Saves_The_Edit_Before_Reading_The_Text_Again()
+	{
+		// Arrange
+		byte[]? saved = null;
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hello"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = "Hello, world";
+
+		int watchedBefore = watched.Count;
+
+		// Act
+		sut.Encoding = "windows-1251";
+
+		// The change of the encoding is the next task handed over.
+		await watched[watchedBefore];
+
+		// Assert
+		byte[] expected = Encoding.UTF8.GetBytes("Hello, world");
+
+		saved
+			.Should()
+			.Equal(expected);
+
+		sut.Document.Text
+			.Should()
+			.Be("Hello, world");
 	}
 
 	/// <summary>

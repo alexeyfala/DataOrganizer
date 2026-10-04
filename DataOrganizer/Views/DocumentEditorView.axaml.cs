@@ -10,8 +10,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
+using Shared.Properties;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 
@@ -27,6 +30,15 @@ internal sealed partial class DocumentEditorView :
 	IRecipient<FoldingChangedMessage>
 {
 	#region Properties
+	/// <summary>
+	/// Web name of the encoding that the text takes when none is chosen; <c>null</c> when there is none.
+	/// </summary>
+	public string? DefaultEncoding
+	{
+		get => GetValue(DefaultEncodingProperty);
+		set => SetValue(DefaultEncodingProperty, value);
+	}
+
 	/// <summary>
 	/// Language that the text takes when none is chosen; <c>null</c> for plain text.
 	/// </summary>
@@ -53,6 +65,15 @@ internal sealed partial class DocumentEditorView :
 	{
 		get => GetValue(DocumentFontSizeProperty);
 		set => SetValue(DocumentFontSizeProperty, value);
+	}
+
+	/// <summary>
+	/// Web name of the encoding the document is stored in; <c>null</c> for a document that is not stored as bytes.
+	/// </summary>
+	public string? Encoding
+	{
+		get => GetValue(EncodingProperty);
+		set => SetValue(EncodingProperty, value);
 	}
 
 	/// <summary>
@@ -90,6 +111,20 @@ internal sealed partial class DocumentEditorView :
 		get => GetValue(IsSplitProperty);
 		set => SetValue(IsSplitProperty, value);
 	}
+
+	/// <summary>
+	/// Languages offered for the syntax highlighting, plain text first.
+	/// </summary>
+	public IReadOnlyList<SelectorChoice> LanguageChoices { get; } =
+	[
+		new SelectorChoice
+		{
+			Id = null,
+			Name = Strings.PlainText,
+			SearchTerms = []
+		},
+		.. SyntaxRegistry.Instance.Languages
+	];
 
 	/// <summary>
 	/// <c>True</c> when line endings are shown.
@@ -167,6 +202,12 @@ internal sealed partial class DocumentEditorView :
 
 	#region Styled Properties
 	/// <summary>
+	/// Identifies the <see cref="DefaultEncoding" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DefaultEncodingProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(DefaultEncoding));
+
+	/// <summary>
 	/// Identifies the <see cref="DefaultSyntaxLanguage" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> DefaultSyntaxLanguageProperty = AvaloniaProperty
@@ -185,6 +226,12 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public static readonly StyledProperty<TextDocument?> DocumentProperty = AvaloniaProperty
 		.Register<DocumentEditorView, TextDocument?>(name: nameof(Document));
+
+	/// <summary>
+	/// Identifies the <see cref="Encoding" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> EncodingProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(Encoding));
 
 	/// <summary>
 	/// Identifies the <see cref="EncodingName" /> avalonia property.

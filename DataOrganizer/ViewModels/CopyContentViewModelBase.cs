@@ -17,6 +17,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Linq;
@@ -47,6 +48,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
+	/// <inheritdoc cref="IJsonSerializer" />
+	protected readonly IJsonSerializer _jsonSerializer;
+
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
@@ -64,6 +68,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -80,6 +85,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		_dialogService = dialogService;
 
 		_exceptionHandler = exceptionHandler;
+
+		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
 
@@ -149,7 +156,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 			try
 			{
 				// Bytes that are not text would reach the clipboard as garbage.
-				if (FileTextCodec.TryRead(contents) is not { } text)
+				if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
 				{
 					_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
 

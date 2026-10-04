@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -11,6 +12,9 @@ using Material.Icons.Avalonia;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
+using Shared.Interfaces;
+using Shared.Services;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -121,6 +125,66 @@ internal class FileListViewModelBaseTests
 		ToolTip.GetTip(icon)
 			.Should()
 			.Be("Hi");
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the tip shows the text in the encoding chosen for
+	/// the file rather than in the one found from its contents.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task PreviewPointerEnteredCommand_Shows_The_Text_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		const string text = "Привет, мир";
+
+		FileDto file = ItemDtoFactory.CreateFileDto(editorState: new SystemTextJsonSerializer().Serialize(new FileEditorState
+		{
+			Encoding = "cp866"
+		}));
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+					IsValid = true
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		ToolTip.GetTip(icon)
+			.Should()
+			.Be(text);
 	}
 	#endregion
 }

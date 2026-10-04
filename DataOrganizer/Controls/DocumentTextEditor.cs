@@ -455,8 +455,8 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		UpdateLineEnding();
 
-		// The highlighting moves to a new document by itself, but not to a missing or too long one, and the folding
-		// serves one document only.
+		// The highlighting and the folding of the old document are gone, and the new one gets its own unless it is missing
+		// or too long.
 		UpdateSyntax();
 	}
 
@@ -698,6 +698,21 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		{
 			LineEnding = FindLineEnding(Document)
 		};
+	}
+
+	/// <inheritdoc />
+	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+	{
+		// The highlighting and the folding serve the old document, while the text area may lay out a line of the new one
+		// before the change is reported, as it does for the input method of Windows, which asks for the caret at once.
+		if (change.Property == DocumentProperty)
+		{
+			RemoveHighlighting();
+
+			RemoveFolding();
+		}
+
+		base.OnPropertyChanged(change);
 	}
 	#endregion
 

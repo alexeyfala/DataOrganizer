@@ -852,4 +852,16 @@
   <data name="CharacterNotInEncodingFormat" xml:space="preserve">
     <value>Символа «{0}» нет в кодировке {1}. Изменения не сохранены.</value>
   </data>
+  <data name="Encoding" xml:space="preserve">
+    <value>Кодировка</value>
+  </data>
+  <data name="ByContents" xml:space="preserve">
+    <value>(по содержимому)</value>
+  </data>
+  <data name="ContentsUnreadableInEncodingFormat" xml:space="preserve">
+    <value>Содержимое нельзя прочитать в кодировке {0}</value>
+  </data>
+  <data name="EncodingNotChanged" xml:space="preserve">
+    <value>Кодировка не изменена: изменения не сохранены</value>
+  </data>
 </root>

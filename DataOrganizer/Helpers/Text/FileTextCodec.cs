@@ -2,7 +2,10 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using System;
 using System.Buffers;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.Unicode;
 
@@ -14,6 +17,11 @@ namespace DataOrganizer.Helpers.Text;
 internal static class FileTextCodec
 {
 	#region Properties
+	/// <summary>
+	/// Encodings that a text can be read in, as a list offers them: Unicode first, then the others by description.
+	/// </summary>
+	public static IReadOnlyList<SelectorChoice> EncodingChoices { get; } = CreateEncodingChoices();
+
 	/// <summary>
 	/// Encoding of the bytes that have no byte order mark and are not UTF-8: the code page of programs without Unicode.
 	/// </summary>
@@ -43,6 +51,15 @@ internal static class FileTextCodec
 	]);
 
 	/// <summary>
+	/// Encodings of <see cref="EncodingChoices" />, by web name.
+	/// </summary>
+	private static readonly FrozenDictionary<string, Encoding> Encodings = GetEncodingInfos()
+		.Select(static x => x.GetEncoding())
+		.ToFrozenDictionary(
+			static x => x.WebName,
+			StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
 	/// Encodings that a byte order mark tells; the mark of UTF-32 LE starts with that of UTF-16 LE, so it comes first.
 	/// </summary>
 	private static readonly Encoding[] MarkedEncodings =
@@ -56,6 +73,25 @@ internal static class FileTextCodec
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Returns an encoding of <see cref="EncodingChoices" /> by its web name, with the byte order mark the bytes of a file
+	/// start with; <c>null</c> for a name the list does not hold.
+	/// </summary>
+	public static FileEncoding? Choose(ReadOnlySpan<byte> contents, string name)
+	{
+		if (!Encodings.TryGetValue(name, out Encoding? encoding))
+		{
+			return null;
+		}
+
+		// The mark comes from the bytes, so the list offers each Unicode encoding once.
+		return new FileEncoding
+		{
+			Encoding = encoding,
+			HasByteOrderMark = !encoding.Preamble.IsEmpty && contents.StartsWith(encoding.Preamble)
+		};
+	}
+
 	/// <summary>
 	/// Returns the encoding of the bytes of a file, with <see cref="Fallback" /> for the ones that are neither marked nor
 	/// UTF-8; <c>null</c> when they are not text.
@@ -185,14 +221,62 @@ internal static class FileTextCodec
 	}
 
 	/// <summary>
-	/// Returns the text of the bytes of a file in the encoding they are found to be in; <c>null</c> when they are not text.
+	/// Returns the text of the bytes of a file in the encoding chosen by its web name, or in the one found from the bytes
+	/// when there is no choice or it cannot read them; <c>null</c> when they are not text.
 	/// </summary>
-	public static string? TryRead(ReadOnlySpan<byte> contents) => Detect(contents) is { } encoding
-		? TryDecode(contents, encoding)
-		: null;
+	public static FileText? TryRead(ReadOnlySpan<byte> contents, string? chosenEncoding)
+	{
+		FileEncoding? chosen = chosenEncoding is null ? null : Choose(contents, chosenEncoding);
+
+		return ReadIn(contents, chosen) ?? ReadIn(contents, Detect(contents));
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the choice of an encoding, named as the status bar names it and found by its code page and web name.
+	/// </summary>
+	private static SelectorChoice CreateEncodingChoice(EncodingInfo info)
+	{
+		Encoding encoding = info.GetEncoding();
+
+		FileEncoding unmarked = new()
+		{
+			Encoding = encoding,
+			HasByteOrderMark = false
+		};
+
+		return new()
+		{
+			Description = info.DisplayName,
+			Id = encoding.WebName,
+			Name = unmarked.Name,
+			SearchTerms = [info.CodePage.ToString(CultureInfo.InvariantCulture), encoding.WebName]
+		};
+	}
+
+	/// <summary>
+	/// Returns the choices of the encodings that a text can be read in: Unicode first, then the others by description.
+	/// </summary>
+	private static SelectorChoice[] CreateEncodingChoices()
+	{
+		EncodingInfo[] infos = GetEncodingInfos();
+
+		// Only the Unicode encodings have a byte order mark; UTF-8 leads them, and the others follow by code page.
+		IEnumerable<EncodingInfo> unicode = infos
+			.Where(static x => !x.GetEncoding().Preamble.IsEmpty)
+			.OrderBy(static x => x.CodePage == Utf8CodePage ? 0 : x.CodePage);
+
+		IEnumerable<EncodingInfo> others = infos
+			.Where(static x => x.GetEncoding().Preamble.IsEmpty)
+			.OrderBy(static x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+			.ThenBy(static x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+		return [.. unicode
+			.Concat(others)
+			.Select(CreateEncodingChoice)];
+	}
+
 	/// <summary>
 	/// Returns a copy of an encoding that throws on bytes it cannot read and on characters it cannot write, rather than
 	/// putting replacements or look-alikes in their place.
@@ -227,6 +311,34 @@ internal static class FileTextCodec
 
 		return (regionCodePage > 0 ? provider.GetEncoding(regionCodePage) : null)
 			?? provider.GetEncoding(WesternCodePage)!;
+	}
+
+	/// <summary>
+	/// Returns the encodings of .NET and the code pages of Windows that come with it.
+	/// </summary>
+	private static EncodingInfo[] GetEncodingInfos()
+	{
+		return [.. Encoding
+			.GetEncodings()
+			.Concat(CodePagesEncodingProvider.Instance.GetEncodings())
+			.DistinctBy(static x => x.CodePage)];
+	}
+
+	/// <summary>
+	/// Returns the text of the bytes of a file in an encoding; <c>null</c> without an encoding or when it cannot read them.
+	/// </summary>
+	private static FileText? ReadIn(ReadOnlySpan<byte> contents, FileEncoding? encoding)
+	{
+		if (encoding is null || TryDecode(contents, encoding) is not { } text)
+		{
+			return null;
+		}
+
+		return new()
+		{
+			Encoding = encoding,
+			Text = text
+		};
 	}
 	#endregion
 }

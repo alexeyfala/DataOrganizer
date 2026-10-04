@@ -26,6 +26,7 @@ using DynamicData;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -227,6 +228,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -242,6 +244,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			dialogService,
 			dispatcher,
 			executionEngine,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,

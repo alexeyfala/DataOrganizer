@@ -1,27 +1,24 @@
 <UserControl
-	x:Class="DataOrganizer.Views.SyntaxLanguageSelector"
+	x:Class="DataOrganizer.Views.ChoiceSelector"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:documents="using:DataOrganizer.Dto.Documents"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
 	x:Name="View"
 	mc:Ignorable="d">
 
-	<!--  The button takes no focus, so the keys type into the text again once a language is taken.  -->
+	<!--  The button takes no focus, so the keys type into the text again once an item is taken.  -->
 	<Button
-		x:Name="CurrentLanguage"
+		x:Name="CurrentChoice"
 		MinHeight="0.0"
 		Padding="8.0,4.0"
-		Content="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+		Content="{Binding #View.Caption, Mode=OneWay}"
 		CornerRadius="0.0"
 		Focusable="False"
 		FontWeight="Normal"
 		Foreground="{StaticResource MaterialBodyBrush}"
-		Theme="{StaticResource MaterialFlatButton}"
-		ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}">
+		Theme="{StaticResource MaterialFlatButton}">
 
 		<Button.Styles>
 			<Style Selector="FlyoutPresenter">
@@ -32,10 +29,10 @@
 		</Button.Styles>
 
 		<Button.Flyout>
-			<Flyout Placement="TopEdgeAlignedLeft">
+			<Flyout Placement="{Binding #View.FlyoutPlacement, Mode=OneWay}">
 				<DockPanel
 					x:Name="ChoicesHost"
-					Width="280.0"
+					Width="{Binding #View.FlyoutWidth, Mode=OneWay}"
 					Height="340.0">
 					<Border
 						Padding="6.0,0.0"
@@ -46,17 +43,28 @@
 						<TextBox x:Name="SearchInput" Classes="clearButton SearchTextBoxStyle" />
 					</Border>
 
-					<ListBox x:Name="LanguagesList" Margin="0.0,4.0,0.0,0.0">
+					<ListBox x:Name="ChoicesList" Margin="0.0,4.0,0.0,0.0">
 						<ListBox.ItemTemplate>
-							<DataTemplate x:DataType="documents:SyntaxLanguageChoice">
-								<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
-									<TextBlock Text="{Binding Name, Mode=OneWay}" />
+							<DataTemplate x:DataType="documents:SelectorChoice">
+								<DockPanel HorizontalSpacing="{StaticResource ElementSpacing}">
+									<StackPanel
+										DockPanel.Dock="Left"
+										Orientation="Horizontal"
+										Spacing="{StaticResource ElementSpacing}">
+										<TextBlock Text="{Binding Name, Mode=OneWay}" />
+
+										<TextBlock
+											Foreground="{StaticResource MaterialBodyLightBrush}"
+											IsVisible="{Binding IsDefault, Mode=OneWay}"
+											Text="{Binding DefaultMark, Mode=OneWay}" />
+									</StackPanel>
 
 									<TextBlock
 										Foreground="{StaticResource MaterialBodyLightBrush}"
-										IsVisible="{Binding IsDefault, Mode=OneWay}"
-										Text="{x:Static prop:Strings.ByExtension}" />
-								</StackPanel>
+										IsVisible="{Binding Description, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+										Text="{Binding Description, Mode=OneWay}"
+										TextTrimming="CharacterEllipsis" />
+								</DockPanel>
 							</DataTemplate>
 						</ListBox.ItemTemplate>
 					</ListBox>

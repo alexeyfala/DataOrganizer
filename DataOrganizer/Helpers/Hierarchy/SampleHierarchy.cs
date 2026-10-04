@@ -136,6 +136,11 @@ internal sealed class SampleHierarchy
 	private const EventMask SnippetMask = EventMask.LeftCtrl;
 
 	/// <summary>
+	/// Cyrillic code page of the Windows console, which .NET provides apart from its built-in encodings.
+	/// </summary>
+	private static readonly Encoding Cp866 = CodePagesEncodingProvider.Instance.GetEncoding("cp866")!;
+
+	/// <summary>
 	/// First keys of the hotkeys of the snippets, tried from left to right along the rows of the keyboard, the top row first.
 	/// </summary>
 	private static readonly KeyCode[] HotkeyLeaders =
@@ -482,6 +487,7 @@ internal sealed class SampleHierarchy
 			["Edge cases/Broken/Protected/letter.txt"] = SampleNotes.DamagedContents,
 			["Edge cases/Broken/Records"] = SampleNotes.TruncatedRecords,
 			["Edge cases/Broken/report.txt"] = SampleNotes.BinaryContents,
+			["Edge cases/Encodings/cp866.bat"] = SampleNotes.Cp866Script,
 			["Edge cases/Encodings/utf-16.txt"] = SampleNotes.Utf16Text,
 			["Edge cases/Encodings/utf-8-bom.txt"] = SampleNotes.Utf8BomText,
 			["Edge cases/Encodings/windows-1251.txt"] = SampleNotes.Windows1251Text,
@@ -536,6 +542,8 @@ internal sealed class SampleHierarchy
 		(string Folder, string Name, byte[] Contents)[] rawFiles =
 		[
 			("Edge cases/Broken", "report.txt", _faker.Random.Bytes(BinaryLength)),
+			// A script of the console, which takes its lines with Windows line breaks.
+			("Edge cases/Encodings", "cp866.bat", Encode($"@echo off\r\necho {russianText}\r\npause\r\n", Cp866)),
 			("Edge cases/Encodings", "utf-16.txt", Encode(russianText, Encoding.Unicode)),
 			("Edge cases/Encodings", "utf-8-bom.txt", Encode(russianText, Encoding.UTF8)),
 			("Edge cases/Encodings", "windows-1251.txt", Encode(russianText, Windows1251))

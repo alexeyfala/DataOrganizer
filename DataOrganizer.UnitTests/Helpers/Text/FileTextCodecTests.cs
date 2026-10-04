@@ -1,6 +1,8 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
+using System;
+using System.Linq;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;
@@ -21,6 +23,58 @@ internal class FileTextCodecTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="FileTextCodec.Choose" />: finds an encoding of the list by its web name, whatever its case.
+	/// </summary>
+	[TestCase("cp866")]
+	[TestCase("CP866")]
+	public void Choose_Finds_An_Encoding_By_Its_Web_Name(string name)
+	{
+		// Act
+		FileEncoding? encoding = FileTextCodec.Choose(Cyrillic.GetBytes(CyrillicText), name);
+
+		// Assert
+		encoding!.Encoding.CodePage
+			.Should()
+			.Be(866);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.Choose" />: a name the list does not hold chooses nothing, even that of an encoding .NET
+	/// has apart from the list.
+	/// </summary>
+	[TestCase("iso-2022-jp")]
+	[TestCase("no-such-encoding")]
+	public void Choose_Returns_Null_For_A_Name_The_List_Does_Not_Hold(string name)
+	{
+		// Act
+		FileEncoding? encoding = FileTextCodec.Choose(Cyrillic.GetBytes(CyrillicText), name);
+
+		// Assert
+		encoding
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.Choose" />: the encoding notes the byte order mark when the bytes start with it, so UTF-8
+	/// and UTF-8 with the mark are one choice.
+	/// </summary>
+	[Test]
+	public void Choose_Takes_The_Byte_Order_Mark_From_The_Bytes([Values] bool hasByteOrderMark)
+	{
+		// Arrange
+		byte[] contents = [.. hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [], .. Encoding.UTF8.GetBytes(CyrillicText)];
+
+		// Act
+		FileEncoding? encoding = FileTextCodec.Choose(contents, "utf-8");
+
+		// Assert
+		encoding!.HasByteOrderMark
+			.Should()
+			.Be(hasByteOrderMark);
+	}
+
 	/// <summary>
 	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: a byte order mark tells the Unicode
 	/// encoding of the bytes, and the mark of UTF-32 LE is not taken for that of UTF-16 LE.
@@ -121,6 +175,76 @@ internal class FileTextCodecTests
 				Encoding = Encoding.UTF8,
 				HasByteOrderMark = false
 			});
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.EncodingChoices" />: an encoding is found by its code page and by its web name.
+	/// </summary>
+	[Test]
+	public void EncodingChoices_Are_Found_By_Code_Page_And_Web_Name()
+	{
+		// Act
+		SelectorChoice choice = FileTextCodec
+			.EncodingChoices
+			.Single(static x => x.Id == "cp866");
+
+		// Assert
+		choice.SearchTerms
+			.Should()
+			.Equal("866", "cp866");
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.EncodingChoices" />: the list holds every encoding of .NET and of the code pages that come
+	/// with it, each once, and each id chooses its encoding.
+	/// </summary>
+	[Test]
+	public void EncodingChoices_Hold_Each_Encoding_Once()
+	{
+		// Act
+		string?[] ids = [.. FileTextCodec.EncodingChoices.Select(static x => x.Id)];
+
+		// Assert
+		// The number of .NET 10, which a new version of .NET may change.
+		ids
+			.Should()
+			.HaveCount(116)
+			.And
+			.OnlyHaveUniqueItems()
+			.And
+			.OnlyContain(x => FileTextCodec.Choose(Encoding.UTF8.GetBytes(CyrillicText), x!) != null);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.EncodingChoices" />: the Unicode encodings come first, UTF-8 at their head, each once
+	/// and named without a byte order mark.
+	/// </summary>
+	[Test]
+	public void EncodingChoices_Put_Unicode_First()
+	{
+		// Act
+		string[] names = [.. FileTextCodec.EncodingChoices.Take(5).Select(static x => x.Name)];
+
+		// Assert
+		names
+			.Should()
+			.Equal("UTF-8", "UTF-16 LE", "UTF-16 BE", "UTF-32 LE", "UTF-32 BE");
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.EncodingChoices" />: the encodings after Unicode are sorted by description, whatever its
+	/// case.
+	/// </summary>
+	[Test]
+	public void EncodingChoices_Sort_The_Others_By_Description()
+	{
+		// Act
+		SelectorChoice[] others = [.. FileTextCodec.EncodingChoices.Skip(5)];
+
+		// Assert
+		others
+			.Should()
+			.BeInAscendingOrder(static x => x.Description, StringComparer.OrdinalIgnoreCase);
 	}
 
 	/// <summary>
@@ -338,23 +462,82 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
+	/// <see cref="FileTextCodec.TryRead" />: a choice that cannot read the bytes leaves them to the encoding found from them:
+	/// here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[Test]
+	public void TryRead_Falls_Back_On_The_Found_Encoding_When_The_Choice_Cannot_Read()
+	{
+		// Act
+		FileText? read = FileTextCodec.TryRead(Encoding.UTF8.GetBytes("Hi!"), "utf-16");
+
+		// Assert
+		read!.Text
+			.Should()
+			.Be("Hi!");
+
+		read.Encoding.Encoding.CodePage
+			.Should()
+			.Be(Encoding.UTF8.CodePage);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.TryRead" />: the choice goes first, so it reads bytes that are not found to be text: here
+	/// UTF-16 without its byte order mark.
+	/// </summary>
+	[Test]
+	public void TryRead_Reads_In_The_Chosen_Encoding_What_The_Detection_Refuses()
+	{
+		// Act
+		FileText? read = FileTextCodec.TryRead([0x48, 0x00, 0x69, 0x00], "utf-16");
+
+		// Assert
+		read!.Text
+			.Should()
+			.Be("Hi");
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.TryRead" />: reads the text in the chosen encoding rather than in the one found from the
+	/// bytes.
+	/// </summary>
+	[Test]
+	public void TryRead_Reads_The_Text_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		byte[] contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(CyrillicText);
+
+		// Act
+		FileText? read = FileTextCodec.TryRead(contents, "cp866");
+
+		// Assert
+		read!.Text
+			.Should()
+			.Be(CyrillicText);
+
+		read.Encoding.Encoding.CodePage
+			.Should()
+			.Be(866);
+	}
+
+	/// <summary>
 	/// <see cref="FileTextCodec.TryRead" />: bytes that are not text give no text: UTF-16 without its byte order mark.
 	/// </summary>
 	[Test]
 	public void TryRead_Returns_Null_For_Bytes_That_Are_Not_Text()
 	{
 		// Act
-		string? text = FileTextCodec.TryRead([0x48, 0x00, 0x69, 0x00]);
+		FileText? read = FileTextCodec.TryRead([0x48, 0x00, 0x69, 0x00], chosenEncoding: null);
 
 		// Assert
-		text
+		read
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.TryRead" />: reads the text in the encoding that the bytes are found in, without the byte
-	/// order mark.
+	/// <see cref="FileTextCodec.TryRead" />: without a choice reads the text in the encoding that the bytes are found in,
+	/// without the byte order mark.
 	/// </summary>
 	[TestCase(65001)]
 	[TestCase(1201)]
@@ -366,10 +549,10 @@ internal class FileTextCodecTests
 		byte[] contents = [.. unicode.GetPreamble(), .. unicode.GetBytes(CyrillicText)];
 
 		// Act
-		string? text = FileTextCodec.TryRead(contents);
+		FileText? read = FileTextCodec.TryRead(contents, chosenEncoding: null);
 
 		// Assert
-		text
+		read!.Text
 			.Should()
 			.Be(CyrillicText);
 	}

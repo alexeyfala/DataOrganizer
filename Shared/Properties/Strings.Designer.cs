@@ -214,6 +214,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (by contents).
+        /// </summary>
+        public static string ByContents {
+            get {
+                return ResourceManager.GetString("ByContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (by extension).
         /// </summary>
         public static string ByExtension {
@@ -430,6 +439,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The contents cannot be read in the {0} encoding.
+        /// </summary>
+        public static string ContentsUnreadableInEncodingFormat {
+            get {
+                return ResourceManager.GetString("ContentsUnreadableInEncodingFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy.
         /// </summary>
         public static string Copy {
@@ -615,6 +633,24 @@ namespace Shared.Properties {
         public static string EnableHotkeyTracking {
             get {
                 return ResourceManager.GetString("EnableHotkeyTracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encoding.
+        /// </summary>
+        public static string Encoding {
+            get {
+                return ResourceManager.GetString("Encoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The encoding is not changed: the changes are not saved.
+        /// </summary>
+        public static string EncodingNotChanged {
+            get {
+                return ResourceManager.GetString("EncodingNotChanged", resourceCulture);
             }
         }
         

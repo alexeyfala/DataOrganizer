@@ -10,6 +10,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Helpers.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -389,11 +390,17 @@
 			-->
 			<DockPanel LastChildFill="False">
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<TextBlock
-						x:Name="EncodingCaption"
-						Margin="8.0,4.0"
+					<views:ChoiceSelector
+						x:Name="EncodingBlock"
+						Caption="{Binding #View.EncodingName, Mode=OneWay}"
+						Choices="{x:Static text:FileTextCodec.EncodingChoices}"
+						DefaultChoice="{Binding #View.DefaultEncoding, Mode=OneWay}"
+						DefaultMark="{x:Static prop:Strings.ByContents}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="400.0"
 						IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-						Text="{Binding #View.EncodingName, Mode=OneWay}" />
+						SelectedChoice="{Binding #View.Encoding, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.Encoding}" />
 				</Border>
 
 				<Panel
@@ -443,10 +450,14 @@
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
 				<Border ClipToBounds="True" DockPanel.Dock="Left">
-					<views:SyntaxLanguageSelector
+					<views:ChoiceSelector
 						x:Name="LanguageBlock"
-						DefaultSyntaxLanguage="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
-						SyntaxLanguage="{Binding #View.SyntaxLanguage, Mode=TwoWay}" />
+						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
+						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
+						DefaultMark="{x:Static prop:Strings.ByExtension}"
+						SelectedChoice="{Binding #View.SyntaxLanguage, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}" />
 				</Border>
 			</DockPanel>
 		</Border>

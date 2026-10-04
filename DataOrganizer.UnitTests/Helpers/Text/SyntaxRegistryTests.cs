@@ -510,7 +510,7 @@ internal class SyntaxRegistryTests
 		SyntaxRegistry sut = SyntaxRegistry.Instance;
 
 		// Act
-		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+		IReadOnlyList<SelectorChoice> languages = sut.Languages;
 
 		// Assert
 		languages
@@ -528,7 +528,7 @@ internal class SyntaxRegistryTests
 		SyntaxRegistry sut = SyntaxRegistry.Instance;
 
 		// Act
-		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+		IReadOnlyList<SelectorChoice> languages = sut.Languages;
 
 		// Assert
 		languages
@@ -548,7 +548,7 @@ internal class SyntaxRegistryTests
 		SyntaxRegistry sut = SyntaxRegistry.Instance;
 
 		// Act
-		IReadOnlyList<SyntaxLanguageChoice> languages = sut.Languages;
+		IReadOnlyList<SelectorChoice> languages = sut.Languages;
 
 		// Assert
 		// Diff comes with two grammar packages.
@@ -560,7 +560,8 @@ internal class SyntaxRegistryTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxRegistry.Languages" />: a language takes its name and the extensions of its files from its grammar package.
+	/// <see cref="SyntaxRegistry.Languages" />: a language takes its name from its grammar package, and the extensions of
+	/// its files without their dots find it.
 	/// </summary>
 	[Test]
 	public void Languages_Take_The_Name_And_The_Extensions_Of_The_Grammar()
@@ -569,16 +570,16 @@ internal class SyntaxRegistryTests
 		SyntaxRegistry sut = SyntaxRegistry.Instance;
 
 		// Act
-		SyntaxLanguageChoice language = sut.Languages.Single(static x => x.Id == "powershell");
+		SelectorChoice language = sut.Languages.Single(static x => x.Id == "powershell");
 
 		// Assert
 		language.Name
 			.Should()
 			.Be("PowerShell");
 
-		language.Extensions
+		language.SearchTerms
 			.Should()
-			.Contain(".ps1");
+			.Contain("ps1");
 	}
 	#endregion
 }

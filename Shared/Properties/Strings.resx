@@ -832,4 +832,16 @@
   <data name="CharacterNotInEncodingFormat" xml:space="preserve">
     <value>The character "{0}" is not in the {1} encoding. The changes are not saved.</value>
   </data>
+  <data name="Encoding" xml:space="preserve">
+    <value>Encoding</value>
+  </data>
+  <data name="ByContents" xml:space="preserve">
+    <value>(by contents)</value>
+  </data>
+  <data name="ContentsUnreadableInEncodingFormat" xml:space="preserve">
+    <value>The contents cannot be read in the {0} encoding</value>
+  </data>
+  <data name="EncodingNotChanged" xml:space="preserve">
+    <value>The encoding is not changed: the changes are not saved</value>
+  </data>
 </root>

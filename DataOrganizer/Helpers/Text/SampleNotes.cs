@@ -56,6 +56,11 @@ internal static class SampleNotes
 	public static string BinaryContents { get; } = "The contents are binary data, not text.";
 
 	/// <summary>
+	/// Note of a script in the code page of the Russian console of Windows.
+	/// </summary>
+	public static string Cp866Script { get; } = "The script is in CP866, the code page of the Russian console of Windows.";
+
+	/// <summary>
 	/// Note of an encrypted file with one byte of its contents changed.
 	/// </summary>
 	public static string DamagedContents { get; } = "One byte of the encrypted contents has been changed.";

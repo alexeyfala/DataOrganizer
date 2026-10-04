@@ -18,6 +18,7 @@ using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -202,6 +203,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -211,6 +213,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			contentCipher,
 			dbAccess,
 			dialogService,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,
