@@ -1676,6 +1676,44 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: the block of the line endings shows its tip while it is disabled, in
+	/// read-only mode and in a text without line breaks.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("A\r\nB", true)]
+	[TestCase("One line", false)]
+	public void StatusBar_Shows_The_Tip_Of_The_Disabled_Line_Endings(string text, bool isReadOnly)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new(text),
+			IsReadOnly = isReadOnly
+		};
+
+		Window window = Show(sut);
+
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		// The tip opens at once rather than after the delay of the theme.
+		ToolTip.SetShowDelay(block, 0);
+
+		// Act
+		window.MouseMove(Center(window, block));
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		block.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetIsOpen(block)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: the status bar tells why an encoding cannot be chosen, while the languages can
 	/// all be chosen.
 	/// </summary>

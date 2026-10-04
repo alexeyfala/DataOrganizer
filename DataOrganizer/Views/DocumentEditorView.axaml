@@ -397,6 +397,7 @@
 						FlyoutWidth="200.0"
 						IsSearchable="False"
 						SelectedChoice="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay}"
+						ToolTip.ShowOnDisabled="True"
 						ToolTip.Tip="{x:Static prop:Strings.LineEndings}">
 						<views:ChoiceSelector.IsEnabled>
 							<MultiBinding Converter="{x:Static BoolConverters.And}">
