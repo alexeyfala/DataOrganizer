@@ -127,12 +127,12 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	/// <inheritdoc />
 	public async Task StartAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			if (IsRunning)
 			{
 				return;
@@ -175,12 +175,12 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	/// <inheritdoc />
 	public async Task StopAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			// Stopping a hook that has not finished starting fails.
 			Task? runTask = _runTask;
 

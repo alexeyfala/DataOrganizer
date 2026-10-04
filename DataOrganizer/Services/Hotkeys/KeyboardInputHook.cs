@@ -38,9 +38,9 @@ public sealed class KeyboardInputHook :
 	public bool IsRunning => _hookRunner.IsRunning;
 
 	/// <summary>
-	/// List of files with hotkeys.
+	/// Objects whose files are searched for a typed hotkey; <c>null</c> while tracking is stopped.
 	/// </summary>
-	internal List<FileDto> Files { get; } = [];
+	internal IEnumerable<ExplorerItemDtoBase>? Hierarchy { get; set; }
 
 	/// <summary>
 	/// Stack of pressed keys.
@@ -154,7 +154,7 @@ public sealed class KeyboardInputHook :
 
 		_messenger.UnregisterAll(this);
 
-		Files.Clear();
+		Hierarchy = null;
 
 		InputStack.Clear();
 	}
@@ -181,6 +181,10 @@ public sealed class KeyboardInputHook :
 			return;
 		}
 
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
 			_logger.LogInformation("Start global keyboard input tracking");
@@ -194,26 +198,37 @@ public sealed class KeyboardInputHook :
 				return;
 			}
 
-			_exceptionHandler.Watch(FilterFilesAsync(hierarchy, token));
+			Hierarchy = hierarchy;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
 		}
 	}
 
 	/// <inheritdoc />
 	public async Task StopTrackingAsync(CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
 			_logger.LogInformation("Stop global keyboard input tracking");
 
-			Files.Clear();
+			Hierarchy = null;
 
 			InputStack.Clear();
 
@@ -242,13 +257,13 @@ public sealed class KeyboardInputHook :
 		KeyCode code,
 		CancellationToken token = default)
 	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
 		try
 		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			if (Files.Count == 0)
+			if (Hierarchy is not { } hierarchy)
 			{
 				return;
 			}
@@ -289,78 +304,76 @@ public sealed class KeyboardInputHook :
 				Mask = mask
 			});
 
-			foreach (FileDto file in Files)
+			KeyStroke[] typed = [.. InputStack];
+
+			// The tree is read on the UI thread that changes it, so it cannot change during the search.
+			if (await _dispatcher
+				.PostAsync(() => FindFileByHotkey(hierarchy, typed))
+				.ConfigureAwait(false) is not { } file)
 			{
-				KeyStroke[] hotkeys = ReadHotkey(file);
+				return;
+			}
 
-				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
+			// The keys of a hotkey that fired do not start the next one.
+			InputStack.Clear();
+
+			ValidatedContents result = await _dbAccess
+				.GetFileContentsAsync(file.Id, token)
+				.ConfigureAwait(false);
+
+			if (!result.IsValid)
+			{
+				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+
+				return;
+			}
+
+			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+			{
+				await ActivateWindowAsync().ConfigureAwait(false);
+			}
+
+			if (await _contentCipher
+				.TryDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
+				.ConfigureAwait(false) is not { } contents)
+			{
+				return;
+			}
+
+			try
+			{
+				string text = TextDefaults
+					.Encoding
+					.GetString(contents);
+
+				if (string.IsNullOrEmpty(text))
 				{
-					continue;
-				}
+					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
-				// The keys of a hotkey that fired do not start the next one.
-				InputStack.Clear();
-
-				ValidatedContents result = await _dbAccess
-					.GetFileContentsAsync(file.Id, token)
-					.ConfigureAwait(false);
-
-				if (!result.IsValid)
-				{
-					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-					return;
-				}
-
-				if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-				{
-					await ActivateWindowAsync().ConfigureAwait(false);
-				}
-
-				if (await _contentCipher
-					.TryDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
-					.ConfigureAwait(false) is not { } contents)
-				{
 					return;
 				}
 
 				try
 				{
-					string text = TextDefaults
-						.Encoding
-						.GetString(contents);
-
-					if (string.IsNullOrEmpty(text))
-					{
-						_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-						return;
-					}
-
-					try
-					{
-						// Protected contents carry the markers that keep them out of the clipboard
-						// history and hand them to the auto-clear, same as the copy command does.
-						await (file.EncryptionStatus != EncryptionStatus.None
-							? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-							: _clipboard.SetTextAsync(text))
-							.ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						_logger.LogException(ex);
-					}
-
-					_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-
-					return;
+					// Protected contents carry the markers that keep them out of the clipboard
+					// history and hand them to the auto-clear, same as the copy command does.
+					await (file.EncryptionStatus != EncryptionStatus.None
+						? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+						: _clipboard.SetTextAsync(text))
+						.ConfigureAwait(false);
 				}
-				finally
+				catch (Exception ex)
 				{
-					if (file.EncryptionStatus != EncryptionStatus.None)
-					{
-						contents.ZeroMemory();
-					}
+					_logger.LogException(ex);
+				}
+
+				_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+			}
+			finally
+			{
+				if (file.EncryptionStatus != EncryptionStatus.None)
+				{
+					contents.ZeroMemory();
 				}
 			}
 		}
@@ -383,6 +396,26 @@ public sealed class KeyboardInputHook :
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the file whose hotkey the typed keys end with, or <c>null</c> if there is none.
+	/// </summary>
+	private static FileDto? FindFileByHotkey(
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		KeyStroke[] typed)
+	{
+		foreach (FileDto file in hierarchy.GetFilesBy(static x => x.Hotkeys.Count > 0))
+		{
+			KeyStroke[] hotkeys = ReadHotkey(file);
+
+			if (hotkeys.SequenceEqual(typed.TakeLast(hotkeys.Length)))
+			{
+				return file;
+			}
+		}
+
+		return null;
+	}
+
 	/// <summary>
 	/// Returns the keys of the hotkey of a file with only the modifiers in their masks, as the typed keys have them.
 	/// </summary>
@@ -418,40 +451,5 @@ public sealed class KeyboardInputHook :
 
 		faforites.ShowFavorites();
 	});
-
-	/// <summary>
-	/// Filters a sequence by <see cref="FileDto" /> with an interval.
-	/// </summary>
-	private async Task FilterFilesAsync(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token)
-	{
-		while (!token.IsCancellationRequested && IsRunning)
-		{
-			try
-			{
-				await _semaphore
-					.WaitAsync(token)
-					.ConfigureAwait(false);
-
-				Files.ClearAddRange(hierarchy.GetFilesBy(x => x.Hotkeys.Count > 0));
-			}
-			finally
-			{
-				try
-				{
-					_semaphore.Release();
-				}
-				catch (ObjectDisposedException)
-				{
-					// Service was disposed concurrently — safe to ignore.
-				}
-			}
-
-			await Task
-				.Delay(TimeSpan.FromSeconds(10), token)
-				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-		}
-	}
 	#endregion
 }
