@@ -844,4 +844,7 @@
   <data name="EncodingNotChanged" xml:space="preserve">
     <value>The encoding is not changed: the changes are not saved</value>
   </data>
+  <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
+    <value>The contents cannot be read in this encoding</value>
+  </data>
 </root>

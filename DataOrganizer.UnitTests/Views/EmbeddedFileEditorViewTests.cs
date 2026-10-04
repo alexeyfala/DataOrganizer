@@ -1,11 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -14,6 +17,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views;
@@ -132,6 +136,72 @@ internal class EmbeddedFileEditorViewTests
 			.Single())
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.FindUnreadableEncodings" />: the list of encodings opens with the ones that
+	/// cannot read the file already marked, as they are found when it opens: here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task FindUnreadableEncodings_Marks_The_Encoding_List_As_It_Opens()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await viewModel.EditorLoaded();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		Window window = new()
+		{
+			Content = sut,
+			Height = 600.0,
+			Width = 800.0
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		ChoiceSelector encodings = sut
+			.GetLogicalDescendants()
+			.OfType<ChoiceSelector>()
+			.Single(static x => x.Name == "EncodingBlock");
+
+		Button button = encodings.GetControl<Button>("CurrentChoice");
+
+		// Act
+		button.Flyout!.ShowAt(button);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ListBox list = encodings.GetControl<ListBox>("ChoicesList");
+
+		list.Items.Cast<SelectorChoice>().Where(static x => !x.IsAvailable).Select(static x => x.Id)
+			.Should()
+			.Contain(Encoding.Unicode.WebName);
 	}
 
 	/// <summary>

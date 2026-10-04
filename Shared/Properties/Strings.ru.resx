@@ -864,4 +864,7 @@
   <data name="EncodingNotChanged" xml:space="preserve">
     <value>Кодировка не изменена: изменения не сохранены</value>
   </data>
+  <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
+    <value>Содержимое нельзя прочитать в этой кодировке</value>
+  </data>
 </root>

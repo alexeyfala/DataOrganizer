@@ -396,11 +396,14 @@
 						Choices="{x:Static text:FileTextCodec.EncodingChoices}"
 						DefaultChoice="{Binding #View.DefaultEncoding, Mode=OneWay}"
 						DefaultMark="{x:Static prop:Strings.ByContents}"
+						FlyoutOpeningCommand="{Binding #View.FindUnreadableEncodingsCommand, Mode=OneWay}"
 						FlyoutPlacement="TopEdgeAlignedRight"
 						FlyoutWidth="400.0"
 						IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 						SelectedChoice="{Binding #View.Encoding, Mode=TwoWay}"
-						ToolTip.Tip="{x:Static prop:Strings.Encoding}" />
+						ToolTip.Tip="{x:Static prop:Strings.Encoding}"
+						UnavailableChoices="{Binding #View.UnreadableEncodings, Mode=OneWay}"
+						UnavailableTip="{x:Static prop:Strings.ContentsUnreadableInThisEncoding}" />
 				</Border>
 
 				<Panel

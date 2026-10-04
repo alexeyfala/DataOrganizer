@@ -8,10 +8,12 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Views;
 using System.Linq;
+using System.Text;
 
 namespace DataOrganizer.UnitTests.Views;
 
@@ -45,6 +47,11 @@ internal class ChoiceSelectorTests
 	private const string SearchInputName = "SearchInput";
 
 	/// <summary>
+	/// Tip over an item that cannot be chosen.
+	/// </summary>
+	private const string UnavailableTip = "Cannot be chosen";
+
+	/// <summary>
 	/// Languages of the syntax highlighting, plain text first, as the status bar offers them.
 	/// </summary>
 	private static readonly SelectorChoice[] Languages =
@@ -57,6 +64,11 @@ internal class ChoiceSelectorTests
 		},
 		.. SyntaxRegistry.Instance.Languages
 	];
+
+	/// <summary>
+	/// The Unicode encodings, few enough for every row of the list to be laid out.
+	/// </summary>
+	private static readonly SelectorChoice[] UnicodeEncodings = [.. FileTextCodec.EncodingChoices.Take(5)];
 	#endregion
 
 	#region Methods
@@ -124,6 +136,32 @@ internal class ChoiceSelectorTests
 		GetShownTexts(list.GetRealizedContainers().First(x => x != marked))
 			.Should()
 			.ContainSingle();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.FlyoutOpeningCommand" />: the command runs as the list opens, before the list takes the
+	/// items that cannot be chosen, so the ones it finds are marked at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void FlyoutOpeningCommand_Runs_Before_The_List_Takes_Its_Items()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings
+		};
+
+		sut.FlyoutOpeningCommand = new RelayCommand(() => sut.UnavailableChoices = [Encoding.UTF32.WebName]);
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		GetNames(sut.GetControl<ListBox>(ChoicesListName))
+			.Should()
+			.Equal("UTF-8", "UTF-16 LE", "UTF-16 BE", "UTF-32 BE", "UTF-32 LE");
 	}
 
 	/// <summary>
@@ -469,9 +507,7 @@ internal class ChoiceSelectorTests
 
 		Open(window, sut);
 
-		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
-
-		Control row = list.ContainerFromItem(list.Items.Cast<SelectorChoice>().Single(static x => x.Id == "bat"))!;
+		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), "bat");
 
 		// Act
 		Click(window, row);
@@ -668,19 +704,344 @@ internal class ChoiceSelectorTests
 			.Should()
 			.Be(0);
 	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the rows of the items that cannot be chosen are disabled, which
+	/// grays them out, and carry the tip, while the other rows have none.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Are_Disabled_With_Their_Tip()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			UnavailableChoices = [Encoding.UTF32.WebName],
+			UnavailableTip = UnavailableTip
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		Control unavailable = GetRow(list, Encoding.UTF32.WebName);
+
+		Control available = GetRow(list, Encoding.UTF8.WebName);
+
+		unavailable.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetTip(unavailable)
+			.Should()
+			.Be(UnavailableTip);
+
+		available.IsEffectivelyEnabled
+			.Should()
+			.BeTrue();
+
+		ToolTip.GetTip(available)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: a click on an item that cannot be chosen takes nothing and keeps
+	/// the list open.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Are_Not_Taken_By_A_Click()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			SelectedChoice = Encoding.UTF8.WebName,
+			UnavailableChoices = [Encoding.UTF32.WebName]
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.UTF32.WebName);
+
+		// Act
+		Click(window, row);
+
+		// Assert
+		sut.SelectedChoice
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+
+		IsOpen(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: Enter does not take an item that cannot be chosen, even when it
+	/// is selected.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Are_Not_Taken_By_Enter()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			SelectedChoice = Encoding.UTF8.WebName,
+			UnavailableChoices = [Encoding.UTF32.WebName]
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		list.SelectedItem = list.Items.Cast<SelectorChoice>().Single(static x => x.Id == Encoding.UTF32.WebName);
+
+		// Act
+		Press(window, PhysicalKey.Enter);
+
+		// Assert
+		sut.SelectedChoice
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+
+		IsOpen(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the items that cannot be chosen come after the others, each part
+	/// in its order.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Come_Last_In_The_List()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			UnavailableChoices = [Encoding.Unicode.WebName, Encoding.UTF32.WebName]
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		GetNames(sut.GetControl<ListBox>(ChoicesListName))
+			.Should()
+			.Equal("UTF-8", "UTF-16 BE", "UTF-32 BE", "UTF-16 LE", "UTF-32 LE");
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the items that cannot be chosen come after the other matches of a
+	/// search, whatever their rank, and the best of the others is selected.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Come_Last_In_The_Search_Results()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = Languages,
+			UnavailableChoices = ["shellscript"]
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		// Act
+		sut.GetControl<TextBox>(SearchInputName).Text = "sh";
+
+		// Assert
+		// ".sh" of Shell Script matches best, yet it cannot be chosen.
+		GetNames(list)
+			.Should()
+			.StartWith("ShaderLab")
+			.And
+			.EndWith("Shell Script");
+
+		list.SelectedIndex
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the chosen item stays available in its place, as taking it again
+	/// changes nothing, and the list opens at it.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Keep_The_Chosen_Item_Available()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			SelectedChoice = Encoding.Unicode.WebName,
+			UnavailableChoices = [Encoding.Unicode.WebName]
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		GetNames(list)
+			.Should()
+			.Equal("UTF-8", "UTF-16 LE", "UTF-16 BE", "UTF-32 LE", "UTF-32 BE");
+
+		list.SelectedIndex
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: a search that finds only items that cannot be chosen selects
+	/// none, and Enter keeps the list open and the choice as it was.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Leave_Nothing_To_Take_On_Enter()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = Languages,
+			SelectedChoice = "bat",
+			UnavailableChoices = [PowerShellLanguage]
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		sut.GetControl<TextBox>(SearchInputName).Text = "ps1";
+
+		// Act
+		Press(window, PhysicalKey.Enter);
+
+		// Assert
+		GetNames(list)
+			.Should()
+			.Equal("PowerShell");
+
+		list.SelectedItem
+			.Should()
+			.BeNull();
+
+		sut.SelectedChoice
+			.Should()
+			.Be("bat");
+
+		IsOpen(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the tip of an item that cannot be chosen opens when the pointer
+	/// rests on it, though the item is disabled.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Show_Their_Tip_On_Hover()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			UnavailableChoices = [Encoding.UTF32.WebName],
+			UnavailableTip = UnavailableTip
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.UTF32.WebName);
+
+		// The tip opens at once rather than after the delay of the theme.
+		ToolTip.SetShowDelay(row, 0);
+
+		// Act
+		Hover(window, row);
+
+		// Assert
+		ToolTip.GetIsOpen(row)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.UnavailableChoices" />: the arrow keys stop at the last item that can be chosen, before
+	/// the ones that cannot.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnavailableChoices_Stop_The_Arrow_Keys()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			UnavailableChoices = [Encoding.Unicode.WebName]
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
+
+		// Act
+		for (int i = 0; i < UnicodeEncodings.Length; i++)
+		{
+			Press(window, PhysicalKey.ArrowDown);
+		}
+
+		// Assert
+		// UTF-16 LE goes last, so the selection stops at UTF-32 BE before it.
+		list.SelectedIndex
+			.Should()
+			.Be(UnicodeEncodings.Length - 2);
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the middle of a control in the coordinates of the window.
+	/// </summary>
+	private static Point Center(Window window, Visual target)
+	{
+		return target.TranslatePoint(
+			new(
+				target.Bounds.Width / 2.0,
+				target.Bounds.Height / 2.0),
+			window) ?? default;
+	}
+
 	/// <summary>
 	/// Clicks the middle of a control with the left button.
 	/// </summary>
 	private static void Click(Window window, Visual target)
 	{
-		Point point = target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			window) ?? default;
+		Point point = Center(window, target);
 
 		window.MouseDown(point, MouseButton.Left);
 
@@ -695,6 +1056,19 @@ internal class ChoiceSelectorTests
 	private static string[] GetNames(ListBox list) => [.. list.Items.Cast<SelectorChoice>().Select(static x => x.Name)];
 
 	/// <summary>
+	/// Returns the row of the list that shows an item.
+	/// </summary>
+	private static Control GetRow(ListBox list, string? id)
+	{
+		SelectorChoice choice = list
+			.Items
+			.Cast<SelectorChoice>()
+			.Single(x => x.Id == id);
+
+		return list.ContainerFromItem(choice)!;
+	}
+
+	/// <summary>
 	/// Returns the texts shown in a row of the list.
 	/// </summary>
 	private static string?[] GetShownTexts(Control? row)
@@ -704,6 +1078,16 @@ internal class ChoiceSelectorTests
 			.OfType<TextBlock>()
 			.Where(static x => x.IsEffectivelyVisible)
 			.Select(static x => x.Text) ?? []];
+	}
+
+	/// <summary>
+	/// Rests the pointer on the middle of a control.
+	/// </summary>
+	private static void Hover(Window window, Visual target)
+	{
+		window.MouseMove(Center(window, target));
+
+		Dispatcher.UIThread.RunJobs();
 	}
 
 	/// <summary>

@@ -448,6 +448,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The contents cannot be read in this encoding.
+        /// </summary>
+        public static string ContentsUnreadableInThisEncoding {
+            get {
+                return ResourceManager.GetString("ContentsUnreadableInThisEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy.
         /// </summary>
         public static string Copy {

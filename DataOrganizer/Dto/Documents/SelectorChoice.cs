@@ -24,6 +24,11 @@ public sealed record SelectorChoice
 	public required string? Id { get; init; }
 
 	/// <summary>
+	/// <c>True</c> when the item can be chosen.
+	/// </summary>
+	public bool IsAvailable { get; init; } = true;
+
+	/// <summary>
 	/// <c>True</c> for the item taken when none is chosen.
 	/// </summary>
 	public bool IsDefault => DefaultMark is not null;
@@ -37,5 +42,10 @@ public sealed record SelectorChoice
 	/// Words besides the name that find the item, such as the extensions of a language without their dots.
 	/// </summary>
 	public required IReadOnlyList<string> SearchTerms { get; init; }
+
+	/// <summary>
+	/// Tip shown over the item when it cannot be chosen, telling why; <c>null</c> for the other items.
+	/// </summary>
+	public string? UnavailableTip { get; init; }
 	#endregion
 }

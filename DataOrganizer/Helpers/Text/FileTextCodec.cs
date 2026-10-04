@@ -145,6 +145,37 @@ internal static class FileTextCodec
 	}
 
 	/// <summary>
+	/// Returns the web names of the encodings of <see cref="EncodingChoices" /> that cannot read the bytes of a file or
+	/// would not write them back the same.
+	/// </summary>
+	public static IReadOnlySet<string> FindUnreadableEncodings(ReadOnlySpan<byte> contents)
+	{
+		// A single-byte encoding reads each byte on its own, so the values that occur read as the whole contents do.
+		byte[] values = GetByteValues(contents);
+
+		try
+		{
+			HashSet<string> unreadable = [];
+
+			foreach ((string name, Encoding encoding) in Encodings)
+			{
+				ReadOnlySpan<byte> sample = encoding.IsSingleByte ? values : contents;
+
+				if (ReadIn(sample, Choose(sample, name)) is null)
+				{
+					unreadable.Add(name);
+				}
+			}
+
+			return unreadable;
+		}
+		finally
+		{
+			values.ZeroMemory();
+		}
+	}
+
+	/// <summary>
 	/// Returns the text of the bytes of a file without the byte order mark; <c>null</c> when the encoding cannot read them
 	/// or would not write them back the same.
 	/// </summary>
@@ -311,6 +342,24 @@ internal static class FileTextCodec
 
 		return (regionCodePage > 0 ? provider.GetEncoding(regionCodePage) : null)
 			?? provider.GetEncoding(WesternCodePage)!;
+	}
+
+	/// <summary>
+	/// Returns each value that occurs among the bytes of a file once, in ascending order.
+	/// </summary>
+	private static byte[] GetByteValues(ReadOnlySpan<byte> contents)
+	{
+		bool[] occurs = new bool[byte.MaxValue + 1];
+
+		foreach (byte value in contents)
+		{
+			occurs[value] = true;
+		}
+
+		return [.. Enumerable
+			.Range(0, occurs.Length)
+			.Where(x => occurs[x])
+			.Select(static x => (byte)x)];
 	}
 
 	/// <summary>

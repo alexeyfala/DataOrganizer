@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows.Input;
 
 namespace DataOrganizer.Views;
 
@@ -83,6 +84,15 @@ internal sealed partial class DocumentEditorView :
 	{
 		get => GetValue(EncodingNameProperty);
 		set => SetValue(EncodingNameProperty, value);
+	}
+
+	/// <summary>
+	/// Command that finds <see cref="UnreadableEncodings" /> anew; run as the list of encodings opens.
+	/// </summary>
+	public ICommand? FindUnreadableEncodingsCommand
+	{
+		get => GetValue(FindUnreadableEncodingsCommandProperty);
+		set => SetValue(FindUnreadableEncodingsCommandProperty, value);
 	}
 
 	/// <summary>
@@ -181,6 +191,15 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
+	/// Web names of the encodings that cannot read the stored bytes of the document; <c>null</c> when none are known.
+	/// </summary>
+	public IReadOnlyCollection<string>? UnreadableEncodings
+	{
+		get => GetValue(UnreadableEncodingsProperty);
+		set => SetValue(UnreadableEncodingsProperty, value);
+	}
+
+	/// <summary>
 	/// Caret, selection, scroll position, bookmarks and folded blocks of the document.
 	/// A value set from outside is restored once the document has been laid out.
 	/// </summary>
@@ -240,6 +259,12 @@ internal sealed partial class DocumentEditorView :
 		.Register<DocumentEditorView, string?>(name: nameof(EncodingName));
 
 	/// <summary>
+	/// Identifies the <see cref="FindUnreadableEncodingsCommand" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<ICommand?> FindUnreadableEncodingsCommandProperty = AvaloniaProperty
+		.Register<DocumentEditorView, ICommand?>(name: nameof(FindUnreadableEncodingsCommand));
+
+	/// <summary>
 	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
@@ -294,6 +319,12 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public static readonly StyledProperty<object?> ToolBarContentProperty = AvaloniaProperty
 		.Register<DocumentEditorView, object?>(name: nameof(ToolBarContent));
+
+	/// <summary>
+	/// Identifies the <see cref="UnreadableEncodings" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IReadOnlyCollection<string>?> UnreadableEncodingsProperty = AvaloniaProperty
+		.Register<DocumentEditorView, IReadOnlyCollection<string>?>(name: nameof(UnreadableEncodings));
 
 	/// <summary>
 	/// Identifies the <see cref="ViewState" /> avalonia property.

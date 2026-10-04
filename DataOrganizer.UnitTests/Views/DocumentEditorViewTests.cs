@@ -13,6 +13,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
@@ -808,6 +809,31 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.FindUnreadableEncodingsCommand" />: the command reaches the list of encodings, which
+	/// runs it as it opens.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindUnreadableEncodingsCommand_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		RelayCommand command = new(static () => { });
+
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8",
+			FindUnreadableEncodingsCommand = command
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).FlyoutOpeningCommand
+			.Should()
+			.BeSameAs(command);
+	}
+
+	/// <summary>
 	/// <see cref="FoldingMargin" />: the folding markers keep the gray of the line numbers.
 	/// </summary>
 	[AvaloniaTest]
@@ -1466,6 +1492,32 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar tells why an encoding cannot be chosen, while the languages can
+	/// all be chosen.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Tells_Why_An_Encoding_Cannot_Be_Chosen()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableTip
+			.Should()
+			.NotBeNullOrEmpty();
+
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).UnavailableTip
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.SyntaxLanguage" />: a language chosen in the status bar becomes the language of the text.
 	/// </summary>
 	[AvaloniaTest]
@@ -1556,6 +1608,31 @@ internal class DocumentEditorViewTests
 		button.DataContext
 			.Should()
 			.BeSameAs(dataContext);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.UnreadableEncodings" />: the encodings that cannot read the text reach the status
+	/// bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnreadableEncodings_Reach_The_Status_Bar()
+	{
+		// Arrange
+		string[] unreadable = ["utf-32"];
+
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8",
+			UnreadableEncodings = unreadable
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableChoices
+			.Should()
+			.BeSameAs(unreadable);
 	}
 
 	/// <summary>

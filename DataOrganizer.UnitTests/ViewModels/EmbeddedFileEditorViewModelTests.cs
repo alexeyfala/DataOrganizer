@@ -1663,6 +1663,141 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.FindUnreadableEncodings" />: the byte order mark of the file counts, so
+	/// ASCII cannot read ASCII letters stored with the mark of UTF-8.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task FindUnreadableEncodings_Counts_The_Byte_Order_Mark()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. Encoding.UTF8.GetPreamble(), .. Encoding.UTF8.GetBytes("Hello")],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		// Act
+		sut.FindUnreadableEncodings();
+
+		// Assert
+		sut.UnreadableEncodings
+			.Should()
+			.Contain(Encoding.ASCII.WebName);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.FindUnreadableEncodings" />: a text with a character that the encoding of
+	/// the file lacks has no stored form to read, so no encoding is found unreadable.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task FindUnreadableEncodings_Finds_None_While_The_Text_Does_Not_Fit_The_Encoding()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				// Not UTF-8, so in the fallback code page, which has no emoji
+				Contents = [0xC0, 0xC1, 0xC2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.FindUnreadableEncodings();
+
+		sut.Document.Text += "😀";
+
+		// Act
+		sut.FindUnreadableEncodings();
+
+		// Assert
+		sut.UnreadableEncodings
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.FindUnreadableEncodings" />: the text counts as it is now, before an edit is
+	/// saved, so a letter typed outside ASCII leaves ASCII unable to read it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task FindUnreadableEncodings_Reads_The_Text_As_It_Is_Now()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hello"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = "Привет";
+
+		// Act
+		sut.FindUnreadableEncodings();
+
+		// Assert
+		sut.UnreadableEncodings
+			.Should()
+			.Contain(Encoding.ASCII.WebName)
+			.And
+			.NotContain(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.ShowEndOfLine" />, <see cref="EmbeddedFileEditorViewModel.ShowSpaces" />
 	/// and <see cref="EmbeddedFileEditorViewModel.ShowTabs" />: each switch turned on saves the editor state with it.
 	/// </summary>

@@ -8,6 +8,7 @@ using DataOrganizer.Dto.Documents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 
 namespace DataOrganizer.Views;
 
@@ -54,6 +55,15 @@ internal sealed partial class ChoiceSelector : UserControl
 	}
 
 	/// <summary>
+	/// Command run as the list opens, before it takes the items that cannot be chosen.
+	/// </summary>
+	public ICommand? FlyoutOpeningCommand
+	{
+		get => GetValue(FlyoutOpeningCommandProperty);
+		set => SetValue(FlyoutOpeningCommandProperty, value);
+	}
+
+	/// <summary>
 	/// Placement of the list against the button.
 	/// </summary>
 	public PlacementMode FlyoutPlacement
@@ -78,6 +88,24 @@ internal sealed partial class ChoiceSelector : UserControl
 	{
 		get => GetValue(SelectedChoiceProperty);
 		set => SetValue(SelectedChoiceProperty, value);
+	}
+
+	/// <summary>
+	/// Ids of the items that cannot be chosen, which the list grays out and puts last; the chosen item stays available.
+	/// </summary>
+	public IReadOnlyCollection<string>? UnavailableChoices
+	{
+		get => GetValue(UnavailableChoicesProperty);
+		set => SetValue(UnavailableChoicesProperty, value);
+	}
+
+	/// <summary>
+	/// Tip that the list shows over an item that cannot be chosen.
+	/// </summary>
+	public string? UnavailableTip
+	{
+		get => GetValue(UnavailableTipProperty);
+		set => SetValue(UnavailableTipProperty, value);
 	}
 	#endregion
 
@@ -107,6 +135,12 @@ internal sealed partial class ChoiceSelector : UserControl
 		.Register<ChoiceSelector, string?>(name: nameof(DefaultMark));
 
 	/// <summary>
+	/// Identifies the <see cref="FlyoutOpeningCommand" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<ICommand?> FlyoutOpeningCommandProperty = AvaloniaProperty
+		.Register<ChoiceSelector, ICommand?>(name: nameof(FlyoutOpeningCommand));
+
+	/// <summary>
 	/// Identifies the <see cref="FlyoutPlacement" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<PlacementMode> FlyoutPlacementProperty = AvaloniaProperty
@@ -127,6 +161,18 @@ internal sealed partial class ChoiceSelector : UserControl
 	/// </summary>
 	public static readonly StyledProperty<string?> SelectedChoiceProperty = AvaloniaProperty
 		.Register<ChoiceSelector, string?>(name: nameof(SelectedChoice));
+
+	/// <summary>
+	/// Identifies the <see cref="UnavailableChoices" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IReadOnlyCollection<string>?> UnavailableChoicesProperty = AvaloniaProperty
+		.Register<ChoiceSelector, IReadOnlyCollection<string>?>(name: nameof(UnavailableChoices));
+
+	/// <summary>
+	/// Identifies the <see cref="UnavailableTip" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> UnavailableTipProperty = AvaloniaProperty
+		.Register<ChoiceSelector, string?>(name: nameof(UnavailableTip));
 	#endregion
 
 	#region Data
@@ -235,14 +281,37 @@ internal sealed partial class ChoiceSelector : UserControl
 			.FocusManager?
 			.GetFocusedElement();
 
+		// The items that cannot be chosen may have changed since the list was open last.
+		if (FlyoutOpeningCommand is { } command && command.CanExecute(null))
+		{
+			command.Execute(null);
+		}
+
 		string? defaultChoice = DefaultChoice;
 
 		string? defaultMark = DefaultMark;
 
-		_choices = [.. (Choices ?? []).Select(x => x with
-		{
-			DefaultMark = x.Id == defaultChoice ? defaultMark : null
-		})];
+		string? selectedChoice = SelectedChoice;
+
+		IReadOnlyCollection<string> unavailableChoices = UnavailableChoices ?? [];
+
+		string? unavailableTip = UnavailableTip;
+
+		// The items that cannot be chosen go last, each part keeping its order.
+		_choices = [.. (Choices ?? [])
+			.Select(x =>
+			{
+				// The chosen item is in effect, so taking it again changes nothing.
+				bool isAvailable = x.Id is not { } id || id == selectedChoice || !unavailableChoices.Contains(id);
+
+				return x with
+				{
+					DefaultMark = x.Id == defaultChoice ? defaultMark : null,
+					IsAvailable = isAvailable,
+					UnavailableTip = isAvailable ? null : unavailableTip
+				};
+			})
+			.OrderBy(static x => !x.IsAvailable)];
 
 		// A search left from the last time would hide the other items.
 		SearchInput.Text = null;
@@ -299,8 +368,8 @@ internal sealed partial class ChoiceSelector : UserControl
 	/// </summary>
 	private void Choose(SelectorChoice? choice)
 	{
-		// Enter over an empty search result keeps the list open.
-		if (choice is null)
+		// Enter over an empty search result keeps the list open, and so does an item that cannot be chosen.
+		if (choice is not { IsAvailable: true })
 		{
 			return;
 		}
@@ -311,11 +380,16 @@ internal sealed partial class ChoiceSelector : UserControl
 	}
 
 	/// <summary>
-	/// Moves the selection of the list by a number of items, stopping at its ends.
+	/// Moves the selection of the list by a number of items, stopping at its first item and at the last one that can be
+	/// chosen.
 	/// </summary>
 	private void MoveSelection(int step)
 	{
-		int count = ChoicesList.ItemCount;
+		// The items that cannot be chosen come last, so the selection stops before them.
+		int count = ChoicesList
+			.Items
+			.Cast<SelectorChoice>()
+			.Count(static x => x.IsAvailable);
 
 		if (count == 0)
 		{
@@ -341,21 +415,24 @@ internal sealed partial class ChoiceSelector : UserControl
 			ChoicesList.ItemsSource = _choices;
 
 			// The list opens at the chosen item.
-			ChoicesList.SelectedItem = _choices.FirstOrDefault(x => x.Id == SelectedChoice) ?? _choices.FirstOrDefault();
+			ChoicesList.SelectedItem = _choices.FirstOrDefault(x => x.Id == SelectedChoice)
+				?? _choices.FirstOrDefault(static x => x.IsAvailable);
 
 			return;
 		}
 
-		// The best matches come first, so that Enter takes the item the search most likely means.
+		// The best matches come first, so that Enter takes the item the search most likely means, while the items that
+		// cannot be chosen follow all the others.
 		SelectorChoice[] matches = [.. _choices
 			.Select(x => (Choice: x, Rank: Rank(x, search)))
 			.Where(static x => x.Rank is not null)
-			.OrderBy(static x => x.Rank)
+			.OrderBy(static x => !x.Choice.IsAvailable)
+			.ThenBy(static x => x.Rank)
 			.Select(static x => x.Choice)];
 
 		ChoicesList.ItemsSource = matches;
 
-		ChoicesList.SelectedItem = matches.FirstOrDefault();
+		ChoicesList.SelectedItem = matches.FirstOrDefault(static x => x.IsAvailable);
 	}
 	#endregion
 }

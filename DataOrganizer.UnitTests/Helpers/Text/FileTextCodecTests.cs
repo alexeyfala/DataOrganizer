@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -260,6 +261,50 @@ internal class FileTextCodecTests
 		codePage
 			.Should()
 			.NotBe(Encoding.UTF8.CodePage);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.FindUnreadableEncodings" />: an encoding is found unreadable exactly when it cannot read
+	/// the whole bytes, although a single-byte one is judged by the values that occur.
+	/// </summary>
+	[TestCaseSource(nameof(SampleContents))]
+	public void FindUnreadableEncodings_Agrees_With_Reading_In_Each_Encoding(byte[] contents)
+	{
+		// Act
+		IReadOnlySet<string> unreadable = FileTextCodec.FindUnreadableEncodings(contents);
+
+		// Assert
+		string[] expected = [.. FileTextCodec
+			.EncodingChoices
+			.Select(static x => x.Id!)
+			.Where(x => FileTextCodec.Choose(contents, x) is not { } encoding
+				|| FileTextCodec.TryDecode(contents, encoding) is null)];
+
+		unreadable
+			.Should()
+			.BeEquivalentTo(expected);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.FindUnreadableEncodings" />: finds the encodings that cannot read a text of a code page,
+	/// while another code page reads it, though not as it was written.
+	/// </summary>
+	[Test]
+	public void FindUnreadableEncodings_Finds_The_Encodings_That_Cannot_Read_The_Bytes()
+	{
+		// Act
+		IReadOnlySet<string> unreadable = FileTextCodec.FindUnreadableEncodings(Cyrillic.GetBytes(CyrillicText));
+
+		// Assert
+		unreadable
+			.Should()
+			.Contain(Encoding.UTF8.WebName)
+			.And
+			.Contain(Encoding.ASCII.WebName)
+			.And
+			.NotContain(Cyrillic.WebName)
+			.And
+			.NotContain("koi8-r");
 	}
 
 	/// <summary>
@@ -555,6 +600,33 @@ internal class FileTextCodecTests
 		read!.Text
 			.Should()
 			.Be(CyrillicText);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Contents that different encodings can read: none at all, text in several encodings, every byte value, random bytes
+	/// and the shifts of ISO-2022-JP.
+	/// </summary>
+	private static byte[][] SampleContents()
+	{
+		// A fixed seed, so that a failure repeats.
+		byte[] random = new byte[4096];
+
+		new Random(1).NextBytes(random);
+
+		return
+		[
+			[],
+			Encoding.ASCII.GetBytes("Hi!"),
+			Encoding.UTF8.GetBytes(CyrillicText),
+			Cyrillic.GetBytes(CyrillicText),
+			CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(CyrillicText),
+			[.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes(CyrillicText)],
+			[.. Enumerable.Range(0, 256).Select(static x => (byte)x)],
+			random,
+			[0x41, 0x0E, 0x0F, 0x42]
+		];
 	}
 	#endregion
 }

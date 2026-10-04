@@ -18,6 +18,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -115,6 +116,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	[ObservableProperty]
 	public partial string? SyntaxLanguage { get; set; }
+
+	/// <summary>
+	/// Web names of the encodings that cannot read the text as the file stores it; <c>null</c> when they are not known.
+	/// </summary>
+	[ObservableProperty]
+	public partial IReadOnlyCollection<string>? UnreadableEncodings { get; private set; }
 
 	/// <summary>
 	/// Caret, selection, scroll position, bookmarks and folded blocks of <see cref="Document" />.
@@ -256,6 +263,32 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		finally
 		{
 			IsInitialized = true;
+		}
+	}
+
+	/// <summary>
+	/// Finds <see cref="UnreadableEncodings" /> for the text as it is now.
+	/// </summary>
+	[RelayCommand]
+	internal void FindUnreadableEncodings()
+	{
+		// Once saved, the text in the encoding of the file gives the stored bytes, which another encoding reads again. A text
+		// that the encoding cannot hold has no such bytes, and a choice keeps the encoding then.
+		if (_fileEncoding is not { } current
+			|| FileTextCodec.TryEncode(Document.Text, current, out _) is not { } contents)
+		{
+			UnreadableEncodings = null;
+
+			return;
+		}
+
+		try
+		{
+			UnreadableEncodings = FileTextCodec.FindUnreadableEncodings(contents);
+		}
+		finally
+		{
+			contents.ZeroMemory();
 		}
 	}
 	#endregion
