@@ -94,6 +94,81 @@ internal class ChoiceSelectorTests
 	}
 
 	/// <summary>
+	/// <see cref="ChoiceSelector.ChooseCommand" />: a taken item hands its id to the command and closes the list, while
+	/// the chosen item is left to the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void ChooseCommand_Gets_The_Id_Of_The_Taken_Item()
+	{
+		// Arrange
+		string? taken = null;
+
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			ChooseCommand = new RelayCommand<string?>(x => taken = x),
+			SelectedChoice = Encoding.UTF8.WebName
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.Unicode.WebName);
+
+		// Act
+		Click(window, row);
+
+		// Assert
+		taken
+			.Should()
+			.Be(Encoding.Unicode.WebName);
+
+		sut.SelectedChoice
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+
+		IsOpen(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.ChooseCommand" />: a command that cannot run for the taken item is not run, and the list
+	/// closes all the same.
+	/// </summary>
+	[AvaloniaTest]
+	public void ChooseCommand_Is_Not_Run_When_It_Cannot_Execute()
+	{
+		// Arrange
+		string? taken = null;
+
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			ChooseCommand = new RelayCommand<string?>(x => taken = x, static _ => false)
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.Unicode.WebName);
+
+		// Act
+		Click(window, row);
+
+		// Assert
+		taken
+			.Should()
+			.BeNull();
+
+		IsOpen(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ChoiceSelector.DefaultChoice" />: the list marks the item taken when none is chosen, the one without an
 	/// id included.
 	/// </summary>
@@ -136,79 +211,6 @@ internal class ChoiceSelectorTests
 		GetShownTexts(list.GetRealizedContainers().First(x => x != marked))
 			.Should()
 			.ContainSingle();
-	}
-
-	/// <summary>
-	/// <see cref="ChoiceSelector.FlyoutOpeningCommand" />: the command runs as the list opens, before the list takes the
-	/// items that cannot be chosen, so the ones it finds are marked at once.
-	/// </summary>
-	[AvaloniaTest]
-	public void FlyoutOpeningCommand_Runs_Before_The_List_Takes_Its_Items()
-	{
-		// Arrange
-		ChoiceSelector sut = new()
-		{
-			Choices = UnicodeEncodings
-		};
-
-		sut.FlyoutOpeningCommand = new RelayCommand(() => sut.UnavailableChoices = [Encoding.UTF32.WebName]);
-
-		Window window = Show(sut);
-
-		// Act
-		Open(window, sut);
-
-		// Assert
-		GetNames(sut.GetControl<ListBox>(ChoicesListName))
-			.Should()
-			.Equal("UTF-8", "UTF-16 LE", "UTF-16 BE", "UTF-32 BE", "UTF-32 LE");
-	}
-
-	/// <summary>
-	/// <see cref="ChoiceSelector.FlyoutPlacement" />: the list takes the placement against the button.
-	/// </summary>
-	[AvaloniaTest]
-	public void FlyoutPlacement_Reaches_The_Flyout()
-	{
-		// Arrange
-		ChoiceSelector sut = new()
-		{
-			FlyoutPlacement = PlacementMode.TopEdgeAlignedRight
-		};
-
-		Window window = Show(sut);
-
-		// Act
-		Open(window, sut);
-
-		// Assert
-		((PopupFlyoutBase)sut.GetControl<Button>(CurrentChoiceName).Flyout!).Placement
-			.Should()
-			.Be(PlacementMode.TopEdgeAlignedRight);
-	}
-
-	/// <summary>
-	/// <see cref="ChoiceSelector.FlyoutWidth" />: the list takes the width.
-	/// </summary>
-	[AvaloniaTest]
-	public void FlyoutWidth_Reaches_The_List()
-	{
-		// Arrange
-		ChoiceSelector sut = new()
-		{
-			Choices = Languages,
-			FlyoutWidth = 360.0
-		};
-
-		Window window = Show(sut);
-
-		// Act
-		Open(window, sut);
-
-		// Assert
-		sut.GetControl<DockPanel>(ChoicesHostName).Bounds.Width
-			.Should()
-			.Be(360.0);
 	}
 
 	/// <summary>
@@ -551,6 +553,171 @@ internal class ChoiceSelectorTests
 		IsOpen(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.FlyoutOpeningCommand" />: the command runs as the list opens, before the list takes the
+	/// items that cannot be chosen, so the ones it finds are marked at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void FlyoutOpeningCommand_Runs_Before_The_List_Takes_Its_Items()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings
+		};
+
+		sut.FlyoutOpeningCommand = new RelayCommand(() => sut.UnavailableChoices = [Encoding.UTF32.WebName]);
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		GetNames(sut.GetControl<ListBox>(ChoicesListName))
+			.Should()
+			.Equal("UTF-8", "UTF-16 LE", "UTF-16 BE", "UTF-32 BE", "UTF-32 LE");
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.FlyoutPlacement" />: the list takes the placement against the button.
+	/// </summary>
+	[AvaloniaTest]
+	public void FlyoutPlacement_Reaches_The_Flyout()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			FlyoutPlacement = PlacementMode.TopEdgeAlignedRight
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		((PopupFlyoutBase)sut.GetControl<Button>(CurrentChoiceName).Flyout!).Placement
+			.Should()
+			.Be(PlacementMode.TopEdgeAlignedRight);
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.FlyoutWidth" />: the list takes the width.
+	/// </summary>
+	[AvaloniaTest]
+	public void FlyoutWidth_Reaches_The_List()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = Languages,
+			FlyoutWidth = 360.0
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		sut.GetControl<DockPanel>(ChoicesHostName).Bounds.Width
+			.Should()
+			.Be(360.0);
+	}
+	/// <summary>
+	/// <see cref="ChoiceSelector.IsSearchable" />: a list without a search hides the search box and takes the height of
+	/// its items.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSearchable_Off_Hides_The_Search()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			IsSearchable = false
+		};
+
+		Window window = Show(sut);
+
+		// Act
+		Open(window, sut);
+
+		// Assert
+		double rows = sut.GetControl<ListBox>(ChoicesListName).GetRealizedContainers().Sum(static x => x.Bounds.Height);
+
+		sut.GetControl<TextBox>(SearchInputName).IsEffectivelyVisible
+			.Should()
+			.BeFalse();
+
+		sut.GetControl<DockPanel>(ChoicesHostName).Bounds.Height
+			.Should()
+			.Be(rows);
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.IsSearchable" />: the arrow keys and Enter work in a list without a search, which takes
+	/// the focus itself.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSearchable_Off_Keeps_The_Keys()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = UnicodeEncodings,
+			IsSearchable = false,
+			SelectedChoice = Encoding.UTF8.WebName
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		// Act
+		Press(window, PhysicalKey.ArrowDown);
+
+		Press(window, PhysicalKey.Enter);
+
+		// Assert
+		sut.SelectedChoice
+			.Should()
+			.Be(Encoding.Unicode.WebName);
+	}
+
+	/// <summary>
+	/// <see cref="ChoiceSelector.IsSearchable" />: a list with a search keeps its height while the search narrows it, so
+	/// the list does not jump with every letter typed.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSearchable_On_Keeps_The_Height_Of_The_List()
+	{
+		// Arrange
+		ChoiceSelector sut = new()
+		{
+			Choices = Languages
+		};
+
+		Window window = Show(sut);
+
+		Open(window, sut);
+
+		DockPanel host = sut.GetControl<DockPanel>(ChoicesHostName);
+
+		double height = host.Bounds.Height;
+
+		// Act
+		sut.GetControl<TextBox>(SearchInputName).Text = "bat";
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		host.Bounds.Height
+			.Should()
+			.Be(height);
 	}
 
 	/// <summary>

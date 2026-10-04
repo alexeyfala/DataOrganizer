@@ -265,35 +265,6 @@
 											CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
 											Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
 											Icon="KeyboardTab" />
-
-										<Separator />
-
-										<controls:FlyoutButton Header="{x:Static prop:Strings.LineEndings}" Icon="FormatPilcrow">
-											<Button.Flyout>
-												<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-													<StackPanel Orientation="Vertical">
-														<!--  The same captions as in the status bar.  -->
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.CrLf}"
-															Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.Lf}"
-															Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.Cr}"
-															Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-													</StackPanel>
-												</Flyout>
-											</Button.Flyout>
-										</controls:FlyoutButton>
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>
@@ -411,12 +382,39 @@
 					DockPanel.Dock="Right"
 					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
+				<!--
+					A choice converts the text of the active half, and the selected item follows the status, as the ids are the
+					names of the styles. A text without line breaks keeps an empty slot.
+				-->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<TextBlock
+					<views:ChoiceSelector
+						x:Name="LineEndingBlock"
 						MinWidth="110.0"
-						Margin="8.0,4.0"
-						Text="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
+						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="200.0"
+						IsSearchable="False"
+						SelectedChoice="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay}"
+						ToolTip.Tip="{x:Static prop:Strings.LineEndings}">
+						<views:ChoiceSelector.IsEnabled>
+							<MultiBinding Converter="{x:Static BoolConverters.And}">
+								<Binding
+									Converter="{x:Static BoolConverters.Not}"
+									ElementName="View"
+									Mode="OneWay"
+									Path="IsReadOnly" />
+
+								<Binding
+									Converter="{x:Static ObjectConverters.NotEqual}"
+									ConverterParameter="{x:Static documents:LineEnding.None}"
+									ElementName="Editor"
+									Mode="OneWay"
+									Path="ActiveEditor.Status.LineEnding" />
+							</MultiBinding>
+						</views:ChoiceSelector.IsEnabled>
+					</views:ChoiceSelector>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />

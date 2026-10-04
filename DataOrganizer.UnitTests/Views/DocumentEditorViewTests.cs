@@ -17,6 +17,8 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
@@ -38,6 +40,16 @@ internal class DocumentEditorViewTests
 	private const string CaretBlockName = "CaretBlock";
 
 	/// <summary>
+	/// Name of the list of the items of a status bar block in the markup.
+	/// </summary>
+	private const string ChoicesListName = "ChoicesList";
+
+	/// <summary>
+	/// Name of the button of a status bar block that opens its list in the markup.
+	/// </summary>
+	private const string CurrentChoiceName = "CurrentChoice";
+
+	/// <summary>
 	/// Name of the editor with the halves in the markup.
 	/// </summary>
 	private const string EditorName = "Editor";
@@ -56,6 +68,11 @@ internal class DocumentEditorViewTests
 	/// Name of the status bar block with the language of the text in the markup.
 	/// </summary>
 	private const string LanguageBlockName = "LanguageBlock";
+
+	/// <summary>
+	/// Name of the status bar block with the line endings of the text in the markup.
+	/// </summary>
+	private const string LineEndingBlockName = "LineEndingBlock";
 
 	/// <summary>
 	/// Language of <see cref="PowerShellText" />.
@@ -619,6 +636,71 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="Control.ContextFlyout" />: the menu leaves the line endings to the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextFlyout_Leaves_The_Line_Endings_To_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		GetFlyoutCommands(editor.ContextFlyout)
+			.Should()
+			.NotContain(editor.PrimaryEditor.ConvertLineEndingsCommand);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ConvertLineEndingsCommand" />: a style taken in the status bar becomes the style of
+	/// every line break of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Brings_Every_Line_Break_To_The_Chosen_Style()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB\r\nC")
+		};
+
+		Window window = Show(sut);
+
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		Button button = block.GetControl<Button>(CurrentChoiceName);
+
+		button.Flyout!.ShowAt(button);
+
+		Dispatcher.UIThread.RunJobs();
+
+		ListBox list = block.GetControl<ListBox>(ChoicesListName);
+
+		SelectorChoice unix = list
+			.Items
+			.Cast<SelectorChoice>()
+			.Single(static x => x.Id == nameof(LineEnding.Lf));
+
+		Point point = Center(window, list.ContainerFromItem(unix)!);
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Document!.Text
+			.Should()
+			.Be("A\nB\nC");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.DefaultEncoding" />: the encoding that the text takes by default reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
@@ -740,27 +822,6 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.EncodingName" />: the name of the encoding reaches the status bar.
-	/// </summary>
-	[AvaloniaTest]
-	public void EncodingName_Reaches_The_Status_Bar()
-	{
-		// Arrange
-		DocumentEditorView sut = new()
-		{
-			EncodingName = "UTF-8-BOM"
-		};
-
-		// Act
-		Show(sut);
-
-		// Assert
-		sut.GetControl<ChoiceSelector>(EncodingBlockName).Caption
-			.Should()
-			.Be("UTF-8-BOM");
-	}
-
-	/// <summary>
 	/// <see cref="DocumentEditorView.Encoding" />: an encoding chosen in the status bar becomes the encoding of the text.
 	/// </summary>
 	[AvaloniaTest]
@@ -806,6 +867,27 @@ internal class DocumentEditorViewTests
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).SelectedChoice
 			.Should()
 			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.EncodingName" />: the name of the encoding reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void EncodingName_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8-BOM"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).Caption
+			.Should()
+			.Be("UTF-8-BOM");
 	}
 
 	/// <summary>
@@ -892,6 +974,29 @@ internal class DocumentEditorViewTests
 		margin.SelectedFoldingMarkerBrush
 			.Should()
 			.BeSameAs(sut.FindResource("MaterialBodyBrush"));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsReadOnly" />: in read-only mode the line endings cannot be changed in the status
+	/// bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsReadOnly_Disables_The_Line_Endings([Values] bool isReadOnly)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB"),
+			IsReadOnly = isReadOnly
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsEffectivelyEnabled
+			.Should()
+			.Be(!isReadOnly);
 	}
 
 	/// <summary>
@@ -1024,6 +1129,25 @@ internal class DocumentEditorViewTests
 		sut.GetControl<ChoiceSelector>(LanguageBlockName).Choices!.Select(static x => x.Id)
 			.Should()
 			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.LineEndingChoices" />: the status bar offers the three line break styles, named as it
+	/// names the style of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void LineEndingChoices_Reach_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).Choices!.Select(static x => x.Name)
+			.Should()
+			.Equal(LineEnding.CrLf.ToCaption(), LineEnding.Lf.ToCaption(), LineEnding.Cr.ToCaption());
 	}
 
 	/// <summary>
@@ -1414,6 +1538,38 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: a text without line breaks leaves the block of the line endings empty and
+	/// disabled, in a slot of its usual width.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Keeps_An_Empty_Slot_For_A_Text_Without_Line_Breaks()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("One line")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		block.Caption
+			.Should()
+			.BeNull();
+
+		block.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
+
+		block.Bounds.Width
+			.Should()
+			.Be(110.0);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: in a window too narrow for the status bar the block on the right edge stays whole
 	/// and in view, while the blocks on the left give way.
 	/// </summary>
@@ -1489,6 +1645,34 @@ internal class DocumentEditorViewTests
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).IsVisible
 			.Should()
 			.Be(isGiven);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar names the line break style of the text and selects it in its
+	/// list.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Shows_The_Line_Endings()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\nB")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		block.Caption
+			.Should()
+			.Be(LineEnding.Lf.ToCaption());
+
+		block.SelectedChoice
+			.Should()
+			.Be(nameof(LineEnding.Lf));
 	}
 
 	/// <summary>

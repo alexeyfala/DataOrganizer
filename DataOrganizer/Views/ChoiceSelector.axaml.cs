@@ -37,6 +37,16 @@ internal sealed partial class ChoiceSelector : UserControl
 	}
 
 	/// <summary>
+	/// Command run with the id of the item taken, for a choice that changes something rather than being kept; the chosen
+	/// item is then left to the owner.
+	/// </summary>
+	public ICommand? ChooseCommand
+	{
+		get => GetValue(ChooseCommandProperty);
+		set => SetValue(ChooseCommandProperty, value);
+	}
+
+	/// <summary>
 	/// Id of the item taken when none is chosen.
 	/// </summary>
 	public string? DefaultChoice
@@ -82,6 +92,16 @@ internal sealed partial class ChoiceSelector : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when the list has a search box and keeps its height whatever the search finds; a short list without one
+	/// takes the height of its items.
+	/// </summary>
+	public bool IsSearchable
+	{
+		get => GetValue(IsSearchableProperty);
+		set => SetValue(IsSearchableProperty, value);
+	}
+
+	/// <summary>
 	/// Id of the chosen item.
 	/// </summary>
 	public string? SelectedChoice
@@ -123,6 +143,12 @@ internal sealed partial class ChoiceSelector : UserControl
 		.Register<ChoiceSelector, IReadOnlyList<SelectorChoice>?>(name: nameof(Choices));
 
 	/// <summary>
+	/// Identifies the <see cref="ChooseCommand" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<ICommand?> ChooseCommandProperty = AvaloniaProperty
+		.Register<ChoiceSelector, ICommand?>(name: nameof(ChooseCommand));
+
+	/// <summary>
 	/// Identifies the <see cref="DefaultChoice" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> DefaultChoiceProperty = AvaloniaProperty
@@ -155,6 +181,14 @@ internal sealed partial class ChoiceSelector : UserControl
 		.Register<ChoiceSelector, double>(
 			name: nameof(FlyoutWidth),
 			defaultValue: 280.0);
+
+	/// <summary>
+	/// Identifies the <see cref="IsSearchable" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSearchableProperty = AvaloniaProperty
+		.Register<ChoiceSelector, bool>(
+			name: nameof(IsSearchable),
+			defaultValue: true);
 
 	/// <summary>
 	/// Identifies the <see cref="SelectedChoice" /> avalonia property.
@@ -374,7 +408,15 @@ internal sealed partial class ChoiceSelector : UserControl
 			return;
 		}
 
-		SetCurrentValue(SelectedChoiceProperty, choice.Id);
+		// The owner of a command shows the outcome itself, as the choice may come to nothing.
+		if (ChooseCommand is not { } command)
+		{
+			SetCurrentValue(SelectedChoiceProperty, choice.Id);
+		}
+		else if (command.CanExecute(choice.Id))
+		{
+			command.Execute(choice.Id);
+		}
 
 		_flyout.Hide();
 	}

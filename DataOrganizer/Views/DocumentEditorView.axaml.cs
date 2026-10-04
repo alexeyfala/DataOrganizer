@@ -6,9 +6,11 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
@@ -137,6 +139,16 @@ internal sealed partial class DocumentEditorView :
 	];
 
 	/// <summary>
+	/// Line break styles that the document can be brought to, with the names of the styles as their ids.
+	/// </summary>
+	public IReadOnlyList<SelectorChoice> LineEndingChoices { get; } =
+	[
+		CreateLineEndingChoice(LineEnding.CrLf),
+		CreateLineEndingChoice(LineEnding.Lf),
+		CreateLineEndingChoice(LineEnding.Cr)
+	];
+
+	/// <summary>
 	/// <c>True</c> when line endings are shown.
 	/// </summary>
 	public bool ShowEndOfLine
@@ -219,6 +231,13 @@ internal sealed partial class DocumentEditorView :
 	}
 	#endregion
 
+	#region Commands
+	/// <summary>
+	/// Brings every line break of the document to the style of a choice of <see cref="LineEndingChoices" />, by its id.
+	/// </summary>
+	public RelayCommand<string?> ConvertLineEndingsCommand { get; }
+	#endregion
+
 	#region Styled Properties
 	/// <summary>
 	/// Identifies the <see cref="DefaultEncoding" /> avalonia property.
@@ -247,16 +266,16 @@ internal sealed partial class DocumentEditorView :
 		.Register<DocumentEditorView, TextDocument?>(name: nameof(Document));
 
 	/// <summary>
-	/// Identifies the <see cref="Encoding" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<string?> EncodingProperty = AvaloniaProperty
-		.Register<DocumentEditorView, string?>(name: nameof(Encoding));
-
-	/// <summary>
 	/// Identifies the <see cref="EncodingName" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> EncodingNameProperty = AvaloniaProperty
 		.Register<DocumentEditorView, string?>(name: nameof(EncodingName));
+
+	/// <summary>
+	/// Identifies the <see cref="Encoding" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> EncodingProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(Encoding));
 
 	/// <summary>
 	/// Identifies the <see cref="FindUnreadableEncodingsCommand" /> avalonia property.
@@ -359,6 +378,9 @@ internal sealed partial class DocumentEditorView :
 	#region Constructors
 	public DocumentEditorView()
 	{
+		// Before the markup, whose bindings read it once.
+		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
+
 		InitializeComponent();
 
 		// The state is that of the active half, so only its changes count.
@@ -549,6 +571,46 @@ internal sealed partial class DocumentEditorView :
 			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
 				x => area.TextView.VisualLinesChanged += x,
 				x => area.TextView.VisualLinesChanged -= x));
+	}
+
+	/// <summary>
+	/// Returns the choice of a line break style, named as the status bar names it.
+	/// </summary>
+	private static SelectorChoice CreateLineEndingChoice(LineEnding lineEnding)
+	{
+		return new()
+		{
+			Id = lineEnding.ToString(),
+			Name = lineEnding.ToCaption()!,
+			SearchTerms = []
+		};
+	}
+
+	/// <summary>
+	/// Validates <see cref="ConvertLineEndingsCommand" />.
+	/// </summary>
+	private bool CanConvertLineEndings(string? id)
+	{
+		return Enum.TryParse(id, out LineEnding lineEnding) && Editor
+			.ActiveEditor
+			.ConvertLineEndingsCommand
+			.CanExecute(lineEnding);
+	}
+
+	/// <summary>
+	/// Brings every line break of the document to a style, through the active half.
+	/// </summary>
+	private void ConvertLineEndings(string? id)
+	{
+		if (!Enum.TryParse(id, out LineEnding lineEnding))
+		{
+			return;
+		}
+
+		Editor
+			.ActiveEditor
+			.ConvertLineEndingsCommand
+			.Execute(lineEnding);
 	}
 
 	/// <summary>

@@ -8,11 +8,15 @@
 	x:Name="View"
 	mc:Ignorable="d">
 
-	<!--  The button takes no focus, so the keys type into the text again once an item is taken.  -->
+	<!--
+		The button takes no focus, so the keys type into the text again once an item is taken. Its caption keeps to the
+		left of a slot wider than the text.
+	-->
 	<Button
 		x:Name="CurrentChoice"
 		MinHeight="0.0"
 		Padding="8.0,4.0"
+		HorizontalContentAlignment="Left"
 		Content="{Binding #View.Caption, Mode=OneWay}"
 		CornerRadius="0.0"
 		Focusable="False"
@@ -33,17 +37,26 @@
 				<DockPanel
 					x:Name="ChoicesHost"
 					Width="{Binding #View.FlyoutWidth, Mode=OneWay}"
-					Height="340.0">
+					Classes.searchable="{Binding #View.IsSearchable, Mode=OneWay}">
+					<DockPanel.Styles>
+						<!--  A search would change the height of the list with every letter typed.  -->
+						<Style Selector="DockPanel.searchable">
+							<Setter Property="Height" Value="340.0" />
+						</Style>
+					</DockPanel.Styles>
+
 					<Border
+						Margin="0.0,0.0,0.0,4.0"
 						Padding="6.0,0.0"
 						BorderBrush="{StaticResource MaterialDividerBrush}"
 						BorderThickness="1.0"
 						CornerRadius="4.0"
-						DockPanel.Dock="Top">
+						DockPanel.Dock="Top"
+						IsVisible="{Binding #View.IsSearchable, Mode=OneWay}">
 						<TextBox x:Name="SearchInput" Classes="clearButton SearchTextBoxStyle" />
 					</Border>
 
-					<ListBox x:Name="ChoicesList" Margin="0.0,4.0,0.0,0.0">
+					<ListBox x:Name="ChoicesList">
 						<ListBox.Styles>
 							<!--  An item that cannot be chosen is grayed out, and its tip tells why.  -->
 							<Style x:DataType="documents:SelectorChoice" Selector="ListBoxItem">
