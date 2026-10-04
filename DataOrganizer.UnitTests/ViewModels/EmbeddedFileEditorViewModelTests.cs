@@ -347,6 +347,8 @@ internal class EmbeddedFileEditorViewModelTests
 	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x41 }, "UTF-8-BOM")]
 	[TestCase(new byte[] { 0xFF, 0xFE, 0x41, 0x00 }, "UTF-16 LE BOM")]
 	[TestCase(new byte[] { 0xFE, 0xFF, 0x00, 0x41 }, "UTF-16 BE BOM")]
+	[TestCase(new byte[] { 0x41, 0x00 }, "UTF-16 LE")]
+	[TestCase(new byte[] { 0x00, 0x41 }, "UTF-16 BE")]
 	public async Task EditorLoaded_Names_The_Encoding(byte[] contents, string expected)
 	{
 		// Arrange
@@ -3214,8 +3216,8 @@ internal class EmbeddedFileEditorViewModelTests
 	/// </summary>
 	private static byte[][] NonTextContents() =>
 	[
-		// UTF-16 without a byte order mark: valid UTF-8, but with zero bytes
-		[0x48, 0x00, 0x69, 0x00],
+		// UTF-32 without a byte order mark: valid UTF-8, but with zero bytes that UTF-16 does not explain
+		[0x48, 0x00, 0x00, 0x00, 0x69, 0x00, 0x00, 0x00],
 		// Start of a PNG image: its signature and the length of its first chunk
 		[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
 		// Bytes that are not UTF-8, with control characters that no text holds
@@ -3236,6 +3238,11 @@ internal class EmbeddedFileEditorViewModelTests
 		[
 			[0xFE, 0xFF, 0x00, 0x41],
 			[0xFE, 0xFF, 0x00, 0x41, 0x00, 0x78]
+		],
+		// UTF-16 LE without a byte order mark, which the save does not add
+		[
+			[0x41, 0x00],
+			[0x41, 0x00, 0x78, 0x00]
 		],
 		// UTF-32 LE with a byte order mark
 		[

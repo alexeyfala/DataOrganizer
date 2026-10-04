@@ -119,15 +119,17 @@ internal class FileTextCodecTests
 		int thrown = 0;
 
 		// Other tests may throw at the same time on their own threads.
-		EventHandler<FirstChanceExceptionEventArgs> count = (_, _) =>
+		void Count(object? _1, FirstChanceExceptionEventArgs _2)
 		{
-			if (Environment.CurrentManagedThreadId == thread)
+			if (Environment.CurrentManagedThreadId != thread)
 			{
-				thrown++;
+				return;
 			}
-		};
 
-		AppDomain.CurrentDomain.FirstChanceException += count;
+			thrown++;
+		}
+
+		AppDomain.CurrentDomain.FirstChanceException += Count;
 
 		// Act
 		try
@@ -136,7 +138,7 @@ internal class FileTextCodecTests
 		}
 		finally
 		{
-			AppDomain.CurrentDomain.FirstChanceException -= count;
+			AppDomain.CurrentDomain.FirstChanceException -= Count;
 		}
 
 		// Assert
@@ -170,12 +172,35 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that hold a zero byte
-	/// are not text: UTF-16 without its mark and the start of a PNG image.
+	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark whose zero bytes
+	/// are all high bytes of Latin letters are UTF-16 in that byte order, with Cyrillic letters among them too.
 	/// </summary>
-	[TestCase(new byte[] { 0x48, 0x00, 0x69, 0x00 })]
-	[TestCase(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D })]
-	public void Detect_Refuses_Bytes_With_A_Zero_Byte(byte[] contents)
+	[TestCase("Hi", 1200)]
+	[TestCase("Hi", 1201)]
+	[TestCase("Hi, мир", 1200)]
+	[TestCase("Hi, мир", 1201)]
+	public void Detect_Finds_UTF16_Without_A_Mark_By_Its_Zero_Bytes(string text, int codePage)
+	{
+		// Act
+		FileEncoding? encoding = FileTextCodec.Detect(Encoding.GetEncoding(codePage).GetBytes(text), Cyrillic);
+
+		// Assert
+		encoding!.Encoding.CodePage
+			.Should()
+			.Be(codePage);
+
+		encoding.HasByteOrderMark
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes that are not UTF-8 and hold
+	/// a control character that no text has are not text, although the fallback would read them.
+	/// </summary>
+	[TestCase(new byte[] { 0xCF, 0xF0, 0x07 })]
+	[TestCase(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x1F })]
+	public void Detect_Refuses_Control_Characters_Outside_UTF8(byte[] contents)
 	{
 		// Act
 		FileEncoding? encoding = FileTextCodec.Detect(contents, Cyrillic);
@@ -187,12 +212,15 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes that are not UTF-8 and hold
-	/// a control character that no text has are not text, although the fallback would read them.
+	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that hold a zero
+	/// byte are not text unless UTF-16 explains it: the start of a PNG image, UTF-32 without its mark, an odd length
+	/// and a bell.
 	/// </summary>
-	[TestCase(new byte[] { 0xCF, 0xF0, 0x07 })]
-	[TestCase(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x1F })]
-	public void Detect_Refuses_Control_Characters_Outside_UTF8(byte[] contents)
+	[TestCase(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D })]
+	[TestCase(new byte[] { 0x48, 0x00, 0x00, 0x00, 0x69, 0x00, 0x00, 0x00 })]
+	[TestCase(new byte[] { 0x48, 0x00, 0x69 })]
+	[TestCase(new byte[] { 0x48, 0x00, 0x07, 0x00 })]
+	public void Detect_Refuses_Zero_Bytes_That_Do_Not_Fit_UTF16(byte[] contents)
 	{
 		// Act
 		FileEncoding? encoding = FileTextCodec.Detect(contents, Cyrillic);
@@ -597,13 +625,13 @@ internal class FileTextCodecTests
 
 	/// <summary>
 	/// <see cref="FileTextCodec.TryRead" />: the choice goes first, so it reads bytes that are not found to be text: here
-	/// UTF-16 without its byte order mark.
+	/// UTF-32 without its byte order mark.
 	/// </summary>
 	[Test]
 	public void TryRead_Reads_In_The_Chosen_Encoding_What_The_Detection_Refuses()
 	{
 		// Act
-		FileText? read = FileTextCodec.TryRead([0x48, 0x00, 0x69, 0x00], "utf-16");
+		FileText? read = FileTextCodec.TryRead([0x48, 0x00, 0x00, 0x00, 0x69, 0x00, 0x00, 0x00], "utf-32");
 
 		// Assert
 		read!.Text
@@ -635,13 +663,15 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.TryRead" />: bytes that are not text give no text: UTF-16 without its byte order mark.
+	/// <see cref="FileTextCodec.TryRead" />: bytes that are not text give no text: the start of a PNG image.
 	/// </summary>
 	[Test]
 	public void TryRead_Returns_Null_For_Bytes_That_Are_Not_Text()
 	{
 		// Act
-		FileText? read = FileTextCodec.TryRead([0x48, 0x00, 0x69, 0x00], chosenEncoding: null);
+		FileText? read = FileTextCodec.TryRead(
+			[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
+			chosenEncoding: null);
 
 		// Assert
 		read

@@ -165,6 +165,11 @@ internal static class SampleNotes
 	public static string TruncatedRecords { get; } = "The JSON of the records breaks off in the middle.";
 
 	/// <summary>
+	/// Note of a text in UTF-16 without a byte order mark.
+	/// </summary>
+	public static string Utf16NoBomText { get; } = "The text is in UTF-16 without a byte order mark.";
+
+	/// <summary>
 	/// Note of a text in UTF-16.
 	/// </summary>
 	public static string Utf16Text { get; } = "The text is in UTF-16 with a byte order mark.";

@@ -52,8 +52,8 @@ internal class FileListViewModelBaseTests
 				.GetFileContentsAsync(file.Id)
 				.Returns(new ValidatedContents
 				{
-					// UTF-16 without a byte order mark
-					Contents = [0x48, 0x00, 0x69, 0x00],
+					// The start of a PNG image
+					Contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
 					IsValid = true
 				});
 

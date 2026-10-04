@@ -126,7 +126,16 @@ internal static class FileTextCodec
 		// A zero byte is valid in most encodings, yet in bytes without a mark it means binary data or UTF-16 text.
 		if (contents.Contains((byte)0))
 		{
-			return null;
+			if (FindUnmarkedUtf16(contents) is not { } utf16)
+			{
+				return null;
+			}
+
+			return new FileEncoding
+			{
+				Encoding = utf16,
+				HasByteOrderMark = false
+			};
 		}
 
 		if (Utf8.IsValid(contents))
@@ -370,6 +379,26 @@ internal static class FileTextCodec
 	}
 
 	/// <summary>
+	/// Returns UTF-16 in the byte order that puts every zero byte in the high byte of its code unit, as Latin letters
+	/// have it; <c>null</c> when neither order does or a code unit is a control character that no text holds.
+	/// </summary>
+	private static Encoding? FindUnmarkedUtf16(ReadOnlySpan<byte> contents)
+	{
+		if (contents.Length % 2 != 0)
+		{
+			return null;
+		}
+
+		// Little-endian order puts the high byte of a code unit second, big-endian order first.
+		if (FitsUtf16(contents, highByte: 1))
+		{
+			return Encoding.Unicode;
+		}
+
+		return FitsUtf16(contents, highByte: 0) ? Encoding.BigEndianUnicode : null;
+	}
+
+	/// <summary>
 	/// Returns the byte values that an encoding cannot read alone or would not write back the same.
 	/// </summary>
 	private static byte[] FindUnreadableLoneBytes(Encoding encoding)
@@ -386,6 +415,25 @@ internal static class FileTextCodec
 			.Range(0, byte.MaxValue + 1)
 			.Select(static x => (byte)x)
 			.Where(x => marking.GetBytes(marking.GetString([x])) is not [var written] || written != x)];
+	}
+
+	/// <summary>
+	/// <c>True</c> when, with the high byte of each code unit at an offset, no low byte is zero and no code unit is a
+	/// control character that no text holds.
+	/// </summary>
+	private static bool FitsUtf16(ReadOnlySpan<byte> contents, int highByte)
+	{
+		for (int i = 0; i < contents.Length; i += 2)
+		{
+			byte low = contents[i + 1 - highByte];
+
+			if (low == 0 || (contents[i + highByte] == 0 && BinaryControls.Contains(low)))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/// <summary>
