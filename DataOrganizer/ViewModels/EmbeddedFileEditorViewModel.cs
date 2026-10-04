@@ -607,7 +607,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// The blocks of a protected text would give away its outline, which its ciphertext does not.
 			FoldedBlocks = IsEncrypted ? null : view.FoldedBlocks,
 			FontSize = FontSize,
-			WordWrap = WordWrap,
 			ScrollOffset = new((int)view.ScrollOffset.X, (int)view.ScrollOffset.Y),
 			SelectionLength = view.SelectionLength,
 			SelectionStart = view.SelectionStart,
@@ -615,7 +614,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			ShowSpaces = ShowSpaces,
 			ShowTabs = ShowTabs,
 			SyntaxLanguage = GetStoredSyntaxLanguage(),
-			UnfoldedBlocks = IsEncrypted ? null : view.UnfoldedBlocks
+			UnfoldedBlocks = IsEncrypted ? null : view.UnfoldedBlocks,
+			WordWrap = WordWrap
 		};
 	}
 
