@@ -2,8 +2,11 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using System;
+using System.Buffers;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;
@@ -16,6 +19,11 @@ internal class FileTextCodecTests
 	/// Text that every Cyrillic encoding and every Unicode one holds.
 	/// </summary>
 	private const string CyrillicText = "Привет, мир";
+
+	/// <summary>
+	/// Japanese text with letters of both widths, which Shift-JIS writes in one byte or two.
+	/// </summary>
+	private const string JapaneseText = "日本語のテキスト ｶﾀｶﾅ text";
 
 	/// <summary>
 	/// Cyrillic code page of Windows, the fallback of the tests whatever the region of the machine.
@@ -74,6 +82,67 @@ internal class FileTextCodecTests
 		encoding!.HasByteOrderMark
 			.Should()
 			.Be(hasByteOrderMark);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.CreateUnreadableLoneBytes" />: every byte value that an encoding is not found unable to
+	/// read alone reads alone and writes back the same, so the values that occur may stand for the contents.
+	/// </summary>
+	[Test]
+	public void CreateUnreadableLoneBytes_Leaves_Out_Only_Bytes_That_Read_Alone()
+	{
+		// Act
+		FrozenDictionary<string, SearchValues<byte>> unreadable = FileTextCodec.CreateUnreadableLoneBytes();
+
+		// Assert
+		string[] wrong = [.. unreadable.SelectMany(static x => Enumerable
+			.Range(0, 256)
+			.Select(static y => (byte)y)
+			.Where(y => !x.Value.Contains(y) && FileTextCodec.TryDecode([y], FileTextCodec.Choose([y], x.Key)!) is null)
+			.Select(y => $"{x.Key} {y:X2}"))];
+
+		wrong
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.CreateUnreadableLoneBytes" />: no exception is thrown on the way, as the thousands of
+	/// bytes that the encodings cannot read would freeze the list of encodings under a debugger.
+	/// </summary>
+	[Test]
+	public void CreateUnreadableLoneBytes_Throws_No_Exceptions()
+	{
+		// Arrange
+		int thread = Environment.CurrentManagedThreadId;
+
+		int thrown = 0;
+
+		// Other tests may throw at the same time on their own threads.
+		EventHandler<FirstChanceExceptionEventArgs> count = (_, _) =>
+		{
+			if (Environment.CurrentManagedThreadId == thread)
+			{
+				thrown++;
+			}
+		};
+
+		AppDomain.CurrentDomain.FirstChanceException += count;
+
+		// Act
+		try
+		{
+			FileTextCodec.CreateUnreadableLoneBytes();
+		}
+		finally
+		{
+			AppDomain.CurrentDomain.FirstChanceException -= count;
+		}
+
+		// Assert
+		thrown
+			.Should()
+			.Be(0);
 	}
 
 	/// <summary>
@@ -605,8 +674,8 @@ internal class FileTextCodecTests
 
 	#region Helpers
 	/// <summary>
-	/// Contents that different encodings can read: none at all, text in several encodings, every byte value, random bytes
-	/// and the shifts of ISO-2022-JP.
+	/// Contents that different encodings can read: none at all, text in several encodings, Japanese with double bytes and
+	/// in seven bits, every byte value, random bytes and the shifts of ISO-2022-JP.
 	/// </summary>
 	private static byte[][] SampleContents()
 	{
@@ -623,6 +692,8 @@ internal class FileTextCodecTests
 			Cyrillic.GetBytes(CyrillicText),
 			CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(CyrillicText),
 			[.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes(CyrillicText)],
+			CodePagesEncodingProvider.Instance.GetEncoding(932)!.GetBytes(JapaneseText),
+			CodePagesEncodingProvider.Instance.GetEncoding(50220)!.GetBytes(JapaneseText),
 			[.. Enumerable.Range(0, 256).Select(static x => (byte)x)],
 			random,
 			[0x41, 0x0E, 0x0F, 0x42]

@@ -70,6 +70,13 @@ internal static class FileTextCodec
 		Encoding.Unicode,
 		Encoding.BigEndianUnicode
 	];
+
+	/// <summary>
+	/// Byte values that each encoding of <see cref="EncodingChoices" /> cannot read alone or would not write back the
+	/// same, by web name; found on first use.
+	/// </summary>
+	private static readonly Lazy<FrozenDictionary<string, SearchValues<byte>>> UnreadableLoneBytes =
+		new(CreateUnreadableLoneBytes);
 	#endregion
 
 	#region Methods
@@ -150,7 +157,6 @@ internal static class FileTextCodec
 	/// </summary>
 	public static IReadOnlySet<string> FindUnreadableEncodings(ReadOnlySpan<byte> contents)
 	{
-		// A single-byte encoding reads each byte on its own, so the values that occur read as the whole contents do.
 		byte[] values = GetByteValues(contents);
 
 		try
@@ -159,9 +165,16 @@ internal static class FileTextCodec
 
 			foreach ((string name, Encoding encoding) in Encodings)
 			{
-				ReadOnlySpan<byte> sample = encoding.IsSingleByte ? values : contents;
+				// The encodings of the list keep no state between characters, so a byte that reads alone begins no longer
+				// sequence, and bytes of such values read one by one.
+				if (!values.AsSpan().ContainsAny(UnreadableLoneBytes.Value[name]))
+				{
+					continue;
+				}
 
-				if (ReadIn(sample, Choose(sample, name)) is null)
+				// A single-byte encoding reads every byte alone, while another one may read the rest within a longer
+				// sequence.
+				if (encoding.IsSingleByte || ReadIn(contents, Choose(contents, name)) is null)
 				{
 					unreadable.Add(name);
 				}
@@ -261,6 +274,18 @@ internal static class FileTextCodec
 
 		return ReadIn(contents, chosen) ?? ReadIn(contents, Detect(contents));
 	}
+
+	/// <summary>
+	/// Returns the byte values that each encoding of <see cref="EncodingChoices" /> cannot read alone or would not write
+	/// back the same, by web name.
+	/// </summary>
+	internal static FrozenDictionary<string, SearchValues<byte>> CreateUnreadableLoneBytes()
+	{
+		return Encodings.ToFrozenDictionary(
+			static x => x.Key,
+			static x => SearchValues.Create(FindUnreadableLoneBytes(x.Value)),
+			StringComparer.OrdinalIgnoreCase);
+	}
 	#endregion
 
 	#region Helpers
@@ -342,6 +367,25 @@ internal static class FileTextCodec
 
 		return (regionCodePage > 0 ? provider.GetEncoding(regionCodePage) : null)
 			?? provider.GetEncoding(WesternCodePage)!;
+	}
+
+	/// <summary>
+	/// Returns the byte values that an encoding cannot read alone or would not write back the same.
+	/// </summary>
+	private static byte[] FindUnreadableLoneBytes(Encoding encoding)
+	{
+		// Marks instead of the exceptions of a strict copy, thousands of which would freeze the list under a debugger: a
+		// byte that is not read or not written back comes back as two bytes or more.
+		Encoding marking = (Encoding)encoding.Clone();
+
+		marking.DecoderFallback = new DecoderReplacementFallback("\uFFFF");
+
+		marking.EncoderFallback = new EncoderReplacementFallback("??");
+
+		return [.. Enumerable
+			.Range(0, byte.MaxValue + 1)
+			.Select(static x => (byte)x)
+			.Where(x => marking.GetBytes(marking.GetString([x])) is not [var written] || written != x)];
 	}
 
 	/// <summary>
