@@ -108,7 +108,7 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardAccessor clipboardService,
+		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
@@ -122,7 +122,7 @@ public sealed class KeyboardInputHook :
 	{
 		_app = app;
 
-		_clipboard = clipboardService;
+		_clipboard = clipboard;
 
 		_dbAccess = dbAccess;
 
