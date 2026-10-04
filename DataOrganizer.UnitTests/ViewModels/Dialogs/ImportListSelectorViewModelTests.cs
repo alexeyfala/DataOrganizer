@@ -28,7 +28,7 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportMode result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result
@@ -54,7 +54,7 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportMode result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result
@@ -78,7 +78,7 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportMode result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result
@@ -100,7 +100,7 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.CancelCommand.Execute(null));
 
-		ImportMode result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result

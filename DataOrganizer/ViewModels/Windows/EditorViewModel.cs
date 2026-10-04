@@ -868,16 +868,21 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		bool isOpened = dto is FileDto file && file.IsOpened();
+		string action = toBeDeleted switch
+		{
+			FileDto file when file.IsOpened() => Strings.CloseTheFileAndDelete,
+			FolderDto folder when folder.Children.ContainsFileBy(IsOpened) => Strings.CloseTheFilesAndDelete,
+			_ => Strings.Delete
+		};
 
 		if (!await _dialogService
-			.RequestYesNoAsync($@"{(isOpened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
+			.RequestYesNoAsync($@"{action} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The file is closed next.
+		// The open files are closed next.
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
@@ -1509,15 +1514,24 @@ public partial class EditorViewModel :
 			return false;
 		}
 
-		if (dto is FileDto file)
+		// A folder leaves the database together with every file of its subtree.
+		FileDto[] deletedFiles = dto switch
 		{
-			CloseFile(file);
+			FileDto file => [file],
+			FolderDto folder => [.. folder.Children.GetFiles()],
+			_ => []
+		};
 
-			RemoveFromCopyHistory(file);
-		}
-		else if (dto is FolderDto folder)
+		foreach (FileDto deletedFile in deletedFiles)
 		{
-			_contentVisibility.DiscardKeys(folder);
+			CloseFile(deletedFile);
+
+			RemoveFromCopyHistory(deletedFile);
+		}
+
+		if (dto is FolderDto deletedFolder)
+		{
+			_contentVisibility.DiscardKeys(deletedFolder);
 		}
 
 		UpdateHierarchySummary();

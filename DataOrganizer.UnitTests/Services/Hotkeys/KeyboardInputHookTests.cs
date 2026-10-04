@@ -7,6 +7,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
@@ -14,6 +15,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
@@ -23,6 +25,7 @@ using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -35,7 +38,7 @@ internal class KeyboardInputHookTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="KeyboardInputHook.Dispose" />: the files and input stack are cleared and the shared hook stays alive.
+	/// <see cref="KeyboardInputHook.Dispose" />: the tracked hierarchy and input stack are cleared and the shared hook stays alive.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_State_And_Keeps_Hook()
@@ -49,9 +52,7 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
 
-		sut
-			.Files
-			.AddRange(ItemDtoFactory.CreateFileDtos(5));
+		sut.Hierarchy = ItemDtoFactory.CreateFileDtos(5);
 
 		sut
 			.InputStack
@@ -64,9 +65,9 @@ internal class KeyboardInputHookTests
 			.Should()
 			.BeFalse();
 
-		sut.Files
+		sut.Hierarchy
 			.Should()
-			.BeEmpty();
+			.BeNull();
 
 		sut.InputStack
 			.Should()
@@ -116,13 +117,15 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(dto);
+		sut.Hierarchy = [dto];
 
 		// Act
 		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
@@ -146,9 +149,7 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(ItemDtoFactory.CreateFileDto());
+		sut.Hierarchy = [ItemDtoFactory.CreateFileDto()];
 
 		sut
 			.InputStack
@@ -212,13 +213,15 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(dto);
+		sut.Hierarchy = [dto];
 
 		// Act
 		await sut.HandleKeyReleasedAsync(typedMask, KeyCode.VcA);
@@ -227,6 +230,60 @@ internal class KeyboardInputHookTests
 		await clipboard
 			.Received(1)
 			.SetTextAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a file added to the tracked hierarchy fires its hotkey at once.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Fires_The_Hotkey_Of_A_File_Added_During_Tracking()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		dbAccess
+			.GetFileContentsAsync(Arg.Any<Guid>())
+			.Returns(new ValidatedContents());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = hierarchy;
+
+		hierarchy.Add(dto);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		await dbAccess
+			.Received(1)
+			.GetFileContentsAsync(dto.Id);
 	}
 
 	/// <summary>
@@ -277,13 +334,15 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(dto);
+		sut.Hierarchy = [dto];
 
 		sut
 			.InputStack
@@ -316,9 +375,7 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(ItemDtoFactory.CreateFileDto());
+		sut.Hierarchy = [ItemDtoFactory.CreateFileDto()];
 
 		KeyStroke[] typed = [.. KeyStrokeFactory.CreateKeyStrokes(3)];
 
@@ -364,9 +421,7 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(dto);
+		sut.Hierarchy = [dto];
 
 		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcQ);
 
@@ -429,13 +484,15 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
-		sut
-			.Files
-			.Add(dto);
+		sut.Hierarchy = [dto];
 
 		sut
 			.InputStack
@@ -448,6 +505,56 @@ internal class KeyboardInputHookTests
 		await clipboard
 			.Received(1)
 			.SetTextAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a file removed from the tracked hierarchy no longer fires its hotkey.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Skips_A_File_Removed_During_Tracking()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [dto];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = hierarchy;
+
+		hierarchy.Remove(dto);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		await dbAccess
+			.DidNotReceive()
+			.GetFileContentsAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>
@@ -473,7 +580,37 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the files and input stack are cleared.
+	/// <see cref="KeyboardInputHook.StartTrackingAsync" />: the hook is started and the given hierarchy is tracked.
+	/// </summary>
+	[Test]
+	public async Task StartTrackingAsync_Starts_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		ExplorerItemDtoBase[] hierarchy = [ItemDtoFactory.CreateFileDto()];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
+
+		// Act
+		await sut.StartTrackingAsync(hierarchy);
+
+		// Assert
+		sut.IsRunning
+			.Should()
+			.BeTrue();
+
+		sut.Hierarchy
+			.Should()
+			.BeSameAs(hierarchy);
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the tracked hierarchy and input stack are cleared.
 	/// </summary>
 	[Test]
 	public async Task StopTrackingAsync_Stops_Hook()
@@ -487,9 +624,7 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
 
-		sut
-			.Files
-			.AddRange(ItemDtoFactory.CreateFileDtos(5));
+		sut.Hierarchy = ItemDtoFactory.CreateFileDtos(5);
 
 		sut
 			.InputStack
@@ -509,9 +644,9 @@ internal class KeyboardInputHookTests
 			.Should()
 			.BeFalse();
 
-		sut.Files
+		sut.Hierarchy
 			.Should()
-			.BeEmpty();
+			.BeNull();
 
 		sut.InputStack
 			.Should()

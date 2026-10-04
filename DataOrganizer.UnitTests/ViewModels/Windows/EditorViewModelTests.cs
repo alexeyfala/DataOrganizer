@@ -400,6 +400,87 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: every file of a deleted folder's subtree is closed in the editor and in the
+	/// operating system.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Closes_The_Files_Of_A_Deleted_Folder()
+	{
+		// Arrange
+		FileDto editingFile = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		FileDto executingFile = ItemDtoFactory.CreateFileDto(isExecuting: true);
+
+		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
+
+		subfolder
+			.Children
+			.Add(editingFile);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder
+			.Children
+			.Add(executingFile);
+
+		folder
+			.Children
+			.Add(subfolder);
+
+		IExecutionEngine executionEngine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(executionEngine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.ExecutingFiles
+			.Add(executingFile);
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		editingFile.IsEditing
+			.Should()
+			.BeFalse();
+
+		executingFile.IsExecuting
+			.Should()
+			.BeFalse();
+
+		sut.ExecutingFiles
+			.Should()
+			.NotContain(executingFile);
+
+		await executionEngine
+			.Received(1)
+			.CloseAsync(executingFile.Id, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: the key of a deleted folder is dropped with the folder.
 	/// </summary>
 	[Test]
@@ -581,6 +662,68 @@ internal class EditorViewModelTests
 		contentVisibility
 			.DidNotReceiveWithAnyArgs()
 			.DiscardKeys(default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: every file of a deleted folder's subtree leaves the copy history.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Removes_The_Files_Of_A_Deleted_Folder_From_The_Copy_History()
+	{
+		// Arrange
+		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
+
+		FileDto keptFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
+
+		subfolder
+			.Children
+			.Add(nestedFile);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder
+			.Children
+			.Add(subfolder);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(hierarchyEditor);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.CopyHistorySettings
+			.ItemIds
+			.Add(nestedFile.Id);
+
+		sut
+			.CopyHistorySettings
+			.ItemIds
+			.Add(keptFile.Id);
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		sut.CopyHistorySettings.ItemIds
+			.Should()
+			.Equal(keptFile.Id);
 	}
 
 	/// <summary>

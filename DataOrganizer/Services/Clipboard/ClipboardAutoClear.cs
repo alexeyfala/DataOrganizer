@@ -139,13 +139,11 @@ public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 	/// </summary>
 	private async Task RunAsync(CancellationToken token)
 	{
-		try
-		{
-			await Task
-				.Delay(Timeout, _timeProvider, token)
-				.ConfigureAwait(false);
-		}
-		catch (OperationCanceledException)
+		await Task
+			.Delay(Timeout, _timeProvider, token)
+			.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+		if (token.IsCancellationRequested)
 		{
 			return;
 		}

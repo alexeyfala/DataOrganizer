@@ -6,7 +6,6 @@ using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Dialogs;
@@ -31,9 +30,6 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -45,12 +41,9 @@ public sealed class DialogService : IDialogService
 	public DialogService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory)
 	{
 		_dispatcher = dispatcher;
-
-		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -100,10 +93,10 @@ public sealed class DialogService : IDialogService
 			.Candidates
 			.AddRange(candidates);
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel));
 
 		return await viewModel
-			.GetResultAsync(token)
+			.GetResultAsync(dialogClosed, token)
 			.ConfigureAwait(false);
 	}
 
@@ -114,10 +107,10 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
 
 		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(YesNoCancelButtons.YesCancel, token)
+			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelAnswer.Yes;
@@ -132,10 +125,10 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Initialize(parameters);
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel));
 
 		if (!await viewModel
-			.GetResultAsync(token)
+			.GetResultAsync(dialogClosed, token)
 			.ConfigureAwait(false) || viewModel.Key is not { } key)
 		{
 			return null;
@@ -159,10 +152,10 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel));
 
 		if (!await viewModel
-			.GetResultAsync(token)
+			.GetResultAsync(dialogClosed, token)
 			.ConfigureAwait(false))
 		{
 			return new();
@@ -199,10 +192,10 @@ public sealed class DialogService : IDialogService
 
 				PasswordBoxView view = _viewFactory.CreateUserControl<PasswordBoxView>(viewModel);
 
-				_exceptionHandler.Watch(DialogHost.Show(view));
+				Task dialogClosed = DialogHost.Show(view);
 
 				bool confirmed = await viewModel
-					.GetResultAsync(token)
+					.GetResultAsync(dialogClosed, token)
 					.ConfigureAwait(true);
 
 				source.SetResult(CapturePasswordAndScrub(
@@ -228,10 +221,10 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
 
 		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(YesNoCancelButtons.YesCancel, token)
+			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelAnswer.Yes;
@@ -244,10 +237,10 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
 
 		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(YesNoCancelButtons.YesNo, token)
+			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesNo, token)
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelAnswer.Yes;
@@ -260,9 +253,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Header = Strings.ImportList;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel));
 
-		return viewModel.GetResultAsync(token);
+		return viewModel.GetResultAsync(dialogClosed, token);
 	}
 
 	/// <inheritdoc />
@@ -270,12 +263,12 @@ public sealed class DialogService : IDialogService
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel)));
+		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel));
 
 		try
 		{
 			if (!await viewModel
-				.GetResultAsync(token)
+				.GetResultAsync(dialogClosed, token)
 				.ConfigureAwait(false))
 			{
 				return null;

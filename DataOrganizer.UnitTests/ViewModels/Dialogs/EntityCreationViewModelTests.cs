@@ -28,7 +28,7 @@ internal class EntityCreationViewModelTests
 		// Act
 		_ = Task.Run(() => sut.CancelCommand.Execute(null));
 
-		bool result = await sut.GetResultAsync();
+		bool result = await sut.GetResultAsync(new TaskCompletionSource().Task);
 
 		// Assert
 		result

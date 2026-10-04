@@ -567,6 +567,9 @@
   <data name="CloseTheFileAndDelete" xml:space="preserve">
     <value>Закрыть файл и удалить</value>
   </data>
+  <data name="CloseTheFilesAndDelete" xml:space="preserve">
+    <value>Закрыть файлы и удалить</value>
+  </data>
   <data name="OpenTheExecutableFile" xml:space="preserve">
     <value>Открыть исполняемый файл</value>
   </data>

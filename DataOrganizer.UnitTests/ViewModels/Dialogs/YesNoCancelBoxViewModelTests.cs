@@ -32,7 +32,7 @@ internal class YesNoCancelBoxViewModelTests
 		// Act
 		_ = Task.Run(() => sut.CancelButtonPressedCommand.Execute(null));
 
-		await sut.GetResultAsync(variant);
+		await sut.GetResultAsync(new TaskCompletionSource().Task, variant);
 
 		// Assert
 		sut.IsNoButtonVisible
@@ -91,7 +91,7 @@ internal class YesNoCancelBoxViewModelTests
 			}
 		});
 
-		YesNoCancelAnswer result = await sut.GetResultAsync(YesNoCancelButtons.YesNoCancel);
+		YesNoCancelAnswer result = await sut.GetResultAsync(new TaskCompletionSource().Task, YesNoCancelButtons.YesNoCancel);
 
 		// Assert
 		result

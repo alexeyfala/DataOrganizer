@@ -1,10 +1,9 @@
 using Avalonia;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace DataOrganizer.Behaviors.Input;
@@ -17,9 +16,9 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 {
 	#region Data
 	/// <summary>
-	/// Cancels the delay of the pointer resting over <see cref="Behavior{T}.AssociatedObject" />.
+	/// Cancels the pending execution of <see cref="Command" />.
 	/// </summary>
-	private CancellationTokenSource? _delay;
+	private IDisposable? _delay;
 	#endregion
 
 	#region Properties
@@ -50,6 +49,12 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 		get => GetValue(DelayProperty);
 		set => SetValue(DelayProperty, value);
 	}
+
+	/// <summary>
+	/// Runs an action once after a delay, <see cref="DispatcherTimer.RunOnce" /> by default; disposing the result cancels it.
+	/// </summary>
+	internal Func<System.Action, TimeSpan, IDisposable> RunOnce { get; init; } =
+		static (action, delay) => DispatcherTimer.RunOnce(action, delay);
 	#endregion
 
 	#region Styled Properties
@@ -76,9 +81,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	{
 		CancelDelay();
 
-		_delay = new CancellationTokenSource();
-
-		_ = ExecuteAfterDelayAsync(_delay.Token);
+		_delay = RunOnce(ExecuteIfPointerOver, TimeSpan.FromMilliseconds(Delay));
 	}
 
 	/// <summary>
@@ -136,34 +139,18 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	/// </summary>
 	private void CancelDelay()
 	{
-		if (_delay is not { } source)
-		{
-			return;
-		}
+		_delay?.Dispose();
 
 		_delay = null;
-
-		source.Cancel();
-
-		source.Dispose();
 	}
 
 	/// <summary>
 	/// Executes <see cref="Command" /> when the pointer is still over <see cref="Behavior{T}.AssociatedObject" />
-	/// after <see cref="Delay" />.
+	/// at the end of <see cref="Delay" />.
 	/// </summary>
-	private async Task ExecuteAfterDelayAsync(CancellationToken token)
+	private void ExecuteIfPointerOver()
 	{
-		try
-		{
-			await Task
-				.Delay(Delay, token)
-				.ConfigureAwait(true);
-		}
-		catch (OperationCanceledException)
-		{
-			return;
-		}
+		_delay = null;
 
 		if (AssociatedObject is not { IsPointerOver: true } || Command is not { } command)
 		{

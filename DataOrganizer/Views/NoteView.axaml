@@ -13,6 +13,7 @@
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
 	mc:Ignorable="d">
 
 	<UserControl.Styles>
@@ -28,18 +29,16 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid
-		DataContext="{Binding $parent[views:NoteView]}"
-		RowDefinitions="*,Auto">
+	<Grid DataContext="{Binding $parent[views:NoteView]}" RowDefinitions="*,Auto">
 
-		<!-- Encrypted -->
+		<!--  Encrypted  -->
 		<materialIcons:MaterialIcon
 			Grid.Row="0"
 			Classes="NoteIconStyle"
 			IsVisible="{Binding IsLocked, Mode=OneWay}"
 			ToolTip.Tip="{x:Static prop:Strings.ContentIsEncrypted}" />
 
-		<!-- Readable -->
+		<!--  Readable  -->
 		<materialIcons:MaterialIcon
 			x:Name="ReadableIcon"
 			Grid.Row="0"
@@ -51,12 +50,17 @@
 			</Interaction.Behaviors>
 		</materialIcons:MaterialIcon>
 
+		<!--
+			The light dismiss overlay must not cover the icon: once it went away, the icon would take
+			the pointer back and the hover would open the popup again.
+		-->
 		<Popup
 			Grid.Row="1"
 			MaxWidth="500.0"
 			MaxHeight="500.0"
 			IsLightDismissEnabled="True"
 			IsOpen="{Binding IsNoteOpen, Mode=TwoWay}"
+			OverlayInputPassThroughElement="{Binding #View}"
 			Placement="Bottom"
 			PlacementTarget="{Binding #ReadableIcon}"
 			VerticalOffset="8.0">
@@ -65,6 +69,8 @@
 				<EventTriggerBehavior EventName="Closed">
 					<InvokeCommandAction Command="{Binding NoteClosedCommand}" />
 				</EventTriggerBehavior>
+
+				<input:ClosePopupOnEscapeBehavior />
 			</Interaction.Behaviors>
 
 			<Border
@@ -80,9 +86,7 @@
 					<DoubleTappedTrigger MarkAsHandled="True" />
 				</Interaction.Behaviors>
 
-				<Grid
-					ColumnDefinitions="*,Auto"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"
@@ -139,9 +143,7 @@
 							<Interaction.Behaviors>
 								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<security:SensitiveCopyBehavior
-									IsSensitive="{Binding IsSensitive, Mode=OneWay}"
-									Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 							</Interaction.Behaviors>
 						</SelectableTextBlock>
 					</ScrollViewer>

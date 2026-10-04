@@ -547,6 +547,9 @@
   <data name="CloseTheFileAndDelete" xml:space="preserve">
     <value>Close the file and delete</value>
   </data>
+  <data name="CloseTheFilesAndDelete" xml:space="preserve">
+    <value>Close the files and delete</value>
+  </data>
   <data name="OpenTheExecutableFile" xml:space="preserve">
     <value>Open the executable file</value>
   </data>
