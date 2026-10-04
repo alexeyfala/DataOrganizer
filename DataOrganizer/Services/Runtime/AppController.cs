@@ -80,6 +80,7 @@ public sealed class AppController : IAppController
 	public AppController(
 		IAppEnvironment appEnvironment,
 		IAppSettingsStore settingsStore,
+		IAvaloniaLogForwarder avaloniaLogForwarder,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICommandLineOptions options,
@@ -126,6 +127,8 @@ public sealed class AppController : IAppController
 		_viewLauncher = viewLauncher;
 
 		globalExceptionHandler.StartMonitoring();
+
+		avaloniaLogForwarder.StartForwarding();
 	}
 	#endregion
 
