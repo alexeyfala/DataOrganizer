@@ -849,4 +849,7 @@
   <data name="FailedToOpenInOS" xml:space="preserve">
     <value>Не удалось открыть в ОС</value>
   </data>
+  <data name="CharacterNotInEncodingFormat" xml:space="preserve">
+    <value>Символа «{0}» нет в кодировке {1}. Изменения не сохранены.</value>
+  </data>
 </root>

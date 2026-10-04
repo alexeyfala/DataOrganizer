@@ -148,9 +148,13 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			try
 			{
-				string text = TextDefaults
-					.Encoding
-					.GetString(contents);
+				// Bytes that are not text would reach the clipboard as garbage.
+				if (FileTextCodec.TryRead(contents) is not { } text)
+				{
+					_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+
+					return;
+				}
 
 				if (string.IsNullOrEmpty(text))
 				{

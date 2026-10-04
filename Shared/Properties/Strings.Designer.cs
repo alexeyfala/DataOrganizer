@@ -241,6 +241,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The character &quot;{0}&quot; is not in the {1} encoding. The changes are not saved..
+        /// </summary>
+        public static string CharacterNotInEncodingFormat {
+            get {
+                return ResourceManager.GetString("CharacterNotInEncodingFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates on startup.
         /// </summary>
         public static string CheckForUpdatesOnStartup {

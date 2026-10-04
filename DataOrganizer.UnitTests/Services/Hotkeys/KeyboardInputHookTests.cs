@@ -165,6 +165,156 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a hotkey of a file whose contents are not text puts nothing
+	/// in the clipboard.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Copies_Nothing_That_Is_Not_Text()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		KeyStroke[] keyStrokes =
+		[
+			new()
+			{
+				Code = code,
+				Mask = mask
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(keyStrokes.ToHotkeyDtos());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			// UTF-16 without a byte order mark
+			byte[] contents = [0x48, 0x00, 0x69, 0x00];
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(contents);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		await clipboard
+			.DidNotReceive()
+			.SetTextAsync(Arg.Any<string>());
+
+		await clipboard
+			.DidNotReceive()
+			.SetDataAsync(Arg.Any<DataTransfer>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a hotkey copies the text in the encoding of the file, without
+	/// its byte order mark.
+	/// </summary>
+	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x48, 0x69 })]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
+	public async Task HandleKeyReleasedAsync_Copies_The_Text_In_Its_Encoding(byte[] contents)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		KeyStroke[] keyStrokes =
+		[
+			new()
+			{
+				Code = code,
+				Mask = mask
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(keyStrokes.ToHotkeyDtos());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(contents);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetTextAsync("Hi");
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the lock states count neither in the typed keys nor in the
 	/// stored hotkey.
 	/// </summary>
@@ -477,7 +627,7 @@ internal class KeyboardInputHookTests
 
 			contentCipher
 				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(RandomValues.CreateBytes(10));
+				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
 
 			builder.RegisterInstance(contentCipher);
 

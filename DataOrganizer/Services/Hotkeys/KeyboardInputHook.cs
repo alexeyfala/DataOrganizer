@@ -342,9 +342,15 @@ public sealed class KeyboardInputHook :
 
 			try
 			{
-				string text = TextDefaults
-					.Encoding
-					.GetString(contents);
+				// Bytes that are not text would reach the clipboard as garbage.
+				if (FileTextCodec.TryRead(contents) is not { } text)
+				{
+					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
+
+					_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+
+					return;
+				}
 
 				if (string.IsNullOrEmpty(text))
 				{

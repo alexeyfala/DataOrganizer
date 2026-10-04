@@ -829,4 +829,7 @@
   <data name="FailedToOpenInOS" xml:space="preserve">
     <value>Failed to open in OS</value>
   </data>
+  <data name="CharacterNotInEncodingFormat" xml:space="preserve">
+    <value>The character "{0}" is not in the {1} encoding. The changes are not saved.</value>
+  </data>
 </root>

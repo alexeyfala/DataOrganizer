@@ -342,18 +342,20 @@ internal class EmbeddedFileEditorViewModelTests
 	/// that starts with a byte order mark.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task EditorLoaded_Names_The_Encoding([Values] bool hasByteOrderMark)
+	[TestCase(new byte[] { 0x41 }, "UTF-8")]
+	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x41 }, "UTF-8-BOM")]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x41, 0x00 }, "UTF-16 LE BOM")]
+	[TestCase(new byte[] { 0xFE, 0xFF, 0x00, 0x41 }, "UTF-16 BE BOM")]
+	public async Task EditorLoaded_Names_The_Encoding(byte[] contents, string expected)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			byte[] mark = hasByteOrderMark ? Encoding.UTF8.GetPreamble() : [];
-
 			ValidatedContents fileContents = new()
 			{
-				Contents = [.. mark, .. TextDefaults.Encoding.GetBytes(RandomString.Create(10))],
+				Contents = [.. contents],
 				IsValid = true
 			};
 
@@ -376,7 +378,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		sut.EncodingName
 			.Should()
-			.Be(hasByteOrderMark ? "UTF-8-BOM" : "UTF-8");
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -567,6 +569,95 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
 			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a file that is not UTF-8 opens for editing in the fallback
+	/// code page.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Reads_A_Text_That_Is_Not_UTF8_In_The_Fallback()
+	{
+		// Arrange
+		byte[] contents = [0xC0, 0xC1, 0xC2];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. contents],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(FileTextCodec.Fallback.GetString(contents));
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: a file in UTF-16 or UTF-32 is read by its byte order mark,
+	/// which stays out of the text.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
+	[TestCase(new byte[] { 0xFE, 0xFF, 0x00, 0x48, 0x00, 0x69 })]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x00, 0x00, 0x48, 0x00, 0x00, 0x00, 0x69, 0x00, 0x00, 0x00 })]
+	public async Task EditorLoaded_Reads_The_Text_In_Its_Unicode_Encoding(byte[] contents)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. contents],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be("Hi");
 	}
 
 	/// <summary>
@@ -1181,6 +1272,72 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text with a character that the encoding of
+	/// the file does not have is not saved, and the flush says so, so the contents are not hidden over the edit.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Keeps_A_Text_Outside_The_Encoding_Unsaved()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				// Not UTF-8, so in the fallback code page, which has no emoji
+				Contents = [0xC0, 0xC1, 0xC2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text += "😀";
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Completing the save channel lets its consumer run to the end.
+		sut.Dispose();
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(false);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush of a file nobody edited writes nothing,
 	/// also when the file starts with a byte order mark.
 	/// </summary>
@@ -1261,8 +1418,8 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			ValidatedContents fileContents = new()
 			{
-				// "Привет" in Windows-1251
-				Contents = [0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
+				// Start of a PNG image: its signature and the length of its first chunk
+				Contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
 				IsValid = true
 			};
 
@@ -1303,6 +1460,92 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
 			.UpdateFilePropertiesAsync(default, default!, default);
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: once the character that the encoding of the
+	/// file does not have is gone, the text is saved again.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Saves_A_Text_That_Fits_The_Encoding_Again()
+	{
+		// Arrange
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				// Not UTF-8, so in the fallback code page, which has no emoji
+				Contents = [0xC0, 0xC1, 0xC2],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		string text = sut.Document.Text;
+
+		sut.Document.Text = $"{text}😀";
+
+		FlushEditorsMessage refused = new();
+
+		sut.Receive(refused);
+
+		await refused.GetResponsesAsync();
+
+		sut.Document.Text = $"{text}x";
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		byte[] expected = [0xC0, 0xC1, 0xC2, 0x78];
+
+		saved
+			.Should()
+			.Equal(expected);
 
 		responses
 			.Should()
@@ -1457,6 +1700,80 @@ internal class EmbeddedFileEditorViewModelTests
 		saved
 			.Should()
 			.Equal(TextDefaults.Encoding.GetBytes(text));
+
+		responses
+			.Should()
+			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: an edited file is saved in the encoding it was
+	/// loaded in, with its byte order mark, and a file that is not UTF-8 in the fallback code page.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCaseSource(nameof(TypedEncodedContents))]
+	public async Task Receive_Flush_Saves_The_Text_In_The_Encoding_It_Loaded(byte[] contents, byte[] expected)
+	{
+		// Arrange
+		byte[]? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = [.. contents],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text += "x";
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		saved
+			.Should()
+			.Equal(expected);
 
 		responses
 			.Should()
@@ -2003,14 +2320,39 @@ internal class EmbeddedFileEditorViewModelTests
 	/// </summary>
 	private static byte[][] NonTextContents() =>
 	[
-		// UTF-16 with a byte order mark
-		[0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00],
 		// UTF-16 without a byte order mark: valid UTF-8, but with zero bytes
 		[0x48, 0x00, 0x69, 0x00],
-		// Windows-1251
-		[0xCF, 0xF0, 0xE8, 0xE2, 0xE5, 0xF2],
-		// Signature of a PNG image
-		[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+		// Start of a PNG image: its signature and the length of its first chunk
+		[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
+		// Bytes that are not UTF-8, with control characters that no text holds
+		[0xC9, 0x01, 0x02, 0x10]
+	];
+
+	/// <summary>
+	/// Contents of files in encodings other than UTF-8, each with the bytes it has after an "x" is typed at its end.
+	/// </summary>
+	private static byte[][][] TypedEncodedContents() =>
+	[
+		// UTF-16 LE with a byte order mark
+		[
+			[0xFF, 0xFE, 0x41, 0x00],
+			[0xFF, 0xFE, 0x41, 0x00, 0x78, 0x00]
+		],
+		// UTF-16 BE with a byte order mark
+		[
+			[0xFE, 0xFF, 0x00, 0x41],
+			[0xFE, 0xFF, 0x00, 0x41, 0x00, 0x78]
+		],
+		// UTF-32 LE with a byte order mark
+		[
+			[0xFF, 0xFE, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00],
+			[0xFF, 0xFE, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00, 0x78, 0x00, 0x00, 0x00]
+		],
+		// Not UTF-8, so in the fallback code page, where the letter keeps its ASCII byte
+		[
+			[0xC0, 0xC1, 0xC2],
+			[0xC0, 0xC1, 0xC2, 0x78]
+		]
 	];
 	#endregion
 }

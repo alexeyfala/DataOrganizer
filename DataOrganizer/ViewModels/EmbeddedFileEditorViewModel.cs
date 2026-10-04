@@ -18,12 +18,11 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
+using System.Globalization;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -180,8 +179,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			// Contents that are not text would come back from the editor re-encoded and overwrite the file.
-			if (!IsText(output))
+			// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
+			if (FileTextCodec.Detect(output) is not { } encoding || FileTextCodec.TryDecode(output, encoding) is not { } text)
 			{
 				IsContentUnavailable = true;
 
@@ -195,14 +194,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			}
 
 			// The mark belongs to the file rather than to its text: it stays out of the document and returns on save.
-			_hasByteOrderMark = output
-				.AsSpan()
-				.StartsWith(Encoding.UTF8.Preamble);
+			_encoding = encoding;
 
 			// A new document starts with an empty undo stack, so the loaded text cannot be undone.
-			TextDocument document = new(TextDefaults
-				.Encoding
-				.GetString(output.AsSpan(_hasByteOrderMark ? Encoding.UTF8.Preamble.Length : 0)));
+			TextDocument document = new(text);
 
 			Document = document;
 
@@ -213,9 +208,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// The language comes after the text, so the highlighting starts on the document it colors.
 			SyntaxLanguage = DefaultSyntaxLanguage;
 
-			EncodingName = _hasByteOrderMark
-				? Utf8WithByteOrderMarkName
-				: Utf8Name;
+			EncodingName = encoding.Name;
 
 			_lastSavedContentHash = SHA256.HashData(output);
 
@@ -257,16 +250,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Name of the encoding of a file stored without a byte order mark.
-	/// </summary>
-	private const string Utf8Name = "UTF-8";
-
-	/// <summary>
-	/// Name of the encoding of a file that starts with a byte order mark.
-	/// </summary>
-	private const string Utf8WithByteOrderMarkName = "UTF-8-BOM";
-
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
@@ -283,9 +266,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	});
 
 	/// <summary>
-	/// <c>True</c> when the file starts with a byte order mark, which the document text leaves out.
+	/// Encoding of the file, which its text is saved in; <c>null</c> until the contents are loaded.
 	/// </summary>
-	private bool _hasByteOrderMark;
+	private FileEncoding? _encoding;
+
+	/// <summary>
+	/// <c>True</c> while the text holds a character that the encoding of the file does not have, so it is not saved.
+	/// </summary>
+	private bool _isTextOutsideEncoding;
 
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
@@ -423,22 +411,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
+		// A text that the encoding of the file cannot hold stays unsaved as well.
 		return await isDrained
 			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
-			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed);
+			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !_isTextOutsideEncoding;
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// <c>True</c> when <paramref name="contents" /> is UTF-8 text, which the editor saves back unchanged.
-	/// </summary>
-	private static bool IsText(ReadOnlySpan<byte> contents)
-	{
-		// A zero byte is valid UTF-8, yet in a file it marks binary data or UTF-16 text.
-		return Utf8.IsValid(contents) && !contents.Contains((byte)0);
-	}
-
 	/// <summary>
 	/// Creates <see cref="FileEditorState" /> from the view model.
 	/// </summary>
@@ -466,22 +446,37 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Queues the current text of the document for saving.
+	/// Queues the current text of the document for saving in the encoding of the file; a text with a character that the
+	/// encoding does not have stays unsaved.
 	/// </summary>
 	private void EnqueueSave(TextDocument document)
 	{
-		string text = document.Text;
+		if (_encoding is not { } encoding)
+		{
+			return;
+		}
 
 		// The byte order mark taken off the text on load goes back in front of it.
-		ReadOnlySpan<byte> preamble = _hasByteOrderMark ? Encoding.UTF8.Preamble : [];
+		if (FileTextCodec.TryEncode(document.Text, encoding, out string? missingCharacter) is not { } contents)
+		{
+			// The warning comes once, not after every pause in typing, until the text fits again.
+			if (!_isTextOutsideEncoding)
+			{
+				_isTextOutsideEncoding = true;
 
-		byte[] contents = new byte[preamble.Length + TextDefaults.Encoding.GetByteCount(text)];
+				_notification.ShowWarningSnackbar(string.Format(
+					CultureInfo.CurrentCulture,
+					Strings.CharacterNotInEncodingFormat,
+					missingCharacter,
+					encoding.Name));
 
-		preamble.CopyTo(contents);
+				_logger.LogWarning($@"The text of file ""{FileId}"" does not fit {encoding.Name} and is not saved");
+			}
 
-		TextDefaults
-			.Encoding
-			.GetBytes(text, contents.AsSpan(preamble.Length));
+			return;
+		}
+
+		_isTextOutsideEncoding = false;
 
 		if (_saveChannel
 			.Writer

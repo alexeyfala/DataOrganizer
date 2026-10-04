@@ -127,9 +127,13 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		try
 		{
-			string text = TextDefaults
-				.Encoding
-				.GetString(contents);
+			// A preview is rendered on demand, so contents that are not text only reach the log.
+			if (FileTextCodec.TryRead(contents) is not { } text)
+			{
+				_logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
+
+				return;
+			}
 
 			if (string.IsNullOrEmpty(text))
 			{

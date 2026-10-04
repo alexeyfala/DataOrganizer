@@ -31,6 +31,124 @@ internal class CopyContentViewModelBaseTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: contents that are not text never reach the clipboard.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CopyContentAsync_Copies_Nothing_That_Is_Not_Text()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			dbAccess
+				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(8),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			// UTF-16 without a byte order mark
+			byte[] contents = [0x48, 0x00, 0x69, 0x00];
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(contents);
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+
+		// Act
+		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+
+		// Assert
+		await clipboard
+			.DidNotReceive()
+			.SetTextAsync(Arg.Any<string>());
+
+		await clipboard
+			.DidNotReceive()
+			.SetDataAsync(Arg.Any<DataTransfer>());
+	}
+
+	/// <summary>
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: copies the text in the encoding of the file, without its byte
+	/// order mark.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x48, 0x69 })]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
+	public async Task CopyContentAsync_Copies_The_Text_In_Its_Encoding(byte[] contents)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			dbAccess
+				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(8),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(contents);
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+
+		// Act
+		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetTextAsync("Hi");
+	}
+
+	/// <summary>
 	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: encrypted content is flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext content uses <see cref="IClipboardAccessor.SetTextAsync" />.
 	/// </summary>
 	[AvaloniaTest]
