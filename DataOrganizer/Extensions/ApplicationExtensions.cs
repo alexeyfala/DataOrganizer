@@ -79,8 +79,15 @@ internal static class ApplicationExtensions
 	/// </summary>
 	public static DialogHost? FindDialogHost(this Application target)
 	{
-		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase)
-			.FindLogicalDescendantOfType<DialogHost>();
+		return FindMainWindow(target).FindLogicalDescendantOfType<DialogHost>();
+	}
+
+	/// <summary>
+	/// Searches for the main window among those already running in the application.
+	/// </summary>
+	public static Window? FindMainWindow(this Application target)
+	{
+		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase);
 	}
 
 	/// <summary>
