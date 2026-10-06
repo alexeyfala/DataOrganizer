@@ -70,6 +70,11 @@ internal class DocumentEditorViewTests
 	private const string LanguageBlockName = "LanguageBlock";
 
 	/// <summary>
+	/// Name of the status bar block with the length of the text in the markup.
+	/// </summary>
+	private const string LengthBlockName = "LengthBlock";
+
+	/// <summary>
 	/// Name of the status bar block with the line endings of the text in the markup.
 	/// </summary>
 	private const string LineEndingBlockName = "LineEndingBlock";
@@ -1603,6 +1608,47 @@ internal class DocumentEditorViewTests
 		right
 			.Should()
 			.BeLessThanOrEqualTo(sut.Bounds.Width);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: numbers that change as the encoding block appears, as on loading a file, are
+	/// shown whole rather than cut to the widths of the old ones.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Keeps_The_Numbers_Whole_When_The_Encoding_Block_Appears()
+	{
+		// Arrange
+		string text = string.Join("\n", Enumerable.Repeat(PowerShellText, 12));
+
+		DocumentEditorView sut = new()
+		{
+			Document = new(string.Empty)
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		// Act
+		sut.Document = new(text);
+
+		// The caret at the end of the text widens the numbers of the caret block as well.
+		editor.PrimaryEditor.CaretOffset = text.Length;
+
+		sut.EncodingName = "UTF-8";
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		Control[] numbers =
+		[
+			.. sut.GetControl<StackPanel>(CaretBlockName).Children,
+			.. sut.GetControl<StackPanel>(LengthBlockName).Children
+		];
+
+		numbers.Select(x => x.Bounds.Width)
+			.Should()
+			.Equal(numbers.Select(x => x.DesiredSize.Width));
 	}
 
 	/// <summary>

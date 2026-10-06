@@ -420,8 +420,13 @@
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
+				<!--
+					A loaded file shows the encoding block, and the status bar measures the blocks under new widths.
+					Unlike WPF, Avalonia then skips the arrange of a block kept in size by its minimum width, so its
+					numbers would stay in the widths of the old ones and be cut. This panel arranges them again.
+				-->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<StackPanel
+					<controls:RearrangingStackPanel
 						x:Name="CaretBlock"
 						MinWidth="240.0"
 						Margin="8.0,4.0"
@@ -432,13 +437,15 @@
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
-					</StackPanel>
+					</controls:RearrangingStackPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
+				<!--  The numbers of the length are arranged again for the same reason as those of the caret.  -->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<StackPanel
+					<controls:RearrangingStackPanel
+						x:Name="LengthBlock"
 						MinWidth="180.0"
 						Margin="8.0,4.0"
 						Orientation="Horizontal"
@@ -446,7 +453,7 @@
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
-					</StackPanel>
+					</controls:RearrangingStackPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
