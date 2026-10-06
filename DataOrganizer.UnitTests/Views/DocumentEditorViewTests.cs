@@ -13,9 +13,13 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
+using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Views;
 using Shared.Extensions;
@@ -36,14 +40,24 @@ internal class DocumentEditorViewTests
 	private const string CaretBlockName = "CaretBlock";
 
 	/// <summary>
+	/// Name of the list of the items of a status bar block in the markup.
+	/// </summary>
+	private const string ChoicesListName = "ChoicesList";
+
+	/// <summary>
+	/// Name of the button of a status bar block that opens its list in the markup.
+	/// </summary>
+	private const string CurrentChoiceName = "CurrentChoice";
+
+	/// <summary>
 	/// Name of the editor with the halves in the markup.
 	/// </summary>
 	private const string EditorName = "Editor";
 
 	/// <summary>
-	/// Name of the caption of the encoding in the markup.
+	/// Name of the status bar block with the encoding of the text in the markup.
 	/// </summary>
-	private const string EncodingCaptionName = "EncodingCaption";
+	private const string EncodingBlockName = "EncodingBlock";
 
 	/// <summary>
 	/// A block of PowerShell whose braces stand on lines of their own, which folds from its first line to its last.
@@ -54,6 +68,21 @@ internal class DocumentEditorViewTests
 	/// Name of the status bar block with the language of the text in the markup.
 	/// </summary>
 	private const string LanguageBlockName = "LanguageBlock";
+
+	/// <summary>
+	/// Name of the status bar block with the length of the text in the markup.
+	/// </summary>
+	private const string LengthBlockName = "LengthBlock";
+
+	/// <summary>
+	/// Name of the status bar block with the line endings of the text in the markup.
+	/// </summary>
+	private const string LineEndingBlockName = "LineEndingBlock";
+
+	/// <summary>
+	/// Name of the separator on the left of the status bar block with the line endings in the markup.
+	/// </summary>
+	private const string LineEndingSeparatorName = "LineEndingSeparator";
 
 	/// <summary>
 	/// Language of <see cref="PowerShellText" />.
@@ -127,7 +156,7 @@ internal class DocumentEditorViewTests
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
-		StackPanel caretBlock = sut.GetControl<StackPanel>(CaretBlockName);
+		Panel caretBlock = sut.GetControl<Panel>(CaretBlockName);
 
 		editor
 			.TextArea
@@ -617,6 +646,93 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="Control.ContextFlyout" />: the menu leaves the line endings to the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextFlyout_Leaves_The_Line_Endings_To_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		GetFlyoutCommands(editor.ContextFlyout)
+			.Should()
+			.NotContain(editor.PrimaryEditor.ConvertLineEndingsCommand);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ConvertLineEndingsCommand" />: a style taken in the status bar becomes the style of
+	/// every line break of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConvertLineEndingsCommand_Brings_Every_Line_Break_To_The_Chosen_Style()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB\r\nC")
+		};
+
+		Window window = Show(sut);
+
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		Button button = block.GetControl<Button>(CurrentChoiceName);
+
+		button.Flyout!.ShowAt(button);
+
+		Dispatcher.UIThread.RunJobs();
+
+		ListBox list = block.GetControl<ListBox>(ChoicesListName);
+
+		SelectorChoice unix = list
+			.Items
+			.Cast<SelectorChoice>()
+			.Single(static x => x.Id == nameof(LineEnding.Lf));
+
+		Point point = Center(window, list.ContainerFromItem(unix)!);
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Document!.Text
+			.Should()
+			.Be("A\nB\nC");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.DefaultEncoding" />: the encoding that the text takes by default reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultEncoding_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			DefaultEncoding = "windows-1251",
+			EncodingName = "Windows-1251"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).DefaultChoice
+			.Should()
+			.Be("windows-1251");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.DefaultSyntaxLanguage" />: the language that the text takes by default reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
@@ -632,7 +748,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).DefaultSyntaxLanguage
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).DefaultChoice
 			.Should()
 			.Be(PowerShellLanguage);
 	}
@@ -716,6 +832,54 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.Encoding" />: an encoding chosen in the status bar becomes the encoding of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Follows_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Encoding = "windows-1251",
+			EncodingName = "Windows-1251"
+		};
+
+		Show(sut);
+
+		// Act
+		sut
+			.GetControl<ChoiceSelector>(EncodingBlockName)
+			.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "cp866");
+
+		// Assert
+		sut.Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.Encoding" />: the encoding of the text reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Encoding = "cp866",
+			EncodingName = "CP866"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).SelectedChoice
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.EncodingName" />: the name of the encoding reaches the status bar.
 	/// </summary>
 	[AvaloniaTest]
@@ -731,9 +895,34 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextBlock>(EncodingCaptionName).Text
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).Caption
 			.Should()
 			.Be("UTF-8-BOM");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.FindUnreadableEncodingsCommand" />: the command reaches the list of encodings, which
+	/// runs it as it opens.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindUnreadableEncodingsCommand_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		RelayCommand command = new(static () => { });
+
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8",
+			FindUnreadableEncodingsCommand = command
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).FlyoutOpeningCommand
+			.Should()
+			.BeSameAs(command);
 	}
 
 	/// <summary>
@@ -795,6 +984,29 @@ internal class DocumentEditorViewTests
 		margin.SelectedFoldingMarkerBrush
 			.Should()
 			.BeSameAs(sut.FindResource("MaterialBodyBrush"));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.IsReadOnly" />: in read-only mode the line endings cannot be changed in the status
+	/// bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsReadOnly_Disables_The_Line_Endings([Values] bool isReadOnly)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB"),
+			IsReadOnly = isReadOnly
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsEffectivelyEnabled
+			.Should()
+			.Be(!isReadOnly);
 	}
 
 	/// <summary>
@@ -906,6 +1118,46 @@ internal class DocumentEditorViewTests
 		GetScrollViewer(sut).Offset
 			.Should()
 			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.LanguageChoices" />: the status bar offers plain text first and then every language with
+	/// a grammar.
+	/// </summary>
+	[AvaloniaTest]
+	public void LanguageChoices_Offer_Plain_Text_First_And_Then_Every_Language()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		string?[] expected = [null, .. SyntaxRegistry.Instance.Languages.Select(static x => x.Id)];
+
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).Choices!.Select(static x => x.Id)
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.LineEndingChoices" />: the status bar offers the three line break styles, named as it
+	/// names the style of the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void LineEndingChoices_Reach_The_Status_Bar()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).Choices!.Select(static x => x.Name)
+			.Should()
+			.Equal(LineEnding.CrLf.ToCaption(), LineEnding.Lf.ToCaption(), LineEnding.Cr.ToCaption());
 	}
 
 	/// <summary>
@@ -1296,6 +1548,37 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: in a window too narrow for the numbers of the caret, the number that is cut
+	/// ends with an ellipsis.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Ends_A_Cut_Number_With_An_Ellipsis()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new(PowerShellText)
+		};
+
+		Window window = Show(sut);
+
+		Panel block = sut.GetControl<Panel>(CaretBlockName);
+
+		Control slot = (Control)block.Parent!;
+
+		// Act
+		// The blocks on the right keep their widths, and the block of the caret gets half of its own.
+		window.Width = sut.Bounds.Width - slot.Bounds.Right + (slot.Bounds.Width / 2.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		block.Children.OfType<TextBlock>().Select(static x => x.TextLayout.TextLines[0].HasCollapsed)
+			.Should()
+			.Contain(true);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView" />: in a window too narrow for the status bar the block on the right edge stays whole
 	/// and in view, while the blocks on the left give way.
 	/// </summary>
@@ -1310,9 +1593,9 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		TextBlock caption = sut.GetControl<TextBlock>(EncodingCaptionName);
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(EncodingBlockName);
 
-		double width = caption.Bounds.Width;
+		double width = block.Bounds.Width;
 
 		// Act
 		window.Width = 400.0;
@@ -1320,15 +1603,77 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		caption.Bounds.Width
+		block.Bounds.Width
 			.Should()
 			.Be(width);
 
-		double? right = caption.TranslatePoint(new(width, 0.0), sut)?.X;
+		double? right = block.TranslatePoint(new(width, 0.0), sut)?.X;
 
 		right
 			.Should()
 			.BeLessThanOrEqualTo(sut.Bounds.Width);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: numbers that change as the encoding block appears, as on loading a file, are
+	/// shown whole rather than cut to the widths of the old ones.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Keeps_The_Numbers_Whole_When_The_Encoding_Block_Appears()
+	{
+		// Arrange
+		string text = string.Join("\n", Enumerable.Repeat(PowerShellText, 12));
+
+		DocumentEditorView sut = new()
+		{
+			Document = new(string.Empty)
+		};
+
+		Show(sut);
+
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		// Act
+		sut.Document = new(text);
+
+		// The caret at the end of the text widens the numbers of the caret block as well.
+		editor.PrimaryEditor.CaretOffset = text.Length;
+
+		sut.EncodingName = "UTF-8";
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		Control[] numbers =
+		[
+			.. sut.GetControl<Panel>(CaretBlockName).Children,
+			.. sut.GetControl<Panel>(LengthBlockName).Children
+		];
+
+		numbers.Select(x => x.Bounds.Width)
+			.Should()
+			.Equal(numbers.Select(x => x.DesiredSize.Width));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar offers every encoding that a text can be read in.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Offers_Every_Encoding()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).Choices
+			.Should()
+			.BeSameAs(FileTextCodec.EncodingChoices);
 	}
 
 	/// <summary>
@@ -1347,9 +1692,125 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<TextBlock>(EncodingCaptionName).IsVisible
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).IsVisible
 			.Should()
 			.Be(isGiven);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar names the line break style of the text and selects it in its
+	/// list.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Shows_The_Line_Endings()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\nB")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		block.Caption
+			.Should()
+			.Be(LineEnding.Lf.ToCaption());
+
+		block.SelectedChoice
+			.Should()
+			.Be(nameof(LineEnding.Lf));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the block of the line endings shows only in a text with line breaks, together
+	/// with its separator.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Shows_The_Line_Endings_Only_With_Line_Breaks([Values] bool hasLineBreaks)
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new(hasLineBreaks ? "A\r\nB" : "One line")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsVisible
+			.Should()
+			.Be(hasLineBreaks);
+
+		sut.GetControl<Panel>(LineEndingSeparatorName).IsVisible
+			.Should()
+			.Be(hasLineBreaks);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the block of the line endings shows its tip while it is disabled in read-only
+	/// mode.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Shows_The_Tip_Of_The_Disabled_Line_Endings()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB"),
+			IsReadOnly = true
+		};
+
+		Window window = Show(sut);
+
+		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
+
+		// The tip opens at once rather than after the delay of the theme.
+		ToolTip.SetShowDelay(block, 0);
+
+		// Act
+		window.MouseMove(Center(window, block));
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		block.IsEffectivelyEnabled
+			.Should()
+			.BeFalse();
+
+		ToolTip.GetIsOpen(block)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the status bar tells why an encoding cannot be chosen, while the languages can
+	/// all be chosen.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Tells_Why_An_Encoding_Cannot_Be_Chosen()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8"
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableTip
+			.Should()
+			.NotBeNullOrEmpty();
+
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).UnavailableTip
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -1368,8 +1829,8 @@ internal class DocumentEditorViewTests
 
 		// Act
 		sut
-			.GetControl<SyntaxLanguageSelector>(LanguageBlockName)
-			.SetCurrentValue(SyntaxLanguageSelector.SyntaxLanguageProperty, "bat");
+			.GetControl<ChoiceSelector>(LanguageBlockName)
+			.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "bat");
 
 		// Assert
 		sut.SyntaxLanguage
@@ -1414,7 +1875,7 @@ internal class DocumentEditorViewTests
 		Show(sut);
 
 		// Assert
-		sut.GetControl<SyntaxLanguageSelector>(LanguageBlockName).SyntaxLanguage
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).SelectedChoice
 			.Should()
 			.Be(PowerShellLanguage);
 	}
@@ -1443,6 +1904,31 @@ internal class DocumentEditorViewTests
 		button.DataContext
 			.Should()
 			.BeSameAs(dataContext);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.UnreadableEncodings" />: the encodings that cannot read the text reach the status
+	/// bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnreadableEncodings_Reach_The_Status_Bar()
+	{
+		// Arrange
+		string[] unreadable = ["utf-32"];
+
+		DocumentEditorView sut = new()
+		{
+			EncodingName = "UTF-8",
+			UnreadableEncodings = unreadable
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableChoices
+			.Should()
+			.BeSameAs(unreadable);
 	}
 
 	/// <summary>

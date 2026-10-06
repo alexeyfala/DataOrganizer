@@ -18,12 +18,13 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -37,6 +38,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 {
 	#region Properties
 	/// <summary>
+	/// Web name of the encoding that the contents of the file are found to be in; <c>null</c> when they are not found to be
+	/// text.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? DefaultEncoding { get; private set; }
+
+	/// <summary>
 	/// Language that the extension of the file gives its text; <c>null</c> for plain text.
 	/// </summary>
 	[ObservableProperty]
@@ -47,6 +55,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	[ObservableProperty]
 	public partial TextDocument Document { get; private set; } = new();
+
+	/// <summary>
+	/// Web name of the encoding the text is read in and saved in; another one reads the text again from the same bytes.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Encoding { get; set; }
 
 	/// <summary>
 	/// Name of the encoding the file is stored in.
@@ -102,6 +116,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	[ObservableProperty]
 	public partial string? SyntaxLanguage { get; set; }
+
+	/// <summary>
+	/// Web names of the encodings that cannot read the text as the file stores it; <c>null</c> when they are not known.
+	/// </summary>
+	[ObservableProperty]
+	public partial IReadOnlyCollection<string>? UnreadableEncodings { get; private set; }
 
 	/// <summary>
 	/// Caret, selection, scroll position, bookmarks and folded blocks of <see cref="Document" />.
@@ -180,57 +200,48 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			// Contents that are not text would come back from the editor re-encoded and overwrite the file.
-			if (!IsText(output))
-			{
-				IsContentUnavailable = true;
-
-				output.ZeroMemory();
-
-				_notification.ShowWarningSnackbar(Strings.NonTextFileContents);
-
-				_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{FileId}""");
-
-				return;
-			}
-
-			// The mark belongs to the file rather than to its text: it stays out of the document and returns on save.
-			_hasByteOrderMark = output
-				.AsSpan()
-				.StartsWith(Encoding.UTF8.Preamble);
-
-			// A new document starts with an empty undo stack, so the loaded text cannot be undone.
-			TextDocument document = new(TextDefaults
-				.Encoding
-				.GetString(output.AsSpan(_hasByteOrderMark ? Encoding.UTF8.Preamble.Length : 0)));
-
-			Document = document;
-
-			DefaultSyntaxLanguage = SyntaxRegistry
-				.Instance
-				.FindLanguage(FileName);
-
-			// The language comes after the text, so the highlighting starts on the document it colors.
-			SyntaxLanguage = DefaultSyntaxLanguage;
-
-			EncodingName = _hasByteOrderMark
-				? Utf8WithByteOrderMarkName
-				: Utf8Name;
-
-			_lastSavedContentHash = SHA256.HashData(output);
-
 			try
 			{
-				await InitializeEditorStateAsync().ConfigureAwait(true);
+				// The state comes before the text, as it holds the encoding chosen for the text.
+				FileEditorState? state = await ReadEditorStateAsync().ConfigureAwait(true);
 
-				TimeSpan delay = TimeSpan.FromSeconds(0.5);
+				// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
+				if (FileTextCodec.TryRead(output, state?.Encoding) is not { } read)
+				{
+					IsContentUnavailable = true;
 
-				Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => document.TextChanged += x,
-					x => document.TextChanged -= x)
-					.SetDelay(delay)
-					.Subscribe(Document_TextChanged)
-					.DisposeWith(_disposables);
+					_notification.ShowWarningSnackbar(Strings.NonTextFileContents);
+
+					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{FileId}""");
+
+					return;
+				}
+
+				// The mark belongs to the file rather than to its text: it stays out of the document and returns on save.
+				_fileEncoding = read.Encoding;
+
+				// A new document starts with an empty undo stack, so the loaded text cannot be undone.
+				SetDocument(new(read.Text));
+
+				DefaultSyntaxLanguage = SyntaxRegistry
+					.Instance
+					.FindLanguage(FileName);
+
+				// The language comes after the text, so the highlighting starts on the document it colors.
+				SyntaxLanguage = DefaultSyntaxLanguage;
+
+				DefaultEncoding = FileTextCodec
+					.Detect(output)?
+					.Encoding
+					.WebName;
+
+				Encoding = read.Encoding.Encoding.WebName;
+
+				EncodingName = read.Encoding.Name;
+
+				_lastSavedContentHash = SHA256.HashData(output);
+
+				ApplyEditorState(state);
 
 				_exceptionHandler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
 
@@ -254,21 +265,42 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			IsInitialized = true;
 		}
 	}
+
+	/// <summary>
+	/// Finds <see cref="UnreadableEncodings" /> for the text as it is now.
+	/// </summary>
+	[RelayCommand]
+	internal void FindUnreadableEncodings()
+	{
+		// Once saved, the text in the encoding of the file gives the stored bytes, which another encoding reads again. A text
+		// that the encoding cannot hold has no such bytes, and a choice keeps the encoding then.
+		if (_fileEncoding is not { } current
+			|| FileTextCodec.TryEncode(Document.Text, current, out _) is not { } contents)
+		{
+			UnreadableEncodings = null;
+
+			return;
+		}
+
+		try
+		{
+			UnreadableEncodings = FileTextCodec.FindUnreadableEncodings(contents);
+		}
+		finally
+		{
+			contents.ZeroMemory();
+		}
+	}
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Name of the encoding of a file stored without a byte order mark.
-	/// </summary>
-	private const string Utf8Name = "UTF-8";
-
-	/// <summary>
-	/// Name of the encoding of a file that starts with a byte order mark.
-	/// </summary>
-	private const string Utf8WithByteOrderMarkName = "UTF-8-BOM";
-
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
+
+	/// <summary>
+	/// Subscription to the pauses in the typing of <see cref="Document" />, which a new document replaces.
+	/// </summary>
+	private readonly SerialDisposable _documentChanges = new();
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
@@ -283,9 +315,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	});
 
 	/// <summary>
-	/// <c>True</c> when the file starts with a byte order mark, which the document text leaves out.
+	/// Encoding of the file, which its text is saved in; <c>null</c> until the contents are loaded.
 	/// </summary>
-	private bool _hasByteOrderMark;
+	private FileEncoding? _fileEncoding;
+
+	/// <summary>
+	/// <c>True</c> while the text holds a character that the encoding of the file does not have, so it is not saved.
+	/// </summary>
+	private bool _isTextOutsideEncoding;
 
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
@@ -325,6 +362,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			exceptionHandler)
 	{
 		_dbFailureReporter = dbFailureReporter;
+
+		_documentChanges.DisposeWith(_disposables);
 	}
 	#endregion
 
@@ -346,6 +385,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Partial
+	/// <summary>
+	/// Called when <see cref="Encoding" /> changes.
+	/// </summary>
+	partial void OnEncodingChanged(string? value)
+	{
+		// The encoding of the file comes back here when it loads and when a choice is refused.
+		if (_fileEncoding is not { } current
+			|| value is null
+			|| value == current.Encoding.WebName)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(ChangeEncodingAsync(value));
+	}
+
 	/// <summary>
 	/// Called when <see cref="FontSize" /> changes.
 	/// </summary>
@@ -396,6 +451,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
+		// No pause in typing comes after the close, so an edit still waiting for one is queued now.
+		QueuePendingChanges();
+
 		if (!_saveChannel
 			.Reader
 			.Completion
@@ -413,30 +471,128 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	protected override async Task<bool> FlushAsync(CancellationToken token = default)
 	{
 		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
-		if (!IsEditingEnabled)
+		// Nor is anything written over contents that could not be read.
+		if (!IsInitialized || IsContentUnavailable)
 		{
 			return true;
 		}
 
-		// The text change handler is debounced, so the newest text may not be queued yet.
-		EnqueueSave(Document);
+		// The text change handler is debounced, so the newest text may not be queued yet. The read-only mode queued it
+		// as it turned on and saves no change made after.
+		if (!IsReadOnly)
+		{
+			EnqueueSave(Document);
+		}
 
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
+		// A text that the encoding of the file cannot hold stays unsaved as well.
 		return await isDrained
 			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
-			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed);
+			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !_isTextOutsideEncoding;
+	}
+
+	/// <inheritdoc />
+	protected override void QueuePendingChanges()
+	{
+		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
+		if (!IsEditingEnabled)
+		{
+			return;
+		}
+
+		EnqueueSave(Document);
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// <c>True</c> when <paramref name="contents" /> is UTF-8 text, which the editor saves back unchanged.
+	/// Restores the editor state read from the database.
 	/// </summary>
-	private static bool IsText(ReadOnlySpan<byte> contents)
+	private void ApplyEditorState(FileEditorState? state)
 	{
-		// A zero byte is valid UTF-8, yet in a file it marks binary data or UTF-16 text.
-		return Utf8.IsValid(contents) && !contents.Contains((byte)0);
+		if (state is not { } value)
+		{
+			return;
+		}
+
+		FontSize = value.FontSize;
+
+		ShowEndOfLine = value.ShowEndOfLine;
+
+		ShowSpaces = value.ShowSpaces;
+
+		ShowTabs = value.ShowTabs;
+
+		SyntaxLanguage = GetSyntaxLanguage(value.SyntaxLanguage);
+
+		WordWrap = value.WordWrap;
+
+		ViewState = new DocumentViewState
+		{
+			Bookmarks = value.Bookmarks,
+			CaretPosition = value.CaretPosition,
+			FoldedBlocks = value.FoldedBlocks,
+			ScrollOffset = new(value.ScrollOffset.X, value.ScrollOffset.Y),
+			SelectionLength = value.SelectionLength,
+			SelectionStart = value.SelectionStart,
+			UnfoldedBlocks = value.UnfoldedBlocks
+		};
+
+		_logger.LogDebug(
+			$@"Editor state of ""{FileId}"" is initialized:{value.GetPropertyValues(true)}");
+	}
+
+	/// <summary>
+	/// Reads the text again from the same bytes in another encoding; an encoding that cannot read them leaves the text as
+	/// it was.
+	/// </summary>
+	private async Task ChangeEncodingAsync(string name)
+	{
+		// The text is read again from its saved bytes, which an edit that is not saved would not match.
+		if (!await FlushAsync().ConfigureAwait(true)
+			|| _fileEncoding is not { } current
+			|| FileTextCodec.TryEncode(Document.Text, current, out _) is not { } contents)
+		{
+			Encoding = _fileEncoding?.Encoding.WebName;
+
+			_notification.ShowWarningSnackbar(Strings.EncodingNotChanged);
+
+			return;
+		}
+
+		try
+		{
+			// Once saved, the text in the encoding of the file gives the stored bytes, so they need not be read again.
+			FileEncoding? chosen = FileTextCodec.Choose(contents, name);
+
+			if (chosen is null || FileTextCodec.TryDecode(contents, chosen) is not { } text)
+			{
+				Encoding = current.Encoding.WebName;
+
+				_notification.ShowWarningSnackbar(string.Format(
+					CultureInfo.CurrentCulture,
+					Strings.ContentsUnreadableInEncodingFormat,
+					chosen?.Name ?? name));
+
+				_logger.LogWarning($@"The contents of file ""{FileId}"" cannot be read in {name}");
+
+				return;
+			}
+
+			_fileEncoding = chosen;
+
+			// The text read in another encoding is not an edit, so a new document starts with an empty undo stack.
+			SetDocument(new(text));
+
+			EncodingName = chosen.Name;
+
+			TrySavePersistentEditorState();
+		}
+		finally
+		{
+			contents.ZeroMemory();
+		}
 	}
 
 	/// <summary>
@@ -450,10 +606,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		{
 			Bookmarks = view.Bookmarks,
 			CaretPosition = view.CaretPosition,
+			Encoding = GetStoredEncoding(),
 			// The blocks of a protected text would give away its outline, which its ciphertext does not.
 			FoldedBlocks = IsEncrypted ? null : view.FoldedBlocks,
 			FontSize = FontSize,
-			WordWrap = WordWrap,
 			ScrollOffset = new((int)view.ScrollOffset.X, (int)view.ScrollOffset.Y),
 			SelectionLength = view.SelectionLength,
 			SelectionStart = view.SelectionStart,
@@ -461,27 +617,43 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			ShowSpaces = ShowSpaces,
 			ShowTabs = ShowTabs,
 			SyntaxLanguage = GetStoredSyntaxLanguage(),
-			UnfoldedBlocks = IsEncrypted ? null : view.UnfoldedBlocks
+			UnfoldedBlocks = IsEncrypted ? null : view.UnfoldedBlocks,
+			WordWrap = WordWrap
 		};
 	}
 
 	/// <summary>
-	/// Queues the current text of the document for saving.
+	/// Queues the current text of the document for saving in the encoding of the file; a text with a character that the
+	/// encoding does not have stays unsaved.
 	/// </summary>
 	private void EnqueueSave(TextDocument document)
 	{
-		string text = document.Text;
+		if (_fileEncoding is not { } encoding)
+		{
+			return;
+		}
 
 		// The byte order mark taken off the text on load goes back in front of it.
-		ReadOnlySpan<byte> preamble = _hasByteOrderMark ? Encoding.UTF8.Preamble : [];
+		if (FileTextCodec.TryEncode(document.Text, encoding, out string? missingCharacter) is not { } contents)
+		{
+			// The warning comes once, not after every pause in typing, until the text fits again.
+			if (!_isTextOutsideEncoding)
+			{
+				_isTextOutsideEncoding = true;
 
-		byte[] contents = new byte[preamble.Length + TextDefaults.Encoding.GetByteCount(text)];
+				_notification.ShowWarningSnackbar(string.Format(
+					CultureInfo.CurrentCulture,
+					Strings.CharacterNotInEncodingFormat,
+					missingCharacter,
+					encoding.Name));
 
-		preamble.CopyTo(contents);
+				_logger.LogWarning($@"The text of file ""{FileId}"" does not fit {encoding.Name} and is not saved");
+			}
 
-		TextDefaults
-			.Encoding
-			.GetBytes(text, contents.AsSpan(preamble.Length));
+			return;
+		}
+
+		_isTextOutsideEncoding = false;
 
 		if (_saveChannel
 			.Writer
@@ -493,6 +665,19 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		contents.ZeroMemory();
+	}
+
+	/// <summary>
+	/// Returns the encoding to store in the editor state; <c>null</c> while the text keeps the one found from the contents.
+	/// </summary>
+	private string? GetStoredEncoding()
+	{
+		if (_fileEncoding?.Encoding.WebName is not { } encoding || encoding == DefaultEncoding)
+		{
+			return null;
+		}
+
+		return encoding;
 	}
 
 	/// <summary>
@@ -520,64 +705,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		// Plain text is stored as a language without a grammar, and so is a language whose grammar is gone.
 		return SyntaxRegistry.Instance.FindScope(stored) is null ? null : stored;
-	}
-
-	/// <summary>
-	/// Restores the editor state from the database.
-	/// </summary>
-	private async Task InitializeEditorStateAsync(CancellationToken token = default)
-	{
-		// The restored values reach the view through bindings, so they are set on the UI thread.
-		string? value = InitialEditorState ?? await _dbAccess
-			.GetFileEditorStateAsync(FileId, token)
-			.ConfigureAwait(true);
-
-		if (value is null)
-		{
-			return;
-		}
-
-		try
-		{
-			FileEditorState state = _jsonSerializer.Deserialize<FileEditorState>(value);
-
-			FontSize = state.FontSize;
-
-			ShowEndOfLine = state.ShowEndOfLine;
-
-			ShowSpaces = state.ShowSpaces;
-
-			ShowTabs = state.ShowTabs;
-
-			SyntaxLanguage = GetSyntaxLanguage(state.SyntaxLanguage);
-
-			WordWrap = state.WordWrap;
-
-			ViewState = new DocumentViewState
-			{
-				Bookmarks = state.Bookmarks,
-				CaretPosition = state.CaretPosition,
-				FoldedBlocks = state.FoldedBlocks,
-				ScrollOffset = new(state.ScrollOffset.X, state.ScrollOffset.Y),
-				SelectionLength = state.SelectionLength,
-				SelectionStart = state.SelectionStart,
-				UnfoldedBlocks = state.UnfoldedBlocks
-			};
-
-			_logger.LogDebug(
-				$@"Editor state of ""{FileId}"" is initialized:{state.GetPropertyValues(true)}");
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			if (!IsReadOnly)
-			{
-				await SaveEditorStateAsync(
-					_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options),
-					token);
-			}
-		}
 	}
 
 	/// <summary>
@@ -668,9 +795,58 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
+	/// Reads the editor state from the database; <c>null</c> when there is none or it cannot be read, in which case a new
+	/// one replaces it.
+	/// </summary>
+	private async Task<FileEditorState?> ReadEditorStateAsync(CancellationToken token = default)
+	{
+		// The restored values reach the view through bindings, so they are set on the UI thread.
+		string? value = InitialEditorState ?? await _dbAccess
+			.GetFileEditorStateAsync(FileId, token)
+			.ConfigureAwait(true);
+
+		if (value is null)
+		{
+			return null;
+		}
+
+		try
+		{
+			return _jsonSerializer.Deserialize<FileEditorState>(value);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			if (!IsReadOnly)
+			{
+				await SaveEditorStateAsync(
+					_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options),
+					token);
+			}
+
+			return null;
+		}
+	}
+
+	/// <summary>
 	/// Reports the split of the document through <see cref="SetEditorSplitCallback" />.
 	/// </summary>
 	private void ReportEditorSplit() => SetEditorSplitCallback?.Invoke(IsSplit ? SplitShare : null);
+
+	/// <summary>
+	/// Makes a document the one being edited, whose text is saved after each pause in typing.
+	/// </summary>
+	private void SetDocument(TextDocument document)
+	{
+		Document = document;
+
+		_documentChanges.Disposable = Observable.FromEventPattern<EventHandler, EventArgs>(
+			x => document.TextChanged += x,
+			x => document.TextChanged -= x)
+			.SetDelay(TimeSpan.FromSeconds(0.5))
+			.Subscribe(Document_TextChanged);
+	}
 
 	/// <summary>
 	/// Tries to save the editor state.

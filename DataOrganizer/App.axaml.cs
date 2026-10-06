@@ -202,6 +202,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
 		services.AddSingleton<IAutoLockService, AutoLockService>();
+		services.AddSingleton<IAvaloniaLogForwarder, AvaloniaLogForwarder>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();

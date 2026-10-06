@@ -41,6 +41,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -1240,6 +1241,7 @@ public partial class EditorViewModel :
 		IFileHotkeyEditor fileHotkeyEditor,
 		IFolderProtection folderProtection,
 		IHierarchyEditor hierarchyEditor,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INoteEditor noteEditor,
@@ -1259,6 +1261,7 @@ public partial class EditorViewModel :
 			dialogService,
 			dispatcher,
 			executionEngine,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,

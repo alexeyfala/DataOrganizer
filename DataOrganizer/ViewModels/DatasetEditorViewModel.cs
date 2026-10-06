@@ -623,7 +623,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
-		IClipboardAccessor clipboardService,
+		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
@@ -643,7 +643,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			notification,
 			exceptionHandler)
 	{
-		_clipboard = clipboardService;
+		_clipboard = clipboard;
 
 		_dbFailureReporter = dbFailureReporter;
 

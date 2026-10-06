@@ -114,14 +114,7 @@ internal static class AppConverters
 	/// Caption of the line endings of a document; <c>null</c> for a document without line breaks.
 	/// </summary>
 	public static FuncValueConverter<LineEnding, string?> LineEndingToCaption { get; } =
-		new(ending => ending switch
-		{
-			LineEnding.CrLf => "Windows (CR LF)",
-			LineEnding.Lf => "Unix (LF)",
-			LineEnding.Cr => "Macintosh (CR)",
-			LineEnding.Mixed => Strings.MixedLineEndings,
-			_ => null
-		});
+		new(static ending => ending.ToCaption());
 
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch

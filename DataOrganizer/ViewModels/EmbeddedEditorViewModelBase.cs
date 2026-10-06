@@ -168,6 +168,22 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called before <see cref="IsReadOnly" /> changes.
+	/// </summary>
+	partial void OnIsReadOnlyChanging(bool value)
+	{
+		// The mode keeps a pause in typing from saving, so an edit still waiting for one is queued now.
+		if (!value)
+		{
+			return;
+		}
+
+		QueuePendingChanges();
+	}
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Takes the read-only mode over from the editor window.
@@ -204,8 +220,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		}
 
 		_messenger.UnregisterAll(this);
-
-		KeeperId = null;
 	}
 
 	/// <summary>
@@ -223,6 +237,13 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			_lastSavedEditorState,
 			current,
 			StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// Queues for saving the changes that still wait for a pause in typing.
+	/// </summary>
+	protected virtual void QueuePendingChanges()
+	{
 	}
 
 	/// <summary>

@@ -10,6 +10,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Helpers.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -264,35 +265,6 @@
 											CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
 											Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
 											Icon="KeyboardTab" />
-
-										<Separator />
-
-										<controls:FlyoutButton Header="{x:Static prop:Strings.LineEndings}" Icon="FormatPilcrow">
-											<Button.Flyout>
-												<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-													<StackPanel Orientation="Vertical">
-														<!--  The same captions as in the status bar.  -->
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.CrLf}"
-															Header="{Binding Source={x:Static documents:LineEnding.CrLf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.Lf}"
-															Header="{Binding Source={x:Static documents:LineEnding.Lf}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-
-														<controls:FlyoutButton
-															Command="{Binding #Editor.ActiveEditor.ConvertLineEndingsCommand}"
-															CommandParameter="{x:Static documents:LineEnding.Cr}"
-															Header="{Binding Source={x:Static documents:LineEnding.Cr}, Mode=OneTime, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
-															Icon="KeyboardReturn" />
-													</StackPanel>
-												</Flyout>
-											</Button.Flyout>
-										</controls:FlyoutButton>
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>
@@ -382,18 +354,22 @@
 			Grid.Row="2"
 			BorderBrush="{StaticResource MaterialDividerBrush}"
 			BorderThickness="0.0,1.0,0.0,0.0">
-			<!--
-				The blocks are docked to the right edge, so they come in reverse order. Each one gets the width left
-				by the blocks on its right, and a block without enough room is cut at its right edge, as in Notepad++.
-				The language comes last and takes what is left at the left edge.
-			-->
-			<DockPanel LastChildFill="False">
+			<DockPanel LastChildFill="False" TextBlock.TextTrimming="CharacterEllipsis">
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<TextBlock
-						x:Name="EncodingCaption"
-						Margin="8.0,4.0"
+					<views:ChoiceSelector
+						x:Name="EncodingBlock"
+						Caption="{Binding #View.EncodingName, Mode=OneWay}"
+						Choices="{x:Static text:FileTextCodec.EncodingChoices}"
+						DefaultChoice="{Binding #View.DefaultEncoding, Mode=OneWay}"
+						DefaultMark="{x:Static prop:Strings.ByContents}"
+						FlyoutOpeningCommand="{Binding #View.FindUnreadableEncodingsCommand, Mode=OneWay}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="400.0"
 						IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-						Text="{Binding #View.EncodingName, Mode=OneWay}" />
+						SelectedChoice="{Binding #View.Encoding, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.Encoding}"
+						UnavailableChoices="{Binding #View.UnreadableEncodings, Mode=OneWay}"
+						UnavailableTip="{x:Static prop:Strings.ContentsUnreadableInThisEncoding}" />
 				</Border>
 
 				<Panel
@@ -401,52 +377,75 @@
 					DockPanel.Dock="Right"
 					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
+				<!--
+					A choice converts the text of the active half, and the selected item follows the status, as the ids are the
+					names of the styles. A text without line breaks hides the block with its separator.
+				-->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<TextBlock
-						MinWidth="110.0"
-						Margin="8.0,4.0"
-						Text="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+					<views:ChoiceSelector
+						x:Name="LineEndingBlock"
+						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
+						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="200.0"
+						IsEnabled="{Binding #View.IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
+						IsSearchable="False"
+						IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}"
+						SelectedChoice="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay}"
+						ToolTip.ShowOnDisabled="True"
 						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+				</Border>
+
+				<Panel
+					x:Name="LineEndingSeparator"
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right"
+					IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}" />
+
+				<!--
+					The numbers of the length and of the caret sit in DockPanels: unlike a StackPanel, a DockPanel gives
+					its children only the width there is, so a number cut by a narrow window ends with an ellipsis.
+				-->
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<DockPanel
+						x:Name="LengthBlock"
+						Margin="8.0,4.0"
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+					</DockPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<StackPanel
+					<DockPanel
 						x:Name="CaretBlock"
-						MinWidth="240.0"
 						Margin="8.0,4.0"
-						Orientation="Horizontal"
-						Spacing="{StaticResource ElementSpacing}">
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
-					</StackPanel>
-				</Border>
-
-				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
-
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<StackPanel
-						MinWidth="180.0"
-						Margin="8.0,4.0"
-						Orientation="Horizontal"
-						Spacing="{StaticResource ElementSpacing}">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
-
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
-					</StackPanel>
+					</DockPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
 				<Border ClipToBounds="True" DockPanel.Dock="Left">
-					<views:SyntaxLanguageSelector
+					<views:ChoiceSelector
 						x:Name="LanguageBlock"
-						DefaultSyntaxLanguage="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
-						SyntaxLanguage="{Binding #View.SyntaxLanguage, Mode=TwoWay}" />
+						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
+						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
+						DefaultMark="{x:Static prop:Strings.ByExtension}"
+						SelectedChoice="{Binding #View.SyntaxLanguage, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}" />
 				</Border>
 			</DockPanel>
 		</Border>

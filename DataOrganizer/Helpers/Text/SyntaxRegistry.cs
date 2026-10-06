@@ -23,9 +23,9 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	public static SyntaxRegistry Instance => LazyInstance.Value;
 
 	/// <summary>
-	/// Languages that have a grammar, sorted by name.
+	/// Languages that have a grammar, sorted by name, which the extensions of their files find.
 	/// </summary>
-	public IReadOnlyList<SyntaxLanguageChoice> Languages { get; }
+	public IReadOnlyList<SelectorChoice> Languages { get; }
 	#endregion
 
 	#region Data
@@ -67,11 +67,11 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 		Languages = [.. _options
 			.GetAvailableLanguages()
 			.DistinctBy(static x => x.Id)
-			.Select(static x => new SyntaxLanguageChoice
+			.Select(static x => new SelectorChoice
 			{
-				Extensions = [.. x.Extensions ?? []],
 				Id = x.Id,
-				Name = x.Aliases[0]
+				Name = x.Aliases[0],
+				SearchTerms = [.. (x.Extensions ?? []).Select(static y => y.TrimStart('.'))]
 			})
 			.OrderBy(static x => x.Name, StringComparer.OrdinalIgnoreCase)];
 	}

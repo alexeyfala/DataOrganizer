@@ -22,9 +22,11 @@ public static class ItemDtoFactory
 		in bool isEditing = false,
 		in bool isExecuting = false,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None,
-		EntityKind kind = EntityKind.File) => new()
+		EntityKind kind = EntityKind.File,
+		string? editorState = null) => new()
 		{
 			CreatedAt = DateTime.Now,
+			EditorState = editorState,
 			EncryptionStatus = encryptionStatus,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = RandomValues.CreateIntFrom10To100(),

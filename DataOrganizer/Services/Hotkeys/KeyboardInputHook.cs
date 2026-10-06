@@ -19,6 +19,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook.Data;
 using System;
@@ -75,6 +76,9 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
 
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -104,11 +108,12 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardAccessor clipboardService,
+		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
 		IGlobalHookRunner hookRunner,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -117,7 +122,7 @@ public sealed class KeyboardInputHook :
 	{
 		_app = app;
 
-		_clipboard = clipboardService;
+		_clipboard = clipboard;
 
 		_dbAccess = dbAccess;
 
@@ -128,6 +133,8 @@ public sealed class KeyboardInputHook :
 		_exceptionHandler = exceptionHandler;
 
 		_hookRunner = hookRunner;
+
+		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
 
@@ -342,9 +349,15 @@ public sealed class KeyboardInputHook :
 
 			try
 			{
-				string text = TextDefaults
-					.Encoding
-					.GetString(contents);
+				// Bytes that are not text would reach the clipboard as garbage.
+				if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
+				{
+					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
+
+					_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+
+					return;
+				}
 
 				if (string.IsNullOrEmpty(text))
 				{

@@ -18,6 +18,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -127,9 +128,13 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		try
 		{
-			string text = TextDefaults
-				.Encoding
-				.GetString(contents);
+			// A preview is rendered on demand, so contents that are not text only reach the log.
+			if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
+			{
+				_logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
+
+				return;
+			}
 
 			if (string.IsNullOrEmpty(text))
 			{
@@ -175,6 +180,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -184,6 +190,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			contentCipher,
 			dbAccess,
 			dialogService,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,

@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -79,6 +80,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -88,6 +90,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			contentCipher,
 			dbAccess,
 			dialogService,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,

@@ -331,9 +331,6 @@
   <data name="Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
-  <data name="ColorScheme" xml:space="preserve">
-    <value>Color Scheme</value>
-  </data>
   <data name="Theme" xml:space="preserve">
     <value>Theme</value>
   </data>
@@ -391,15 +388,6 @@
   <data name="Select" xml:space="preserve">
     <value>Select</value>
   </data>
-  <data name="NotSelected" xml:space="preserve">
-    <value>Not selected...</value>
-  </data>
-  <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
-    <value>The specified file was not found</value>
-  </data>
-  <data name="Size" xml:space="preserve">
-    <value>Size</value>
-  </data>
   <data name="ShowContents" xml:space="preserve">
     <value>Show Contents</value>
   </data>
@@ -447,9 +435,6 @@
   </data>
   <data name="EncryptedDataIsDamaged" xml:space="preserve">
     <value>The encrypted data is damaged</value>
-  </data>
-  <data name="FailedToProcessNotes" xml:space="preserve">
-    <value>Failed to process the notes</value>
   </data>
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Failed to read the note</value>
@@ -736,18 +721,12 @@
   <data name="LineEndings" xml:space="preserve">
     <value>Line Endings</value>
   </data>
-  <!--<data name="LineColumnFormat" xml:space="preserve">
-    <value>Ln {0}, Col {1}</value>
-  </data>-->
   <data name="LinesFormat" xml:space="preserve">
     <value>Lines: {0}</value>
   </data>
   <data name="MixedLineEndings" xml:space="preserve">
     <value>Mixed</value>
   </data>
-  <!--<data name="SelectedFormat" xml:space="preserve">
-    <value>Selected: {0}</value>
-  </data>-->
   <data name="SelectedFormat" xml:space="preserve">
     <value>Sel: {0} | {1}</value>
   </data>
@@ -828,5 +807,23 @@
   </data>
   <data name="FailedToOpenInOS" xml:space="preserve">
     <value>Failed to open in OS</value>
+  </data>
+  <data name="CharacterNotInEncodingFormat" xml:space="preserve">
+    <value>The character "{0}" is not in the {1} encoding. The changes are not saved.</value>
+  </data>
+  <data name="Encoding" xml:space="preserve">
+    <value>Encoding</value>
+  </data>
+  <data name="ByContents" xml:space="preserve">
+    <value>(by contents)</value>
+  </data>
+  <data name="ContentsUnreadableInEncodingFormat" xml:space="preserve">
+    <value>The contents cannot be read in the {0} encoding</value>
+  </data>
+  <data name="EncodingNotChanged" xml:space="preserve">
+    <value>The encoding is not changed: the changes are not saved</value>
+  </data>
+  <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
+    <value>The contents cannot be read in this encoding</value>
   </data>
 </root>

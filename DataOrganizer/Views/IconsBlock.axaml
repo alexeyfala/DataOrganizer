@@ -9,10 +9,11 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
 	mc:Ignorable="d">
 
 	<StackPanel
-		DataContext="{Binding $parent[views:IconsBlock]}"
+		DataContext="{Binding #View}"
 		Orientation="Horizontal"
 		Spacing="2.0">
 		<StackPanel.Styles>

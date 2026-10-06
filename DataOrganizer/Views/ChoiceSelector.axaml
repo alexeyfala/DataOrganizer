@@ -1,0 +1,97 @@
+<UserControl
+	x:Class="DataOrganizer.Views.ChoiceSelector"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:documents="using:DataOrganizer.Dto.Documents"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="View"
+	mc:Ignorable="d">
+
+	<!--
+		The button takes no focus, so the keys type into the text again once an item is taken. Its caption keeps to the
+		left of a slot wider than the text.
+	-->
+	<Button
+		x:Name="CurrentChoice"
+		MinHeight="0.0"
+		Padding="8.0,4.0"
+		HorizontalContentAlignment="Left"
+		Content="{Binding #View.Caption, Mode=OneWay}"
+		CornerRadius="0.0"
+		Focusable="False"
+		FontWeight="Normal"
+		Foreground="{StaticResource MaterialBodyBrush}"
+		Theme="{StaticResource MaterialFlatButton}">
+
+		<Button.Styles>
+			<Style Selector="FlyoutPresenter">
+				<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				<Setter Property="Cursor" Value="Arrow" />
+				<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+			</Style>
+		</Button.Styles>
+
+		<Button.Flyout>
+			<Flyout Placement="{Binding #View.FlyoutPlacement, Mode=OneWay}">
+				<DockPanel
+					x:Name="ChoicesHost"
+					Width="{Binding #View.FlyoutWidth, Mode=OneWay}"
+					Classes.searchable="{Binding #View.IsSearchable, Mode=OneWay}">
+					<DockPanel.Styles>
+						<!--  A search would change the height of the list with every letter typed.  -->
+						<Style Selector="DockPanel.searchable">
+							<Setter Property="Height" Value="340.0" />
+						</Style>
+					</DockPanel.Styles>
+
+					<Border
+						Margin="0.0,0.0,0.0,4.0"
+						Padding="6.0,0.0"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0"
+						DockPanel.Dock="Top"
+						IsVisible="{Binding #View.IsSearchable, Mode=OneWay}">
+						<TextBox x:Name="SearchInput" Classes="clearButton SearchTextBoxStyle" />
+					</Border>
+
+					<ListBox x:Name="ChoicesList">
+						<ListBox.Styles>
+							<!--  An item that cannot be chosen is grayed out, and its tip tells why.  -->
+							<Style x:DataType="documents:SelectorChoice" Selector="ListBoxItem">
+								<Setter Property="IsEnabled" Value="{Binding IsAvailable, Mode=OneWay}" />
+								<Setter Property="ToolTip.ShowOnDisabled" Value="True" />
+								<Setter Property="ToolTip.Tip" Value="{Binding UnavailableTip, Mode=OneWay}" />
+							</Style>
+						</ListBox.Styles>
+
+						<ListBox.ItemTemplate>
+							<DataTemplate x:DataType="documents:SelectorChoice">
+								<DockPanel HorizontalSpacing="{StaticResource ElementSpacing}">
+									<StackPanel
+										DockPanel.Dock="Left"
+										Orientation="Horizontal"
+										Spacing="{StaticResource ElementSpacing}">
+										<TextBlock Text="{Binding Name, Mode=OneWay}" />
+
+										<TextBlock
+											Foreground="{StaticResource MaterialBodyLightBrush}"
+											IsVisible="{Binding IsDefault, Mode=OneWay}"
+											Text="{Binding DefaultMark, Mode=OneWay}" />
+									</StackPanel>
+
+									<TextBlock
+										Foreground="{StaticResource MaterialBodyLightBrush}"
+										IsVisible="{Binding Description, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+										Text="{Binding Description, Mode=OneWay}"
+										TextTrimming="CharacterEllipsis" />
+								</DockPanel>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
+				</DockPanel>
+			</Flyout>
+		</Button.Flyout>
+	</Button>
+</UserControl>

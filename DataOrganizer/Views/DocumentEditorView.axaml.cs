@@ -6,14 +6,20 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
+using Shared.Properties;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows.Input;
 
 namespace DataOrganizer.Views;
 
@@ -27,6 +33,15 @@ internal sealed partial class DocumentEditorView :
 	IRecipient<FoldingChangedMessage>
 {
 	#region Properties
+	/// <summary>
+	/// Web name of the encoding that the text takes when none is chosen; <c>null</c> when there is none.
+	/// </summary>
+	public string? DefaultEncoding
+	{
+		get => GetValue(DefaultEncodingProperty);
+		set => SetValue(DefaultEncodingProperty, value);
+	}
+
 	/// <summary>
 	/// Language that the text takes when none is chosen; <c>null</c> for plain text.
 	/// </summary>
@@ -56,12 +71,30 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
+	/// Web name of the encoding the document is stored in; <c>null</c> for a document that is not stored as bytes.
+	/// </summary>
+	public string? Encoding
+	{
+		get => GetValue(EncodingProperty);
+		set => SetValue(EncodingProperty, value);
+	}
+
+	/// <summary>
 	/// Name of the encoding the document is stored in; <c>null</c> for a document that is not stored as bytes.
 	/// </summary>
 	public string? EncodingName
 	{
 		get => GetValue(EncodingNameProperty);
 		set => SetValue(EncodingNameProperty, value);
+	}
+
+	/// <summary>
+	/// Command that finds <see cref="UnreadableEncodings" /> anew; run as the list of encodings opens.
+	/// </summary>
+	public ICommand? FindUnreadableEncodingsCommand
+	{
+		get => GetValue(FindUnreadableEncodingsCommandProperty);
+		set => SetValue(FindUnreadableEncodingsCommandProperty, value);
 	}
 
 	/// <summary>
@@ -90,6 +123,30 @@ internal sealed partial class DocumentEditorView :
 		get => GetValue(IsSplitProperty);
 		set => SetValue(IsSplitProperty, value);
 	}
+
+	/// <summary>
+	/// Languages offered for the syntax highlighting, plain text first.
+	/// </summary>
+	public IReadOnlyList<SelectorChoice> LanguageChoices { get; } =
+	[
+		new SelectorChoice
+		{
+			Id = null,
+			Name = Strings.PlainText,
+			SearchTerms = []
+		},
+		.. SyntaxRegistry.Instance.Languages
+	];
+
+	/// <summary>
+	/// Line break styles that the document can be brought to, with the names of the styles as their ids.
+	/// </summary>
+	public IReadOnlyList<SelectorChoice> LineEndingChoices { get; } =
+	[
+		CreateLineEndingChoice(LineEnding.CrLf),
+		CreateLineEndingChoice(LineEnding.Lf),
+		CreateLineEndingChoice(LineEnding.Cr)
+	];
 
 	/// <summary>
 	/// <c>True</c> when line endings are shown.
@@ -146,6 +203,15 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
+	/// Web names of the encodings that cannot read the stored bytes of the document; <c>null</c> when none are known.
+	/// </summary>
+	public IReadOnlyCollection<string>? UnreadableEncodings
+	{
+		get => GetValue(UnreadableEncodingsProperty);
+		set => SetValue(UnreadableEncodingsProperty, value);
+	}
+
+	/// <summary>
 	/// Caret, selection, scroll position, bookmarks and folded blocks of the document.
 	/// A value set from outside is restored once the document has been laid out.
 	/// </summary>
@@ -165,7 +231,20 @@ internal sealed partial class DocumentEditorView :
 	}
 	#endregion
 
+	#region Commands
+	/// <summary>
+	/// Brings every line break of the document to the style of a choice of <see cref="LineEndingChoices" />, by its id.
+	/// </summary>
+	public RelayCommand<string?> ConvertLineEndingsCommand { get; }
+	#endregion
+
 	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="DefaultEncoding" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DefaultEncodingProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(DefaultEncoding));
+
 	/// <summary>
 	/// Identifies the <see cref="DefaultSyntaxLanguage" /> avalonia property.
 	/// </summary>
@@ -191,6 +270,18 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public static readonly StyledProperty<string?> EncodingNameProperty = AvaloniaProperty
 		.Register<DocumentEditorView, string?>(name: nameof(EncodingName));
+
+	/// <summary>
+	/// Identifies the <see cref="Encoding" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> EncodingProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(Encoding));
+
+	/// <summary>
+	/// Identifies the <see cref="FindUnreadableEncodingsCommand" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<ICommand?> FindUnreadableEncodingsCommandProperty = AvaloniaProperty
+		.Register<DocumentEditorView, ICommand?>(name: nameof(FindUnreadableEncodingsCommand));
 
 	/// <summary>
 	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
@@ -249,6 +340,12 @@ internal sealed partial class DocumentEditorView :
 		.Register<DocumentEditorView, object?>(name: nameof(ToolBarContent));
 
 	/// <summary>
+	/// Identifies the <see cref="UnreadableEncodings" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IReadOnlyCollection<string>?> UnreadableEncodingsProperty = AvaloniaProperty
+		.Register<DocumentEditorView, IReadOnlyCollection<string>?>(name: nameof(UnreadableEncodings));
+
+	/// <summary>
 	/// Identifies the <see cref="ViewState" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<DocumentViewState?> ViewStateProperty = AvaloniaProperty
@@ -281,6 +378,9 @@ internal sealed partial class DocumentEditorView :
 	#region Constructors
 	public DocumentEditorView()
 	{
+		// Before the markup, whose bindings read it once.
+		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
+
 		InitializeComponent();
 
 		// The state is that of the active half, so only its changes count.
@@ -471,6 +571,46 @@ internal sealed partial class DocumentEditorView :
 			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
 				x => area.TextView.VisualLinesChanged += x,
 				x => area.TextView.VisualLinesChanged -= x));
+	}
+
+	/// <summary>
+	/// Returns the choice of a line break style, named as the status bar names it.
+	/// </summary>
+	private static SelectorChoice CreateLineEndingChoice(LineEnding lineEnding)
+	{
+		return new()
+		{
+			Id = lineEnding.ToString(),
+			Name = lineEnding.ToCaption()!,
+			SearchTerms = []
+		};
+	}
+
+	/// <summary>
+	/// Validates <see cref="ConvertLineEndingsCommand" />.
+	/// </summary>
+	private bool CanConvertLineEndings(string? id)
+	{
+		return Enum.TryParse(id, out LineEnding lineEnding) && Editor
+			.ActiveEditor
+			.ConvertLineEndingsCommand
+			.CanExecute(lineEnding);
+	}
+
+	/// <summary>
+	/// Brings every line break of the document to a style, through the active half.
+	/// </summary>
+	private void ConvertLineEndings(string? id)
+	{
+		if (!Enum.TryParse(id, out LineEnding lineEnding))
+		{
+			return;
+		}
+
+		Editor
+			.ActiveEditor
+			.ConvertLineEndingsCommand
+			.Execute(lineEnding);
 	}
 
 	/// <summary>

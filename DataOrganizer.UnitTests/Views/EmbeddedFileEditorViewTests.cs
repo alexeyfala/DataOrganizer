@@ -1,19 +1,25 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
+using Shared.Interfaces;
+using Shared.Services;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views;
@@ -39,6 +45,58 @@ internal class EmbeddedFileEditorViewTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.DefaultEncoding" />: the encoding found in the bytes of the file reaches
+	/// the editor, apart from the one chosen for its text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DefaultEncoding_Reaches_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			// The stored choice tells the encoding of the text from the one found in its bytes.
+			FileEditorState state = new()
+			{
+				Encoding = "cp866"
+			};
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut.GetLogicalDescendants().OfType<DocumentEditorView>().Single().DefaultEncoding
+			.Should()
+			.Be("utf-8");
+	}
+
 	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.DefaultSyntaxLanguage" />: the language of the file extension reaches the editor.
 	/// </summary>
@@ -132,6 +190,163 @@ internal class EmbeddedFileEditorViewTests
 			.Single())
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: an encoding chosen in the editor comes back to the view
+	/// model.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Follows_A_Choice_In_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Act
+		sut
+			.GetLogicalDescendants()
+			.OfType<DocumentEditorView>()
+			.Single()
+			.SetCurrentValue(DocumentEditorView.EncodingProperty, "cp866");
+
+		// Assert
+		viewModel.Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.Encoding" />: the encoding of the text reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Reaches_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		viewModel.Encoding = "cp866";
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut.GetLogicalDescendants().OfType<DocumentEditorView>().Single().Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EncodingName" />: the name of the encoding of the file reaches the
+	/// editor.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EncodingName_Reaches_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await viewModel.EditorLoaded();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut.GetLogicalDescendants().OfType<DocumentEditorView>().Single().EncodingName
+			.Should()
+			.Be("UTF-8");
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.FindUnreadableEncodings" />: the list of encodings opens with the ones that
+	/// cannot read the file already marked, as they are found when it opens: here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task FindUnreadableEncodings_Marks_The_Encoding_List_As_It_Opens()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hi!"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await viewModel.EditorLoaded();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		Window window = new()
+		{
+			Content = sut,
+			Height = 600.0,
+			Width = 800.0
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		ChoiceSelector encodings = sut
+			.GetLogicalDescendants()
+			.OfType<ChoiceSelector>()
+			.Single(static x => x.Name == "EncodingBlock");
+
+		Button button = encodings.GetControl<Button>("CurrentChoice");
+
+		// Act
+		button.Flyout!.ShowAt(button);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ListBox list = encodings.GetControl<ListBox>("ChoicesList");
+
+		list.Items.Cast<SelectorChoice>().Where(static x => !x.IsAvailable).Select(static x => x.Id)
+			.Should()
+			.Contain(Encoding.Unicode.WebName);
 	}
 
 	/// <summary>

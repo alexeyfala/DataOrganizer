@@ -53,27 +53,51 @@ internal static class SampleNotes
 	/// <summary>
 	/// Note of a file whose contents are binary data.
 	/// </summary>
-	public static string BinaryContents { get; } = "The contents are binary data, not text.";
+	public static string BinaryContents { get; } = """
+		The contents are binary data, not text.
+		The editor stays closed with a warning, and copying puts nothing in the clipboard.
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a script in the code page of the Russian console of Windows.
+	/// </summary>
+	public static string Cp866Script { get; } = """
+		The script is in CP866, the code page of the Russian console of Windows.
+		The editor shows its letters garbled until CP866 is chosen in the status bar.
+		The console prints them right.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of an encrypted file with one byte of its contents changed.
 	/// </summary>
-	public static string DamagedContents { get; } = "One byte of the encrypted contents has been changed.";
+	public static string DamagedContents { get; } = """
+		One byte of the encrypted contents has been changed.
+		They no longer decrypt, so the editor reports an error and stays closed.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a file named after a device.
 	/// </summary>
-	public static string DeviceName { get; } = "Windows reserves this name for a device.";
+	public static string DeviceName { get; } = """
+		Windows reserves this name for a device.
+		Opened in the OS, the file is written to disk with an underscore in front of its name.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a file that shares its name with another one in its folder.
 	/// </summary>
-	public static string DuplicateName { get; } = "Another file in this folder has the same name.";
+	public static string DuplicateName { get; } = """
+		Another file in this folder has the same name.
+		Opened in the OS, each of the two goes to a folder of its own, so they do not clash.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a file with emoji in its name.
 	/// </summary>
-	public static string EmojiName { get; } = "The name holds emoji, some of them made of several characters.";
+	public static string EmojiName { get; } = """
+		The name holds emoji, two of them made of several characters: a family and a flag.
+		Opened in the OS, the file keeps its name as it is.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note that tells how an encrypted script is run.
@@ -86,7 +110,10 @@ internal static class SampleNotes
 	/// <summary>
 	/// Note of a file with characters in its name that Windows refuses.
 	/// </summary>
-	public static string ForbiddenCharacters { get; } = "Windows does not allow these characters in a file name.";
+	public static string ForbiddenCharacters { get; } = """
+		Windows does not allow these characters in a file name.
+		Opened in the OS, the file is written to disk with an underscore in place of each of them.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a folder under a password, which is encrypted together with the folder.
@@ -110,7 +137,10 @@ internal static class SampleNotes
 	/// <summary>
 	/// Note of a file whose name is longer than a file system allows.
 	/// </summary>
-	public static string LongName { get; } = "The name is longer than a file system allows.";
+	public static string LongName { get; } = """
+		The name is longer than a file system allows.
+		Opened in the OS, the file is written to disk under a shorter name that keeps its extension.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note that explains why the files with made-up extensions open as plain text.
@@ -152,27 +182,51 @@ internal static class SampleNotes
 	/// <summary>
 	/// Note of a file whose name ends with a dot.
 	/// </summary>
-	public static string TrailingDot { get; } = "Windows drops a dot at the end of a file name.";
+	public static string TrailingDot { get; } = """
+		Windows drops a dot at the end of a file name.
+		Opened in the OS, the file is written to disk without it.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a dataset whose records break off in the middle.
 	/// </summary>
-	public static string TruncatedRecords { get; } = "The JSON of the records breaks off in the middle.";
+	public static string TruncatedRecords { get; } = """
+		The JSON of the records breaks off in the middle.
+		The dataset editor reports an error and stays closed.
+		""".ReplaceLineEndings();
+
+	/// <summary>
+	/// Note of a text in UTF-16 without a byte order mark.
+	/// </summary>
+	public static string Utf16NoBomText { get; } = """
+		The text is in UTF-16 without a byte order mark.
+		It still opens as text: the zero bytes of its Latin letters give the encoding away.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a text in UTF-16.
 	/// </summary>
-	public static string Utf16Text { get; } = "The text is in UTF-16 with a byte order mark.";
+	public static string Utf16Text { get; } = """
+		The text is in UTF-16 with a byte order mark, which tells the encoding.
+		The status bar shows UTF-16 LE BOM, and a save keeps the mark.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a text in UTF-8 that starts with a byte order mark.
 	/// </summary>
-	public static string Utf8BomText { get; } = "The text is in UTF-8 with a byte order mark.";
+	public static string Utf8BomText { get; } = """
+		The text is in UTF-8 with a byte order mark.
+		The status bar shows UTF-8-BOM, a save keeps the mark, and copying leaves it out.
+		""".ReplaceLineEndings();
 
 	/// <summary>
 	/// Note of a text in the Cyrillic code page of Windows.
 	/// </summary>
-	public static string Windows1251Text { get; } = "The text is in Windows-1251.";
+	public static string Windows1251Text { get; } = """
+		The text is in Windows-1251: it has no mark and is not UTF-8.
+		The editor reads it in the code page of the system, which is right on a Russian system.
+		Elsewhere its letters come out garbled until Windows-1251 is chosen in the status bar.
+		""".ReplaceLineEndings();
 	#endregion
 
 	#region Methods

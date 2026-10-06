@@ -41,6 +41,11 @@
 	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
 	<!--#endregion-->
 
+	<!--#region Opacities-->
+	<!--  Material's own key, read by its toggle buttons for the fill of the checked state.  -->
+	<system:Double x:Key="ButtonToggledOpacity">0.24</system:Double>
+	<!--#endregion-->
+
 	<!--#region Sizes-->
 	<system:Double x:Key="ElementSpacing">10.0</system:Double>
 

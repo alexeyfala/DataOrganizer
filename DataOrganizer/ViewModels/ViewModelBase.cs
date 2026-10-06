@@ -23,6 +23,7 @@ using DataOrganizer.Messages.Execution;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -167,6 +168,7 @@ public abstract partial class ViewModelBase :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -178,6 +180,7 @@ public abstract partial class ViewModelBase :
 			contentCipher,
 			dbAccess,
 			dialogService,
+			jsonSerializer,
 			logger,
 			messenger,
 			notification,

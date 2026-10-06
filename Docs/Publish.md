@@ -19,21 +19,11 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 ### Installer (`.msi` + `.exe`)
 
-1\. Regenerate notices (see above):
+1\. Set **Release** or **Debug** mode.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\gen-third-party-notices.ps1
-```
+2\. Build the **Setup** project → produces the `*.msi` file.
 
-2\. Set **Release** or **Debug** mode.
-
-3\. Build the **Setup** project → produces the `*.msi` file.
-
-4\. Build the **Bundle** project → produces the `*.exe` file.
-
-```powershell
-start "..\Publish"
-```
+3\. Build the **Bundle** project → produces the `*.exe` file.
 
 ### Portable — Release
 

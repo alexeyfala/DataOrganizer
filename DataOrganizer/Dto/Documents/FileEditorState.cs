@@ -27,6 +27,11 @@ public readonly struct FileEditorState
 	public TextViewPosition CaretPosition { get; init; }
 
 	/// <summary>
+	/// Web name of the encoding chosen for the text; <c>null</c> when the text takes the one found from the contents.
+	/// </summary>
+	public string? Encoding { get; init; }
+
+	/// <summary>
 	/// Offsets where the folded blocks start, while the other blocks are unfolded.
 	/// </summary>
 	public int[]? FoldedBlocks { get; init; }

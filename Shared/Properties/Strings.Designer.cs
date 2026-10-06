@@ -214,6 +214,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (by contents).
+        /// </summary>
+        public static string ByContents {
+            get {
+                return ResourceManager.GetString("ByContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (by extension).
         /// </summary>
         public static string ByExtension {
@@ -237,6 +246,15 @@ namespace Shared.Properties {
         public static string ChangePassword {
             get {
                 return ResourceManager.GetString("ChangePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The character &quot;{0}&quot; is not in the {1} encoding. The changes are not saved..
+        /// </summary>
+        public static string CharacterNotInEncodingFormat {
+            get {
+                return ResourceManager.GetString("CharacterNotInEncodingFormat", resourceCulture);
             }
         }
         
@@ -349,15 +367,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Color Scheme.
-        /// </summary>
-        public static string ColorScheme {
-            get {
-                return ResourceManager.GetString("ColorScheme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Col: {0}.
         /// </summary>
         public static string ColumnFormat {
@@ -417,6 +426,24 @@ namespace Shared.Properties {
         public static string ContentsHiddenByAutoLock {
             get {
                 return ResourceManager.GetString("ContentsHiddenByAutoLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The contents cannot be read in the {0} encoding.
+        /// </summary>
+        public static string ContentsUnreadableInEncodingFormat {
+            get {
+                return ResourceManager.GetString("ContentsUnreadableInEncodingFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The contents cannot be read in this encoding.
+        /// </summary>
+        public static string ContentsUnreadableInThisEncoding {
+            get {
+                return ResourceManager.GetString("ContentsUnreadableInThisEncoding", resourceCulture);
             }
         }
         
@@ -610,6 +637,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encoding.
+        /// </summary>
+        public static string Encoding {
+            get {
+                return ResourceManager.GetString("Encoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The encoding is not changed: the changes are not saved.
+        /// </summary>
+        public static string EncodingNotChanged {
+            get {
+                return ResourceManager.GetString("EncodingNotChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The encrypted data is damaged.
         /// </summary>
         public static string EncryptedDataIsDamaged {
@@ -750,15 +795,6 @@ namespace Shared.Properties {
         public static string FailedToProcessContents {
             get {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to process the notes.
-        /// </summary>
-        public static string FailedToProcessNotes {
-            get {
-                return ResourceManager.GetString("FailedToProcessNotes", resourceCulture);
             }
         }
         
@@ -1366,15 +1402,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not selected....
-        /// </summary>
-        public static string NotSelected {
-            get {
-                return ResourceManager.GetString("NotSelected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string OK {
@@ -1915,15 +1942,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Size.
-        /// </summary>
-        public static string Size {
-            get {
-                return ResourceManager.GetString("Size", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sort Ascending.
         /// </summary>
         public static string SortAscending {
@@ -2037,15 +2055,6 @@ namespace Shared.Properties {
         public static string ThereIsNoContentFor {
             get {
                 return ResourceManager.GetString("ThereIsNoContentFor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified file was not found.
-        /// </summary>
-        public static string TheSpecifiedFileWasNotFound {
-            get {
-                return ResourceManager.GetString("TheSpecifiedFileWasNotFound", resourceCulture);
             }
         }
         
