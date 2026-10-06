@@ -367,15 +367,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Color Scheme.
-        /// </summary>
-        public static string ColorScheme {
-            get {
-                return ResourceManager.GetString("ColorScheme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Col: {0}.
         /// </summary>
         public static string ColumnFormat {
@@ -804,15 +795,6 @@ namespace Shared.Properties {
         public static string FailedToProcessContents {
             get {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to process the notes.
-        /// </summary>
-        public static string FailedToProcessNotes {
-            get {
-                return ResourceManager.GetString("FailedToProcessNotes", resourceCulture);
             }
         }
         
@@ -1960,15 +1942,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Size.
-        /// </summary>
-        public static string Size {
-            get {
-                return ResourceManager.GetString("Size", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sort Ascending.
         /// </summary>
         public static string SortAscending {
@@ -2082,15 +2055,6 @@ namespace Shared.Properties {
         public static string ThereIsNoContentFor {
             get {
                 return ResourceManager.GetString("ThereIsNoContentFor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified file was not found.
-        /// </summary>
-        public static string TheSpecifiedFileWasNotFound {
-            get {
-                return ResourceManager.GetString("TheSpecifiedFileWasNotFound", resourceCulture);
             }
         }
         

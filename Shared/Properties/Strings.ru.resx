@@ -351,9 +351,6 @@
   <data name="Exit" xml:space="preserve">
     <value>Выход</value>
   </data>
-  <data name="ColorScheme" xml:space="preserve">
-    <value>Цветовая схема</value>
-  </data>
   <data name="Theme" xml:space="preserve">
     <value>Тема</value>
   </data>
@@ -411,12 +408,6 @@
   <data name="Select" xml:space="preserve">
     <value>Выбрать</value>
   </data>
-  <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
-    <value>Указанный файл не найден</value>
-  </data>
-  <data name="Size" xml:space="preserve">
-    <value>Размер</value>
-  </data>
   <data name="ShowContents" xml:space="preserve">
     <value>Показать содержимое</value>
   </data>
@@ -464,9 +455,6 @@
   </data>
   <data name="EncryptedDataIsDamaged" xml:space="preserve">
     <value>Зашифрованные данные повреждены</value>
-  </data>
-  <data name="FailedToProcessNotes" xml:space="preserve">
-    <value>Не удалось обработать примечания</value>
   </data>
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Не удалось прочитать примечание</value>
@@ -753,18 +741,12 @@
   <data name="LineEndings" xml:space="preserve">
     <value>Концы строк</value>
   </data>
-  <!--<data name="LineColumnFormat" xml:space="preserve">
-    <value>Стр {0}, стлб {1}</value>
-  </data>-->
   <data name="LinesFormat" xml:space="preserve">
     <value>Строк: {0}</value>
   </data>
   <data name="MixedLineEndings" xml:space="preserve">
     <value>Разные</value>
   </data>
-  <!--<data name="SelectedFormat" xml:space="preserve">
-    <value>Выделено: {0}</value>
-  </data>-->
   <data name="SelectedFormat" xml:space="preserve">
     <value>Выд: {0} | {1}</value>
   </data>
