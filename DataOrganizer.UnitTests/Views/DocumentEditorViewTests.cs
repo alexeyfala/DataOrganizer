@@ -80,6 +80,11 @@ internal class DocumentEditorViewTests
 	private const string LineEndingBlockName = "LineEndingBlock";
 
 	/// <summary>
+	/// Name of the separator on the left of the status bar block with the line endings in the markup.
+	/// </summary>
+	private const string LineEndingSeparatorName = "LineEndingSeparator";
+
+	/// <summary>
 	/// Language of <see cref="PowerShellText" />.
 	/// </summary>
 	private const string PowerShellLanguage = "powershell";
@@ -151,7 +156,7 @@ internal class DocumentEditorViewTests
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
-		StackPanel caretBlock = sut.GetControl<StackPanel>(CaretBlockName);
+		Panel caretBlock = sut.GetControl<Panel>(CaretBlockName);
 
 		editor
 			.TextArea
@@ -1543,35 +1548,34 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: a text without line breaks leaves the block of the line endings empty and
-	/// disabled, in a slot of its usual width.
+	/// <see cref="DocumentEditorView" />: in a window too narrow for the numbers of the caret, the number that is cut
+	/// ends with an ellipsis.
 	/// </summary>
 	[AvaloniaTest]
-	public void StatusBar_Keeps_An_Empty_Slot_For_A_Text_Without_Line_Breaks()
+	public void StatusBar_Ends_A_Cut_Number_With_An_Ellipsis()
 	{
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = new("One line")
+			Document = new(PowerShellText)
 		};
 
+		Window window = Show(sut);
+
+		Panel block = sut.GetControl<Panel>(CaretBlockName);
+
+		Control slot = (Control)block.Parent!;
+
 		// Act
-		Show(sut);
+		// The blocks on the right keep their widths, and the block of the caret gets half of its own.
+		window.Width = sut.Bounds.Width - slot.Bounds.Right + (slot.Bounds.Width / 2.0);
+
+		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
-
-		block.Caption
+		block.Children.OfType<TextBlock>().Select(static x => x.TextLayout.TextLines[0].HasCollapsed)
 			.Should()
-			.BeNull();
-
-		block.IsEffectivelyEnabled
-			.Should()
-			.BeFalse();
-
-		block.Bounds.Width
-			.Should()
-			.Be(110.0);
+			.Contain(true);
 	}
 
 	/// <summary>
@@ -1642,8 +1646,8 @@ internal class DocumentEditorViewTests
 		// Assert
 		Control[] numbers =
 		[
-			.. sut.GetControl<StackPanel>(CaretBlockName).Children,
-			.. sut.GetControl<StackPanel>(LengthBlockName).Children
+			.. sut.GetControl<Panel>(CaretBlockName).Children,
+			.. sut.GetControl<Panel>(LengthBlockName).Children
 		];
 
 		numbers.Select(x => x.Bounds.Width)
@@ -1722,19 +1726,43 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: the block of the line endings shows its tip while it is disabled, in
-	/// read-only mode and in a text without line breaks.
+	/// <see cref="DocumentEditorView" />: the block of the line endings shows only in a text with line breaks, together
+	/// with its separator.
 	/// </summary>
 	[AvaloniaTest]
-	[TestCase("A\r\nB", true)]
-	[TestCase("One line", false)]
-	public void StatusBar_Shows_The_Tip_Of_The_Disabled_Line_Endings(string text, bool isReadOnly)
+	public void StatusBar_Shows_The_Line_Endings_Only_With_Line_Breaks([Values] bool hasLineBreaks)
 	{
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = new(text),
-			IsReadOnly = isReadOnly
+			Document = new(hasLineBreaks ? "A\r\nB" : "One line")
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsVisible
+			.Should()
+			.Be(hasLineBreaks);
+
+		sut.GetControl<Panel>(LineEndingSeparatorName).IsVisible
+			.Should()
+			.Be(hasLineBreaks);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: the block of the line endings shows its tip while it is disabled in read-only
+	/// mode.
+	/// </summary>
+	[AvaloniaTest]
+	public void StatusBar_Shows_The_Tip_Of_The_Disabled_Line_Endings()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new("A\r\nB"),
+			IsReadOnly = true
 		};
 
 		Window window = Show(sut);

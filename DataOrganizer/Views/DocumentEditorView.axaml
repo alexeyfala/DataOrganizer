@@ -354,12 +354,7 @@
 			Grid.Row="2"
 			BorderBrush="{StaticResource MaterialDividerBrush}"
 			BorderThickness="0.0,1.0,0.0,0.0">
-			<!--
-				The blocks are docked to the right edge, so they come in reverse order. Each one gets the width left
-				by the blocks on its right, and a block without enough room is cut at its right edge, as in Notepad++.
-				The language comes last and takes what is left at the left edge.
-			-->
-			<DockPanel LastChildFill="False">
+			<DockPanel LastChildFill="False" TextBlock.TextTrimming="CharacterEllipsis">
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="EncodingBlock"
@@ -384,76 +379,60 @@
 
 				<!--
 					A choice converts the text of the active half, and the selected item follows the status, as the ids are the
-					names of the styles. A text without line breaks keeps an empty slot.
+					names of the styles. A text without line breaks hides the block with its separator.
 				-->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="LineEndingBlock"
-						MinWidth="110.0"
 						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
 						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
 						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
 						FlyoutPlacement="TopEdgeAlignedRight"
 						FlyoutWidth="200.0"
+						IsEnabled="{Binding #View.IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 						IsSearchable="False"
+						IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}"
 						SelectedChoice="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay}"
 						ToolTip.ShowOnDisabled="True"
-						ToolTip.Tip="{x:Static prop:Strings.LineEndings}">
-						<views:ChoiceSelector.IsEnabled>
-							<MultiBinding Converter="{x:Static BoolConverters.And}">
-								<Binding
-									Converter="{x:Static BoolConverters.Not}"
-									ElementName="View"
-									Mode="OneWay"
-									Path="IsReadOnly" />
-
-								<Binding
-									Converter="{x:Static ObjectConverters.NotEqual}"
-									ConverterParameter="{x:Static documents:LineEnding.None}"
-									ElementName="Editor"
-									Mode="OneWay"
-									Path="ActiveEditor.Status.LineEnding" />
-							</MultiBinding>
-						</views:ChoiceSelector.IsEnabled>
-					</views:ChoiceSelector>
+						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
 				</Border>
 
-				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+				<Panel
+					x:Name="LineEndingSeparator"
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right"
+					IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}" />
 
 				<!--
-					A loaded file shows the encoding block, and the status bar measures the blocks under new widths.
-					Unlike WPF, Avalonia then skips the arrange of a block kept in size by its minimum width, so its
-					numbers would stay in the widths of the old ones and be cut. This panel arranges them again.
+					The numbers of the caret and of the length sit in DockPanels: unlike a StackPanel, a DockPanel gives
+					its children only the width there is, so a number cut by a narrow window ends with an ellipsis.
 				-->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<controls:RearrangingStackPanel
+					<DockPanel
 						x:Name="CaretBlock"
-						MinWidth="240.0"
 						Margin="8.0,4.0"
-						Orientation="Horizontal"
-						Spacing="{StaticResource ElementSpacing}">
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
-					</controls:RearrangingStackPanel>
+					</DockPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
 
-				<!--  The numbers of the length are arranged again for the same reason as those of the caret.  -->
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<controls:RearrangingStackPanel
+					<DockPanel
 						x:Name="LengthBlock"
-						MinWidth="180.0"
 						Margin="8.0,4.0"
-						Orientation="Horizontal"
-						Spacing="{StaticResource ElementSpacing}">
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
-					</controls:RearrangingStackPanel>
+					</DockPanel>
 				</Border>
 
 				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
