@@ -3,7 +3,6 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
-	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:common="using:Shared.Common"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
@@ -20,6 +19,7 @@
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
+	xmlns:views="using:DataOrganizer.Views"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
 	MinWidth="500.0"
@@ -47,8 +47,6 @@
 	</Window.Resources>
 
 	<Window.Styles>
-		<StyleInclude Source="/Styling/TitleBarStyles.axaml" />
-
 		<!--  Avalonia draws its own title bar only with full decorations; BorderOnly keeps the theme of Material.  -->
 		<Style Selector="Window[WindowDecorations=Full]">
 			<Setter Property="WindowDecorationsTheme" Value="{StaticResource EmptyWindowDecorationsControlTheme}" />
@@ -56,87 +54,7 @@
 	</Window.Styles>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
-		<Border
-			Height="{StaticResource TitleBarHeight}"
-			chrome:WindowDecorationProperties.ElementRole="TitleBar"
-			Background="Transparent"
-			DockPanel.Dock="Top">
-
-			<Panel>
-				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-					<Panel Grid.Column="0" Width="{StaticResource TrafficLightsWidth}" />
-
-					<StackPanel
-						Grid.Column="3"
-						IsVisible="{StaticResource AreCaptionButtonsVisible}"
-						Orientation="Horizontal">
-
-						<Button
-							chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
-							Classes="CaptionButtonStyle"
-							Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
-							                                        IconSize={StaticResource CaptionIconSize}}">
-							<Interaction.Behaviors>
-								<EventTriggerBehavior EventName="Click">
-									<WindowAction ActionType="Minimize" />
-								</EventTriggerBehavior>
-							</Interaction.Behaviors>
-						</Button>
-
-						<ToggleButton
-							chrome:WindowDecorationProperties.ElementRole="MaximizeButton"
-							Classes="CaptionButtonStyle"
-							IsChecked="{Binding $parent[Window].WindowState, Converter={x:Static converters:AppConverters.WindowStateToBool}, Mode=TwoWay}" />
-
-						<Button
-							chrome:WindowDecorationProperties.ElementRole="CloseButton"
-							Classes="CaptionButtonStyle CloseCaptionButtonStyle"
-							Content="{materialIcons:MaterialIconExt Kind=WindowClose,
-							                                        IconSize={StaticResource CaptionIconSize}}">
-							<Interaction.Behaviors>
-								<EventTriggerBehavior EventName="Click">
-									<CloseWindowAction />
-								</EventTriggerBehavior>
-							</Interaction.Behaviors>
-						</Button>
-					</StackPanel>
-
-					<ToggleSwitch
-						Grid.Column="2"
-						Margin="8.0,0.0"
-						chrome:WindowDecorationProperties.ElementRole="User"
-						Classes="accent PinToggleSwitchStyle CompactToggleSwitchStyle"
-						IsChecked="{Binding $parent[Window].Topmost, Mode=TwoWay}"
-						ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
-				</Grid>
-
-				<!--
-					The caption takes no pointer input on purpose: a hit test reports the topmost element alone,
-					so a press has to reach the border underneath, the one carrying the title bar role.
-				-->
-				<DockPanel
-					Margin="{StaticResource TitleBarContentMargin}"
-					HorizontalAlignment="{StaticResource TitleBarContentAlignment}"
-					VerticalAlignment="Center"
-					ClipToBounds="True"
-					IsHitTestVisible="False">
-
-					<Image
-						Margin="0.0,0.0,8.0,0.0"
-						Classes="AppImageStyle"
-						DockPanel.Dock="Left"
-						RenderOptions.BitmapInterpolationMode="HighQuality" />
-
-					<TextBlock
-						VerticalAlignment="Center"
-						FontFamily="{StaticResource TitleBarFontFamily}"
-						FontSize="{StaticResource TitleBarFontSize}"
-						FontWeight="{StaticResource TitleBarFontWeight}"
-						Text="{Binding $parent[Window].Title, Mode=OneWay}"
-						TextTrimming="CharacterEllipsis" />
-				</DockPanel>
-			</Panel>
-		</Border>
+		<views:TitleBarView DockPanel.Dock="Top" />
 
 		<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
 			<materialControls:SnackbarHost
