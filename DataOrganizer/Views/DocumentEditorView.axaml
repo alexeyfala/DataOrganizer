@@ -404,9 +404,23 @@
 					IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}" />
 
 				<!--
-					The numbers of the caret and of the length sit in DockPanels: unlike a StackPanel, a DockPanel gives
+					The numbers of the length and of the caret sit in DockPanels: unlike a StackPanel, a DockPanel gives
 					its children only the width there is, so a number cut by a narrow window ends with an ellipsis.
 				-->
+				<Border ClipToBounds="True" DockPanel.Dock="Right">
+					<DockPanel
+						x:Name="LengthBlock"
+						Margin="8.0,4.0"
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+					</DockPanel>
+				</Border>
+
+				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<DockPanel
 						x:Name="CaretBlock"
@@ -418,20 +432,6 @@
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
 						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
-					</DockPanel>
-				</Border>
-
-				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
-
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
-					<DockPanel
-						x:Name="LengthBlock"
-						Margin="8.0,4.0"
-						HorizontalSpacing="{StaticResource ElementSpacing}"
-						LastChildFill="False">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
-
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
 					</DockPanel>
 				</Border>
 
