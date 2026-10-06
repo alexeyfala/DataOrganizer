@@ -411,9 +411,6 @@
   <data name="Select" xml:space="preserve">
     <value>Выбрать</value>
   </data>
-  <data name="NotSelected" xml:space="preserve">
-    <value>Не выбран...</value>
-  </data>
   <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
     <value>Указанный файл не найден</value>
   </data>

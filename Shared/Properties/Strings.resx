@@ -391,9 +391,6 @@
   <data name="Select" xml:space="preserve">
     <value>Select</value>
   </data>
-  <data name="NotSelected" xml:space="preserve">
-    <value>Not selected...</value>
-  </data>
   <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
     <value>The specified file was not found</value>
   </data>

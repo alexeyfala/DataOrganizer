@@ -12,7 +12,6 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
-	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
 
@@ -29,7 +28,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid DataContext="{Binding $parent[views:NoteView]}" RowDefinitions="*,Auto">
+	<Grid DataContext="{Binding #View}" RowDefinitions="*,Auto">
 
 		<!--  Encrypted  -->
 		<materialIcons:MaterialIcon

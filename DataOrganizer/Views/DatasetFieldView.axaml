@@ -8,6 +8,7 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
 	mc:Ignorable="d">
 
 	<UserControl.Styles>
@@ -22,11 +23,9 @@
 		<Thickness x:Key="ButtonPadding">4.0,2.0</Thickness>
 	</UserControl.Resources>
 
-	<Grid
-		ColumnDefinitions="*,Auto,Auto,Auto,Auto"
-		DataContext="{Binding $parent[views:DatasetFieldView]}">
+	<Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" DataContext="{Binding #View}">
 
-		<!-- Text -->
+		<!--  Text  -->
 		<Grid
 			Grid.Column="0"
 			Margin="{StaticResource ElementMargin}"
@@ -35,7 +34,7 @@
 
 			<Grid Background="{Binding AreaBrush, Mode=OneWay}">
 
-				<!-- Plain Text -->
+				<!--  Plain Text  -->
 				<TextBlock
 					Foreground="{StaticResource MaterialBodyBrush}"
 					IsVisible="{Binding !IsHyperlink, Mode=OneWay}"
@@ -45,35 +44,25 @@
 						<text:TextBlockAutoToolTipBehavior>
 							<text:TextBlockAutoToolTipBehavior.IsEnabled>
 								<MultiBinding Converter="{x:Static BoolConverters.And}">
-									<Binding
-										Mode="OneWay"
-										Path="!IsHidden" />
+									<Binding Mode="OneWay" Path="!IsHidden" />
 
-									<Binding
-										Mode="OneWay"
-										Path="!IsSensitive" />
+									<Binding Mode="OneWay" Path="!IsSensitive" />
 								</MultiBinding>
 							</text:TextBlockAutoToolTipBehavior.IsEnabled>
 						</text:TextBlockAutoToolTipBehavior>
 					</Interaction.Behaviors>
 				</TextBlock>
 
-				<!-- Hyperlink -->
-				<HyperlinkButton
-					IsVisible="{Binding IsHyperlink, Mode=OneWay}"
-					NavigateUri="{Binding Text, Mode=OneWay}">
+				<!--  Hyperlink  -->
+				<HyperlinkButton IsVisible="{Binding IsHyperlink, Mode=OneWay}" NavigateUri="{Binding Text, Mode=OneWay}">
 					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
 							<text:TextBlockAutoToolTipBehavior>
 								<text:TextBlockAutoToolTipBehavior.IsEnabled>
 									<MultiBinding Converter="{x:Static BoolConverters.And}">
-										<Binding
-											Mode="OneWay"
-											Path="!IsHidden" />
+										<Binding Mode="OneWay" Path="!IsHidden" />
 
-										<Binding
-											Mode="OneWay"
-											Path="!IsSensitive" />
+										<Binding Mode="OneWay" Path="!IsSensitive" />
 									</MultiBinding>
 								</text:TextBlockAutoToolTipBehavior.IsEnabled>
 							</text:TextBlockAutoToolTipBehavior>
@@ -84,14 +73,12 @@
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
-					<InvokeCommandAction
-						Command="{Binding TextBlockDoubleTappedCommand}"
-						CommandParameter="{Binding DataContext}" />
+					<InvokeCommandAction Command="{Binding TextBlockDoubleTappedCommand}" CommandParameter="{Binding DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Grid>
 
-		<!-- Color Sample -->
+		<!--  Color Sample  -->
 		<Grid
 			Grid.Column="1"
 			Width="32.0"
@@ -108,19 +95,13 @@
 
 			<Border IsVisible="{Binding !IsHidden, Mode=OneWay}">
 				<Border.Background>
-					<ImageBrush
-						Source="/Assets/Background.jpg"
-						Stretch="UniformToFill" />
+					<ImageBrush Source="/Assets/Background.jpg" Stretch="UniformToFill" />
 				</Border.Background>
 			</Border>
 
-			<Rectangle
-				Fill="{Binding ColorSampleBrush, Mode=OneWay}"
-				IsVisible="{Binding !IsHidden, Mode=OneWay}">
+			<Rectangle Fill="{Binding ColorSampleBrush, Mode=OneWay}" IsVisible="{Binding !IsHidden, Mode=OneWay}">
 				<ToolTip.Tip>
-					<ToolTip
-						Padding="0.0"
-						Background="Transparent">
+					<ToolTip Padding="0.0" Background="Transparent">
 						<Rectangle
 							Width="128.0"
 							Height="64.0"
@@ -130,7 +111,7 @@
 			</Rectangle>
 		</Grid>
 
-		<!-- Note -->
+		<!--  Note  -->
 		<views:NoteView
 			Grid.Column="2"
 			Margin="{StaticResource ElementMargin}"
