@@ -451,6 +451,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
+		// No pause in typing comes after the close, so an edit still waiting for one is queued now.
+		QueuePendingChanges();
+
 		if (!_saveChannel
 			.Reader
 			.Completion

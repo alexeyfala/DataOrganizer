@@ -220,8 +220,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		}
 
 		_messenger.UnregisterAll(this);
-
-		KeeperId = null;
 	}
 
 	/// <summary>

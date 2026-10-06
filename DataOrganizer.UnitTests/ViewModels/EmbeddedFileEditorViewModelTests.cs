@@ -78,6 +78,97 @@ internal class EmbeddedFileEditorViewModelTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: closing the editor queues the edit still waiting for a pause in
+	/// typing, and the queue encrypts it although it gets to it only after the close.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Dispose_Saves_The_Edit_Waiting_For_A_Pause_Encrypted()
+	{
+		// Arrange
+		byte[]? saved = null;
+
+		TaskCompletionSource writing = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		TaskCompletionSource<bool> written = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = "Hello"u8.ToArray(),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			// The writes wait for the test, so the queue gets to the edit queued on closing only after the close.
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(_ =>
+				{
+					writing.TrySetResult();
+
+					return written.Task;
+				});
+
+			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(x => x.ArgAt<byte[]>(2));
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		await sut.EditorLoaded();
+
+		sut.Document.Text = "Hello, world";
+
+		FlushEditorsMessage flush = new();
+
+		sut.Receive(flush);
+
+		// The queue is now busy with the save of the first edit.
+		await writing.Task;
+
+		sut.Document.Text = "Hello, world!";
+
+		// Act
+		sut.Dispose();
+
+		written.SetResult(true);
+
+		// The flush answers once the queue is empty, the edit queued on closing included.
+		await flush.GetResponsesAsync();
+
+		// Assert
+		byte[] expected = "Hello, world!"u8.ToArray();
+
+		saved
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the stored state reaches the bound properties
 	/// on the UI thread, also when the database answers from another thread.
 	/// </summary>
