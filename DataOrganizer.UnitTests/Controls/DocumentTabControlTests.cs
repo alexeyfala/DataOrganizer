@@ -92,6 +92,48 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabControl.TabMenuTemplate" />: a click on an item of the menu of a tab closes the menu, even
+	/// when no tab goes away.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0)]
+	[TestCase(1)]
+	[TestCase(2)]
+	public void Click_On_A_Menu_Item_Closes_The_Menu(int index)
+	{
+		// Arrange
+		ICommand command = Substitute.For<ICommand>();
+
+		command
+			.CanExecute(Arg.Any<object?>())
+			.Returns(true);
+
+		DocumentTabControl sut = new()
+		{
+			CloseCommand = command,
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Window window = Show(sut);
+
+		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(window, GetMenuButtons(window)[index]);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		window.GetVisualDescendants().OfType<FlyoutPresenter>()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabControl.CloseCommand" />: the close button of a tab runs the command for the item of the tab.
 	/// </summary>
 	[AvaloniaTest]
