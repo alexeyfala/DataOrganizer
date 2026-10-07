@@ -846,4 +846,7 @@
   <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
     <value>Содержимое нельзя прочитать в этой кодировке</value>
   </data>
+  <data name="Notepad" xml:space="preserve">
+    <value>Блокнот</value>
+  </data>
 </root>

@@ -107,6 +107,20 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
+	/// Brings the open notepad to the center of the screen of the window.
+	/// </summary>
+	[RelayCommand]
+	private void CenterNotepad(Window? owner)
+	{
+		if (owner is null)
+		{
+			return;
+		}
+
+		_viewLauncher.CenterNotepadWindow(owner);
+	}
+
+	/// <summary>
 	/// Handles the display of copy history.
 	/// </summary>
 	[RelayCommand]
@@ -131,6 +145,20 @@ public abstract partial class ViewModelBase :
 		}
 
 		return _viewLauncher.ShowClipboardLogWindowAsync(owner);
+	}
+
+	/// <summary>
+	/// Activates the open notepad or opens a new one.
+	/// </summary>
+	[RelayCommand]
+	private void ShowNotepad(Window? owner)
+	{
+		if (owner is null)
+		{
+			return;
+		}
+
+		_viewLauncher.ShowNotepadWindow(owner);
 	}
 	#endregion
 

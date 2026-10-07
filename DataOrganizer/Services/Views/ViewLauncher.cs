@@ -208,9 +208,43 @@ public class ViewLauncher : IViewLauncher
 
 		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
 	}
+
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="NotepadWindow" />.
+	/// </summary>
+	private void NotepadWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not NotepadWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= NotepadWindow_Closing;
+
+		SaveNotepadSettings(window);
+	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void CenterNotepadWindow(Window owner)
+	{
+		if (_app.FindWindow<NotepadWindow>() is not { } window)
+		{
+			return;
+		}
+
+		window.RestoreAndActivate();
+
+		// A maximized window fills its own screen and stays there.
+		if (window.WindowState == WindowState.Maximized)
+		{
+			return;
+		}
+
+		PositionAtScreenCenter(window, owner);
+	}
+
 	/// <inheritdoc />
 	public ClipboardLogWindow CreateClipboardLogWindow(Window owner)
 	{
@@ -392,6 +426,61 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public NotepadWindow CreateNotepadWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(NotepadWindow)}""");
+
+		NotepadViewModel viewModel = _viewFactory.CreateViewModel<NotepadViewModel>();
+
+		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
+
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings));
+
+		if (_jsonSerializer.DeserializeFromFile<NotepadWindowSettings>(filePath) is { } settings)
+		{
+			if (settings.Size is { Width: > 0, Height: > 0 })
+			{
+				window.Width = settings.Size.Width;
+
+				window.Height = settings.Size.Height;
+			}
+			else
+			{
+				IViewLauncher.SetDefaultSize(window);
+			}
+
+			PixelPoint savedPosition = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
+			{
+				window.Position = savedPosition;
+			}
+			else
+			{
+				PositionAtScreenCenter(window, owner);
+			}
+
+			window.Topmost = settings.IsTopmost;
+
+			window.WindowState = settings.WindowState == WindowState.Minimized
+				? WindowState.Normal
+				: settings.WindowState;
+		}
+		else
+		{
+			IViewLauncher.SetDefaultSize(window);
+
+			PositionAtScreenCenter(window, owner);
+		}
+
+		window.Closing += NotepadWindow_Closing;
+
+		return window;
+	}
+
+	/// <inheritdoc />
 	public void SaveClipboardLogSettings(ClipboardLogWindow window)
 	{
 		try
@@ -525,6 +614,31 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public void SaveNotepadSettings(NotepadWindow window)
+	{
+		try
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = window.Topmost,
+				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				WindowState = window.Placement.WindowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings)),
+				false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync(Window owner)
 	{
 		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
@@ -539,6 +653,19 @@ public class ViewLauncher : IViewLauncher
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
 		CreateClipboardLogWindow(owner).Show();
+	}
+
+	/// <inheritdoc />
+	public void ShowNotepadWindow(Window owner)
+	{
+		if (_app.FindWindow<NotepadWindow>() is { } existing)
+		{
+			existing.RestoreAndActivate();
+
+			return;
+		}
+
+		CreateNotepadWindow(owner).Show();
 	}
 
 	/// <inheritdoc />
@@ -621,6 +748,28 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
+	/// Places <paramref name="target" /> in the center of the working area of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	private static void PositionAtScreenCenter(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// A shown window knows its outer size, a new one only the size it asks for.
+		PixelSize size = PixelSize.FromSize(
+			target.FrameSize ?? new Avalonia.Size(target.Width, target.Height),
+			screen.Scaling);
+
+		target.Position = screen
+			.WorkingArea
+			.CenterRect(new PixelRect(size))
+			.Position;
+	}
+
+	/// <summary>
 	/// Returns <see cref="FavoritesViewSettings" /> settings from a file.
 	/// </summary>
 	private FavoritesViewSettings GetFavoritesSettingsFromFile()
@@ -683,6 +832,12 @@ public class ViewLauncher : IViewLauncher
 						.Delay(300)
 						.ConfigureAwait(true);
 				}
+			}
+
+			// Closed here, so that it saves its settings while the services are still alive.
+			if (_app.FindWindow<NotepadWindow>() is { } notepad)
+			{
+				notepad.Close();
 			}
 
 			Guid[] executingFiles = [.. hierarchy

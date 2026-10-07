@@ -1402,6 +1402,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notepad.
+        /// </summary>
+        public static string Notepad {
+            get {
+                return ResourceManager.GetString("Notepad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string OK {

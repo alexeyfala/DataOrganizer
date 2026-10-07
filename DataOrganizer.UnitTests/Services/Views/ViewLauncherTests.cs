@@ -32,6 +32,95 @@ internal class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="ViewLauncher.CenterNotepadWindow" />: the open notepad moves to the center of the working area of the
+	/// screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CenterNotepadWindow_Centers_The_Notepad_On_The_Screen_Of_The_Owner()
+	{
+		// Arrange
+		NotepadWindow notepad = new(new NotepadViewModel())
+		{
+			Height = 300.0,
+			Width = 400.0
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		notepad.Show();
+
+		// Act
+		sut.CenterNotepadWindow(owner);
+
+		// Assert
+		PixelRect bounds = new(notepad.Position, new PixelSize(400, 300));
+
+		bounds.Center
+			.Should()
+			.Be(owner.Screens!.Primary!.WorkingArea.Center);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CenterNotepadWindow" />: a maximized notepad stays on its own screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void CenterNotepadWindow_Leaves_A_Maximized_Notepad_In_Place()
+	{
+		// Arrange
+		PixelPoint position = new(5, 5);
+
+		NotepadWindow notepad = new(new NotepadViewModel())
+		{
+			Position = position,
+			WindowState = WindowState.Maximized
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		notepad.Show();
+
+		// Act
+		sut.CenterNotepadWindow(new Window());
+
+		// Assert
+		notepad.Position
+			.Should()
+			.Be(position);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
@@ -465,6 +554,285 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the saved size, position and topmost flag are applied to the window.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Applies_Saved_Settings()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = true,
+				Size = new(500, 400),
+				WindowState = WindowState.Normal,
+				X = 30,
+				Y = 40
+			};
+
+			NotepadViewModel viewModel = new();
+
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		NotepadWindow window = sut.CreateNotepadWindow(new Window());
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(500.0);
+
+		window.Height
+			.Should()
+			.Be(400.0);
+
+		window.Position
+			.Should()
+			.Be(new PixelPoint(30, 40));
+
+		window.Topmost
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: a window saved off every screen opens in the center of the screen
+	/// of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Centers_A_Window_Saved_Off_The_Screens()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = false,
+				Size = new(500, 400),
+				WindowState = WindowState.Normal,
+				X = -20000,
+				Y = -20000
+			};
+
+			NotepadViewModel viewModel = new();
+
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		// Act
+		NotepadWindow window = sut.CreateNotepadWindow(owner);
+
+		// Assert
+		PixelRect bounds = new(window.Position, new PixelSize(500, 400));
+
+		bounds.Center
+			.Should()
+			.Be(owner.Screens!.Primary!.WorkingArea.Center);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: without saved settings the window takes the default size and
+	/// opens in the center of the screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Opens_Centered_With_The_Default_Size_For_The_First_Launch()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadViewModel viewModel = new();
+
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		// Act
+		NotepadWindow window = sut.CreateNotepadWindow(owner);
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Width);
+
+		window.Height
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Height);
+
+		PixelRect bounds = new(
+			window.Position,
+			new PixelSize(IViewLauncher.DefaultWindowSize.Width, IViewLauncher.DefaultWindowSize.Height));
+
+		bounds.Center
+			.Should()
+			.Be(owner.Screens!.Primary!.WorkingArea.Center);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the window opens in the saved state, a minimized one as a normal one.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(WindowState.Maximized, WindowState.Maximized)]
+	[TestCase(WindowState.Minimized, WindowState.Normal)]
+	public void CreateNotepadWindow_Restores_The_Saved_State(WindowState saved, WindowState expected)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = false,
+				Size = new(500, 400),
+				WindowState = saved,
+				X = 30,
+				Y = 40
+			};
+
+			NotepadViewModel viewModel = new();
+
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		NotepadWindow window = sut.CreateNotepadWindow(new Window());
+
+		// Assert
+		window.WindowState
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the window saves its settings when it closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Saves_The_Settings_When_The_Window_Closes()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadViewModel viewModel = new();
+
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		NotepadWindow window = sut.CreateNotepadWindow(new Window());
+
+		window.Show();
+
+		// Act
+		window.Close();
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Any<NotepadWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the active type filter is persisted.
 	/// </summary>
 	[AvaloniaTest]
@@ -599,6 +967,49 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown closes the notepad, so that it saves its settings.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Closes_The_Notepad_On_Shutdown()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		NotepadWindow notepad = new(new NotepadViewModel());
+
+		notepad.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		notepad.Show();
+
+		// Act
+		await sut.SaveEditorSettingsAsync(window);
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: editor settings and the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
@@ -684,6 +1095,55 @@ internal class ViewLauncherTests
 			WindowKind.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveNotepadSettings" />: the position, size, state and topmost flag of the window are saved.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveNotepadSettings_Saves_Settings()
+	{
+		// Arrange
+		NotepadWindowSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<NotepadWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<NotepadWindowSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		NotepadWindow window = new(new NotepadViewModel())
+		{
+			Height = 400.0,
+			Position = new PixelPoint(30, 40),
+			Topmost = true,
+			Width = 500.0
+		};
+
+		// Act
+		sut.SaveNotepadSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.BeEquivalentTo(new NotepadWindowSettings
+			{
+				IsTopmost = true,
+				Size = new(500, 400),
+				WindowState = WindowState.Normal,
+				X = 30,
+				Y = 40
+			});
 	}
 
 	/// <summary>
@@ -811,6 +1271,89 @@ internal class ViewLauncherTests
 		viewFactory
 			.DidNotReceive()
 			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: without an open notepad a new one is opened.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowNotepadWindow_Opens_A_New_Notepad()
+	{
+		// Arrange
+		NotepadWindow notepad = new(new NotepadViewModel());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(notepad.ViewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepad);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		sut.ShowNotepadWindow(new Window());
+
+		// Assert
+		notepad.IsVisible
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the open notepad comes back from the taskbar instead of a second one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowNotepadWindow_Restores_The_Open_Notepad()
+	{
+		// Arrange
+		NotepadWindow notepad = new(new NotepadViewModel())
+		{
+			WindowState = WindowState.Minimized
+		};
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		notepad.Show();
+
+		// Act
+		sut.ShowNotepadWindow(new Window());
+
+		// Assert
+		notepad.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+
+		viewFactory
+			.DidNotReceive()
+			.CreateWindow<NotepadWindow>(Arg.Any<object[]>());
 	}
 
 	/// <summary>

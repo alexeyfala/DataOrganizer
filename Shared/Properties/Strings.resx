@@ -826,4 +826,7 @@
   <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
     <value>The contents cannot be read in this encoding</value>
   </data>
+  <data name="Notepad" xml:space="preserve">
+    <value>Notepad</value>
+  </data>
 </root>

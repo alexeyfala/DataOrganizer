@@ -27,6 +27,11 @@ public interface IViewLauncher
 
 	#region Methods
 	/// <summary>
+	/// Brings the open <see cref="NotepadWindow" /> to the center of the screen of <paramref name="owner" />.
+	/// </summary>
+	void CenterNotepadWindow(Window owner);
+
+	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	ClipboardLogWindow CreateClipboardLogWindow(Window owner);
@@ -54,6 +59,11 @@ public interface IViewLauncher
 	Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
+	/// Configures <see cref="NotepadWindow" />.
+	/// </summary>
+	NotepadWindow CreateNotepadWindow(Window owner);
+
+	/// <summary>
 	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
 	/// </summary>
 	void SaveClipboardLogSettings(ClipboardLogWindow window);
@@ -69,10 +79,20 @@ public interface IViewLauncher
 	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
 
 	/// <summary>
+	/// Saves <see cref="NotepadWindow" /> settings to the file.
+	/// </summary>
+	void SaveNotepadSettings(NotepadWindow window);
+
+	/// <summary>
 	/// Prompts to unlock the persisted clipboard history when required, then opens
 	/// <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	Task ShowClipboardLogWindowAsync(Window owner);
+
+	/// <summary>
+	/// Activates the open <see cref="NotepadWindow" /> or opens a new one.
+	/// </summary>
+	void ShowNotepadWindow(Window owner);
 
 	/// <summary>
 	/// Shows a notice in a window of its own and waits until it is closed; needs no other window.
