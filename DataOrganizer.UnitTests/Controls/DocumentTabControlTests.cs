@@ -298,6 +298,36 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="SelectingItemsControl.SelectedItem" />: after a tab is dragged, Ctrl+Tab goes back to the tab selected
+	/// before it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CtrlTab_After_A_Drag_Returns_To_The_Tab_Selected_Before()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Window window = Show(sut);
+
+		sut.SelectedIndex = 1;
+
+		Drag(window, Center(window, GetHeaderText(sut, "second")), Center(window, GetHeaderText(sut, "third")));
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		PressCtrlTab(window);
+
+		// Assert
+		sut.SelectedItem
+			.Should()
+			.Be("first");
+	}
+
+	/// <summary>
 	/// <see cref="SelectingItemsControl.SelectedItem" />: after the selected tab is closed, Ctrl+Tab goes back to the tab
 	/// selected before it.
 	/// </summary>
@@ -423,6 +453,223 @@ internal class DocumentTabControlTests
 		sut.SelectedItem
 			.Should()
 			.Be("second");
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: a click that shakes the mouse by a few pixels does not move the tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_By_A_Few_Pixels_Keeps_The_Order()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetHeaderText(sut, "first"));
+
+		// Act
+		Drag(window, point, point + new Vector(3.0, 0.0));
+
+		// Assert
+		items
+			.Should()
+			.Equal("first", "second", "third");
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: a drag that starts on the close button of a tab does not move the tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_From_The_Close_Button_Keeps_The_Order()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		// A disabled close button lets the press through to its tab.
+		ICommand command = Substitute.For<ICommand>();
+
+		command
+			.CanExecute(Arg.Any<object?>())
+			.Returns(true);
+
+		DocumentTabControl sut = new()
+		{
+			CloseCommand = command,
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Point from = Center(window, GetCloseButton(sut, 0));
+
+		Point to = Center(window, GetHeaderText(sut, "third"));
+
+		// Act
+		Drag(window, from, to);
+
+		// Assert
+		items
+			.Should()
+			.Equal("first", "second", "third");
+	}
+
+	/// <summary>
+	/// <see cref="TabControl.ContentTemplate" />: a dragged tab keeps its content, with no content built on the way, its own
+	/// or of another tab.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("first", "second")]
+	[TestCase("third", "second")]
+	public void Drag_Keeps_The_Content_Of_The_Tab(string dragged, string target)
+	{
+		// Arrange
+		List<string?> built = [];
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = new FuncDataTemplate<string?>((x, _) =>
+			{
+				built.Add(x);
+
+				return new Border();
+			}),
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Window window = Show(sut);
+
+		sut.SelectedItem = dragged;
+
+		Point from = Center(window, GetHeaderText(sut, dragged));
+
+		Point to = Center(window, GetHeaderText(sut, target));
+
+		built.Clear();
+
+		// Act
+		Drag(window, from, to);
+
+		// Assert
+		built
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: a tab dragged to the left stays there while the pointer moves on before
+	/// the row is laid out.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_Keeps_The_Order_Over_Moves_Faster_Than_The_Layout()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Point from = Center(window, GetHeaderText(sut, "third"));
+
+		Point to = Center(window, GetHeaderText(sut, "second"));
+
+		window.MouseDown(from, MouseButton.Left);
+
+		// Act
+		RaiseMove(sut, to);
+
+		RaiseMove(sut, to);
+
+		window.MouseUp(to, MouseButton.Left);
+
+		// Assert
+		items
+			.Should()
+			.Equal("first", "third", "second");
+	}
+
+	/// <summary>
+	/// <see cref="SelectingItemsControl.SelectedItem" />: the dragged tab stays selected in its own container, with no
+	/// change of the selection on the way.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_Keeps_The_Tab_Selected_In_Its_Container()
+	{
+		// Arrange
+		List<object?> selected = [];
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Window window = Show(sut);
+
+		Control container = sut.ContainerFromIndex(0)!;
+
+		Point from = Center(window, GetHeaderText(sut, "first"));
+
+		Point to = Center(window, GetHeaderText(sut, "third"));
+
+		sut.SelectionChanged += (_, e) => selected.AddRange(e.AddedItems.Cast<object?>());
+
+		// Act
+		Drag(window, from, to);
+
+		// Assert
+		sut.SelectedItem
+			.Should()
+			.Be("first");
+
+		sut.ContainerFromItem("first")
+			.Should()
+			.BeSameAs(container);
+
+		selected
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: a tab dragged onto another one takes its place among the items.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("first", "second", "second", "first", "third")]
+	[TestCase("first", "third", "second", "third", "first")]
+	[TestCase("third", "second", "first", "third", "second")]
+	[TestCase("third", "first", "third", "first", "second")]
+	public void Drag_Moves_The_Tab_To_Where_It_Is_Dropped(string dragged, string target, params string[] expected)
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Point from = Center(window, GetHeaderText(sut, dragged));
+
+		Point to = Center(window, GetHeaderText(sut, target));
+
+		// Act
+		Drag(window, from, to);
+
+		// Assert
+		items
+			.Should()
+			.Equal(expected);
 	}
 
 	/// <summary>
@@ -561,6 +808,44 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="TabControl.ContentTemplate" />: the selected tab keeps its content while a tab before it closes, with no
+	/// content of another tab built on the way.
+	/// </summary>
+	[AvaloniaTest]
+	public void SelectedItem_Keeps_Its_Content_When_A_Tab_Before_It_Closes()
+	{
+		// Arrange
+		List<string?> built = [];
+
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = new FuncDataTemplate<string?>((x, _) =>
+			{
+				built.Add(x);
+
+				return new Border();
+			}),
+			ItemsSource = items
+		};
+
+		Show(sut);
+
+		sut.SelectedIndex = 2;
+
+		built.Clear();
+
+		// Act
+		items.Remove("first");
+
+		// Assert
+		built
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="SelectingItemsControl.SelectedItem" />: the closed last tab gives way to its left neighbour.
 	/// </summary>
 	[AvaloniaTest]
@@ -675,6 +960,18 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// Presses the left button of the mouse at one point of a window, moves the mouse to another and releases it there.
+	/// </summary>
+	private static void Drag(Window window, Point from, Point to)
+	{
+		window.MouseDown(from, MouseButton.Left);
+
+		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+
+		window.MouseUp(to, MouseButton.Left);
+	}
+
+	/// <summary>
 	/// Returns the button that adds a tab.
 	/// </summary>
 	private static Button GetAddButton(DocumentTabControl control)
@@ -754,6 +1051,23 @@ internal class DocumentTabControlTests
 		window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
 
 		window.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+	}
+
+	/// <summary>
+	/// Raises a move of the mouse with the left button down on a control at a point of its window, with no layout pass
+	/// before it, as when moves come faster than the layout.
+	/// </summary>
+	private static void RaiseMove(Control control, Point point)
+	{
+		control.RaiseEvent(new PointerEventArgs(
+			InputElement.PointerMovedEvent,
+			control,
+			new Pointer(0, PointerType.Mouse, isPrimary: true),
+			TopLevel.GetTopLevel(control),
+			point,
+			0,
+			new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other),
+			KeyModifiers.None));
 	}
 
 	/// <summary>

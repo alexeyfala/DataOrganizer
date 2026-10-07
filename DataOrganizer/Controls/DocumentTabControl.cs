@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -16,8 +17,9 @@ using System.Windows.Input;
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// A <see cref="TabControl" /> of documents: a button after the tabs adds one, a tab closes by its button, a middle
-/// click or its menu, a right click selects it and opens the menu, and Ctrl+Tab goes back to the tab selected before.
+/// A <see cref="TabControl" /> of documents: a button after the tabs adds one, a tab is dragged along the row, closes
+/// by its button, a middle click or its menu, a right click selects it and opens the menu, and Ctrl+Tab goes back to
+/// the tab selected before.
 /// </summary>
 internal sealed class DocumentTabControl : TabControl
 {
@@ -102,6 +104,16 @@ internal sealed class DocumentTabControl : TabControl
 
 	#region Data
 	/// <summary>
+	/// Tab the left button was pressed on, which follows the pointer along the row while the button is down.
+	/// </summary>
+	private TabItem? _draggedTab;
+
+	/// <summary>
+	/// Point of <see cref="_draggedTab" /> the pointer grabbed it at.
+	/// </summary>
+	private Point _grabPoint;
+
+	/// <summary>
 	/// Tab the middle button was pressed on.
 	/// </summary>
 	private TabItem? _middlePressedTab;
@@ -130,6 +142,9 @@ internal sealed class DocumentTabControl : TabControl
 		Selection.LostSelection += Selection_LostSelection;
 
 		AddHandler(ContextRequestedEvent, DocumentTabControl_ContextRequested);
+
+		// A tab takes the press of the left button to select itself, so the press comes here already handled.
+		AddHandler(PointerPressedEvent, DocumentTabControl_PointerPressed, handledEventsToo: true);
 
 		KeyBindings.Add(new KeyBinding
 		{
@@ -162,6 +177,25 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of the control.
+	/// </summary>
+	private void DocumentTabControl_PointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		// A button of a tab, such as the close one, does not drag the tab.
+		if (e.GetCurrentPoint(this).Properties.PointerUpdateKind is not PointerUpdateKind.LeftButtonPressed
+			|| e.Source is not Visual source
+			|| source.FindAncestorOfType<Button>(includeSelf: true) is not null
+			|| GetTabItem(source) is not { } tab)
+		{
+			return;
+		}
+
+		_draggedTab = tab;
+
+		_grabPoint = e.GetPosition(tab);
+	}
+
+	/// <summary>
 	/// <see cref="INotifyCollectionChanged.CollectionChanged" /> event handler of <see cref="ItemsControl.ItemsView" />.
 	/// </summary>
 	private void ItemsView_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -191,6 +225,33 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+	{
+		base.OnPointerCaptureLost(e);
+
+		// The pointer lets the tab go with its button, or when anything else takes it.
+		_draggedTab = null;
+	}
+
+	/// <inheritdoc />
+	protected override void OnPointerMoved(PointerEventArgs e)
+	{
+		base.OnPointerMoved(e);
+
+		if (_draggedTab is not { } tab
+			|| ItemsPanelRoot is not { } panel
+			|| ItemsSource is not IList { IsFixedSize: false } items)
+		{
+			return;
+		}
+
+		// Where the tab would stand if it followed the pointer.
+		double left = e.GetPosition(panel).X - _grabPoint.X;
+
+		MoveNeighbours(items, tab, left);
+	}
+
 	/// <inheritdoc />
 	protected override void OnPointerPressed(PointerPressedEventArgs e)
 	{
@@ -276,6 +337,18 @@ internal sealed class DocumentTabControl : TabControl
 
 	#region Helpers
 	/// <summary>
+	/// Moves the item at <paramref name="oldIndex" /> of a list to <paramref name="newIndex" />.
+	/// </summary>
+	private static void MoveItem(IList items, int oldIndex, int newIndex)
+	{
+		object? item = items[oldIndex];
+
+		items.RemoveAt(oldIndex);
+
+		items.Insert(newIndex, item);
+	}
+
+	/// <summary>
 	/// Closes every tab by <see cref="CloseCommand" />.
 	/// </summary>
 	private void CloseAllTabs() => CloseTabs(ItemsView);
@@ -334,6 +407,39 @@ internal sealed class DocumentTabControl : TabControl
 		return ReferenceEquals(tabItem.FindAncestorOfType<TabControl>(), this)
 			? tabItem
 			: null;
+	}
+
+	/// <summary>
+	/// Moves the neighbours of a dragged tab across it while the tab, standing at <paramref name="left" />, goes over
+	/// their middles; the dragged tab itself stays in the items, so it keeps its selection and container.
+	/// </summary>
+	private void MoveNeighbours(IList items, TabItem tab, double left)
+	{
+		int index = IndexFromContainer(tab);
+
+		if (index < 0)
+		{
+			return;
+		}
+
+		// A moved neighbour gets a new container, which has no place in the row until the row is laid out.
+		while (ContainerFromIndex(index + 1) is { } next && left + tab.Bounds.Width > next.Bounds.Center.X)
+		{
+			MoveItem(items, index + 1, index);
+
+			index++;
+
+			UpdateLayout();
+		}
+
+		while (ContainerFromIndex(index - 1) is { } previous && left < previous.Bounds.Center.X)
+		{
+			MoveItem(items, index - 1, index);
+
+			index--;
+
+			UpdateLayout();
+		}
 	}
 
 	/// <summary>

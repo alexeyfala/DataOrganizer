@@ -59,13 +59,13 @@
 		TargetType="controls:DocumentTabControl">
 		<Setter Property="assists:TabControlAssist.TabHeaderHorizontalAlignment" Value="Left" />
 		<Setter Property="ItemContainerTheme" Value="{StaticResource DocumentTabItemTheme}" />
-		
+
 		<Setter Property="ItemsPanel">
 			<ItemsPanelTemplate>
 				<StackPanel HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}" Orientation="Horizontal" />
 			</ItemsPanelTemplate>
 		</Setter>
-		
+
 		<Setter Property="TabHeaderTemplate">
 			<DataTemplate x:DataType="system:Object">
 				<StackPanel
@@ -88,7 +88,7 @@
 				</StackPanel>
 			</DataTemplate>
 		</Setter>
-		
+
 		<Setter Property="TabMenuTemplate">
 			<DataTemplate x:DataType="system:Object">
 				<StackPanel Orientation="Vertical">
@@ -126,7 +126,7 @@
 				</StackPanel>
 			</DataTemplate>
 		</Setter>
-		
+
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Border
@@ -169,10 +169,14 @@
 							<Rectangle Name="PART_Separator" />
 						</Panel>
 
+						<!--
+							The content follows the selected item, not SelectedContent: TabControl updates that one while it removes the
+							container of a tab before the selected one, and shows another tab or nothing for a moment.
+						-->
 						<ContentPresenter
 							Name="PART_ContentPresenter"
 							Margin="{TemplateBinding Padding}"
-							Content="{TemplateBinding SelectedContent}"
+							Content="{TemplateBinding SelectedItem}"
 							ContentTemplate="{TemplateBinding ContentTemplate}" />
 					</DockPanel>
 				</Border>
