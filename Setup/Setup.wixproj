@@ -48,7 +48,8 @@
 			Condition="'$(DesignTimeBuild)' != 'true'">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
 		<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
-		<Exec Command="start $(OutputPath)"
+		<Exec Command="explorer /select,&quot;$(TargetPath)&quot;"
+			  IgnoreExitCode="true"
 			  Condition="'$(OpenOutputFolder)' != 'false'" />
 	</Target>
 </Project>

@@ -4,7 +4,7 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 > **Before any Release / distributable build — regenerate third-party license notices.**
 > The notice set is platform-independent, so running this once per release is enough; commit the result.
-> Restore first so `project.assets.json` is current. On Windows use `powershell`; on Linux/macOS use `pwsh`.
+> Restore first so `project.assets.json` is current.
 >
 > ```powershell
 > dotnet restore
@@ -30,12 +30,11 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ..\tools\gen-third-party-notices.ps1
 dotnet publish -c:Release -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=win-x64 -p:Configuration=Release).Trim()
 Compress-Archive -Path "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\Publish\$name.zip" -Force
 Remove-Item "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt"
-start "..\Publish"
+explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
 ```
 
 ### Portable — Debug
@@ -47,27 +46,23 @@ dotnet publish -c:Debug -p:PublishSingleFile=true -r:win-x64 --self-contained tr
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=win-x64 -p:Configuration=Debug).Trim()
 Compress-Archive -Path "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\Publish\$name.zip" -Force
 Remove-Item "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt"
-start "..\Publish"
+explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
 ```
 
 ---
 
 ## Linux
 
-> Prerequisite: the notice generator runs under PowerShell (Core). Install `pwsh` once, e.g.
-> `sudo apt-get install -y powershell` (or via the [Microsoft package repo](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu)).
-
 ### Portable — Release
 
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
 
 ```powershell
-pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=linux-x64 -p:Configuration=Release).Trim()
 tar -czf "../Publish/$name.tar.gz" -C ../Publish "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
 Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publish/THIRD-PARTY-NOTICES.txt"
-start "..\Publish"
+explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
 ```
 
 ### Portable — Debug
@@ -79,7 +74,7 @@ dotnet publish -c:Debug -p:PublishSingleFile=true -r:linux-x64 --self-contained 
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=linux-x64 -p:Configuration=Debug).Trim()
 tar -czf "../Publish/$name.tar.gz" -C ../Publish "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
 Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publish/THIRD-PARTY-NOTICES.txt"
-start "..\Publish"
+explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
 ```
 
 ### Native installers — `.deb` / `.rpm` / AppImage / Flatpak (PupNet)
@@ -97,9 +92,6 @@ A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 Three output formats: a `.dmg` (recommended for end users — drag-to-Applications, uninstall by dragging to Trash), a `.pkg` installer, and a portable `.zip` (the `.app` bundle archived as-is — no installer, runs from anywhere).
 
-> Prerequisite: the notice generator runs under PowerShell (Core). Install `pwsh` once, e.g.
-> `brew install powershell/tap/powershell`.
-
 > The `rm -rf bin` step is required, not just cleanup: the build leaves a copy of `DataOrganizer.app` under
 > `bin`, which macOS LaunchServices may register instead of the copy installed into `/Applications`. Until
 > `bin` is removed the installed app is not discoverable in Finder/Launchpad and cannot be uninstalled by
@@ -111,7 +103,6 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd DataOrganizer.MacOS
-pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
 cd ..
@@ -121,7 +112,7 @@ ln -s /Applications Publish/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
 rm -rf Publish/dmg-staging
 rm -rf DataOrganizer.MacOS/bin
-open Publish
+open -R "Publish/$NAME.dmg"
 ```
 
 ### `.dmg` — Debug
@@ -139,7 +130,7 @@ ln -s /Applications Publish/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
 rm -rf Publish/dmg-staging
 rm -rf DataOrganizer.MacOS/bin
-open Publish
+open -R "Publish/$NAME.dmg"
 ```
 
 ### `.pkg` — Release
@@ -148,11 +139,10 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd DataOrganizer.MacOS
-pwsh ../tools/gen-third-party-notices.ps1
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
-open ../Publish
+open -R "../Publish/$NAME.pkg"
 ```
 
 ### `.pkg` — Debug
@@ -164,7 +154,7 @@ cd DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
-open ../Publish
+open -R "../Publish/$NAME.pkg"
 ```
 
 ### Portable (`.zip`) — Release
@@ -173,14 +163,13 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd DataOrganizer.MacOS
-pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
 cd ..
 mkdir -p Publish
 ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
 rm -rf DataOrganizer.MacOS/bin
-open Publish
+open -R "Publish/$NAME.zip"
 ```
 
 ### Portable (`.zip`) — Debug
@@ -195,5 +184,5 @@ cd ..
 mkdir -p Publish
 ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
 rm -rf DataOrganizer.MacOS/bin
-open Publish
+open -R "Publish/$NAME.zip"
 ```
