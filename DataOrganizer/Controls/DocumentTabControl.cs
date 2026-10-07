@@ -178,10 +178,12 @@ internal sealed class DocumentTabControl : TabControl
 	{
 		base.PrepareContainerForItemOverride(container, item, index);
 
-		if (container is TabItem tabItem && TabHeaderTemplate is { } template)
+		if (container is not TabItem tabItem || TabHeaderTemplate is not { } template)
 		{
-			tabItem.HeaderTemplate = template;
+			return;
 		}
+
+		tabItem.HeaderTemplate = template;
 	}
 
 	/// <inheritdoc />
