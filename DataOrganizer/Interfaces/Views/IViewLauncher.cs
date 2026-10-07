@@ -27,6 +27,16 @@ public interface IViewLauncher
 
 	#region Methods
 	/// <summary>
+	/// Brings the main window back from the minimized state and activates it.
+	/// </summary>
+	void ActivateMainWindow();
+
+	/// <summary>
+	/// Brings the main window to the center of the screen of <paramref name="owner" />.
+	/// </summary>
+	void CenterMainWindow(Window owner);
+
+	/// <summary>
 	/// Brings the open <see cref="NotepadWindow" /> to the center of the screen of <paramref name="owner" />.
 	/// </summary>
 	void CenterNotepadWindow(Window owner);

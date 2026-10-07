@@ -71,10 +71,11 @@
 					x:Name="NotepadButton"
 					Grid.Column="3"
 					Margin="4.0,0.0"
-					Padding="0.0"
+					Padding="6.0,0.0"
 					Command="{Binding ShowNotepadCommand}"
 					CommandParameter="{Binding $parent[Window]}"
-					Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline}"
+					Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
+					                                            IconSize=16.0}"
 					Foreground="{StaticResource LightForegroundBrush}"
 					Theme="{StaticResource MaterialFlatButton}"
 					ToolTip.Tip="{x:Static prop:Strings.Notepad}">

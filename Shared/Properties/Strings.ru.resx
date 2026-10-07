@@ -849,4 +849,7 @@
   <data name="Notepad" xml:space="preserve">
     <value>Блокнот</value>
   </data>
+  <data name="MainWindow" xml:space="preserve">
+    <value>Главное окно</value>
+  </data>
 </root>

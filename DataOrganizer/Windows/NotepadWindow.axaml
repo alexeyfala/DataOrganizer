@@ -2,8 +2,11 @@
 	x:Class="DataOrganizer.Windows.NotepadWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	MinWidth="400.0"
@@ -26,6 +29,23 @@
 	</Window.Styles>
 
 	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
-		<views:TitleBarView DockPanel.Dock="Top" />
+		<views:TitleBarView DockPanel.Dock="Top">
+			<views:TitleBarView.ButtonContent>
+				<Button
+					x:Name="HomeButton"
+					chrome:WindowDecorationProperties.ElementRole="User"
+					Classes="CaptionButtonStyle"
+					Command="{Binding ActivateMainWindowCommand}"
+					Content="{materialIcons:MaterialIconExt Kind=HomeOutline,
+					                                        IconSize={StaticResource CaptionIconSize}}"
+					ToolTip.Tip="{x:Static prop:Strings.MainWindow}">
+					<Interaction.Behaviors>
+						<DoubleTappedTrigger MarkAsHandled="True">
+							<InvokeCommandAction Command="{Binding CenterMainWindowCommand}" CommandParameter="{Binding $parent[Window]}" />
+						</DoubleTappedTrigger>
+					</Interaction.Behaviors>
+				</Button>
+			</views:TitleBarView.ButtonContent>
+		</views:TitleBarView>
 	</DockPanel>
 </Window>

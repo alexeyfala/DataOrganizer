@@ -1258,6 +1258,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Main window.
+        /// </summary>
+        public static string MainWindow {
+            get {
+                return ResourceManager.GetString("MainWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Menu.
         /// </summary>
         public static string Menu {

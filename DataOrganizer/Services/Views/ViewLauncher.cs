@@ -227,6 +227,28 @@ public class ViewLauncher : IViewLauncher
 
 	#region Methods
 	/// <inheritdoc />
+	public void ActivateMainWindow()
+	{
+		if (_app.FindMainWindow() is not { } window)
+		{
+			return;
+		}
+
+		window.RestoreAndActivate();
+	}
+
+	/// <inheritdoc />
+	public void CenterMainWindow(Window owner)
+	{
+		if (_app.FindMainWindow() is not { } window)
+		{
+			return;
+		}
+
+		BringToScreenCenter(window, owner);
+	}
+
+	/// <inheritdoc />
 	public void CenterNotepadWindow(Window owner)
 	{
 		if (_app.FindWindow<NotepadWindow>() is not { } window)
@@ -234,15 +256,7 @@ public class ViewLauncher : IViewLauncher
 			return;
 		}
 
-		window.RestoreAndActivate();
-
-		// A maximized window fills its own screen and stays there.
-		if (window.WindowState == WindowState.Maximized)
-		{
-			return;
-		}
-
-		PositionAtScreenCenter(window, owner);
+		BringToScreenCenter(window, owner);
 	}
 
 	/// <inheritdoc />
@@ -727,6 +741,23 @@ public class ViewLauncher : IViewLauncher
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Restores and activates <paramref name="target" />, then places it in the center of the screen
+	/// of <paramref name="owner" />.
+	/// </summary>
+	private static void BringToScreenCenter(Window target, Window owner)
+	{
+		target.RestoreAndActivate();
+
+		// A maximized window fills its own screen and stays there.
+		if (target.WindowState == WindowState.Maximized)
+		{
+			return;
+		}
+
+		PositionAtScreenCenter(target, owner);
+	}
+
 	/// <summary>
 	/// Places <paramref name="target" /> at the bottom-right corner of the screen
 	/// that <paramref name="owner" /> currently lives on.

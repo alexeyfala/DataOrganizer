@@ -32,6 +32,157 @@ internal class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="ViewLauncher.ActivateMainWindow" />: the minimized main window comes back from the taskbar on top of the
+	/// notepad.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActivateMainWindow_Restores_The_Main_Window()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		Window mainWindow = new()
+		{
+			DataContext = windowMock.Create<FavoritesViewModel>(),
+			WindowState = WindowState.Minimized
+		};
+
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad, mainWindow]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		mainWindow.Show();
+
+		notepad.Show();
+
+		// Act
+		sut.ActivateMainWindow();
+
+		// Assert
+		mainWindow.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+
+		Window[] windows = [mainWindow, notepad];
+
+		Window.SortWindowsByZOrder(windows);
+
+		windows[^1]
+			.Should()
+			.BeSameAs(mainWindow);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CenterMainWindow" />: the main window moves to the center of the working area of the
+	/// screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CenterMainWindow_Centers_The_Main_Window_On_The_Screen_Of_The_Owner()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		Window mainWindow = new()
+		{
+			DataContext = windowMock.Create<FavoritesViewModel>(),
+			Height = 300.0,
+			Width = 400.0
+		};
+
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad, mainWindow]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		mainWindow.Show();
+
+		// Act
+		sut.CenterMainWindow(notepad);
+
+		// Assert
+		PixelRect bounds = new(mainWindow.Position, new PixelSize(400, 300));
+
+		bounds.Center
+			.Should()
+			.Be(notepad.Screens!.Primary!.WorkingArea.Center);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CenterMainWindow" />: a maximized main window stays on its own screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void CenterMainWindow_Leaves_A_Maximized_Main_Window_In_Place()
+	{
+		// Arrange
+		PixelPoint position = new(5, 5);
+
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		Window mainWindow = new()
+		{
+			DataContext = windowMock.Create<FavoritesViewModel>(),
+			Position = position,
+			WindowState = WindowState.Maximized
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([mainWindow]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		mainWindow.Show();
+
+		// Act
+		sut.CenterMainWindow(new Window());
+
+		// Assert
+		mainWindow.Position
+			.Should()
+			.Be(position);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CenterNotepadWindow" />: the open notepad moves to the center of the working area of the
 	/// screen of the owner.
 	/// </summary>
@@ -39,7 +190,7 @@ internal class ViewLauncherTests
 	public void CenterNotepadWindow_Centers_The_Notepad_On_The_Screen_Of_The_Owner()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel())
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
 		{
 			Height = 300.0,
 			Width = 400.0
@@ -86,7 +237,7 @@ internal class ViewLauncherTests
 		// Arrange
 		PixelPoint position = new(5, 5);
 
-		NotepadWindow notepad = new(new NotepadViewModel())
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
 		{
 			Position = position,
 			WindowState = WindowState.Maximized
@@ -571,7 +722,7 @@ internal class ViewLauncherTests
 				Y = 40
 			};
 
-			NotepadViewModel viewModel = new();
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -638,7 +789,7 @@ internal class ViewLauncherTests
 				Y = -20000
 			};
 
-			NotepadViewModel viewModel = new();
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -688,7 +839,7 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			NotepadViewModel viewModel = new();
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -750,7 +901,7 @@ internal class ViewLauncherTests
 				Y = 40
 			};
 
-			NotepadViewModel viewModel = new();
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -797,7 +948,7 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			NotepadViewModel viewModel = new();
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -975,7 +1126,7 @@ internal class ViewLauncherTests
 		// Arrange
 		bool isClosed = false;
 
-		NotepadWindow notepad = new(new NotepadViewModel());
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
 
 		notepad.Closed += (_, _) => isClosed = true;
 
@@ -1122,7 +1273,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		NotepadWindow window = new(new NotepadViewModel())
+		NotepadWindow window = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
 		{
 			Height = 400.0,
 			Position = new PixelPoint(30, 40),
@@ -1280,7 +1431,7 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Opens_A_New_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel());
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1315,7 +1466,7 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Restores_The_Open_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel())
+		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
 		{
 			WindowState = WindowState.Minimized
 		};

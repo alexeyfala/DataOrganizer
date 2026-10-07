@@ -829,4 +829,7 @@
   <data name="Notepad" xml:space="preserve">
     <value>Notepad</value>
   </data>
+  <data name="MainWindow" xml:space="preserve">
+    <value>Main window</value>
+  </data>
 </root>
