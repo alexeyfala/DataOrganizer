@@ -2,7 +2,6 @@
 	x:Class="DataOrganizer.Views.EditingFilesView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -11,32 +10,14 @@
 	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
-	<controls:RightClickSelectableTabControl
-		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
-		AutoScrollToSelectedItem="True"
+	<controls:DocumentTabControl
+		CloseCommand="{Binding CloseTabCommand}"
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
-		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-		Theme="{StaticResource ContentSizedTabControlTheme}">
+		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}">
 
-		<controls:RightClickSelectableTabControl.KeyBindings>
-			<KeyBinding
-				Command="{Binding SwitchToPreviousTabCommand}"
-				Gesture="Ctrl+Tab" />
-		</controls:RightClickSelectableTabControl.KeyBindings>
-
-		<Interaction.Behaviors>
-			<input:MiddleClickTabCommandBehavior Command="{Binding CloseTabCommand}" />
-
-			<EventTriggerBehavior EventName="SelectionChanged">
-				<InvokeCommandAction
-					Command="{Binding SelectionChangedCommand}"
-					PassEventArgsToCommand="True" />
-			</EventTriggerBehavior>
-		</Interaction.Behaviors>
-
-		<controls:RightClickSelectableTabControl.Styles>
+		<controls:DocumentTabControl.Styles>
 			<Style Selector="TabItem">
 				<Setter Property="(Interaction.Behaviors)">
 					<BehaviorCollectionTemplate>
@@ -46,6 +27,6 @@
 					</BehaviorCollectionTemplate>
 				</Setter>
 			</Style>
-		</controls:RightClickSelectableTabControl.Styles>
-	</controls:RightClickSelectableTabControl>
+		</controls:DocumentTabControl.Styles>
+	</controls:DocumentTabControl>
 </UserControl>

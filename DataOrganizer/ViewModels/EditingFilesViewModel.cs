@@ -1,15 +1,12 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -76,70 +73,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		CloseEditor(dto);
 	}
-
-	/// <summary>
-	/// Handles the <see cref="SelectingItemsControl.SelectionChanged" /> event of <see cref="TabControl" />.
-	/// </summary>
-	[RelayCommand]
-	private async Task SelectionChanged(SelectionChangedEventArgs? e)
-	{
-		if (e?.Source is not TabControl container || container.SelectedItem is not FileDto dto)
-		{
-			return;
-		}
-
-		_logger.LogDebug($@"File selected in ""{nameof(TabControl)}"":{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name))}");
-
-		TabItem? tabItem = null;
-
-		Func<bool> condition = () => (tabItem = container.ContainerFromItem(dto) as TabItem) is not null;
-
-		if (!await condition
-			.WaitAsync(100, 10)
-			.ConfigureAwait(true) || tabItem is null)
-		{
-			return;
-		}
-
-		// To be able to switch tabs with Ctrl+Tab while adding tab.
-		tabItem.Focus();
-	}
-
-	/// <summary>
-	/// Switches the <see cref="TabControl" /> to previous tab.
-	/// </summary>
-	[RelayCommand]
-	private void SwitchToPreviousTab()
-	{
-		if (_previousSelectedItem is null)
-		{
-			return;
-		}
-
-		int index = Items.IndexOf(_previousSelectedItem);
-
-		if (index < 0)
-		{
-			return;
-		}
-
-		SelectedIndex = index;
-	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="SelectedIndex" /> changes.
-	/// </summary>
-	partial void OnSelectedIndexChanged(int oldValue, int newValue)
-	{
-		_previousSelectedItem = oldValue >= 0 && oldValue < Items.Count
-			? Items[oldValue]
-			: null;
-	}
 	#endregion
 
 	#region Data
@@ -148,11 +81,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 	/// <inheritdoc cref="IViewCache" />
 	private readonly IViewCache _viewCache;
-
-	/// <summary>
-	/// Item that was selected before the current one.
-	/// </summary>
-	private FileDto? _previousSelectedItem;
 	#endregion
 
 	#region Constructors
