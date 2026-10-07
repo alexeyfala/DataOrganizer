@@ -52,6 +52,7 @@ public interface IViewLauncher
 	EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
+		FileDto? selectedEditingFile,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default);
 
@@ -61,6 +62,7 @@ public interface IViewLauncher
 	FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
+		FileDto? selectedEditingFile,
 		IEnumerable<FileDto> executingFiles);
 
 	/// <summary>

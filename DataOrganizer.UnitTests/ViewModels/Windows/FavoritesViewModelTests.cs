@@ -313,6 +313,8 @@ internal class FavoritesViewModelTests
 			.OpenedInEditorFiles
 			.Add(file);
 
+		sut.SelectedInEditorFile = file;
+
 		// Act
 		messenger.Send(new SessionAutoLockedMessage());
 
@@ -327,9 +329,60 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeEmpty();
 
+		sut.SelectedInEditorFile
+			.Should()
+			.BeNull();
+
 		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: the editor window gets back the file whose tab was selected.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowInEditorAsync_Passes_The_Selected_Editor_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		EditorWindow? editorWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			editorWindow = windowMock.Create<EditorWindow>();
+
+			viewLauncher.CreateEditorWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<FileDto?>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(editorWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.SelectedInEditorFile = file;
+
+		// Act
+		await sut.ShowInEditorAsync(default, new());
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		editorWindow?.Close();
+
+		// Assert
+		viewLauncher.Received(1).CreateEditorWindow(
+			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+			Arg.Any<IEnumerable<FileDto>>(),
+			file,
+			Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>
@@ -352,6 +405,7 @@ internal class FavoritesViewModelTests
 			viewLauncher.CreateEditorWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<FileDto?>(),
 				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(editorWindow);
 
@@ -374,6 +428,7 @@ internal class FavoritesViewModelTests
 		viewLauncher.Received(1).CreateEditorWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<FileDto?>(),
 			Arg.Any<IEnumerable<FileDto>>());
 	}
 

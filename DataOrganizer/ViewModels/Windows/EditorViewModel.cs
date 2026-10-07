@@ -677,6 +677,7 @@ public partial class EditorViewModel :
 		_viewLauncher.CreateFavoritesWindow(
 			Hierarchy,
 			_editingFiles?.Items ?? [],
+			_editingFiles?.SelectedFile,
 			ExecutingFiles).Show();
 
 		if (_editingFiles is null)
@@ -905,7 +906,8 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Handles loading event for rendering the file editor.
+	/// Handles loading event for rendering the file editor: opens <see cref="ViewModelBase.OpenedInEditorFiles" /> and
+	/// selects the tab of <see cref="ViewModelBase.SelectedInEditorFile" />.
 	/// </summary>
 	[RelayCommand]
 	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
@@ -915,6 +917,15 @@ public partial class EditorViewModel :
 			.AddRange(OpenedInEditorFiles);
 
 		_editingFiles = viewModel;
+
+		if (viewModel is null
+			|| SelectedInEditorFile is not { } selected
+			|| !viewModel.Items.Contains(selected))
+		{
+			return;
+		}
+
+		viewModel.SelectedIndex = viewModel.Items.IndexOf(selected);
 	}
 
 	/// <summary>

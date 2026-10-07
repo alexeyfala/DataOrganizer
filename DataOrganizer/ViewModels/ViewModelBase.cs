@@ -76,6 +76,11 @@ public abstract partial class ViewModelBase :
 	/// The files currently open in the editor.
 	/// </summary>
 	public List<FileDto> OpenedInEditorFiles { get; } = [];
+
+	/// <summary>
+	/// The file of <see cref="OpenedInEditorFiles" /> whose tab is selected in the editor.
+	/// </summary>
+	public FileDto? SelectedInEditorFile { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -407,6 +412,8 @@ public abstract partial class ViewModelBase :
 			openedFiles.Where(x => x.IsExecuting));
 
 		OpenedInEditorFiles.Clear();
+
+		SelectedInEditorFile = null;
 
 		_contentVisibility.HideAllContents(Hierarchy);
 

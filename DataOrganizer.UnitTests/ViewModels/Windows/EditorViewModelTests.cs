@@ -727,6 +727,43 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.EditingFilesViewLoadedCommand" />: the files open in their tabs with the tab of the
+	/// selected file selected.
+	/// </summary>
+	[Test]
+	public void EditingFilesViewLoadedCommand_Selects_The_Tab_Of_The_Selected_File()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, isEditing: true)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.OpenedInEditorFiles
+			.AddRange(files);
+
+		sut.SelectedInEditorFile = files[1];
+
+		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+
+		// Act
+		sut
+			.EditingFilesViewLoadedCommand
+			.Execute(editingFiles);
+
+		// Assert
+		editingFiles.Items
+			.Should()
+			.Equal(files);
+
+		editingFiles.SelectedIndex
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.EditNote" />: the note of a protected object is declared sensitive to the dialog.
 	/// </summary>
 	[Test]
@@ -2168,6 +2205,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window gets the file of the selected tab of the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Passes_The_File_Of_The_Selected_Tab()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, isEditing: true)];
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		FavoritesWindow? favoritesWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>();
+
+			viewLauncher.CreateFavoritesWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<FileDto?>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+
+		editingFiles
+			.Items
+			.AddRange(files);
+
+		editingFiles.SelectedIndex = 1;
+
+		sut
+			.EditingFilesViewLoadedCommand
+			.Execute(editingFiles);
+
+		// Act
+		sut.ShowFavorites(null);
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		favoritesWindow?.Close();
+
+		// Assert
+		viewLauncher.Received(1).CreateFavoritesWindow(
+			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+			Arg.Any<IEnumerable<FileDto>>(),
+			files[1],
+			Arg.Any<IEnumerable<FileDto>>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window is configured and shown without shutting down the application.
 	/// </summary>
 	[AvaloniaTest]
@@ -2187,6 +2281,7 @@ internal class EditorViewModelTests
 			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<FileDto?>(),
 				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(favoritesWindow);
 
@@ -2209,6 +2304,7 @@ internal class EditorViewModelTests
 		viewLauncher.Received(1).CreateFavoritesWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<FileDto?>(),
 			Arg.Any<IEnumerable<FileDto>>());
 	}
 

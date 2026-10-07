@@ -6,6 +6,7 @@ using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DataOrganizer.ViewModels;
 
@@ -19,6 +20,11 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// Files opened in the editor.
 	/// </summary>
 	public ObservableCollection<FileDto> Items { get; } = [];
+
+	/// <summary>
+	/// File of the selected tab.
+	/// </summary>
+	public FileDto? SelectedFile => Items.ElementAtOrDefault(SelectedIndex);
 
 	/// <summary>
 	/// Index of selected element in <see cref="TabControl" />.

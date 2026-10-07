@@ -308,6 +308,7 @@ public class ViewLauncher : IViewLauncher
 	public EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
+		FileDto? selectedEditingFile,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default)
 	{
@@ -324,6 +325,8 @@ public class ViewLauncher : IViewLauncher
 		viewModel
 			.OpenedInEditorFiles
 			.AddRange(editingFiles);
+
+		viewModel.SelectedInEditorFile = selectedEditingFile;
 
 		viewModel
 			.ExecutingFiles
@@ -379,6 +382,7 @@ public class ViewLauncher : IViewLauncher
 	public FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
+		FileDto? selectedEditingFile,
 		IEnumerable<FileDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
@@ -392,6 +396,8 @@ public class ViewLauncher : IViewLauncher
 		viewModel
 			.OpenedInEditorFiles
 			.AddRange(editingFiles);
+
+		viewModel.SelectedInEditorFile = selectedEditingFile;
 
 		viewModel
 			.ExecutingFiles
@@ -430,13 +436,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				WindowKind.Editor => CreateEditorWindow(hierarchy, [], []),
-				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], []),
+				WindowKind.Editor => CreateEditorWindow(hierarchy, [], null, []),
+				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], null, []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return CreateEditorWindow(hierarchy, [], []);
+		return CreateEditorWindow(hierarchy, [], null, []);
 	}
 
 	/// <inheritdoc />
