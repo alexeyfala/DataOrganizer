@@ -6,10 +6,16 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using AwesomeAssertions;
+using DataOrganizer.Controls;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Models.Notepad;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Windows;
 
@@ -17,6 +23,98 @@ namespace DataOrganizer.UnitTests.Windows;
 internal class NotepadWindowTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="NotepadViewModel.SelectedTab" />: a click on a tab selects its tab in the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_A_Tab_Selects_It()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header));
+
+		// Act
+		Click(sut, point);
+
+		// Assert
+		sut.ViewModel.SelectedTab
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[0]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.AddTabCommand" />: a click on the add button opens a new tab and selects it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Add_Button_Adds_A_Selected_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(sut, GetAddButton(sut.Tabs));
+
+		// Act
+		Click(sut, point);
+
+		// Assert
+		sut.Tabs.ItemCount
+			.Should()
+			.Be(2);
+
+		sut.Tabs.SelectedItem
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[1]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: a click on the close button of a tab closes the tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Close_Button_Closes_The_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(sut, GetCloseButton(sut.Tabs, 0));
+
+		// Act
+		Click(sut, point);
+
+		// Assert
+		sut.ViewModel.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(2);
+	}
+
 	/// <summary>
 	/// <see cref="NotepadViewModel.ActivateMainWindowCommand" />: a click on the home button of the title bar activates
 	/// the main window.
@@ -76,6 +174,35 @@ internal class NotepadWindowTests
 			.Received(1)
 			.CenterMainWindow(sut);
 	}
+
+	/// <summary>
+	/// <see cref="NotepadTab.Header" />: a tab of the window shows the header of its tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void Tabs_Show_Their_Headers()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// Act
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		IEnumerable<string?> texts = sut
+			.Tabs
+			.ContainerFromIndex(0)!
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.Select(x => x.Text);
+
+		texts
+			.Should()
+			.Contain(sut.ViewModel.Tabs[0].Header);
+	}
 	#endregion
 
 	#region Helpers
@@ -99,6 +226,40 @@ internal class NotepadWindowTests
 		window.MouseDown(point, MouseButton.Left);
 
 		window.MouseUp(point, MouseButton.Left);
+	}
+
+	/// <summary>
+	/// Returns the button that adds a tab.
+	/// </summary>
+	private static Button GetAddButton(DocumentTabControl control)
+	{
+		return control
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => x.Name == "PART_AddButton");
+	}
+
+	/// <summary>
+	/// Returns the close button of a tab.
+	/// </summary>
+	private static Button GetCloseButton(DocumentTabControl control, int index)
+	{
+		return control
+			.ContainerFromIndex(index)!
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single();
+	}
+
+	/// <summary>
+	/// Returns the text block of the tab header that shows the text.
+	/// </summary>
+	private static TextBlock GetHeaderText(DocumentTabControl control, string text)
+	{
+		return control
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.Single(x => x.Text == text && x.FindAncestorOfType<TabItem>() is not null);
 	}
 	#endregion
 }

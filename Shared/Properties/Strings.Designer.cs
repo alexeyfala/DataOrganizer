@@ -1339,6 +1339,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New.
+        /// </summary>
+        public static string New {
+            get {
+                return ResourceManager.GetString("New", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New Password.
         /// </summary>
         public static string NewPassword {
@@ -1353,6 +1362,15 @@ namespace Shared.Properties {
         public static string NewSavedHistoryPasswordDescription {
             get {
                 return ResourceManager.GetString("NewSavedHistoryPasswordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New tab.
+        /// </summary>
+        public static string NewTab {
+            get {
+                return ResourceManager.GetString("NewTab", resourceCulture);
             }
         }
         

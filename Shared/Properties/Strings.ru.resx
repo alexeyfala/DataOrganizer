@@ -852,4 +852,10 @@
   <data name="MainWindow" xml:space="preserve">
     <value>Главное окно</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="NewTab" xml:space="preserve">
+    <value>Новая вкладка</value>
+  </data>
 </root>

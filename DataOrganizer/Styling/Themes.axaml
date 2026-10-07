@@ -3,6 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System">
@@ -58,11 +59,13 @@
 		TargetType="controls:DocumentTabControl">
 		<Setter Property="assists:TabControlAssist.TabHeaderHorizontalAlignment" Value="Left" />
 		<Setter Property="ItemContainerTheme" Value="{StaticResource DocumentTabItemTheme}" />
+		
 		<Setter Property="ItemsPanel">
 			<ItemsPanelTemplate>
 				<StackPanel HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}" Orientation="Horizontal" />
 			</ItemsPanelTemplate>
 		</Setter>
+		
 		<Setter Property="TabHeaderTemplate">
 			<DataTemplate x:DataType="system:Object">
 				<StackPanel
@@ -85,6 +88,7 @@
 				</StackPanel>
 			</DataTemplate>
 		</Setter>
+		
 		<Setter Property="TabMenuTemplate">
 			<DataTemplate x:DataType="system:Object">
 				<StackPanel Orientation="Vertical">
@@ -121,6 +125,58 @@
 						IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" />
 				</StackPanel>
 			</DataTemplate>
+		</Setter>
+		
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border
+					Name="PART_RootBorder"
+					Background="{TemplateBinding Background}"
+					BorderBrush="{TemplateBinding BorderBrush}"
+					BorderThickness="{TemplateBinding BorderThickness}"
+					CornerRadius="{TemplateBinding CornerRadius}">
+					<DockPanel Name="PART_RootPanel">
+						<Panel Name="PART_TabsPanel">
+							<!--
+								A left-aligned grid gives the tabs only the width they need, so the add button follows the last tab,
+								and the star column keeps the button in sight at the right edge when the tabs overflow.
+							-->
+							<Grid HorizontalAlignment="Left" ColumnDefinitions="*,Auto">
+								<materialControls:Scroller
+									Name="PART_ScrollViewer"
+									Grid.Column="0"
+									Theme="{StaticResource TabControlScroller}">
+									<materialControls:Scroller.Content>
+										<ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+									</materialControls:Scroller.Content>
+								</materialControls:Scroller>
+
+								<Button
+									Name="PART_AddButton"
+									Grid.Column="1"
+									Padding="6.0"
+									VerticalAlignment="Stretch"
+									Classes="primary"
+									Command="{TemplateBinding AddCommand}"
+									Content="{materialIcons:MaterialIconTextExt Kind=Plus,
+									                                            IconSize={StaticResource SmallButtonIconSize}}"
+									IsVisible="{TemplateBinding AddCommand,
+									                            Converter={x:Static ObjectConverters.IsNotNull}}"
+									Theme="{StaticResource MaterialFlatButton}"
+									ToolTip.Tip="{x:Static prop:Strings.NewTab}" />
+							</Grid>
+
+							<Rectangle Name="PART_Separator" />
+						</Panel>
+
+						<ContentPresenter
+							Name="PART_ContentPresenter"
+							Margin="{TemplateBinding Padding}"
+							Content="{TemplateBinding SelectedContent}"
+							ContentTemplate="{TemplateBinding ContentTemplate}" />
+					</DockPanel>
+				</Border>
+			</ControlTemplate>
 		</Setter>
 	</ControlTheme>
 

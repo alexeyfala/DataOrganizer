@@ -16,12 +16,21 @@ using System.Windows.Input;
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// A <see cref="TabControl" /> of documents: a tab closes by its button, a middle click or its menu, a right click
-/// selects it and opens the menu, and Ctrl+Tab goes back to the tab selected before.
+/// A <see cref="TabControl" /> of documents: a button after the tabs adds one, a tab closes by its button, a middle
+/// click or its menu, a right click selects it and opens the menu, and Ctrl+Tab goes back to the tab selected before.
 /// </summary>
 internal sealed class DocumentTabControl : TabControl
 {
 	#region Properties
+	/// <summary>
+	/// Command that adds a tab; the button after the tabs shows only while it is set.
+	/// </summary>
+	public ICommand? AddCommand
+	{
+		get => GetValue(AddCommandProperty);
+		set => SetValue(AddCommandProperty, value);
+	}
+
 	/// <summary>
 	/// Template of the items a place adds at the bottom of the menu of a tab; it gets the item of the tab.
 	/// </summary>
@@ -70,6 +79,10 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Styled Properties
+	/// <inheritdoc cref="AddCommand" />
+	public static readonly StyledProperty<ICommand?> AddCommandProperty = AvaloniaProperty
+		.Register<DocumentTabControl, ICommand?>(nameof(AddCommand));
+
 	/// <inheritdoc cref="AdditionalMenuItemsTemplate" />
 	public static readonly StyledProperty<IDataTemplate?> AdditionalMenuItemsTemplateProperty = AvaloniaProperty
 		.Register<DocumentTabControl, IDataTemplate?>(nameof(AdditionalMenuItemsTemplate));

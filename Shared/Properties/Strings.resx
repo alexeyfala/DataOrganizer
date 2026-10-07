@@ -832,4 +832,10 @@
   <data name="MainWindow" xml:space="preserve">
     <value>Main window</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="NewTab" xml:space="preserve">
+    <value>New tab</value>
+  </data>
 </root>

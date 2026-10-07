@@ -24,6 +24,75 @@ internal class DocumentTabControlTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="DocumentTabControl.AddCommand" />: the add button stays in sight at the right edge when the tabs do not
+	/// fit.
+	/// </summary>
+	[AvaloniaTest]
+	public void AddCommand_Keeps_The_Add_Button_At_The_Right_Edge_When_The_Tabs_Overflow()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			AddCommand = Substitute.For<ICommand>(),
+			ItemsSource = new ObservableCollection<string>(Enumerable.Range(1, 50).Select(x => $"tab {x}"))
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		GetRight(sut, GetAddButton(sut))
+			.Should()
+			.BeApproximately(sut.Bounds.Width, 1.0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.AddCommand" />: the add button stands right after the last tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void AddCommand_Puts_The_Add_Button_Right_After_The_Last_Tab()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			AddCommand = Substitute.For<ICommand>(),
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		GetLeft(sut, GetAddButton(sut))
+			.Should()
+			.BeApproximately(GetRight(sut, sut.ContainerFromIndex(1)!), 1.0);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.AddCommand" />: the add button shows only while the command is set.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(false)]
+	[TestCase(true)]
+	public void AddCommand_Shows_The_Add_Button_Only_When_Set(bool isSet)
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			AddCommand = isSet ? Substitute.For<ICommand>() : null,
+			ItemsSource = new ObservableCollection<string>(["first"])
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		GetAddButton(sut).IsVisible
+			.Should()
+			.Be(isSet);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabControl.AdditionalMenuItemsTemplate" />: the items of a place come at the bottom of the menu
 	/// of a tab and get the item of the tab.
 	/// </summary>
@@ -131,6 +200,38 @@ internal class DocumentTabControlTests
 		window.GetVisualDescendants().OfType<FlyoutPresenter>()
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.AddCommand" />: the add button runs the command.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Add_Button_Runs_The_Add_Command()
+	{
+		// Arrange
+		ICommand command = Substitute.For<ICommand>();
+
+		command
+			.CanExecute(Arg.Any<object?>())
+			.Returns(true);
+
+		DocumentTabControl sut = new()
+		{
+			AddCommand = command,
+			ItemsSource = new ObservableCollection<string>(["first"])
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetAddButton(sut));
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		command
+			.Received(1)
+			.Execute(null);
 	}
 
 	/// <summary>
@@ -574,6 +675,17 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// Returns the button that adds a tab.
+	/// </summary>
+	private static Button GetAddButton(DocumentTabControl control)
+	{
+		return control
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => x.Name == "PART_AddButton");
+	}
+
+	/// <summary>
 	/// Returns the close button of a tab.
 	/// </summary>
 	private static Button GetCloseButton(DocumentTabControl control, int index)
@@ -597,6 +709,14 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// Returns the left edge of the control in the coordinates of the root.
+	/// </summary>
+	private static double GetLeft(Visual root, Visual target)
+	{
+		return target.TranslatePoint(default, root)?.X ?? double.NaN;
+	}
+
+	/// <summary>
 	/// Returns the open menu of a tab.
 	/// </summary>
 	private static FlyoutPresenter GetMenu(Window window)
@@ -616,6 +736,14 @@ internal class DocumentTabControlTests
 			.GetVisualDescendants()
 			.OfType<FlyoutButton>()
 			.Where(x => x.IsEffectivelyVisible)];
+	}
+
+	/// <summary>
+	/// Returns the right edge of the control in the coordinates of the root.
+	/// </summary>
+	private static double GetRight(Visual root, Visual target)
+	{
+		return target.TranslatePoint(new(target.Bounds.Width, 0.0), root)?.X ?? double.NaN;
 	}
 
 	/// <summary>
