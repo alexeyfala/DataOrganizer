@@ -6,7 +6,6 @@ using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace DataOrganizer.ViewModels;
 
@@ -29,29 +28,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	#endregion
 
 	#region Auto-Generated Commands
-	/// <summary>
-	/// Closes every tab in <see cref="TabControl" />.
-	/// </summary>
-	[RelayCommand]
-	internal void CloseAllTabs() => Items.ToArray().ForEach(CloseTab);
-
-	/// <summary>
-	/// Closes every tab in <see cref="TabControl" /> except the specified one.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanCloseOtherTabs))]
-	internal void CloseOtherTabs(FileDto dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		Items
-			.Where(x => !ReferenceEquals(x, dto))
-			.ToArray()
-			.ForEach(CloseTab);
-	}
-
 	/// <summary>
 	/// Closes a the tab in <see cref="TabControl" />.
 	/// </summary>
@@ -101,8 +77,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Remove(dto);
 
 		_viewCache.Remove(dto);
-
-		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -136,15 +110,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Add(dto);
 
 		SelectedIndex = Items.Count - 1;
-
-		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Validates <see cref="CloseOtherTabsCommand" />.
-	/// </summary>
-	private bool CanCloseOtherTabs() => Items.Count > 1;
 	#endregion
 }

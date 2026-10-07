@@ -8,18 +8,34 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Windows.Input;
 
 namespace DataOrganizer.Controls;
 
 /// <summary>
-/// A <see cref="TabControl" /> of documents: a tab closes by its button or a middle click, a right click selects it,
-/// and Ctrl+Tab goes back to the tab selected before.
+/// A <see cref="TabControl" /> of documents: a tab closes by its button, a middle click or its menu, a right click
+/// selects it and opens the menu, and Ctrl+Tab goes back to the tab selected before.
 /// </summary>
 internal sealed class DocumentTabControl : TabControl
 {
 	#region Properties
+	/// <summary>
+	/// Template of the items a place adds at the bottom of the menu of a tab; it gets the item of the tab.
+	/// </summary>
+	public IDataTemplate? AdditionalMenuItemsTemplate
+	{
+		get => GetValue(AdditionalMenuItemsTemplateProperty);
+		set => SetValue(AdditionalMenuItemsTemplateProperty, value);
+	}
+
+	/// <summary>
+	/// Command that closes every tab.
+	/// </summary>
+	public ICommand CloseAllTabsCommand { get; }
+
 	/// <summary>
 	/// Command that closes a tab; it gets the item of the tab.
 	/// </summary>
@@ -30,6 +46,11 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
+	/// Command that closes every tab but the one whose item it gets.
+	/// </summary>
+	public ICommand CloseOtherTabsCommand { get; }
+
+	/// <summary>
 	/// Template of a tab header: the header built by <see cref="ItemsControl.ItemTemplate" /> with the close button.
 	/// </summary>
 	public IDataTemplate? TabHeaderTemplate
@@ -37,9 +58,22 @@ internal sealed class DocumentTabControl : TabControl
 		get => GetValue(TabHeaderTemplateProperty);
 		set => SetValue(TabHeaderTemplateProperty, value);
 	}
+
+	/// <summary>
+	/// Template of the menu of a tab: the items that close tabs, then <see cref="AdditionalMenuItemsTemplate" />.
+	/// </summary>
+	public IDataTemplate? TabMenuTemplate
+	{
+		get => GetValue(TabMenuTemplateProperty);
+		set => SetValue(TabMenuTemplateProperty, value);
+	}
 	#endregion
 
 	#region Styled Properties
+	/// <inheritdoc cref="AdditionalMenuItemsTemplate" />
+	public static readonly StyledProperty<IDataTemplate?> AdditionalMenuItemsTemplateProperty = AvaloniaProperty
+		.Register<DocumentTabControl, IDataTemplate?>(nameof(AdditionalMenuItemsTemplate));
+
 	/// <inheritdoc cref="CloseCommand" />
 	public static readonly StyledProperty<ICommand?> CloseCommandProperty = AvaloniaProperty
 		.Register<DocumentTabControl, ICommand?>(nameof(CloseCommand));
@@ -47,6 +81,10 @@ internal sealed class DocumentTabControl : TabControl
 	/// <inheritdoc cref="TabHeaderTemplate" />
 	public static readonly StyledProperty<IDataTemplate?> TabHeaderTemplateProperty = AvaloniaProperty
 		.Register<DocumentTabControl, IDataTemplate?>(nameof(TabHeaderTemplate));
+
+	/// <inheritdoc cref="TabMenuTemplate" />
+	public static readonly StyledProperty<IDataTemplate?> TabMenuTemplateProperty = AvaloniaProperty
+		.Register<DocumentTabControl, IDataTemplate?>(nameof(TabMenuTemplate));
 	#endregion
 
 	#region Data
@@ -69,10 +107,16 @@ internal sealed class DocumentTabControl : TabControl
 	#region Constructors
 	public DocumentTabControl()
 	{
+		CloseAllTabsCommand = new RelayCommand(CloseAllTabs);
+
+		CloseOtherTabsCommand = new RelayCommand<object?>(CloseOtherTabs, _ => ItemCount > 1);
+
 		ItemsView.CollectionChanged += ItemsView_CollectionChanged;
 
 		// Subscribed after the base class, whose own handler selects the first tab.
 		Selection.LostSelection += Selection_LostSelection;
+
+		AddHandler(ContextRequestedEvent, DocumentTabControl_ContextRequested);
 
 		KeyBindings.Add(new KeyBinding
 		{
@@ -83,6 +127,27 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Event Handlers
+	/// <summary>
+	/// <see cref="InputElement.ContextRequestedEvent" /> handler of the control.
+	/// </summary>
+	private void DocumentTabControl_ContextRequested(object? sender, ContextRequestedEventArgs e)
+	{
+		if (e.Handled
+			|| GetTabItem(e.Source) is not { } tab
+			|| TabMenuTemplate?.Build(tab.DataContext) is not { } content)
+		{
+			return;
+		}
+
+		new Flyout
+		{
+			Content = content,
+			OverlayDismissEventPassThrough = true
+		}.ShowAt(tab, showAtPointer: true);
+
+		e.Handled = true;
+	}
+
 	/// <summary>
 	/// <see cref="INotifyCollectionChanged.CollectionChanged" /> event handler of <see cref="ItemsControl.ItemsView" />.
 	/// </summary>
@@ -197,6 +262,38 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Closes every tab by <see cref="CloseCommand" />.
+	/// </summary>
+	private void CloseAllTabs() => CloseTabs(ItemsView);
+
+	/// <summary>
+	/// Closes every tab but the one of <paramref name="item" /> by <see cref="CloseCommand" />.
+	/// </summary>
+	private void CloseOtherTabs(object? item) => CloseTabs(ItemsView.Where(x => !ReferenceEquals(x, item)));
+
+	/// <summary>
+	/// Closes the tabs of <paramref name="items" /> by <see cref="CloseCommand" />.
+	/// </summary>
+	private void CloseTabs(IEnumerable<object?> items)
+	{
+		if (CloseCommand is not { } command)
+		{
+			return;
+		}
+
+		// Each close changes the items, so the loop goes over a copy.
+		foreach (object? item in items.ToArray())
+		{
+			if (!command.CanExecute(item))
+			{
+				continue;
+			}
+
+			command.Execute(item);
+		}
+	}
+
 	/// <summary>
 	/// Moves the keyboard focus to the selected tab.
 	/// </summary>

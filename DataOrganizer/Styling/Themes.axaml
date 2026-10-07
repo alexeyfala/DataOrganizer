@@ -85,6 +85,43 @@
 				</StackPanel>
 			</DataTemplate>
 		</Setter>
+		<Setter Property="TabMenuTemplate">
+			<DataTemplate x:DataType="system:Object">
+				<StackPanel Orientation="Vertical">
+					<StackPanel.Styles>
+						<Style Selector="Button">
+							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+							<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+						</Style>
+					</StackPanel.Styles>
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseCommand}"
+						CommandParameter="{Binding}"
+						Header="{x:Static prop:Strings.Close}"
+						Icon="Close"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseOtherTabsCommand}"
+						CommandParameter="{Binding}"
+						Header="{x:Static prop:Strings.CloseOtherTabs}"
+						Icon="CloseBoxMultipleOutline"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseAllTabsCommand}"
+						Header="{x:Static prop:Strings.CloseAllTabs}"
+						Icon="CloseBoxMultiple"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<ContentPresenter
+						Content="{Binding Mode=OneWay}"
+						ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}"
+						IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" />
+				</StackPanel>
+			</DataTemplate>
+		</Setter>
 	</ControlTheme>
 
 	<!--

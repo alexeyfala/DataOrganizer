@@ -3,7 +3,6 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
-using Shared.Extensions;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -11,107 +10,6 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class EditingFilesViewModelTests
 {
 	#region Methods
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseAllTabs" />: removes every tab and clears the editing flag of each file.
-	/// </summary>
-	[Test]
-	public void CloseAllTabs_Removes_Every_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto[] dtos =
-		[
-			ItemDtoFactory.CreateFileDto(),
-			ItemDtoFactory.CreateFileDto(),
-			ItemDtoFactory.CreateFileDto()
-		];
-
-		dtos.ForEach(sut.OpenInEditor);
-
-		// Act
-		sut.CloseAllTabs();
-
-		// Assert
-		sut.Items
-			.Should()
-			.BeEmpty();
-
-		dtos
-			.Should()
-			.OnlyContain(x => !x.IsEditing);
-	}
-
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseOtherTabs" />: keeps the specified tab and removes the rest.
-	/// </summary>
-	[Test]
-	public void CloseOtherTabs_Keeps_Only_The_Specified_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto kept = ItemDtoFactory.CreateFileDto();
-
-		FileDto closed = ItemDtoFactory.CreateFileDto();
-
-		sut.OpenInEditor(kept);
-
-		sut.OpenInEditor(closed);
-
-		// Act
-		sut.CloseOtherTabs(kept);
-
-		// Assert
-		sut.Items
-			.Should()
-			.Equal(kept);
-
-		kept.IsEditing
-			.Should()
-			.BeTrue();
-
-		closed.IsEditing
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseOtherTabsCommand" />: cannot be executed while a single tab is opened.
-	/// </summary>
-	[Test]
-	public void CloseOtherTabsCommand_Is_Disabled_For_A_Single_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto dto = ItemDtoFactory.CreateFileDto();
-
-		sut.OpenInEditor(dto);
-
-		// Act
-		bool canExecuteWithSingleTab = sut.CloseOtherTabsCommand.CanExecute(dto);
-
-		sut.OpenInEditor(ItemDtoFactory.CreateFileDto());
-
-		bool canExecuteWithSecondTab = sut.CloseOtherTabsCommand.CanExecute(dto);
-
-		// Assert
-		canExecuteWithSingleTab
-			.Should()
-			.BeFalse();
-
-		canExecuteWithSecondTab
-			.Should()
-			.BeTrue();
-	}
-
 	/// <summary>
 	/// <see cref="EditingFilesViewModel.CloseTab" />: removes the tab from the control and clears the file's editing flag.
 	/// </summary>

@@ -8,7 +8,9 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
+using Material.Icons;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,6 +23,74 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class DocumentTabControlTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="DocumentTabControl.AdditionalMenuItemsTemplate" />: the items of a place come at the bottom of the menu
+	/// of a tab and get the item of the tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void AdditionalMenuItemsTemplate_Adds_Items_At_The_Bottom_Of_The_Menu()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			AdditionalMenuItemsTemplate = new FuncDataTemplate<string>((x, _) => new FlyoutButton
+			{
+				Header = $"Rename {x}"
+			}),
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetHeaderText(sut, "second"));
+
+		// Act
+		Click(window, point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetMenuButtons(window)[^1].Header
+			.Should()
+			.Be("Rename second");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.TabMenuTemplate" />: the items of the menu of a tab close the tab, the other tabs or
+	/// all of them.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0, "first", "third")]
+	[TestCase(1, "second")]
+	[TestCase(2)]
+	public void Click_On_A_Menu_Item_Closes_Its_Tabs(int index, params string[] expected)
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		DocumentTabControl sut = new()
+		{
+			CloseCommand = new RelayCommand<string>(x => items.Remove(x!)),
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(window, GetMenuButtons(window)[index]);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		items
+			.Should()
+			.Equal(expected);
+	}
+
 	/// <summary>
 	/// <see cref="DocumentTabControl.CloseCommand" />: the close button of a tab runs the command for the item of the tab.
 	/// </summary>
@@ -51,6 +121,37 @@ internal class DocumentTabControlTests
 		command
 			.Received(1)
 			.Execute("second");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.CloseOtherTabsCommand" />: cannot be executed while a single tab is open.
+	/// </summary>
+	[AvaloniaTest]
+	public void CloseOtherTabsCommand_Is_Disabled_For_A_Single_Tab()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first"];
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = items
+		};
+
+		// Act
+		bool canExecuteWithSingleTab = sut.CloseOtherTabsCommand.CanExecute("first");
+
+		items.Add("second");
+
+		bool canExecuteWithSecondTab = sut.CloseOtherTabsCommand.CanExecute("first");
+
+		// Assert
+		canExecuteWithSingleTab
+			.Should()
+			.BeFalse();
+
+		canExecuteWithSecondTab
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -251,6 +352,47 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabControl.TabMenuTemplate" />: a right click on a tab opens the menu that closes tabs, with
+	/// nothing more when the place adds no items.
+	/// </summary>
+	[AvaloniaTest]
+	public void RightClick_On_A_Tab_Opens_The_Common_Menu()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetHeaderText(sut, "second"));
+
+		// Act
+		Click(window, point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		GetMenuButtons(window).Select(x => x.Icon)
+			.Should()
+			.Equal(
+				MaterialIconKind.Close,
+				MaterialIconKind.CloseBoxMultipleOutline,
+				MaterialIconKind.CloseBoxMultiple);
+
+		IEnumerable<string?> texts = GetMenu(window)
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.Where(x => x.IsEffectivelyVisible)
+			.Select(x => x.Text);
+
+		texts
+			.Should()
+			.NotContain("second");
+	}
+
+	/// <summary>
 	/// <see cref="SelectingItemsControl.SelectedIndex" />: a right click selects the tab, so that its menu acts on it.
 	/// </summary>
 	[AvaloniaTest]
@@ -410,6 +552,28 @@ internal class DocumentTabControlTests
 			.GetVisualDescendants()
 			.OfType<TextBlock>()
 			.Single(x => x.Text == text && x.FindAncestorOfType<TabItem>() is not null);
+	}
+
+	/// <summary>
+	/// Returns the open menu of a tab.
+	/// </summary>
+	private static FlyoutPresenter GetMenu(Window window)
+	{
+		return window
+			.GetVisualDescendants()
+			.OfType<FlyoutPresenter>()
+			.Single();
+	}
+
+	/// <summary>
+	/// Returns the visible buttons of the open menu of a tab, from top to bottom.
+	/// </summary>
+	private static FlyoutButton[] GetMenuButtons(Window window)
+	{
+		return [.. GetMenu(window)
+			.GetVisualDescendants()
+			.OfType<FlyoutButton>()
+			.Where(x => x.IsEffectivelyVisible)];
 	}
 
 	/// <summary>

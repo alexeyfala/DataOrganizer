@@ -4,7 +4,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EditingFilesViewModel"
@@ -15,18 +14,5 @@
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
-		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}">
-
-		<controls:DocumentTabControl.Styles>
-			<Style Selector="TabItem">
-				<Setter Property="(Interaction.Behaviors)">
-					<BehaviorCollectionTemplate>
-						<BehaviorCollection>
-							<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
-						</BehaviorCollection>
-					</BehaviorCollectionTemplate>
-				</Setter>
-			</Style>
-		</controls:DocumentTabControl.Styles>
-	</controls:DocumentTabControl>
+		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" />
 </UserControl>
