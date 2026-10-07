@@ -1,5 +1,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
 using DataOrganizer.ViewModels.Windows;
@@ -155,6 +156,87 @@ internal class NotepadViewModelTests
 		sut.SelectedTab
 			.Should()
 			.BeSameAs(sut.Tabs[0]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RestoreTabs" />: without saved tabs the first tab stays open.
+	/// </summary>
+	[Test]
+	public void RestoreTabs_Keeps_The_First_Tab_Without_Saved_Tabs()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = null,
+			TabNumbers = []
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.RestoreTabs(settings);
+
+		// Assert
+		sut.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(1);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RestoreTabs" />: the saved tabs take the place of the open ones, in the saved order.
+	/// </summary>
+	[Test]
+	public void RestoreTabs_Opens_The_Saved_Tabs_In_Their_Order()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 3,
+			TabNumbers = [3, 1, 2]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.RestoreTabs(settings);
+
+		// Assert
+		sut.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(3, 1, 2);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RestoreTabs" />: the saved tab gets selected, or the first one when no tab has the saved
+	/// number.
+	/// </summary>
+	[Test]
+	[TestCase(1, 1)]
+	[TestCase(7, 0)]
+	public void RestoreTabs_Selects_The_Saved_Tab_Or_The_First_One(int saved, int expectedIndex)
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = saved,
+			TabNumbers = [3, 1, 2]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.RestoreTabs(settings);
+
+		// Assert
+		sut.SelectedTab
+			.Should()
+			.BeSameAs(sut.Tabs[expectedIndex]);
 	}
 	#endregion
 }

@@ -21,6 +21,7 @@ using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -882,6 +883,62 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the window opens the saved tabs and selects the saved one.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Opens_The_Saved_Tabs()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadViewSettings settings = new()
+			{
+				SelectedTabNumber = 1,
+				TabNumbers = [3, 1, 2]
+			};
+
+			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<NotepadViewSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			// Created on the call, as by the real factory, so the window binds to the tabs restored before it.
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(_ => new NotepadWindow(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		NotepadWindow window = sut.CreateNotepadWindow(new Window());
+
+		window.Show();
+
+		// Assert
+		window.ViewModel.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(3, 1, 2);
+
+		window.Tabs.SelectedItem
+			.Should()
+			.BeSameAs(window.ViewModel.Tabs[1]);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the window opens in the saved state, a minimized one as a normal one.
 	/// </summary>
 	[AvaloniaTest]
@@ -1294,6 +1351,55 @@ internal class ViewLauncherTests
 				WindowState = WindowState.Normal,
 				X = 30,
 				Y = 40
+			});
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveNotepadSettings" />: the tabs are saved in their order with the number of the selected
+	/// one.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveNotepadSettings_Saves_The_Tabs()
+	{
+		// Arrange
+		NotepadViewSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<NotepadViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<NotepadViewSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+
+		viewModel.RestoreTabs(new()
+		{
+			SelectedTabNumber = 1,
+			TabNumbers = [3, 1, 2]
+		});
+
+		NotepadWindow window = new(viewModel);
+
+		// Act
+		sut.SaveNotepadSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.BeEquivalentTo(new NotepadViewSettings
+			{
+				SelectedTabNumber = 1,
+				TabNumbers = [3, 1, 2]
 			});
 	}
 

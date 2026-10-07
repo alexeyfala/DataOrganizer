@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
 using System.Collections.ObjectModel;
@@ -104,6 +105,32 @@ public sealed partial class NotepadViewModel : ObservableObject
 		_viewLauncher = viewLauncher;
 
 		AddTab();
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Opens the saved tabs in their order and selects the saved one, or the first one when it is missing; without saved
+	/// tabs the open ones stay.
+	/// </summary>
+	public void RestoreTabs(NotepadViewSettings settings)
+	{
+		if (settings.TabNumbers is not { Length: > 0 } numbers)
+		{
+			return;
+		}
+
+		Tabs.Clear();
+
+		foreach (int number in numbers)
+		{
+			Tabs.Add(new()
+			{
+				Number = number
+			});
+		}
+
+		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];
 	}
 	#endregion
 }
