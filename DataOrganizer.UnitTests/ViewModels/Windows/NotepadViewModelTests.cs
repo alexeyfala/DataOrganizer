@@ -1,12 +1,18 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
 using DataOrganizer.Services.Views;
 using DataOrganizer.ViewModels.Windows;
+using NSubstitute;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -174,8 +180,8 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(INotepadSessionState, IViewLauncher)" />: the notepad opens with one selected tab with
-	/// the first number.
+	/// <see cref="NotepadViewModel(IDialogService, INotepadSessionState, IViewLauncher)" />: the notepad opens with one
+	/// selected tab with the first number.
 	/// </summary>
 	[Test]
 	public void Constructor_Opens_The_First_Tab()
@@ -220,6 +226,109 @@ internal class NotepadViewModelTests
 		sessionState.PreviousTabNumber
 			.Should()
 			.Be(2);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RenameTabCommand" />: the name is asked in a dialog of the notepad that starts from the
+	/// header of the tab.
+	/// </summary>
+	[Test]
+	public async Task RenameTabCommand_Asks_For_The_Name_In_A_Dialog_Of_The_Notepad()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTab tab = sut.Tabs[0];
+
+		// Act
+		await sut
+			.RenameTabCommand
+			.ExecuteAsync(tab);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.DialogHostIdentifier == DialogHostIdentifiers.Notepad),
+			Arg.Any<CancellationToken>());
+
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.Key == tab.Header),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RenameTabCommand" />: the entered name goes to the tab.
+	/// </summary>
+	[Test]
+	public async Task RenameTabCommand_Gives_The_Tab_The_Entered_Name()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestKeyValueInputAsync(
+					Arg.Any<KeyValueInputParameters>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new KeyValueInput("Notes"));
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTab tab = sut.Tabs[0];
+
+		// Act
+		await sut
+			.RenameTabCommand
+			.ExecuteAsync(tab);
+
+		// Assert
+		tab.Name
+			.Should()
+			.Be("Notes");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RenameTabCommand" />: a dialog closed without a name leaves the name of the tab.
+	/// </summary>
+	[Test]
+	public async Task RenameTabCommand_Keeps_The_Name_When_The_Dialog_Is_Cancelled()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestKeyValueInputAsync(
+					Arg.Any<KeyValueInputParameters>(),
+					Arg.Any<CancellationToken>())
+				.Returns((KeyValueInput?)null);
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTab tab = sut.Tabs[0];
+
+		tab.Name = "Notes";
+
+		// Act
+		await sut
+			.RenameTabCommand
+			.ExecuteAsync(tab);
+
+		// Assert
+		tab.Name
+			.Should()
+			.Be("Notes");
 	}
 
 	/// <summary>

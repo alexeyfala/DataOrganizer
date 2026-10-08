@@ -9,14 +9,18 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
 using DataOrganizer.Services.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Material.Icons;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace DataOrganizer.UnitTests.Windows;
 
@@ -47,7 +51,7 @@ internal class NotepadWindowTests
 		Point point = Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header));
 
 		// Act
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
 		// Assert
 		sut.ViewModel.SelectedTab
@@ -73,7 +77,7 @@ internal class NotepadWindowTests
 		Point point = Center(sut, GetAddButton(sut.Tabs));
 
 		// Act
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
 		// Assert
 		sut.Tabs.ItemCount
@@ -108,7 +112,7 @@ internal class NotepadWindowTests
 		Point point = Center(sut, GetCloseButton(sut.Tabs, 0));
 
 		// Act
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
 		// Assert
 		sut.ViewModel.Tabs.Select(x => x.Number)
@@ -137,12 +141,63 @@ internal class NotepadWindowTests
 		Point point = Center(sut, sut.HomeButton);
 
 		// Act
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
 		// Assert
 		viewLauncher
 			.Received(1)
 			.ActivateMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RenameTabCommand" />: the rename item of the menu of a tab renames that tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Rename_Menu_Item_Renames_Its_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestKeyValueInputAsync(
+					Arg.Any<KeyValueInputParameters>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new KeyValueInput("Notes"));
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Click(sut, Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		FlyoutButton item = sut
+			.GetVisualDescendants()
+			.OfType<FlyoutButton>()
+			.Single(x => x.Icon == MaterialIconKind.FormTextbox);
+
+		Point point = Center(sut, item);
+
+		// Act
+		Click(sut, point, MouseButton.Left);
+
+		// Assert
+		sut.ViewModel.Tabs.Select(x => x.Name)
+			.Should()
+			.Equal("Notes", null);
 	}
 
 	/// <summary>
@@ -210,9 +265,9 @@ internal class NotepadWindowTests
 		Point point = Center(sut, sut.HomeButton);
 
 		// Act
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
-		Click(sut, point);
+		Click(sut, point, MouseButton.Left);
 
 		// Assert
 		viewLauncher
@@ -247,6 +302,37 @@ internal class NotepadWindowTests
 		sut.ViewModel.PreviousTab
 			.Should()
 			.BeSameAs(sut.ViewModel.Tabs[1]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTab.Name" />: a name given to an open tab shows in its header at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void Tabs_Show_A_New_Name_Of_Their_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.ViewModel.Tabs[0].Name = "Notes";
+
+		// Assert
+		IEnumerable<string?> texts = sut
+			.Tabs
+			.ContainerFromIndex(0)!
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.Select(x => x.Text);
+
+		texts
+			.Should()
+			.Contain("Notes");
 	}
 
 	/// <summary>
@@ -293,13 +379,13 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
+	/// Presses and releases a button of the mouse at a point of a window.
 	/// </summary>
-	private static void Click(Window window, Point point)
+	private static void Click(Window window, Point point, MouseButton button)
 	{
-		window.MouseDown(point, MouseButton.Left);
+		window.MouseDown(point, button);
 
-		window.MouseUp(point, MouseButton.Left);
+		window.MouseUp(point, button);
 	}
 
 	/// <summary>

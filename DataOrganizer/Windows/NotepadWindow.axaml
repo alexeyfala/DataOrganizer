@@ -63,6 +63,16 @@
 				ItemsSource="{Binding Tabs, Mode=OneTime}"
 				PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
 				SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+				<controls:DocumentTabControl.AdditionalMenuItemsTemplate>
+					<DataTemplate x:DataType="notepad:NotepadTab">
+						<controls:FlyoutButton
+							Command="{Binding $parent[Window].((windows:NotepadViewModel)DataContext).RenameTabCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Rename}"
+							Icon="FormTextbox" />
+					</DataTemplate>
+				</controls:DocumentTabControl.AdditionalMenuItemsTemplate>
+
 				<controls:DocumentTabControl.ContentTemplate>
 					<DataTemplate x:DataType="notepad:NotepadTab">
 						<Panel />
@@ -71,7 +81,7 @@
 
 				<controls:DocumentTabControl.ItemTemplate>
 					<DataTemplate x:DataType="notepad:NotepadTab">
-						<TextBlock VerticalAlignment="Center" Text="{Binding Header, Mode=OneTime}" />
+						<TextBlock VerticalAlignment="Center" Text="{Binding Header, Mode=OneWay}" />
 					</DataTemplate>
 				</controls:DocumentTabControl.ItemTemplate>
 			</controls:DocumentTabControl>

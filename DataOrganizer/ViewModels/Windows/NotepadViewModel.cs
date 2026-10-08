@@ -1,11 +1,16 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
+using Shared.Properties;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -108,9 +113,41 @@ public sealed partial class NotepadViewModel : ObservableObject
 
 		AddTab();
 	}
+
+	/// <summary>
+	/// Gives a tab the name entered in a dialog of the notepad.
+	/// </summary>
+	[RelayCommand]
+	private async Task RenameTab(NotepadTab? tab)
+	{
+		if (tab is null)
+		{
+			return;
+		}
+
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Rename,
+			DialogHostIdentifier = DialogHostIdentifiers.Notepad,
+			Key = tab.Header,
+			KeyHint = Strings.Name
+		};
+
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(true) is not { } result)
+		{
+			return;
+		}
+
+		tab.Name = result.Key;
+	}
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="INotepadSessionState" />
 	private readonly INotepadSessionState _sessionState;
 
@@ -119,8 +156,13 @@ public sealed partial class NotepadViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
-	public NotepadViewModel(INotepadSessionState sessionState, IViewLauncher viewLauncher)
+	public NotepadViewModel(
+		IDialogService dialogService,
+		INotepadSessionState sessionState,
+		IViewLauncher viewLauncher)
 	{
+		_dialogService = dialogService;
+
 		_sessionState = sessionState;
 
 		_viewLauncher = viewLauncher;
