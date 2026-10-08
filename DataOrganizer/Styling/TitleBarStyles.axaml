@@ -15,6 +15,11 @@
 		<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 	</Style>
 
+	<!--  The primary class of Material lives in the button theme, below the foreground set above.  -->
+	<Style Selector="Button.CaptionButtonStyle.primary">
+		<Setter Property="Foreground" Value="{StaticResource MaterialPrimaryMidBrush}" />
+	</Style>
+
 	<Style Selector="ToggleButton.CaptionButtonStyle">
 		<Setter Property="Content">
 			<Template>

@@ -60,7 +60,7 @@
 				<Button
 					x:Name="NotepadButton"
 					chrome:WindowDecorationProperties.ElementRole="User"
-					Classes="CaptionButtonStyle"
+					Classes="CaptionButtonStyle primary"
 					Command="{Binding ShowNotepadCommand}"
 					CommandParameter="{Binding $parent[Window]}"
 					Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,

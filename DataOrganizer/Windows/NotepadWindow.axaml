@@ -36,7 +36,7 @@
 				<Button
 					x:Name="HomeButton"
 					chrome:WindowDecorationProperties.ElementRole="User"
-					Classes="CaptionButtonStyle"
+					Classes="CaptionButtonStyle primary"
 					Command="{Binding ActivateMainWindowCommand}"
 					Content="{materialIcons:MaterialIconExt Kind=HomeOutline,
 					                                        IconSize={StaticResource CaptionIconSize}}"
