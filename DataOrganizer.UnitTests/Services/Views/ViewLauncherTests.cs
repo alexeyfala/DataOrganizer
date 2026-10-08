@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
@@ -389,7 +390,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], [], null, []);
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
 
 		// Assert
 		window.Width
@@ -461,7 +462,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], [], null, []);
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -470,13 +471,20 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor gets the file whose tab is selected with the open files.
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor gets the tabs to open.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateEditorWindow_Passes_The_Selected_Editing_File()
+	public void CreateEditorWindow_Passes_The_Editor_Tabs()
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		EditorTabsState tabs = new()
+		{
+			Files = [file],
+			PreviousFile = null,
+			SelectedFile = file
+		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -502,12 +510,12 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], [file], file, []);
+		EditorWindow window = sut.CreateEditorWindow([], tabs, []);
 
 		// Assert
-		window.ViewModel.SelectedInEditorFile
+		window.ViewModel.EditorTabs
 			.Should()
-			.BeSameAs(file);
+			.BeSameAs(tabs);
 	}
 
 	/// <summary>
@@ -541,7 +549,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], [], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
 
 		// Assert
 		window.WindowStartupLocation
@@ -614,7 +622,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], [], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -623,14 +631,20 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites keep the file whose tab is selected in the editor
-	/// with the open files.
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites keep the tabs of the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public void CreateFavoritesWindow_Passes_The_Selected_Editing_File()
+	public void CreateFavoritesWindow_Passes_The_Editor_Tabs()
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		EditorTabsState tabs = new()
+		{
+			Files = [file],
+			PreviousFile = null,
+			SelectedFile = file
+		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -656,12 +670,12 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], [file], file, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([], tabs, []);
 
 		// Assert
-		window.ViewModel.SelectedInEditorFile
+		window.ViewModel.EditorTabs
 			.Should()
-			.BeSameAs(file);
+			.BeSameAs(tabs);
 	}
 
 	/// <summary>

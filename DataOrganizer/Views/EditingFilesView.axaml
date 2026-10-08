@@ -14,5 +14,6 @@
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
+		PreviousItem="{Binding PreviousFile, Mode=TwoWay}"
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" />
 </UserControl>

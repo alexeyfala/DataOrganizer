@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
@@ -47,6 +48,11 @@ public abstract partial class ViewModelBase :
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
 
 	/// <summary>
+	/// Tabs of the editor kept until the editor opens them; <c>null</c> stands for none.
+	/// </summary>
+	public EditorTabsState? EditorTabs { get; set; }
+
+	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
 	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
@@ -71,16 +77,6 @@ public abstract partial class ViewModelBase :
 	/// <c>True</c> when shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
-
-	/// <summary>
-	/// The files currently open in the editor.
-	/// </summary>
-	public List<FileDto> OpenedInEditorFiles { get; } = [];
-
-	/// <summary>
-	/// The file of <see cref="OpenedInEditorFiles" /> whose tab is selected in the editor.
-	/// </summary>
-	public FileDto? SelectedInEditorFile { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -411,9 +407,7 @@ public abstract partial class ViewModelBase :
 			openedFiles.Where(x => x.IsEditing),
 			openedFiles.Where(x => x.IsExecuting));
 
-		OpenedInEditorFiles.Clear();
-
-		SelectedInEditorFile = null;
+		EditorTabs = null;
 
 		_contentVisibility.HideAllContents(Hierarchy);
 

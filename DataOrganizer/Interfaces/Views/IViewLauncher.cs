@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -51,8 +52,7 @@ public interface IViewLauncher
 	/// </summary>
 	EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
-		FileDto? selectedEditingFile,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default);
 
@@ -61,8 +61,7 @@ public interface IViewLauncher
 	/// </summary>
 	FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
-		FileDto? selectedEditingFile,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles);
 
 	/// <summary>

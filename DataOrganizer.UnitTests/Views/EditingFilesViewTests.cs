@@ -13,6 +13,7 @@ using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using Entities.Enums;
+using Shared.Extensions;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views;
@@ -75,6 +76,96 @@ internal class EditingFilesViewTests
 		viewModel.Items
 			.Should()
 			.NotContain(dto);
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.PreviousFile" />: after the tabs come back, Ctrl+Tab goes to the tab of the
+	/// previous file.
+	/// </summary>
+	[AvaloniaTest]
+	public void CtrlTab_After_Restore_Goes_To_The_Previous_File()
+	{
+		// Arrange
+		// A kind with no editor keeps the content of the tab light.
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, kind: EntityKind.Folder)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel viewModel = mock.Create<EditingFilesViewModel>();
+
+		Window window = new()
+		{
+			Content = new EditingFilesView
+			{
+				DataContext = viewModel
+			},
+			Height = 600.0,
+			Width = 800.0
+		};
+
+		window.Show();
+
+		// The tabs come back to the shown view, as when the editor window loads it.
+		viewModel.Restore(new()
+		{
+			Files = files,
+			PreviousFile = files[1],
+			SelectedFile = files[2]
+		});
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		window.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		// Assert
+		viewModel.SelectedIndex
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.PreviousFile" />: a selected tab leaves the file of the tab selected before it as
+	/// the previous one.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousFile_Follows_The_Selected_Tab()
+	{
+		// Arrange
+		// A kind with no editor keeps the content of the tab light.
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 2, kind: EntityKind.Folder)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel viewModel = mock.Create<EditingFilesViewModel>();
+
+		viewModel
+			.Items
+			.AddRange(files);
+
+		Window window = new()
+		{
+			Content = new EditingFilesView
+			{
+				DataContext = viewModel
+			},
+			Height = 600.0,
+			Width = 800.0
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.SelectedIndex = 1;
+
+		// Assert
+		viewModel.PreviousFile
+			.Should()
+			.BeSameAs(files[0]);
 	}
 	#endregion
 }

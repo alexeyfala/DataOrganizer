@@ -1,8 +1,10 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Shared.Extensions;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -90,6 +92,111 @@ internal class EditingFilesViewModelTests
 		sut.SelectedIndex
 			.Should()
 			.Be(sut.Items.Count - 1);
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.Restore" />: the files open in their order with the tab of the selected file
+	/// selected and the previous file kept for Ctrl+Tab.
+	/// </summary>
+	[Test]
+	public void Restore_Opens_The_Tabs()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
+
+		// Act
+		sut.Restore(new()
+		{
+			Files = files,
+			PreviousFile = files[2],
+			SelectedFile = files[1]
+		});
+
+		// Assert
+		sut.Items
+			.Should()
+			.Equal(files);
+
+		sut.SelectedIndex
+			.Should()
+			.Be(1);
+
+		sut.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.State" />: the file of a closed tab is no way back for Ctrl+Tab.
+	/// </summary>
+	[Test]
+	public void State_Drops_A_Closed_Previous_File()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 2)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
+
+		sut
+			.Items
+			.AddRange(files);
+
+		sut.PreviousFile = files[1];
+
+		sut.CloseTab(files[1]);
+
+		// Act
+		EditorTabsState state = sut.State;
+
+		// Assert
+		state.PreviousFile
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.State" />: the files of the tabs in their order, with the selected one and the
+	/// previous one.
+	/// </summary>
+	[Test]
+	public void State_Holds_The_Tabs()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
+
+		sut
+			.Items
+			.AddRange(files);
+
+		sut.SelectedIndex = 1;
+
+		sut.PreviousFile = files[0];
+
+		// Act
+		EditorTabsState state = sut.State;
+
+		// Assert
+		state.Files
+			.Should()
+			.Equal(files);
+
+		state.SelectedFile
+			.Should()
+			.BeSameAs(files[1]);
+
+		state.PreviousFile
+			.Should()
+			.BeSameAs(files[0]);
 	}
 	#endregion
 }

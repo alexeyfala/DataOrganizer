@@ -7,6 +7,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
@@ -727,24 +728,25 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.EditingFilesViewLoadedCommand" />: the files open in their tabs with the tab of the
-	/// selected file selected.
+	/// <see cref="EditorViewModel.EditingFilesViewLoadedCommand" />: the tabs of the editor open with the selected one
+	/// and the previous one.
 	/// </summary>
 	[Test]
-	public void EditingFilesViewLoadedCommand_Selects_The_Tab_Of_The_Selected_File()
+	public void EditingFilesViewLoadedCommand_Restores_The_Editor_Tabs()
 	{
 		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, isEditing: true)];
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.OpenedInEditorFiles
-			.AddRange(files);
-
-		sut.SelectedInEditorFile = files[1];
+		sut.EditorTabs = new()
+		{
+			Files = files,
+			PreviousFile = files[2],
+			SelectedFile = files[1]
+		};
 
 		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
 
@@ -761,6 +763,10 @@ internal class EditorViewModelTests
 		editingFiles.SelectedIndex
 			.Should()
 			.Be(1);
+
+		editingFiles.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
 	}
 
 	/// <summary>
@@ -1979,9 +1985,12 @@ internal class EditorViewModelTests
 
 		sut.AddHierarchy([editingFile, executingFile]);
 
-		sut
-			.OpenedInEditorFiles
-			.Add(editingFile);
+		sut.EditorTabs = new()
+		{
+			Files = [editingFile],
+			PreviousFile = null,
+			SelectedFile = editingFile
+		};
 
 		// Act
 		messenger.Send(new SessionAutoLockedMessage());
@@ -1997,9 +2006,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.OpenedInEditorFiles
+		sut.EditorTabs
 			.Should()
-			.BeEmpty();
+			.BeNull();
 
 		contentVisibility
 			.Received(1)
@@ -2205,15 +2214,16 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window gets the file of the selected tab of the editor.
+	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window gets the tabs of the editor with the selected
+	/// one and the previous one.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowFavorites_Passes_The_File_Of_The_Selected_Tab()
+	public void ShowFavorites_Passes_The_Editor_Tabs()
 	{
 		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, isEditing: true)];
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		EditorTabsState? passed = null;
 
 		FavoritesWindow? favoritesWindow = null;
 
@@ -2221,12 +2231,13 @@ internal class EditorViewModelTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
 			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<IEnumerable<FileDto>>(),
-				Arg.Any<FileDto?>(),
+				Arg.Do<EditorTabsState?>(x => passed = x),
 				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(favoritesWindow);
 
@@ -2243,6 +2254,8 @@ internal class EditorViewModelTests
 
 		editingFiles.SelectedIndex = 1;
 
+		editingFiles.PreviousFile = files[2];
+
 		sut
 			.EditingFilesViewLoadedCommand
 			.Execute(editingFiles);
@@ -2254,11 +2267,17 @@ internal class EditorViewModelTests
 		favoritesWindow?.Close();
 
 		// Assert
-		viewLauncher.Received(1).CreateFavoritesWindow(
-			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			Arg.Any<IEnumerable<FileDto>>(),
-			files[1],
-			Arg.Any<IEnumerable<FileDto>>());
+		passed!.Files
+			.Should()
+			.Equal(files);
+
+		passed.SelectedFile
+			.Should()
+			.BeSameAs(files[1]);
+
+		passed.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
 	}
 
 	/// <summary>
@@ -2280,8 +2299,7 @@ internal class EditorViewModelTests
 
 			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<IEnumerable<FileDto>>(),
-				Arg.Any<FileDto?>(),
+				Arg.Any<EditorTabsState?>(),
 				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(favoritesWindow);
 
@@ -2303,8 +2321,7 @@ internal class EditorViewModelTests
 
 		viewLauncher.Received(1).CreateFavoritesWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			Arg.Any<IEnumerable<FileDto>>(),
-			Arg.Any<FileDto?>(),
+			Arg.Any<EditorTabsState?>(),
 			Arg.Any<IEnumerable<FileDto>>());
 	}
 

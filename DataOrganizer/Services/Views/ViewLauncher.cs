@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
@@ -307,8 +308,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
-		FileDto? selectedEditingFile,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default)
 	{
@@ -322,11 +322,7 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.AddHierarchy(hierarchy);
 
-		viewModel
-			.OpenedInEditorFiles
-			.AddRange(editingFiles);
-
-		viewModel.SelectedInEditorFile = selectedEditingFile;
+		viewModel.EditorTabs = editorTabs;
 
 		viewModel
 			.ExecutingFiles
@@ -381,8 +377,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
-		FileDto? selectedEditingFile,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
@@ -393,11 +388,7 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.AddHierarchy(hierarchy);
 
-		viewModel
-			.OpenedInEditorFiles
-			.AddRange(editingFiles);
-
-		viewModel.SelectedInEditorFile = selectedEditingFile;
+		viewModel.EditorTabs = editorTabs;
 
 		viewModel
 			.ExecutingFiles
@@ -436,13 +427,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				WindowKind.Editor => CreateEditorWindow(hierarchy, [], null, []),
-				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], null, []),
+				WindowKind.Editor => CreateEditorWindow(hierarchy, null, []),
+				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, null, []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return CreateEditorWindow(hierarchy, [], null, []);
+		return CreateEditorWindow(hierarchy, null, []);
 	}
 
 	/// <inheritdoc />

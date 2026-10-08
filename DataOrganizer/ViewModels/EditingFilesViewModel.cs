@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
 using Serilog;
@@ -22,6 +23,12 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	public ObservableCollection<FileDto> Items { get; } = [];
 
 	/// <summary>
+	/// File of the tab Ctrl+Tab goes back to.
+	/// </summary>
+	[ObservableProperty]
+	public partial FileDto? PreviousFile { get; set; }
+
+	/// <summary>
 	/// File of the selected tab.
 	/// </summary>
 	public FileDto? SelectedFile => Items.ElementAtOrDefault(SelectedIndex);
@@ -31,6 +38,17 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// </summary>
 	[ObservableProperty]
 	public partial int SelectedIndex { get; set; }
+
+	/// <summary>
+	/// Files of the tabs with the selected one and the one Ctrl+Tab goes back to.
+	/// </summary>
+	public EditorTabsState State => new()
+	{
+		Files = [.. Items],
+		// A closed file is no way back.
+		PreviousFile = PreviousFile is { } file && Items.Contains(file) ? file : null,
+		SelectedFile = SelectedFile
+	};
 	#endregion
 
 	#region Auto-Generated Commands
@@ -116,6 +134,22 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Add(dto);
 
 		SelectedIndex = Items.Count - 1;
+	}
+
+	/// <summary>
+	/// Opens the files of the tabs, selects the tab of the selected file and gives Ctrl+Tab its way back.
+	/// </summary>
+	public void Restore(EditorTabsState state)
+	{
+		Items.AddRange(state.Files);
+
+		if (state.SelectedFile is { } selected && Items.Contains(selected))
+		{
+			SelectedIndex = Items.IndexOf(selected);
+		}
+
+		// After the selection, so the tabs it passes on its way do not take the place of the previous one.
+		PreviousFile = state.PreviousFile;
 	}
 	#endregion
 }

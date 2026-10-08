@@ -389,8 +389,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		_viewLauncher.CreateEditorWindow(
 			Hierarchy,
-			OpenedInEditorFiles,
-			SelectedInEditorFile,
+			EditorTabs,
 			ExecutingFiles,
 			id).Show();
 
