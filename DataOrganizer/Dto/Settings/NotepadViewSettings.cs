@@ -12,8 +12,8 @@ public sealed class NotepadViewSettings
 	public required int? SelectedTabNumber { get; init; }
 
 	/// <summary>
-	/// Numbers of the tabs in their order.
+	/// Tabs in their order.
 	/// </summary>
-	public required int[] TabNumbers { get; init; }
+	public required NotepadTabSettings[] Tabs { get; init; }
 	#endregion
 }

@@ -341,7 +341,7 @@ internal class NotepadViewModelTests
 		NotepadViewSettings settings = new()
 		{
 			SelectedTabNumber = null,
-			TabNumbers = []
+			Tabs = []
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -367,7 +367,7 @@ internal class NotepadViewModelTests
 		NotepadViewSettings settings = new()
 		{
 			SelectedTabNumber = 3,
-			TabNumbers = [3, 1, 2]
+			Tabs = [new(3), new(1), new(2)]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -384,6 +384,32 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.RestoreTabs" />: the saved tabs get their names back.
+	/// </summary>
+	[Test]
+	public void RestoreTabs_Restores_The_Names_Of_The_Tabs()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 1,
+			Tabs = [new(1, "Notes"), new(2)]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.RestoreTabs(settings);
+
+		// Assert
+		sut.Tabs.Select(x => x.Name)
+			.Should()
+			.Equal("Notes", null);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.RestoreTabs" />: Ctrl+Tab gets back the tab whose number is kept for the session.
 	/// </summary>
 	[Test]
@@ -393,7 +419,7 @@ internal class NotepadViewModelTests
 		NotepadViewSettings settings = new()
 		{
 			SelectedTabNumber = 1,
-			TabNumbers = [3, 1, 2]
+			Tabs = [new(3), new(1), new(2)]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -430,7 +456,7 @@ internal class NotepadViewModelTests
 		NotepadViewSettings settings = new()
 		{
 			SelectedTabNumber = saved,
-			TabNumbers = [3, 1, 2]
+			Tabs = [new(3), new(1), new(2)]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();

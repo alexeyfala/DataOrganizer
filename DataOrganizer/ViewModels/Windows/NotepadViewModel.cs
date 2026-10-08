@@ -173,23 +173,24 @@ public sealed partial class NotepadViewModel : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Opens the saved tabs in their order, selects the saved one, or the first one when it is missing, and gives Ctrl+Tab
-	/// the way back kept for the session; without saved tabs the open ones stay.
+	/// Opens the saved tabs with their names in their order, selects the saved one, or the first one when it is missing,
+	/// and gives Ctrl+Tab the way back kept for the session; without saved tabs the open ones stay.
 	/// </summary>
 	public void RestoreTabs(NotepadViewSettings settings)
 	{
-		if (settings.TabNumbers is not { Length: > 0 } numbers)
+		if (settings.Tabs is not { Length: > 0 } tabs)
 		{
 			return;
 		}
 
 		Tabs.Clear();
 
-		foreach (int number in numbers)
+		foreach (NotepadTabSettings tab in tabs)
 		{
 			Tabs.Add(new()
 			{
-				Number = number
+				Name = tab.Name,
+				Number = tab.Number
 			});
 		}
 

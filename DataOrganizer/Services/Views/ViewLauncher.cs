@@ -653,7 +653,7 @@ public class ViewLauncher : IViewLauncher
 			NotepadViewSettings viewSettings = new()
 			{
 				SelectedTabNumber = window.ViewModel.SelectedTab?.Number,
-				TabNumbers = [.. window.ViewModel.Tabs.Select(x => x.Number)]
+				Tabs = [.. window.ViewModel.Tabs.Select(x => new NotepadTabSettings(x.Number, x.Name))]
 			};
 
 			_fileSystem.SerializeToJsonFile(

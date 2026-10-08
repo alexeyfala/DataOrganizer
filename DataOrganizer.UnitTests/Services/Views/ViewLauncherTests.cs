@@ -1026,7 +1026,7 @@ internal class ViewLauncherTests
 			NotepadViewSettings settings = new()
 			{
 				SelectedTabNumber = 1,
-				TabNumbers = [3, 1, 2]
+				Tabs = [new(3), new(1), new(2)]
 			};
 
 			NotepadViewModel viewModel = new(
@@ -1507,8 +1507,8 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveNotepadSettings" />: the tabs are saved in their order with the number of the selected
-	/// one.
+	/// <see cref="ViewLauncher.SaveNotepadSettings" />: the tabs are saved with their names in their order, with the number
+	/// of the selected one.
 	/// </summary>
 	[AvaloniaTest]
 	public void SaveNotepadSettings_Saves_The_Tabs()
@@ -1540,8 +1540,10 @@ internal class ViewLauncherTests
 		viewModel.RestoreTabs(new()
 		{
 			SelectedTabNumber = 1,
-			TabNumbers = [3, 1, 2]
+			Tabs = [new(3), new(1), new(2)]
 		});
+
+		viewModel.Tabs[1].Name = "Notes";
 
 		NotepadWindow window = new(viewModel);
 
@@ -1551,11 +1553,13 @@ internal class ViewLauncherTests
 		// Assert
 		captured
 			.Should()
-			.BeEquivalentTo(new NotepadViewSettings
-			{
-				SelectedTabNumber = 1,
-				TabNumbers = [3, 1, 2]
-			});
+			.BeEquivalentTo(
+				new NotepadViewSettings
+				{
+					SelectedTabNumber = 1,
+					Tabs = [new(3), new(1, "Notes"), new(2)]
+				},
+				options => options.WithStrictOrdering());
 	}
 
 	/// <summary>

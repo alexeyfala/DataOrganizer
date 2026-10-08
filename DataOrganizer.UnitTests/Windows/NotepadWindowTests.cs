@@ -225,7 +225,7 @@ internal class NotepadWindowTests
 		viewModel.RestoreTabs(new()
 		{
 			SelectedTabNumber = 1,
-			TabNumbers = [3, 1, 2]
+			Tabs = [new(3), new(1), new(2)]
 		});
 
 		NotepadWindow sut = new(viewModel);
