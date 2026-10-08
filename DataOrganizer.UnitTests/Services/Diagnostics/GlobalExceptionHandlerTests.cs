@@ -12,7 +12,74 @@ namespace DataOrganizer.UnitTests.Services.Diagnostics;
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
 internal class GlobalExceptionHandlerTests
 {
+	#region Data
+	/// <summary>
+	/// Message of the DBus error raised when no "com.canonical.AppMenu.Registrar" service runs.
+	/// </summary>
+	private const string AppMenuRegistrarMessage =
+		"org.freedesktop.DBus.Error.ServiceUnknown: The name com.canonical.AppMenu.Registrar was not provided";
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies an aggregate whose nested leaves all match is accepted.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Accepts_Nested_Matching_Leaves()
+	{
+		// Arrange
+		const string benign = "benign";
+
+		AggregateException aggregate = new(
+			new InvalidOperationException(benign),
+			new AggregateException(new InvalidOperationException(benign)));
+
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(aggregate, x => x.Message == benign);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies one other leaf among the matching ones keeps the aggregate from being swallowed.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Rejects_Aggregate_With_Other_Leaf()
+	{
+		// Arrange
+		const string benign = "benign";
+
+		AggregateException aggregate = new(
+			new InvalidOperationException(benign),
+			new InvalidOperationException("real failure"));
+
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(aggregate, x => x.Message == benign);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies an aggregate without leaves is not taken for a benign one.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Rejects_Empty_Aggregate()
+	{
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(new AggregateException(), _ => true);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// <see cref="GlobalExceptionHandler.HandleException" />: a repeated exception with the same message is not logged twice.
 	/// </summary>
@@ -97,6 +164,32 @@ internal class GlobalExceptionHandlerTests
 		afterReplay
 			.Should()
 			.BeGreaterThan(afterFiveUnique);
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.IsAppMenuRegistrarError" />: verifies only a DBus error that names the registrar is detected.
+	/// </summary>
+	[TestCase("Tmds.DBus.Protocol", AppMenuRegistrarMessage, ExpectedResult = true)]
+	[TestCase("Tmds.DBus", AppMenuRegistrarMessage, ExpectedResult = true)]
+	[TestCase("Tmds.DBus.Protocol", "org.freedesktop.DBus.Error.ServiceUnknown: The name org.kde.StatusNotifierWatcher was not provided", ExpectedResult = false)]
+	[TestCase("System", AppMenuRegistrarMessage, ExpectedResult = false)]
+	[TestCase(null, AppMenuRegistrarMessage, ExpectedResult = false)]
+	public bool IsAppMenuRegistrarError_Detects_DBus_Error_Naming_Registrar(string? typeNamespace, string message)
+	{
+		// Act
+		return GlobalExceptionHandler.IsAppMenuRegistrarError(typeNamespace, message);
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.IsPlatformSettingsFailure" />: verifies a failure is detected by the settings reader in its stack.
+	/// </summary>
+	[TestCase("   at Avalonia.FreeDesktop.DBusPlatformSettings.<ReadAccentColorAsync>d__9.MoveNext()", ExpectedResult = true)]
+	[TestCase("   at Avalonia.FreeDesktop.DBusMenuExporter.<RegisterAsync>d__7.MoveNext()", ExpectedResult = false)]
+	[TestCase(null, ExpectedResult = false)]
+	public bool IsPlatformSettingsFailure_Detects_Settings_Reader_In_Stack(string? stackTrace)
+	{
+		// Act
+		return GlobalExceptionHandler.IsPlatformSettingsFailure(stackTrace);
 	}
 	#endregion
 }
