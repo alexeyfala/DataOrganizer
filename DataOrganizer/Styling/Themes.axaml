@@ -119,10 +119,11 @@
 						Icon="CloseBoxMultiple"
 						IconForeground="{StaticResource WarningBrush}" />
 
-					<ContentPresenter
-						Content="{Binding Mode=OneWay}"
-						ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}"
-						IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" />
+					<StackPanel IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" Orientation="Vertical">
+						<Separator />
+
+						<ContentPresenter Content="{Binding Mode=OneWay}" ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}" />
+					</StackPanel>
 				</StackPanel>
 			</DataTemplate>
 		</Setter>

@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
 using Material.Icons;
 using NSubstitute;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -122,6 +123,81 @@ internal class DocumentTabControlTests
 		GetMenuButtons(window)[^1].Header
 			.Should()
 			.Be("Rename second");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.AdditionalMenuItemsTemplate" />: without items of a place the menu of a tab has no
+	/// separator.
+	/// </summary>
+	[AvaloniaTest]
+	public void AdditionalMenuItemsTemplate_Not_Set_Leaves_The_Menu_Without_A_Separator()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetHeaderText(sut, "second"));
+
+		// Act
+		Click(window, point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		IEnumerable<Separator> separators = GetMenu(window)
+			.GetVisualDescendants()
+			.OfType<Separator>()
+			.Where(x => x.IsEffectivelyVisible);
+
+		separators
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.AdditionalMenuItemsTemplate" />: a separator sets the items of a place apart from the
+	/// common items of the menu of a tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void AdditionalMenuItemsTemplate_Sets_Its_Items_Apart_With_A_Separator()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			AdditionalMenuItemsTemplate = new FuncDataTemplate<string>((x, _) => new FlyoutButton
+			{
+				Header = $"Rename {x}"
+			}),
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Window window = Show(sut);
+
+		Point point = Center(window, GetHeaderText(sut, "second"));
+
+		// Act
+		Click(window, point, MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		IEnumerable<Type> parts = GetMenu(window)
+			.GetVisualDescendants()
+			.Where(x => x.IsEffectivelyVisible && x is FlyoutButton or Separator)
+			.Select(x => x.GetType());
+
+		parts
+			.Should()
+			.Equal(
+				typeof(FlyoutButton),
+				typeof(FlyoutButton),
+				typeof(FlyoutButton),
+				typeof(Separator),
+				typeof(FlyoutButton));
 	}
 
 	/// <summary>
