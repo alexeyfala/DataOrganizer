@@ -13,6 +13,11 @@ public sealed class ResolveExtension : MarkupExtension
 {
 	#region Properties
 	/// <summary>
+	/// Key of a service registered under one; <c>null</c> for a service registered without a key.
+	/// </summary>
+	public object? Key { get; set; }
+
+	/// <summary>
 	/// Public getter/setter is required by the XAML markup-extension contract: the parser
 	/// instantiates the extension via reflection from another assembly and may assign the
 	/// value either positionally through the constructor (e.g. <c>{markup:Resolve {x:Type …}}</c>)
@@ -46,7 +51,9 @@ public sealed class ResolveExtension : MarkupExtension
 			return null!;
 		}
 
-		return services.GetRequiredService(Type);
+		return Key is null
+			? services.GetRequiredService(Type)
+			: services.GetRequiredKeyedService(Type, Key);
 	}
 	#endregion
 }

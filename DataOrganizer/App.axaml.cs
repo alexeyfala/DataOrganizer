@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Text;
@@ -195,6 +196,8 @@ public sealed class App : Application
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
 		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
+		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Main);
+		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Notepad);
 		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
@@ -224,7 +227,6 @@ public sealed class App : Application
 		services.AddSingleton<INotificationService, NotificationService>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
-		services.AddSingleton<ISnackbarPresenter, SnackbarPresenter>();
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion

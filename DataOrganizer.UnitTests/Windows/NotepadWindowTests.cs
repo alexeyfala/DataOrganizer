@@ -5,11 +5,13 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
@@ -303,6 +305,29 @@ internal class NotepadWindowTests
 		sut.ViewModel.PreviousTab
 			.Should()
 			.BeSameAs(sut.ViewModel.Tabs[1]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadWindow" />: the notepad shows its messages over the tabs in a snackbar host of its own, apart from
+	/// the one of the main window.
+	/// </summary>
+	[AvaloniaTest]
+	public void SnackbarHost_Is_The_One_Of_The_Notepad()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		// Act
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// Assert
+		sut.SnackbarHost.HostName
+			.Should()
+			.Be(SnackbarHostIdentifiers.Notepad);
+
+		sut.Tabs.GetLogicalAncestors()
+			.Should()
+			.Contain(sut.SnackbarHost);
 	}
 
 	/// <summary>

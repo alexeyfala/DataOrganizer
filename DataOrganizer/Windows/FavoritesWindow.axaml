@@ -176,10 +176,10 @@
 								Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
-									HostName="{Binding $self.Name}"
+									HostName="{x:Static helpers:SnackbarHostIdentifiers.Main}"
 									SnackbarHorizontalAlignment="Center">
 									<Interaction.Behaviors>
-										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}}" />
+										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Main}}" />
 									</Interaction.Behaviors>
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
