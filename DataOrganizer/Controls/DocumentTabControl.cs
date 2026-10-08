@@ -62,6 +62,15 @@ internal sealed class DocumentTabControl : TabControl
 	public ICommand CloseOtherTabsCommand { get; }
 
 	/// <summary>
+	/// Item selected before the current one, which Ctrl+Tab goes back to while its tab is open.
+	/// </summary>
+	public object? PreviousItem
+	{
+		get => GetValue(PreviousItemProperty);
+		set => SetValue(PreviousItemProperty, value);
+	}
+
+	/// <summary>
 	/// Template of a tab header: the header built by <see cref="ItemsControl.ItemTemplate" /> with the close button.
 	/// </summary>
 	public IDataTemplate? TabHeaderTemplate
@@ -93,6 +102,10 @@ internal sealed class DocumentTabControl : TabControl
 	public static readonly StyledProperty<ICommand?> CloseCommandProperty = AvaloniaProperty
 		.Register<DocumentTabControl, ICommand?>(nameof(CloseCommand));
 
+	/// <inheritdoc cref="PreviousItem" />
+	public static readonly StyledProperty<object?> PreviousItemProperty = AvaloniaProperty
+		.Register<DocumentTabControl, object?>(nameof(PreviousItem));
+
 	/// <inheritdoc cref="TabHeaderTemplate" />
 	public static readonly StyledProperty<IDataTemplate?> TabHeaderTemplateProperty = AvaloniaProperty
 		.Register<DocumentTabControl, IDataTemplate?>(nameof(TabHeaderTemplate));
@@ -117,11 +130,6 @@ internal sealed class DocumentTabControl : TabControl
 	/// Tab the middle button was pressed on.
 	/// </summary>
 	private TabItem? _middlePressedTab;
-
-	/// <summary>
-	/// Item that was selected before the current one.
-	/// </summary>
-	private object? _previousItem;
 
 	/// <summary>
 	/// Index of the item removed by the last change of the items, or -1.
@@ -302,10 +310,11 @@ internal sealed class DocumentTabControl : TabControl
 			return;
 		}
 
-		// A closed tab is no way back.
-		if (change.OldValue is { } oldItem && ItemsView.Contains(oldItem))
+		// A closed tab is no way back. Selections made before the tabs show belong to their loading, so they keep the
+		// item set from outside.
+		if (ItemsPanelRoot is not null && change.OldValue is { } oldItem && ItemsView.Contains(oldItem))
 		{
-			_previousItem = oldItem;
+			SetCurrentValue(PreviousItemProperty, oldItem);
 		}
 
 		// Keeps Ctrl+Tab at hand after a tab is selected from elsewhere, such as a newly opened one.
@@ -443,11 +452,11 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
-	/// Selects the tab that was selected before the current one, while it is open.
+	/// Selects the tab of <see cref="PreviousItem" />, while it is open.
 	/// </summary>
 	private void SwitchToPreviousTab()
 	{
-		if (_previousItem is not { } item || !ItemsView.Contains(item))
+		if (PreviousItem is not { } item || !ItemsView.Contains(item))
 		{
 			return;
 		}

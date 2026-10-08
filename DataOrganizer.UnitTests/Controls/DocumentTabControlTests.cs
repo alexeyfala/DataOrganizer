@@ -395,6 +395,31 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabControl.PreviousItem" />: Ctrl+Tab goes to the item set from outside.
+	/// </summary>
+	[AvaloniaTest]
+	public void CtrlTab_Goes_To_A_Previous_Item_Set_From_Outside()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Window window = Show(sut);
+
+		sut.PreviousItem = "third";
+
+		// Act
+		PressCtrlTab(window);
+
+		// Assert
+		sut.SelectedItem
+			.Should()
+			.Be("third");
+	}
+
+	/// <summary>
 	/// <see cref="SelectingItemsControl.SelectedItem" />: Ctrl+Tab does nothing once the tab selected before is closed.
 	/// </summary>
 	[AvaloniaTest]
@@ -739,6 +764,60 @@ internal class DocumentTabControlTests
 		command
 			.DidNotReceive()
 			.Execute(Arg.Any<object?>());
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.PreviousItem" />: a selection keeps the item it leaves.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousItem_Follows_The_Selection()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
+		};
+
+		Show(sut);
+
+		// Act
+		sut.SelectedIndex = 1;
+
+		// Assert
+		sut.PreviousItem
+			.Should()
+			.Be("first");
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.PreviousItem" />: the selections made before the tabs show keep the item set from
+	/// outside.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousItem_Ignores_The_Selections_Before_The_Tabs_Show()
+	{
+		// Arrange
+		// A hidden control is not laid out, as the tabs a window loads before it shows them.
+		DocumentTabControl sut = new()
+		{
+			IsVisible = false,
+			ItemsSource = new ObservableCollection<string>(["first", "second", "third"]),
+			PreviousItem = "second"
+		};
+
+		Show(sut);
+
+		// Act
+		sut.SelectedIndex = 2;
+
+		sut.IsVisible = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.PreviousItem
+			.Should()
+			.Be("second");
 	}
 
 	/// <summary>
