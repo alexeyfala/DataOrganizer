@@ -49,6 +49,35 @@ internal class FavoritesWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesWindow" />: a double click on the fix switch stays there and does not reach the header, whose
+	/// double click switches to the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_On_The_Fix_Switch_Keeps_The_Window_Open()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(sut, sut.FixSwitch);
+
+		// Act
+		Click(sut, point);
+
+		Click(sut, point);
+
+		// Assert
+		sut.IsVisible
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewModelBase.CenterNotepadCommand" />: a double click on the notepad button of the header brings the
 	/// notepad to the screen of the window.
 	/// </summary>

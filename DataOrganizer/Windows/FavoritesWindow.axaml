@@ -87,6 +87,7 @@
 				</Button>
 
 				<ToggleSwitch
+					x:Name="FixSwitch"
 					Grid.Column="4"
 					Margin="12.0,0.0"
 					Classes="accent PinToggleSwitchStyle"
@@ -95,6 +96,11 @@
 
 					<Interaction.Behaviors>
 						<input:PointerHoverCommandBehavior Command="{Binding ShowPopupOnHoverCommand}" Delay="300" />
+
+						<!--
+							A double click stays on the switch, since the header switches to the editor on a double click.
+						-->
+						<DoubleTappedTrigger MarkAsHandled="True" />
 					</Interaction.Behaviors>
 				</ToggleSwitch>
 
