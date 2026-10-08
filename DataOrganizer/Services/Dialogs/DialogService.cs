@@ -3,6 +3,7 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -62,7 +63,7 @@ public sealed class DialogService : IDialogService
 			.AddRange(initialHotkeys);
 
 		await DialogHost
-			.Show(_viewFactory.CreateUserControl<HotkeysEditorView>(viewModel))
+			.Show(_viewFactory.CreateUserControl<HotkeysEditorView>(viewModel), DialogHostIdentifiers.Main)
 			.ConfigureAwait(false);
 
 		// The native hook is process-wide, it must be fully down before the next one starts.
@@ -93,7 +94,9 @@ public sealed class DialogService : IDialogService
 			.Candidates
 			.AddRange(candidates);
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<AppPickerView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		return await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -107,7 +110,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		YesNoCancelAnswer result = await viewModel
 			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
@@ -125,7 +130,11 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Initialize(parameters);
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel));
+		viewModel.DialogHostIdentifier = parameters.DialogHostIdentifier;
+
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<KeyValueInputView>(viewModel),
+			parameters.DialogHostIdentifier);
 
 		if (!await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -152,7 +161,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		if (!await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -192,7 +203,9 @@ public sealed class DialogService : IDialogService
 
 				PasswordBoxView view = _viewFactory.CreateUserControl<PasswordBoxView>(viewModel);
 
-				Task dialogClosed = DialogHost.Show(view);
+				Task dialogClosed = DialogHost.Show(
+					view,
+					DialogHostIdentifiers.Main);
 
 				bool confirmed = await viewModel
 					.GetResultAsync(dialogClosed, token)
@@ -221,7 +234,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		YesNoCancelAnswer result = await viewModel
 			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
@@ -237,7 +252,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		YesNoCancelAnswer result = await viewModel
 			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesNo, token)
@@ -253,7 +270,9 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Header = Strings.ImportList;
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		return viewModel.GetResultAsync(dialogClosed, token);
 	}
@@ -263,7 +282,9 @@ public sealed class DialogService : IDialogService
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
 
-		Task dialogClosed = DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel));
+		Task dialogClosed = DialogHost.Show(
+			_viewFactory.CreateUserControl<EntityCreationView>(viewModel),
+			DialogHostIdentifiers.Main);
 
 		try
 		{
@@ -299,7 +320,9 @@ public sealed class DialogService : IDialogService
 			.Properties
 			.AddRange(properties);
 
-		DialogHost.Show(_viewFactory.CreateUserControl<PropertiesView>(viewModel));
+		DialogHost.Show(
+			_viewFactory.CreateUserControl<PropertiesView>(viewModel),
+			DialogHostIdentifiers.Main);
 	}
 
 	/// <inheritdoc />
@@ -308,7 +331,7 @@ public sealed class DialogService : IDialogService
 		SettingsViewModel viewModel = _viewFactory.CreateViewModel<SettingsViewModel>();
 
 		await DialogHost
-			.Show(_viewFactory.CreateUserControl<SettingsView>(viewModel), ClosingSettings)
+			.Show(_viewFactory.CreateUserControl<SettingsView>(viewModel), DialogHostIdentifiers.Main, ClosingSettings)
 			.ConfigureAwait(false);
 
 		// Turns closing with unsaved changes (Escape, the close button, a click away) into

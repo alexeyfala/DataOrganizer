@@ -1,3 +1,5 @@
+using DataOrganizer.Helpers;
+
 namespace DataOrganizer.Dto.Dialogs;
 
 public sealed class KeyValueInputParameters
@@ -7,6 +9,11 @@ public sealed class KeyValueInputParameters
 	/// Text for the default button.
 	/// </summary>
 	public required string DefaultButtonText { get; init; }
+
+	/// <summary>
+	/// Identifier of the dialog host that shows the dialog; the one of the main window by default.
+	/// </summary>
+	public string DialogHostIdentifier { get; init; } = DialogHostIdentifiers.Main;
 
 	/// <summary>
 	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.

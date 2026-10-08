@@ -5,6 +5,8 @@
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:notepad="using:DataOrganizer.Models.Notepad"
@@ -50,24 +52,29 @@
 			</views:TitleBarView.ButtonContent>
 		</views:TitleBarView>
 
-		<controls:DocumentTabControl
-			x:Name="Tabs"
-			AddCommand="{Binding AddTabCommand}"
-			CloseCommand="{Binding CloseTabCommand}"
-			ItemsSource="{Binding Tabs, Mode=OneTime}"
-			PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
-			SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
-			<controls:DocumentTabControl.ContentTemplate>
-				<DataTemplate x:DataType="notepad:NotepadTab">
-					<Panel />
-				</DataTemplate>
-			</controls:DocumentTabControl.ContentTemplate>
+		<dialogHost:DialogHost
+			dialogHost:DialogHostStyle.CornerRadius="6.0"
+			CloseOnClickAway="True"
+			Identifier="{x:Static helpers:DialogHostIdentifiers.Notepad}">
+			<controls:DocumentTabControl
+				x:Name="Tabs"
+				AddCommand="{Binding AddTabCommand}"
+				CloseCommand="{Binding CloseTabCommand}"
+				ItemsSource="{Binding Tabs, Mode=OneTime}"
+				PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
+				SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+				<controls:DocumentTabControl.ContentTemplate>
+					<DataTemplate x:DataType="notepad:NotepadTab">
+						<Panel />
+					</DataTemplate>
+				</controls:DocumentTabControl.ContentTemplate>
 
-			<controls:DocumentTabControl.ItemTemplate>
-				<DataTemplate x:DataType="notepad:NotepadTab">
-					<TextBlock VerticalAlignment="Center" Text="{Binding Header, Mode=OneTime}" />
-				</DataTemplate>
-			</controls:DocumentTabControl.ItemTemplate>
-		</controls:DocumentTabControl>
+				<controls:DocumentTabControl.ItemTemplate>
+					<DataTemplate x:DataType="notepad:NotepadTab">
+						<TextBlock VerticalAlignment="Center" Text="{Binding Header, Mode=OneTime}" />
+					</DataTemplate>
+				</controls:DocumentTabControl.ItemTemplate>
+			</controls:DocumentTabControl>
+		</dialogHost:DialogHost>
 	</DockPanel>
 </Window>

@@ -11,6 +11,7 @@
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -75,7 +76,10 @@
 			</views:TitleBarView.ButtonContent>
 		</views:TitleBarView>
 
-		<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
+		<dialogHost:DialogHost
+			dialogHost:DialogHostStyle.CornerRadius="6.0"
+			CloseOnClickAway="True"
+			Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
 			<materialControls:SnackbarHost
 				x:Name="SnackbarHost"
 				HostName="{Binding $self.Name}"

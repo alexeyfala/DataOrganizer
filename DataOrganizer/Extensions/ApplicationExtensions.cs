@@ -75,11 +75,18 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Searches for a <see cref="DialogHost" /> in a window among those already running in the application.
+	/// Searches the windows already running in the application for the <see cref="DialogHost" /> with the identifier.
 	/// </summary>
-	public static DialogHost? FindDialogHost(this Application target)
+	public static DialogHost? FindDialogHost(this Application target, string identifier)
 	{
-		return FindMainWindow(target).FindLogicalDescendantOfType<DialogHost>();
+		if (!HasWindows(target, out IReadOnlyList<Window> windows))
+		{
+			return null;
+		}
+
+		return windows
+			.SelectMany(x => x.GetLogicalDescendants().OfType<DialogHost>())
+			.FirstOrDefault(x => x.Identifier == identifier);
 	}
 
 	/// <summary>
@@ -205,11 +212,11 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// <c>True</c> when any <see cref="DialogHost" /> dialog is opened.
+	/// <c>True</c> when the <see cref="DialogHost" /> with the identifier shows a dialog.
 	/// </summary>
-	public static bool IsDialogHostOpened(this Application target)
+	public static bool IsDialogHostOpened(this Application target, string identifier)
 	{
-		return FindDialogHost(target) is { } dialogHost && dialogHost.IsOpen;
+		return FindDialogHost(target, identifier) is { IsOpen: true };
 	}
 	#endregion
 

@@ -6,6 +6,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -197,6 +198,89 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogService.RequestKeyValueInputAsync" />: the dialog opens in the host named by the parameters, while
+	/// the main window has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestKeyValueInputAsync_Shows_The_Dialog_In_The_Named_Host()
+	{
+		// Arrange
+		KeyValueInputViewModel viewModel = new(
+			Application.Current!,
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<KeyValueInputViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<KeyValueInputView>(Arg.Any<object[]>())
+				.Returns(new KeyValueInputView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost mainHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = mainHost
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.RequestKeyValueInputAsync(new()
+		{
+			DefaultButtonText = "Rename",
+			DialogHostIdentifier = DialogHostIdentifiers.Notepad
+		});
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		bool isMainHostOpen = mainHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isNotepadHostOpen
+			.Should()
+			.BeTrue();
+
+		isMainHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DialogService.RequestMultilineTextAsync" />: the header of the dialog carries the given name,
 	/// a blank name leaves the label alone.
 	/// </summary>
@@ -225,7 +309,10 @@ internal class DialogServiceTests
 
 		DialogService sut = mock.Create<DialogService>();
 
-		DialogHost host = new();
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
 
 		Window window = new() { Content = host };
 
@@ -311,6 +398,85 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogService.RequestYesNoAsync" />: a dialog of the main window opens in its host while another window
+	/// has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesNoAsync_Shows_The_Dialog_In_The_Main_Host_Beside_Another_One()
+	{
+		// Arrange
+		YesNoCancelBoxViewModel viewModel = new(
+			Application.Current!,
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost mainHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = mainHost
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.RequestYesNoAsync("Text");
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isMainHostOpen = mainHost.IsOpen;
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isMainHostOpen
+			.Should()
+			.BeTrue();
+
+		isNotepadHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DialogService.ShowSettingsAsync" />: closing the view with unsaved changes keeps it
 	/// open and asks for a confirmation, and discarding then closes it without saving.
 	/// </summary>
@@ -347,7 +513,10 @@ internal class DialogServiceTests
 
 		DialogService sut = mock.Create<DialogService>();
 
-		DialogHost host = new();
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
 
 		Window window = new() { Content = host };
 
@@ -362,7 +531,7 @@ internal class DialogServiceTests
 		viewModel.CheckForUpdates = !viewModel.CheckForUpdates;
 
 		// Act
-		DialogHost.Close(null);
+		DialogHost.Close(DialogHostIdentifiers.Main);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -381,7 +550,7 @@ internal class DialogServiceTests
 			.Execute(null);
 
 		// The view model closes through a substituted IDialogHostCloser, so the real host is closed here.
-		DialogHost.Close(null);
+		DialogHost.Close(DialogHostIdentifiers.Main);
 
 		Dispatcher.UIThread.RunJobs();
 

@@ -5,6 +5,7 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -169,7 +170,10 @@
 						BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
 						<Border Background="{StaticResource MaterialPaperBrush}" CornerRadius="{StaticResource CornerRadius}">
-							<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
+							<dialogHost:DialogHost
+								dialogHost:DialogHostStyle.CornerRadius="6.0"
+								CloseOnClickAway="True"
+								Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
 									HostName="{Binding $self.Name}"

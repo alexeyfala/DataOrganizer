@@ -10,6 +10,7 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -116,7 +117,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		UpdateCommands();
 
-		if (_app.FindDialogHost() is not { } dialogHost || !dialogHost.IsOpen)
+		if (_app.FindDialogHost(DialogHostIdentifiers.Main) is not { } dialogHost || !dialogHost.IsOpen)
 		{
 			return;
 		}

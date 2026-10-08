@@ -5,7 +5,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.ViewModels.Windows;
+using DialogHostAvalonia;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Extensions;
@@ -14,6 +16,51 @@ namespace DataOrganizer.UnitTests.Extensions;
 internal class ApplicationExtensionsTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="ApplicationExtensions.FindDialogHost" />: finds the host with the identifier among the hosts of every
+	/// window.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindDialogHost_Finds_The_Host_With_The_Identifier()
+	{
+		// Arrange
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+		lifetime
+			.Windows
+			.Returns([mainWindow, notepadWindow]);
+
+		Application app = Substitute.For<Application>();
+
+		app.ApplicationLifetime = lifetime;
+
+		// Act
+		DialogHost? host = app.FindDialogHost(DialogHostIdentifiers.Notepad);
+
+		// Assert
+		host
+			.Should()
+			.BeSameAs(notepadHost);
+	}
+
 	/// <summary>
 	/// <see cref="ApplicationExtensions.FindMainWindow" />: finds the window of a main view model among the other windows.
 	/// </summary>

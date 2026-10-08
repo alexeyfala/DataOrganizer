@@ -78,14 +78,19 @@ internal class ViewLauncherTests
 		// Act
 		sut.ActivateMainWindow();
 
-		// Assert
-		mainWindow.WindowState
-			.Should()
-			.Be(WindowState.Normal);
+		WindowState state = mainWindow.WindowState;
 
 		Window[] windows = [mainWindow, notepad];
 
 		Window.SortWindowsByZOrder(windows);
+
+		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
+		notepad.Close();
+
+		// Assert
+		state
+			.Should()
+			.Be(WindowState.Normal);
 
 		windows[^1]
 			.Should()
@@ -229,9 +234,12 @@ internal class ViewLauncherTests
 		// Act
 		sut.CenterNotepadWindow(owner);
 
-		// Assert
 		PixelRect bounds = new(notepad.Position, new PixelSize(400, 300));
 
+		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		notepad.Close();
+
+		// Assert
 		bounds.Center
 			.Should()
 			.Be(owner.Screens!.Primary!.WorkingArea.Center);
@@ -276,8 +284,13 @@ internal class ViewLauncherTests
 		// Act
 		sut.CenterNotepadWindow(new Window());
 
+		PixelPoint actual = notepad.Position;
+
+		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		notepad.Close();
+
 		// Assert
-		notepad.Position
+		actual
 			.Should()
 			.Be(position);
 	}
@@ -1042,12 +1055,17 @@ internal class ViewLauncherTests
 
 		window.Show();
 
+		object? selected = window.Tabs.SelectedItem;
+
+		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
+		window.Close();
+
 		// Assert
 		window.ViewModel.Tabs.Select(x => x.Number)
 			.Should()
 			.Equal(3, 1, 2);
 
-		window.Tabs.SelectedItem
+		selected
 			.Should()
 			.BeSameAs(window.ViewModel.Tabs[1]);
 	}
@@ -1685,8 +1703,13 @@ internal class ViewLauncherTests
 		// Act
 		sut.ShowNotepadWindow(new Window());
 
+		bool isVisible = notepad.IsVisible;
+
+		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		notepad.Close();
+
 		// Assert
-		notepad.IsVisible
+		isVisible
 			.Should()
 			.BeTrue();
 	}
@@ -1731,8 +1754,13 @@ internal class ViewLauncherTests
 		// Act
 		sut.ShowNotepadWindow(new Window());
 
+		WindowState state = notepad.WindowState;
+
+		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
+		notepad.Close();
+
 		// Assert
-		notepad.WindowState
+		state
 			.Should()
 			.Be(WindowState.Normal);
 

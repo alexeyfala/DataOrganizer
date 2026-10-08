@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Helpers;
 using DialogHostAvalonia;
 using Repository.Dto;
 using System.Collections.ObjectModel;
@@ -22,6 +23,6 @@ internal sealed partial class PropertiesViewModel
 	/// Closes the dialog.
 	/// </summary>
 	[RelayCommand]
-	private static void Close() => DialogHost.Close(null);
+	private static void Close() => DialogHost.Close(DialogHostIdentifiers.Main);
 	#endregion
 }
