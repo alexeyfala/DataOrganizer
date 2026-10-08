@@ -220,6 +220,7 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<INotepadSessionState, NotepadSessionState>();
 		services.AddSingleton<INotificationService, NotificationService>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();

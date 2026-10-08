@@ -11,6 +11,7 @@ using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
+using DataOrganizer.Services.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
@@ -145,6 +146,50 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.PreviousTab" />: after the saved tabs open, Ctrl+Tab goes to the tab kept for the
+	/// session.
+	/// </summary>
+	[AvaloniaTest]
+	public void CtrlTab_After_The_Saved_Tabs_Open_Goes_To_The_Previous_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadSessionState sessionState = new()
+			{
+				PreviousTabNumber = 2
+			};
+
+			builder.RegisterInstance<INotepadSessionState>(sessionState);
+		});
+
+		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
+
+		// The tabs open before the window, as when the notepad opens.
+		viewModel.RestoreTabs(new()
+		{
+			SelectedTabNumber = 1,
+			TabNumbers = [3, 1, 2]
+		});
+
+		NotepadWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		// Assert
+		sut.ViewModel.SelectedTab
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[2]);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.CenterMainWindowCommand" />: a double click on the home button of the title bar brings
 	/// the main window to the screen of the notepad.
 	/// </summary>
@@ -173,6 +218,35 @@ internal class NotepadWindowTests
 		viewLauncher
 			.Received(1)
 			.CenterMainWindow(sut);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.PreviousTab" />: a selected tab leaves the tab selected before it as the previous one.
+	/// </summary>
+	[AvaloniaTest]
+	public void PreviousTab_Follows_The_Selected_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+
+		// Assert
+		sut.ViewModel.PreviousTab
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[1]);
 	}
 
 	/// <summary>

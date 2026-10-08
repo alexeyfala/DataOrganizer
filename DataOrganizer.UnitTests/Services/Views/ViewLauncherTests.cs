@@ -50,7 +50,9 @@ internal class ViewLauncherTests
 			WindowState = WindowState.Minimized
 		};
 
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -107,7 +109,9 @@ internal class ViewLauncherTests
 			Width = 400.0
 		};
 
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -193,7 +197,9 @@ internal class ViewLauncherTests
 	public void CenterNotepadWindow_Centers_The_Notepad_On_The_Screen_Of_The_Owner()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()))
 		{
 			Height = 300.0,
 			Width = 400.0
@@ -240,7 +246,9 @@ internal class ViewLauncherTests
 		// Arrange
 		PixelPoint position = new(5, 5);
 
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()))
 		{
 			Position = position,
 			WindowState = WindowState.Maximized
@@ -821,7 +829,9 @@ internal class ViewLauncherTests
 				Y = 40
 			};
 
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -888,7 +898,9 @@ internal class ViewLauncherTests
 				Y = -20000
 			};
 
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -938,7 +950,9 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -995,7 +1009,9 @@ internal class ViewLauncherTests
 				TabNumbers = [3, 1, 2]
 			};
 
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -1056,7 +1072,9 @@ internal class ViewLauncherTests
 				Y = 40
 			};
 
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -1103,7 +1121,9 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+			NotepadViewModel viewModel = new(
+				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
 
@@ -1281,7 +1301,9 @@ internal class ViewLauncherTests
 		// Arrange
 		bool isClosed = false;
 
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()));
 
 		notepad.Closed += (_, _) => isClosed = true;
 
@@ -1428,7 +1450,9 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		NotepadWindow window = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()))
 		{
 			Height = 400.0,
 			Position = new PixelPoint(30, 40),
@@ -1478,7 +1502,9 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		NotepadViewModel viewModel = new(Substitute.For<IViewLauncher>());
+		NotepadViewModel viewModel = new(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>());
 
 		viewModel.RestoreTabs(new()
 		{
@@ -1635,7 +1661,9 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Opens_A_New_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()));
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1670,7 +1698,9 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Restores_The_Open_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(Substitute.For<IViewLauncher>()))
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewLauncher>()))
 		{
 			WindowState = WindowState.Minimized
 		};

@@ -1,8 +1,10 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Notepad;
+using DataOrganizer.Services.Views;
 using DataOrganizer.ViewModels.Windows;
 using System.Linq;
 
@@ -101,6 +103,41 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: a closed tab is no way back for Ctrl+Tab, in this window and the
+	/// next one, since its number may go to a new tab.
+	/// </summary>
+	[Test]
+	public void CloseTabCommand_Forgets_The_Previous_Tab()
+	{
+		// Arrange
+		NotepadSessionState sessionState = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotepadSessionState>(sessionState));
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.PreviousTab = sut.Tabs[0];
+
+		// Act
+		sut
+			.CloseTabCommand
+			.Execute(sut.Tabs[0]);
+
+		// Assert
+		sut.PreviousTab
+			.Should()
+			.BeNull();
+
+		sessionState.PreviousTabNumber
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.CloseTabCommand" />: the last tab gives way to a new selected tab with the first number.
 	/// </summary>
 	[Test]
@@ -137,7 +174,8 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IViewLauncher)" />: the notepad opens with one selected tab with the first number.
+	/// <see cref="NotepadViewModel(INotepadSessionState, IViewLauncher)" />: the notepad opens with one selected tab with
+	/// the first number.
 	/// </summary>
 	[Test]
 	public void Constructor_Opens_The_First_Tab()
@@ -156,6 +194,32 @@ internal class NotepadViewModelTests
 		sut.SelectedTab
 			.Should()
 			.BeSameAs(sut.Tabs[0]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.PreviousTab" />: the number of the tab is kept for the session.
+	/// </summary>
+	[Test]
+	public void PreviousTab_Is_Written_To_The_Session_State()
+	{
+		// Arrange
+		NotepadSessionState sessionState = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotepadSessionState>(sessionState));
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		// Act
+		sut.PreviousTab = sut.Tabs[1];
+
+		// Assert
+		sessionState.PreviousTabNumber
+			.Should()
+			.Be(2);
 	}
 
 	/// <summary>
@@ -208,6 +272,40 @@ internal class NotepadViewModelTests
 		sut.Tabs.Select(x => x.Number)
 			.Should()
 			.Equal(3, 1, 2);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.RestoreTabs" />: Ctrl+Tab gets back the tab whose number is kept for the session.
+	/// </summary>
+	[Test]
+	public void RestoreTabs_Restores_The_Previous_Tab_From_The_Session_State()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 1,
+			TabNumbers = [3, 1, 2]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadSessionState sessionState = new()
+			{
+				PreviousTabNumber = 3
+			};
+
+			builder.RegisterInstance<INotepadSessionState>(sessionState);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.RestoreTabs(settings);
+
+		// Assert
+		sut.PreviousTab
+			.Should()
+			.BeSameAs(sut.Tabs[0]);
 	}
 
 	/// <summary>

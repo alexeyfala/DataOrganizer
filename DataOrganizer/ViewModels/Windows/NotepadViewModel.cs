@@ -16,6 +16,12 @@ public sealed partial class NotepadViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
+	/// Tab Ctrl+Tab goes back to.
+	/// </summary>
+	[ObservableProperty]
+	public partial NotepadTab? PreviousTab { get; set; }
+
+	/// <summary>
 	/// Tab that is selected.
 	/// </summary>
 	[ObservableProperty]
@@ -27,15 +33,19 @@ public sealed partial class NotepadViewModel : ObservableObject
 	public ObservableCollection<NotepadTab> Tabs { get; } = [];
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="PreviousTab" /> changes.
+	/// </summary>
+	partial void OnPreviousTabChanged(NotepadTab? value) => _sessionState.PreviousTabNumber = value?.Number;
+	#endregion
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Brings the main window back from the minimized state and activates it.
 	/// </summary>
 	[RelayCommand]
-	private void ActivateMainWindow()
-	{
-		_viewLauncher.ActivateMainWindow();
-	}
+	private void ActivateMainWindow() => _viewLauncher.ActivateMainWindow();
 
 	/// <summary>
 	/// Adds a tab with the smallest free number at the end and selects it.
@@ -85,6 +95,12 @@ public sealed partial class NotepadViewModel : ObservableObject
 
 		Tabs.Remove(tab);
 
+		// A closed tab is no way back, and its number may go to a new tab.
+		if (tab == PreviousTab)
+		{
+			PreviousTab = null;
+		}
+
 		if (Tabs.Count > 0)
 		{
 			return;
@@ -95,13 +111,18 @@ public sealed partial class NotepadViewModel : ObservableObject
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="INotepadSessionState" />
+	private readonly INotepadSessionState _sessionState;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
-	public NotepadViewModel(IViewLauncher viewLauncher)
+	public NotepadViewModel(INotepadSessionState sessionState, IViewLauncher viewLauncher)
 	{
+		_sessionState = sessionState;
+
 		_viewLauncher = viewLauncher;
 
 		AddTab();
@@ -110,8 +131,8 @@ public sealed partial class NotepadViewModel : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Opens the saved tabs in their order and selects the saved one, or the first one when it is missing; without saved
-	/// tabs the open ones stay.
+	/// Opens the saved tabs in their order, selects the saved one, or the first one when it is missing, and gives Ctrl+Tab
+	/// the way back kept for the session; without saved tabs the open ones stay.
 	/// </summary>
 	public void RestoreTabs(NotepadViewSettings settings)
 	{
@@ -131,6 +152,8 @@ public sealed partial class NotepadViewModel : ObservableObject
 		}
 
 		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];
+
+		PreviousTab = Tabs.FirstOrDefault(x => x.Number == _sessionState.PreviousTabNumber);
 	}
 	#endregion
 }
