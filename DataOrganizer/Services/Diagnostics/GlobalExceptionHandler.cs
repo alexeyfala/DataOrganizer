@@ -109,31 +109,6 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	}
 
 	/// <summary>
-	/// Handles the exception.
-	/// </summary>
-	internal void HandleException(Exception exception)
-	{
-		lock (_mutex)
-		{
-			if (!_handledExceptions.Add($"{exception.GetType().Name}: {exception.Message}"))
-			{
-				return;
-			}
-
-			_logger.LogException("Unhandled Exception", exception);
-
-			if (_handledExceptions.Count < 5)
-			{
-				return;
-			}
-
-			_handledExceptions.Clear();
-		}
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
 	/// <c>True</c> when the aggregated exception has leaves and every one of them satisfies <paramref name="predicate" />.
 	/// </summary>
 	internal static bool AreAllLeaves(AggregateException aggregate, Func<Exception, bool> predicate)
@@ -182,6 +157,31 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 		return stackTrace?.Contains(platformSettingsTypeName, StringComparison.Ordinal) == true;
 	}
 
+	/// <summary>
+	/// Handles the exception.
+	/// </summary>
+	internal void HandleException(Exception exception)
+	{
+		lock (_mutex)
+		{
+			if (!_handledExceptions.Add($"{exception.GetType().Name}: {exception.Message}"))
+			{
+				return;
+			}
+
+			_logger.LogException("Unhandled Exception", exception);
+
+			if (_handledExceptions.Count < 5)
+			{
+				return;
+			}
+
+			_handledExceptions.Clear();
+		}
+	}
+	#endregion
+
+	#region Helpers
 	/// <summary>
 	/// <c>True</c> when the aggregated exception is exclusively composed of Avalonia's accent-color
 	/// read failures from the FreeDesktop appearance portal on Linux.
