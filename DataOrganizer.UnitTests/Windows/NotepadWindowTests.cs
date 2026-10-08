@@ -18,6 +18,7 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Material.Icons;
 using NSubstitute;
+using Shared.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -362,6 +363,32 @@ internal class NotepadWindowTests
 		texts
 			.Should()
 			.Contain(sut.ViewModel.Tabs[0].Header);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTab.Header" />: a long header is cut at the width of a tab header and shown whole in a tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void Tabs_Trim_A_Long_Header_With_A_Tip()
+	{
+		// Arrange
+		string name = RandomString.Create(200);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut.ViewModel.Tabs[0].Name = name;
+
+		// Act
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ToolTip.GetTip(GetHeaderText(sut.Tabs, name))
+			.Should()
+			.Be(name);
 	}
 	#endregion
 

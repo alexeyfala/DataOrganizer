@@ -81,7 +81,7 @@
 
 				<controls:DocumentTabControl.ItemTemplate>
 					<DataTemplate x:DataType="notepad:NotepadTab">
-						<TextBlock VerticalAlignment="Center" Text="{Binding Header, Mode=OneWay}" />
+						<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Header, Mode=OneWay}" />
 					</DataTemplate>
 				</controls:DocumentTabControl.ItemTemplate>
 			</controls:DocumentTabControl>

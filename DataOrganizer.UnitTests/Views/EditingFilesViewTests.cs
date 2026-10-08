@@ -13,6 +13,7 @@ using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using Entities.Enums;
+using Shared.Common;
 using Shared.Extensions;
 using System.Linq;
 
@@ -166,6 +167,55 @@ internal class EditingFilesViewTests
 		viewModel.PreviousFile
 			.Should()
 			.BeSameAs(files[0]);
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.Name" />: a long name of a file is cut at the width of a tab header and shown whole in
+	/// a tip.
+	/// </summary>
+	[AvaloniaTest]
+	public void Tabs_Trim_A_Long_File_Name_With_A_Tip()
+	{
+		// Arrange
+		// A kind with no editor keeps the content of the tab light.
+		FileDto dto = ItemDtoFactory.CreateFileDto(kind: EntityKind.Folder);
+
+		dto.Name = RandomString.Create(200);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel viewModel = mock.Create<EditingFilesViewModel>();
+
+		viewModel.OpenInEditor(dto);
+
+		Window window = new()
+		{
+			Content = new EditingFilesView
+			{
+				DataContext = viewModel
+			},
+			Height = 600.0,
+			Width = 800.0
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		TextBlock header = window
+			.GetVisualDescendants()
+			.OfType<DocumentTabControl>()
+			.Single()
+			.ContainerFromIndex(0)!
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.Single(x => x.Text == dto.Name);
+
+		ToolTip.GetTip(header)
+			.Should()
+			.Be(dto.Name);
 	}
 	#endregion
 }

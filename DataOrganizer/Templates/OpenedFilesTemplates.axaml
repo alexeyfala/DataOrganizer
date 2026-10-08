@@ -79,15 +79,7 @@
 			Orientation="Horizontal"
 			Spacing="4.0">
 
-			<TextBlock
-				MaxWidth="128.0"
-				Margin="0.0"
-				VerticalAlignment="Center"
-				Text="{Binding Name, Mode=OneWay}">
-				<Interaction.Behaviors>
-					<text:TextBlockAutoToolTipBehavior />
-				</Interaction.Behaviors>
-			</TextBlock>
+			<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Name, Mode=OneWay}" />
 
 			<materialIcons:MaterialIcon
 				Background="Transparent"
