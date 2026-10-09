@@ -838,7 +838,7 @@
   <data name="NewTab" xml:space="preserve">
     <value>New tab</value>
   </data>
-  <data name="TabsBeingClosedContainText" xml:space="preserve">
-    <value>The tabs being closed contain text. Close them?</value>
+  <data name="CloseTabsTextWillBeDeleted" xml:space="preserve">
+    <value>Close the tabs? The text in them will be deleted.</value>
   </data>
 </root>

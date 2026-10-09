@@ -340,6 +340,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close the tabs? The text in them will be deleted..
+        /// </summary>
+        public static string CloseTabsTextWillBeDeleted {
+            get {
+                return ResourceManager.GetString("CloseTabsTextWillBeDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close the file and delete.
         /// </summary>
         public static string CloseTheFileAndDelete {
@@ -2046,15 +2055,6 @@ namespace Shared.Properties {
         public static string Tabs {
             get {
                 return ResourceManager.GetString("Tabs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The tabs being closed contain text. Close them?.
-        /// </summary>
-        public static string TabsBeingClosedContainText {
-            get {
-                return ResourceManager.GetString("TabsBeingClosedContainText", resourceCulture);
             }
         }
         

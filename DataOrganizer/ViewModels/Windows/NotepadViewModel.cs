@@ -129,7 +129,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		if (tabs.Any(HasText) && !await _dialogService
 			.RequestYesNoAsync(
-				Strings.TabsBeingClosedContainText,
+				Strings.CloseTabsTextWillBeDeleted,
 				DialogHostIdentifiers.Notepad)
 			.ConfigureAwait(true))
 		{
