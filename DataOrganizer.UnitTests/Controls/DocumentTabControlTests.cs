@@ -279,6 +279,41 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="SelectingItemsControl.SelectedItem" />: the selected tab closed from its menu gives the focus to the tab
+	/// that takes its place.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_A_Menu_Item_Gives_The_Focus_To_The_Tab_In_Place_Of_The_Closed_One()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second"];
+
+		DocumentTabControl sut = new()
+		{
+			CloseCommand = new RelayCommand<string>(x => items.Remove(x!)),
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Click(window, Center(window, GetHeaderText(sut, "first")), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(window, GetMenuButtons(window)[0]);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.ContainerFromIndex(0)!.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabControl.AddCommand" />: the add button runs the command.
 	/// </summary>
 	[AvaloniaTest]
@@ -525,6 +560,34 @@ internal class DocumentTabControlTests
 		sut.SelectedItem
 			.Should()
 			.Be("third");
+	}
+
+	/// <summary>
+	/// <see cref="SelectingItemsControl.SelectedItem" />: Ctrl+Tab from a tab moves the focus to the tab it selects, whose
+	/// content takes none.
+	/// </summary>
+	[AvaloniaTest]
+	public void CtrlTab_Moves_The_Focus_To_The_Tab_It_Selects()
+	{
+		// Arrange
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Window window = Show(sut);
+
+		sut.PreviousItem = "second";
+
+		// Act
+		PressCtrlTab(window);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.ContainerFromIndex(1)!.IsFocused
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1057,6 +1120,43 @@ internal class DocumentTabControlTests
 		selected
 			.Should()
 			.Equal("third");
+	}
+
+	/// <summary>
+	/// <see cref="SelectingItemsControl.SelectedItem" />: a tab selected while the focus is elsewhere in the window, as
+	/// when a file is closed from the tree, leaves the focus there.
+	/// </summary>
+	[AvaloniaTest]
+	public void SelectedItem_Set_While_The_Focus_Is_Elsewhere_Leaves_The_Focus_There()
+	{
+		// Arrange
+		TextBox outside = new();
+
+		DocumentTabControl sut = new()
+		{
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		Show(new DockPanel
+		{
+			Children =
+			{
+				outside,
+				sut
+			}
+		});
+
+		outside.Focus();
+
+		// Act
+		sut.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		outside.IsFocused
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

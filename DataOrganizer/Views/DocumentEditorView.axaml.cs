@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
@@ -557,8 +558,13 @@ internal sealed partial class DocumentEditorView :
 			ScheduleRestore();
 		}
 
+		// Shown again, as by a switch of tabs; posted, so it comes after the tabs move the focus to their header.
 		if (_hasBeenLoaded)
 		{
+			Dispatcher
+				.UIThread
+				.Post(FocusText, DispatcherPriority.Loaded);
+
 			return;
 		}
 
@@ -626,6 +632,27 @@ internal sealed partial class DocumentEditorView :
 			.ActiveEditor
 			.ConvertLineEndingsCommand
 			.Execute(lineEnding);
+	}
+
+	/// <summary>
+	/// Moves the keyboard focus into the text of the active half while the focus is nowhere or in the tabs that show
+	/// the control.
+	/// </summary>
+	private void FocusText()
+	{
+		// The focus elsewhere in the window, such as in a tree a tab was closed from, stays where it is.
+		if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not null
+			&& this.FindAncestorOfType<TabControl>() is not { IsKeyboardFocusWithin: true })
+		{
+			return;
+		}
+
+		// The text area itself: the editor would pass the focus on from its own handler, which leaves the input method
+		// on the editor.
+		Editor
+			.ActiveEditor
+			.TextArea
+			.Focus();
 	}
 
 	/// <summary>

@@ -317,8 +317,11 @@ internal sealed class DocumentTabControl : TabControl
 			SetCurrentValue(PreviousItemProperty, oldItem);
 		}
 
-		// Keeps Ctrl+Tab at hand after a tab is selected from elsewhere, such as a newly opened one.
-		Dispatcher.UIThread.Post(FocusSelectedTab, DispatcherPriority.Loaded);
+		// Keeps Ctrl+Tab at hand after a tab is selected, such as a newly opened one; posted, so it sees the focus after
+		// the content of the old tab has left.
+		Dispatcher
+			.UIThread
+			.Post(FocusSelectedTab, DispatcherPriority.Loaded);
 	}
 
 	/// <inheritdoc />
@@ -390,11 +393,14 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
-	/// Moves the keyboard focus to the selected tab.
+	/// Moves the keyboard focus to the selected tab while the focus is in the tabs or nowhere.
 	/// </summary>
 	private void FocusSelectedTab()
 	{
-		if (SelectedItem is not { } item || ContainerFromItem(item) is not { } tab)
+		// The focus elsewhere in the window, such as in a tree a tab was closed from, stays where it is.
+		if (SelectedItem is not { } item
+			|| ContainerFromItem(item) is not { } tab
+			|| (!IsKeyboardFocusWithin && TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not null))
 		{
 			return;
 		}

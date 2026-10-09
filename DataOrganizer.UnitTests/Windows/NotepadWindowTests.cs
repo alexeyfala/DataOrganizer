@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
@@ -23,9 +24,12 @@ using DataOrganizer.Windows;
 using Material.Icons;
 using NSubstitute;
 using Shared.Common;
+using Shared.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Windows;
 
@@ -33,6 +37,63 @@ namespace DataOrganizer.UnitTests.Windows;
 internal class NotepadWindowTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="NotepadViewModel.SelectedTab" />: a click on a tab from the text of another one gives the focus to its
+	/// text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_A_Tab_Gives_The_Focus_To_Its_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application adds the template once its services are built, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(mock.Create<DocumentTabTemplate>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextArea secondText = GetShownTextArea(sut);
+
+		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+
+		Dispatcher.UIThread.RunJobs();
+
+		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
+		await WaitForFirstFocus(GetShownTextArea(sut));
+
+		Point point = Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[1].Header));
+
+		// Act
+		Click(sut, point, MouseButton.Left);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		secondText.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="NotepadViewModel.SelectedTab" />: a click on a tab selects its tab in the view model.
 	/// </summary>
@@ -247,6 +308,63 @@ internal class NotepadWindowTests
 		sut.ViewModel.SelectedTab
 			.Should()
 			.BeSameAs(sut.ViewModel.Tabs[2]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.SelectedTab" />: Ctrl+Tab from the text of a tab gives the focus to the text of the tab
+	/// it goes to.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CtrlTab_Gives_The_Focus_To_The_Text_Of_The_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application adds the template once its services are built, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(mock.Create<DocumentTabTemplate>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextArea secondText = GetShownTextArea(sut);
+
+		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+
+		Dispatcher.UIThread.RunJobs();
+
+		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
+		await WaitForFirstFocus(GetShownTextArea(sut));
+
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		secondText.IsFocused
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -520,6 +638,38 @@ internal class NotepadWindowTests
 			.GetVisualDescendants()
 			.OfType<TextBlock>()
 			.Single(x => x.Text == text && x.FindAncestorOfType<TabItem>() is not null);
+	}
+
+	/// <summary>
+	/// Returns the text area of the upper half of the editor the tabs of the window show.
+	/// </summary>
+	private static TextArea GetShownTextArea(NotepadWindow window)
+	{
+		return window
+			.Tabs
+			.GetVisualDescendants()
+			.OfType<NotepadTabView>()
+			.Single()
+			.Editor
+			.Editor
+			.PrimaryEditor
+			.TextArea;
+	}
+
+	/// <summary>
+	/// Waits for the focus an editor gives its text a moment after it is first loaded, so that it cannot come later.
+	/// </summary>
+	private static ValueTask<bool> WaitForFirstFocus(TextArea area)
+	{
+		Func<bool> isFocused = () =>
+		{
+			// The focus comes on a timer, which posts it to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return area.IsFocused;
+		};
+
+		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
 	}
 	#endregion
 }

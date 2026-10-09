@@ -1281,6 +1281,199 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView" />: shown again, as by a switch of tabs, the control gives the focus back to the half
+	/// that had it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task OnLoaded_Gives_The_Focus_Back_To_The_Active_Half()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		TabControl tabs = new()
+		{
+			Items =
+			{
+				new TabItem
+				{
+					Content = sut
+				},
+				new TabItem()
+			}
+		};
+
+		Show(tabs);
+
+		await WaitForFirstFocus(sut);
+
+		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+
+		splitEditor
+			.TextArea
+			.Focus();
+
+		tabs.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		tabs.SelectedIndex = 0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		splitEditor.TextArea.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: shown again while the focus is elsewhere in the window, as when a file is closed
+	/// from the tree, the control leaves the focus there.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task OnLoaded_Leaves_The_Focus_Outside_Its_Tabs()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		TextBox outside = new();
+
+		TabControl tabs = new()
+		{
+			Items =
+			{
+				new TabItem
+				{
+					Content = sut
+				},
+				new TabItem()
+			}
+		};
+
+		Show(new DockPanel
+		{
+			Children =
+			{
+				outside,
+				tabs
+			}
+		});
+
+		await WaitForFirstFocus(sut);
+
+		tabs.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		outside.Focus();
+
+		// Act
+		tabs.SelectedIndex = 0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		outside.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: shown again, the control takes the focus into its text even when the tabs move it
+	/// to their header after the control is loaded.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task OnLoaded_Takes_The_Focus_After_The_Tabs_Move_It_To_The_Header()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		TabItem tab = new()
+		{
+			Content = sut
+		};
+
+		TabControl tabs = new()
+		{
+			Items =
+			{
+				tab,
+				new TabItem()
+			}
+		};
+
+		Show(tabs);
+
+		await WaitForFirstFocus(sut);
+
+		tabs.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		tabs.SelectedIndex = 0;
+
+		// Queued after the loading of the control, which the switch has queued already.
+		Dispatcher.UIThread.Post(() => tab.Focus(), DispatcherPriority.Loaded);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.TextArea.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView" />: shown again while the header of its tab has the focus, as after a click on it,
+	/// the control takes the focus into its text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task OnLoaded_Takes_The_Focus_From_The_Header_Of_Its_Tab()
+	{
+		// Arrange
+		DocumentEditorView sut = new();
+
+		TabItem tab = new()
+		{
+			Content = sut
+		};
+
+		TabControl tabs = new()
+		{
+			Items =
+			{
+				tab,
+				new TabItem()
+			}
+		};
+
+		Show(tabs);
+
+		await WaitForFirstFocus(sut);
+
+		tabs.SelectedIndex = 1;
+
+		Dispatcher.UIThread.RunJobs();
+
+		tab.Focus();
+
+		// Act
+		tabs.SelectedIndex = 0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.TextArea.IsFocused
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: the bookmarks of another editor leave the view
 	/// state alone.
 	/// </summary>
@@ -2654,13 +2847,13 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// Shows the editor in a window of a fixed size and lets the layout settle.
+	/// Shows the content in a window of a fixed size and lets the layout settle.
 	/// </summary>
-	private static Window Show(DocumentEditorView editor)
+	private static Window Show(Control content)
 	{
 		Window window = new()
 		{
-			Content = editor,
+			Content = content,
 			Height = 600.0,
 			Width = 800.0
 		};
@@ -2670,6 +2863,26 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		return window;
+	}
+
+	/// <summary>
+	/// Waits for the focus the editor gives its text a moment after it is first loaded, so that it cannot come later.
+	/// </summary>
+	private static ValueTask<bool> WaitForFirstFocus(DocumentEditorView editor)
+	{
+		Func<bool> isFocused = () =>
+		{
+			// The focus comes on a timer, which posts it to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return editor
+				.GetControl<SplitDocumentEditor>(EditorName)
+				.PrimaryEditor
+				.TextArea
+				.IsFocused;
+		};
+
+		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
 	}
 	#endregion
 }
