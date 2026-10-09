@@ -1,7 +1,10 @@
+using DataOrganizer.Dto.Settings;
+
 namespace DataOrganizer.Interfaces.Notepad;
 
 /// <summary>
-/// Keeps the texts of the notepad tabs on the disk, a file for each tab, named by its number.
+/// Keeps the notepad tabs on the disk: their settings in one file, and their texts in a file for each tab, named by its
+/// number.
 /// </summary>
 public interface INotepadStore
 {
@@ -23,8 +26,18 @@ public interface INotepadStore
 	byte[]? Read(int number);
 
 	/// <summary>
+	/// Returns the settings of the tabs; <c>null</c> when there are none on the disk or they cannot be read.
+	/// </summary>
+	NotepadViewSettings? ReadSettings();
+
+	/// <summary>
 	/// Puts the bytes of the text of a tab in place of the ones on the disk; <c>false</c> when they cannot be written.
 	/// </summary>
 	bool Write(int number, byte[] contents);
+
+	/// <summary>
+	/// Puts the settings of the tabs in place of the ones on the disk.
+	/// </summary>
+	void WriteSettings(NotepadViewSettings settings);
 	#endregion
 }

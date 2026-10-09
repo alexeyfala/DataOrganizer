@@ -12,6 +12,7 @@ using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
@@ -325,22 +326,55 @@ internal class NotepadWindowTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			NotepadViewSettings settings = new()
+			{
+				SelectedTabNumber = 1,
+				Tabs =
+				[
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 3,
+						Split = null
+					},
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 1,
+						Split = null
+					},
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 2,
+						Split = null
+					}
+				]
+			};
+
 			NotepadSessionState sessionState = new()
 			{
 				PreviousTabNumber = 2
 			};
 
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.ReadSettings()
+				.Returns(settings);
+
 			builder.RegisterInstance<INotepadSessionState>(sessionState);
+
+			builder.RegisterInstance(store);
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
 
 		// The tabs open before the window, as when the notepad opens.
-		viewModel.RestoreTabs(new()
-		{
-			SelectedTabNumber = 1,
-			Tabs = [new(3), new(1), new(2)]
-		});
+		viewModel.LoadTabs();
 
 		NotepadWindow sut = new(viewModel);
 

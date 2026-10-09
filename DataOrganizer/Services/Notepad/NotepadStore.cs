@@ -1,6 +1,8 @@
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Runtime;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -27,19 +29,32 @@ public sealed class NotepadStore : INotepadStore
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <summary>
+	/// File the settings of the tabs live in.
+	/// </summary>
+	private readonly string _settingsFilePath;
 	#endregion
 
 	#region Constructors
 	public NotepadStore(
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
+		IJsonSerializer jsonSerializer,
 		ILogger logger)
 	{
 		_directoryPath = appEnvironment.NotepadDirectoryPath;
 
+		_settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(NotepadViewSettings));
+
 		_fileSystem = fileSystem;
+
+		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
 	}
@@ -109,6 +124,26 @@ public sealed class NotepadStore : INotepadStore
 	}
 
 	/// <inheritdoc />
+	public NotepadViewSettings? ReadSettings()
+	{
+		if (!_fileSystem.FileExists(_settingsFilePath))
+		{
+			return null;
+		}
+
+		try
+		{
+			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.ReadAllBytes(_settingsFilePath));
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return null;
+		}
+	}
+
+	/// <inheritdoc />
 	public bool Write(int number, byte[] contents)
 	{
 		try
@@ -124,6 +159,26 @@ public sealed class NotepadStore : INotepadStore
 			_logger.LogException(ex, breakInDebugger: false);
 
 			return false;
+		}
+	}
+
+	/// <inheritdoc />
+	public void WriteSettings(NotepadViewSettings settings)
+	{
+		try
+		{
+			if (Path.GetDirectoryName(_settingsFilePath) is { } directoryPath)
+			{
+				_fileSystem.CreateDirectory(directoryPath);
+			}
+
+			_fileSystem.WriteAllBytesAtomic(
+				_settingsFilePath,
+				_jsonSerializer.SerializeToUtf8Bytes(settings, JsonDefaults.Options));
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
 		}
 	}
 	#endregion

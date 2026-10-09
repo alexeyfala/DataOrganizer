@@ -1,13 +1,19 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AvaloniaEdit;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
+using Shared.Services;
+using System;
 using System.IO;
+using System.Text;
 
 namespace DataOrganizer.UnitTests.Services.Notepad;
 
@@ -19,6 +25,11 @@ internal class NotepadStoreTests
 	/// Directory the texts of the tabs live in.
 	/// </summary>
 	private const string NotepadFolder = "notepad";
+
+	/// <summary>
+	/// Directory the settings of the tabs live in.
+	/// </summary>
+	private const string SettingsFolder = "settings";
 	#endregion
 
 	#region Methods
@@ -251,6 +262,163 @@ internal class NotepadStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadStore.ReadSettings" />: settings that cannot be read, such as a file cut short, give none.
+	/// </summary>
+	[Test]
+	public void ReadSettings_Returns_Nothing_When_The_Settings_Cannot_Be_Read()
+	{
+		// Arrange
+		string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
+
+		InMemoryFileSystem files = new();
+
+		files.Files[filePath] = Encoding.UTF8.GetBytes("""{ "SelectedTabNumber": 1, "Tabs": [""");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(filePath);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		NotepadViewSettings? result = sut.ReadSettings();
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.ReadSettings" />: before the first write there are no settings.
+	/// </summary>
+	[Test]
+	public void ReadSettings_Returns_Nothing_Without_A_File()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json"));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterType<InMemoryFileSystem>()
+				.As<IFileSystem>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		NotepadViewSettings? result = sut.ReadSettings();
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.ReadSettings" />: the settings come back as they were written, with the state of the editor
+	/// of each tab and its split.
+	/// </summary>
+	[Test]
+	public void ReadSettings_Returns_The_Written_Settings()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 2,
+			Tabs =
+			[
+				new()
+				{
+					EditorState = new FileEditorState
+					{
+						Bookmarks = [3, 5],
+						CaretPosition = new TextViewPosition(2, 4),
+						Encoding = Encoding.Unicode.WebName,
+						FoldedBlocks = [10],
+						FontSize = 16.0,
+						ScrollOffset = new(0, 120),
+						SelectionLength = 3,
+						SelectionStart = 7,
+						ShowEndOfLine = true,
+						ShowSpaces = true,
+						ShowTabs = true,
+						SyntaxLanguage = "csharp",
+						WordWrap = true
+					},
+					Name = "Notes",
+					Number = 1,
+					Split = 0.3
+				},
+				new()
+				{
+					EditorState = null,
+					Name = null,
+					Number = 2,
+					Split = null
+				}
+			]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json"));
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterType<InMemoryFileSystem>()
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		sut.WriteSettings(settings);
+
+		// Act
+		NotepadViewSettings? result = sut.ReadSettings();
+
+		// Assert
+		result
+			.Should()
+			.BeEquivalentTo(
+				settings,
+				options => options
+					.ComparingByMembers<FileEditorState>()
+					.WithStrictOrdering());
+	}
+
+	/// <summary>
 	/// <see cref="NotepadStore.Write" />: the bytes take the place of the file of the text at once, so a write cut short
 	/// leaves the old text.
 	/// </summary>
@@ -331,6 +499,117 @@ internal class NotepadStoreTests
 		result
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.WriteSettings" />: a write that fails does not throw.
+	/// </summary>
+	[Test]
+	public void WriteSettings_Does_Not_Throw_When_The_Settings_Cannot_Be_Written()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 1,
+			Tabs =
+			[
+				new()
+				{
+					EditorState = null,
+					Name = null,
+					Number = 1,
+					Split = null
+				}
+			]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
+
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(filePath);
+
+			fileSystem
+				.When(x => x.WriteAllBytesAtomic(filePath, Arg.Any<byte[]>()))
+				.Throw(new IOException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		Action act = () => sut.WriteSettings(settings);
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.WriteSettings" />: the settings take the place of their file at once, so a write cut short
+	/// leaves the old ones.
+	/// </summary>
+	[Test]
+	public void WriteSettings_Puts_The_Settings_In_Place_Atomically()
+	{
+		// Arrange
+		string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
+
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 1,
+			Tabs =
+			[
+				new()
+				{
+					EditorState = null,
+					Name = null,
+					Number = 1,
+					Split = null
+				}
+			]
+		};
+
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(filePath);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.WriteSettings(settings);
+
+		// Assert
+		files.AtomicWrites
+			.Should()
+			.Equal(filePath);
 	}
 	#endregion
 }

@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
@@ -16,6 +17,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -53,6 +56,11 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// Called when <see cref="PreviousTab" /> changes.
 	/// </summary>
 	partial void OnPreviousTabChanged(NotepadTabViewModel? value) => _sessionState.PreviousTabNumber = value?.Number;
+
+	/// <summary>
+	/// Called when <see cref="SelectedTab" /> changes.
+	/// </summary>
+	partial void OnSelectedTabChanged(NotepadTabViewModel? value) => WriteSettings();
 	#endregion
 
 	#region Auto-Generated Commands
@@ -83,7 +91,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		SelectedTab = tab;
 
 		// The texts are kept on the disk once they have been read from it; a new tab has nothing there to read.
-		if (!_isKeepingTexts)
+		if (!_isKeepingTabs)
 		{
 			return;
 		}
@@ -235,10 +243,10 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	private readonly IViewLauncher _viewLauncher;
 
 	/// <summary>
-	/// <c>True</c> once the texts have been read from the disk; from then on they are written back and erased with their
-	/// tabs.
+	/// <c>True</c> once the tabs have been read from the disk and until the notepad closes: meanwhile the tabs and their
+	/// texts are written back, and a closed tab takes its text away.
 	/// </summary>
-	private bool _isKeepingTexts;
+	private bool _isKeepingTabs;
 	#endregion
 
 	#region Constructors
@@ -267,6 +275,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_viewLauncher = viewLauncher;
 
 		_timeProvider = timeProvider;
+
+		Tabs.CollectionChanged += Tabs_CollectionChanged;
 
 		AddTab();
 	}
@@ -297,23 +307,52 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			WriteDelay,
 			Timeout.InfiniteTimeSpan);
 	}
+
+	/// <summary>
+	/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler of the tabs.
+	/// </summary>
+	private void Tab_PropertyChanged(object? sender, PropertyChangedEventArgs e) => WriteSettings();
+
+	/// <summary>
+	/// <see cref="INotifyCollectionChanged.CollectionChanged" /> event handler of <see cref="Tabs" />.
+	/// </summary>
+	private void Tabs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+	{
+		// A tab is watched while it is open; a move takes it out and puts it back.
+		foreach (NotepadTabViewModel tab in e.OldItems?.OfType<NotepadTabViewModel>() ?? [])
+		{
+			tab.PropertyChanged -= Tab_PropertyChanged;
+		}
+
+		foreach (NotepadTabViewModel tab in e.NewItems?.OfType<NotepadTabViewModel>() ?? [])
+		{
+			tab.PropertyChanged += Tab_PropertyChanged;
+		}
+
+		WriteSettings();
+	}
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// Reads the texts of the open tabs from the disk and opens a tab at the end for each text that no tab has; from then on
-	/// a changed text is written back after a pause in typing, and a closed tab takes its text away.
+	/// Opens the tabs kept on the disk with their state and texts, and a tab at the end for each text that no tab lists;
+	/// from then on every change of the tabs and their texts is written back, and a closed tab takes its text away.
 	/// </summary>
-	public void LoadTexts()
+	public void LoadTabs()
 	{
-		_isKeepingTexts = true;
+		if (_store.ReadSettings() is { } settings)
+		{
+			RestoreTabs(settings);
+		}
+
+		_isKeepingTabs = true;
 
 		foreach (NotepadTabViewModel tab in Tabs)
 		{
 			LoadText(tab);
 		}
 
-		// Texts left by a session that ended before it could save its tabs.
+		// Texts that the settings do not list, as when the settings could not be written or read.
 		foreach (int number in _store
 			.FindNumbers()
 			.Where(x => Tabs.All(y => y.Number != x))
@@ -331,33 +370,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		}
 	}
 
-	/// <summary>
-	/// Opens the saved tabs with their names in their order, selects the saved one, or the first one when it is missing,
-	/// and gives Ctrl+Tab the way back kept for the session; without saved tabs the open ones stay.
-	/// </summary>
-	public void RestoreTabs(NotepadViewSettings settings)
-	{
-		if (settings.Tabs is not { Length: > 0 } tabs)
-		{
-			return;
-		}
-
-		Tabs.Clear();
-
-		foreach (NotepadTabSettings tab in tabs)
-		{
-			Tabs.Add(new()
-			{
-				Name = tab.Name,
-				Number = tab.Number
-			});
-		}
-
-		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];
-
-		PreviousTab = Tabs.FirstOrDefault(x => x.Number == _sessionState.PreviousTabNumber);
-	}
-
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
@@ -366,6 +378,12 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		{
 			WritePendingText(tab);
 		}
+
+		// Once more as the window closes, in case a write after a change failed.
+		WriteSettings();
+
+		// The editors may still report the state of their tabs as the window goes, after the last write.
+		_isKeepingTabs = false;
 
 		// The editors are cached for the whole application, which would keep them after the window.
 		foreach (NotepadTabViewModel tab in Tabs)
@@ -379,9 +397,68 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 	#region Helpers
 	/// <summary>
+	/// Returns the settings that keep a tab: its number, name, the state of its editor with the encoding of its text, and
+	/// its split.
+	/// </summary>
+	private static NotepadTabSettings CreateTabSettings(NotepadTabViewModel tab)
+	{
+		return new()
+		{
+			EditorState = EditorStateMapper.Create(tab, tab.Codec.Encoding, isEncrypted: false),
+			Name = tab.Name,
+			Number = tab.Number,
+			Split = tab.IsSplit ? tab.SplitShare : null
+		};
+	}
+
+	/// <summary>
 	/// <c>True</c> when the text of the tab has more than white space.
 	/// </summary>
 	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Document.Text);
+
+	/// <summary>
+	/// Returns a tab with the name, the editor state and the split kept in its settings; its text is read later, in the
+	/// encoding kept with them.
+	/// </summary>
+	private static NotepadTabViewModel RestoreTab(NotepadTabSettings settings)
+	{
+		NotepadTabViewModel tab = new()
+		{
+			Name = settings.Name,
+			Number = settings.Number
+		};
+
+		if (settings.Split is { } split)
+		{
+			tab.SplitShare = split;
+
+			tab.IsSplit = true;
+		}
+
+		if (settings.EditorState is not { } state)
+		{
+			return tab;
+		}
+
+		EditorStateMapper.Apply(tab, state);
+
+		// Reading no bytes gives the tab the kept encoding, which its text is read in later.
+		tab.Codec.Read([], state.Encoding);
+
+		return tab;
+	}
+
+	/// <summary>
+	/// Returns the settings that keep the tabs in their order, with the number of the selected one.
+	/// </summary>
+	private NotepadViewSettings CreateSettings()
+	{
+		return new()
+		{
+			SelectedTabNumber = SelectedTab?.Number,
+			Tabs = [.. Tabs.Select(CreateTabSettings)]
+		};
+	}
 
 	/// <summary>
 	/// Returns the bytes of the text of a tab in its encoding; a text that the encoding cannot hold is kept in UTF-8 from
@@ -414,6 +491,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		// The text takes UTF-8 as it is read back from its bytes.
 		tab.Codec.Read(utf8, Encoding.UTF8.WebName);
 
+		// The settings name the new encoding before the text is written in it.
+		WriteSettings();
+
 		return utf8;
 	}
 
@@ -431,7 +511,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		_failedWrites.Remove(tab);
 
-		if (!_isKeepingTexts || tab.IsReadOnly)
+		if (!_isKeepingTabs || tab.IsReadOnly)
 		{
 			return;
 		}
@@ -445,8 +525,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private void LoadText(NotepadTabViewModel tab)
 	{
+		// The text is read in the encoding of the tab, UTF-8 unless the settings keep another one.
 		if (_store.Read(tab.Number) is not { } contents
-			|| tab.Codec.Read(contents, Encoding.UTF8.WebName) is not { } text)
+			|| tab.Codec.Read(contents, tab.Codec.Encoding) is not { } text)
 		{
 			tab.IsReadOnly = true;
 
@@ -499,6 +580,29 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	}
 
 	/// <summary>
+	/// Opens the saved tabs in their order, selects the saved one, or the first one when it is missing, and gives Ctrl+Tab
+	/// the way back kept for the session; without saved tabs the open ones stay.
+	/// </summary>
+	private void RestoreTabs(NotepadViewSettings settings)
+	{
+		if (settings.Tabs is not { Length: > 0 } tabs)
+		{
+			return;
+		}
+
+		Tabs.Clear();
+
+		foreach (NotepadTabSettings tab in tabs)
+		{
+			Tabs.Add(RestoreTab(tab));
+		}
+
+		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];
+
+		PreviousTab = Tabs.FirstOrDefault(x => x.Number == _sessionState.PreviousTabNumber);
+	}
+
+	/// <summary>
 	/// Writes the text of a tab once typing pauses, unless the tab has been closed in the meantime.
 	/// </summary>
 	private void WritePendingText(NotepadTabViewModel tab)
@@ -511,6 +615,19 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		timer.Dispose();
 
 		WriteText(tab);
+	}
+
+	/// <summary>
+	/// Writes the settings of the tabs to the disk while the notepad keeps its tabs there.
+	/// </summary>
+	private void WriteSettings()
+	{
+		if (!_isKeepingTabs)
+		{
+			return;
+		}
+
+		_store.WriteSettings(CreateSettings());
 	}
 
 	/// <summary>

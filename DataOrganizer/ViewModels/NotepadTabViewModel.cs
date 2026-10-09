@@ -2,6 +2,7 @@ using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Documents;
 using Shared.Properties;
 using System.Text;
 
@@ -10,9 +11,15 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>NotepadTabView</c>: a tab of the notepad with its text and the state of its editor.
 /// </summary>
-public sealed partial class NotepadTabViewModel : ObservableObject
+public sealed partial class NotepadTabViewModel : ObservableObject, IEditorStateValues
 {
 	#region Properties
+	/// <inheritdoc />
+	/// <remarks>
+	/// None: a notepad text has no file extension to take a language from.
+	/// </remarks>
+	public string? DefaultSyntaxLanguage => null;
+
 	/// <summary>
 	/// Text of the tab as an editable document.
 	/// </summary>

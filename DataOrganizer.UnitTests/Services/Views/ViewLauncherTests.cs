@@ -1115,26 +1115,49 @@ internal class ViewLauncherTests
 			NotepadViewSettings settings = new()
 			{
 				SelectedTabNumber = 1,
-				Tabs = [new(3), new(1), new(2)]
+				Tabs =
+				[
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 3,
+						Split = null
+					},
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 1,
+						Split = null
+					},
+					new()
+					{
+						EditorState = null,
+						Name = null,
+						Number = 2,
+						Split = null
+					}
+				]
 			};
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.ReadSettings()
+				.Returns(settings);
 
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
 				Substitute.For<INotepadSessionState>(),
-				Substitute.For<INotepadStore>(),
+				store,
 				Substitute.For<INotificationService>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.DeserializeFromFile<NotepadViewSettings>(Arg.Any<string>())
-				.Returns(settings);
 
 			viewFactory
 				.CreateViewModel<NotepadViewModel>()
@@ -1146,8 +1169,6 @@ internal class ViewLauncherTests
 				.Returns(_ => new NotepadWindow(viewModel));
 
 			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(serializer);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1667,67 +1688,6 @@ internal class ViewLauncherTests
 				X = 30,
 				Y = 40
 			});
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.SaveNotepadSettings" />: the tabs are saved with their names in their order, with the number
-	/// of the selected one.
-	/// </summary>
-	[AvaloniaTest]
-	public void SaveNotepadSettings_Saves_The_Tabs()
-	{
-		// Arrange
-		NotepadViewSettings? captured = null;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<NotepadViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<NotepadViewSettings>());
-
-			builder.RegisterInstance(fileSystem);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		NotepadViewModel viewModel = new(
-			Substitute.For<IDialogService>(),
-			Substitute.For<IDispatcherAccessor>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotificationService>(),
-			Substitute.For<IViewCache>(),
-			Substitute.For<IViewLauncher>(),
-			TimeProvider.System);
-
-		viewModel.RestoreTabs(new()
-		{
-			SelectedTabNumber = 1,
-			Tabs = [new(3), new(1), new(2)]
-		});
-
-		viewModel.Tabs[1].Name = "Notes";
-
-		NotepadWindow window = new(viewModel);
-
-		// Act
-		sut.SaveNotepadSettings(window);
-
-		// Assert
-		captured
-			.Should()
-			.BeEquivalentTo(
-				new NotepadViewSettings
-				{
-					SelectedTabNumber = 1,
-					Tabs = [new(3), new(1, "Notes"), new(2)]
-				},
-				options => options.WithStrictOrdering());
 	}
 
 	/// <summary>

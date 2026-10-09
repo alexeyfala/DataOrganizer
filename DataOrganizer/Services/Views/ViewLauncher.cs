@@ -447,14 +447,7 @@ public class ViewLauncher : IViewLauncher
 
 		NotepadViewModel viewModel = _viewFactory.CreateViewModel<NotepadViewModel>();
 
-		string viewSettingsFilePath = _appEnvironment.GetSettingsFilePath(nameof(NotepadViewSettings));
-
-		if (_jsonSerializer.DeserializeFromFile<NotepadViewSettings>(viewSettingsFilePath) is { } viewSettings)
-		{
-			viewModel.RestoreTabs(viewSettings);
-		}
-
-		viewModel.LoadTexts();
+		viewModel.LoadTabs();
 
 		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
 
@@ -654,17 +647,6 @@ public class ViewLauncher : IViewLauncher
 			_fileSystem.SerializeToJsonFile(
 				settings,
 				_appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings)),
-				false);
-
-			NotepadViewSettings viewSettings = new()
-			{
-				SelectedTabNumber = window.ViewModel.SelectedTab?.Number,
-				Tabs = [.. window.ViewModel.Tabs.Select(x => new NotepadTabSettings(x.Number, x.Name))]
-			};
-
-			_fileSystem.SerializeToJsonFile(
-				viewSettings,
-				_appEnvironment.GetSettingsFilePath(nameof(NotepadViewSettings)),
 				false);
 		}
 		catch (Exception ex)

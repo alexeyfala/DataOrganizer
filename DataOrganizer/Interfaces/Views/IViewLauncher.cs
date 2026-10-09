@@ -90,7 +90,7 @@ public interface IViewLauncher
 	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
 
 	/// <summary>
-	/// Saves <see cref="NotepadWindow" /> settings and its tabs to the files.
+	/// Saves <see cref="NotepadWindow" /> settings to the file.
 	/// </summary>
 	void SaveNotepadSettings(NotepadWindow window);
 
