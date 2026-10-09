@@ -1,18 +1,25 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Notepad;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Views;
+using DataOrganizer.Services.Notepad;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,6 +53,48 @@ internal class NotepadViewModelTests
 		sut.SelectedTab
 			.Should()
 			.BeSameAs(sut.Tabs[1]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.AddTabCommand" />: a new tab leaves the number of a text that cannot be read alone, as
+	/// its file stays on the disk.
+	/// </summary>
+	[Test]
+	public async Task AddTabCommand_Skips_The_Number_Of_A_Text_That_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(2)
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.LoadTexts();
+
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(sut.Tabs[1]);
+
+		// Act
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		// Assert
+		sut.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(1, 3);
 	}
 
 	/// <summary>
@@ -217,6 +266,112 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: a text still waiting for a pause in typing is not written once its
+	/// tab is closed, so the erased file does not come back.
+	/// </summary>
+	[Test]
+	public async Task CloseTabCommand_Drops_The_Pending_Write_Of_The_Tab()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.LoadTexts();
+
+		// White space only, so the tab closes with no question.
+		sut.Tabs[1].Document.Text = " ";
+
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(sut.Tabs[1]);
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Write(2, Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: before the texts are read from the disk, a closed tab erases
+	/// nothing there.
+	/// </summary>
+	[Test]
+	public async Task CloseTabCommand_Erases_Nothing_Before_The_Texts_Are_Read()
+	{
+		// Arrange
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		// Act
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(sut.Tabs[1]);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Erase(Arg.Any<int>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: the text of a closed tab is erased from the disk.
+	/// </summary>
+	[Test]
+	public async Task CloseTabCommand_Erases_The_Text_Of_The_Tab()
+	{
+		// Arrange
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.LoadTexts();
+
+		// Act
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(sut.Tabs[1]);
+
+		// Assert
+		store
+			.Received(1)
+			.Erase(2);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.CloseTabCommand" />: a closed tab is no way back for Ctrl+Tab, in this window and the
 	/// next one, since its number may go to a new tab.
 	/// </summary>
@@ -287,6 +442,43 @@ internal class NotepadViewModelTests
 		sut.Tabs
 			.Should()
 			.Equal(tab);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: the file of a text that cannot be read stays on the disk as it is.
+	/// </summary>
+	[Test]
+	public async Task CloseTabCommand_Keeps_The_File_Of_A_Text_That_Cannot_Be_Read()
+	{
+		// Arrange
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			store
+				.Read(2)
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.LoadTexts();
+
+		// Act
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(sut.Tabs[1]);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Erase(Arg.Any<int>());
 	}
 
 	/// <summary>
@@ -599,8 +791,8 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IDialogService, INotepadSessionState, IViewCache, IViewLauncher)" />: the notepad opens with one
-	/// selected tab with the first number.
+	/// <see cref="NotepadViewModel(IDialogService, IDispatcherAccessor, INotepadSessionState, INotepadStore, INotificationService, IViewCache, IViewLauncher, TimeProvider)" />:
+	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]
 	public void Constructor_Opens_The_First_Tab()
@@ -650,6 +842,534 @@ internal class NotepadViewModelTests
 		viewCache
 			.Received(1)
 			.Remove(sut.Tabs[1]);
+	}
+
+	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: closing the notepad writes the texts that still wait for a pause in
+	/// typing.
+	/// </summary>
+	[Test]
+	public void Dispose_Writes_The_Texts_Waiting_For_A_Pause()
+	{
+		// Arrange
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		sut.Tabs[0].Document.Text = "Text";
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(Encoding.UTF8.GetBytes("Text"))));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a text written in UTF-8 because its encoding could not hold it stays in
+	/// UTF-8 from then on.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Keeps_A_Text_In_Utf8_Once_Its_Encoding_Could_Not_Hold_It()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
+
+			store
+				.Read(1)
+				.Returns(contents);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		TextDocument document = sut.Tabs[0].Document;
+
+		// A lone surrogate, which UTF-16 cannot hold either.
+		document.Insert(4, "\uD800");
+
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		document.Text = "Text!";
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(Encoding.UTF8.GetBytes("Text!"))));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a tab whose bytes are not text is shown read-only.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Makes_A_Tab_Read_Only_When_Its_Bytes_Are_Not_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			// A zero byte with an odd count of bytes, so neither UTF-16 nor any code page reads them.
+			store
+				.Read(1)
+				.Returns([0x00, 0xFF, 0x00]);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs[0].IsReadOnly
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a tab whose file cannot be read is shown read-only.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Makes_A_Tab_Read_Only_When_Its_File_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs[0].IsReadOnly
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: texts that no tab has, as after a crash, open in tabs at the end, in the
+	/// order of their numbers.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Opens_A_Tab_At_The_End_For_Each_Text_Without_One()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.FindNumbers()
+				.Returns([4, 1, 3]);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs.Select(x => x.Number)
+			.Should()
+			.Equal(1, 3, 4);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: each change puts the write off, so nothing is written while typing goes
+	/// on.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Puts_A_Write_Off_While_Typing_Goes_On()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		TextDocument document = sut.Tabs[0].Document;
+
+		document.Insert(0, "a");
+
+		time.Advance(NotepadViewModel.WriteDelay / 2.0);
+
+		document.Insert(1, "b");
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay / 2.0);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Write(Arg.Any<int>(), Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a text with a null character, which a guess of the encoding would take for
+	/// binary data, is read in UTF-8.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Reads_A_Text_With_A_Null_Character()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("A\0B"));
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs[0].Document.Text
+			.Should()
+			.Be("A\0B");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: every tab gets the text of its file.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Reads_The_Texts_Of_The_Tabs()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("First"));
+
+			store
+				.Read(2)
+				.Returns(Encoding.UTF8.GetBytes("Second"));
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs.Select(x => x.Document.Text)
+			.Should()
+			.Equal("First", "Second");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: undo starts from the text as it was read, not from an empty tab.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Starts_The_Undo_From_The_Read_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTexts();
+
+		// Assert
+		sut.Tabs[0].Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a changed text is written to the disk once typing pauses.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Writes_A_Changed_Text_After_A_Pause_In_Typing()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		sut.Tabs[0].Document.Text = "Text";
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(Encoding.UTF8.GetBytes("Text"))));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a changed text goes back to the disk in the encoding it was read in.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Writes_A_Text_Back_In_The_Encoding_It_Was_Read_In()
+	{
+		// Arrange
+		byte[] expected = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text!")];
+
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
+
+			store
+				.Read(1)
+				.Returns(contents);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		sut
+			.Tabs[0]
+			.Document
+			.Insert(4, "!");
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(expected)));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: a text that its encoding cannot hold is written in UTF-8, where a lone
+	/// surrogate becomes the replacement character.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Writes_A_Text_That_Its_Encoding_Cannot_Hold_In_Utf8()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
+
+			store
+				.Read(1)
+				.Returns(contents);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		// A lone surrogate, which UTF-16 cannot hold either.
+		sut
+			.Tabs[0]
+			.Document
+			.Insert(4, "\uD800");
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(Encoding.UTF8.GetBytes("Text�"))));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: reading the texts is not a change, so nothing goes back to the disk
+	/// until a text changes.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Writes_Nothing_Until_A_Text_Changes()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Write(Arg.Any<int>(), Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTexts" />: the text of a tab opened afterwards is written to the disk as well.
+	/// </summary>
+	[Test]
+	public void LoadTexts_Writes_The_Texts_Of_New_Tabs()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTexts();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Tabs[1].Document.Text = "Text";
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			2,
+			Arg.Is<byte[]>(x => x.SequenceEqual(Encoding.UTF8.GetBytes("Text"))));
 	}
 
 	/// <summary>

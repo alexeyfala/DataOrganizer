@@ -1,6 +1,6 @@
-using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Interfaces.Notepad;
 
-namespace DataOrganizer.Services.Views;
+namespace DataOrganizer.Services.Notepad;
 
 /// <inheritdoc cref="INotepadSessionState" />
 internal sealed class NotepadSessionState : INotepadSessionState

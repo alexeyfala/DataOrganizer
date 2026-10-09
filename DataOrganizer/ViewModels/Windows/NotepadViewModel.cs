@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Threading;
+using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
@@ -6,11 +8,18 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Notepad;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using Shared.Properties;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Windows;
@@ -59,10 +68,10 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	[RelayCommand]
 	private void AddTab()
 	{
-		// One of the numbers up to one past the count of the tabs is always free.
+		// One of the numbers up to one past the count of the tabs and of the texts left unread is always free.
 		int number = Enumerable
-			.Range(1, Tabs.Count + 1)
-			.First(x => Tabs.All(y => y.Number != x));
+			.Range(1, Tabs.Count + _unreadNumbers.Count + 1)
+			.First(x => Tabs.All(y => y.Number != x) && !_unreadNumbers.Contains(x));
 
 		NotepadTabViewModel tab = new()
 		{
@@ -72,6 +81,14 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		Tabs.Add(tab);
 
 		SelectedTab = tab;
+
+		// The texts are kept on the disk once they have been read from it; a new tab has nothing there to read.
+		if (!_isKeepingTexts)
+		{
+			return;
+		}
+
+		tab.Document.TextChanged += Document_TextChanged;
 	}
 
 	/// <summary>
@@ -173,39 +190,147 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Pause in typing after which a changed text is written to the disk.
+	/// </summary>
+	internal static readonly TimeSpan WriteDelay = TimeSpan.FromSeconds(0.5);
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
+
+	/// <summary>
+	/// Tabs whose last write failed, so that a failure is told once rather than after every pause in typing.
+	/// </summary>
+	private readonly HashSet<NotepadTabViewModel> _failedWrites = [];
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
+	/// <summary>
+	/// Timers of the tabs whose changed texts wait for a pause in typing to be written.
+	/// </summary>
+	private readonly Dictionary<NotepadTabViewModel, ITimer> _pendingWrites = [];
+
 	/// <inheritdoc cref="INotepadSessionState" />
 	private readonly INotepadSessionState _sessionState;
+
+	/// <inheritdoc cref="INotepadStore" />
+	private readonly INotepadStore _store;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
+	/// <summary>
+	/// Numbers of the texts that cannot be read: their files stay on the disk as they are, so no new tab takes them.
+	/// </summary>
+	private readonly HashSet<int> _unreadNumbers = [];
 
 	/// <inheritdoc cref="IViewCache" />
 	private readonly IViewCache _viewCache;
 
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
+
+	/// <summary>
+	/// <c>True</c> once the texts have been read from the disk; from then on they are written back and erased with their
+	/// tabs.
+	/// </summary>
+	private bool _isKeepingTexts;
 	#endregion
 
 	#region Constructors
 	public NotepadViewModel(
 		IDialogService dialogService,
+		IDispatcherAccessor dispatcher,
 		INotepadSessionState sessionState,
+		INotepadStore store,
+		INotificationService notification,
 		IViewCache viewCache,
-		IViewLauncher viewLauncher)
+		IViewLauncher viewLauncher,
+		TimeProvider timeProvider)
 	{
 		_dialogService = dialogService;
 
+		_dispatcher = dispatcher;
+
 		_sessionState = sessionState;
+
+		_store = store;
+
+		_notification = notification;
 
 		_viewCache = viewCache;
 
 		_viewLauncher = viewLauncher;
 
+		_timeProvider = timeProvider;
+
 		AddTab();
 	}
 	#endregion
 
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="TextDocument.TextChanged" /> event handler of the texts of the tabs.
+	/// </summary>
+	private void Document_TextChanged(object? sender, EventArgs e)
+	{
+		if (Tabs.FirstOrDefault(x => ReferenceEquals(x.Document, sender)) is not { } tab)
+		{
+			return;
+		}
+
+		// Each change puts the write off until typing pauses.
+		if (_pendingWrites.TryGetValue(tab, out ITimer? timer))
+		{
+			timer.Change(WriteDelay, Timeout.InfiniteTimeSpan);
+
+			return;
+		}
+
+		_pendingWrites[tab] = _timeProvider.CreateTimer(
+			_ => _dispatcher.Post(() => WritePendingText(tab)),
+			null,
+			WriteDelay,
+			Timeout.InfiniteTimeSpan);
+	}
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// Reads the texts of the open tabs from the disk and opens a tab at the end for each text that no tab has; from then on
+	/// a changed text is written back after a pause in typing, and a closed tab takes its text away.
+	/// </summary>
+	public void LoadTexts()
+	{
+		_isKeepingTexts = true;
+
+		foreach (NotepadTabViewModel tab in Tabs)
+		{
+			LoadText(tab);
+		}
+
+		// Texts left by a session that ended before it could save its tabs.
+		foreach (int number in _store
+			.FindNumbers()
+			.Where(x => Tabs.All(y => y.Number != x))
+			.Order()
+			.ToArray())
+		{
+			NotepadTabViewModel tab = new()
+			{
+				Number = number
+			};
+
+			Tabs.Add(tab);
+
+			LoadText(tab);
+		}
+	}
+
 	/// <summary>
 	/// Opens the saved tabs with their names in their order, selects the saved one, or the first one when it is missing,
 	/// and gives Ctrl+Tab the way back kept for the session; without saved tabs the open ones stay.
@@ -236,6 +361,12 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
+		// No pause in typing comes after the close, so a text still waiting for one is written now.
+		foreach (NotepadTabViewModel tab in _pendingWrites.Keys.ToArray())
+		{
+			WritePendingText(tab);
+		}
+
 		// The editors are cached for the whole application, which would keep them after the window.
 		foreach (NotepadTabViewModel tab in Tabs)
 		{
@@ -253,13 +384,105 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Document.Text);
 
 	/// <summary>
-	/// Takes a tab away with its editor; the last one gives way to a new tab.
+	/// Returns the bytes of the text of a tab in its encoding; a text that the encoding cannot hold is kept in UTF-8 from
+	/// then on, where a lone surrogate becomes the replacement character.
+	/// </summary>
+	private byte[] EncodeText(NotepadTabViewModel tab)
+	{
+		string text = tab.Document.Text;
+
+		if (tab.Codec.Encode(text, out string? missingCharacter) is { } contents)
+		{
+			return contents;
+		}
+
+		byte[] utf8 = Encoding.UTF8.GetBytes(text);
+
+		if (tab.Codec.Encoding == Encoding.UTF8.WebName)
+		{
+			return utf8;
+		}
+
+		_notification.ShowWarningSnackbar(
+			string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.CharacterNotInEncodingSavedInUtf8Format,
+				missingCharacter,
+				tab.Codec.EncodingName),
+			SnackbarHostIdentifiers.Notepad);
+
+		// The text takes UTF-8 as it is read back from its bytes.
+		tab.Codec.Read(utf8, Encoding.UTF8.WebName);
+
+		return utf8;
+	}
+
+	/// <summary>
+	/// Stops writing the text of a closed tab and erases it from the disk; a text that cannot be read stays as it is.
+	/// </summary>
+	private void EraseText(NotepadTabViewModel tab)
+	{
+		tab.Document.TextChanged -= Document_TextChanged;
+
+		if (_pendingWrites.Remove(tab, out ITimer? timer))
+		{
+			timer.Dispose();
+		}
+
+		_failedWrites.Remove(tab);
+
+		if (!_isKeepingTexts || tab.IsReadOnly)
+		{
+			return;
+		}
+
+		_store.Erase(tab.Number);
+	}
+
+	/// <summary>
+	/// Reads the text of a tab from the disk and writes it back after each pause in typing; a text that cannot be read
+	/// leaves the tab read-only, with its file and its number untouched.
+	/// </summary>
+	private void LoadText(NotepadTabViewModel tab)
+	{
+		if (_store.Read(tab.Number) is not { } contents
+			|| tab.Codec.Read(contents, Encoding.UTF8.WebName) is not { } text)
+		{
+			tab.IsReadOnly = true;
+
+			_unreadNumbers.Add(tab.Number);
+
+			string message = string.Format(CultureInfo.CurrentCulture, Strings.TabTextUnreadableFormat, tab.Header);
+
+			// The snackbar of the window takes messages only once the window is loaded, which comes before the background.
+			_dispatcher.Post(
+				() => _notification.ShowErrorSnackbar(message, SnackbarHostIdentifiers.Notepad),
+				DispatcherPriority.Background);
+
+			return;
+		}
+
+		tab.Document.Text = text;
+
+		// Undo starts from the text as it was read, not from an empty tab.
+		tab
+			.Document
+			.UndoStack
+			.ClearAll();
+
+		tab.Document.TextChanged += Document_TextChanged;
+	}
+
+	/// <summary>
+	/// Takes a tab away with its editor and its text; the last one gives way to a new tab.
 	/// </summary>
 	private void RemoveTab(NotepadTabViewModel tab)
 	{
 		Tabs.Remove(tab);
 
 		_viewCache.Remove(tab);
+
+		EraseText(tab);
 
 		// A closed tab is no way back, and its number may go to a new tab.
 		if (tab == PreviousTab)
@@ -273,6 +496,43 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		}
 
 		AddTab();
+	}
+
+	/// <summary>
+	/// Writes the text of a tab once typing pauses, unless the tab has been closed in the meantime.
+	/// </summary>
+	private void WritePendingText(NotepadTabViewModel tab)
+	{
+		if (!_pendingWrites.Remove(tab, out ITimer? timer))
+		{
+			return;
+		}
+
+		timer.Dispose();
+
+		WriteText(tab);
+	}
+
+	/// <summary>
+	/// Writes the text of a tab to the disk.
+	/// </summary>
+	private void WriteText(NotepadTabViewModel tab)
+	{
+		if (_store.Write(tab.Number, EncodeText(tab)))
+		{
+			_failedWrites.Remove(tab);
+
+			return;
+		}
+
+		if (!_failedWrites.Add(tab))
+		{
+			return;
+		}
+
+		_notification.ShowErrorSnackbar(
+			string.Format(CultureInfo.CurrentCulture, Strings.TabTextNotSavedFormat, tab.Header),
+			SnackbarHostIdentifiers.Notepad);
 	}
 	#endregion
 }

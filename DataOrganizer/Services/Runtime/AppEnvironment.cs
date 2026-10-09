@@ -17,6 +17,9 @@ public sealed class AppEnvironment : IAppEnvironment
 	public string DatabaseDirectoryPath { get; }
 
 	/// <inheritdoc />
+	public string NotepadDirectoryPath { get; }
+
+	/// <inheritdoc />
 	public string SandboxDirectoryPath { get; }
 	#endregion
 
@@ -45,6 +48,10 @@ public sealed class AppEnvironment : IAppEnvironment
 		DatabaseDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,
 			"Database");
+
+		NotepadDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Notepad");
 
 		SandboxDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,

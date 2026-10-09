@@ -29,10 +29,12 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
 	public void CreateDirectory(string directoryPath)
 	{
 	}
 
+	/// <inheritdoc />
 	public void DeleteDirectory(string directoryPath, bool recursive = true)
 	{
 		foreach (string path in Files.Keys.Where(key => Path.GetDirectoryName(key) == directoryPath).ToArray())
@@ -41,11 +43,13 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		}
 	}
 
+	/// <inheritdoc />
 	public bool DirectoryExists(string? directoryPath)
 	{
 		return directoryPath is not null && Files.Keys.Any(key => Path.GetDirectoryName(key) == directoryPath);
 	}
 
+	/// <inheritdoc />
 	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
 		return [.. Files
@@ -53,6 +57,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 			.Where(key => Path.GetDirectoryName(key) == directoryPath)];
 	}
 
+	/// <inheritdoc />
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
@@ -61,14 +66,20 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		Files.Remove(filePath);
 	}
 
+	/// <inheritdoc />
 	public bool FileExists(string? filePath) => filePath is not null && Files.ContainsKey(filePath);
 
+	/// <inheritdoc />
+	public byte[] ReadAllBytes(string filePath) => [.. Files[filePath]];
+
+	/// <inheritdoc />
 	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
 	{
 		// A read hands out bytes of its own, so a caller wiping them leaves the file as it was.
 		return Task.FromResult<byte[]>([.. Files[filePath]]);
 	}
 
+	/// <inheritdoc />
 	public Task WriteAllBytesAsync(
 		string filePath,
 		byte[] bytes,
@@ -80,7 +91,18 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		return Task.CompletedTask;
 	}
 
-	// The temporary file of the real implementation leaves no trace here: only its outcome is modelled.
+	/// <inheritdoc />
+	public void WriteAllBytesAtomic(string filePath, byte[] bytes)
+	{
+		AtomicWrites.Add(filePath);
+
+		Files[filePath] = [.. bytes];
+	}
+
+	/// <inheritdoc />
+	/// <remarks>
+	/// The temporary file of the real implementation leaves no trace here: only its outcome is modelled.
+	/// </remarks>
 	public Task WriteAllBytesAtomicAsync(
 		string filePath,
 		byte[] bytes,
@@ -95,41 +117,55 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	#endregion
 
 	#region Unused
+	/// <inheritdoc />
 	public ValueTask<byte[]> ComputeStreamHashAsync(
 		HashAlgorithmName algorithm,
 		Stream stream,
 		CancellationToken token = default) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public Stream CreateSequentialWrite(string filePath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void DeleteDirectoryRecursively(string directoryPath, bool removeFileReadonlySign = false) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void EraseAndDeleteDirectory(string directoryPath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void EraseFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
 		in int passCount = IFileSystem.DefaultPassCount) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public bool IsFileLocked(string filePath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public Stream OpenRead(string filePath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public Stream OpenSequentialRead(string filePath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public string ReadAllText(string filePath) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void SerializeToJsonFile<T>(T value, string filePath, bool isHidden) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void SetFileHidden(string filePath, bool isHidden) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void SetFileReadOnly(string filePath, bool isReadOnly) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default) => throw new NotSupportedException();
 
+	/// <inheritdoc />
 	public void WriteAllText(string filePath, string? contents) => throw new NotSupportedException();
 	#endregion
 }

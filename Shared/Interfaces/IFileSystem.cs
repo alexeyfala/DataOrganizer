@@ -120,6 +120,9 @@ public interface IFileSystem
 	/// </summary>
 	Stream OpenSequentialRead(string filePath);
 
+	/// <inheritdoc cref="File.ReadAllBytes(string)" />
+	byte[] ReadAllBytes(string filePath);
+
 	/// <inheritdoc cref="File.ReadAllBytesAsync(string, CancellationToken)" />
 	Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default);
 
@@ -157,6 +160,9 @@ public interface IFileSystem
 		string filePath,
 		byte[] bytes,
 		CancellationToken token = default);
+
+	/// <inheritdoc cref="WriteAllBytesAtomicAsync" />
+	void WriteAllBytesAtomic(string filePath, byte[] bytes);
 
 	/// <summary>
 	/// Writes bytes into a temporary file and puts it in the place of <paramref name="filePath" />,

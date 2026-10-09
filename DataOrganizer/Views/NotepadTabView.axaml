@@ -13,6 +13,7 @@
 		x:Name="Editor"
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
+		IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
 		IsSplit="{Binding IsSplit, Mode=TwoWay}"
 		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
 		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"

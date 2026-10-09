@@ -29,6 +29,11 @@ internal class AppEnvironmentTests
 	private const string DefaultDirectoryName = "Instance";
 
 	/// <summary>
+	/// Notepad directory name.
+	/// </summary>
+	private const string NotepadDirectoryName = "Notepad";
+
+	/// <summary>
 	/// Sandbox directory name.
 	/// </summary>
 	private const string SandboxDirectoryName = "Sandbox";
@@ -80,6 +85,10 @@ internal class AppEnvironmentTests
 		sut.DatabaseDirectoryPath
 			.Should()
 			.Be(Path.Combine(root, DefaultDirectoryName, DatabaseDirectoryName));
+
+		sut.NotepadDirectoryPath
+			.Should()
+			.Be(Path.Combine(root, DefaultDirectoryName, NotepadDirectoryName));
 
 		sut.SandboxDirectoryPath
 			.Should()

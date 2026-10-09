@@ -861,4 +861,13 @@
   <data name="CloseTabsTextWillBeDeleted" xml:space="preserve">
     <value>Закрыть вкладки? Текст в них будет удалён.</value>
   </data>
+  <data name="TabTextUnreadableFormat" xml:space="preserve">
+    <value>Текст вкладки "{0}" не удалось прочитать, вкладка открыта только для чтения</value>
+  </data>
+  <data name="TabTextNotSavedFormat" xml:space="preserve">
+    <value>Текст вкладки "{0}" не сохранён</value>
+  </data>
+  <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
+    <value>Символа «{0}» нет в кодировке {1}. Текст сохранён в UTF-8.</value>
+  </data>
 </root>

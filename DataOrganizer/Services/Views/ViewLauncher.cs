@@ -454,6 +454,8 @@ public class ViewLauncher : IViewLauncher
 			viewModel.RestoreTabs(viewSettings);
 		}
 
+		viewModel.LoadTexts();
+
 		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";

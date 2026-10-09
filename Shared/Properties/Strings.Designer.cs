@@ -259,6 +259,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The character &quot;{0}&quot; is not in the {1} encoding. The text is saved in UTF-8..
+        /// </summary>
+        public static string CharacterNotInEncodingSavedInUtf8Format {
+            get {
+                return ResourceManager.GetString("CharacterNotInEncodingSavedInUtf8Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates on startup.
         /// </summary>
         public static string CheckForUpdatesOnStartup {
@@ -2055,6 +2064,24 @@ namespace Shared.Properties {
         public static string Tabs {
             get {
                 return ResourceManager.GetString("Tabs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The text of tab &quot;{0}&quot; is not saved.
+        /// </summary>
+        public static string TabTextNotSavedFormat {
+            get {
+                return ResourceManager.GetString("TabTextNotSavedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The text of tab &quot;{0}&quot; cannot be read, so the tab is read-only.
+        /// </summary>
+        public static string TabTextUnreadableFormat {
+            get {
+                return ResourceManager.GetString("TabTextUnreadableFormat", resourceCulture);
             }
         }
         

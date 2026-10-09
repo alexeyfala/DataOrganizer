@@ -841,4 +841,13 @@
   <data name="CloseTabsTextWillBeDeleted" xml:space="preserve">
     <value>Close the tabs? The text in them will be deleted.</value>
   </data>
+  <data name="TabTextUnreadableFormat" xml:space="preserve">
+    <value>The text of tab "{0}" cannot be read, so the tab is read-only</value>
+  </data>
+  <data name="TabTextNotSavedFormat" xml:space="preserve">
+    <value>The text of tab "{0}" is not saved</value>
+  </data>
+  <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
+    <value>The character "{0}" is not in the {1} encoding. The text is saved in UTF-8.</value>
+  </data>
 </root>

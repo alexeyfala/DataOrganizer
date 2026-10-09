@@ -1,7 +1,9 @@
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Text;
 using Shared.Properties;
+using System.Text;
 
 namespace DataOrganizer.ViewModels;
 
@@ -24,6 +26,12 @@ public sealed partial class NotepadTabViewModel : ObservableObject
 	/// Header: <see cref="Name" />, or <see cref="Strings.New" /> with <see cref="Number" /> while the tab has no name.
 	/// </summary>
 	public string Header => Name ?? $"{Strings.New} {Number}";
+
+	/// <summary>
+	/// <c>True</c> when the text cannot be read from the disk, so it is neither edited nor written back.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the text is shown in two halves, one above the other.
@@ -76,5 +84,24 @@ public sealed partial class NotepadTabViewModel : ObservableObject
 	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
 	public partial bool WordWrap { get; set; }
+
+	/// <summary>
+	/// Encoding the text is kept in on the disk, UTF-8 for a new text.
+	/// </summary>
+	internal DocumentCodec Codec { get; } = CreateCodec();
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns the encoding of a text that has no bytes yet, which is UTF-8.
+	/// </summary>
+	private static DocumentCodec CreateCodec()
+	{
+		DocumentCodec codec = new();
+
+		codec.Read([], Encoding.UTF8.WebName);
+
+		return codec;
+	}
 	#endregion
 }

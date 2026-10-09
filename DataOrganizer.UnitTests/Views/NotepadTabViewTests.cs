@@ -108,6 +108,28 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadTabViewModel.IsReadOnly" />: a text that cannot be read is shown read-only.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsReadOnly_Reaches_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			IsReadOnly = true,
+			Number = 1
+		};
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.IsReadOnly
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="NotepadTabViewModel.IsSplit" />: a split made in the editor comes back to the view model.
 	/// </summary>
 	[AvaloniaTest]

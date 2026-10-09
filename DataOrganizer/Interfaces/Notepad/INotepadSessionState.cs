@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces.Views;
+namespace DataOrganizer.Interfaces.Notepad;
 
 /// <summary>
 /// Holds the state of the notepad that lives only for the current application session and is never written to the

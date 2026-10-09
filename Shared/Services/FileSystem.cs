@@ -276,6 +276,9 @@ public sealed class FileSystem : IFileSystem
 		options: FileOptions.Asynchronous | FileOptions.SequentialScan);
 
 	/// <inheritdoc />
+	public byte[] ReadAllBytes(string filePath) => File.ReadAllBytes(filePath);
+
+	/// <inheritdoc />
 	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
 	{
 		return File.ReadAllBytesAsync(filePath, token);
@@ -370,6 +373,35 @@ public sealed class FileSystem : IFileSystem
 		CancellationToken token = default)
 	{
 		return File.WriteAllBytesAsync(filePath, bytes, token);
+	}
+
+	/// <inheritdoc />
+	public void WriteAllBytesAtomic(string filePath, byte[] bytes)
+	{
+		string temporaryFilePath = filePath + TemporaryFileExtension;
+
+		try
+		{
+			// The bytes reach the disk before the swap: a rename that outruns them publishes an empty file.
+			using (FileStream stream = new(
+				temporaryFilePath,
+				FileMode.Create,
+				FileAccess.Write,
+				FileShare.None,
+				bufferSize: 4096,
+				options: FileOptions.WriteThrough))
+			{
+				stream.Write(bytes);
+			}
+
+			File.Move(temporaryFilePath, filePath, overwrite: true);
+		}
+		catch
+		{
+			TryDeleteTemporaryFile(temporaryFilePath);
+
+			throw;
+		}
 	}
 
 	/// <inheritdoc />
