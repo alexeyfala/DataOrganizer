@@ -8,6 +8,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using Shared.Properties;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,32 +89,57 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	}
 
 	/// <summary>
-	/// Closes a tab; the last one gives way to a new tab.
+	/// Closes a tab, after a question when it has text; the last one gives way to a new tab.
 	/// </summary>
 	[RelayCommand]
-	private void CloseTab(NotepadTabViewModel? tab)
+	private async Task CloseTab(NotepadTabViewModel? tab)
 	{
 		if (tab is null)
 		{
 			return;
 		}
 
-		Tabs.Remove(tab);
-
-		_viewCache.Remove(tab);
-
-		// A closed tab is no way back, and its number may go to a new tab.
-		if (tab == PreviousTab)
-		{
-			PreviousTab = null;
-		}
-
-		if (Tabs.Count > 0)
+		if (HasText(tab) && !await _dialogService
+			.RequestYesNoAsync(
+				$@"{Strings.Close} ""{tab.Header}""?",
+				DialogHostIdentifiers.Notepad)
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		AddTab();
+		RemoveTab(tab);
+	}
+
+	/// <summary>
+	/// Closes a group of tabs at once, after one question when any of them has text; a refusal closes none of them.
+	/// </summary>
+	[RelayCommand]
+	private async Task CloseTabs(IEnumerable? items)
+	{
+		if (items is null)
+		{
+			return;
+		}
+
+		// The selected tab goes last, so the others close without being shown on the way.
+		NotepadTabViewModel[] tabs = [.. items
+			.OfType<NotepadTabViewModel>()
+			.OrderBy(x => x == SelectedTab)];
+
+		if (tabs.Any(HasText) && !await _dialogService
+			.RequestYesNoAsync(
+				Strings.TabsBeingClosedContainText,
+				DialogHostIdentifiers.Notepad)
+			.ConfigureAwait(true))
+		{
+			return;
+		}
+
+		foreach (NotepadTabViewModel tab in tabs)
+		{
+			RemoveTab(tab);
+		}
 	}
 
 	/// <summary>
@@ -217,6 +243,36 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		}
 
 		base.AfterDispose();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> when the text of the tab has more than white space.
+	/// </summary>
+	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Document.Text);
+
+	/// <summary>
+	/// Takes a tab away with its editor; the last one gives way to a new tab.
+	/// </summary>
+	private void RemoveTab(NotepadTabViewModel tab)
+	{
+		Tabs.Remove(tab);
+
+		_viewCache.Remove(tab);
+
+		// A closed tab is no way back, and its number may go to a new tab.
+		if (tab == PreviousTab)
+		{
+			PreviousTab = null;
+		}
+
+		if (Tabs.Count > 0)
+		{
+			return;
+		}
+
+		AddTab();
 	}
 	#endregion
 }

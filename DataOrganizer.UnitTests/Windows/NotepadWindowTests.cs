@@ -126,6 +126,54 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabsCommand" />: closing every tab from the menu of a tab asks once for all the
+	/// tabs with text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_Close_All_Tabs_Asks_Once_For_The_Tabs_With_Text()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.ViewModel.Tabs[0].Document.Text = "First";
+
+		sut.ViewModel.Tabs[1].Document.Text = "Second";
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Click(sut, Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		FlyoutButton item = sut
+			.GetVisualDescendants()
+			.OfType<FlyoutButton>()
+			.Single(x => x.Icon == MaterialIconKind.CloseBoxMultiple);
+
+		Point point = Center(sut, item);
+
+		// Act
+		Click(sut, point, MouseButton.Left);
+
+		// Assert
+		await dialogService.Received(1).RequestYesNoAsync(
+			Arg.Any<string>(),
+			Arg.Is(DialogHostIdentifiers.Notepad),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.AddTabCommand" />: a click on the add button opens a new tab and selects it.
 	/// </summary>
 	[AvaloniaTest]

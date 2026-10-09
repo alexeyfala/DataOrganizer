@@ -2,6 +2,7 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using Repository.Dto;
 using System.Collections.Generic;
@@ -68,10 +69,13 @@ public interface IDialogService
 	Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default);
 
 	/// <summary>
-	/// Asks a question with options <see cref="YesNoCancelButtons.YesNo" />,
-	/// returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
+	/// Asks a question with options <see cref="YesNoCancelButtons.YesNo" /> in the dialog host named by
+	/// <paramref name="dialogHostIdentifier" />, returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
 	/// </summary>
-	Task<bool> RequestYesNoAsync(string text, CancellationToken token = default);
+	Task<bool> RequestYesNoAsync(
+		string text,
+		string dialogHostIdentifier = DialogHostIdentifiers.Main,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Selects import variant.

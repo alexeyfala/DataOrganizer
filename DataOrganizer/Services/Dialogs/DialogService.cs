@@ -246,15 +246,20 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestYesNoAsync(string text, CancellationToken token = default)
+	public async Task<bool> RequestYesNoAsync(
+		string text,
+		string dialogHostIdentifier = DialogHostIdentifiers.Main,
+		CancellationToken token = default)
 	{
 		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
 		viewModel.Text = text;
 
+		viewModel.DialogHostIdentifier = dialogHostIdentifier;
+
 		Task dialogClosed = DialogHost.Show(
 			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
-			DialogHostIdentifiers.Main);
+			dialogHostIdentifier);
 
 		YesNoCancelAnswer result = await viewModel
 			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesNo, token)

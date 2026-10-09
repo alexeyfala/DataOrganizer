@@ -858,4 +858,7 @@
   <data name="NewTab" xml:space="preserve">
     <value>Новая вкладка</value>
   </data>
+  <data name="TabsBeingClosedContainText" xml:space="preserve">
+    <value>В закрываемых вкладках есть текст. Закрыть?</value>
+  </data>
 </root>

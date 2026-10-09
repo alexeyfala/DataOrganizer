@@ -314,6 +314,48 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabControl.CloseTabsCommand" />: the items of the menu that close several tabs hand them all to
+	/// the command at once, and none of them closes by itself.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(1, "first", "third")]
+	[TestCase(2, "first", "second", "third")]
+	public void Click_On_A_Menu_Item_Hands_Its_Tabs_To_The_Group_Command(int index, params string[] expected)
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second", "third"];
+
+		List<object?> group = [];
+
+		DocumentTabControl sut = new()
+		{
+			CloseCommand = new RelayCommand<string>(x => items.Remove(x!)),
+			CloseTabsCommand = new RelayCommand<IEnumerable<object?>>(x => group.AddRange(x!)),
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(window, GetMenuButtons(window)[index]);
+
+		// Act
+		Click(window, point, MouseButton.Left);
+
+		// Assert
+		group
+			.Should()
+			.Equal(expected);
+
+		items
+			.Should()
+			.Equal("first", "second", "third");
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabControl.AddCommand" />: the add button runs the command.
 	/// </summary>
 	[AvaloniaTest]

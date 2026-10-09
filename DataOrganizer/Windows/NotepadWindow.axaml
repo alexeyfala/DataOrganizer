@@ -72,6 +72,7 @@
 					x:Name="Tabs"
 					AddCommand="{Binding AddTabCommand}"
 					CloseCommand="{Binding CloseTabCommand}"
+					CloseTabsCommand="{Binding CloseTabsCommand}"
 					ItemsSource="{Binding Tabs, Mode=OneTime}"
 					PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
 					SelectedItem="{Binding SelectedTab, Mode=TwoWay}">

@@ -1318,7 +1318,7 @@ public partial class EditorViewModel :
 		string text,
 		CancellationToken token = default)
 	{
-		return _dialogService.RequestYesNoAsync(text, token);
+		return _dialogService.RequestYesNoAsync(text, token: token);
 	}
 
 	/// <summary>

@@ -62,6 +62,16 @@ internal sealed class DocumentTabControl : TabControl
 	public ICommand CloseOtherTabsCommand { get; }
 
 	/// <summary>
+	/// Command that closes a group of tabs, the other ones or all, at once; it gets the items of the tabs. Without it every
+	/// tab of the group closes by <see cref="CloseCommand" />.
+	/// </summary>
+	public ICommand? CloseTabsCommand
+	{
+		get => GetValue(CloseTabsCommandProperty);
+		set => SetValue(CloseTabsCommandProperty, value);
+	}
+
+	/// <summary>
 	/// Item selected before the current one, which Ctrl+Tab goes back to while its tab is open.
 	/// </summary>
 	public object? PreviousItem
@@ -101,6 +111,10 @@ internal sealed class DocumentTabControl : TabControl
 	/// <inheritdoc cref="CloseCommand" />
 	public static readonly StyledProperty<ICommand?> CloseCommandProperty = AvaloniaProperty
 		.Register<DocumentTabControl, ICommand?>(nameof(CloseCommand));
+
+	/// <inheritdoc cref="CloseTabsCommand" />
+	public static readonly StyledProperty<ICommand?> CloseTabsCommandProperty = AvaloniaProperty
+		.Register<DocumentTabControl, ICommand?>(nameof(CloseTabsCommand));
 
 	/// <inheritdoc cref="PreviousItem" />
 	public static readonly StyledProperty<object?> PreviousItemProperty = AvaloniaProperty
@@ -361,27 +375,40 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
-	/// Closes every tab by <see cref="CloseCommand" />.
+	/// Closes every tab.
 	/// </summary>
 	private void CloseAllTabs() => CloseTabs(ItemsView);
 
 	/// <summary>
-	/// Closes every tab but the one of <paramref name="item" /> by <see cref="CloseCommand" />.
+	/// Closes every tab but the one of <paramref name="item" />.
 	/// </summary>
 	private void CloseOtherTabs(object? item) => CloseTabs(ItemsView.Where(x => !ReferenceEquals(x, item)));
 
 	/// <summary>
-	/// Closes the tabs of <paramref name="items" /> by <see cref="CloseCommand" />.
+	/// Closes the tabs of <paramref name="items" /> by <see cref="CloseTabsCommand" /> at once, or by
+	/// <see cref="CloseCommand" /> one by one.
 	/// </summary>
 	private void CloseTabs(IEnumerable<object?> items)
 	{
+		// Each close changes the items, so the commands get a copy.
+		object?[] group = [.. items];
+
+		if (CloseTabsCommand is { } groupCommand)
+		{
+			if (groupCommand.CanExecute(group))
+			{
+				groupCommand.Execute(group);
+			}
+
+			return;
+		}
+
 		if (CloseCommand is not { } command)
 		{
 			return;
 		}
 
-		// Each close changes the items, so the loop goes over a copy.
-		foreach (object? item in items.ToArray())
+		foreach (object? item in group)
 		{
 			if (!command.CanExecute(item))
 			{

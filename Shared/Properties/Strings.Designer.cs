@@ -2050,6 +2050,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tabs being closed contain text. Close them?.
+        /// </summary>
+        public static string TabsBeingClosedContainText {
+            get {
+                return ResourceManager.GetString("TabsBeingClosedContainText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Text.
         /// </summary>
         public static string Text {

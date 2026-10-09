@@ -280,7 +280,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			try
 			{
 				return await _dialogService
-					.RequestYesNoAsync(text, token)
+					.RequestYesNoAsync(text, token: token)
 					.ConfigureAwait(true);
 			}
 			finally
