@@ -223,6 +223,10 @@ public class ViewLauncher : IViewLauncher
 		window.Closing -= NotepadWindow_Closing;
 
 		SaveNotepadSettings(window);
+
+		window
+			.ViewModel
+			.Dispose();
 	}
 	#endregion
 

@@ -1,21 +1,21 @@
 using AwesomeAssertions;
-using DataOrganizer.Models.Notepad;
+using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 
-namespace DataOrganizer.UnitTests.Models.Notepad;
+namespace DataOrganizer.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadTab)}"" type")]
-internal class NotepadTabTests
+[TestFixture(Description = $@"Tests of ""{nameof(NotepadTabViewModel)}"" type")]
+internal class NotepadTabViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NotepadTab.Header" />: a tab with a name is headed by the name.
+	/// <see cref="NotepadTabViewModel.Header" />: a tab with a name is headed by the name.
 	/// </summary>
 	[Test]
 	public void Header_Is_The_Name_Of_A_Named_Tab()
 	{
 		// Arrange
-		NotepadTab sut = new()
+		NotepadTabViewModel sut = new()
 		{
 			Name = "Notes",
 			Number = 1
@@ -28,13 +28,13 @@ internal class NotepadTabTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTab.Name" />: a new name is reported as a change of the header too.
+	/// <see cref="NotepadTabViewModel.Name" />: a new name is reported as a change of the header too.
 	/// </summary>
 	[Test]
 	public void Name_Reports_A_Change_Of_The_Header()
 	{
 		// Arrange
-		NotepadTab sut = new()
+		NotepadTabViewModel sut = new()
 		{
 			Number = 1
 		};
@@ -49,7 +49,7 @@ internal class NotepadTabTests
 		// Assert
 		changed
 			.Should()
-			.Contain(nameof(NotepadTab.Header));
+			.Contain(nameof(NotepadTabViewModel.Header));
 	}
 	#endregion
 }

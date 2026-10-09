@@ -754,6 +754,30 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.DefaultSyntaxLanguageMark" />: the mark of the language that the text takes by default
+	/// reaches the status bar.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultSyntaxLanguageMark_Reaches_The_Status_Bar()
+	{
+		// Arrange
+		const string mark = "(by extension)";
+
+		DocumentEditorView sut = new()
+		{
+			DefaultSyntaxLanguageMark = mark
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		sut.GetControl<ChoiceSelector>(LanguageBlockName).DefaultMark
+			.Should()
+			.Be(mark);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.Dispose" />: the highlighting of the editor goes away.
 	/// </summary>
 	[AvaloniaTest]

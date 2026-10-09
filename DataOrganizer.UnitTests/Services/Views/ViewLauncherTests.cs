@@ -12,6 +12,7 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Runtime;
@@ -53,6 +54,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -118,6 +120,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -207,6 +210,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()))
 		{
 			Height = 300.0,
@@ -260,6 +264,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()))
 		{
 			Position = position,
@@ -849,6 +854,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
@@ -919,6 +925,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
@@ -960,6 +967,52 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the view model of the window is disposed when the window closes, so
+	/// the editors of its tabs go with it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateNotepadWindow_Disposes_The_View_Model_When_The_Window_Closes()
+	{
+		// Arrange
+		NotepadViewModel viewModel = new(
+			Substitute.For<IDialogService>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
+			Substitute.For<IViewLauncher>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			NotepadWindow notepadWindow = new(viewModel);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(notepadWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		NotepadWindow window = sut.CreateNotepadWindow(new Window());
+
+		window.Show();
+
+		// Act
+		window.Close();
+
+		// Assert
+		viewModel.IsDisposed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateNotepadWindow" />: without saved settings the window takes the default size and
 	/// opens in the center of the screen of the owner.
 	/// </summary>
@@ -972,6 +1025,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
@@ -1032,6 +1086,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -1101,6 +1156,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
@@ -1151,6 +1207,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<INotepadSessionState>(),
+				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>());
 
 			NotepadWindow notepadWindow = new(viewModel);
@@ -1332,6 +1389,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()));
 
 		notepad.Closed += (_, _) => isClosed = true;
@@ -1482,6 +1540,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()))
 		{
 			Height = 400.0,
@@ -1535,6 +1594,7 @@ internal class ViewLauncherTests
 		NotepadViewModel viewModel = new(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>());
 
 		viewModel.RestoreTabs(new()
@@ -1699,6 +1759,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1742,6 +1803,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<INotepadSessionState>(),
+			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>()))
 		{
 			WindowState = WindowState.Minimized

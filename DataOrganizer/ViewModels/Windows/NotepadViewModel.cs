@@ -4,9 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Models.Notepad;
 using Shared.Properties;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -17,32 +17,32 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>NotepadWindow</c>.
 /// </summary>
-public sealed partial class NotepadViewModel : ObservableObject
+public sealed partial class NotepadViewModel : ObservableDisposableBase
 {
 	#region Properties
 	/// <summary>
 	/// Tab Ctrl+Tab goes back to.
 	/// </summary>
 	[ObservableProperty]
-	public partial NotepadTab? PreviousTab { get; set; }
+	public partial NotepadTabViewModel? PreviousTab { get; set; }
 
 	/// <summary>
 	/// Tab that is selected.
 	/// </summary>
 	[ObservableProperty]
-	public partial NotepadTab? SelectedTab { get; set; }
+	public partial NotepadTabViewModel? SelectedTab { get; set; }
 
 	/// <summary>
 	/// Open tabs; at least one is always open.
 	/// </summary>
-	public ObservableCollection<NotepadTab> Tabs { get; } = [];
+	public ObservableCollection<NotepadTabViewModel> Tabs { get; } = [];
 	#endregion
 
 	#region Partial
 	/// <summary>
 	/// Called when <see cref="PreviousTab" /> changes.
 	/// </summary>
-	partial void OnPreviousTabChanged(NotepadTab? value) => _sessionState.PreviousTabNumber = value?.Number;
+	partial void OnPreviousTabChanged(NotepadTabViewModel? value) => _sessionState.PreviousTabNumber = value?.Number;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -63,7 +63,7 @@ public sealed partial class NotepadViewModel : ObservableObject
 			.Range(1, Tabs.Count + 1)
 			.First(x => Tabs.All(y => y.Number != x));
 
-		NotepadTab tab = new()
+		NotepadTabViewModel tab = new()
 		{
 			Number = number
 		};
@@ -91,7 +91,7 @@ public sealed partial class NotepadViewModel : ObservableObject
 	/// Closes a tab; the last one gives way to a new tab.
 	/// </summary>
 	[RelayCommand]
-	private void CloseTab(NotepadTab? tab)
+	private void CloseTab(NotepadTabViewModel? tab)
 	{
 		if (tab is null)
 		{
@@ -99,6 +99,8 @@ public sealed partial class NotepadViewModel : ObservableObject
 		}
 
 		Tabs.Remove(tab);
+
+		_viewCache.Remove(tab);
 
 		// A closed tab is no way back, and its number may go to a new tab.
 		if (tab == PreviousTab)
@@ -118,7 +120,7 @@ public sealed partial class NotepadViewModel : ObservableObject
 	/// Gives a tab the name entered in a dialog of the notepad.
 	/// </summary>
 	[RelayCommand]
-	private async Task RenameTab(NotepadTab? tab)
+	private async Task RenameTab(NotepadTabViewModel? tab)
 	{
 		if (tab is null)
 		{
@@ -151,6 +153,9 @@ public sealed partial class NotepadViewModel : ObservableObject
 	/// <inheritdoc cref="INotepadSessionState" />
 	private readonly INotepadSessionState _sessionState;
 
+	/// <inheritdoc cref="IViewCache" />
+	private readonly IViewCache _viewCache;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
@@ -159,11 +164,14 @@ public sealed partial class NotepadViewModel : ObservableObject
 	public NotepadViewModel(
 		IDialogService dialogService,
 		INotepadSessionState sessionState,
+		IViewCache viewCache,
 		IViewLauncher viewLauncher)
 	{
 		_dialogService = dialogService;
 
 		_sessionState = sessionState;
+
+		_viewCache = viewCache;
 
 		_viewLauncher = viewLauncher;
 
@@ -197,6 +205,18 @@ public sealed partial class NotepadViewModel : ObservableObject
 		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];
 
 		PreviousTab = Tabs.FirstOrDefault(x => x.Number == _sessionState.PreviousTabNumber);
+	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		// The editors are cached for the whole application, which would keep them after the window.
+		foreach (NotepadTabViewModel tab in Tabs)
+		{
+			_viewCache.Remove(tab);
+		}
+
+		base.AfterDispose();
 	}
 	#endregion
 }

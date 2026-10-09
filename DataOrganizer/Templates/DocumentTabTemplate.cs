@@ -13,9 +13,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace DataOrganizer.Templates;
 
 /// <summary>
-/// Builds and caches the editor control for a file opened in the built-in editor.
+/// Builds and caches the editor of the document of a tab: a file opened in the built-in editor or a tab of the notepad.
 /// </summary>
-internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
+internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 {
 	#region Data
 	/// <summary>
@@ -28,7 +28,7 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 	#endregion
 
 	#region Constructors
-	public EditingFileTemplate(IViewFactory viewFactory) => _viewFactory = viewFactory;
+	public DocumentTabTemplate(IViewFactory viewFactory) => _viewFactory = viewFactory;
 	#endregion
 
 	#region Methods
@@ -49,11 +49,20 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 			return control;
 		}
 
+		if (param is NotepadTabViewModel tab)
+		{
+			NotepadTabView view = _viewFactory.CreateUserControl<NotepadTabView>(tab);
+
+			_cache.Add(param, view);
+
+			return view;
+		}
+
 		return MissingViewPlaceholder.Create(param?.GetType().Name);
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is FileDto;
+	public bool Match(object? data) => data is FileDto or NotepadTabViewModel;
 
 	/// <inheritdoc />
 	public void Remove<T>(T key) where T : notnull

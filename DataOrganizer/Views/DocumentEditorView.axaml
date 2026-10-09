@@ -443,7 +443,7 @@
 						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
 						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
 						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
-						DefaultMark="{x:Static prop:Strings.ByExtension}"
+						DefaultMark="{Binding #View.DefaultSyntaxLanguageMark, Mode=OneWay}"
 						SelectedChoice="{Binding #View.SyntaxLanguage, Mode=TwoWay}"
 						ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}" />
 				</Border>

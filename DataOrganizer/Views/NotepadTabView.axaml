@@ -1,0 +1,24 @@
+<UserControl
+	x:Class="DataOrganizer.Views.NotepadTabView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:NotepadTabViewModel"
+	mc:Ignorable="d">
+
+	<views:DocumentEditorView
+		x:Name="Editor"
+		Document="{Binding Document, Mode=OneWay}"
+		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
+		IsSplit="{Binding IsSplit, Mode=TwoWay}"
+		ShowEndOfLine="{Binding ShowEndOfLine, Mode=TwoWay}"
+		ShowSpaces="{Binding ShowSpaces, Mode=TwoWay}"
+		ShowTabs="{Binding ShowTabs, Mode=TwoWay}"
+		SplitShare="{Binding SplitShare, Mode=TwoWay}"
+		SyntaxLanguage="{Binding SyntaxLanguage, Mode=TwoWay}"
+		ViewState="{Binding ViewState, Mode=TwoWay}"
+		WordWrap="{Binding WordWrap, Mode=TwoWay}" />
+</UserControl>

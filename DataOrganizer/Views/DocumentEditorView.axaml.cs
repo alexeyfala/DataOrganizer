@@ -52,6 +52,15 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
+	/// Mark that the list of the languages shows after <see cref="DefaultSyntaxLanguage" />; <c>null</c> for none.
+	/// </summary>
+	public string? DefaultSyntaxLanguageMark
+	{
+		get => GetValue(DefaultSyntaxLanguageMarkProperty);
+		set => SetValue(DefaultSyntaxLanguageMarkProperty, value);
+	}
+
+	/// <summary>
 	/// The document being edited.
 	/// </summary>
 	public TextDocument? Document
@@ -244,6 +253,12 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public static readonly StyledProperty<string?> DefaultEncodingProperty = AvaloniaProperty
 		.Register<DocumentEditorView, string?>(name: nameof(DefaultEncoding));
+
+	/// <summary>
+	/// Identifies the <see cref="DefaultSyntaxLanguageMark" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DefaultSyntaxLanguageMarkProperty = AvaloniaProperty
+		.Register<DocumentEditorView, string?>(name: nameof(DefaultSyntaxLanguageMark));
 
 	/// <summary>
 	/// Identifies the <see cref="DefaultSyntaxLanguage" /> avalonia property.

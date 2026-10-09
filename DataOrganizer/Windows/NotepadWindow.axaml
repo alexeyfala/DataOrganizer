@@ -11,11 +11,11 @@
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:notepad="using:DataOrganizer.Models.Notepad"
 	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	MinWidth="400.0"
 	MinHeight="300.0"
@@ -76,7 +76,7 @@
 					PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
 					SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
 					<controls:DocumentTabControl.AdditionalMenuItemsTemplate>
-						<DataTemplate x:DataType="notepad:NotepadTab">
+						<DataTemplate x:DataType="vm:NotepadTabViewModel">
 							<controls:FlyoutButton
 								Command="{Binding $parent[Window].((windows:NotepadViewModel)DataContext).RenameTabCommand}"
 								CommandParameter="{Binding}"
@@ -85,14 +85,8 @@
 						</DataTemplate>
 					</controls:DocumentTabControl.AdditionalMenuItemsTemplate>
 
-					<controls:DocumentTabControl.ContentTemplate>
-						<DataTemplate x:DataType="notepad:NotepadTab">
-							<Panel />
-						</DataTemplate>
-					</controls:DocumentTabControl.ContentTemplate>
-
 					<controls:DocumentTabControl.ItemTemplate>
-						<DataTemplate x:DataType="notepad:NotepadTab">
+						<DataTemplate x:DataType="vm:NotepadTabViewModel">
 							<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Header, Mode=OneWay}" />
 						</DataTemplate>
 					</controls:DocumentTabControl.ItemTemplate>

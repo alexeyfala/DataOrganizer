@@ -14,9 +14,11 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Models.Notepad;
 using DataOrganizer.Services.Views;
+using DataOrganizer.Templates;
+using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Material.Icons;
 using NSubstitute;
@@ -331,7 +333,7 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTab.Name" />: a name given to an open tab shows in its header at once.
+	/// <see cref="NotepadTabViewModel.Name" />: a name given to an open tab shows in its header at once.
 	/// </summary>
 	[AvaloniaTest]
 	public void Tabs_Show_A_New_Name_Of_Their_Tab()
@@ -362,7 +364,53 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTab.Header" />: a tab of the window shows the header of its tab.
+	/// <see cref="NotepadViewModel.SelectedTab" />: the window shows the editor of the selected tab, which the template of
+	/// the document tabs builds.
+	/// </summary>
+	[AvaloniaTest]
+	public void Tabs_Show_The_Editor_Of_The_Selected_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application adds the template once its services are built, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(mock.Create<DocumentTabTemplate>());
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.Tabs.GetVisualDescendants().OfType<NotepadTabView>().Single().DataContext
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[0]);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Header" />: a tab of the window shows the header of its tab.
 	/// </summary>
 	[AvaloniaTest]
 	public void Tabs_Show_Their_Headers()
@@ -391,7 +439,7 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTab.Header" />: a long header is cut at the width of a tab header and shown whole in a tip.
+	/// <see cref="NotepadTabViewModel.Header" />: a long header is cut at the width of a tab header and shown whole in a tip.
 	/// </summary>
 	[AvaloniaTest]
 	public void Tabs_Trim_A_Long_Header_With_A_Tip()

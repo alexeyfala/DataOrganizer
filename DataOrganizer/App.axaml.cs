@@ -119,7 +119,7 @@ public sealed class App : Application
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
-		DataTemplates.Add(serviceProvider.GetRequiredService<EditingFileTemplate>());
+		DataTemplates.Add(serviceProvider.GetRequiredService<DocumentTabTemplate>());
 
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
@@ -188,8 +188,8 @@ public sealed class App : Application
 		#endregion
 
 		#region View Locator
-		services.AddSingleton<EditingFileTemplate>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<EditingFileTemplate>());
+		services.AddSingleton<DocumentTabTemplate>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<DocumentTabTemplate>());
 		#endregion
 
 		#region Singletons
@@ -270,6 +270,7 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
+		services.AddTransient<NotepadTabView>();
 		services.AddTransient<NotepadWindow>();
 		services.AddTransient<PasswordBoxView>();
 		services.AddTransient<PropertiesView>();
