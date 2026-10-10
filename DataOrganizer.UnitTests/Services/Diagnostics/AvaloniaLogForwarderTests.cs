@@ -50,6 +50,29 @@ internal class AvaloniaLogForwarderTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.IsIBusClosingNoise" />: verifies only the errors of IBus about the input context of
+	/// a closing popup or window are detected, in any language of the system.
+	/// </summary>
+	[TestCase("IME", DestroyFailure + IBusDestroyReply, ExpectedResult = true)]
+	[TestCase("IME", CallFailure + GoneContextReply, ExpectedResult = true)]
+	[TestCase("IME", DestroyFailure + GoneContextReply, ExpectedResult = true)]
+	[TestCase("IME", CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.UnknownMethod: "
+		+ "Objekt existiert nicht unter Pfad /org/freedesktop/IBus/InputContext_9", ExpectedResult = true)]
+	[TestCase(LogArea.FreeDesktopPlatform, DestroyFailure + IBusDestroyReply, ExpectedResult = false)]
+	[TestCase("IME", "Unable to create IME input context:\n" + GoneContextReply, ExpectedResult = false)]
+	[TestCase("IME", DestroyFailure + "Tmds.DBus.Protocol.DisconnectedException: Connection closed by peer.",
+		ExpectedResult = false)]
+	[TestCase("IME", CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.UnknownMethod: "
+		+ "No such method SetCapabilities", ExpectedResult = false)]
+	[TestCase("IME", CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.AccessDenied: "
+		+ "Rejected send message to /org/freedesktop/IBus/InputContext_9", ExpectedResult = false)]
+	public bool IsIBusClosingNoise_Detects_The_IBus_Errors_Of_A_Closing_Window(string area, string message)
+	{
+		// Act
+		return AvaloniaLogForwarder.IsIBusClosingNoise(area, message);
+	}
+
+	/// <summary>
 	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string, object[])" />: the sink that was in
 	/// place before gets every entry as it is, those below the warnings too.
 	/// </summary>
@@ -121,19 +144,15 @@ internal class AvaloniaLogForwarderTests
 	}
 
 	/// <summary>
-	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: an entry that differs from the
-	/// noise of IBus by its area, its start or its reply reaches the log of the application.
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: the noise of IBus stays out of the
+	/// log of the application on Linux, the only system that brings it, and reaches the log elsewhere.
 	/// </summary>
-	[TestCase(LogArea.FreeDesktopPlatform, DestroyFailure + IBusDestroyReply)]
-	[TestCase("IME", "Unable to create IME input context:\n" + GoneContextReply)]
-	[TestCase("IME", DestroyFailure + "Tmds.DBus.Protocol.DisconnectedException: Connection closed by peer.")]
-	[TestCase("IME", CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.UnknownMethod: "
-		+ "No such method SetCapabilities")]
-	[TestCase("IME", CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.AccessDenied: "
-		+ "Rejected send message to /org/freedesktop/IBus/InputContext_9")]
-	public void Log_Writes_A_Failure_Other_Than_The_IBus_Noise(string area, string message)
+	[Test]
+	public void Log_Skips_The_IBus_Noise_Only_On_Linux()
 	{
 		// Arrange
+		int writtenEntries = OperatingSystem.IsLinux() ? 0 : 1;
+
 		ILogger logger = Substitute.For<ILogger>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
@@ -143,12 +162,12 @@ internal class AvaloniaLogForwarderTests
 		// Act
 		sut.Log(
 			LogEventLevel.Error,
-			area,
+			"IME",
 			null,
-			message);
+			DestroyFailure + IBusDestroyReply);
 
 		// Assert
-		logger.Received(1).Error(
+		logger.Received(writtenEntries).Error(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<string>());
@@ -234,37 +253,6 @@ internal class AvaloniaLogForwarderTests
 			"Text",
 			"secret",
 			"LocalValue");
-
-		// Assert
-		logger.ReceivedCalls()
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
-	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: the errors of IBus about the input
-	/// context of a closing popup or window do not reach the log of the application, in any language of the system.
-	/// </summary>
-	[TestCase(DestroyFailure + IBusDestroyReply)]
-	[TestCase(CallFailure + GoneContextReply)]
-	[TestCase(DestroyFailure + GoneContextReply)]
-	[TestCase(CallFailure + "Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.UnknownMethod: "
-		+ "Objekt existiert nicht unter Pfad /org/freedesktop/IBus/InputContext_9")]
-	public void Log_Writes_Nothing_For_The_IBus_Noise(string message)
-	{
-		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
-
-		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
-
-		// Act
-		sut.Log(
-			LogEventLevel.Error,
-			"IME",
-			null,
-			message);
 
 		// Assert
 		logger.ReceivedCalls()
