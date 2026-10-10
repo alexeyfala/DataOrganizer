@@ -12,14 +12,6 @@ namespace DataOrganizer.UnitTests.Services.Diagnostics;
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
 internal class GlobalExceptionHandlerTests
 {
-	#region Data
-	/// <summary>
-	/// Message of the DBus error raised when no "com.canonical.AppMenu.Registrar" service runs.
-	/// </summary>
-	private const string AppMenuRegistrarMessage =
-		"org.freedesktop.DBus.Error.ServiceUnknown: The name com.canonical.AppMenu.Registrar was not provided";
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies an aggregate whose nested leaves all match is accepted.
@@ -164,20 +156,6 @@ internal class GlobalExceptionHandlerTests
 		afterReplay
 			.Should()
 			.BeGreaterThan(afterFiveUnique);
-	}
-
-	/// <summary>
-	/// <see cref="GlobalExceptionHandler.IsAppMenuRegistrarError" />: verifies only a DBus error that names the registrar is detected.
-	/// </summary>
-	[TestCase("Tmds.DBus.Protocol", AppMenuRegistrarMessage, ExpectedResult = true)]
-	[TestCase("Tmds.DBus", AppMenuRegistrarMessage, ExpectedResult = true)]
-	[TestCase("Tmds.DBus.Protocol", "org.freedesktop.DBus.Error.ServiceUnknown: The name org.kde.StatusNotifierWatcher was not provided", ExpectedResult = false)]
-	[TestCase("System", AppMenuRegistrarMessage, ExpectedResult = false)]
-	[TestCase(null, AppMenuRegistrarMessage, ExpectedResult = false)]
-	public bool IsAppMenuRegistrarError_Detects_DBus_Error_Naming_Registrar(string? typeNamespace, string message)
-	{
-		// Act
-		return GlobalExceptionHandler.IsAppMenuRegistrarError(typeNamespace, message);
 	}
 
 	/// <summary>

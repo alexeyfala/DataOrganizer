@@ -110,6 +110,40 @@ internal class AvaloniaLogForwarderTests
 	}
 
 	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string, object[])" />: a value that may come
+	/// from the data reaches the log of the application only as its length.
+	/// </summary>
+	[TestCase("Codepoint")]
+	[TestCase("Message")]
+	[TestCase("Uri")]
+	[TestCase("$Value")]
+	public void Log_Hides_A_Value_That_May_Come_From_The_Data(string hole)
+	{
+		// Arrange
+		const string value = "secret";
+
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			LogEventLevel.Warning,
+			LogArea.Platform,
+			null,
+			$"Failed for {{{hole}}}.",
+			value);
+
+		// Assert
+		logger.Received(1).Warning(
+			Arg.Any<string>(),
+			Arg.Is("[Platform] Failed for (6 characters)."),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string, object[])" />: the value that
 	/// a binding failed to convert does not reach the log of the application.
 	/// </summary>
@@ -140,6 +174,37 @@ internal class AvaloniaLogForwarderTests
 		logger.Received(1).Warning(
 			Arg.Any<string>(),
 			Arg.Is<string>(x => !x.Contains(value)),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string, object[])" />: the exception of a
+	/// technical failure reaches the log of the application as it is.
+	/// </summary>
+	[Test]
+	public void Log_Shows_The_Exception_Of_A_Failure()
+	{
+		// Arrange
+		const string reason = "The name com.canonical.AppMenu.Registrar was not provided";
+
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			LogEventLevel.Warning,
+			LogArea.Platform,
+			null,
+			"DBusMenu UnregisterWindowAsync failed: {Exception}",
+			new InvalidOperationException(reason));
+
+		// Assert
+		logger.Received(1).Warning(
+			Arg.Any<string>(),
+			Arg.Is<string>(x => x.Contains(reason)),
 			Arg.Any<string>());
 	}
 

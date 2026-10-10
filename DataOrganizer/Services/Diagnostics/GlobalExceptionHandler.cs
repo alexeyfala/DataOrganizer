@@ -54,18 +54,6 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	{
 		e.SetObserved();
 
-		if (OperatingSystem.IsLinux() && IsBenignDBusAppMenuFailure(e.Exception))
-		{
-			// Avalonia's DBus menu exporter fires-and-forgets a call to the global AppMenu
-			// registrar; on Linux distributions that don't run "com.canonical.AppMenu.Registrar"
-			// (e.g., default GNOME) the call surfaces as an unobserved task exception. The
-			// failure is cosmetic — global menu integration is unavailable, the tray menu
-			// continues to work via the GTK status icon. Log at debug level and swallow.
-			_logger.LogDebug($"Suppressed unobserved DBus AppMenu.Registrar failure: {e.Exception.GetBaseException().Message}");
-
-			return;
-		}
-
 		if (OperatingSystem.IsLinux() && IsBenignDBusAccentColorFailure(e.Exception))
 		{
 			// Known Avalonia bug: DBusPlatformSettings reads the FreeDesktop appearance portal's
@@ -134,20 +122,6 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	}
 
 	/// <summary>
-	/// <c>True</c> for a DBus error that names the "com.canonical.AppMenu.Registrar" service.
-	/// The type is matched by its namespace, since its name changes between Tmds.DBus versions.
-	/// </summary>
-	internal static bool IsAppMenuRegistrarError(string? typeNamespace, string message)
-	{
-		const string dBusNamespace = "Tmds.DBus";
-
-		const string appMenuRegistrarServiceName = "com.canonical.AppMenu.Registrar";
-
-		return typeNamespace?.StartsWith(dBusNamespace, StringComparison.Ordinal) == true
-			&& message.Contains(appMenuRegistrarServiceName, StringComparison.Ordinal);
-	}
-
-	/// <summary>
 	/// <c>True</c> for a failure of any type inside Avalonia's reader of the FreeDesktop settings portal.
 	/// </summary>
 	internal static bool IsPlatformSettingsFailure(string? stackTrace)
@@ -189,15 +163,6 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	private static bool IsBenignDBusAccentColorFailure(AggregateException aggregate)
 	{
 		return AreAllLeaves(aggregate, x => IsPlatformSettingsFailure(x.StackTrace));
-	}
-
-	/// <summary>
-	/// <c>True</c> when the aggregated exception is exclusively composed of DBus failures
-	/// caused by the missing "com.canonical.AppMenu.Registrar" service on Linux.
-	/// </summary>
-	private static bool IsBenignDBusAppMenuFailure(AggregateException aggregate)
-	{
-		return AreAllLeaves(aggregate, x => IsAppMenuRegistrarError(x.GetType().Namespace, x.Message));
 	}
 	#endregion
 }

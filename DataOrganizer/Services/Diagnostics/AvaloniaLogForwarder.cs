@@ -19,9 +19,10 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	private const LogEventLevel MinimumLevel = LogEventLevel.Warning;
 
 	/// <summary>
-	/// Names of the holes of a message template whose values come from code or markup, never from the data.
+	/// Names of the holes of a message template whose values may come from the data, such as the value that a binding
+	/// failed to convert: the log lies on the disk in plain text, so only their length reaches it.
 	/// </summary>
-	private static readonly string[] PlainHoles = ["Expression", "ExpressionErrorPoint", "Property"];
+	private static readonly string[] DataHoles = ["Codepoint", "Message", "Uri", "Value"];
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -149,8 +150,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	}
 
 	/// <summary>
-	/// Returns the value of a hole as it is when it comes from code or markup, and otherwise only the length of its
-	/// text.
+	/// Returns the value of a hole as it is, or only the length of its text when it may come from the data.
 	/// </summary>
 	private static string DescribeValue(string hole, object? value)
 	{
@@ -159,7 +159,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 			return "null";
 		}
 
-		return PlainHoles.Contains(hole) ? $"'{text}'" : $"({text.Length} characters)";
+		return DataHoles.Contains(hole) ? $"({text.Length} characters)" : $"'{text}'";
 	}
 
 	/// <summary>

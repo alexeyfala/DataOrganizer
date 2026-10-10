@@ -20,6 +20,12 @@ public static class Program
 		return AppBuilder
 			.Configure<App>()
 			.UsePlatformDetect()
+			.With(new X11PlatformOptions
+			{
+				// The application has no native menu, and exporting an empty one only registers every window and popup
+				// with the global menu of Linux, which leaves warnings when one closes at once.
+				UseDBusMenu = false
+			})
 			.WithInterFont()
 			.LogToTrace();
 	}
