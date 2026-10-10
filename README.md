@@ -16,6 +16,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Encryption** — password-protect folders. Contents are encrypted with XChaCha20-Poly1305 using a per-folder Data Encryption Key (DEK); the DEK is wrapped with a key derived from the password (Argon2id), and no password verifier is stored. The cost of the derivation is recorded with the wrapped key, so it can be raised later without making earlier data unreadable. A new password is rated as it is typed, and the rating is shown next to the input.
 - **Datasets** — structured key-value records with a built-in editor for grouping and editing.
 - **Clipboard history** — a cross-platform journal that captures plain text, formatted text (HTML/RTF), URLs, images, and files/folders. Entries can be browsed, searched, and restored; duplicates are merged, the list is capped, and password-manager secrets are skipped. Kept in memory by default, optionally persisted to an encrypted file (XChaCha20-Poly1305 + Argon2id).
+- **Notepad** — a separate window for scratch texts in tabs, each with the same editor as the files, which open in tabs as well. Tabs can be renamed and reordered by dragging; the texts are kept between sessions as plain text (see [SECURITY.md](SECURITY.md)).
 - **File execution** — launch files with their OS-default application; execution history is tracked.
 - **Import & export** — JSON, XML, and the full SQLite database.
 - **Appearance** — Light, Dark, or System theme (Material Design), with configurable primary and secondary accent colors.
