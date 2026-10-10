@@ -49,7 +49,10 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **macOS** — macOS 12 (Monterey) or later (Apple Silicon via Rosetta 2)
 - **Linux** — a modern glibc-based distribution (e.g. Ubuntu 22.04+, Debian 12+, Fedora 42+); see [.NET 10 supported distributions](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md)
 
-Global hotkeys on Linux work without extra privileges in an X11 session. A Wayland session needs access to `/dev/input`, which is usually granted by a udev rule.
+## Platform Notes
+
+- **Linux** — global hotkeys work without extra privileges in an X11 session. A Wayland session needs access to `/dev/input`, which is usually granted by a udev rule.
+- **macOS** — Control+Tab, which returns to the previously selected tab in the editor and the notepad, does not work: macOS keeps the key press for moving the focus between controls, and Avalonia UI does not pass it on to the application.
 
 ## Build from Source
 
