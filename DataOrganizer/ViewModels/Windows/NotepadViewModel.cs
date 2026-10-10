@@ -12,15 +12,16 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
+using DynamicData;
+using DynamicData.Binding;
 using Shared.Properties;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Disposables.Fluent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -276,7 +277,12 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		_timeProvider = timeProvider;
 
-		Tabs.CollectionChanged += Tabs_CollectionChanged;
+		// A tab opened, closed or moved, or a change of any of its properties, writes the tabs.
+		Tabs
+			.ToObservableChangeSet()
+			.AutoRefresh()
+			.Subscribe(_ => WriteSettings())
+			.DisposeWith(_disposables);
 
 		AddTab();
 	}
@@ -306,30 +312,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			null,
 			WriteDelay,
 			Timeout.InfiniteTimeSpan);
-	}
-
-	/// <summary>
-	/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler of the tabs.
-	/// </summary>
-	private void Tab_PropertyChanged(object? sender, PropertyChangedEventArgs e) => WriteSettings();
-
-	/// <summary>
-	/// <see cref="INotifyCollectionChanged.CollectionChanged" /> event handler of <see cref="Tabs" />.
-	/// </summary>
-	private void Tabs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-	{
-		// A tab is watched while it is open; a move takes it out and puts it back.
-		foreach (NotepadTabViewModel tab in e.OldItems?.OfType<NotepadTabViewModel>() ?? [])
-		{
-			tab.PropertyChanged -= Tab_PropertyChanged;
-		}
-
-		foreach (NotepadTabViewModel tab in e.NewItems?.OfType<NotepadTabViewModel>() ?? [])
-		{
-			tab.PropertyChanged += Tab_PropertyChanged;
-		}
-
-		WriteSettings();
 	}
 	#endregion
 
@@ -382,7 +364,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		// Once more as the window closes, in case a write after a change failed.
 		WriteSettings();
 
-		// The editors may still report the state of their tabs as the window goes, after the last write.
+		// The window may still change the selected tab as it goes, after the last write.
 		_isKeepingTabs = false;
 
 		// The editors are cached for the whole application, which would keep them after the window.
