@@ -142,20 +142,30 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	private static partial Regex HoleRegex();
 
 	/// <summary>
-	/// <c>True</c> for the error with which ibus-portal answers the destruction of the input context of every closed
-	/// popup or window on Linux, although it destroys the context.
+	/// <c>True</c> for an error of IBus about the input context of a popup or a window that closes on Linux: ibus-portal
+	/// answers its destruction with an error, and the calls queued before it reach the context after it is gone.
 	/// </summary>
-	private static bool IsIBusDestroyReply(string area, string messageTemplate)
+	private static bool IsIBusClosingNoise(string area, string messageTemplate)
 	{
 		const string imeArea = "IME";
 
+		const string callFailure = "Error:";
+
 		const string destroyFailure = "Error while destroying the context:";
 
-		const string iBusReply = "Method Destroy is not implemented on interface org.freedesktop.IBus.Service";
+		const string destroyReply = "Method Destroy is not implemented on interface org.freedesktop.IBus.Service";
 
+		const string unknownMethod = "org.freedesktop.DBus.Error.UnknownMethod";
+
+		const string contextPath = "/org/freedesktop/IBus/InputContext_";
+
+		// GLib words a missing context in the language of the system, so it is known by the name of the error and the path.
 		return area == imeArea
-			&& messageTemplate.StartsWith(destroyFailure, StringComparison.Ordinal)
-			&& messageTemplate.Contains(iBusReply, StringComparison.Ordinal);
+			&& (messageTemplate.StartsWith(callFailure, StringComparison.Ordinal)
+				|| messageTemplate.StartsWith(destroyFailure, StringComparison.Ordinal))
+			&& (messageTemplate.Contains(destroyReply, StringComparison.Ordinal)
+				|| (messageTemplate.Contains(unknownMethod, StringComparison.Ordinal)
+					&& messageTemplate.Contains(contextPath, StringComparison.Ordinal)));
 	}
 
 	/// <summary>
@@ -190,7 +200,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 		string messageTemplate,
 		object?[] propertyValues)
 	{
-		if (level < MinimumLevel || IsIBusDestroyReply(area, messageTemplate))
+		if (level < MinimumLevel || IsIBusClosingNoise(area, messageTemplate))
 		{
 			return;
 		}

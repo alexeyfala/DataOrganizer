@@ -38,11 +38,6 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 		bool isExpanded,
 		CancellationToken token = default)
 	{
-		const string propertyName = nameof(FolderDto.IsExpanded);
-
-		_logger.LogDebug(
-			$@"Update ""{propertyName}"" property in of folder ""{folderId}"" in database is requested");
-
 		return _dbAccess.UpdateFolderPropertiesAsync(folderId,
 		[
 			x => x.SetProperty(x => x.IsExpanded, isExpanded)

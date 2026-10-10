@@ -160,6 +160,8 @@ public class ViewLauncher : IViewLauncher
 
 		window.Closing -= ClipboardLogWindow_Closing;
 
+		_logger.LogInformation($@"Closing ""{nameof(ClipboardLogWindow)}"" and saving ""{nameof(ClipboardLogWindowSettings)}""");
+
 		SaveClipboardLogSettings(window);
 
 		window
@@ -221,6 +223,8 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		window.Closing -= NotepadWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(NotepadWindow)}"" and saving ""{nameof(NotepadWindowSettings)}""");
 
 		SaveNotepadSettings(window);
 
