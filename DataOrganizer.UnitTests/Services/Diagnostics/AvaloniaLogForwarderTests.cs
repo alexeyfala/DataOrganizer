@@ -14,6 +14,18 @@ internal class AvaloniaLogForwarderTests
 {
 	#region Data
 	/// <summary>
+	/// Start of the entry that Avalonia writes when it fails to destroy the input context of a popup or a window.
+	/// </summary>
+	private const string DestroyFailure = "Error while destroying the context:\n";
+
+	/// <summary>
+	/// Exception with which ibus-portal answers the destruction of an input context, although it destroys it.
+	/// </summary>
+	private const string IBusDestroyReply =
+		"Tmds.DBus.Protocol.DBusErrorReplyException: org.freedesktop.DBus.Error.UnknownMethod: "
+		+ "Method Destroy is not implemented on interface org.freedesktop.IBus.Service";
+
+	/// <summary>
 	/// Template of the entry that Avalonia writes for each value set on a property.
 	/// </summary>
 	private const string PropertySetTemplate = "Set {Property} to {$Value} with priority {Priority}";
@@ -97,6 +109,36 @@ internal class AvaloniaLogForwarderTests
 	}
 
 	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: an entry that only looks like the
+	/// reply of IBus to the destruction of an input context reaches the log of the application.
+	/// </summary>
+	[TestCase(LogArea.FreeDesktopPlatform, DestroyFailure + IBusDestroyReply)]
+	[TestCase("IME", "Error:\n" + IBusDestroyReply)]
+	[TestCase("IME", DestroyFailure + "Tmds.DBus.Protocol.DisconnectedException: Connection closed by peer.")]
+	public void Log_Writes_A_Failure_Other_Than_The_Destroy_Reply_Of_IBus(string area, string message)
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			LogEventLevel.Error,
+			area,
+			null,
+			message);
+
+		// Assert
+		logger.Received(1).Error(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: a warning ends with the forwarder
 	/// as its source, as every entry of the application ends with its own.
 	/// </summary>
@@ -176,6 +218,33 @@ internal class AvaloniaLogForwarderTests
 			"Text",
 			"secret",
 			"LocalValue");
+
+		// Assert
+		logger.ReceivedCalls()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: the reply of IBus to the
+	/// destruction of the input context of a closed popup or window does not reach the log of the application.
+	/// </summary>
+	[Test]
+	public void Log_Writes_Nothing_For_The_Destroy_Reply_Of_IBus()
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			LogEventLevel.Error,
+			"IME",
+			null,
+			DestroyFailure + IBusDestroyReply);
 
 		// Assert
 		logger.ReceivedCalls()

@@ -3,6 +3,7 @@ using Avalonia.Logging;
 using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -141,6 +142,23 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	private static partial Regex HoleRegex();
 
 	/// <summary>
+	/// <c>True</c> for the error with which ibus-portal answers the destruction of the input context of every closed
+	/// popup or window on Linux, although it destroys the context.
+	/// </summary>
+	private static bool IsIBusDestroyReply(string area, string messageTemplate)
+	{
+		const string imeArea = "IME";
+
+		const string destroyFailure = "Error while destroying the context:";
+
+		const string iBusReply = "Method Destroy is not implemented on interface org.freedesktop.IBus.Service";
+
+		return area == imeArea
+			&& messageTemplate.StartsWith(destroyFailure, StringComparison.Ordinal)
+			&& messageTemplate.Contains(iBusReply, StringComparison.Ordinal);
+	}
+
+	/// <summary>
 	/// Returns the text of an entry, with the values that may come from the data reduced to their length.
 	/// </summary>
 	private static string Render(
@@ -162,8 +180,8 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	}
 
 	/// <summary>
-	/// Writes an entry to <see cref="ILogger" /> when its level is high enough, with its source at the end, as every
-	/// entry of the application.
+	/// Writes an entry to <see cref="ILogger" /> when its level is high enough and it is no known noise, with its source
+	/// at the end, as every entry of the application.
 	/// </summary>
 	private void Write(
 		LogEventLevel level,
@@ -172,7 +190,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 		string messageTemplate,
 		object?[] propertyValues)
 	{
-		if (level < MinimumLevel)
+		if (level < MinimumLevel || IsIBusDestroyReply(area, messageTemplate))
 		{
 			return;
 		}
