@@ -52,6 +52,8 @@
 			AfterTargets="PostBuildEvent">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
 		<Exec Command="del /f $(OutputPath)\*.msi" />
-		<Exec Command="start $(OutputPath)" />
+		<!-- explorer.exe exits with 1 even when the window opens. -->
+		<Exec Command="explorer /select,&quot;$(TargetPath)&quot;"
+			  IgnoreExitCode="true" />
 	</Target>
 </Project>

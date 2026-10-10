@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
@@ -13,7 +12,6 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -445,17 +443,12 @@ public sealed class KeyboardInputHook :
 	/// </summary>
 	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
 	{
-		if (_app.FindWindow<Window>(x => x.DataContext is ViewModelBase) is not { } window)
+		if (_app.FindMainWindow() is not { } window)
 		{
 			return;
 		}
 
-		if (window.WindowState == WindowState.Minimized)
-		{
-			window.WindowState = WindowState.Normal;
-		}
-
-		window.Activate();
+		window.RestoreAndActivate();
 
 		if (_app.FindDataContext<FavoritesViewModel>() is not { } faforites)
 		{

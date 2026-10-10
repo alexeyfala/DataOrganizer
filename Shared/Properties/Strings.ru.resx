@@ -846,4 +846,28 @@
   <data name="ContentsUnreadableInThisEncoding" xml:space="preserve">
     <value>Содержимое нельзя прочитать в этой кодировке</value>
   </data>
+  <data name="Notepad" xml:space="preserve">
+    <value>Блокнот</value>
+  </data>
+  <data name="MainWindow" xml:space="preserve">
+    <value>Главное окно</value>
+  </data>
+  <data name="New" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="NewTab" xml:space="preserve">
+    <value>Новая вкладка</value>
+  </data>
+  <data name="CloseTabsTextWillBeDeleted" xml:space="preserve">
+    <value>Закрыть вкладки? Текст в них будет удалён.</value>
+  </data>
+  <data name="TabTextUnreadableFormat" xml:space="preserve">
+    <value>Текст вкладки "{0}" не удалось прочитать, вкладка открыта только для чтения</value>
+  </data>
+  <data name="TabTextNotSavedFormat" xml:space="preserve">
+    <value>Текст вкладки "{0}" не сохранён</value>
+  </data>
+  <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
+    <value>Символа «{0}» нет в кодировке {1}. Текст сохранён в UTF-8.</value>
+  </data>
 </root>

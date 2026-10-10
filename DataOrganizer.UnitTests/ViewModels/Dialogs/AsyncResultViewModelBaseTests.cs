@@ -1,9 +1,16 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.ViewModels.Dialogs;
+using DialogHostAvalonia;
 using NSubstitute;
 using System;
 using System.Threading;
@@ -96,6 +103,75 @@ internal class AsyncResultViewModelBaseTests
 		await act
 			.Should()
 			.ThrowAsync<OperationCanceledException>();
+	}
+
+	/// <summary>
+	/// <see cref="AsyncResultViewModelBase{TResult}.SetResultAsync" />: the answer closes the dialog in the host that
+	/// shows it, while another window has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetResultAsync_Closes_The_Dialog_In_Its_Host()
+	{
+		// Arrange
+		Window mainWindow = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Notepad
+			}
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([mainWindow, notepadWindow]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
+		});
+
+		YesNoCancelBoxViewModel sut = mock.Create<YesNoCancelBoxViewModel>();
+
+		sut.DialogHostIdentifier = DialogHostIdentifiers.Notepad;
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Notepad);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.SetResultAsync(YesNoCancelAnswer.Yes);
+
+		bool isClosed = dialogClosed.IsCompleted;
+
+		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

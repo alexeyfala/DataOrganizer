@@ -44,14 +44,43 @@ public static class ItemDtoFactory
 		int count,
 		bool isEditing = false,
 		bool isExecuting = false,
-		EncryptionStatus encryptionStatus = EncryptionStatus.None)
+		EncryptionStatus encryptionStatus = EncryptionStatus.None,
+		EntityKind kind = EntityKind.File)
 	{
 		for (int i = 0; i < count; i++)
 		{
 			yield return CreateFileDto(
 				isEditing: isEditing,
 				isExecuting: isExecuting,
-				encryptionStatus: encryptionStatus);
+				encryptionStatus: encryptionStatus,
+				kind: kind);
+		}
+	}
+
+	/// <summary>
+	/// Creates a <see cref="FolderDto" /> with random properties.
+	/// </summary>
+	public static FolderDto CreateFolderDto(
+		in Guid id = default,
+		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
+		{
+			CreatedAt = DateTime.Now,
+			EncryptionStatus = encryptionStatus,
+			Id = id == default ? Guid.NewGuid() : id,
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = EntityKind.Folder,
+			Name = RandomString.Create(10),
+			UpdatedAt = DateTime.Now
+		};
+
+	/// <summary>
+	/// Creates the required number of random <see cref="FolderDto" /> objects.
+	/// </summary>
+	public static IEnumerable<FolderDto> CreateFolderDtos(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return CreateFolderDto();
 		}
 	}
 
@@ -94,32 +123,5 @@ public static class ItemDtoFactory
 		Name = name,
 		UpdatedAt = DateTime.UtcNow
 	};
-
-	/// <summary>
-	/// Creates a <see cref="FolderDto" /> with random properties.
-	/// </summary>
-	public static FolderDto CreateFolderDto(
-		in Guid id = default,
-		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
-		{
-			CreatedAt = DateTime.Now,
-			EncryptionStatus = encryptionStatus,
-			Id = id == default ? Guid.NewGuid() : id,
-			Index = RandomValues.CreateIntFrom10To100(),
-			Kind = EntityKind.Folder,
-			Name = RandomString.Create(10),
-			UpdatedAt = DateTime.Now
-		};
-
-	/// <summary>
-	/// Creates the required number of random <see cref="FolderDto" /> objects.
-	/// </summary>
-	public static IEnumerable<FolderDto> CreateFolderDtos(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return CreateFolderDto();
-		}
-	}
 	#endregion
 }

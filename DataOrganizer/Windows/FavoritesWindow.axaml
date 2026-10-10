@@ -5,6 +5,7 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -44,7 +45,7 @@
 				Grid.Row="0"
 				Margin="0.0,0.0,0.0,3.0"
 				Background="Transparent"
-				ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+				ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 				<!--
 					The grey of the logo is the Blue Grey swatch itself, so it takes a fill of its own over the primary color.
 				-->
@@ -67,8 +68,28 @@
 					Foreground="{StaticResource LightForegroundBrush}"
 					Text="{x:Static common:AppInfo.AppDisplayName}" />
 
-				<ToggleSwitch
+				<Button
+					x:Name="NotepadButton"
 					Grid.Column="3"
+					Margin="4.0,0.0"
+					Padding="6.0,0.0"
+					Command="{Binding ShowNotepadCommand}"
+					CommandParameter="{Binding $parent[Window]}"
+					Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
+					                                            IconSize=16.0}"
+					Foreground="{StaticResource LightForegroundBrush}"
+					Theme="{StaticResource MaterialFlatButton}"
+					ToolTip.Tip="{x:Static prop:Strings.Notepad}">
+					<Interaction.Behaviors>
+						<DoubleTappedTrigger MarkAsHandled="True">
+							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" CommandParameter="{Binding $parent[Window]}" />
+						</DoubleTappedTrigger>
+					</Interaction.Behaviors>
+				</Button>
+
+				<ToggleSwitch
+					x:Name="FixSwitch"
+					Grid.Column="4"
 					Margin="12.0,0.0"
 					Classes="accent PinToggleSwitchStyle"
 					IsChecked="{Binding IsPopupFixed, Mode=TwoWay}"
@@ -76,11 +97,16 @@
 
 					<Interaction.Behaviors>
 						<input:PointerHoverCommandBehavior Command="{Binding ShowPopupOnHoverCommand}" Delay="300" />
+
+						<!--
+							A double click stays on the switch, since the header switches to the editor on a double click.
+						-->
+						<DoubleTappedTrigger MarkAsHandled="True" />
 					</Interaction.Behaviors>
 				</ToggleSwitch>
 
 				<Button
-					Grid.Column="4"
+					Grid.Column="5"
 					Margin="4.0,0.0"
 					Padding="0.0"
 					CommandParameter="{Binding $parent[Window]}"
@@ -130,6 +156,10 @@
 						</ControlTheme>
 					</Grid.Resources>
 
+					<Interaction.Behaviors>
+						<input:PopupDialogKeysBehavior />
+					</Interaction.Behaviors>
+
 					<Border
 						Grid.Row="0"
 						Grid.RowSpan="2"
@@ -140,13 +170,16 @@
 						BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
 						<Border Background="{StaticResource MaterialPaperBrush}" CornerRadius="{StaticResource CornerRadius}">
-							<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
+							<dialogHost:DialogHost
+								dialogHost:DialogHostStyle.CornerRadius="6.0"
+								CloseOnClickAway="True"
+								Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
-									HostName="{Binding $self.Name}"
+									HostName="{x:Static helpers:SnackbarHostIdentifiers.Main}"
 									SnackbarHorizontalAlignment="Center">
 									<Interaction.Behaviors>
-										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}}" />
+										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Main}}" />
 									</Interaction.Behaviors>
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">

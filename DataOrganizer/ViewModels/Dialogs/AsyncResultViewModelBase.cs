@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Diagnostics;
 using DialogHostAvalonia;
 using System;
@@ -12,6 +13,13 @@ namespace DataOrganizer.ViewModels.Dialogs;
 
 public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {
+	#region Properties
+	/// <summary>
+	/// Identifier of the <see cref="DialogHost" /> that shows the dialog.
+	/// </summary>
+	public string DialogHostIdentifier { get; set; } = DialogHostIdentifiers.Main;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Longest wait for the closing animation of the dialog.
@@ -46,7 +54,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Sets a result and closes <see cref="DialogHost" />; the first result wins.
+	/// Sets a result and closes the dialog in its <see cref="DialogHost" />; the first result wins.
 	/// </summary>
 	public async Task SetResultAsync(TResult result)
 	{
@@ -58,13 +66,13 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 		_isResultSet = true;
 
-		if (_app.IsDialogHostOpened())
+		if (_app.IsDialogHostOpened(DialogHostIdentifier))
 		{
 			DialogOverlayPopupHost? host = DialogHost
-				.GetDialogSession(null)?
+				.GetDialogSession(DialogHostIdentifier)?
 				.Host;
 
-			DialogHost.Close(null);
+			DialogHost.Close(DialogHostIdentifier);
 
 			if (host is not null)
 			{
@@ -87,8 +95,8 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		in CancellationToken token = default)
 	{
 		// A dialog that failed to show has no host to fade out.
-		DialogOverlayPopupHost? host = !dialogClosed.IsCompleted && _app.IsDialogHostOpened()
-			? DialogHost.GetDialogSession(null)?.Host
+		DialogOverlayPopupHost? host = !dialogClosed.IsCompleted && _app.IsDialogHostOpened(DialogHostIdentifier)
+			? DialogHost.GetDialogSession(DialogHostIdentifier)?.Host
 			: null;
 
 		// The failure of a dialog that could not be shown goes to the log, and the caller still gets the default answer.

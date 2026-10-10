@@ -1,15 +1,13 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -25,36 +23,35 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	public ObservableCollection<FileDto> Items { get; } = [];
 
 	/// <summary>
+	/// File of the tab Ctrl+Tab goes back to.
+	/// </summary>
+	[ObservableProperty]
+	public partial FileDto? PreviousFile { get; set; }
+
+	/// <summary>
+	/// File of the selected tab.
+	/// </summary>
+	public FileDto? SelectedFile => Items.ElementAtOrDefault(SelectedIndex);
+
+	/// <summary>
 	/// Index of selected element in <see cref="TabControl" />.
 	/// </summary>
 	[ObservableProperty]
 	public partial int SelectedIndex { get; set; }
+
+	/// <summary>
+	/// Files of the tabs with the selected one and the one Ctrl+Tab goes back to.
+	/// </summary>
+	public EditorTabsState State => new()
+	{
+		Files = [.. Items],
+		// A closed file is no way back.
+		PreviousFile = PreviousFile is { } file && Items.Contains(file) ? file : null,
+		SelectedFile = SelectedFile
+	};
 	#endregion
 
 	#region Auto-Generated Commands
-	/// <summary>
-	/// Closes every tab in <see cref="TabControl" />.
-	/// </summary>
-	[RelayCommand]
-	internal void CloseAllTabs() => Items.ToArray().ForEach(CloseTab);
-
-	/// <summary>
-	/// Closes every tab in <see cref="TabControl" /> except the specified one.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanCloseOtherTabs))]
-	internal void CloseOtherTabs(FileDto dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		Items
-			.Where(x => !ReferenceEquals(x, dto))
-			.ToArray()
-			.ForEach(CloseTab);
-	}
-
 	/// <summary>
 	/// Closes a the tab in <see cref="TabControl" />.
 	/// </summary>
@@ -76,70 +73,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		CloseEditor(dto);
 	}
-
-	/// <summary>
-	/// Handles the <see cref="SelectingItemsControl.SelectionChanged" /> event of <see cref="TabControl" />.
-	/// </summary>
-	[RelayCommand]
-	private async Task SelectionChanged(SelectionChangedEventArgs? e)
-	{
-		if (e?.Source is not TabControl container || container.SelectedItem is not FileDto dto)
-		{
-			return;
-		}
-
-		_logger.LogDebug($@"File selected in ""{nameof(TabControl)}"":{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name))}");
-
-		TabItem? tabItem = null;
-
-		Func<bool> condition = () => (tabItem = container.ContainerFromItem(dto) as TabItem) is not null;
-
-		if (!await condition
-			.WaitAsync(100, 10)
-			.ConfigureAwait(true) || tabItem is null)
-		{
-			return;
-		}
-
-		// To be able to switch tabs with Ctrl+Tab while adding tab.
-		tabItem.Focus();
-	}
-
-	/// <summary>
-	/// Switches the <see cref="TabControl" /> to previous tab.
-	/// </summary>
-	[RelayCommand]
-	private void SwitchToPreviousTab()
-	{
-		if (_previousSelectedItem is null)
-		{
-			return;
-		}
-
-		int index = Items.IndexOf(_previousSelectedItem);
-
-		if (index < 0)
-		{
-			return;
-		}
-
-		SelectedIndex = index;
-	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="SelectedIndex" /> changes.
-	/// </summary>
-	partial void OnSelectedIndexChanged(int oldValue, int newValue)
-	{
-		_previousSelectedItem = oldValue >= 0 && oldValue < Items.Count
-			? Items[oldValue]
-			: null;
-	}
 	#endregion
 
 	#region Data
@@ -148,11 +81,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 	/// <inheritdoc cref="IViewCache" />
 	private readonly IViewCache _viewCache;
-
-	/// <summary>
-	/// Item that was selected before the current one.
-	/// </summary>
-	private FileDto? _previousSelectedItem;
 	#endregion
 
 	#region Constructors
@@ -173,8 +101,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Remove(dto);
 
 		_viewCache.Remove(dto);
-
-		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -208,15 +134,22 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Add(dto);
 
 		SelectedIndex = Items.Count - 1;
-
-		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
-	#endregion
 
-	#region Helpers
 	/// <summary>
-	/// Validates <see cref="CloseOtherTabsCommand" />.
+	/// Opens the files of the tabs, selects the tab of the selected file and gives Ctrl+Tab its way back.
 	/// </summary>
-	private bool CanCloseOtherTabs() => Items.Count > 1;
+	public void Restore(EditorTabsState state)
+	{
+		Items.AddRange(state.Files);
+
+		if (state.SelectedFile is { } selected && Items.Contains(selected))
+		{
+			SelectedIndex = Items.IndexOf(selected);
+		}
+
+		// After the selection, so the tabs it passes on its way do not take the place of the previous one.
+		PreviousFile = state.PreviousFile;
+	}
 	#endregion
 }

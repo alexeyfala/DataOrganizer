@@ -26,6 +26,11 @@ public interface IAppEnvironment
 	string DatabaseDirectoryPath { get; }
 
 	/// <summary>
+	/// Directory the texts of the notepad tabs live in.
+	/// </summary>
+	string NotepadDirectoryPath { get; }
+
+	/// <summary>
 	/// Application sandbox directory path.
 	/// </summary>
 	string SandboxDirectoryPath { get; }

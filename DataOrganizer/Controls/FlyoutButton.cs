@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -16,7 +17,7 @@ namespace DataOrganizer.Controls;
 
 /// <summary>
 /// A menu-style button that builds its content from <see cref="Icon" /> and <see cref="Header" />,
-/// and closes the flyout it sits in when clicked, unless it opens a flyout of its own.
+/// and closes the flyout it sits in, with every flyout above it, when clicked, unless it opens a flyout of its own.
 /// </summary>
 internal sealed class FlyoutButton : Button
 {
@@ -113,24 +114,23 @@ internal sealed class FlyoutButton : Button
 	{
 		base.OnClick();
 
+		// A button that opens a submenu leaves the menus open.
 		if (Flyout is not null)
 		{
 			return;
 		}
 
-		this
+		// The menu of the button and every menu above it, however each was shown; a closed menu cuts the chain of
+		// parents, so the menus are collected first.
+		foreach (Popup popup in this
 			.GetLogicalAncestors()
-			.OfType<Control>()
-			.FirstOrDefault(x => x.ContextFlyout is not null)?
-			.ContextFlyout?
-			.Hide();
-
-		this
-			.GetLogicalAncestors()
-			.OfType<Button>()
-			.FirstOrDefault(x => x.Flyout is not null)?
-			.Flyout?
-			.Hide();
+			.OfType<FlyoutPresenter>()
+			.Select(x => x.Parent)
+			.OfType<Popup>()
+			.ToArray())
+		{
+			popup.Close();
+		}
 	}
 
 	/// <inheritdoc />

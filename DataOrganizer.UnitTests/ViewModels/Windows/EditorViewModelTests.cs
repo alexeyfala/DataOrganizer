@@ -7,6 +7,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
@@ -724,6 +725,48 @@ internal class EditorViewModelTests
 		sut.CopyHistorySettings.ItemIds
 			.Should()
 			.Equal(keptFile.Id);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditingFilesViewLoadedCommand" />: the tabs of the editor open with the selected one
+	/// and the previous one.
+	/// </summary>
+	[Test]
+	public void EditingFilesViewLoadedCommand_Restores_The_Editor_Tabs()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.EditorTabs = new()
+		{
+			Files = files,
+			PreviousFile = files[2],
+			SelectedFile = files[1]
+		};
+
+		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+
+		// Act
+		sut
+			.EditingFilesViewLoadedCommand
+			.Execute(editingFiles);
+
+		// Assert
+		editingFiles.Items
+			.Should()
+			.Equal(files);
+
+		editingFiles.SelectedIndex
+			.Should()
+			.Be(1);
+
+		editingFiles.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
 	}
 
 	/// <summary>
@@ -1942,9 +1985,12 @@ internal class EditorViewModelTests
 
 		sut.AddHierarchy([editingFile, executingFile]);
 
-		sut
-			.OpenedInEditorFiles
-			.Add(editingFile);
+		sut.EditorTabs = new()
+		{
+			Files = [editingFile],
+			PreviousFile = null,
+			SelectedFile = editingFile
+		};
 
 		// Act
 		messenger.Send(new SessionAutoLockedMessage());
@@ -1960,9 +2006,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.OpenedInEditorFiles
+		sut.EditorTabs
 			.Should()
-			.BeEmpty();
+			.BeNull();
 
 		contentVisibility
 			.Received(1)
@@ -2168,6 +2214,73 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window gets the tabs of the editor with the selected
+	/// one and the previous one.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Passes_The_Editor_Tabs()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		EditorTabsState? passed = null;
+
+		FavoritesWindow? favoritesWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>();
+
+			viewLauncher.CreateFavoritesWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Do<EditorTabsState?>(x => passed = x),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+
+		editingFiles
+			.Items
+			.AddRange(files);
+
+		editingFiles.SelectedIndex = 1;
+
+		editingFiles.PreviousFile = files[2];
+
+		sut
+			.EditingFilesViewLoadedCommand
+			.Execute(editingFiles);
+
+		// Act
+		sut.ShowFavorites(null);
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		favoritesWindow?.Close();
+
+		// Assert
+		passed!.Files
+			.Should()
+			.Equal(files);
+
+		passed.SelectedFile
+			.Should()
+			.BeSameAs(files[1]);
+
+		passed.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window is configured and shown without shutting down the application.
 	/// </summary>
 	[AvaloniaTest]
@@ -2186,7 +2299,7 @@ internal class EditorViewModelTests
 
 			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<EditorTabsState?>(),
 				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(favoritesWindow);
 
@@ -2208,7 +2321,7 @@ internal class EditorViewModelTests
 
 		viewLauncher.Received(1).CreateFavoritesWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<EditorTabsState?>(),
 			Arg.Any<IEnumerable<FileDto>>());
 	}
 

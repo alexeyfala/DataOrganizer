@@ -145,6 +145,27 @@ internal class EmbeddedFileEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.DefaultSyntaxLanguageMark" />: the list of the languages marks the one that the
+	/// extension of the file gives.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultSyntaxLanguageMark_Is_Set()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		// Assert
+		sut.GetLogicalDescendants().OfType<DocumentEditorView>().Single().DefaultSyntaxLanguageMark
+			.Should()
+			.NotBeNullOrEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorView.Dispose" />: the highlighting of the editor goes away.
 	/// </summary>
 	[AvaloniaTest]

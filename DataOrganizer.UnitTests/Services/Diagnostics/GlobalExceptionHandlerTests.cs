@@ -14,6 +14,65 @@ internal class GlobalExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies an aggregate whose nested leaves all match is accepted.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Accepts_Nested_Matching_Leaves()
+	{
+		// Arrange
+		const string benign = "benign";
+
+		AggregateException aggregate = new(
+			new InvalidOperationException(benign),
+			new AggregateException(new InvalidOperationException(benign)));
+
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(aggregate, x => x.Message == benign);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies one other leaf among the matching ones keeps the aggregate from being swallowed.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Rejects_Aggregate_With_Other_Leaf()
+	{
+		// Arrange
+		const string benign = "benign";
+
+		AggregateException aggregate = new(
+			new InvalidOperationException(benign),
+			new InvalidOperationException("real failure"));
+
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(aggregate, x => x.Message == benign);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.AreAllLeaves" />: verifies an aggregate without leaves is not taken for a benign one.
+	/// </summary>
+	[Test]
+	public void AreAllLeaves_Rejects_Empty_Aggregate()
+	{
+		// Act
+		bool result = GlobalExceptionHandler.AreAllLeaves(new AggregateException(), _ => true);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="GlobalExceptionHandler.HandleException" />: a repeated exception with the same message is not logged twice.
 	/// </summary>
 	[Test]
@@ -97,6 +156,18 @@ internal class GlobalExceptionHandlerTests
 		afterReplay
 			.Should()
 			.BeGreaterThan(afterFiveUnique);
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.IsPlatformSettingsFailure" />: verifies a failure is detected by the settings reader in its stack.
+	/// </summary>
+	[TestCase("   at Avalonia.FreeDesktop.DBusPlatformSettings.<ReadAccentColorAsync>d__9.MoveNext()", ExpectedResult = true)]
+	[TestCase("   at Avalonia.FreeDesktop.DBusMenuExporter.<RegisterAsync>d__7.MoveNext()", ExpectedResult = false)]
+	[TestCase(null, ExpectedResult = false)]
+	public bool IsPlatformSettingsFailure_Detects_Settings_Reader_In_Stack(string? stackTrace)
+	{
+		// Act
+		return GlobalExceptionHandler.IsPlatformSettingsFailure(stackTrace);
 	}
 	#endregion
 }

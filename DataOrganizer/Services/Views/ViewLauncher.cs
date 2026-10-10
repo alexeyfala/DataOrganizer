@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
@@ -159,6 +160,8 @@ public class ViewLauncher : IViewLauncher
 
 		window.Closing -= ClipboardLogWindow_Closing;
 
+		_logger.LogInformation($@"Closing ""{nameof(ClipboardLogWindow)}"" and saving ""{nameof(ClipboardLogWindowSettings)}""");
+
 		SaveClipboardLogSettings(window);
 
 		window
@@ -208,9 +211,63 @@ public class ViewLauncher : IViewLauncher
 
 		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
 	}
+
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="NotepadWindow" />.
+	/// </summary>
+	private void NotepadWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not NotepadWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= NotepadWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(NotepadWindow)}"" and saving ""{nameof(NotepadWindowSettings)}""");
+
+		SaveNotepadSettings(window);
+
+		window
+			.ViewModel
+			.Dispose();
+	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void ActivateMainWindow()
+	{
+		if (_app.FindMainWindow() is not { } window)
+		{
+			return;
+		}
+
+		window.RestoreAndActivate();
+	}
+
+	/// <inheritdoc />
+	public void CenterMainWindow(Window owner)
+	{
+		if (_app.FindMainWindow() is not { } window)
+		{
+			return;
+		}
+
+		BringToScreenCenter(window, owner);
+	}
+
+	/// <inheritdoc />
+	public void CenterNotepadWindow(Window owner)
+	{
+		if (_app.FindWindow<NotepadWindow>() is not { } window)
+		{
+			return;
+		}
+
+		BringToScreenCenter(window, owner);
+	}
+
 	/// <inheritdoc />
 	public ClipboardLogWindow CreateClipboardLogWindow(Window owner)
 	{
@@ -259,7 +316,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default)
 	{
@@ -273,9 +330,7 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.AddHierarchy(hierarchy);
 
-		viewModel
-			.OpenedInEditorFiles
-			.AddRange(editingFiles);
+		viewModel.EditorTabs = editorTabs;
 
 		viewModel
 			.ExecutingFiles
@@ -330,7 +385,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
@@ -341,9 +396,7 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.AddHierarchy(hierarchy);
 
-		viewModel
-			.OpenedInEditorFiles
-			.AddRange(editingFiles);
+		viewModel.EditorTabs = editorTabs;
 
 		viewModel
 			.ExecutingFiles
@@ -382,13 +435,70 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				WindowKind.Editor => CreateEditorWindow(hierarchy, [], []),
-				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], []),
+				WindowKind.Editor => CreateEditorWindow(hierarchy, null, []),
+				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, null, []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return CreateEditorWindow(hierarchy, [], []);
+		return CreateEditorWindow(hierarchy, null, []);
+	}
+
+	/// <inheritdoc />
+	public NotepadWindow CreateNotepadWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(NotepadWindow)}""");
+
+		NotepadViewModel viewModel = _viewFactory.CreateViewModel<NotepadViewModel>();
+
+		viewModel.LoadTabs();
+
+		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
+
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings));
+
+		if (_jsonSerializer.DeserializeFromFile<NotepadWindowSettings>(filePath) is { } settings)
+		{
+			if (settings.Size is { Width: > 0, Height: > 0 })
+			{
+				window.Width = settings.Size.Width;
+
+				window.Height = settings.Size.Height;
+			}
+			else
+			{
+				IViewLauncher.SetDefaultSize(window);
+			}
+
+			PixelPoint savedPosition = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
+			{
+				window.Position = savedPosition;
+			}
+			else
+			{
+				PositionAtScreenCenter(window, owner);
+			}
+
+			window.Topmost = settings.IsTopmost;
+
+			window.WindowState = settings.WindowState == WindowState.Minimized
+				? WindowState.Normal
+				: settings.WindowState;
+		}
+		else
+		{
+			IViewLauncher.SetDefaultSize(window);
+
+			PositionAtScreenCenter(window, owner);
+		}
+
+		window.Closing += NotepadWindow_Closing;
+
+		return window;
 	}
 
 	/// <inheritdoc />
@@ -525,6 +635,31 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public void SaveNotepadSettings(NotepadWindow window)
+	{
+		try
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = window.Topmost,
+				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				WindowState = window.Placement.WindowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings)),
+				false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync(Window owner)
 	{
 		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
@@ -539,6 +674,19 @@ public class ViewLauncher : IViewLauncher
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
 		CreateClipboardLogWindow(owner).Show();
+	}
+
+	/// <inheritdoc />
+	public void ShowNotepadWindow(Window owner)
+	{
+		if (_app.FindWindow<NotepadWindow>() is { } existing)
+		{
+			existing.RestoreAndActivate();
+
+			return;
+		}
+
+		CreateNotepadWindow(owner).Show();
 	}
 
 	/// <inheritdoc />
@@ -601,6 +749,23 @@ public class ViewLauncher : IViewLauncher
 
 	#region Helpers
 	/// <summary>
+	/// Restores and activates <paramref name="target" />, then places it in the center of the screen
+	/// of <paramref name="owner" />.
+	/// </summary>
+	private static void BringToScreenCenter(Window target, Window owner)
+	{
+		target.RestoreAndActivate();
+
+		// A maximized window fills its own screen and stays there.
+		if (target.WindowState == WindowState.Maximized)
+		{
+			return;
+		}
+
+		PositionAtScreenCenter(target, owner);
+	}
+
+	/// <summary>
 	/// Places <paramref name="target" /> at the bottom-right corner of the screen
 	/// that <paramref name="owner" /> currently lives on.
 	/// </summary>
@@ -618,6 +783,28 @@ public class ViewLauncher : IViewLauncher
 			screen.WorkingArea,
 			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
 			(int)(marginDip * screen.Scaling));
+	}
+
+	/// <summary>
+	/// Places <paramref name="target" /> in the center of the working area of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	private static void PositionAtScreenCenter(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// A shown window knows its outer size, a new one only the size it asks for.
+		PixelSize size = PixelSize.FromSize(
+			target.FrameSize ?? new Avalonia.Size(target.Width, target.Height),
+			screen.Scaling);
+
+		target.Position = screen
+			.WorkingArea
+			.CenterRect(new PixelRect(size))
+			.Position;
 	}
 
 	/// <summary>
@@ -683,6 +870,12 @@ public class ViewLauncher : IViewLauncher
 						.Delay(300)
 						.ConfigureAwait(true);
 				}
+			}
+
+			// Closed here, so that it saves its settings while the services are still alive.
+			if (_app.FindWindow<NotepadWindow>() is { } notepad)
+			{
+				notepad.Close();
 			}
 
 			Guid[] executingFiles = [.. hierarchy

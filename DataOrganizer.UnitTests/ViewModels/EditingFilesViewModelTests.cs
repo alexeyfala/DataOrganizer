@@ -1,5 +1,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -11,107 +12,6 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class EditingFilesViewModelTests
 {
 	#region Methods
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseAllTabs" />: removes every tab and clears the editing flag of each file.
-	/// </summary>
-	[Test]
-	public void CloseAllTabs_Removes_Every_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto[] dtos =
-		[
-			ItemDtoFactory.CreateFileDto(),
-			ItemDtoFactory.CreateFileDto(),
-			ItemDtoFactory.CreateFileDto()
-		];
-
-		dtos.ForEach(sut.OpenInEditor);
-
-		// Act
-		sut.CloseAllTabs();
-
-		// Assert
-		sut.Items
-			.Should()
-			.BeEmpty();
-
-		dtos
-			.Should()
-			.OnlyContain(x => !x.IsEditing);
-	}
-
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseOtherTabs" />: keeps the specified tab and removes the rest.
-	/// </summary>
-	[Test]
-	public void CloseOtherTabs_Keeps_Only_The_Specified_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto kept = ItemDtoFactory.CreateFileDto();
-
-		FileDto closed = ItemDtoFactory.CreateFileDto();
-
-		sut.OpenInEditor(kept);
-
-		sut.OpenInEditor(closed);
-
-		// Act
-		sut.CloseOtherTabs(kept);
-
-		// Assert
-		sut.Items
-			.Should()
-			.Equal(kept);
-
-		kept.IsEditing
-			.Should()
-			.BeTrue();
-
-		closed.IsEditing
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.CloseOtherTabsCommand" />: cannot be executed while a single tab is opened.
-	/// </summary>
-	[Test]
-	public void CloseOtherTabsCommand_Is_Disabled_For_A_Single_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto dto = ItemDtoFactory.CreateFileDto();
-
-		sut.OpenInEditor(dto);
-
-		// Act
-		bool canExecuteWithSingleTab = sut.CloseOtherTabsCommand.CanExecute(dto);
-
-		sut.OpenInEditor(ItemDtoFactory.CreateFileDto());
-
-		bool canExecuteWithSecondTab = sut.CloseOtherTabsCommand.CanExecute(dto);
-
-		// Assert
-		canExecuteWithSingleTab
-			.Should()
-			.BeFalse();
-
-		canExecuteWithSecondTab
-			.Should()
-			.BeTrue();
-	}
-
 	/// <summary>
 	/// <see cref="EditingFilesViewModel.CloseTab" />: removes the tab from the control and clears the file's editing flag.
 	/// </summary>
@@ -195,89 +95,108 @@ internal class EditingFilesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditingFilesViewModel.SwitchToPreviousTabCommand" />: follows the previously selected file
-	/// after other tabs shifted its index.
+	/// <see cref="EditingFilesViewModel.Restore" />: the files open in their order with the tab of the selected file
+	/// selected and the previous file kept for Ctrl+Tab.
 	/// </summary>
 	[Test]
-	public void SwitchToPreviousTabCommand_Follows_The_File_Not_The_Index()
+	public void Restore_Opens_The_Tabs()
 	{
 		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileDto first = ItemDtoFactory.CreateFileDto();
-
-		// Becomes the previously selected tab once the third file is opened.
-		FileDto second = ItemDtoFactory.CreateFileDto();
-
-		new[] { first, second, ItemDtoFactory.CreateFileDto() }.ForEach(sut.OpenInEditor);
-
-		sut.CloseTab(first);
-
 		// Act
-		sut.SwitchToPreviousTabCommand.Execute(null);
+		sut.Restore(new()
+		{
+			Files = files,
+			PreviousFile = files[2],
+			SelectedFile = files[1]
+		});
 
 		// Assert
-		sut.Items[sut.SelectedIndex]
+		sut.Items
 			.Should()
-			.BeSameAs(second);
-	}
+			.Equal(files);
 
-	/// <summary>
-	/// <see cref="EditingFilesViewModel.SwitchToPreviousTabCommand" />: does nothing once the previously
-	/// selected tab is closed.
-	/// </summary>
-	[Test]
-	public void SwitchToPreviousTabCommand_Ignores_A_Closed_Tab()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
-
-		FileDto first = ItemDtoFactory.CreateFileDto();
-
-		sut.OpenInEditor(first);
-
-		sut.OpenInEditor(ItemDtoFactory.CreateFileDto());
-
-		sut.CloseTab(first);
-
-		int selectedIndexBefore = sut.SelectedIndex;
-
-		// Act
-		sut.SwitchToPreviousTabCommand.Execute(null);
-
-		// Assert
 		sut.SelectedIndex
 			.Should()
-			.Be(selectedIndexBefore);
+			.Be(1);
+
+		sut.PreviousFile
+			.Should()
+			.BeSameAs(files[2]);
 	}
 
 	/// <summary>
-	/// <see cref="EditingFilesViewModel.SwitchToPreviousTabCommand" />: selects the tab that was active
-	/// before the current one.
+	/// <see cref="EditingFilesViewModel.State" />: the file of a closed tab is no way back for Ctrl+Tab.
 	/// </summary>
 	[Test]
-	public void SwitchToPreviousTabCommand_Selects_The_Previously_Selected_Tab()
+	public void State_Drops_A_Closed_Previous_File()
 	{
 		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 2)];
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileDto second = ItemDtoFactory.CreateFileDto();
+		sut
+			.Items
+			.AddRange(files);
 
-		new[] { ItemDtoFactory.CreateFileDto(), second, ItemDtoFactory.CreateFileDto() }.ForEach(sut.OpenInEditor);
+		sut.PreviousFile = files[1];
+
+		sut.CloseTab(files[1]);
 
 		// Act
-		sut.SwitchToPreviousTabCommand.Execute(null);
+		EditorTabsState state = sut.State;
 
 		// Assert
-		sut.Items[sut.SelectedIndex]
+		state.PreviousFile
 			.Should()
-			.BeSameAs(second);
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.State" />: the files of the tabs in their order, with the selected one and the
+	/// previous one.
+	/// </summary>
+	[Test]
+	public void State_Holds_The_Tabs()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
+
+		sut
+			.Items
+			.AddRange(files);
+
+		sut.SelectedIndex = 1;
+
+		sut.PreviousFile = files[0];
+
+		// Act
+		EditorTabsState state = sut.State;
+
+		// Assert
+		state.Files
+			.Should()
+			.Equal(files);
+
+		state.SelectedFile
+			.Should()
+			.BeSameAs(files[1]);
+
+		state.PreviousFile
+			.Should()
+			.BeSameAs(files[0]);
 	}
 	#endregion
 }

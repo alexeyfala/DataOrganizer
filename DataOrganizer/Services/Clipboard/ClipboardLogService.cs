@@ -429,14 +429,14 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <inheritdoc />
 	public void Stop()
 	{
-		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(Stop)} requested.");
-
 		CancellationTokenSource? cancellation = Interlocked.Exchange(ref _stopCts, null);
 
 		if (cancellation is null)
 		{
 			return;
 		}
+
+		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(Stop)} requested.");
 
 		try
 		{

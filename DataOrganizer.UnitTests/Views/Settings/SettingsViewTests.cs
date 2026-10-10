@@ -1,19 +1,25 @@
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
+using DialogHostAvalonia;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views.Settings;
 
@@ -28,6 +34,59 @@ internal class SettingsViewTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DialogViewBase" />: the Escape key closes the settings in the host of the main window, while the
+	/// notepad has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void Escape_Closes_The_Dialog_Of_Its_Own_Host()
+	{
+		// Arrange
+		Window mainWindow = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Notepad
+			}
+		};
+
+		notepadWindow.Show();
+
+		// Shown last, the main window has the keyboard, as when the settings open in it.
+		mainWindow.Show();
+
+		Task dialogClosed = DialogHost.Show(new SettingsView(), DialogHostIdentifiers.Main);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		mainWindow.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		mainWindow.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isClosed = dialogClosed.IsCompleted;
+
+		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="SettingsView" />: switching a settings category does not change the height of the view.
 	/// </summary>

@@ -63,6 +63,10 @@ The following are known and accepted, so there is no need to report them.
   decrypted into a sandbox folder and erased when it is closed, but the opening
   application keeps its own autosave and recovery copies, and the operating
   system records the file name in recent items and jump lists.
+- **Notepad texts are plain text.** The text of every tab of the notepad lies
+  unencrypted in the `Notepad` folder of the application data, written a
+  moment after each pause in typing. Closing a tab erases its file, only as
+  well as erasing allows.
 - **Record names are not encrypted.** Encryption covers contents and notes;
   everything else is stored as plain text in the database and appears in
   exported files. Names are the obvious part. The less obvious one is the

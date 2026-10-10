@@ -2,7 +2,6 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.Models.Dataset"
 	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
@@ -12,10 +11,8 @@
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
-	<!-- KeyValueRecordContextMenuTemplate -->
-	<DataTemplate
-		x:Key="KeyValueRecordContextMenuTemplate"
-		x:DataType="dataset:KeyValueRecord">
+	<!--  KeyValueRecordContextMenuTemplate  -->
+	<DataTemplate x:Key="KeyValueRecordContextMenuTemplate" x:DataType="dataset:KeyValueRecord">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -24,9 +21,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Key, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Key, Mode=OneTime}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}"
@@ -57,10 +52,8 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- ValueRecordContextMenuTemplate -->
-	<DataTemplate
-		x:Key="ValueRecordContextMenuTemplate"
-		x:DataType="dataset:ValueRecord">
+	<!--  ValueRecordContextMenuTemplate  -->
+	<DataTemplate x:Key="ValueRecordContextMenuTemplate" x:DataType="dataset:ValueRecord">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -69,9 +62,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Value, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Value, Mode=OneTime}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}"
@@ -96,10 +87,8 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- RecordsGroupContextMenuTemplate -->
-	<DataTemplate
-		x:Key="RecordsGroupContextMenuTemplate"
-		x:DataType="dataset:RecordsGroup">
+	<!--  RecordsGroupContextMenuTemplate  -->
+	<DataTemplate x:Key="RecordsGroupContextMenuTemplate" x:DataType="dataset:RecordsGroup">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -112,9 +101,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Name, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
 				<controls:FlyoutButton
@@ -133,13 +120,9 @@
 
 			<Separator />
 
-			<controls:FlyoutButton
-				Header="{x:Static prop:Strings.Add}"
-				Icon="Plus">
+			<controls:FlyoutButton Header="{x:Static prop:Strings.Add}" Icon="Plus">
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Right">
+					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
 						<StackPanel Orientation="Vertical">
 							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddKeyValueCommand}"
@@ -169,13 +152,9 @@
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<controls:FlyoutButton
-				Header="{x:Static prop:Strings.Options}"
-				Icon="CogOutline">
+			<controls:FlyoutButton Header="{x:Static prop:Strings.Options}" Icon="CogOutline">
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Right">
+					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
 						<StackPanel Orientation="Vertical">
 							<controls:FlyoutButton
 								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
@@ -223,10 +202,8 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- FolderInTreeViewContextMenuTemplate -->
-	<DataTemplate
-		x:Key="FolderInTreeViewContextMenuTemplate"
-		x:DataType="entities:FolderDto">
+	<!--  FolderInTreeViewContextMenuTemplate  -->
+	<DataTemplate x:Key="FolderInTreeViewContextMenuTemplate" x:DataType="entities:FolderDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -234,9 +211,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Name, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
 				<controls:FlyoutButton
@@ -277,13 +252,9 @@
 
 			<Separator />
 
-			<controls:FlyoutButton
-				Header="{x:Static prop:Strings.Encryption}"
-				Icon="LockOutline">
+			<controls:FlyoutButton Header="{x:Static prop:Strings.Encryption}" Icon="LockOutline">
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Right">
+					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
 						<StackPanel Orientation="Vertical">
 							<controls:FlyoutButton
 								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFolderContentsCommand}"
@@ -336,10 +307,8 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- FileInTreeViewContextMenuTemplate -->
-	<DataTemplate
-		x:Key="FileInTreeViewContextMenuTemplate"
-		x:DataType="entities:FileDto">
+	<!--  FileInTreeViewContextMenuTemplate  -->
+	<DataTemplate x:Key="FileInTreeViewContextMenuTemplate" x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -347,9 +316,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Name, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
 				<controls:FlyoutButton
@@ -427,9 +394,7 @@
 				Icon="LockOutline"
 				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}">
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Right">
+					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
 						<StackPanel Orientation="Vertical">
 							<controls:FlyoutButton
 								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFileContentsCommand}"
@@ -475,10 +440,8 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- EditingFileTabContextMenuTemplate -->
-	<DataTemplate
-		x:Key="EditingFileTabContextMenuTemplate"
-		x:DataType="entities:FileDto">
+	<!--  FileInListContextMenuTemplate  -->
+	<DataTemplate x:Key="FileInListContextMenuTemplate" x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -487,43 +450,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<controls:FlyoutButton
-				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
-				CommandParameter="{Binding}"
-				Header="{x:Static prop:Strings.Close}"
-				Icon="Close"
-				IconForeground="{StaticResource WarningBrush}" />
-
-			<controls:FlyoutButton
-				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseOtherTabsCommand}"
-				CommandParameter="{Binding}"
-				Header="{x:Static prop:Strings.CloseOtherTabs}"
-				Icon="CloseBoxMultipleOutline"
-				IconForeground="{StaticResource WarningBrush}" />
-
-			<controls:FlyoutButton
-				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseAllTabsCommand}"
-				Header="{x:Static prop:Strings.CloseAllTabs}"
-				Icon="CloseBoxMultiple"
-				IconForeground="{StaticResource WarningBrush}" />
-		</StackPanel>
-	</DataTemplate>
-
-	<!-- FileInListContextMenuTemplate -->
-	<DataTemplate
-		x:Key="FileInListContextMenuTemplate"
-		x:DataType="entities:FileDto">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-			</StackPanel.Styles>
-
-			<TextBlock
-				Classes="NameInFlyoutTextBlockStyle"
-				Text="{Binding Name, Mode=OneTime}" />
+			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"

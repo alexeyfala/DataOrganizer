@@ -2,9 +2,10 @@ using Avalonia;
 using Avalonia.Logging;
 using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
+using Shared.Extensions;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SerilogLevel = Serilog.Events.LogEventLevel;
 
 namespace DataOrganizer.Services.Diagnostics;
 
@@ -18,9 +19,10 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	private const LogEventLevel MinimumLevel = LogEventLevel.Warning;
 
 	/// <summary>
-	/// Names of the holes of a message template whose values come from code or markup, never from the data.
+	/// Names of the holes of a message template whose values may come from the data, such as the value that a binding
+	/// failed to convert: the log lies on the disk in plain text, so only their length reaches it.
 	/// </summary>
-	private static readonly string[] PlainHoles = ["Expression", "ExpressionErrorPoint", "Property"];
+	private static readonly string[] DataHoles = ["Codepoint", "Message", "Uri", "Value"];
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -104,6 +106,33 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 
 		Logger.Sink = this;
 	}
+
+	/// <summary>
+	/// <c>True</c> for an error of IBus about the input context of a popup or a window that closes on Linux: ibus-portal
+	/// answers its destruction with an error, and the calls queued before it reach the context after it is gone.
+	/// </summary>
+	internal static bool IsIBusClosingNoise(string area, string messageTemplate)
+	{
+		const string imeArea = "IME";
+
+		const string callFailure = "Error:";
+
+		const string destroyFailure = "Error while destroying the context:";
+
+		const string destroyReply = "Method Destroy is not implemented on interface org.freedesktop.IBus.Service";
+
+		const string unknownMethod = "org.freedesktop.DBus.Error.UnknownMethod";
+
+		const string contextPath = "/org/freedesktop/IBus/InputContext_";
+
+		// GLib words a missing context in the language of the system, so it is known by the name of the error and the path.
+		return area == imeArea
+			&& (messageTemplate.StartsWith(callFailure, StringComparison.Ordinal)
+				|| messageTemplate.StartsWith(destroyFailure, StringComparison.Ordinal))
+			&& (messageTemplate.Contains(destroyReply, StringComparison.Ordinal)
+				|| (messageTemplate.Contains(unknownMethod, StringComparison.Ordinal)
+					&& messageTemplate.Contains(contextPath, StringComparison.Ordinal)));
+	}
 	#endregion
 
 	#region Helpers
@@ -121,8 +150,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	}
 
 	/// <summary>
-	/// Returns the value of a hole as it is when it comes from code or markup, and otherwise only the length of its
-	/// text.
+	/// Returns the value of a hole as it is, or only the length of its text when it may come from the data.
 	/// </summary>
 	private static string DescribeValue(string hole, object? value)
 	{
@@ -131,7 +159,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 			return "null";
 		}
 
-		return PlainHoles.Contains(hole) ? $"'{text}'" : $"({text.Length} characters)";
+		return DataHoles.Contains(hole) ? $"({text.Length} characters)" : $"'{text}'";
 	}
 
 	/// <summary>
@@ -162,7 +190,8 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	}
 
 	/// <summary>
-	/// Writes an entry to <see cref="ILogger" /> when its level is high enough.
+	/// Writes an entry to <see cref="ILogger" /> when its level is high enough and it is no known noise, with its source
+	/// at the end, as every entry of the application.
 	/// </summary>
 	private void Write(
 		LogEventLevel level,
@@ -171,15 +200,26 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 		string messageTemplate,
 		object?[] propertyValues)
 	{
-		if (level < MinimumLevel)
+		if (level < MinimumLevel || (OperatingSystem.IsLinux() && IsIBusClosingNoise(area, messageTemplate)))
 		{
 			return;
 		}
 
-		_logger.Write(
-			(SerilogLevel)level,
-			"{0}",
-			Render(area, source, messageTemplate, propertyValues));
+		string text = Render(
+			area,
+			source,
+			messageTemplate,
+			propertyValues);
+
+		if (level == LogEventLevel.Warning)
+		{
+			_logger.LogWarning(text);
+
+			return;
+		}
+
+		// A fatal entry goes as an error, since there is no method for it; the errors of Avalonia do not stop the debugger.
+		_logger.LogError(text, breakInDebugger: false);
 	}
 	#endregion
 }

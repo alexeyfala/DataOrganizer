@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -27,6 +28,21 @@ public interface IViewLauncher
 
 	#region Methods
 	/// <summary>
+	/// Brings the main window back from the minimized state and activates it.
+	/// </summary>
+	void ActivateMainWindow();
+
+	/// <summary>
+	/// Brings the main window to the center of the screen of <paramref name="owner" />.
+	/// </summary>
+	void CenterMainWindow(Window owner);
+
+	/// <summary>
+	/// Brings the open <see cref="NotepadWindow" /> to the center of the screen of <paramref name="owner" />.
+	/// </summary>
+	void CenterNotepadWindow(Window owner);
+
+	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	ClipboardLogWindow CreateClipboardLogWindow(Window owner);
@@ -36,7 +52,7 @@ public interface IViewLauncher
 	/// </summary>
 	EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default);
 
@@ -45,13 +61,18 @@ public interface IViewLauncher
 	/// </summary>
 	FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		IEnumerable<FileDto> editingFiles,
+		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles);
 
 	/// <summary>
 	/// Configures the main application window.
 	/// </summary>
 	Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
+
+	/// <summary>
+	/// Configures <see cref="NotepadWindow" />.
+	/// </summary>
+	NotepadWindow CreateNotepadWindow(Window owner);
 
 	/// <summary>
 	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
@@ -69,10 +90,20 @@ public interface IViewLauncher
 	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
 
 	/// <summary>
+	/// Saves <see cref="NotepadWindow" /> settings to the file.
+	/// </summary>
+	void SaveNotepadSettings(NotepadWindow window);
+
+	/// <summary>
 	/// Prompts to unlock the persisted clipboard history when required, then opens
 	/// <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	Task ShowClipboardLogWindowAsync(Window owner);
+
+	/// <summary>
+	/// Activates the open <see cref="NotepadWindow" /> or opens a new one.
+	/// </summary>
+	void ShowNotepadWindow(Window owner);
 
 	/// <summary>
 	/// Shows a notice in a window of its own and waits until it is closed; needs no other window.

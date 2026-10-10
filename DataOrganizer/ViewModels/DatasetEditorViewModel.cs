@@ -1192,7 +1192,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		CancellationToken token = default)
 	{
 		if (!await _dialogService
-			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token)
+			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token: token)
 			.ConfigureAwait(false))
 		{
 			return;

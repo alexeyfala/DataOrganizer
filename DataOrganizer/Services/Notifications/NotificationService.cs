@@ -1,11 +1,15 @@
 using Avalonia.Threading;
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Extensions;
 using System;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 
 namespace DataOrganizer.Services.Notifications;
 
@@ -19,9 +23,9 @@ public sealed class NotificationService : INotificationService
 	private readonly ILogger _logger;
 
 	/// <summary>
-	/// Messages shown inside the window that carries the host.
+	/// Messages shown inside the windows, each window with its own, by the identifier of its snackbar host.
 	/// </summary>
-	private readonly MessageChannel<SnackbarContent> _snackbars;
+	private readonly FrozenDictionary<string, MessageChannel<SnackbarContent>> _snackbars;
 
 	/// <summary>
 	/// Messages shown in a window of their own.
@@ -38,7 +42,8 @@ public sealed class NotificationService : INotificationService
 	public NotificationService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		ISnackbarPresenter snackbarPresenter,
+		[FromKeyedServices(SnackbarHostIdentifiers.Main)] ISnackbarPresenter mainSnackbarPresenter,
+		[FromKeyedServices(SnackbarHostIdentifiers.Notepad)] ISnackbarPresenter notepadSnackbarPresenter,
 		IToastPresenter toastPresenter,
 		TimeProvider timeProvider)
 	{
@@ -46,7 +51,11 @@ public sealed class NotificationService : INotificationService
 
 		_logger = logger;
 
-		_snackbars = new(snackbarPresenter, timeProvider);
+		_snackbars = new Dictionary<string, MessageChannel<SnackbarContent>>
+		{
+			[SnackbarHostIdentifiers.Main] = new(mainSnackbarPresenter, timeProvider),
+			[SnackbarHostIdentifiers.Notepad] = new(notepadSnackbarPresenter, timeProvider)
+		}.ToFrozenDictionary();
 
 		_toasts = new(toastPresenter, timeProvider);
 	}
@@ -54,25 +63,40 @@ public sealed class NotificationService : INotificationService
 
 	#region Methods
 	/// <inheritdoc />
-	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Error);
+	public void ShowErrorSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		ShowSnackbar(text, SnackbarMessageLevel.Error, snackbarHostIdentifier);
+	}
 
 	/// <inheritdoc />
-	public void ShowInformationSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Information);
+	public void ShowInformationSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		ShowSnackbar(text, SnackbarMessageLevel.Information, snackbarHostIdentifier);
+	}
 
 	/// <inheritdoc />
 	public void ShowToast(string message) => _dispatcher.Post(() => Show(_toasts, message));
 
 	/// <inheritdoc />
-	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
+	public void ShowWarningSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		ShowSnackbar(text, SnackbarMessageLevel.Warning, snackbarHostIdentifier);
+	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Lets both channels move on and stops the loop once neither has anything left to do.
+	/// Lets every channel move on and stops the loop once none has anything left to do.
 	/// </summary>
 	internal bool Tick()
 	{
-		bool hasSnackbars = _snackbars.Tick();
+		bool hasSnackbars = false;
+
+		// Every window has its own channel, and each one moves on.
+		foreach (MessageChannel<SnackbarContent> channel in _snackbars.Values)
+		{
+			hasSnackbars |= channel.Tick();
+		}
 
 		bool hasToasts = _toasts.Tick();
 
@@ -125,11 +149,13 @@ public sealed class NotificationService : INotificationService
 	}
 
 	/// <summary>
-	/// Shows a snackbar message with the given level.
+	/// Shows a snackbar message with the given level inside the window of a snackbar host.
 	/// </summary>
-	private void ShowSnackbar(string text, SnackbarMessageLevel level)
+	private void ShowSnackbar(string text, SnackbarMessageLevel level, string snackbarHostIdentifier)
 	{
-		_dispatcher.Post(() => LogSnackbar(text, level, Show(_snackbars, new SnackbarContent(text, level))));
+		MessageChannel<SnackbarContent> channel = _snackbars[snackbarHostIdentifier];
+
+		_dispatcher.Post(() => LogSnackbar(text, level, Show(channel, new SnackbarContent(text, level))));
 	}
 
 	/// <summary>

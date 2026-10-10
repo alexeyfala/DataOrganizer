@@ -1,0 +1,98 @@
+<Window
+	x:Class="DataOrganizer.Windows.NotepadWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:chrome="using:Avalonia.Controls.Chrome"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:markup="using:DataOrganizer.Markup"
+	xmlns:materialControls="using:Material.Styles.Controls"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	MinWidth="400.0"
+	MinHeight="300.0"
+	x:DataType="windows:NotepadViewModel"
+	ExtendClientAreaTitleBarHeightHint="{StaticResource TitleBarHeight}"
+	ExtendClientAreaToDecorationsHint="True"
+	Icon="/Assets/Logo.ico"
+	ShowActivated="True"
+	WindowDecorations="{OnPlatform Default=BorderOnly,
+	                               Windows=Full,
+	                               macOS=Full}"
+	mc:Ignorable="d">
+
+	<Window.Styles>
+		<!--  Avalonia draws its own title bar only with full decorations; BorderOnly keeps the theme of Material.  -->
+		<Style Selector="Window[WindowDecorations=Full]">
+			<Setter Property="WindowDecorationsTheme" Value="{StaticResource EmptyWindowDecorationsControlTheme}" />
+		</Style>
+	</Window.Styles>
+
+	<DockPanel Margin="{Binding $parent[Window].OffScreenMargin, Mode=OneWay}">
+		<views:TitleBarView DockPanel.Dock="Top">
+			<views:TitleBarView.ButtonContent>
+				<Button
+					x:Name="HomeButton"
+					chrome:WindowDecorationProperties.ElementRole="User"
+					Classes="CaptionButtonStyle primary"
+					Command="{Binding ActivateMainWindowCommand}"
+					Content="{materialIcons:MaterialIconExt Kind=HomeOutline,
+					                                        IconSize={StaticResource CaptionIconSize}}"
+					ToolTip.Tip="{x:Static prop:Strings.MainWindow}">
+					<Interaction.Behaviors>
+						<DoubleTappedTrigger MarkAsHandled="True">
+							<InvokeCommandAction Command="{Binding CenterMainWindowCommand}" CommandParameter="{Binding $parent[Window]}" />
+						</DoubleTappedTrigger>
+					</Interaction.Behaviors>
+				</Button>
+			</views:TitleBarView.ButtonContent>
+		</views:TitleBarView>
+
+		<dialogHost:DialogHost
+			dialogHost:DialogHostStyle.CornerRadius="6.0"
+			CloseOnClickAway="True"
+			Identifier="{x:Static helpers:DialogHostIdentifiers.Notepad}">
+			<materialControls:SnackbarHost
+				x:Name="SnackbarHost"
+				HostName="{x:Static helpers:SnackbarHostIdentifiers.Notepad}"
+				SnackbarHorizontalAlignment="Center">
+				<Interaction.Behaviors>
+					<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Notepad}}" />
+				</Interaction.Behaviors>
+
+				<controls:DocumentTabControl
+					x:Name="Tabs"
+					AddCommand="{Binding AddTabCommand}"
+					CloseCommand="{Binding CloseTabCommand}"
+					CloseTabsCommand="{Binding CloseTabsCommand}"
+					ItemsSource="{Binding Tabs, Mode=OneTime}"
+					PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
+					SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+					<controls:DocumentTabControl.AdditionalMenuItemsTemplate>
+						<DataTemplate x:DataType="vm:NotepadTabViewModel">
+							<controls:FlyoutButton
+								Command="{Binding $parent[Window].((windows:NotepadViewModel)DataContext).RenameTabCommand}"
+								CommandParameter="{Binding}"
+								Header="{x:Static prop:Strings.Rename}"
+								Icon="FormTextbox" />
+						</DataTemplate>
+					</controls:DocumentTabControl.AdditionalMenuItemsTemplate>
+
+					<controls:DocumentTabControl.ItemTemplate>
+						<DataTemplate x:DataType="vm:NotepadTabViewModel">
+							<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Header, Mode=OneWay}" />
+						</DataTemplate>
+					</controls:DocumentTabControl.ItemTemplate>
+				</controls:DocumentTabControl>
+			</materialControls:SnackbarHost>
+		</dialogHost:DialogHost>
+	</DockPanel>
+</Window>

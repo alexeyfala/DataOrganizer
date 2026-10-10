@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Notifications;
@@ -166,6 +167,110 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="NotificationService.ShowInformationSnackbar" />: a message that names no window goes to the main one.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Posts_In_The_Main_Window_By_Default()
+	{
+		// Arrange
+		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+
+		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			mainPresenter
+				.CanShow
+				.Returns(true);
+
+			// Able to show, so a message sent to the wrong window would reach it.
+			notepadPresenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			// Both presenters have one type, so each reaches its parameter by name.
+			builder
+				.RegisterType<NotificationService>()
+				.WithParameter("mainSnackbarPresenter", mainPresenter)
+				.WithParameter("notepadSnackbarPresenter", notepadPresenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		// Act
+		sut.ShowInformationSnackbar("first");
+
+		// Assert
+		mainPresenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
+
+		notepadPresenter
+			.DidNotReceive()
+			.Post(Arg.Any<SnackbarContent>());
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.ShowWarningSnackbar" />: a message goes to the window whose snackbar host it names.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Posts_In_The_Window_It_Names()
+	{
+		// Arrange
+		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+
+		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// Able to show, so a message sent to the wrong window would reach it.
+			mainPresenter
+				.CanShow
+				.Returns(true);
+
+			notepadPresenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			// Both presenters have one type, so each reaches its parameter by name.
+			builder
+				.RegisterType<NotificationService>()
+				.WithParameter("mainSnackbarPresenter", mainPresenter)
+				.WithParameter("notepadSnackbarPresenter", notepadPresenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		// Act
+		sut.ShowWarningSnackbar("first", SnackbarHostIdentifiers.Notepad);
+
+		// Assert
+		notepadPresenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
+
+		mainPresenter
+			.DidNotReceive()
+			.Post(Arg.Any<SnackbarContent>());
+	}
+
+	/// <summary>
 	/// <see cref="NotificationService.ShowInformationSnackbar" />: the first message goes to the host without waiting.
 	/// </summary>
 	[Test]
@@ -200,6 +305,57 @@ internal class NotificationServiceTests
 		presenter
 			.Received(1)
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.ShowInformationSnackbar" />: each window has a queue of its own, so a message of one
+	/// window does not wait while another window shows one.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Shows_The_Messages_Of_Two_Windows_At_Once()
+	{
+		// Arrange
+		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+
+			// The main window shows the first message, behind which a shared queue would hold the second one.
+			mainPresenter
+				.CanShow
+				.Returns(true);
+
+			notepadPresenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			// Both presenters have one type, so each reaches its parameter by name.
+			builder
+				.RegisterType<NotificationService>()
+				.WithParameter("mainSnackbarPresenter", mainPresenter)
+				.WithParameter("notepadSnackbarPresenter", notepadPresenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		// Act
+		sut.ShowInformationSnackbar("second", SnackbarHostIdentifiers.Notepad);
+
+		// Assert
+		notepadPresenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}
 
 	/// <summary>
@@ -581,6 +737,64 @@ internal class NotificationServiceTests
 			.BeTrue();
 
 		presenter
+			.Received(1)
+			.Remove();
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: the queue of every window moves on, so each shown message is taken off the
+	/// screen when its time is up.
+	/// </summary>
+	[Test]
+	public void Tick_Removes_The_Shown_Message_Of_Each_Window()
+	{
+		// Arrange
+		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+
+		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			mainPresenter
+				.CanShow
+				.Returns(true);
+
+			notepadPresenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			// Both presenters have one type, so each reaches its parameter by name.
+			builder
+				.RegisterType<NotificationService>()
+				.WithParameter("mainSnackbarPresenter", mainPresenter)
+				.WithParameter("notepadSnackbarPresenter", notepadPresenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second", SnackbarHostIdentifiers.Notepad);
+
+		time.Advance(WholeTurn);
+
+		// Act
+		sut.Tick();
+
+		// Assert
+		mainPresenter
+			.Received(1)
+			.Remove();
+
+		notepadPresenter
 			.Received(1)
 			.Remove();
 	}

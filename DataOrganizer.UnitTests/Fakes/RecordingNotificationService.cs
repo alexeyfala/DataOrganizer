@@ -1,5 +1,6 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Notifications;
 
 namespace DataOrganizer.UnitTests.Fakes;
@@ -19,16 +20,25 @@ internal sealed class RecordingNotificationService : INotificationService
 
 	#region Methods
 	/// <inheritdoc />
-	public void ShowErrorSnackbar(string text) => Show(text, SnackbarMessageLevel.Error);
+	public void ShowErrorSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		Show(text, SnackbarMessageLevel.Error);
+	}
 
 	/// <inheritdoc />
-	public void ShowInformationSnackbar(string text) => Show(text, SnackbarMessageLevel.Information);
+	public void ShowInformationSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		Show(text, SnackbarMessageLevel.Information);
+	}
 
 	/// <inheritdoc />
 	public void ShowToast(string message) => Show(message, SnackbarMessageLevel.Information);
 
 	/// <inheritdoc />
-	public void ShowWarningSnackbar(string text) => Show(text, SnackbarMessageLevel.Warning);
+	public void ShowWarningSnackbar(string text, string snackbarHostIdentifier = SnackbarHostIdentifiers.Main)
+	{
+		Show(text, SnackbarMessageLevel.Warning);
+	}
 	#endregion
 
 	#region Helpers

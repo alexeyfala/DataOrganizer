@@ -676,7 +676,7 @@ public partial class EditorViewModel :
 
 		_viewLauncher.CreateFavoritesWindow(
 			Hierarchy,
-			_editingFiles?.Items ?? [],
+			_editingFiles?.State,
 			ExecutingFiles).Show();
 
 		if (_editingFiles is null)
@@ -905,16 +905,19 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Handles loading event for rendering the file editor.
+	/// Handles loading event for rendering the file editor: opens the tabs of <see cref="ViewModelBase.EditorTabs" />.
 	/// </summary>
 	[RelayCommand]
 	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
 	{
-		viewModel?
-			.Items
-			.AddRange(OpenedInEditorFiles);
-
 		_editingFiles = viewModel;
+
+		if (viewModel is null || EditorTabs is not { } tabs)
+		{
+			return;
+		}
+
+		viewModel.Restore(tabs);
 	}
 
 	/// <summary>
@@ -1315,7 +1318,7 @@ public partial class EditorViewModel :
 		string text,
 		CancellationToken token = default)
 	{
-		return _dialogService.RequestYesNoAsync(text, token);
+		return _dialogService.RequestYesNoAsync(text, token: token);
 	}
 
 	/// <summary>

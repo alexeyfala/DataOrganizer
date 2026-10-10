@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
@@ -47,6 +48,11 @@ public abstract partial class ViewModelBase :
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
 
 	/// <summary>
+	/// Tabs of the editor kept until the editor opens them; <c>null</c> stands for none.
+	/// </summary>
+	public EditorTabsState? EditorTabs { get; set; }
+
+	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
 	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
@@ -71,11 +77,6 @@ public abstract partial class ViewModelBase :
 	/// <c>True</c> when shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
-
-	/// <summary>
-	/// The files currently open in the editor.
-	/// </summary>
-	public List<FileDto> OpenedInEditorFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Commands
@@ -107,6 +108,20 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
+	/// Brings the open notepad to the center of the screen of the window.
+	/// </summary>
+	[RelayCommand]
+	private void CenterNotepad(Window? owner)
+	{
+		if (owner is null)
+		{
+			return;
+		}
+
+		_viewLauncher.CenterNotepadWindow(owner);
+	}
+
+	/// <summary>
 	/// Handles the display of copy history.
 	/// </summary>
 	[RelayCommand]
@@ -131,6 +146,20 @@ public abstract partial class ViewModelBase :
 		}
 
 		return _viewLauncher.ShowClipboardLogWindowAsync(owner);
+	}
+
+	/// <summary>
+	/// Activates the open notepad or opens a new one.
+	/// </summary>
+	[RelayCommand]
+	private void ShowNotepad(Window? owner)
+	{
+		if (owner is null)
+		{
+			return;
+		}
+
+		_viewLauncher.ShowNotepadWindow(owner);
 	}
 	#endregion
 
@@ -378,7 +407,7 @@ public abstract partial class ViewModelBase :
 			openedFiles.Where(x => x.IsEditing),
 			openedFiles.Where(x => x.IsExecuting));
 
-		OpenedInEditorFiles.Clear();
+		EditorTabs = null;
 
 		_contentVisibility.HideAllContents(Hierarchy);
 

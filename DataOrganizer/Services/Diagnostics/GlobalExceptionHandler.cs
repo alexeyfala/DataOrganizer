@@ -54,14 +54,12 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	{
 		e.SetObserved();
 
-		if (OperatingSystem.IsLinux() && IsBenignDBusAppMenuFailure(e.Exception))
+		if (OperatingSystem.IsLinux() && IsBenignDBusAccentColorFailure(e.Exception))
 		{
-			// Avalonia's DBus menu exporter fires-and-forgets a call to the global AppMenu
-			// registrar; on Linux distributions that don't run "com.canonical.AppMenu.Registrar"
-			// (e.g., default GNOME) the call surfaces as an unobserved task exception. The
-			// failure is cosmetic — global menu integration is unavailable, the tray menu
-			// continues to work via the GTK status icon. Log at debug level and swallow.
-			_logger.LogDebug($"Suppressed unobserved DBus AppMenu.Registrar failure: {e.Exception.GetBaseException().Message}");
+			// Known Avalonia bug: DBusPlatformSettings reads the FreeDesktop appearance portal's
+			// accent color as a struct, but some portals return another
+			// variant type, so the fire-and-forget read faults. Theming is unaffected. Swallow.
+			_logger.LogDebug($"Suppressed unobserved DBus accent-color failure: {e.Exception.GetBaseException().Message}");
 
 			return;
 		}
@@ -99,6 +97,41 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	}
 
 	/// <summary>
+	/// <c>True</c> when the aggregated exception has leaves and every one of them satisfies <paramref name="predicate" />.
+	/// </summary>
+	internal static bool AreAllLeaves(AggregateException aggregate, Func<Exception, bool> predicate)
+	{
+		ReadOnlyCollection<Exception> leafExceptions = aggregate
+			.Flatten()
+			.InnerExceptions;
+
+		if (leafExceptions.Count == 0)
+		{
+			return false;
+		}
+
+		foreach (Exception leaf in leafExceptions)
+		{
+			if (!predicate(leaf))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// <c>True</c> for a failure of any type inside Avalonia's reader of the FreeDesktop settings portal.
+	/// </summary>
+	internal static bool IsPlatformSettingsFailure(string? stackTrace)
+	{
+		const string platformSettingsTypeName = "Avalonia.FreeDesktop.DBusPlatformSettings";
+
+		return stackTrace?.Contains(platformSettingsTypeName, StringComparison.Ordinal) == true;
+	}
+
+	/// <summary>
 	/// Handles the exception.
 	/// </summary>
 	internal void HandleException(Exception exception)
@@ -124,34 +157,12 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 
 	#region Helpers
 	/// <summary>
-	/// <c>True</c> when the aggregated exception is exclusively composed of DBus failures
-	/// caused by the missing "com.canonical.AppMenu.Registrar" service on Linux.
+	/// <c>True</c> when the aggregated exception is exclusively composed of Avalonia's accent-color
+	/// read failures from the FreeDesktop appearance portal on Linux.
 	/// </summary>
-	private static bool IsBenignDBusAppMenuFailure(AggregateException aggregate)
+	private static bool IsBenignDBusAccentColorFailure(AggregateException aggregate)
 	{
-		const string dBusExceptionTypeName = "Tmds.DBus.Protocol.DBusException";
-
-		const string appMenuRegistrarServiceName = "com.canonical.AppMenu.Registrar";
-
-		ReadOnlyCollection<Exception> leafExceptions = aggregate
-			.Flatten()
-			.InnerExceptions;
-
-		if (leafExceptions.Count == 0)
-		{
-			return false;
-		}
-
-		foreach (Exception leaf in leafExceptions)
-		{
-			if (leaf.GetType().FullName != dBusExceptionTypeName
-				|| !leaf.Message.Contains(appMenuRegistrarServiceName, StringComparison.Ordinal))
-			{
-				return false;
-			}
-		}
-
-		return true;
+		return AreAllLeaves(aggregate, x => IsPlatformSettingsFailure(x.StackTrace));
 	}
 	#endregion
 }

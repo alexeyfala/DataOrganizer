@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Text;
@@ -17,6 +18,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Explorer;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
@@ -33,6 +35,7 @@ using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Explorer;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Hotkeys;
+using DataOrganizer.Services.Notepad;
 using DataOrganizer.Services.Notes;
 using DataOrganizer.Services.Notifications;
 using DataOrganizer.Services.Runtime;
@@ -118,7 +121,7 @@ public sealed class App : Application
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
-		DataTemplates.Add(serviceProvider.GetRequiredService<EditingFileTemplate>());
+		DataTemplates.Add(serviceProvider.GetRequiredService<DocumentTabTemplate>());
 
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
@@ -172,6 +175,7 @@ public sealed class App : Application
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
+		services.AddTransient<INotepadStore, NotepadStore>();
 		services.AddTransient<INoteReader, NoteReader>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
@@ -187,14 +191,16 @@ public sealed class App : Application
 		#endregion
 
 		#region View Locator
-		services.AddSingleton<EditingFileTemplate>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<EditingFileTemplate>());
+		services.AddSingleton<DocumentTabTemplate>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<DocumentTabTemplate>());
 		#endregion
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
 		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
+		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Main);
+		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Notepad);
 		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
@@ -220,10 +226,10 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<INotepadSessionState, NotepadSessionState>();
 		services.AddSingleton<INotificationService, NotificationService>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
-		services.AddSingleton<ISnackbarPresenter, SnackbarPresenter>();
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion
@@ -245,6 +251,7 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
+		services.AddTransient<NotepadViewModel>();
 		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
@@ -266,6 +273,8 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
+		services.AddTransient<NotepadTabView>();
+		services.AddTransient<NotepadWindow>();
 		services.AddTransient<PasswordBoxView>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SettingsView>();

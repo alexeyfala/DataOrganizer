@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
 using AvaloniaEdit;
@@ -22,8 +23,8 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Templates;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EditingFileTemplate)}"" type")]
-internal class EditingFileTemplateTests
+[TestFixture(Description = $@"Tests of ""{nameof(DocumentTabTemplate)}"" type")]
+internal class DocumentTabTemplateTests
 {
 	#region Data
 	/// <summary>
@@ -44,7 +45,45 @@ internal class EditingFileTemplateTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="EditingFileTemplate.Build" />: the name of the file gives the language of its text to the editor.
+	/// <see cref="DocumentTabTemplate.Build" />: a tab of the notepad gets the editor of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Creates_The_Editor_Of_A_Notepad_Tab()
+	{
+		// Arrange
+		NotepadTabViewModel tab = new()
+		{
+			Number = 1
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		Control? control = sut.Build(tab);
+
+		// Assert
+		control
+			.Should()
+			.BeOfType<NotepadTabView>()
+			.Which
+			.DataContext
+			.Should()
+			.BeSameAs(tab);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: the name of the file gives the language of its text to the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task Build_Gives_The_Language_Of_The_File_To_The_Editor()
@@ -94,7 +133,7 @@ internal class EditingFileTemplateTests
 			builder.RegisterInstance(viewFactory);
 		});
 
-		EditingFileTemplate sut = mock.Create<EditingFileTemplate>();
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
 
 		// Act
 		sut.Build(file);
@@ -112,7 +151,69 @@ internal class EditingFileTemplateTests
 	}
 
 	/// <summary>
-	/// <see cref="EditingFileTemplate.Remove" />: the control of a closed file gives up the highlighting of its text.
+	/// <see cref="DocumentTabTemplate.Build" />: a tab of the notepad shown again gets back the editor it had, with all it
+	/// holds.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Keeps_The_Editor_Of_A_Notepad_Tab()
+	{
+		// Arrange
+		NotepadTabViewModel tab = new()
+		{
+			Number = 1
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		Control? first = sut.Build(tab);
+
+		// Act
+		Control? second = sut.Build(tab);
+
+		// Assert
+		second
+			.Should()
+			.BeSameAs(first);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Match" />: the template builds the content of a tab of the notepad.
+	/// </summary>
+	[Test]
+	public void Match_Takes_A_Notepad_Tab()
+	{
+		// Arrange
+		NotepadTabViewModel tab = new()
+		{
+			Number = 1
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		bool result = sut.Match(tab);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Remove" />: the control of a closed file gives up the highlighting of its text.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task Remove_Disposes_The_Control()
@@ -162,7 +263,7 @@ internal class EditingFileTemplateTests
 			builder.RegisterInstance(viewFactory);
 		});
 
-		EditingFileTemplate sut = mock.Create<EditingFileTemplate>();
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
 
 		sut.Build(file);
 
@@ -170,6 +271,51 @@ internal class EditingFileTemplateTests
 
 		// Act
 		sut.Remove(file);
+
+		// Assert
+		HasHighlighting(view
+			.GetLogicalDescendants()
+			.OfType<DocumentTextEditor>()
+			.Single())
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Remove" />: the editor of a closed tab of the notepad gives up the highlighting of its
+	/// text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Remove_Disposes_The_Editor_Of_A_Notepad_Tab()
+	{
+		// Arrange
+		NotepadTabViewModel tab = new()
+		{
+			Number = 1,
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		tab.Document.Text = PowerShellText;
+
+		using NotepadTabView view = new(tab);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(view);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		sut.Build(tab);
+
+		// Act
+		sut.Remove(tab);
 
 		// Assert
 		HasHighlighting(view

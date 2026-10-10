@@ -2,6 +2,8 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System">
@@ -39,7 +41,7 @@
 	</ControlTheme>
 
 	<ControlTheme
-		x:Key="ContentSizedTabItemTheme"
+		x:Key="DocumentTabItemTheme"
 		BasedOn="{StaticResource MaterialTabItem}"
 		TargetType="TabItem">
 		<Setter Property="MinWidth" Value="0.0" />
@@ -52,14 +54,134 @@
 	</ControlTheme>
 
 	<ControlTheme
-		x:Key="ContentSizedTabControlTheme"
+		x:Key="{x:Type controls:DocumentTabControl}"
 		BasedOn="{StaticResource ScrollableTabControl}"
-		TargetType="TabControl">
-		<Setter Property="ItemContainerTheme" Value="{StaticResource ContentSizedTabItemTheme}" />
+		TargetType="controls:DocumentTabControl">
+		<Setter Property="assists:TabControlAssist.TabHeaderHorizontalAlignment" Value="Left" />
+		<Setter Property="ItemContainerTheme" Value="{StaticResource DocumentTabItemTheme}" />
+
 		<Setter Property="ItemsPanel">
 			<ItemsPanelTemplate>
 				<StackPanel HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}" Orientation="Horizontal" />
 			</ItemsPanelTemplate>
+		</Setter>
+
+		<Setter Property="TabHeaderTemplate">
+			<DataTemplate x:DataType="system:Object">
+				<StackPanel
+					Background="Transparent"
+					Orientation="Horizontal"
+					Spacing="4.0">
+					<ContentPresenter Content="{Binding Mode=OneWay}" ContentTemplate="{Binding $parent[controls:DocumentTabControl].ItemTemplate, Mode=OneWay}" />
+
+					<Button
+						Margin="0.0"
+						Padding="0.0"
+						Classes="primary"
+						Command="{Binding $parent[controls:DocumentTabControl].CloseCommand}"
+						CommandParameter="{Binding}"
+						Content="{materialIcons:MaterialIconTextExt Kind=Close,
+						                                            IconSize={StaticResource SmallButtonIconSize}}"
+						Foreground="{StaticResource WarningBrush}"
+						Theme="{StaticResource MaterialFlatButton}"
+						ToolTip.Tip="{x:Static prop:Strings.Close}" />
+				</StackPanel>
+			</DataTemplate>
+		</Setter>
+
+		<Setter Property="TabMenuTemplate">
+			<DataTemplate x:DataType="system:Object">
+				<StackPanel Orientation="Vertical">
+					<StackPanel.Styles>
+						<Style Selector="Button">
+							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+							<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+						</Style>
+					</StackPanel.Styles>
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseCommand}"
+						CommandParameter="{Binding}"
+						Header="{x:Static prop:Strings.Close}"
+						Icon="Close"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseOtherTabsCommand}"
+						CommandParameter="{Binding}"
+						Header="{x:Static prop:Strings.CloseOtherTabs}"
+						Icon="CloseBoxMultipleOutline"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<controls:FlyoutButton
+						Command="{Binding $parent[controls:DocumentTabControl].CloseAllTabsCommand}"
+						Header="{x:Static prop:Strings.CloseAllTabs}"
+						Icon="CloseBoxMultiple"
+						IconForeground="{StaticResource WarningBrush}" />
+
+					<StackPanel IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" Orientation="Vertical">
+						<Separator />
+
+						<ContentPresenter Content="{Binding Mode=OneWay}" ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}" />
+					</StackPanel>
+				</StackPanel>
+			</DataTemplate>
+		</Setter>
+
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border
+					Name="PART_RootBorder"
+					Background="{TemplateBinding Background}"
+					BorderBrush="{TemplateBinding BorderBrush}"
+					BorderThickness="{TemplateBinding BorderThickness}"
+					CornerRadius="{TemplateBinding CornerRadius}">
+					<DockPanel Name="PART_RootPanel">
+						<Panel Name="PART_TabsPanel">
+							<!--
+								A left-aligned grid gives the tabs only the width they need, so the add button follows the last tab,
+								and the star column keeps the button in sight at the right edge when the tabs overflow.
+							-->
+							<Grid HorizontalAlignment="Left" ColumnDefinitions="*,Auto">
+								<materialControls:Scroller
+									Name="PART_ScrollViewer"
+									Grid.Column="0"
+									Theme="{StaticResource TabControlScroller}">
+									<materialControls:Scroller.Content>
+										<ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+									</materialControls:Scroller.Content>
+								</materialControls:Scroller>
+
+								<Button
+									Name="PART_AddButton"
+									Grid.Column="1"
+									Padding="6.0"
+									VerticalAlignment="Stretch"
+									Classes="primary"
+									Command="{TemplateBinding AddCommand}"
+									Content="{materialIcons:MaterialIconTextExt Kind=Plus,
+									                                            IconSize={StaticResource SmallButtonIconSize}}"
+									IsVisible="{TemplateBinding AddCommand,
+									                            Converter={x:Static ObjectConverters.IsNotNull}}"
+									Theme="{StaticResource MaterialFlatButton}"
+									ToolTip.Tip="{x:Static prop:Strings.NewTab}" />
+							</Grid>
+
+							<Rectangle Name="PART_Separator" />
+						</Panel>
+
+						<!--
+							The content follows the selected item, not SelectedContent: TabControl updates that one while it removes the
+							container of a tab before the selected one, and shows another tab or nothing for a moment.
+						-->
+						<ContentPresenter
+							Name="PART_ContentPresenter"
+							Margin="{TemplateBinding Padding}"
+							Content="{TemplateBinding SelectedItem}"
+							ContentTemplate="{TemplateBinding ContentTemplate}" />
+					</DockPanel>
+				</Border>
+			</ControlTemplate>
 		</Setter>
 	</ControlTheme>
 

@@ -15,6 +15,7 @@
 		x:Name="Editor"
 		DefaultEncoding="{Binding DefaultEncoding, Mode=OneWay}"
 		DefaultSyntaxLanguage="{Binding DefaultSyntaxLanguage, Mode=OneWay}"
+		DefaultSyntaxLanguageMark="{x:Static prop:Strings.ByExtension}"
 		Document="{Binding Document, Mode=OneWay}"
 		DocumentFontSize="{Binding FontSize, Mode=TwoWay}"
 		Encoding="{Binding Encoding, Mode=TwoWay}"

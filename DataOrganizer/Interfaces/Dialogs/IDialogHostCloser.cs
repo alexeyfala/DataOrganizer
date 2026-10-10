@@ -1,7 +1,7 @@
 namespace DataOrganizer.Interfaces.Dialogs;
 
 /// <summary>
-/// Closes the dialog the application currently shows.
+/// Closes the dialog the main window currently shows.
 /// </summary>
 public interface IDialogHostCloser
 {
