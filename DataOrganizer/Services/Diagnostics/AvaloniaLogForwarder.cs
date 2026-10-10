@@ -2,9 +2,9 @@ using Avalonia;
 using Avalonia.Logging;
 using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
+using Shared.Extensions;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SerilogLevel = Serilog.Events.LogEventLevel;
 
 namespace DataOrganizer.Services.Diagnostics;
 
@@ -162,7 +162,8 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	}
 
 	/// <summary>
-	/// Writes an entry to <see cref="ILogger" /> when its level is high enough.
+	/// Writes an entry to <see cref="ILogger" /> when its level is high enough, with its source at the end, as every
+	/// entry of the application.
 	/// </summary>
 	private void Write(
 		LogEventLevel level,
@@ -176,10 +177,21 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 			return;
 		}
 
-		_logger.Write(
-			(SerilogLevel)level,
-			"{0}",
-			Render(area, source, messageTemplate, propertyValues));
+		string text = Render(
+			area,
+			source,
+			messageTemplate,
+			propertyValues);
+
+		if (level == LogEventLevel.Warning)
+		{
+			_logger.LogWarning(text);
+
+			return;
+		}
+
+		// A fatal entry goes as an error, since there is no method for it; the errors of Avalonia do not stop the debugger.
+		_logger.LogError(text, breakInDebugger: false);
 	}
 	#endregion
 }

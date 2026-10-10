@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using DataOrganizer.Services.Diagnostics;
 using NSubstitute;
 using Serilog;
-using SerilogLevel = Serilog.Events.LogEventLevel;
+using System;
 
 namespace DataOrganizer.UnitTests.Services.Diagnostics;
 
@@ -90,10 +90,67 @@ internal class AvaloniaLogForwarderTests
 			$"Could not convert '{value}' (System.String) to 'System.Int32'.");
 
 		// Assert
-		logger.Received(1).Write(
-			SerilogLevel.Warning,
-			"{0}",
-			Arg.Is<string>(x => !x.Contains(value)));
+		logger.Received(1).Warning(
+			Arg.Any<string>(),
+			Arg.Is<string>(x => !x.Contains(value)),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: a warning ends with the forwarder
+	/// as its source, as every entry of the application ends with its own.
+	/// </summary>
+	[Test]
+	public void Log_Writes_A_Warning_With_Its_Source()
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			LogEventLevel.Warning,
+			LogArea.Layout,
+			null,
+			"Layout cycle detected.");
+
+		// Assert
+		logger.Received(1).Warning(
+			Arg.Any<string>(),
+			Arg.Is("[Layout] Layout cycle detected."),
+			Arg.Is<string>(x => x.EndsWith($"{nameof(AvaloniaLogForwarder)}.cs", StringComparison.Ordinal)));
+	}
+
+	/// <summary>
+	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: an error, and a fatal entry as an
+	/// error, ends with the forwarder as its source.
+	/// </summary>
+	[TestCase(LogEventLevel.Error)]
+	[TestCase(LogEventLevel.Fatal)]
+	public void Log_Writes_An_Error_With_Its_Source(LogEventLevel level)
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
+
+		// Act
+		sut.Log(
+			level,
+			"IME",
+			null,
+			"Error while destroying the context:");
+
+		// Assert
+		logger.Received(1).Error(
+			Arg.Any<string>(),
+			Arg.Is("[IME] Error while destroying the context:"),
+			Arg.Is<string>(x => x.EndsWith($"{nameof(AvaloniaLogForwarder)}.cs", StringComparison.Ordinal)));
 	}
 
 	/// <summary>
