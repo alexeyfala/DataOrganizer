@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
+using System.Text;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -8,6 +9,30 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class NotepadTabViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.FindUnreadableEncodings" />: the encodings that cannot read the bytes of the text are
+	/// found, here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[Test]
+	public void FindUnreadableEncodings_Finds_The_Encodings_That_Cannot_Read_The_Text()
+	{
+		// Arrange
+		NotepadTabViewModel sut = new()
+		{
+			Number = 1
+		};
+
+		sut.Document.Text = "Hi!";
+
+		// Act
+		sut.FindUnreadableEncodings();
+
+		// Assert
+		sut.UnreadableEncodings
+			.Should()
+			.Contain(Encoding.Unicode.WebName);
+	}
+
 	/// <summary>
 	/// <see cref="NotepadTabViewModel.Header" />: a tab with a name is headed by the name.
 	/// </summary>
@@ -50,6 +75,36 @@ internal class NotepadTabViewModelTests
 		changed
 			.Should()
 			.Contain(nameof(NotepadTabViewModel.Header));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.RefreshEncoding" />: the tab takes the encoding its text is read in, with its name,
+	/// and the one found from its bytes.
+	/// </summary>
+	[Test]
+	public void RefreshEncoding_Takes_The_Encodings_Of_The_Text()
+	{
+		// Arrange
+		NotepadTabViewModel sut = new()
+		{
+			Number = 1
+		};
+
+		// Bytes of UTF-8, read in UTF-16 by choice.
+		sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
+
+		// Act
+		sut.RefreshEncoding();
+
+		// Assert
+		sut
+			.Should()
+			.BeEquivalentTo(new
+			{
+				DefaultEncoding = Encoding.UTF8.WebName,
+				Encoding = Encoding.Unicode.WebName,
+				EncodingName = "UTF-16 LE"
+			});
 	}
 	#endregion
 }

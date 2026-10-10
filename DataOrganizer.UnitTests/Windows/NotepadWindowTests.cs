@@ -14,9 +14,11 @@ using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
@@ -24,12 +26,14 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Material.Icons;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -482,6 +486,140 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding chosen in the status bar reads the text of the tab again
+	/// from the same bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public void EncodingBlock_Reads_The_Text_Again_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(store);
+
+			// The choice of an encoding is posted to the UI thread.
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			// The text read again waits for a pause in typing to be written, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
+
+		// The tabs open before the window, as when the notepad opens.
+		viewModel.LoadTabs();
+
+		NotepadWindow sut = new(viewModel);
+
+		// The application adds the template once its services are built, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(mock.Create<DocumentTabTemplate>());
+
+		NotepadTabViewModel tab = sut.ViewModel.Tabs[0];
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		ChoiceSelector encodings = GetEncodingBlock(sut);
+
+		// Act
+		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		tab.Document.Text
+			.Should()
+			.Be(Encoding.Unicode.GetString(Encoding.UTF8.GetBytes("Text")));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding that cannot read the text gives way in the status bar to
+	/// the one the text is in.
+	/// </summary>
+	[AvaloniaTest]
+	public void EncodingBlock_Takes_Back_A_Choice_That_Cannot_Read_The_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			viewFactory
+				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
+				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+
+			// Three bytes, which UTF-16 cannot read.
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Tex"));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(store);
+
+			// The choice of an encoding is posted to the UI thread.
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
+
+		// The tabs open before the window, as when the notepad opens.
+		viewModel.LoadTabs();
+
+		NotepadWindow sut = new(viewModel);
+
+		// The application adds the template once its services are built, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(mock.Create<DocumentTabTemplate>());
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		ChoiceSelector encodings = GetEncodingBlock(sut);
+
+		// Act
+		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		encodings.SelectedChoice
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.PreviousTab" />: a selected tab leaves the tab selected before it as the previous one.
 	/// </summary>
 	[AvaloniaTest]
@@ -710,6 +848,18 @@ internal class NotepadWindowTests
 			.GetVisualDescendants()
 			.OfType<Button>()
 			.Single();
+	}
+
+	/// <summary>
+	/// Returns the encoding block of the status bar of the editor the tabs of the window show.
+	/// </summary>
+	private static ChoiceSelector GetEncodingBlock(NotepadWindow window)
+	{
+		return window
+			.Tabs
+			.GetVisualDescendants()
+			.OfType<ChoiceSelector>()
+			.Single(static x => x.Name == "EncodingBlock");
 	}
 
 	/// <summary>

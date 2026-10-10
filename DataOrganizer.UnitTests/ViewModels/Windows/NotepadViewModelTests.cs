@@ -57,6 +57,30 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.AddTabCommand" />: a new tab has no text to read, so its encoding is shown at once.
+	/// </summary>
+	[Test]
+	public void AddTabCommand_Shows_The_Encoding_Of_The_New_Tab()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTabs();
+
+		// Act
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		// Assert
+		sut.Tabs[1].EncodingName
+			.Should()
+			.Be("UTF-8");
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.AddTabCommand" />: a new tab leaves the number of a text that cannot be read alone, as
 	/// its file stays on the disk.
 	/// </summary>
@@ -1099,6 +1123,313 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding that cannot read the text gives way to the one the text is
+	/// in.
+	/// </summary>
+	[Test]
+	public void Encoding_Goes_Back_When_The_Choice_Cannot_Read_The_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		// Three bytes in UTF-8, which UTF-16 cannot read.
+		tab.Document.Text = "Tex";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		tab.Encoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: a text that its encoding cannot hold has no bytes to read again, so the
+	/// encoding stays.
+	/// </summary>
+	[Test]
+	public void Encoding_Goes_Back_When_The_Text_Has_No_Bytes_In_Its_Encoding()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		// A lone surrogate, which no encoding holds.
+		tab.Document.Text = "Text\uD800";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		tab.Encoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: another encoding reads the text of the tab again from the same bytes.
+	/// </summary>
+	[Test]
+	public void Encoding_Reads_The_Text_Again_In_The_Chosen_Encoding()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		tab.Document.Text = "Text";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		tab.Document.Text
+			.Should()
+			.Be(Encoding.Unicode.GetString(Encoding.UTF8.GetBytes("Text")));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: the tab shows the name of the encoding its text is read in again.
+	/// </summary>
+	[Test]
+	public void Encoding_Shows_The_Chosen_Encoding()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		tab.Document.Text = "Text";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		tab.EncodingName
+			.Should()
+			.Be("UTF-16 LE");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: the text read in another encoding is not an edit, so undo starts from
+	/// it.
+	/// </summary>
+	[Test]
+	public void Encoding_Starts_The_Undo_From_The_Text_Read_Again()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		tab.Document.Text = "Text";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		tab.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: a text that its encoding cannot hold keeps the encoding with a warning
+	/// in the notepad.
+	/// </summary>
+	[Test]
+	public void Encoding_Tells_In_The_Notepad_That_The_Text_Does_Not_Fit_Its_Encoding()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(notification);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		// A lone surrogate, which no encoding holds.
+		tab.Document.Text = "Text\uD800";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowWarningSnackbar(Arg.Any<string>(), Arg.Is(SnackbarHostIdentifiers.Notepad));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding that cannot read the text is refused with a warning in the
+	/// notepad.
+	/// </summary>
+	[Test]
+	public void Encoding_Tells_In_The_Notepad_Why_The_Choice_Cannot_Read_The_Text()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(notification);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		NotepadTabViewModel tab = sut.Tabs[0];
+
+		// Three bytes in UTF-8, which UTF-16 cannot read.
+		tab.Document.Text = "Tex";
+
+		// Act
+		tab.Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowWarningSnackbar(Arg.Any<string>(), Arg.Is(SnackbarHostIdentifiers.Notepad));
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: the chosen encoding is written to the settings at once, before any text
+	/// in it.
+	/// </summary>
+	[Test]
+	public void Encoding_Writes_The_Chosen_Encoding_At_Once()
+	{
+		// Arrange
+		List<NotepadViewSettings> written = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
+
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTabs();
+
+		// Act
+		sut.Tabs[0].Encoding = Encoding.Unicode.WebName;
+
+		// Assert
+		written[^1].Tabs[0].EditorState?.Encoding
+			.Should()
+			.Be(Encoding.Unicode.WebName);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: the text read again goes back to the disk in the same bytes.
+	/// </summary>
+	[Test]
+	public void Encoding_Writes_The_Text_In_The_Same_Bytes()
+	{
+		// Arrange
+		byte[] expected = Encoding.UTF8.GetBytes("Text");
+
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTabs();
+
+		sut.Tabs[0].Encoding = Encoding.Unicode.WebName;
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		store.Received(1).Write(
+			1,
+			Arg.Is<byte[]>(x => x.SequenceEqual(expected)));
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.LoadTabs" />: a text written in UTF-8 because its encoding could not hold it stays in
 	/// UTF-8 from then on.
 	/// </summary>
@@ -1726,6 +2057,115 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTabs" />: a tab whose text cannot be read shows no encoding, so none can be chosen
+	/// for it.
+	/// </summary>
+	[Test]
+	public void LoadTabs_Shows_No_Encoding_For_A_Text_That_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTabs();
+
+		// Assert
+		sut.Tabs[0].EncodingName
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTabs" />: each tab shows the encoding its text is read in.
+	/// </summary>
+	[Test]
+	public void LoadTabs_Shows_The_Encoding_Of_Each_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(contents);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTabs();
+
+		// Assert
+		sut.Tabs[0].EncodingName
+			.Should()
+			.Be("UTF-16 LE BOM");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTabs" />: a text that its encoding could not hold shows UTF-8 once it is written in
+	/// it.
+	/// </summary>
+	[Test]
+	public void LoadTabs_Shows_Utf8_Once_A_Text_Is_Kept_In_It()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(contents);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTabs();
+
+		// A lone surrogate, which UTF-16 cannot hold either.
+		sut
+			.Tabs[0]
+			.Document
+			.Insert(4, "\uD800");
+
+		// Act
+		time.Advance(NotepadViewModel.WriteDelay);
+
+		// Assert
+		sut.Tabs[0].Encoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.LoadTabs" />: undo starts from the text as it was read, not from an empty tab.
 	/// </summary>
 	[Test]
@@ -1888,6 +2328,36 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTabs" />: reading the tabs is not a change, so their settings are not written until
+	/// a tab changes.
+	/// </summary>
+	[Test]
+	public void LoadTabs_Writes_No_Settings_Until_A_Tab_Changes()
+	{
+		// Arrange
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		// Act
+		sut.LoadTabs();
+
+		// Assert
+		store
+			.DidNotReceive()
+			.WriteSettings(Arg.Any<NotepadViewSettings>());
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.LoadTabs" />: reading the texts is not a change, so nothing goes back to the disk
 	/// until a text changes.
 	/// </summary>
@@ -1937,15 +2407,24 @@ internal class NotepadViewModelTests
 		// Arrange
 		FakeTimeProvider time = new();
 
-		INotepadStore store = Substitute.For<INotepadStore>();
+		string? writtenEncoding = null;
+
+		string? encodingAtTextWrite = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			byte[] contents = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("Text")];
 
+			INotepadStore store = Substitute.For<INotepadStore>();
+
 			store
 				.Read(1)
 				.Returns(contents);
+
+			store.WriteSettings(Arg.Do<NotepadViewSettings>(x => writtenEncoding = x.Tabs[0].EditorState?.Encoding));
+
+			// The encoding that the settings name when the text is written.
+			store.Write(1, Arg.Do<byte[]>(_ => encodingAtTextWrite = writtenEncoding));
 
 			builder.RegisterInstance(store);
 
@@ -1970,13 +2449,9 @@ internal class NotepadViewModelTests
 		time.Advance(NotepadViewModel.WriteDelay);
 
 		// Assert
-		Received.InOrder(() =>
-		{
-			store.WriteSettings(Arg.Is<NotepadViewSettings>(x =>
-				x.Tabs[0].EditorState!.Value.Encoding == Encoding.UTF8.WebName));
-
-			store.Write(1, Arg.Any<byte[]>());
-		});
+		encodingAtTextWrite
+			.Should()
+			.Be(Encoding.UTF8.WebName);
 	}
 
 	/// <summary>

@@ -3,6 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using System.Text;
 
 namespace DataOrganizer.UnitTests.Views;
 
@@ -17,6 +18,33 @@ internal class NotepadTabViewTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.DefaultEncoding" />: the encoding found in the bytes of the text reaches the editor,
+	/// apart from the one chosen for the text.
+	/// </summary>
+	[AvaloniaTest]
+	public void DefaultEncoding_Reaches_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Number = 1
+		};
+
+		// Bytes of UTF-8, read in UTF-16 by choice.
+		viewModel.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
+
+		viewModel.RefreshEncoding();
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.DefaultEncoding
+			.Should()
+			.Be(Encoding.UTF8.WebName);
+	}
+
 	/// <summary>
 	/// <see cref="DocumentEditorView.DefaultSyntaxLanguageMark" />: a tab has no file extension, so the list of the
 	/// languages marks none as the default.
@@ -58,6 +86,98 @@ internal class NotepadTabViewTests
 		sut.Editor.Document
 			.Should()
 			.BeSameAs(viewModel.Document);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding chosen in the editor comes back to the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Follows_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Number = 1
+		};
+
+		using NotepadTabView sut = new(viewModel);
+
+		// Act
+		sut
+			.Editor
+			.SetCurrentValue(DocumentEditorView.EncodingProperty, "cp866");
+
+		// Assert
+		viewModel.Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.Encoding" />: the encoding of the text reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void Encoding_Reaches_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Encoding = "cp866",
+			Number = 1
+		};
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.Encoding
+			.Should()
+			.Be("cp866");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.EncodingName" />: the name of the encoding of the text reaches the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void EncodingName_Reaches_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Number = 1
+		};
+
+		viewModel.RefreshEncoding();
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.EncodingName
+			.Should()
+			.Be("UTF-8");
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.FindUnreadableEncodingsCommand" />: the editor finds the encodings that cannot read
+	/// the text through the command of the tab.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindUnreadableEncodingsCommand_Reaches_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Number = 1
+		};
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.FindUnreadableEncodingsCommand
+			.Should()
+			.BeSameAs(viewModel.FindUnreadableEncodingsCommand);
 	}
 
 	/// <summary>
@@ -410,6 +530,32 @@ internal class NotepadTabViewTests
 		sut.Editor.SyntaxLanguage
 			.Should()
 			.Be(PowerShellLanguage);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTabViewModel.UnreadableEncodings" />: the encodings that cannot read the text reach the editor,
+	/// here UTF-16 for an odd number of bytes.
+	/// </summary>
+	[AvaloniaTest]
+	public void UnreadableEncodings_Reach_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new()
+		{
+			Number = 1
+		};
+
+		viewModel.Document.Text = "Hi!";
+
+		viewModel.FindUnreadableEncodings();
+
+		// Act
+		using NotepadTabView sut = new(viewModel);
+
+		// Assert
+		sut.Editor.UnreadableEncodings
+			.Should()
+			.Contain(Encoding.Unicode.WebName);
 	}
 
 	/// <summary>
