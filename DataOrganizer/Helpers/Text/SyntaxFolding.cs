@@ -6,6 +6,7 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.Interfaces.Text;
 using System;
@@ -43,11 +44,6 @@ internal sealed class SyntaxFolding : IDisposable
 
 	#region Data
 	/// <summary>
-	/// Language of Markdown, whose headings fold their sections.
-	/// </summary>
-	private const string MarkdownLanguage = "markdown";
-
-	/// <summary>
 	/// The most lines of a hidden text that its tip shows.
 	/// </summary>
 	private const int MaxTipLineCount = 20;
@@ -56,16 +52,6 @@ internal sealed class SyntaxFolding : IDisposable
 	/// The most characters of a line of a hidden text that its tip shows.
 	/// </summary>
 	private const int MaxTipLineLength = 120;
-
-	/// <summary>
-	/// Language of XML, whose tags fold their elements.
-	/// </summary>
-	private const string XmlLanguage = "xml";
-
-	/// <summary>
-	/// Language of XSL, which is XML as well.
-	/// </summary>
-	private const string XslLanguage = "xsl";
 
 	/// <summary>
 	/// Blocks of the document, with the margin of their markers in the text area.
@@ -91,7 +77,7 @@ internal sealed class SyntaxFolding : IDisposable
 
 		Language = language;
 
-		_strategy = CreateStrategy(language, rules, textArea.Options.IndentationSize);
+		_strategy = CreateStrategy(rules, textArea.Options.IndentationSize);
 
 		_textView = textArea.TextView;
 
@@ -257,15 +243,15 @@ internal sealed class SyntaxFolding : IDisposable
 
 	#region Helpers
 	/// <summary>
-	/// Returns the way of finding the blocks of a language: by tags for XML, by headings and comments for Markdown and by
-	/// indentation, imports and comments for the others.
+	/// Returns the way of finding the blocks that the rules name: by headings and comments, by tags, or by indentation,
+	/// imports and comments.
 	/// </summary>
-	private static IFoldingStrategy CreateStrategy(string language, SyntaxFoldingRules rules, int tabSize) => language switch
+	private static IFoldingStrategy CreateStrategy(SyntaxFoldingRules rules, int tabSize) => rules.Kind switch
 	{
-		MarkdownLanguage => new CompositeFoldingStrategy(
+		SyntaxFoldingKind.Headings => new CompositeFoldingStrategy(
 			new MarkdownFoldingStrategy(rules, tabSize),
 			new CommentFoldingStrategy(rules)),
-		XmlLanguage or XslLanguage => new XmlTagFoldingStrategy(),
+		SyntaxFoldingKind.Tags => new XmlTagFoldingStrategy(),
 		_ => new CompositeFoldingStrategy(
 			new IndentFoldingStrategy(rules, tabSize),
 			new ImportFoldingStrategy(rules),

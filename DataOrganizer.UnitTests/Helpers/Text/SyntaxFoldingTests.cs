@@ -125,10 +125,9 @@ internal class SyntaxFoldingTests
 			Document = new("# A\ntext")
 		};
 
-		SyntaxFoldingRules rules = new()
-		{
-			IsOffSide = true
-		};
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules("markdown")!;
 
 		// Act
 		using SyntaxFolding sut = new(textArea, "markdown", rules);
@@ -310,8 +309,12 @@ internal class SyntaxFoldingTests
 			Document = new("<a>\n  <b />\n</a>")
 		};
 
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules(language)!;
+
 		// Act
-		using SyntaxFolding sut = new(textArea, language, Rules);
+		using SyntaxFolding sut = new(textArea, language, rules);
 
 		// Assert
 		GetFoldings(textArea).Select(static x => (x.StartOffset, x.EndOffset))
@@ -413,7 +416,11 @@ internal class SyntaxFoldingTests
 			Document = new("<a><b>\n</b>\n</a>")
 		};
 
-		using SyntaxFolding sut = new(textArea, "xml", Rules);
+		SyntaxFoldingRules rules = SyntaxRegistry
+			.Instance
+			.FindFoldingRules("xml")!;
+
+		using SyntaxFolding sut = new(textArea, "xml", rules);
 
 		FoldingSection outer = GetFoldings(textArea)[0];
 

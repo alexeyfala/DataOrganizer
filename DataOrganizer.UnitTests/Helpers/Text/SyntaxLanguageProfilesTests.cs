@@ -1,15 +1,17 @@
 using AwesomeAssertions;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SyntaxLinePatterns)}"" type")]
-internal class SyntaxLinePatternsTests
+[TestFixture(Description = $@"Tests of ""{nameof(SyntaxLanguageProfiles)}"" type")]
+internal class SyntaxLanguageProfilesTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindDirective" />: a line that starts with a number sign holds a directive or an
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a line that starts with a number sign holds a directive or an
 	/// attribute in a language of a preprocessor or of attributes.
 	/// </summary>
 	[TestCase("c", "#ifdef _WIN32")]
@@ -20,11 +22,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("rust", "#[cfg(test)]")]
 	[TestCase("swift", "#if canImport(UIKit)")]
 	[TestCase("vb", "#If DEBUG Then")]
-	public void FindDirective_Matches_A_Line_Of_A_Number_Sign(string language, string line)
+	public void Find_DirectiveLine_Matches_A_Line_Of_A_Number_Sign(string language, string line)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindDirective(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.DirectiveLine?
 			.IsMatch(line);
 
 		// Assert
@@ -34,17 +37,19 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindDirective" />: a language where a number sign starts code or a comment has no
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language where a number sign starts code or a comment has no
 	/// directives.
 	/// </summary>
 	[TestCase("css")]
 	[TestCase("jade")]
 	[TestCase("python")]
 	[TestCase("typst")]
-	public void FindDirective_Returns_Null_Where_A_Number_Sign_Starts_Code_Or_A_Comment(string language)
+	public void Find_DirectiveLine_Returns_Null_Where_A_Number_Sign_Starts_Code_Or_A_Comment(string language)
 	{
 		// Act
-		Regex? pattern = SyntaxLinePatterns.FindDirective(language);
+		Regex? pattern = SyntaxLanguageProfiles
+			.Find(language)
+			.DirectiveLine;
 
 		// Assert
 		pattern
@@ -53,15 +58,17 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindDocComment" />: a language whose documentation is no XML, or that has none, gets
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language whose documentation is no XML, or that has none, gets
 	/// no token.
 	/// </summary>
 	[TestCase("python")]
 	[TestCase("rust")]
-	public void FindDocComment_Returns_Null_Without_Doc_Comments_Of_XML(string language)
+	public void Find_DocComment_Returns_Null_Without_Doc_Comments_Of_XML(string language)
 	{
 		// Act
-		string? token = SyntaxLinePatterns.FindDocComment(language);
+		string? token = SyntaxLanguageProfiles
+			.Find(language)
+			.DocComment;
 
 		// Assert
 		token
@@ -70,15 +77,17 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindDocComment" />: a language with documentation comments of XML gets their token.
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language with documentation comments of XML gets their token.
 	/// </summary>
 	[TestCase("csharp", "///")]
 	[TestCase("fsharp", "///")]
 	[TestCase("vb", "'''")]
-	public void FindDocComment_Returns_The_Token_Of_The_Language(string language, string expected)
+	public void Find_DocComment_Returns_The_Token_Of_The_Language(string language, string expected)
 	{
 		// Act
-		string? token = SyntaxLinePatterns.FindDocComment(language);
+		string? token = SyntaxLanguageProfiles
+			.Find(language)
+			.DocComment;
 
 		// Assert
 		token
@@ -87,7 +96,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a line that does more than end a block, with a condition, a call,
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a line that does more than end a block, with a condition, a call,
 	/// a comment or other text, or that only starts like an end line, is no end line.
 	/// </summary>
 	[TestCase("html", "</p> text")]
@@ -103,11 +112,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("vb", "End Sub ' done")]
 	[TestCase("vb", "Loop While x > 0")]
 	[TestCase("vb", "#End If")]
-	public void FindEndLine_Leaves_Out_A_Line_That_Does_More_Than_End_A_Block(string language, string text)
+	public void Find_EndLine_Leaves_Out_A_Line_That_Does_More_Than_End_A_Block(string language, string text)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindEndLine(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.EndLine?
 			.IsMatch(text);
 
 		// Assert
@@ -117,7 +127,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a word or a tag that ends a block in a language, followed by closing
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a word or a tag that ends a block in a language, followed by closing
 	/// brackets at most, is an end line.
 	/// </summary>
 	[TestCase("html", "</div>")]
@@ -139,11 +149,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("vb", "Next")]
 	[TestCase("vb", "Next j, i")]
 	[TestCase("vb", "Loop")]
-	public void FindEndLine_Matches_The_End_Lines_Of_A_Language(string language, string text)
+	public void Find_EndLine_Matches_The_End_Lines_Of_A_Language(string language, string text)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindEndLine(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.EndLine?
 			.IsMatch(text);
 
 		// Assert
@@ -153,17 +164,19 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindEndLine" />: a language whose blocks end with brackets or by indentation, or
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language whose blocks end with brackets or by indentation, or
 	/// start with a word on a line of its own, gets no pattern.
 	/// </summary>
 	[TestCase("csharp")]
 	[TestCase("pascal")]
 	[TestCase("python")]
 	[TestCase("sql")]
-	public void FindEndLine_Returns_Null_Without_End_Lines(string language)
+	public void Find_EndLine_Returns_Null_Without_End_Lines(string language)
 	{
 		// Act
-		Regex? pattern = SyntaxLinePatterns.FindEndLine(language);
+		Regex? pattern = SyntaxLanguageProfiles
+			.Find(language)
+			.EndLine;
 
 		// Assert
 		pattern
@@ -172,7 +185,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindImport" />: a line that only looks like an import, such as a statement, a call or
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a line that only looks like an import, such as a statement, a call or
 	/// a variable, starts none.
 	/// </summary>
 	[TestCase("csharp", "using (var stream = Open())")]
@@ -188,11 +201,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("razor", "@using (Html.BeginForm())")]
 	[TestCase("ruby", "require File.join(dir, 'a')")]
 	[TestCase("shellscript", "./run.sh")]
-	public void FindImport_Leaves_Out_The_Lines_That_Only_Look_Like_Imports(string language, string line)
+	public void Find_ImportLine_Leaves_Out_The_Lines_That_Only_Look_Like_Imports(string language, string line)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindImport(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.ImportLine?
 			.IsMatch(line);
 
 		// Assert
@@ -202,7 +216,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindImport" />: the import statements of a language are found by their first line.
+	/// <see cref="SyntaxLanguageProfiles.Find" />: the import statements of a language are found by their first line.
 	/// </summary>
 	[TestCase("c", "#include <stdio.h>")]
 	[TestCase("coffeescript", "import a from 'a'")]
@@ -257,11 +271,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("typescriptreact", "import * as React from 'react';")]
 	[TestCase("typst", "#import \"a.typ\": b")]
 	[TestCase("vb", "Imports System.Text")]
-	public void FindImport_Matches_The_Imports_Of_A_Language(string language, string line)
+	public void Find_ImportLine_Matches_The_Imports_Of_A_Language(string language, string line)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindImport(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.ImportLine?
 			.IsMatch(line);
 
 		// Assert
@@ -271,7 +286,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindImport" />: a language whose imports fold in another way, or that has none, gets
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language whose imports fold in another way, or that has none, gets
 	/// no pattern.
 	/// </summary>
 	[TestCase("bat")]
@@ -280,10 +295,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("pascal")]
 	[TestCase("typst-code")]
 	[TestCase("yaml")]
-	public void FindImport_Returns_Null_Without_A_Run_Of_Imports(string language)
+	public void Find_ImportLine_Returns_Null_Without_A_Run_Of_Imports(string language)
 	{
 		// Act
-		Regex? pattern = SyntaxLinePatterns.FindImport(language);
+		Regex? pattern = SyntaxLanguageProfiles
+			.Find(language)
+			.ImportLine;
 
 		// Assert
 		pattern
@@ -292,112 +309,40 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindLineComment" />: a word that only starts like a remark of Batch is none.
+	/// <see cref="SyntaxLanguageProfiles.Find" />: Markdown folds by its headings, XML by its tags and any other
+	/// language by indentation.
 	/// </summary>
-	[TestCase("remark")]
-	[TestCase("echo REM")]
-	public void FindLineComment_Leaves_Out_A_Word_That_Starts_Like_A_Remark_Of_Batch(string text)
+	[TestCase("csharp", SyntaxFoldingKind.Indentation)]
+	[TestCase("markdown", SyntaxFoldingKind.Headings)]
+	[TestCase("pascal", SyntaxFoldingKind.Indentation)]
+	[TestCase("xml", SyntaxFoldingKind.Tags)]
+	[TestCase("xsl", SyntaxFoldingKind.Tags)]
+	public void Find_Kind_Tells_How_The_Blocks_Are_Found(string language, SyntaxFoldingKind expected)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindLineComment("bat", "@REM")?
-			.IsMatch(text);
+		SyntaxFoldingKind kind = SyntaxLanguageProfiles
+			.Find(language)
+			.Kind;
 
 		// Assert
-		isMatch
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindLineComment" />: a remark of Batch starts with the word in any case, with or
-	/// without the sign that hides it, or with a label that nothing jumps to.
-	/// </summary>
-	[TestCase("REM note")]
-	[TestCase("rem note")]
-	[TestCase("@REM note")]
-	[TestCase("REM")]
-	[TestCase(":: note")]
-	public void FindLineComment_Matches_A_Remark_Of_Batch(string text)
-	{
-		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindLineComment("bat", "@REM")?
-			.IsMatch(text);
-
-		// Assert
-		isMatch
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindLineComment" />: the token is matched at the start of a text only.
-	/// </summary>
-	[TestCase("// note", true)]
-	[TestCase("a // note", false)]
-	public void FindLineComment_Matches_The_Token_At_The_Start_Of_A_Text(string text, bool expected)
-	{
-		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindLineComment("csharp", "//")?
-			.IsMatch(text);
-
-		// Assert
-		isMatch
+		kind
 			.Should()
 			.Be(expected);
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindLineComment" />: a language without a token, or with a token of blanks, gets no
-	/// pattern.
-	/// </summary>
-	[TestCase(null)]
-	[TestCase("")]
-	[TestCase(" ")]
-	public void FindLineComment_Returns_Null_Without_A_Token(string? token)
-	{
-		// Act
-		Regex? pattern = SyntaxLinePatterns.FindLineComment("xsl", token);
-
-		// Assert
-		pattern
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindLineComment" />: the characters of a token are taken as they are, even those that
-	/// mean something in a pattern.
-	/// </summary>
-	[TestCase("(* note", true)]
-	[TestCase("( note", false)]
-	public void FindLineComment_Takes_The_Token_As_It_Is(string text, bool expected)
-	{
-		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindLineComment("pascal", "(*")?
-			.IsMatch(text);
-
-		// Assert
-		isMatch
-			.Should()
-			.Be(expected);
-	}
-
-	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a directive that may span lines, such as a definition of the C
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a directive that may span lines, such as a definition of the C
 	/// family or a macro of Swift with a body, does not match.
 	/// </summary>
 	[TestCase("c", "#define MAX(a, b) \\")]
 	[TestCase("objective-c", "#define ANSWER 42")]
 	[TestCase("swift", "#Preview {")]
-	public void FindPreprocessor_Leaves_Out_A_Directive_That_May_Span_Lines(string language, string line)
+	public void Find_PreprocessorLine_Leaves_Out_A_Directive_That_May_Span_Lines(string language, string line)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindPreprocessor(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.PreprocessorLine?
 			.IsMatch(line);
 
 		// Assert
@@ -407,7 +352,7 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a directive of one line matches, indented or not.
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a directive of one line matches, indented or not.
 	/// </summary>
 	[TestCase("c", "#ifdef _WIN32")]
 	[TestCase("cpp", "#pragma region Queue")]
@@ -421,11 +366,12 @@ internal class SyntaxLinePatternsTests
 	[TestCase("swift", "#elseif DEBUG")]
 	[TestCase("vb", "#If DEBUG Then")]
 	[TestCase("vb", "#End Region")]
-	public void FindPreprocessor_Matches_A_Directive_Of_One_Line(string language, string line)
+	public void Find_PreprocessorLine_Matches_A_Directive_Of_One_Line(string language, string line)
 	{
 		// Act
-		bool? isMatch = SyntaxLinePatterns
-			.FindPreprocessor(language)?
+		bool? isMatch = SyntaxLanguageProfiles
+			.Find(language)
+			.PreprocessorLine?
 			.IsMatch(line);
 
 		// Assert
@@ -435,21 +381,139 @@ internal class SyntaxLinePatternsTests
 	}
 
 	/// <summary>
-	/// <see cref="SyntaxLinePatterns.FindPreprocessor" />: a language where a number sign starts an attribute, which may
+	/// <see cref="SyntaxLanguageProfiles.Find" />: a language where a number sign starts an attribute, which may
 	/// span lines, or a comment has no directives of one line.
 	/// </summary>
 	[TestCase("php")]
 	[TestCase("python")]
 	[TestCase("rust")]
-	public void FindPreprocessor_Returns_Null_Where_A_Number_Sign_Starts_An_Attribute_Or_A_Comment(string language)
+	public void Find_PreprocessorLine_Returns_Null_Where_A_Number_Sign_Starts_An_Attribute_Or_A_Comment(string language)
 	{
 		// Act
-		Regex? pattern = SyntaxLinePatterns.FindPreprocessor(language);
+		Regex? pattern = SyntaxLanguageProfiles
+			.Find(language)
+			.PreprocessorLine;
 
 		// Assert
 		pattern
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.FindLineComment" />: a word that only starts like a remark of Batch is none.
+	/// </summary>
+	[TestCase("remark")]
+	[TestCase("echo REM")]
+	public void FindLineComment_Leaves_Out_A_Word_That_Starts_Like_A_Remark_Of_Batch(string text)
+	{
+		// Act
+		bool? isMatch = SyntaxLanguageProfiles
+			.FindLineComment("bat", "@REM")?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.FindLineComment" />: a remark of Batch starts with the word in any case, with or
+	/// without the sign that hides it, or with a label that nothing jumps to.
+	/// </summary>
+	[TestCase("REM note")]
+	[TestCase("rem note")]
+	[TestCase("@REM note")]
+	[TestCase("REM")]
+	[TestCase(":: note")]
+	public void FindLineComment_Matches_A_Remark_Of_Batch(string text)
+	{
+		// Act
+		bool? isMatch = SyntaxLanguageProfiles
+			.FindLineComment("bat", "@REM")?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.FindLineComment" />: the token is matched at the start of a text only.
+	/// </summary>
+	[TestCase("// note", true)]
+	[TestCase("a // note", false)]
+	public void FindLineComment_Matches_The_Token_At_The_Start_Of_A_Text(string text, bool expected)
+	{
+		// Act
+		bool? isMatch = SyntaxLanguageProfiles
+			.FindLineComment("csharp", "//")?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.FindLineComment" />: a language without a token, or with a token of blanks, gets no
+	/// pattern.
+	/// </summary>
+	[TestCase(null)]
+	[TestCase("")]
+	[TestCase(" ")]
+	public void FindLineComment_Returns_Null_Without_A_Token(string? token)
+	{
+		// Act
+		Regex? pattern = SyntaxLanguageProfiles.FindLineComment("xsl", token);
+
+		// Assert
+		pattern
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.FindLineComment" />: the characters of a token are taken as they are, even those that
+	/// mean something in a pattern.
+	/// </summary>
+	[TestCase("(* note", true)]
+	[TestCase("( note", false)]
+	public void FindLineComment_Takes_The_Token_As_It_Is(string text, bool expected)
+	{
+		// Act
+		bool? isMatch = SyntaxLanguageProfiles
+			.FindLineComment("pascal", "(*")?
+			.IsMatch(text);
+
+		// Assert
+		isMatch
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxLanguageProfiles.Languages" />: every language with a profile has a grammar.
+	/// </summary>
+	/// <remarks>
+	/// A language that a new version of the grammars renames only turns its profile off, so nothing but this test
+	/// catches it.
+	/// </remarks>
+	[Test]
+	public void Languages_Have_A_Grammar()
+	{
+		// Act
+		string[] missing = [.. SyntaxLanguageProfiles
+			.Languages
+			.Where(static x => SyntaxRegistry.Instance.FindScope(x) is null)];
+
+		// Assert
+		missing
+			.Should()
+			.BeEmpty();
 	}
 	#endregion
 }

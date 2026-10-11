@@ -134,7 +134,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 
 	#region Helpers
 	/// <summary>
-	/// Builds the folding rules of a language from its settings and from the patterns of its lines.
+	/// Builds the folding rules of a language from its settings and from its profile.
 	/// </summary>
 	private SyntaxFoldingRules? CreateFoldingRules(string language)
 	{
@@ -161,18 +161,13 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 
 		// The markers are regular expressions of VS Code, which .NET reads alike.
 		// They are compiled, as every pass tries them on each line.
-		return new SyntaxFoldingRules
+		return SyntaxLanguageProfiles.Find(language) with
 		{
 			BlockCommentEnd = blockComment?.End,
 			BlockCommentStart = blockComment?.Start,
-			DirectiveLine = SyntaxLinePatterns.FindDirective(language),
-			DocComment = SyntaxLinePatterns.FindDocComment(language),
-			EndLine = SyntaxLinePatterns.FindEndLine(language),
 			EndMarker = markers is null ? null : new Regex(markers.End, RegexOptions.Compiled),
-			ImportLine = SyntaxLinePatterns.FindImport(language),
 			IsOffSide = folding?.OffSide == true,
-			LineComment = SyntaxLinePatterns.FindLineComment(language, comments?.LineComment),
-			PreprocessorLine = SyntaxLinePatterns.FindPreprocessor(language),
+			LineComment = SyntaxLanguageProfiles.FindLineComment(language, comments?.LineComment),
 			StartMarker = markers is null ? null : new Regex(markers.Start, RegexOptions.Compiled)
 		};
 	}

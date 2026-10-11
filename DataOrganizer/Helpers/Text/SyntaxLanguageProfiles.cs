@@ -1,93 +1,190 @@
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Helpers.Text;
 
 /// <summary>
-/// Patterns and tokens of the lines of a language that folding tells apart: imports, directives, comments and the ends
-/// of blocks.
+/// The folding rules of each language that its settings lack: how its blocks are found and the patterns of the lines
+/// that folding tells apart, such as imports, directives, comments and the ends of blocks.
 /// </summary>
-internal static partial class SyntaxLinePatterns
+internal static partial class SyntaxLanguageProfiles
 {
+	#region Properties
+	/// <summary>
+	/// Languages that have a profile of their own.
+	/// </summary>
+	public static IReadOnlyCollection<string> Languages => Profiles.Keys;
+	#endregion
+
 	#region Data
 	/// <summary>
-	/// Language of Batch, whose remarks start with a word as well as with a mark.
+	/// Profiles by the identifier of the language; the languages of one row share its profile.
 	/// </summary>
-	private const string BatchLanguage = "bat";
+	private static readonly FrozenDictionary<string, SyntaxFoldingRules> Profiles = CreateProfiles(
+		// A remark of Batch is a word in any case or a label that nothing jumps to, beside the token of its settings.
+		(["bat"], new()
+		{
+			LineComment = BatchRemarkRegex()
+		}),
+		(["c", "cpp", "cuda-cpp", "hlsl", "shaderlab"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			ImportLine = CIncludeRegex(),
+			PreprocessorLine = CPreprocessorRegex()
+		}),
+		(["coffeescript", "javascript", "javascriptreact", "typescript", "typescriptreact"], new()
+		{
+			ImportLine = JavaScriptImportRegex()
+		}),
+		// A directive of C#, F# and Visual Basic takes one line, so every line with a number sign holds one.
+		(["csharp"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			DocComment = "///",
+			ImportLine = CSharpUsingRegex(),
+			PreprocessorLine = DirectiveRegex()
+		}),
+		(["css", "less", "scss"], new()
+		{
+			ImportLine = CssImportRegex()
+		}),
+		(["dart"], new()
+		{
+			ImportLine = DartImportRegex()
+		}),
+		(["fsharp"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			DocComment = "///",
+			ImportLine = FSharpOpenRegex(),
+			PreprocessorLine = DirectiveRegex()
+		}),
+		(["go"], new()
+		{
+			ImportLine = GoImportRegex()
+		}),
+		(["groovy", "java"], new()
+		{
+			ImportLine = JavaImportRegex()
+		}),
+		(["html"], new()
+		{
+			EndLine = HtmlEndTagRegex()
+		}),
+		(["jade"], new()
+		{
+			ImportLine = PugIncludeRegex()
+		}),
+		(["julia"], new()
+		{
+			EndLine = EndWordRegex(),
+			ImportLine = JuliaImportRegex()
+		}),
+		(["latex", "tex"], new()
+		{
+			EndLine = LatexEndRegex(),
+			ImportLine = LatexPackageRegex()
+		}),
+		(["lua"], new()
+		{
+			EndLine = EndWordRegex(),
+			ImportLine = LuaRequireRegex()
+		}),
+		(["makefile"], new()
+		{
+			EndLine = MakefileEndRegex(),
+			ImportLine = MakefileIncludeRegex()
+		}),
+		(["markdown"], new()
+		{
+			Kind = SyntaxFoldingKind.Headings
+		}),
+		(["objective-c", "objective-cpp"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			ImportLine = ObjectiveCImportRegex(),
+			PreprocessorLine = CPreprocessorRegex()
+		}),
+		(["perl", "perl6"], new()
+		{
+			ImportLine = PerlUseRegex()
+		}),
+		// A number sign starts an attribute of PHP and Rust, which may span lines.
+		(["php"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			ImportLine = PhpUseRegex()
+		}),
+		(["powershell"], new()
+		{
+			ImportLine = PowerShellUsingRegex()
+		}),
+		(["python"], new()
+		{
+			ImportLine = PythonImportRegex()
+		}),
+		(["r"], new()
+		{
+			ImportLine = RLibraryRegex()
+		}),
+		(["razor"], new()
+		{
+			EndLine = HtmlEndTagRegex(),
+			ImportLine = RazorUsingRegex()
+		}),
+		(["ruby"], new()
+		{
+			EndLine = EndWordRegex(),
+			ImportLine = RubyRequireRegex()
+		}),
+		(["rust"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			ImportLine = RustUseRegex()
+		}),
+		(["shellscript"], new()
+		{
+			EndLine = ShellEndRegex(),
+			ImportLine = ShellSourceRegex()
+		}),
+		(["swift"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			ImportLine = SwiftImportRegex(),
+			PreprocessorLine = SwiftDirectiveRegex()
+		}),
+		(["typst"], new()
+		{
+			ImportLine = TypstImportRegex()
+		}),
+		(["vb"], new()
+		{
+			DirectiveLine = DirectiveRegex(),
+			DocComment = "'''",
+			EndLine = VisualBasicEndRegex(),
+			ImportLine = VisualBasicImportsRegex(),
+			PreprocessorLine = DirectiveRegex()
+		}),
+		(["xml", "xsl"], new()
+		{
+			Kind = SyntaxFoldingKind.Tags
+		}));
+
+	/// <summary>
+	/// Profile of a language without one of its own: blocks by indentation and no patterns of lines.
+	/// </summary>
+	private static readonly SyntaxFoldingRules Unlisted = new();
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// Returns the pattern of a line of a language that holds a directive to the compiler or an attribute; <c>null</c> when
-	/// such lines start code or comments in the language.
+	/// Returns the profile of a language; a language without one gets blocks by indentation and no patterns of lines.
 	/// </summary>
-	public static Regex? FindDirective(string language) => language switch
-	{
-		// The preprocessor of the C family, C#, F#, Swift and Visual Basic, the attributes of Rust and PHP.
-		"c" or "cpp" or "cuda-cpp" or "hlsl" or "objective-c" or "objective-cpp" or "shaderlab" => DirectiveRegex(),
-		"csharp" or "fsharp" or "php" or "rust" or "swift" or "vb" => DirectiveRegex(),
-		_ => null
-	};
-
-	/// <summary>
-	/// Returns the token that opens a line of a documentation comment of XML in a language; <c>null</c> when the language
-	/// has no such comments.
-	/// </summary>
-	public static string? FindDocComment(string language) => language switch
-	{
-		"csharp" or "fsharp" => "///",
-		"vb" => "'''",
-		_ => null
-	};
-
-	/// <summary>
-	/// Returns the pattern of the text of a line of a language that ends the block above it with a word or a tag alone;
-	/// <c>null</c> when the blocks of the language end with brackets, or start with a word on a line of its own.
-	/// </summary>
-	public static Regex? FindEndLine(string language) => language switch
-	{
-		"html" or "razor" => HtmlEndTagRegex(),
-		"julia" or "lua" or "ruby" => EndWordRegex(),
-		"latex" or "tex" => LatexEndRegex(),
-		"makefile" => MakefileEndRegex(),
-		"shellscript" => ShellEndRegex(),
-		"vb" => VisualBasicEndRegex(),
-		_ => null
-	};
-
-	/// <summary>
-	/// Returns the pattern of a line of a language that starts an import statement; <c>null</c> when the imports of the
-	/// language do not fold as a run.
-	/// </summary>
-	public static Regex? FindImport(string language) => language switch
-	{
-		"c" or "cpp" or "cuda-cpp" or "hlsl" or "shaderlab" => CIncludeRegex(),
-		"coffeescript" or "javascript" or "javascriptreact" or "typescript" or "typescriptreact" => JavaScriptImportRegex(),
-		"csharp" => CSharpUsingRegex(),
-		"css" or "less" or "scss" => CssImportRegex(),
-		"dart" => DartImportRegex(),
-		"fsharp" => FSharpOpenRegex(),
-		"go" => GoImportRegex(),
-		"groovy" or "java" => JavaImportRegex(),
-		"jade" => PugIncludeRegex(),
-		"julia" => JuliaImportRegex(),
-		"latex" or "tex" => LatexPackageRegex(),
-		"lua" => LuaRequireRegex(),
-		"makefile" => MakefileIncludeRegex(),
-		"objective-c" or "objective-cpp" => ObjectiveCImportRegex(),
-		"perl" or "perl6" => PerlUseRegex(),
-		"php" => PhpUseRegex(),
-		"powershell" => PowerShellUsingRegex(),
-		"python" => PythonImportRegex(),
-		"r" => RLibraryRegex(),
-		"razor" => RazorUsingRegex(),
-		"ruby" => RubyRequireRegex(),
-		"rust" => RustUseRegex(),
-		"shellscript" => ShellSourceRegex(),
-		"swift" => SwiftImportRegex(),
-		"typst" => TypstImportRegex(),
-		"vb" => VisualBasicImportsRegex(),
-		_ => null
-	};
+	public static SyntaxFoldingRules Find(string language) => Profiles.GetValueOrDefault(language, Unlisted);
 
 	/// <summary>
 	/// Returns the pattern of the token that opens a line comment of a language, matched at the start of a text;
@@ -95,10 +192,10 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	public static Regex? FindLineComment(string language, string? token)
 	{
-		// A remark of Batch is a word in any case or a label that nothing jumps to, beside the token of its settings.
-		if (language == BatchLanguage)
+		// A pattern of the profile takes in more than the token, as the remarks of Batch do.
+		if (Find(language).LineComment is { } pattern)
 		{
-			return BatchRemarkRegex();
+			return pattern;
 		}
 
 		// A token of blanks, as one language has, would find a comment in every text.
@@ -110,19 +207,6 @@ internal static partial class SyntaxLinePatterns
 		// Compiled, as a pass may try it on each line.
 		return new Regex("^" + Regex.Escape(token), RegexOptions.Compiled);
 	}
-
-	/// <summary>
-	/// Returns the pattern of a line of a language that holds a directive standing apart from the indentation of the code,
-	/// such as a condition of the preprocessor; <c>null</c> when the lines with a number sign belong to the code.
-	/// </summary>
-	public static Regex? FindPreprocessor(string language) => language switch
-	{
-		// A directive of C#, F# and Visual Basic takes one line, so every line with a number sign holds one.
-		"csharp" or "fsharp" or "vb" => DirectiveRegex(),
-		"c" or "cpp" or "cuda-cpp" or "hlsl" or "objective-c" or "objective-cpp" or "shaderlab" => CPreprocessorRegex(),
-		"swift" => SwiftDirectiveRegex(),
-		_ => null
-	};
 	#endregion
 
 	#region Helpers
@@ -144,6 +228,18 @@ internal static partial class SyntaxLinePatterns
 	/// </summary>
 	[GeneratedRegex(@"^[ \t]*#[ \t]*(?:if(?:n?def)?|elif(?:n?def)?|else|endif|pragma|error|warning|line|undef)\b")]
 	private static partial Regex CPreprocessorRegex();
+
+	/// <summary>
+	/// Makes the table of the profiles, with the profile of each row under every language of the row.
+	/// </summary>
+	private static FrozenDictionary<string, SyntaxFoldingRules> CreateProfiles(
+		params (string[] Languages, SyntaxFoldingRules Profile)[] rows)
+	{
+		// A language named in two rows fails here, as one of its profiles would be lost.
+		return rows
+			.SelectMany(static x => x.Languages, static (x, language) => (Language: language, x.Profile))
+			.ToFrozenDictionary(static x => x.Language, static x => x.Profile);
+	}
 
 	/// <summary>
 	/// Matches a line of a using directive or an extern alias of C#, but not a using statement or declaration.
