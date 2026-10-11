@@ -9,6 +9,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
@@ -25,6 +26,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
@@ -985,6 +987,213 @@ internal class ViewLauncherTests
 		window.ViewModel.EditorTabs
 			.Should()
 			.BeSameAs(tabs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the category chosen in the popup,
+	/// fixed or not, and keeps the favorite selected in each category.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CreateFavoritesWindow_Saves_The_Chosen_Category_When_Switching_To_The_Editor(
+		[Values] bool isPopupFixed)
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		FavoriteSelection[] pairs = [.. FavoriteFactory.CreateFavoriteSelections(2)];
+
+		EditorWindow editorWindow = new();
+
+		Guid savedCategoryId = default;
+
+		FavoriteSelection[] savedPairs = [];
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			viewLauncher.CreateEditorWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<EditorTabsState?>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(editorWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			// The settings are cleared once written, so they are read at the write.
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<FavoritesViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call =>
+				{
+					FavoritesViewSettings settings = call.Arg<FavoritesViewSettings>();
+
+					savedCategoryId = settings.SelectedCategoryId;
+
+					savedPairs = [.. settings.SelectedPairs];
+				});
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+
+		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.SelectedPairs
+			.AddRange(pairs);
+
+		window.ViewModel.IsPopupFixed = isPopupFixed;
+
+		window
+			.ViewModel
+			.ShowFavorites();
+
+		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
+		// dispatcher before the choice.
+		window
+			.ViewModel
+			.FavoritesDisplayedCommand
+			.Execute(favorites);
+
+		Dispatcher.UIThread.RunJobs();
+
+		favorites.SelectedCategory = categories[1];
+
+		// Act
+		await window
+			.ViewModel
+			.ShowInEditorAsync(default, window);
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		savedCategoryId
+			.Should()
+			.Be(categories[1].Id);
+
+		savedPairs
+			.Should()
+			.Equal(pairs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: closing the window saves the category chosen in the popup, fixed
+	/// or not.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Saves_The_Chosen_Category_When_The_Window_Closes([Values] bool isPopupFixed)
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		Guid savedCategoryId = default;
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<FavoritesViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedCategoryId = call.Arg<FavoritesViewSettings>().SelectedCategoryId);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+
+		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		window.ViewModel.IsPopupFixed = isPopupFixed;
+
+		window
+			.ViewModel
+			.ShowFavorites();
+
+		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
+		// dispatcher before the choice.
+		window
+			.ViewModel
+			.FavoritesDisplayedCommand
+			.Execute(favorites);
+
+		Dispatcher.UIThread.RunJobs();
+
+		favorites.SelectedCategory = categories[1];
+
+		// Act
+		window.Close();
+
+		// Assert
+		savedCategoryId
+			.Should()
+			.Be(categories[1].Id);
 	}
 
 	/// <summary>

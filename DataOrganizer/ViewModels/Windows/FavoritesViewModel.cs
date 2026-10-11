@@ -376,11 +376,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	{
 		IsShutdown = false;
 
-		if (IsPopupFixed)
-		{
-			SaveContent();
-		}
-
 		window.Close();
 
 		_viewLauncher.CreateEditorWindow(

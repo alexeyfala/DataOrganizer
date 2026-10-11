@@ -206,14 +206,11 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(FavoritesWindow)}"" and saving ""{nameof(FavoritesWindowSettings)}""");
 
-		if (window.ViewModel.IsShutdown && window
+		// The popup is still open here when it is fixed or when a command from inside it closes the window, so its
+		// content is saved before the settings are written.
+		window
 			.ViewModel
-			.IsPopupFixed)
-		{
-			window
-				.ViewModel
-				.SaveContent();
-		}
+			.SaveContent();
 
 		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
 	}
