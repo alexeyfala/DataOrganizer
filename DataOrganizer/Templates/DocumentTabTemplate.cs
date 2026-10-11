@@ -133,8 +133,6 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 
 			viewModel.SetEditorStateCallback = SetEditorState;
 
-			viewModel.SetUpdatedAtCallback = SetUpdatedAt;
-
 			viewModel.InitialEditorState = file.EditorState;
 
 			viewModel.Initialize();
@@ -143,8 +141,6 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 		void SetEditorSplit(double? split) => file.EditorSplit = split;
 
 		void SetEditorState(string state) => file.EditorState = state;
-
-		void SetUpdatedAt(DateTime updatedAt) => file.UpdatedAt = updatedAt;
 	}
 	#endregion
 }

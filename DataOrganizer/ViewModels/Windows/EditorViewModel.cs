@@ -56,7 +56,7 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>EditorWindow</c>.
 /// </summary>
-public partial class EditorViewModel :
+public sealed partial class EditorViewModel :
 	ViewModelBase,
 	INavigationColumnViewModel,
 	IRecipient<FolderExpandedChangedMessage>,

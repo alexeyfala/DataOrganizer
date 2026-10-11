@@ -39,7 +39,7 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>FavoritesWindow</c>.
 /// </summary>
-public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUpdatePrompt
+public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />

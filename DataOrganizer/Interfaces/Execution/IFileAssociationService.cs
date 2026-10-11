@@ -12,11 +12,5 @@ public interface IFileAssociationService
 	/// Tries to find a path to the executable application file by file extension.
 	/// </summary>
 	string? FindApplicationByExtension(string fileExtension);
-
-	/// <summary>
-	/// Tries to find a path to the executable application file by the absolute path of existing file.
-	/// For the method to work, the file must exist at the specified path.
-	/// </summary>
-	string? FindApplicationByPath(string absoluteFilePath);
 	#endregion
 }

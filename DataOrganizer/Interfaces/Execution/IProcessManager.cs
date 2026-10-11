@@ -8,11 +8,6 @@ namespace DataOrganizer.Interfaces.Execution;
 public interface IProcessManager
 {
 	#region Methods
-	/// <summary>
-	/// Returns a list of child processes.
-	/// </summary>
-	Process[] GetChildProcesses(int parentProcessId);
-
 	/// <inheritdoc cref="Process.Kill()" />
 	void KillProcess(int processId);
 

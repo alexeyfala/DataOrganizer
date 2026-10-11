@@ -82,11 +82,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// Callback that reports the editor state.
 	/// </summary>
 	public Action<string>? SetEditorStateCallback { get; set; }
-
-	/// <summary>
-	/// Callback that reports when the object was changed.
-	/// </summary>
-	public Action<DateTime>? SetUpdatedAtCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

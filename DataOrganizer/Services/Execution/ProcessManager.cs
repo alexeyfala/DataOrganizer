@@ -5,7 +5,6 @@ using Shared.Extensions;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 
 namespace DataOrganizer.Services.Execution;
 
@@ -13,14 +12,6 @@ namespace DataOrganizer.Services.Execution;
 public sealed class ProcessManager : IProcessManager
 {
 	#region Methods
-	/// <inheritdoc />
-	public Process[] GetChildProcesses(int parentProcessId)
-	{
-		return [.. Process
-			.GetProcesses()
-			.Where(x => GetParentProcessId(x, out int processId) && processId == parentProcessId)];
-	}
-
 	/// <inheritdoc />
 	public void KillProcess(int processId)
 	{
@@ -112,35 +103,5 @@ public sealed class ProcessManager : IProcessManager
 			UseShellExecute = true
 		}
 	};
-
-	/// <summary>
-	/// Returns the parent process ID.
-	/// </summary>
-	private static bool GetParentProcessId(Process process, out int parentProcessId)
-	{
-		parentProcessId = 0;
-
-		try
-		{
-			PropertyInfo? property = process
-				.GetType()
-				.GetProperty("ParentProcessId", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (property?.GetValue(process) is int value)
-			{
-				parentProcessId = value;
-
-				return true;
-			}
-
-			return false;
-		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex.ToStringDemystified());
-
-			return false;
-		}
-	}
 	#endregion
 }
