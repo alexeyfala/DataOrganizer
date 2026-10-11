@@ -26,6 +26,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Execution;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -1937,6 +1938,68 @@ internal class EditorViewModelTests
 		autoLock
 			.DidNotReceive()
 			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(CloseExecutingFileMessage)" />: only the executing file the message names is removed
+	/// from executing files, unmarked, and closed in the engine.
+	/// </summary>
+	[Test]
+	public void Receive_CloseExecutingFile_Closes_Only_The_Named_File()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto.IsExecuting = true;
+
+		FileDto other = ItemDtoFactory.CreateFileDto();
+
+		other.IsExecuting = true;
+
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(engine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.ExecutingFiles
+			.Add(other);
+
+		sut
+			.ExecutingFiles
+			.Add(dto);
+
+		// Act
+		sut.Receive(new CloseExecutingFileMessage(dto.Id));
+
+		// Assert
+		sut.ExecutingFiles
+			.Should()
+			.Equal(other);
+
+		dto.IsExecuting
+			.Should()
+			.BeFalse();
+
+		other.IsExecuting
+			.Should()
+			.BeTrue();
+
+		engine
+			.Received(1)
+			.CloseAsync(dto.Id);
+
+		engine
+			.DidNotReceive()
+			.CloseAsync(other.Id);
 	}
 
 	/// <summary>

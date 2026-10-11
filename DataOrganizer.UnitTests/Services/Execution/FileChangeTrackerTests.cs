@@ -316,11 +316,11 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		FileDto? receivedClosedFile = null;
+		Guid? receivedClosedId = null;
 
 		object recipient = new();
 
-		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.File);
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -384,9 +384,9 @@ internal class FileChangeTrackerTests
 			Arg.Any<DatabaseNotWritableException>(),
 			Arg.Any<string>());
 
-		receivedClosedFile
+		receivedClosedId
 			.Should()
-			.Be(parameters.File);
+			.Be(parameters.File.Id);
 	}
 
 	/// <summary>
@@ -400,11 +400,11 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		FileDto? receivedClosedFile = null;
+		Guid? receivedClosedId = null;
 
 		object recipient = new();
 
-		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.File);
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -461,9 +461,9 @@ internal class FileChangeTrackerTests
 		// Act
 		await sut.TrackChangesAsync(parameters);
 
-		receivedClosedFile
+		receivedClosedId
 			.Should()
-			.Be(parameters.File);
+			.Be(parameters.File.Id);
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),

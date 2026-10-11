@@ -275,7 +275,8 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc />
 	public void Receive(CloseExecutingFileMessage message)
 	{
-		CloseExecutingFile(message.File);
+		// The executing files change on the UI thread, so they are searched there.
+		_dispatcher.Post(() => CloseExecutingFile(ExecutingFiles.FirstOrDefault(x => x.Id == message.FileId)));
 	}
 
 	/// <inheritdoc />

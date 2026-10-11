@@ -256,7 +256,7 @@ public class FileChangeTracker : IFileChangeTracker
 	/// </summary>
 	private void CloseExecutingFile(TrackChangesParameters parameters)
 	{
-		_messenger.Send(new CloseExecutingFileMessage(parameters.File));
+		_messenger.Send(new CloseExecutingFileMessage(parameters.File.Id));
 	}
 
 	/// <summary>
