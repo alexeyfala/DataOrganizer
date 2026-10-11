@@ -2,9 +2,13 @@ using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Extensions;
+using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Converters;
 
@@ -88,6 +92,42 @@ internal class AppConvertersTests
 	{
 		// Act
 		object? result = Convert(AppConverters.AutoLockRemaining, null);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.HotkeysToToolTip" />: the tip of a file with hotkeys ends with their keys.
+	/// </summary>
+	[Test]
+	public void HotkeysToToolTip_Lists_The_Keys_Of_The_Hotkeys()
+	{
+		// Arrange
+		HotkeyDto[] hotkeys = [.. HotkeyFactory.CreateHotkeyDtos(3)];
+
+		// Act
+		object? result = Convert(AppConverters.HotkeysToToolTip, hotkeys);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<string>()
+			.Which
+			.Should()
+			.EndWith(hotkeys.ToKeyStrokes().ToArray().GetHotkeysPresentation());
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.HotkeysToToolTip" />: a file without hotkeys has no tip.
+	/// </summary>
+	[Test]
+	public void HotkeysToToolTip_Without_Hotkeys_Is_Empty()
+	{
+		// Act
+		object? result = Convert(AppConverters.HotkeysToToolTip, []);
 
 		// Assert
 		result
@@ -232,6 +272,18 @@ internal class AppConvertersTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Runs a converter over the hotkeys of a file and their count, as the binding hands them over.
+	/// </summary>
+	private static object? Convert(IMultiValueConverter converter, HotkeyDto[] hotkeys)
+	{
+		return converter.Convert(
+			[hotkeys, hotkeys.Length],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
 	/// <summary>
 	/// Runs a converter over the time left of a countdown.
 	/// </summary>

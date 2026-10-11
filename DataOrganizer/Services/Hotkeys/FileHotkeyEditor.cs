@@ -127,10 +127,6 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 			return OverwriteHotkeysOutcome.ExceptionThrown;
 		}
-		finally
-		{
-			dto.SetHotkeysToolTip();
-		}
 	}
 	#endregion
 }

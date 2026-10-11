@@ -12,8 +12,10 @@ using DataOrganizer.Helpers.Text;
 using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
+using Repository.Dto;
 using Shared.Properties;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -109,6 +111,12 @@ internal static class AppConverters
 	/// </summary>
 	public static FuncValueConverter<FavoriteCategory?, FolderDto?> FavoriteCategoryToFolder { get; } =
 		new(GetFolder);
+
+	/// <summary>
+	/// Tooltip of the hotkeys of a file; <c>null</c> for a file without them.
+	/// Inputs: [Hotkeys, Hotkeys.Count]; the count only makes the binding read the changed hotkeys again.
+	/// </summary>
+	public static FuncMultiValueConverter<object?, string?> HotkeysToToolTip { get; } = new(GetHotkeysToolTip);
 
 	/// <summary>
 	/// Caption of the line endings of a document; <c>null</c> for a document without line breaks.
@@ -221,6 +229,26 @@ internal static class AppConverters
 			?.Children
 			.FirstOrDefault()
 			?.Parent;
+	}
+
+	/// <summary>
+	/// Returns the tooltip of the hotkeys that come first among the values; <c>null</c> when there are none.
+	/// </summary>
+	private static string? GetHotkeysToolTip(IEnumerable<object?> values)
+	{
+		if (values.FirstOrDefault() is not IEnumerable<HotkeyDto> hotkeys)
+		{
+			return null;
+		}
+
+		KeyStroke[] keyStrokes = [.. hotkeys.ToKeyStrokes()];
+
+		if (keyStrokes.Length == 0)
+		{
+			return null;
+		}
+
+		return $"{Strings.Hotkeys}: {keyStrokes.GetHotkeysPresentation()}";
 	}
 	#endregion
 }

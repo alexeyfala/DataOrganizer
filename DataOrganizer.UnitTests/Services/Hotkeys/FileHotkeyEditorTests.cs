@@ -89,7 +89,7 @@ internal class FileHotkeyEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: new hotkeys are saved to the database, the tooltip is set, and Rewritten is returned.
+	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: new hotkeys are saved to the database and the file, and Rewritten is returned.
 	/// </summary>
 	[Test]
 	public async Task OverwriteAsync_Returns_Rewritten()
@@ -127,10 +127,6 @@ internal class FileHotkeyEditorTests
 		dto.Hotkeys
 			.Should()
 			.HaveCount(newHotkeys.Length);
-
-		dto.HotkeysToolTip
-			.Should()
-			.NotBeNullOrEmpty();
 
 		await dbAccess
 			.Received(1)

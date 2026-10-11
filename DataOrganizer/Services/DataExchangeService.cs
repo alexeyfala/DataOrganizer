@@ -574,8 +574,6 @@ public sealed class DataExchangeService : IDataExchangeService
 			file
 				.Hotkeys
 				.Clear();
-
-			file.SetHotkeysToolTip();
 		}
 	}
 

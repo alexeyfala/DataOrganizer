@@ -102,13 +102,27 @@
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
-				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
 				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
 				NoteItem="{Binding Mode=OneWay}"
 				NoteName="{Binding Name, Mode=OneWay}"
-				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}">
+				<views:IconsBlock.HotkeysToolTip>
+					<MultiBinding
+						Converter="{x:Static converters:AppConverters.HotkeysToToolTip}"
+						Mode="OneWay">
+						<Binding
+							Mode="OneWay"
+							Path="Hotkeys" />
+
+						<!-- The hotkeys change inside the collection, so its count makes the tip follow them. -->
+						<Binding
+							Mode="OneWay"
+							Path="Hotkeys.Count" />
+					</MultiBinding>
+				</views:IconsBlock.HotkeysToolTip>
+			</views:IconsBlock>
 		</Grid>
 	</DataTemplate>
 </ResourceDictionary>

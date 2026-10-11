@@ -102,8 +102,6 @@ public sealed class EntityLoader : IEntityLoader
 			file
 				.Hotkeys
 				.ClearAddRange(orderedHotkeys);
-
-			file.SetHotkeysToolTip();
 		});
 
 		ExplorerItemDtoBase[] hierarchy = _mapper
