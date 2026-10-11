@@ -11,6 +11,7 @@ using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Windows;
 using Entities.Models;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -502,6 +503,10 @@ internal class DataExchangeServiceTests
 			builder.RegisterInstance(picker);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -608,6 +613,10 @@ internal class DataExchangeServiceTests
 			builder.RegisterInstance(picker);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -637,6 +646,8 @@ internal class DataExchangeServiceTests
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -659,6 +670,8 @@ internal class DataExchangeServiceTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -677,7 +690,9 @@ internal class DataExchangeServiceTests
 
 		entities
 			.Should()
-			.NotContain(x => x.CreatedAt == default || x.UpdatedAt == default);
+			.AllSatisfy(x => x.CreatedAt.Should().Be(time.GetLocalNow().LocalDateTime))
+			.And
+			.AllSatisfy(x => x.UpdatedAt.Should().Be(time.GetLocalNow().LocalDateTime));
 
 		entityLoader
 			.Received()

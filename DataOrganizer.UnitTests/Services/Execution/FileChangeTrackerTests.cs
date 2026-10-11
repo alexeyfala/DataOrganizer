@@ -12,6 +12,7 @@ using DataOrganizer.Services.Execution;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
@@ -149,6 +150,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -274,6 +279,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -351,6 +360,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(dbFailureReporter);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -469,6 +482,8 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			byte[] previousContents = RandomValues.CreateBytes(32);
@@ -508,6 +523,8 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -520,8 +537,6 @@ internal class FileChangeTrackerTests
 			FilePath = RandomValues.CreateFileName(10)
 		};
 
-		DateTime before = DateTime.Now;
-
 		// Act
 		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
@@ -533,7 +548,7 @@ internal class FileChangeTrackerTests
 
 		parameters.File.UpdatedAt
 			.Should()
-			.BeOnOrAfter(before);
+			.Be(time.GetLocalNow().LocalDateTime);
 	}
 	#endregion
 }

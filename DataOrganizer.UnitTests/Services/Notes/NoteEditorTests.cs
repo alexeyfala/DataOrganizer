@@ -8,6 +8,7 @@ using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
@@ -53,6 +54,10 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -60,8 +65,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			note,
-			DateTime.Now);
+			note);
 
 		// Assert
 		result
@@ -93,6 +97,10 @@ internal class NoteEditorTests
 				.Returns(encoded);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -100,8 +108,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -142,8 +149,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -185,8 +191,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -210,7 +215,7 @@ internal class NoteEditorTests
 
 		byte[] encoded = RandomValues.CreateBytes(10);
 
-		DateTime updatedAt = DateTime.Now.AddDays(1);
+		FakeTimeProvider time = new();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -232,6 +237,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -239,8 +246,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			updatedAt);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -253,7 +259,7 @@ internal class NoteEditorTests
 
 		file.UpdatedAt
 			.Should()
-			.Be(updatedAt);
+			.Be(time.GetLocalNow().LocalDateTime);
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			file.Id,
@@ -292,6 +298,10 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -299,8 +309,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			folder,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -350,6 +359,10 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -357,8 +370,7 @@ internal class NoteEditorTests
 		// Act
 		await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		replaced.Should().AllSatisfy(x => x

@@ -8,6 +8,7 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -225,12 +226,14 @@ internal class HierarchyEditorTests
 
 		DateTime updatedAt = DateTime.Now;
 
+		toBeRenamed.UpdatedAt = updatedAt;
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedAt);
+		bool result = await sut.RenameAsync(toBeRenamed, newName);
 
 		// Assert
 		result
@@ -239,7 +242,7 @@ internal class HierarchyEditorTests
 
 		toBeRenamed.UpdatedAt
 			.Should()
-			.NotBe(updatedAt);
+			.Be(updatedAt);
 	}
 
 	/// <summary>
@@ -255,7 +258,7 @@ internal class HierarchyEditorTests
 
 		dto.Name = RandomString.Create(10);
 
-		DateTime updatedAt = DateTime.Now;
+		FakeTimeProvider time = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -267,12 +270,14 @@ internal class HierarchyEditorTests
 			.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(dto, newName, updatedAt);
+		bool result = await sut.RenameAsync(dto, newName);
 
 		// Assert
 		result
@@ -285,7 +290,7 @@ internal class HierarchyEditorTests
 
 		dto.UpdatedAt
 			.Should()
-			.Be(updatedAt);
+			.Be(time.GetLocalNow().LocalDateTime);
 	}
 	#endregion
 }

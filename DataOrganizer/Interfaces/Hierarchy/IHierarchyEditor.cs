@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Entities;
 using Entities.Enums;
-using System;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +36,6 @@ public interface IHierarchyEditor
 	Task<bool> RenameAsync(
 		ExplorerItemDtoBase dto,
 		string newName,
-		DateTime updatedAt,
 		CancellationToken token = default);
 	#endregion
 }

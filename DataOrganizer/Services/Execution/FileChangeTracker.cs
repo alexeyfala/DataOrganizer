@@ -43,6 +43,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -53,7 +56,8 @@ public class FileChangeTracker : IFileChangeTracker
 		IFileSystem fileSystem,
 		ILogger logger,
 		IMessenger messenger,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -68,6 +72,8 @@ public class FileChangeTracker : IFileChangeTracker
 		_messenger = messenger;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -190,7 +196,9 @@ public class FileChangeTracker : IFileChangeTracker
 						bytes = encrypted;
 					}
 
-					DateTime updatedAt = DateTime.Now;
+					DateTime updatedAt = _timeProvider
+						.GetLocalNow()
+						.LocalDateTime;
 
 					try
 					{

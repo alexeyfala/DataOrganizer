@@ -27,6 +27,9 @@ public sealed class NoteEditor : INoteEditor
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -34,7 +37,8 @@ public sealed class NoteEditor : INoteEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		INoteCipher noteCipher,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -43,6 +47,8 @@ public sealed class NoteEditor : INoteEditor
 		_noteCipher = noteCipher;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -51,7 +57,6 @@ public sealed class NoteEditor : INoteEditor
 	public async Task<bool> EditAsync(
 		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation("Editing a note of an object");
@@ -76,6 +81,10 @@ public sealed class NoteEditor : INoteEditor
 		{
 			return Fail(item);
 		}
+
+		DateTime updatedAt = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		Task<bool> task = item.Kind switch
 		{

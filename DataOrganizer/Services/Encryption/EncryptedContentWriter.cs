@@ -34,6 +34,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -41,7 +44,8 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -50,6 +54,8 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 		_logger = logger;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -61,7 +67,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		try
 		{
-			DateTime updatedAt = DateTime.Now;
+			DateTime updatedAt = _timeProvider
+				.GetLocalNow()
+				.LocalDateTime;
 
 			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
 				.Contents

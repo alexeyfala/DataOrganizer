@@ -91,6 +91,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <inheritdoc cref="IXmlSerializer" />
 	private readonly IXmlSerializer _xmlSerializer;
 	#endregion
@@ -142,7 +145,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		IXmlSerializer xmlSerializer)
+		IXmlSerializer xmlSerializer,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -163,6 +167,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_notification = notification;
 
 		_picker = picker;
+
+		_timeProvider = timeProvider;
 
 		_xmlSerializer = xmlSerializer;
 	}
@@ -408,7 +414,9 @@ public sealed class DataExchangeService : IDataExchangeService
 				.ConfigureAwait(false);
 		}
 
-		DateTime now = DateTime.Now;
+		DateTime now = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
 

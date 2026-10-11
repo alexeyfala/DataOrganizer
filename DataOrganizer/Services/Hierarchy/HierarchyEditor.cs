@@ -34,6 +34,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -42,7 +45,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		IMapper mapper,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -53,6 +57,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		_mapper = mapper;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -188,7 +194,6 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	public async Task<bool> RenameAsync(
 		ExplorerItemDtoBase dto,
 		string newName,
-		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		if (newName.Equals(dto.Name, StringComparison.Ordinal))
@@ -201,6 +206,10 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			return false;
 		}
+
+		DateTime updatedAt = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		Task<bool> task = dto.Kind switch
 		{

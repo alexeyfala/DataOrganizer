@@ -27,19 +27,25 @@ public sealed class SampleSeeder : ISampleSeeder
 
 	/// <inheritdoc cref="IFolderProtection" />
 	private readonly IFolderProtection _folderProtection;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
 	public SampleSeeder(
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
-		IFolderProtection folderProtection)
+		IFolderProtection folderProtection,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
 		_entityLoader = entityLoader;
 
 		_folderProtection = folderProtection;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -60,7 +66,7 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		SampleObjects samples = SampleHierarchy.Create(
 			rootIndex,
-			DateTime.Now,
+			_timeProvider.GetLocalNow().LocalDateTime,
 			takenHotkeys);
 
 		FolderDto run = await WriteAsync(samples.Items, token).ConfigureAwait(false);
@@ -104,7 +110,7 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		ExplorerItemBase[] items = LargeSampleHierarchy.Create(
 			rootIndex,
-			DateTime.Now);
+			_timeProvider.GetLocalNow().LocalDateTime);
 
 		return await WriteAsync(items, token).ConfigureAwait(false);
 	}

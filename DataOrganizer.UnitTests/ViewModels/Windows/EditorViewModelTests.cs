@@ -861,7 +861,6 @@ internal class EditorViewModelTests
 		await noteEditor.Received(1).EditAsync(
 			file,
 			editedNote,
-			Arg.Any<DateTime>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -902,7 +901,6 @@ internal class EditorViewModelTests
 		await noteEditor.DidNotReceive().EditAsync(
 			Arg.Any<ExplorerItemDtoBase>(),
 			Arg.Any<string>(),
-			Arg.Any<DateTime>(),
 			Arg.Any<CancellationToken>());
 	}
 

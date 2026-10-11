@@ -9,6 +9,7 @@ using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
@@ -63,6 +64,10 @@ internal class EncryptedContentWriterTests
 				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
@@ -104,15 +109,22 @@ internal class EncryptedContentWriterTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		dbAccess
-			.UpdateFileAndFolderPropertiesAsync(
-				Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
-				Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
-			.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdateFileAndFolderPropertiesAsync(
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
+				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(dbAccess);
 
-		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>(TypedParameter.From(dbAccess));
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
 
 		// Act
 		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
@@ -156,6 +168,10 @@ internal class EncryptedContentWriterTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
@@ -231,6 +247,10 @@ internal class EncryptedContentWriterTests
 				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();

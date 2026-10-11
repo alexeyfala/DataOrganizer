@@ -293,7 +293,7 @@ public sealed partial class EditorViewModel :
 		}
 
 		await _noteEditor
-			.EditAsync(dto, result.Value, DateTime.Now)
+			.EditAsync(dto, result.Value)
 			.ConfigureAwait(false);
 	}
 
@@ -1000,7 +1000,7 @@ public sealed partial class EditorViewModel :
 		}
 
 		await _hierarchyEditor
-			.RenameAsync(toBeRenamed, pair.Key, DateTime.Now)
+			.RenameAsync(toBeRenamed, pair.Key)
 			.ConfigureAwait(false);
 	}
 
