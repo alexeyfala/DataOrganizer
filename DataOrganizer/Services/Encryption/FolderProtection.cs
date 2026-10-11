@@ -40,9 +40,6 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
@@ -57,6 +54,9 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="IPasswordPrompt" />
+	private readonly IPasswordPrompt _passwordPrompt;
 	#endregion
 
 	#region Constructors
@@ -66,12 +66,12 @@ public sealed class FolderProtection : IFolderProtection
 		IFolderContentsConverter converter,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
-		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter encryptionFailureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		IMessenger messenger,
-		INotificationService notification)
+		INotificationService notification,
+		IPasswordPrompt passwordPrompt)
 	{
 		_contentVisibility = contentVisibility;
 
@@ -83,8 +83,6 @@ public sealed class FolderProtection : IFolderProtection
 
 		_dbFailureReporter = dbFailureReporter;
 
-		_dialogService = dialogService;
-
 		_encryption = encryption;
 
 		_encryptionFailureReporter = encryptionFailureReporter;
@@ -94,6 +92,8 @@ public sealed class FolderProtection : IFolderProtection
 		_messenger = messenger;
 
 		_notification = notification;
+
+		_passwordPrompt = passwordPrompt;
 	}
 	#endregion
 
@@ -119,7 +119,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			using PinnedSecret newPassword = await _dialogService.RequestPasswordAsync(
+			using PinnedSecret newPassword = await _passwordPrompt.RequestPasswordAsync(
 				header: Strings.ChangePassword,
 				label: Strings.NewPassword,
 				mode: PasswordPromptMode.Create,
@@ -265,7 +265,7 @@ public sealed class FolderProtection : IFolderProtection
 		CancellationToken token = default)
 	{
 		// A cancelled prompt returns an empty password, which changes nothing.
-		using PinnedSecret password = await _dialogService.RequestPasswordAsync(
+		using PinnedSecret password = await _passwordPrompt.RequestPasswordAsync(
 			header: Strings.EncryptFiles,
 			mode: PasswordPromptMode.Create,
 			token: token).ConfigureAwait(false);

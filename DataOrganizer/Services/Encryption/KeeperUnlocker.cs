@@ -17,9 +17,6 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
@@ -28,25 +25,28 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IPasswordPrompt" />
+	private readonly IPasswordPrompt _passwordPrompt;
 	#endregion
 
 	#region Constructors
 	public KeeperUnlocker(
 		IDbAccess dbAccess,
-		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
-		ILogger logger)
+		ILogger logger,
+		IPasswordPrompt passwordPrompt)
 	{
 		_dbAccess = dbAccess;
-
-		_dialogService = dialogService;
 
 		_encryption = encryption;
 
 		_failureReporter = failureReporter;
 
 		_logger = logger;
+
+		_passwordPrompt = passwordPrompt;
 	}
 	#endregion
 
@@ -64,7 +64,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 			return null;
 		}
 
-		using PinnedSecret password = await _dialogService
+		using PinnedSecret password = await _passwordPrompt
 			.RequestPasswordAsync(header, label, token: token)
 			.ConfigureAwait(false);
 

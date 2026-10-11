@@ -1,9 +1,4 @@
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Execution;
-using DataOrganizer.Enums;
-using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Security;
 using Repository.Dto;
 using System.Collections.Generic;
 using System.Threading;
@@ -14,21 +9,17 @@ namespace DataOrganizer.Interfaces.Dialogs;
 /// <summary>
 /// Provides dialog boxes for interaction.
 /// </summary>
-public interface IDialogService
+public interface IDialogService :
+	IAppPickerPrompt,
+	IConfirmationPrompt,
+	IImportModePrompt,
+	IPasswordPrompt
 {
 	#region Methods
 	/// <summary>
 	/// Displays the hotkey editor.
 	/// </summary>
 	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<KeyStroke> initialHotkeys);
-
-	/// <summary>
-	/// Shows the "open with" picker with <paramref name="candidates" /> and returns the
-	/// chosen application, or <c>null</c> when the user cancels.
-	/// </summary>
-	Task<AssociatedAppInfo?> PickAppAsync(
-		IEnumerable<AssociatedAppInfo> candidates,
-		CancellationToken token = default);
 
 	/// <summary>
 	/// Requests the user to close files.
@@ -51,36 +42,6 @@ public interface IDialogService
 		string? name = null,
 		bool isSensitive = false,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Requests a password from user; the caller owns the returned secret and disposes it.
-	/// </summary>
-	Task<PinnedSecret> RequestPasswordAsync(
-		string header,
-		string? label = null,
-		string? description = null,
-		PasswordPromptMode mode = PasswordPromptMode.Verify,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Asks a question with options <see cref="YesNoCancelButtons.YesCancel" />,
-	/// returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
-	/// </summary>
-	Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default);
-
-	/// <summary>
-	/// Asks a question with options <see cref="YesNoCancelButtons.YesNo" /> in the dialog host named by
-	/// <paramref name="dialogHostIdentifier" />, returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
-	/// </summary>
-	Task<bool> RequestYesNoAsync(
-		string text,
-		string dialogHostIdentifier = DialogHostIdentifiers.Main,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Selects import variant.
-	/// </summary>
-	Task<ImportMode> SelectImportModeAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Displays the entity creation dialog.

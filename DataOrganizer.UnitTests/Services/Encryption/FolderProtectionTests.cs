@@ -45,13 +45,13 @@ internal class FolderProtectionTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -66,7 +66,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(unlocker);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -82,7 +82,7 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());
 
-		await dialogService.Received(1).RequestPasswordAsync(
+		await passwordPrompt.Received(1).RequestPasswordAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
@@ -105,7 +105,7 @@ internal class FolderProtectionTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -123,7 +123,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(unlocker);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -133,7 +133,7 @@ internal class FolderProtectionTests
 		// Act
 		await sut.ChangePasswordAsync(folder);
 
-		await dialogService
+		await passwordPrompt
 			.DidNotReceiveWithAnyArgs()
 			.RequestPasswordAsync(default!);
 
@@ -161,9 +161,9 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -192,7 +192,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(unlocker);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 
@@ -726,16 +726,16 @@ internal class FolderProtectionTests
 
 		FileDto[] files = [ItemDtoFactory.CreateFileDto()];
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			// An empty result stops the flow right after the prompt, which is all this test looks at.
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -744,7 +744,7 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		await dialogService.Received(1).RequestPasswordAsync(
+		await passwordPrompt.Received(1).RequestPasswordAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
@@ -771,9 +771,9 @@ internal class FolderProtectionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -796,7 +796,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(encryption);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -852,9 +852,9 @@ internal class FolderProtectionTests
 				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -887,7 +887,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(encryption);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -926,9 +926,9 @@ internal class FolderProtectionTests
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
 				.Returns(UpdateDatabaseOutcome.Saved);
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -963,7 +963,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(encryption);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -1020,9 +1020,9 @@ internal class FolderProtectionTests
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
 				.Returns(UpdateDatabaseOutcome.Saved);
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -1055,7 +1055,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbAccess);
 		});

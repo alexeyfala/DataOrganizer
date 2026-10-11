@@ -216,6 +216,82 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: with objects already in the tree, the mode chosen by the user
+	/// decides the import, so appending keeps the database and the tree.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Appends_When_Append_Is_Chosen()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		Collection<ExplorerItemDtoBase> hierarchy = [ItemDtoFactory.CreateFolderDto()];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
+
+			importModePrompt
+				.SelectImportModeAsync()
+				.Returns(ImportMode.Append);
+
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+
+			dbAccess
+				.CreateBackupAsync()
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.OpenSequentialRead(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns([]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(importModePrompt);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		ImportDataResult? result = await sut.ImportDataAsync(hierarchy);
+
+		// Assert
+		result!.Variant
+			.Should()
+			.Be(ImportMode.Append);
+
+		await dbAccess
+			.DidNotReceive()
+			.ClearDatabaseAsync(Arg.Any<CancellationToken>());
+
+		hierarchy
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="DataExchangeService.ImportDataAsync" />: returns null and restores the backup when JSON deserialization yields no data.
 	/// </summary>
 	[Test]
@@ -628,6 +704,45 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: with objects already in the tree, nothing is imported when the
+	/// user chooses no mode.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_Nothing_When_No_Mode_Is_Chosen()
+	{
+		// Arrange
+		IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
+
+			// No choice is the scenario, though it is also the default answer.
+			importModePrompt
+				.SelectImportModeAsync()
+				.Returns(ImportMode.None);
+
+			builder.RegisterInstance(importModePrompt);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		ImportDataResult? result = await sut.ImportDataAsync([ItemDtoFactory.CreateFolderDto()]);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+
+		await picker
+			.DidNotReceive()
+			.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>());
 	}
 
 	/// <summary>

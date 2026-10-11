@@ -22,7 +22,7 @@ namespace DataOrganizer.Services.Execution;
 /// <summary>
 /// Windows-only implementation of <see cref="IAppPickerService" />. Enumerates
 /// candidate applications for a file via shell32 <c>SHAssocEnumHandlers</c>, extracts
-/// icons via <c>SHGetFileInfo</c>, and delegates the UI to <see cref="IDialogService" />.
+/// icons via <c>SHGetFileInfo</c>, and delegates the UI to <see cref="IAppPickerPrompt" />.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed partial class WindowsAppPickerService : IAppPickerService
@@ -44,8 +44,8 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// </summary>
 	private const uint SHGFI_LARGEICON = 0x000000000;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
+	/// <inheritdoc cref="IAppPickerPrompt" />
+	private readonly IAppPickerPrompt _appPickerPrompt;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -53,10 +53,10 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 	#region Constructors
 	public WindowsAppPickerService(
-		IDialogService dialogService,
+		IAppPickerPrompt appPickerPrompt,
 		ILogger logger)
 	{
-		_dialogService = dialogService;
+		_appPickerPrompt = appPickerPrompt;
 
 		_logger = logger;
 	}
@@ -107,7 +107,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			return null;
 		}
 
-		return await _dialogService
+		return await _appPickerPrompt
 			.PickAppAsync(candidates, token)
 			.ConfigureAwait(false);
 	}

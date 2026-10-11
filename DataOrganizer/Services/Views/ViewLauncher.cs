@@ -58,9 +58,6 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
@@ -80,6 +77,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="IPasswordPrompt" />
+	private readonly IPasswordPrompt _passwordPrompt;
 
 	/// <inheritdoc cref="IProcessTerminator" />
 	private readonly IProcessTerminator _processTerminator;
@@ -102,11 +102,11 @@ public class ViewLauncher : IViewLauncher
 		IAutoLockService autoLock,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
-		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
+		IPasswordPrompt passwordPrompt,
 		IProcessTerminator processTerminator,
 		IExecutionSandbox sandbox,
 		INotificationService notification,
@@ -127,8 +127,6 @@ public class ViewLauncher : IViewLauncher
 
 		_clipboardLogPersistence = clipboardLogPersistence;
 
-		_dialogService = dialogService;
-
 		_exceptionHandler = exceptionHandler;
 
 		_executionEngine = executionEngine;
@@ -142,6 +140,8 @@ public class ViewLauncher : IViewLauncher
 		_logger = logger;
 
 		_notification = notification;
+
+		_passwordPrompt = passwordPrompt;
 
 		_processTerminator = processTerminator;
 
@@ -930,7 +930,7 @@ public class ViewLauncher : IViewLauncher
 				? Strings.Password
 				: Strings.NewPassword;
 
-			using PinnedSecret password = await _dialogService.RequestPasswordAsync(
+			using PinnedSecret password = await _passwordPrompt.RequestPasswordAsync(
 				header: Strings.ClipboardHistory,
 				label: label,
 				description: hasPassword

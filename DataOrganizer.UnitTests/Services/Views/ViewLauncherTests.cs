@@ -1700,7 +1700,7 @@ internal class ViewLauncherTests
 	public async Task ShowClipboardLogWindowAsync_Asks_For_The_History_Password(bool hasPassword, PasswordPromptMode expected)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1740,7 +1740,7 @@ internal class ViewLauncherTests
 				.Returns(hasPassword);
 
 			// A cancelled prompt leaves the session in memory, which is enough to reach the assert.
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
 
@@ -1748,7 +1748,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(persistence);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1757,7 +1757,7 @@ internal class ViewLauncherTests
 		await sut.ShowClipboardLogWindowAsync(new Window());
 
 		// Assert
-		await dialogService.Received(1).RequestPasswordAsync(
+		await passwordPrompt.Received(1).RequestPasswordAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),

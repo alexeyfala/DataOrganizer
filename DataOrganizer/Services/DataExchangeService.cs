@@ -67,14 +67,14 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="IImportModePrompt" />
+	private readonly IImportModePrompt _importModePrompt;
 
 	/// <inheritdoc cref="IJsonSerializer" />
 	private readonly IJsonSerializer _jsonSerializer;
@@ -137,10 +137,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	public DataExchangeService(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
-		IDialogService dialogService,
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
 		IFileSystemPicker picker,
+		IImportModePrompt importModePrompt,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -152,11 +152,11 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		_dbFailureReporter = dbFailureReporter;
 
-		_dialogService = dialogService;
-
 		_entityLoader = entityLoader;
 
 		_fileSystem = fileSystem;
+
+		_importModePrompt = importModePrompt;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -235,7 +235,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (hierarchy.Count != 0)
 		{
-			variant = await _dialogService
+			variant = await _importModePrompt
 				.SelectImportModeAsync(token)
 				.ConfigureAwait(true);
 

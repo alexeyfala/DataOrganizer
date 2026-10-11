@@ -134,6 +134,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IAppController, AppController>();
+		services.AddTransient<IAppPickerPrompt, DialogService>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
@@ -162,12 +163,14 @@ public sealed class App : Application
 		services.AddTransient<IFolderContentsConverter, FolderContentsConverter>();
 		services.AddTransient<IFolderProtection, FolderProtection>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
+		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INotepadStore, NotepadStore>();
 		services.AddTransient<INoteReader, NoteReader>();
+		services.AddTransient<IPasswordPrompt, DialogService>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
