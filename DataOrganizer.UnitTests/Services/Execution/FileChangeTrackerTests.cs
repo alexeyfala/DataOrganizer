@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;

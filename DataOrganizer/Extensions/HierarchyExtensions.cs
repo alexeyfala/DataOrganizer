@@ -1,20 +1,14 @@
-using Cysharp.Text;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Models.Dataset;
 using Entities.Enums;
-using Repository.Dto;
 using Shared.Extensions;
-using Shared.Properties;
-using SharpHook.Data;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 namespace DataOrganizer.Extensions;
 
-internal static class EnumerableExtensions
+internal static class HierarchyExtensions
 {
 	#region Methods
 	/// <summary>
@@ -241,39 +235,6 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Performs a transformation of a hierarchical sequence into a flat one.
-	/// </summary>
-	public static IEnumerable<DatasetRecordBase> Flatten(this IEnumerable<DatasetRecordBase> hierarchy)
-	{
-		Stack<DatasetRecordBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			DatasetRecordBase item = stack.Pop();
-
-			yield return item;
-
-			if (item is RecordsGroup group)
-			{
-				foreach (DatasetRecordBase child in group.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Counts objects in the hierarchy.
-	/// </summary>
-	public static int GetCount(this IEnumerable<DatasetRecordBase> hierarchy)
-	{
-		return hierarchy
-			.Flatten()
-			.Count();
-	}
-
-	/// <summary>
 	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FileDto" />.
 	/// </summary>
 	/// <returns>Flat list <see cref="FileDto" />.</returns>
@@ -311,16 +272,6 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by hotkeys that could not be read.
-	/// </summary>
-	/// <returns>Flat sequence <see cref="FileDto" />.</returns>
-	public static IEnumerable<FileDto> GetFilesWithUnreadableHotkeys(
-		this IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		return GetFilesBy(hierarchy, x => x.Hotkeys.Any(IsUnreadable));
-	}
-
-	/// <summary>
 	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FolderDto" />.
 	/// </summary>
 	/// <returns>Flat sequence <see cref="FolderDto" />.</returns>
@@ -353,120 +304,6 @@ internal static class EnumerableExtensions
 		Func<FolderDto, bool> condition)
 	{
 		return GetFolders(hierarchy).Where(condition);
-	}
-
-	/// <summary>
-	/// Returns a string representation of the sequence <see cref="HotkeyDto" />.
-	/// </summary>
-	public static string GetHotkeysPresentation(this KeyStroke[] hotkeys)
-	{
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		if (hotkeys.Length != 0 && hotkeys[0].Mask.IsNotDefault())
-		{
-			builder.Append(hotkeys[0].Mask);
-
-			builder.Append(' ');
-
-			builder.Append('+');
-
-			builder.Append(' ');
-		}
-
-		for (int i = 0; i < hotkeys.Length; i++)
-		{
-			builder.Append(hotkeys[i].GetKeyName());
-
-			if (i == hotkeys.Length - 1)
-			{
-				continue;
-			}
-
-			builder.Append(',');
-
-			builder.Append(' ');
-		}
-
-		return builder.ToString();
-	}
-
-	/// <summary>
-	/// Builds the text that names the files whose hotkeys could not be read, a file per line,
-	/// under the given <paramref name="header"/>.
-	/// </summary>
-	public static string GetUnreadableHotkeysPresentation(this FileDto[] files, string header)
-	{
-		const int maxNames = 3;
-
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		builder.Append(header);
-
-		builder.Append(':');
-
-		int names = Math.Min(files.Length, maxNames);
-
-		for (int i = 0; i < names; i++)
-		{
-			builder.Append(Environment.NewLine);
-
-			builder.Append('"');
-
-			builder.Append(files[i].Name);
-
-			builder.Append('"');
-		}
-
-		if (files.Length > maxNames)
-		{
-			builder.Append(Environment.NewLine);
-
-			builder.AppendFormat(Strings.AndMore, files.Length - maxNames);
-		}
-
-		return builder.ToString();
-	}
-
-	/// <summary>
-	/// Sorts <paramref name="records"/> in a required order.
-	/// </summary>
-	public static DatasetRecordBase[] Sort(
-		this ICollection<DatasetRecordBase> records,
-		ListSortDirection direction)
-	{
-		RecordsGroup[] groups = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfType<RecordsGroup>().OrderBy(x => x.Name)],
-			ListSortDirection.Descending => [.. records.OfType<RecordsGroup>().OrderByDescending(x => x.Name)],
-			_ => throw new NotImplementedException()
-		};
-
-		KeyValueRecord[] keyValues = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfSpecificType<DatasetRecordBase, KeyValueRecord>().OrderBy(x => x.Key)],
-			ListSortDirection.Descending => [.. records.OfSpecificType<DatasetRecordBase, KeyValueRecord>().OrderByDescending(x => x.Key)],
-			_ => throw new NotImplementedException()
-		};
-
-		ValueRecord[] values = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfSpecificType<DatasetRecordBase, ValueRecord>().OrderBy(x => x.Value)],
-			ListSortDirection.Descending => [.. records.OfSpecificType<DatasetRecordBase, ValueRecord>().OrderByDescending(x => x.Value)],
-			_ => throw new NotImplementedException()
-		};
-
-		foreach (RecordsGroup group in groups)
-		{
-			DatasetRecordBase[] sorted = group
-				.Children
-				.Sort(direction);
-
-			group
-				.Children
-				.ClearAddRange(sorted);
-		}
-
-		return [.. groups, .. keyValues, .. values];
 	}
 
 	/// <summary>
@@ -545,41 +382,6 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyDto" />.
-	/// </summary>
-	public static IEnumerable<HotkeyDto> ToHotkeyDtos(
-		this KeyStroke[] hotkeys,
-		Guid id = default,
-		Guid ownerId = default)
-	{
-		for (int i = 0; i < hotkeys.Length; i++)
-		{
-			KeyStroke hotkey = hotkeys[i];
-
-			yield return new()
-			{
-				Code = hotkey.Code,
-				Id = id,
-				Index = i,
-				Mask = hotkey.Mask,
-				OwnerId = ownerId
-			};
-		}
-	}
-
-	/// <summary>
-	/// Transforms a sequence of <see cref="HotkeyDto" /> to a sequence of <see cref="KeyStroke" />.
-	/// </summary>
-	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyDto> sequence)
-	{
-		return sequence.Select(x => new KeyStroke
-		{
-			Code = x.Code,
-			Mask = x.Mask
-		});
-	}
-
-	/// <summary>
 	/// Counts files and folders in the hierarchy.
 	/// </summary>
 	internal static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
@@ -626,14 +428,6 @@ internal static class EnumerableExtensions
 				}
 			}
 		}
-	}
-
-	/// <summary>
-	/// <c>True</c> when a hotkey holds a key or a mask that the library no longer has.
-	/// </summary>
-	private static bool IsUnreadable(HotkeyDto hotkey)
-	{
-		return hotkey.Code == KeyCode.VcUndefined || hotkey.Mask == EventMask.None;
 	}
 	#endregion
 }

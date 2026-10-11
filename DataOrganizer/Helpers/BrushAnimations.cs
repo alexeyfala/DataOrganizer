@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Extensions;
+namespace DataOrganizer.Helpers;
 
-internal static class BrushExtensions
+internal static class BrushAnimations
 {
 	#region Methods
 	/// <summary>

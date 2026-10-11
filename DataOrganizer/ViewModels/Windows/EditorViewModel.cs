@@ -41,7 +41,6 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -49,7 +48,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -846,7 +844,7 @@ public sealed partial class EditorViewModel :
 				return;
 			}
 
-			_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush));
+			_exceptionHandler.Watch(BrushAnimations.ApplyHighlightAnimationAsync(() => item.Background as Brush));
 		}
 		catch (Exception ex)
 		{
@@ -1488,7 +1486,7 @@ public sealed partial class EditorViewModel :
 			.Delay(delay, token)
 			.ConfigureAwait(true);
 
-		await BrushExtensions.ApplyHighlightAnimationAsync(
+		await BrushAnimations.ApplyHighlightAnimationAsync(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
 	}

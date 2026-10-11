@@ -5,6 +5,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
@@ -17,7 +18,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.ViewModels;
 
@@ -153,7 +153,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 			{
-				_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
+				_exceptionHandler.Watch(BrushAnimations.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
 			}
 		}
 		catch (OperationCanceledException)
