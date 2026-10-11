@@ -1,5 +1,6 @@
 using DataOrganizer.Enums.Documents;
 using Shared.Properties;
+using System;
 
 namespace DataOrganizer.Extensions;
 
@@ -17,6 +18,17 @@ internal static class LineEndingExtensions
 		LineEnding.Cr => "Macintosh (CR)",
 		LineEnding.Mixed => Strings.MixedLineEndings,
 		_ => null
+	};
+
+	/// <summary>
+	/// Returns the characters of a line break style.
+	/// </summary>
+	public static string ToNewLine(this LineEnding lineEnding) => lineEnding switch
+	{
+		LineEnding.Cr => "\r",
+		LineEnding.CrLf => "\r\n",
+		LineEnding.Lf => "\n",
+		_ => throw new NotImplementedException()
 	};
 	#endregion
 }

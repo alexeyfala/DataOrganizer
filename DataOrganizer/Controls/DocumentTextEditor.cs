@@ -418,7 +418,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			Column = TextArea.Caret.Column,
 			Line = TextArea.Caret.Line,
 			LineCount = LineCount,
-			LineEnding = FindLineEnding(Document),
+			LineEnding = Document.FindLineEnding(),
 			SelectionLength = TextArea.Selection.Length,
 			SelectionLineCount = CountSelectedLines(TextArea.Selection),
 			TextLength = Document?.TextLength ?? 0
@@ -696,7 +696,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	{
 		Status = Status with
 		{
-			LineEnding = FindLineEnding(Document)
+			LineEnding = Document.FindLineEnding()
 		};
 	}
 
@@ -731,44 +731,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Returns the line break style shared by the lines of a document.
-	/// </summary>
-	private static LineEnding FindLineEnding(TextDocument? document)
-	{
-		if (document is null)
-		{
-			return LineEnding.None;
-		}
-
-		LineEnding found = LineEnding.None;
-
-		foreach (DocumentLine line in document.Lines)
-		{
-			LineEnding ending = line.DelimiterLength switch
-			{
-				0 => LineEnding.None,
-				2 => LineEnding.CrLf,
-				_ => document.GetCharAt(line.EndOffset) == '\n' ? LineEnding.Lf : LineEnding.Cr
-			};
-
-			// Only the last line has no line break.
-			if (ending == LineEnding.None || ending == found)
-			{
-				continue;
-			}
-
-			if (found != LineEnding.None)
-			{
-				return LineEnding.Mixed;
-			}
-
-			found = ending;
-		}
-
-		return found;
-	}
-
-	/// <summary>
 	/// Returns the bookmarks of a document, or an empty set of its own without a document.
 	/// </summary>
 	private static LineBookmarks GetBookmarks(TextDocument? document) => document is null ? new() : LineBookmarks.Of(document);
@@ -794,17 +756,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	};
 
 	/// <summary>
-	/// Returns the characters of a line break style.
-	/// </summary>
-	private static string GetNewLine(LineEnding lineEnding) => lineEnding switch
-	{
-		LineEnding.Cr => "\r",
-		LineEnding.CrLf => "\r\n",
-		LineEnding.Lf => "\n",
-		_ => throw new NotImplementedException()
-	};
-
-	/// <summary>
 	/// <c>True</c> for the key of a modifier.
 	/// </summary>
 	private static bool IsModifierKey(Key key)
@@ -825,7 +776,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private bool CanConvertLineEndings(LineEnding lineEnding)
 	{
 		// A pass of its own, as the status catches up with an edit only after a delay.
-		LineEnding current = FindLineEnding(Document);
+		LineEnding current = Document.FindLineEnding();
 
 		return !IsReadOnly && current != LineEnding.None && current != lineEnding;
 	}
@@ -870,14 +821,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			return false;
 		}
 
-		// Without a selection the engine takes the whole document, which a stray click must not rewrite.
-		return transform switch
-		{
-			TextTransform.LeadingSpacesToTabs
-				or TextTransform.LeadingTabsToSpaces
-				or TextTransform.RemoveTrailingWhitespace => true,
-			_ => TextArea.Selection.Length > 0
-		};
+		return !transform.NeedsSelection() || TextArea.Selection.Length > 0;
 	}
 
 	/// <summary>
@@ -905,7 +849,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// </summary>
 	private void ConvertLineEndings(LineEnding lineEnding)
 	{
-		string newLine = GetNewLine(lineEnding);
+		string newLine = lineEnding.ToNewLine();
 
 		// Collected before the edits and replaced from the end: a carriage return next to the line feed
 		// of the next line joins the two lines for a while, so line numbers would drift, but offsets hold.
@@ -931,14 +875,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// </summary>
 	private void ConvertSelectionToTitleCase()
 	{
-		TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
-
 		using (Document.RunUpdate())
 		{
 			foreach (SelectionSegment segment in TextArea.Selection.Segments.Reverse())
 			{
-				// A word in capitals is taken for an abbreviation and kept, so the text goes to lower case first.
-				string text = textInfo.ToTitleCase(textInfo.ToLower(Document.GetText(segment)));
+				string text = TextCase.ToTitleCase(Document.GetText(segment), CultureInfo.CurrentCulture);
 
 				Document.Replace(segment.StartOffset, segment.Length, text, OffsetChangeMappingType.CharacterReplace);
 			}
