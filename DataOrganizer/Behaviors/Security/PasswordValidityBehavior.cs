@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using System;
@@ -261,41 +262,25 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	}
 
 	/// <summary>
-	/// Recomputes the flags from both inputs; the confirmation and the minimum length
-	/// only weigh in while a new password is being set.
+	/// Checks both inputs against <see cref="PasswordPolicy" /> and shows the outcome.
 	/// </summary>
 	private void Validate()
 	{
-		const char space = ' ';
+		PasswordCheck check = PasswordPolicy.Check(
+			AssociatedObject?.Text,
+			ConfirmationInput?.Text,
+			isNewPassword: IsConfirmationRequired,
+			MinimumLength);
 
-		string? password = AssociatedObject?.Text;
+		IsPasswordTooShort = check.IsPasswordTooShort;
 
-		string? confirmation = ConfirmationInput?.Text;
+		IsConfirmationMismatched = check.IsConfirmationMismatched;
 
-		bool isAccepted = !string.IsNullOrWhiteSpace(password)
-			&& !password.StartsWith(space)
-			&& !password.EndsWith(space);
+		IsPasswordAccepted = check.IsPasswordAccepted;
 
-		bool isConfirmed = string.Equals(
-			password,
-			confirmation,
-			StringComparison.Ordinal);
+		IsValid = check.IsValid;
 
-		IsPasswordTooShort = IsConfirmationRequired
-			&& password is { Length: > 0 }
-			&& password.Length < MinimumLength;
-
-		IsConfirmationMismatched = IsConfirmationRequired
-			&& confirmation is { Length: > 0 }
-			&& !isConfirmed;
-
-		IsPasswordAccepted = isAccepted && (!IsConfirmationRequired || password!.Length >= MinimumLength);
-
-		IsValid = IsPasswordAccepted && (!IsConfirmationRequired || isConfirmed);
-
-		Strength = IsConfirmationRequired
-			? PasswordStrengthEstimator.Estimate(password)
-			: PasswordStrength.None;
+		Strength = check.Strength;
 
 		Report(
 			AssociatedObject,

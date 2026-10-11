@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using Shared.Extensions;
@@ -402,14 +403,8 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Recomputes <see cref="DisplayText" /> based on the current <see cref="Text" /> and <see cref="IsHidden" />.
-	/// When hidden, replaces visible text with a fixed-length bullet mask so the real text length is not leaked.
+	/// Recomputes <see cref="DisplayText" /> from <see cref="Text" /> and <see cref="IsHidden" />.
 	/// </summary>
-	private void UpdateDisplayText()
-	{
-		DisplayText = IsHidden && !string.IsNullOrEmpty(Text)
-			? "▓▓▓▓▓▓▓▓"
-			: Text;
-	}
+	private void UpdateDisplayText() => DisplayText = SecretMask.Apply(Text, IsHidden);
 	#endregion
 }

@@ -28,6 +28,11 @@ internal static class Glyphs
 	public const string Clipboard = "📋";
 
 	/// <summary>
+	/// Dark shade.
+	/// </summary>
+	public const string DarkShade = "▓";
+
+	/// <summary>
 	/// File folder.
 	/// </summary>
 	public const string FileFolder = "📁";

@@ -74,6 +74,100 @@ internal class DatasetFieldViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetFieldView.DisplayText" />: a hidden text shows the same mask whatever its length.
+	/// </summary>
+	[AvaloniaTest]
+	public void DisplayText_Hides_The_Length_Of_A_Hidden_Text()
+	{
+		// Arrange
+		DatasetFieldView sut = new()
+		{
+			IsHidden = true,
+			Text = "a"
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		string? maskOfShortText = sut.DisplayText;
+
+		// Act
+		sut.Text = RandomString.Create(40);
+
+		// Assert
+		sut.DisplayText
+			.Should()
+			.Be(maskOfShortText)
+			.And
+			.NotBeNullOrEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetFieldView.DisplayText" />: an empty hidden text shows no mask.
+	/// </summary>
+	[AvaloniaTest]
+	public void DisplayText_Shows_No_Mask_For_An_Empty_Text()
+	{
+		// Arrange
+		DatasetFieldView sut = new()
+		{
+			IsHidden = true,
+			Text = string.Empty
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.DisplayText
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetFieldView.DisplayText" />: a text that is not hidden is shown as it is.
+	/// </summary>
+	[AvaloniaTest]
+	public void DisplayText_Shows_The_Text_That_Is_Not_Hidden()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		DatasetFieldView sut = new()
+		{
+			Text = text
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.DisplayText
+			.Should()
+			.Be(text);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetFieldView.IsHidden" />: the toggle keeps the value while the view is out of the tree.
 	/// </summary>
 	[AvaloniaTest]
