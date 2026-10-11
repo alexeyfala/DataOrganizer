@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
@@ -70,6 +71,10 @@ internal class CopyContentViewModelBaseTests
 				.Returns(contents);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -132,6 +137,10 @@ internal class CopyContentViewModelBaseTests
 
 			builder.RegisterInstance(clipboard);
 
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(contentCipher);
@@ -191,6 +200,10 @@ internal class CopyContentViewModelBaseTests
 				.Returns(CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text));
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -254,6 +267,10 @@ internal class CopyContentViewModelBaseTests
 
 			builder.RegisterInstance(clipboard);
 
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(contentCipher);
@@ -300,7 +317,6 @@ internal class CopyContentViewModelBaseTests
 		#region Constructors
 		public TestCopyContentViewModel(
 			Application app,
-			IClipboardAccessor clipboard,
 			IContentCipher contentCipher,
 			IDbAccess dbAccess,
 			IDialogService dialogService,
@@ -308,9 +324,9 @@ internal class CopyContentViewModelBaseTests
 			ILogger logger,
 			IMessenger messenger,
 			INotificationService notification,
+			ISensitiveClipboardWriter clipboardWriter,
 			ITaskExceptionHandler exceptionHandler) : base(
 				app,
-				clipboard,
 				contentCipher,
 				dbAccess,
 				dialogService,
@@ -318,6 +334,7 @@ internal class CopyContentViewModelBaseTests
 				logger,
 				messenger,
 				notification,
+				clipboardWriter,
 				exceptionHandler)
 		{
 		}

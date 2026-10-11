@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
@@ -119,8 +118,6 @@ public sealed class App : Application
 		serviceProvider
 			.GetRequiredService<IAppThemeService>()
 			.ApplyFromSettings();
-
-		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
 		DataTemplates.Add(serviceProvider.GetRequiredService<DocumentTabTemplate>());
 

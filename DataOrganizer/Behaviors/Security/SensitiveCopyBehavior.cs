@@ -138,7 +138,7 @@ internal sealed class SensitiveCopyBehavior : Behavior<Control>
 		// Handling the event cancels the built-in write, which carries no markers.
 		e.Handled = true;
 
-		writer.Write(text);
+		_ = writer.WriteTextAsync(text, isSensitive: true);
 
 		return true;
 	}

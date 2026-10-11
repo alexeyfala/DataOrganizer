@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -225,6 +226,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
+
+			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 		});
@@ -299,6 +304,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -377,6 +386,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
+
+			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
@@ -447,6 +460,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -568,6 +585,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -718,6 +739,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()

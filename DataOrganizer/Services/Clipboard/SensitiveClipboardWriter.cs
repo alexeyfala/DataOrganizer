@@ -1,35 +1,68 @@
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
+using Serilog;
+using Shared.Extensions;
+using System;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
 public sealed class SensitiveClipboardWriter : ISensitiveClipboardWriter
 {
 	#region Data
+	/// <inheritdoc cref="IClipboardAutoClear" />
+	private readonly IClipboardAutoClear _autoClear;
+
 	/// <inheritdoc cref="IClipboardAccessor" />
 	private readonly IClipboardAccessor _clipboard;
 
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
 	public SensitiveClipboardWriter(
+		IClipboardAutoClear autoClear,
 		IClipboardAccessor clipboard,
-		ITaskExceptionHandler exceptionHandler)
+		ILogger logger)
 	{
+		_autoClear = autoClear;
+
 		_clipboard = clipboard;
 
-		_exceptionHandler = exceptionHandler;
+		_logger = logger;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public void Write(string text)
+	public async Task<bool> WriteTextAsync(string text, bool isSensitive)
 	{
-		_exceptionHandler.Watch(_clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text)));
+		try
+		{
+			if (!isSensitive)
+			{
+				await _clipboard
+					.SetTextAsync(text)
+					.ConfigureAwait(false);
+
+				return true;
+			}
+
+			await _clipboard
+				.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+				.ConfigureAwait(false);
+
+			_autoClear.Arm();
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
 	}
 	#endregion
 }

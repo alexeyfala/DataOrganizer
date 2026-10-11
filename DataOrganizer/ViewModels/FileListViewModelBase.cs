@@ -176,7 +176,6 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	#region Constructors
 	protected FileListViewModelBase(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -184,9 +183,9 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			clipboard,
 			contentCipher,
 			dbAccess,
 			dialogService,
@@ -194,6 +193,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			logger,
 			messenger,
 			notification,
+			clipboardWriter,
 			exceptionHandler)
 	{
 	}

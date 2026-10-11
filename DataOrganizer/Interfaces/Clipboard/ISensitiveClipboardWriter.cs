@@ -1,15 +1,17 @@
+using System.Threading.Tasks;
+
 namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
-/// Places a text on the clipboard with the sensitivity markers, which keep it out of the clipboard
+/// Places a text on the clipboard; a sensitive one carries the markers, which keep it out of the clipboard
 /// history and hand it to the auto-clear.
 /// </summary>
 public interface ISensitiveClipboardWriter
 {
 	#region Methods
 	/// <summary>
-	/// Places <paramref name="text" /> on the clipboard.
+	/// Places <paramref name="text" /> on the clipboard; <c>false</c> when the clipboard refused it.
 	/// </summary>
-	void Write(string text);
+	Task<bool> WriteTextAsync(string text, bool isSensitive);
 	#endregion
 }

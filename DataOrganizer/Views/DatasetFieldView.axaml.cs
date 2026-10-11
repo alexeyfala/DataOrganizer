@@ -2,12 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using Shared.Extensions;
 using System;
 using System.ComponentModel;
@@ -42,6 +41,13 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	{
 		get => GetValue(CanHideProperty);
 		set => SetValue(CanHideProperty, value);
+	}
+
+	/// <inheritdoc cref="ISensitiveClipboardWriter" />
+	public ISensitiveClipboardWriter? ClipboardWriter
+	{
+		get => GetValue(ClipboardWriterProperty);
+		set => SetValue(ClipboardWriterProperty, value);
 	}
 
 	/// <summary>
@@ -181,6 +187,12 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		.Register<DatasetFieldView, bool>(name: nameof(CanHide));
 
 	/// <summary>
+	/// Identifies the <see cref="ClipboardWriter" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<ISensitiveClipboardWriter?> ClipboardWriterProperty = AvaloniaProperty
+		.Register<DatasetFieldView, ISensitiveClipboardWriter?>(name: nameof(ClipboardWriter));
+
+	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Brush?> ColorSampleBrushProperty = AvaloniaProperty
@@ -266,24 +278,16 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	[RelayCommand(CanExecute = nameof(HasText))]
 	private async Task CopyToClipboard()
 	{
-		if (string.IsNullOrWhiteSpace(Text) || TopLevel
-			.GetTopLevel(this)?
-			.Clipboard is not { } clipboard)
+		if (string.IsNullOrWhiteSpace(Text) || ClipboardWriter is not { } writer)
 		{
 			return;
 		}
 
-		try
-		{
-			await (IsSensitive
-				? clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(Text))
-				: clipboard.SetTextAsync(Text))
-				.ConfigureAwait(true);
-		}
-		finally
-		{
-			_ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
-		}
+		await writer
+			.WriteTextAsync(Text, IsSensitive)
+			.ConfigureAwait(true);
+
+		_ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
 	}
 	#endregion
 

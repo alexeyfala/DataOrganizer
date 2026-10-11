@@ -8,6 +8,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Models.Dataset;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -538,7 +539,14 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<SensitiveClipboardWriter>()
+				.As<ISensitiveClipboardWriter>();
+		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 

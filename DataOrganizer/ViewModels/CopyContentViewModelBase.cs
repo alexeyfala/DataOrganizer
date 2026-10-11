@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -33,8 +32,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardAccessor" />
-	protected readonly IClipboardAccessor _clipboard;
+	/// <inheritdoc cref="ISensitiveClipboardWriter" />
+	protected readonly ISensitiveClipboardWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IContentCipher" />
 	protected readonly IContentCipher _contentCipher;
@@ -64,7 +63,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -72,11 +70,12 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
-		_clipboard = clipboard;
+		_clipboardWriter = clipboardWriter;
 
 		_contentCipher = contentCipher;
 
@@ -175,17 +174,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					viewModel.InsertIntoCopyHistory(file, updateView);
 				}
 
-				try
-				{
-					await (file.EncryptionStatus != EncryptionStatus.None
-						? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-						: _clipboard.SetTextAsync(text))
-						.ConfigureAwait(true);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
+				await _clipboardWriter
+					.WriteTextAsync(text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
+					.ConfigureAwait(true);
 
 				FolderDto[] parents = [.. file.GetAllParents().Reverse()];
 

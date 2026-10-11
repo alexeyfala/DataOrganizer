@@ -199,7 +199,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	#region Constructors
 	public SelectedFavoritesViewModel(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -207,9 +206,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			clipboard,
 			contentCipher,
 			dbAccess,
 			dialogService,
@@ -217,6 +216,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			logger,
 			messenger,
 			notification,
+			clipboardWriter,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(

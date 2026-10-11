@@ -190,7 +190,6 @@ public abstract partial class ViewModelBase :
 	protected ViewModelBase(
 		Application app,
 		IAppSettingsStore settingsStore,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
@@ -201,11 +200,11 @@ public abstract partial class ViewModelBase :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
-			clipboard,
 			contentCipher,
 			dbAccess,
 			dialogService,
@@ -213,6 +212,7 @@ public abstract partial class ViewModelBase :
 			logger,
 			messenger,
 			notification,
+			clipboardWriter,
 			exceptionHandler)
 	{
 		_contentVisibility = contentVisibility;

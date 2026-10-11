@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -56,8 +55,8 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardAccessor" />
-	private readonly IClipboardAccessor _clipboard;
+	/// <inheritdoc cref="ISensitiveClipboardWriter" />
+	private readonly ISensitiveClipboardWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IContentCipher" />
 	private readonly IContentCipher _contentCipher;
@@ -106,7 +105,6 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
@@ -115,12 +113,13 @@ public sealed class KeyboardInputHook :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
 		_app = app;
 
-		_clipboard = clipboard;
+		_clipboardWriter = clipboardWriter;
 
 		_dbAccess = dbAccess;
 
@@ -364,19 +363,9 @@ public sealed class KeyboardInputHook :
 					return;
 				}
 
-				try
-				{
-					// Protected contents carry the markers that keep them out of the clipboard
-					// history and hand them to the auto-clear, same as the copy command does.
-					await (file.EncryptionStatus != EncryptionStatus.None
-						? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-						: _clipboard.SetTextAsync(text))
-						.ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
+				await _clipboardWriter
+					.WriteTextAsync(text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
+					.ConfigureAwait(false);
 
 				_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 			}

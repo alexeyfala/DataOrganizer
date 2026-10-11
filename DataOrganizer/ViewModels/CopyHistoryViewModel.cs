@@ -76,7 +76,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -84,9 +83,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			clipboard,
 			contentCipher,
 			dbAccess,
 			dialogService,
@@ -94,6 +93,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			logger,
 			messenger,
 			notification,
+			clipboardWriter,
 			exceptionHandler)
 	{
 		_filter = new(

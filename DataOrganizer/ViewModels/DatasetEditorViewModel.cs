@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -281,17 +280,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		string text = $"{record.Key}    {record.Value}";
 
-		try
+		if (!await _clipboardWriter
+			.WriteTextAsync(text, isSensitive: IsEncrypted)
+			.ConfigureAwait(true))
 		{
-			await (IsEncrypted
-				? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-				: _clipboard.SetTextAsync(text))
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
 			return;
 		}
 
@@ -602,8 +594,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IClipboardAccessor" />
-	private readonly IClipboardAccessor _clipboard;
+	/// <inheritdoc cref="ISensitiveClipboardWriter" />
+	private readonly ISensitiveClipboardWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
@@ -623,7 +615,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
-		IClipboardAccessor clipboard,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
@@ -633,6 +624,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -643,7 +635,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			notification,
 			exceptionHandler)
 	{
-		_clipboard = clipboard;
+		_clipboardWriter = clipboardWriter;
 
 		_dbFailureReporter = dbFailureReporter;
 

@@ -835,7 +835,7 @@ public sealed partial class EditorViewModel :
 				return;
 			}
 
-			_exceptionHandler.Watch(_clipboard.SetTextAsync(dto.Name));
+			_exceptionHandler.Watch(_clipboardWriter.WriteTextAsync(dto.Name, isSensitive: false));
 
 			FolderDto[] parents = [.. dto
 				.GetAllParents()
@@ -1228,7 +1228,6 @@ public sealed partial class EditorViewModel :
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
 		IAutoLockService autoLock,
-		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IClipboardLogSeeder clipboardLogSeeder,
@@ -1252,12 +1251,12 @@ public sealed partial class EditorViewModel :
 		INotificationService notification,
 		IProcessManager processManager,
 		ISampleSeeder sampleSeeder,
+		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsStore,
-			clipboard,
 			contentCipher,
 			contentVisibility,
 			dbAccess,
@@ -1268,6 +1267,7 @@ public sealed partial class EditorViewModel :
 			logger,
 			messenger,
 			notification,
+			clipboardWriter,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
