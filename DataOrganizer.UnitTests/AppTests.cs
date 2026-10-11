@@ -1,6 +1,9 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Entities;
+using Entities.Models;
+using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.Services.Database;
 using Shared.Services;
@@ -8,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests;
 
@@ -27,6 +31,33 @@ internal class AppTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the mapper of the application knows the entity rules,
+	/// whichever service resolves it first.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Gives_A_Mapper_With_The_Entity_Rules()
+	{
+		// Arrange
+		FileEntity file = EntityFactory.CreateFile();
+
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		ExplorerItemDtoBase result = provider
+			.GetRequiredService<IMapper>()
+			.Map<ExplorerItemBase, ExplorerItemDtoBase>(file);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<FileDto>();
+	}
+
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: every registered type can be built from the registrations
 	/// alone, so a missing one is named here instead of failing on the first resolve at startup.

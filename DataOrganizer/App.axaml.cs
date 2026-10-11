@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Clipboard;
@@ -136,6 +137,8 @@ public sealed class App : Application
 		#region Services
 
 		services.AddMapster();
+
+		services.AddSingleton(CreateMapperConfig());
 
 		RegisterPlatformServices(services);
 
@@ -388,6 +391,42 @@ public sealed class App : Application
 		client
 			.DefaultRequestHeaders
 			.Add("X-GitHub-Api-Version", "2022-11-28");
+	}
+
+	/// <summary>
+	/// Creates the mapping rules that every <see cref="MapsterMapper.IMapper" /> of the application uses.
+	/// </summary>
+	private static TypeAdapterConfig CreateMapperConfig()
+	{
+		TypeAdapterConfig config = new();
+
+		config.Apply(new EntityMappingRegister());
+
+		if (AppInfo.IsDebug)
+		{
+			try
+			{
+				config.Compile();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.ToStringDemystified());
+
+				// A break under a test runner would stop a batch debug run.
+				if (!AppDomain
+					.CurrentDomain
+					.IsRunningFromNUnit())
+				{
+					Debugger.Break();
+				}
+
+				// Temporarily add .IgnoreNonMapped(true) to the problematic mapping,
+				// then remove one property at a time using .Map(dest => dest.PropertyName, src => src.PropertyName)
+				// until you find the one that breaks the compilation.
+			}
+		}
+
+		return config;
 	}
 
 	/// <summary>

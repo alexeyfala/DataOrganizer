@@ -6,7 +6,6 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
-using Mapster;
 using MapsterMapper;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -37,17 +36,9 @@ internal class EntityLoaderTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			IMapper mapper = Substitute.For<IMapper>();
-
 			dbAccess
 				.GetAllFoldersAsync(Arg.Any<CancellationToken>())
 				.ThrowsAsync(new OperationCanceledException());
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
-
-			builder.RegisterInstance(mapper);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -75,17 +66,9 @@ internal class EntityLoaderTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			IMapper mapper = Substitute.For<IMapper>();
-
 			dbAccess
 				.GetAllFoldersAsync()
 				.ThrowsAsync(new InvalidOperationException());
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
-
-			builder.RegisterInstance(mapper);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -125,10 +108,6 @@ internal class EntityLoaderTests
 				.Returns([.. EntityFactory.CreateFiles(fileCount)]);
 
 			IMapper mapper = Substitute.For<IMapper>();
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
 
 			mapper
 				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
@@ -176,10 +155,6 @@ internal class EntityLoaderTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IMapper mapper = Substitute.For<IMapper>();
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
 
 			mapper
 				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
