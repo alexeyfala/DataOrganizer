@@ -11,10 +11,12 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -32,6 +34,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Dto;
@@ -124,6 +127,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 		});
@@ -167,6 +174,143 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a hotkey of a file without text puts nothing in the clipboard.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Copies_Nothing_From_An_Empty_File()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = [],
+					IsValid = true
+				});
+
+			// Empty contents come back untouched, as the real cipher hands them back.
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(dto, Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(x => x.ArgAt<byte[]>(1));
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		await clipboard
+			.DidNotReceive()
+			.SetTextAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: contents that fail their check are never decrypted.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Copies_Nothing_From_Damaged_Contents()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
+					IsValid = false
+				});
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		await contentCipher
+			.DidNotReceive()
+			.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -222,6 +366,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
 
 			builder.RegisterInstance(clipboard);
 
@@ -303,6 +451,10 @@ internal class KeyboardInputHookTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -383,6 +535,10 @@ internal class KeyboardInputHookTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -459,6 +615,10 @@ internal class KeyboardInputHookTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -516,6 +676,10 @@ internal class KeyboardInputHookTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -583,6 +747,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
 
 			builder.RegisterInstance(clipboard);
 
@@ -738,6 +906,10 @@ internal class KeyboardInputHookTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -797,6 +969,10 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 		});
@@ -814,6 +990,75 @@ internal class KeyboardInputHookTests
 		await dbAccess
 			.DidNotReceive()
 			.GetFileContentsAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the decrypted contents are wiped once their text is read.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Zeroes_The_Decrypted_Contents(
+		[Values(EncryptionStatus.Encrypted, EncryptionStatus.Decrypted)] EncryptionStatus encryptionStatus)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: encryptionStatus);
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		byte[] decrypted = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(10),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecryptContentsAsync(dto, Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(decrypted);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		decrypted
+			.Should()
+			.OnlyContain(static x => x == 0);
 	}
 
 	/// <summary>

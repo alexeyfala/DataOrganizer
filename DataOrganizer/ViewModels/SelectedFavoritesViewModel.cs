@@ -13,12 +13,11 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -200,20 +199,18 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public SelectedFavoritesViewModel(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
+		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboardWriter,
-			contentCipher,
 			dbAccess,
 			dialogService,
-			jsonSerializer,
+			fileTextReader,
 			logger,
 			messenger,
 			notification,

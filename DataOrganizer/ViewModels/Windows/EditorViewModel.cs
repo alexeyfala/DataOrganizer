@@ -23,6 +23,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -1177,6 +1178,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardLogSeeder" />
 	private readonly IClipboardLogSeeder _clipboardLogSeeder;
 
+	/// <inheritdoc cref="IContentCipher" />
+	private readonly IContentCipher _contentCipher;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1242,9 +1246,9 @@ public sealed partial class EditorViewModel :
 		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
 		IFileHotkeyEditor fileHotkeyEditor,
+		IFileTextReader fileTextReader,
 		IFolderProtection folderProtection,
 		IHierarchyEditor hierarchyEditor,
-		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INoteEditor noteEditor,
@@ -1258,13 +1262,12 @@ public sealed partial class EditorViewModel :
 			app,
 			settingsStore,
 			clipboardWriter,
-			contentCipher,
 			contentVisibility,
 			dbAccess,
 			dialogService,
 			dispatcher,
 			executionEngine,
-			jsonSerializer,
+			fileTextReader,
 			logger,
 			messenger,
 			notification,
@@ -1281,6 +1284,8 @@ public sealed partial class EditorViewModel :
 		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_clipboardLogSeeder = clipboardLogSeeder;
+
+		_contentCipher = contentCipher;
 
 		_dataExchange = dataExchange;
 

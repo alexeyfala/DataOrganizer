@@ -4,27 +4,24 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Material.Icons.Avalonia;
-using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -86,13 +83,13 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		ValidatedContents result;
+		FileTextReading reading;
 
 		try
 		{
-			result = await _dbAccess
-				.GetFileContentsAsync(file.Id)
-				.ConfigureAwait(false);
+			reading = await _fileTextReader
+				.ReadUnlockedAsync(file)
+				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
 		{
@@ -102,60 +99,33 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		if (!result.IsValid)
+		switch (reading.Status)
 		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-			return;
-		}
-
-		byte[] contents = result.Contents;
-
-		if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-		{
-			try
-			{
-				contents = _contentCipher.Decrypt(file, contents);
-			}
-			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-			{
-				// A preview is rendered on demand, so the failure only reaches the log.
-				_logger.LogException(ex);
+			case FileTextStatus.Damaged:
+				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
 				return;
-			}
-		}
 
-		try
-		{
-			// A preview is rendered on demand, so contents that are not text only reach the log.
-			if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
-			{
+			case FileTextStatus.NotText:
+				// A preview is rendered on demand, so contents that are not text only reach the log.
 				_logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
 
 				return;
-			}
 
-			if (string.IsNullOrEmpty(text))
-			{
+			case FileTextStatus.Empty:
 				_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;
-			}
 
-			ToolTip.SetTip(icon, text.Truncate(200));
-
-			ToolTip.SetIsOpen(icon, true);
-
-			_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
+			case FileTextStatus.Closed:
+				return;
 		}
-		finally
-		{
-			if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-			{
-				contents.ZeroMemory();
-			}
-		}
+
+		ToolTip.SetTip(icon, reading.Text.Truncate(200));
+
+		ToolTip.SetIsOpen(icon, true);
+
+		_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
 	}
 
 	/// <summary>
@@ -177,20 +147,18 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	protected FileListViewModelBase(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
+		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboardWriter,
-			contentCipher,
 			dbAccess,
 			dialogService,
-			jsonSerializer,
+			fileTextReader,
 			logger,
 			messenger,
 			notification,

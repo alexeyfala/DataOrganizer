@@ -1,22 +1,21 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook.Data;
 using System;
@@ -58,23 +57,17 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
 
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
-
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
+	/// <inheritdoc cref="IFileTextReader" />
+	private readonly IFileTextReader _fileTextReader;
+
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
-
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -106,11 +99,9 @@ public sealed class KeyboardInputHook :
 	public KeyboardInputHook(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
+		IFileTextReader fileTextReader,
 		IGlobalHookRunner hookRunner,
-		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -121,17 +112,13 @@ public sealed class KeyboardInputHook :
 
 		_clipboardWriter = clipboardWriter;
 
-		_dbAccess = dbAccess;
-
 		_dispatcher = dispatcher;
-
-		_contentCipher = contentCipher;
 
 		_exceptionHandler = exceptionHandler;
 
-		_hookRunner = hookRunner;
+		_fileTextReader = fileTextReader;
 
-		_jsonSerializer = jsonSerializer;
+		_hookRunner = hookRunner;
 
 		_logger = logger;
 
@@ -321,61 +308,44 @@ public sealed class KeyboardInputHook :
 			// The keys of a hotkey that fired do not start the next one.
 			InputStack.Clear();
 
-			ValidatedContents result = await _dbAccess
-				.GetFileContentsAsync(file.Id, token)
-				.ConfigureAwait(false);
-
-			if (!result.IsValid)
-			{
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-				return;
-			}
-
+			// The password of a locked keeper is asked for over the main window.
 			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 			{
 				await ActivateWindowAsync().ConfigureAwait(false);
 			}
 
-			if (await _contentCipher
-				.TryDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
-				.ConfigureAwait(false) is not { } contents)
-			{
-				return;
-			}
+			FileTextReading reading = await _fileTextReader
+				.ReadAsync(file, $"{Strings.CopyContent}: {file.Name}", token)
+				.ConfigureAwait(false);
 
-			try
+			switch (reading.Status)
 			{
-				// Bytes that are not text would reach the clipboard as garbage.
-				if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
-				{
+				case FileTextStatus.Damaged:
+					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+
+					return;
+
+				case FileTextStatus.NotText:
 					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
 
 					_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
 
 					return;
-				}
 
-				if (string.IsNullOrEmpty(text))
-				{
+				case FileTextStatus.Empty:
 					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 					return;
-				}
 
-				await _clipboardWriter
-					.WriteTextAsync(text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
-					.ConfigureAwait(false);
+				case FileTextStatus.Closed:
+					return;
+			}
 
-				_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-			}
-			finally
-			{
-				if (file.EncryptionStatus != EncryptionStatus.None)
-				{
-					contents.ZeroMemory();
-				}
-			}
+			await _clipboardWriter
+				.WriteTextAsync(reading.Text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
+				.ConfigureAwait(false);
+
+			_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 		}
 		catch (Exception ex)
 		{

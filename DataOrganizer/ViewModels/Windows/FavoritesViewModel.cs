@@ -15,6 +15,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -27,7 +28,6 @@ using DynamicData;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -223,13 +223,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		Application app,
 		IAppSettingsStore settingsStore,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
-		IJsonSerializer jsonSerializer,
+		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -239,13 +238,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			app,
 			settingsStore,
 			clipboardWriter,
-			contentCipher,
 			contentVisibility,
 			dbAccess,
 			dialogService,
 			dispatcher,
 			executionEngine,
-			jsonSerializer,
+			fileTextReader,
 			logger,
 			messenger,
 			notification,

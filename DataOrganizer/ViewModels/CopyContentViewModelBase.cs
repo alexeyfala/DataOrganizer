@@ -3,20 +3,18 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
-using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Linq;
@@ -35,9 +33,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	protected readonly IClipboardTextWriter _clipboardWriter;
 
-	/// <inheritdoc cref="IContentCipher" />
-	protected readonly IContentCipher _contentCipher;
-
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
@@ -47,8 +42,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IJsonSerializer" />
-	protected readonly IJsonSerializer _jsonSerializer;
+	/// <inheritdoc cref="IFileTextReader" />
+	protected readonly IFileTextReader _fileTextReader;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
@@ -64,10 +59,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	protected CopyContentViewModelBase(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
+		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -77,15 +71,13 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		_clipboardWriter = clipboardWriter;
 
-		_contentCipher = contentCipher;
-
 		_dbAccess = dbAccess;
 
 		_dialogService = dialogService;
 
 		_exceptionHandler = exceptionHandler;
 
-		_jsonSerializer = jsonSerializer;
+		_fileTextReader = fileTextReader;
 
 		_logger = logger;
 
@@ -134,63 +126,45 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			ValidatedContents result = await _dbAccess
-				.GetFileContentsAsync(file.Id, token)
+			FileTextReading reading = await _fileTextReader
+				.ReadAsync(file, Strings.CopyContent, token)
 				.ConfigureAwait(true);
 
-			if (!result.IsValid)
+			switch (reading.Status)
 			{
-				_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+				case FileTextStatus.Damaged:
+					_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
 
-				return;
-			}
+					return;
 
-			if (await _contentCipher
-				.TryDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
-				.ConfigureAwait(true) is not { } contents)
-			{
-				return;
-			}
-
-			try
-			{
-				// Bytes that are not text would reach the clipboard as garbage.
-				if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
-				{
+				case FileTextStatus.NotText:
 					_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
 
 					return;
-				}
 
-				if (string.IsNullOrEmpty(text))
-				{
+				case FileTextStatus.Empty:
 					_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 					return;
-				}
 
-				if (this is ViewModelBase viewModel)
-				{
-					viewModel.InsertIntoCopyHistory(file, updateView);
-				}
-
-				await _clipboardWriter
-					.WriteTextAsync(text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
-					.ConfigureAwait(true);
-
-				FolderDto[] parents = [.. file.GetAllParents().Reverse()];
-
-				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
-				{
-					_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
-				}
+				case FileTextStatus.Closed:
+					return;
 			}
-			finally
+
+			if (this is ViewModelBase viewModel)
 			{
-				if (file.EncryptionStatus != EncryptionStatus.None)
-				{
-					contents.ZeroMemory();
-				}
+				viewModel.InsertIntoCopyHistory(file, updateView);
+			}
+
+			await _clipboardWriter
+				.WriteTextAsync(reading.Text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
+				.ConfigureAwait(true);
+
+			FolderDto[] parents = [.. file.GetAllParents().Reverse()];
+
+			if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
+			{
+				_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
 			}
 		}
 		catch (OperationCanceledException)

@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -24,7 +25,6 @@ using DataOrganizer.Messages.Execution;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -191,13 +191,12 @@ public abstract partial class ViewModelBase :
 		Application app,
 		IAppSettingsStore settingsStore,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
-		IJsonSerializer jsonSerializer,
+		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -206,10 +205,9 @@ public abstract partial class ViewModelBase :
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			clipboardWriter,
-			contentCipher,
 			dbAccess,
 			dialogService,
-			jsonSerializer,
+			fileTextReader,
 			logger,
 			messenger,
 			notification,

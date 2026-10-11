@@ -6,16 +6,24 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Material.Icons.Avalonia;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using Shared.Services;
+using System;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -23,6 +31,60 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class FileListViewModelBaseTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: a file without text shows no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_For_An_Empty_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = [],
+					IsValid = true
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		ToolTip.GetTip(icon)
+			.Should()
+			.BeNull();
+	}
+
 	/// <summary>
 	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents that are not text show no tip.
 	/// </summary>
@@ -59,6 +121,10 @@ internal class FileListViewModelBaseTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
@@ -72,6 +138,188 @@ internal class FileListViewModelBaseTests
 		ToolTip.GetTip(icon)
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents that fail their check show no tip.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_For_Damaged_Contents()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = Encoding.UTF8.GetBytes("Hi"),
+					IsValid = false
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		ToolTip.GetTip(icon)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents the session key cannot open show no tip.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCaseSource(nameof(SessionCipherFailures))]
+	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_When_The_Decryption_Fails(Exception failure)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(8),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.Decrypt(file, Arg.Any<byte[]>())
+				.Throws(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder.RegisterInstance(contentCipher);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		ToolTip.GetTip(icon)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the tip of a file under an unlocked keeper shows its
+	/// decrypted text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task PreviewPointerEnteredCommand_Shows_The_Decrypted_Text()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] stored = RandomValues.CreateBytes(8);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = stored,
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.Decrypt(file, stored)
+				.Returns(Encoding.UTF8.GetBytes("Hi"));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder.RegisterInstance(contentCipher);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		ToolTip.GetTip(icon)
+			.Should()
+			.Be("Hi");
 	}
 
 	/// <summary>
@@ -111,6 +359,10 @@ internal class FileListViewModelBaseTests
 				});
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -169,6 +421,10 @@ internal class FileListViewModelBaseTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 
@@ -186,5 +442,81 @@ internal class FileListViewModelBaseTests
 			.Should()
 			.Be(text);
 	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the decrypted contents are wiped once their text
+	/// is read.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task PreviewPointerEnteredCommand_Zeroes_The_Decrypted_Contents()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		MaterialIcon icon = new()
+		{
+			DataContext = file
+		};
+
+		Window window = new()
+		{
+			Content = icon
+		};
+
+		window.Show();
+
+		byte[] decrypted = Encoding.UTF8.GetBytes("Hi");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(8),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.Decrypt(file, Arg.Any<byte[]>())
+				.Returns(decrypted);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+
+			builder.RegisterInstance(contentCipher);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+
+		// Assert
+		decrypted
+			.Should()
+			.OnlyContain(static x => x == 0);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Failures an operation on the key of a session can end with.
+	/// </summary>
+	private static Exception[] SessionCipherFailures() =>
+	[
+		new AuthenticationTagMismatchException(),
+		new InvalidOperationException()
+	];
 	#endregion
 }
