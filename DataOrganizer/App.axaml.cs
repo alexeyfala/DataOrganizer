@@ -173,6 +173,7 @@ public sealed class App : Application
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
+		services.AddTransient<IUiTimer, UiTimer>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IViewFactory, ViewFactory>();

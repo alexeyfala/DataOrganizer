@@ -5,6 +5,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
@@ -65,6 +66,10 @@ internal class DbAccessTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -111,6 +116,10 @@ internal class DbAccessTests
 			builder.RegisterInstance(folderRepository);
 
 			builder.RegisterInstance(fileRepository);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -165,6 +174,40 @@ internal class DbAccessTests
 				.Received(1)
 				.AddAsync(Arg.Any<FileEntity>());
 		}
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddEntityAsync" />: a new folder or file is created and updated at the current local time.
+	/// </summary>
+	[Test]
+	public async Task AddEntityAsync_Stamps_The_Entity_With_The_Current_Time([Values] EntityKind type)
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		AddEntityParameters parameters = new()
+		{
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = type,
+			Name = RandomString.Create(10),
+			ParentId = Guid.NewGuid()
+		};
+
+		// Act
+		ExplorerItemBase entity = await sut.AddEntityAsync(parameters);
+
+		// Assert
+		entity.CreatedAt
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+
+		entity.UpdatedAt
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
 	}
 
 	/// <summary>
@@ -266,6 +309,10 @@ internal class DbAccessTests
 			builder
 				.RegisterType<FolderRepository>()
 				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();

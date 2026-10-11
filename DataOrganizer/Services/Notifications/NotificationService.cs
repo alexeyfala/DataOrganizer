@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
@@ -32,6 +31,9 @@ public sealed class NotificationService : INotificationService
 	/// </summary>
 	private readonly MessageChannel<string> _toasts;
 
+	/// <inheritdoc cref="IUiTimer" />
+	private readonly IUiTimer _uiTimer;
+
 	/// <summary>
 	/// <c>True</c> while the tick loop is scheduled.
 	/// </summary>
@@ -45,6 +47,7 @@ public sealed class NotificationService : INotificationService
 		[FromKeyedServices(SnackbarHostIdentifiers.Main)] ISnackbarPresenter mainSnackbarPresenter,
 		[FromKeyedServices(SnackbarHostIdentifiers.Notepad)] ISnackbarPresenter notepadSnackbarPresenter,
 		IToastPresenter toastPresenter,
+		IUiTimer uiTimer,
 		TimeProvider timeProvider)
 	{
 		_dispatcher = dispatcher;
@@ -58,6 +61,8 @@ public sealed class NotificationService : INotificationService
 		}.ToFrozenDictionary();
 
 		_toasts = new(toastPresenter, timeProvider);
+
+		_uiTimer = uiTimer;
 	}
 	#endregion
 
@@ -170,7 +175,7 @@ public sealed class NotificationService : INotificationService
 
 		_isTicking = true;
 
-		DispatcherTimer.Run(Tick, MessageChannelOptions.PollInterval);
+		_uiTimer.Run(Tick, MessageChannelOptions.PollInterval);
 	}
 	#endregion
 }

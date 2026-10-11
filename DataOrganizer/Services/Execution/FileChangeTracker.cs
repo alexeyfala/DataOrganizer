@@ -23,6 +23,11 @@ namespace DataOrganizer.Services.Execution;
 public class FileChangeTracker : IFileChangeTracker
 {
 	#region Data
+	/// <summary>
+	/// Pause between two checks of the file.
+	/// </summary>
+	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(800.0);
+
 	/// <inheritdoc cref="IContentCipher" />
 	private readonly IContentCipher _contentCipher;
 
@@ -95,7 +100,7 @@ public class FileChangeTracker : IFileChangeTracker
 				previousHash = currentHash;
 
 				await Task
-					.Delay(800, token)
+					.Delay(PollInterval, _timeProvider, token)
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 			}
 

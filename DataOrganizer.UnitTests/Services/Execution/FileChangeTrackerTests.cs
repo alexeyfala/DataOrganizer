@@ -30,7 +30,100 @@ namespace DataOrganizer.UnitTests.Services.Execution;
 [TestFixture(Description = $@"Tests of ""{nameof(FileChangeTracker)}"" type")]
 internal class FileChangeTrackerTests
 {
+	#region Data
+	/// <summary>
+	/// Mirrors the pause between two checks of the file.
+	/// </summary>
+	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(800.0);
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: after a pause the file is checked again, and a change seen then is
+	/// saved.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Checks_The_File_Again_After_A_Pause()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		FakeTimeProvider time = new();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		byte[] previousHash = RandomValues.CreateBytes(32);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(previousHash, RandomValues.CreateBytes(32));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					cancellation.Cancel();
+
+					return true;
+				});
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = previousHash,
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		await Task.Run(() => time.Advance(PollInterval - TimeSpan.FromTicks(1)));
+
+		// Act
+		await Task.Run(() => time.Advance(TimeSpan.FromTicks(1)));
+
+		// Assert
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
+
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			parameters.File.Id,
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<CancellationToken>());
+
+		// The change is stamped with the moment the pause ended, so the check came neither earlier nor later.
+		parameters.File.UpdatedAt
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+	}
+
 	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the file is not updated when the content hash is unchanged.
 	/// </summary>
@@ -65,6 +158,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();

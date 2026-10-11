@@ -3,10 +3,13 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Services;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
@@ -18,6 +21,151 @@ namespace DataOrganizer.UnitTests.Services.Encryption;
 internal class AutoLockServiceTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: an arm after the lock starts the countdown again.
+	/// </summary>
+	[Test]
+	public void Arm_After_The_Lock_Starts_The_Countdown_Again()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<UiTimer>()
+				.As<IUiTimer>();
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		time.Advance(TimeSpan.FromMinutes(1.0));
+
+		sut.Arm();
+
+		// Act
+		time.Advance(TimeSpan.FromSeconds(1.0));
+
+		// Assert
+		sut.Remaining
+			.Should()
+			.Be(TimeSpan.FromSeconds(59.0));
+	}
+
+	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: the countdown goes down on its own while time passes.
+	/// </summary>
+	[Test]
+	public void Arm_Counts_The_Time_Down_On_Its_Own()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<UiTimer>()
+				.As<IUiTimer>();
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		time.Advance(TimeSpan.FromSeconds(1.0));
+
+		// Act
+		time.Advance(TimeSpan.FromSeconds(1.0));
+
+		// Assert
+		sut.Remaining
+			.Should()
+			.Be(TimeSpan.FromSeconds(58.0));
+	}
+
+	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: the countdown locks the session on its own when the delay elapses.
+	/// </summary>
+	[Test]
+	public void Arm_Locks_The_Session_On_Its_Own_When_The_Delay_Elapses()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(autoLockMinutes: 1));
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<UiTimer>()
+				.As<IUiTimer>();
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		List<SessionAutoLockedMessage> received = Capture(messenger);
+
+		sut.Arm();
+
+		// Act
+		time.Advance(TimeSpan.FromMinutes(1.0));
+
+		// Assert
+		sut.IsArmed
+			.Should()
+			.BeFalse();
+
+		received
+			.Should()
+			.ContainSingle();
+	}
+
 	/// <summary>
 	/// <see cref="AutoLockService.Arm" />: a repeated arm starts over from the delay currently in the settings.
 	/// </summary>

@@ -1,6 +1,6 @@
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Encryption;
@@ -40,6 +40,9 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 
+	/// <inheritdoc cref="IUiTimer" />
+	private readonly IUiTimer _uiTimer;
+
 	/// <summary>
 	/// Moment the countdown expires at; <c>null</c> while no countdown is running.
 	/// </summary>
@@ -56,6 +59,7 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 		IAppSettingsStore settingsStore,
 		ILogger logger,
 		IMessenger messenger,
+		IUiTimer uiTimer,
 		TimeProvider timeProvider)
 	{
 		_logger = logger;
@@ -65,6 +69,8 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 		_settingsStore = settingsStore;
 
 		_timeProvider = timeProvider;
+
+		_uiTimer = uiTimer;
 	}
 	#endregion
 
@@ -157,7 +163,7 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 
 		_isTicking = true;
 
-		DispatcherTimer.Run(Tick, TickInterval);
+		_uiTimer.Run(Tick, TickInterval);
 	}
 	#endregion
 }

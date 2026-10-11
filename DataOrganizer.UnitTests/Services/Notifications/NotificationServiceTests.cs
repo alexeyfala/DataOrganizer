@@ -5,6 +5,7 @@ using DataOrganizer.Dto;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Services;
 using DataOrganizer.Services.Notifications;
 using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
@@ -354,6 +355,54 @@ internal class NotificationServiceTests
 
 		// Assert
 		notepadPresenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.ShowInformationSnackbar" />: the queue moves on by itself, so the waiting message takes
+	/// the place of the shown one when its time is up.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Shows_The_Waiting_Message_On_Its_Own()
+	{
+		// Arrange
+		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<UiTimer>()
+				.As<IUiTimer>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second");
+
+		// Act
+		time.Advance(WholeTurn);
+
+		time.Advance(WholeTurn);
+
+		// Assert
+		presenter
 			.Received(1)
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}

@@ -64,6 +64,9 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
@@ -79,7 +82,8 @@ public sealed class DbAccess : IDbAccess
 		IFileSystem fileSystem,
 		IFolderRepository folderRepository,
 		IHotkeysRepository hotkeysRepository,
-		ILogger logger)
+		ILogger logger,
+		TimeProvider timeProvider)
 	{
 		_dbContextService = dbContextService;
 
@@ -96,6 +100,8 @@ public sealed class DbAccess : IDbAccess
 		_hotkeysRepository = hotkeysRepository;
 
 		_logger = logger;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -1127,7 +1133,9 @@ public sealed class DbAccess : IDbAccess
 		AddEntityParameters parameters,
 		CancellationToken token)
 	{
-		DateTime now = DateTime.Now;
+		DateTime now = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		FileEntity file = new()
 		{
@@ -1155,7 +1163,9 @@ public sealed class DbAccess : IDbAccess
 		AddEntityParameters parameters,
 		CancellationToken token)
 	{
-		DateTime now = DateTime.Now;
+		DateTime now = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		FolderEntity folder = new()
 		{
