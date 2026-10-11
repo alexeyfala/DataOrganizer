@@ -6,7 +6,7 @@ namespace DataOrganizer.Interfaces.Clipboard;
 /// Places a text on the clipboard; a sensitive one carries the markers, which keep it out of the clipboard
 /// history and hand it to the auto-clear.
 /// </summary>
-public interface ISensitiveClipboardWriter
+public interface IClipboardTextWriter
 {
 	#region Methods
 	/// <summary>

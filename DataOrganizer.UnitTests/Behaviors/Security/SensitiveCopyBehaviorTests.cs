@@ -29,7 +29,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -70,7 +70,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -113,7 +113,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -148,7 +148,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -189,7 +189,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -236,7 +236,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{

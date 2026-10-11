@@ -226,8 +226,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -306,8 +306,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -386,8 +386,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -462,8 +462,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -587,8 +587,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -741,8 +741,8 @@ internal class KeyboardInputHookTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()

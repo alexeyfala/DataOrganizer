@@ -42,7 +42,7 @@
 
 				<security:SensitiveCopyBehavior
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
-					Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
 		</TextBox>
 

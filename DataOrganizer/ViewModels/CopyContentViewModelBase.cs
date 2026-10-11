@@ -32,8 +32,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
-	/// <inheritdoc cref="ISensitiveClipboardWriter" />
-	protected readonly ISensitiveClipboardWriter _clipboardWriter;
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	protected readonly IClipboardTextWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IContentCipher" />
 	protected readonly IContentCipher _contentCipher;
@@ -63,6 +63,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
+		IClipboardTextWriter clipboardWriter,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -70,7 +71,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;

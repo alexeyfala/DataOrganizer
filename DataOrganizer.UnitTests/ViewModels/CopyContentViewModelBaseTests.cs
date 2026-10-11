@@ -73,8 +73,8 @@ internal class CopyContentViewModelBaseTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -138,8 +138,8 @@ internal class CopyContentViewModelBaseTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -202,8 +202,8 @@ internal class CopyContentViewModelBaseTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -268,8 +268,8 @@ internal class CopyContentViewModelBaseTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -317,6 +317,7 @@ internal class CopyContentViewModelBaseTests
 		#region Constructors
 		public TestCopyContentViewModel(
 			Application app,
+			IClipboardTextWriter clipboardWriter,
 			IContentCipher contentCipher,
 			IDbAccess dbAccess,
 			IDialogService dialogService,
@@ -324,9 +325,9 @@ internal class CopyContentViewModelBaseTests
 			ILogger logger,
 			IMessenger messenger,
 			INotificationService notification,
-			ISensitiveClipboardWriter clipboardWriter,
 			ITaskExceptionHandler exceptionHandler) : base(
 				app,
+				clipboardWriter,
 				contentCipher,
 				dbAccess,
 				dialogService,
@@ -334,7 +335,6 @@ internal class CopyContentViewModelBaseTests
 				logger,
 				messenger,
 				notification,
-				clipboardWriter,
 				exceptionHandler)
 		{
 		}

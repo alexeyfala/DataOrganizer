@@ -222,6 +222,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsStore settingsStore,
+		IClipboardTextWriter clipboardWriter,
 		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
@@ -232,12 +233,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsStore,
+			clipboardWriter,
 			contentCipher,
 			contentVisibility,
 			dbAccess,
@@ -248,7 +249,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			logger,
 			messenger,
 			notification,
-			clipboardWriter,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)

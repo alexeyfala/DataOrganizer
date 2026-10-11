@@ -11,7 +11,7 @@
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
-	ClipboardWriter="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}"
+	ClipboardWriter="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}"
 	mc:Ignorable="d">
 
 	<UserControl.Styles>

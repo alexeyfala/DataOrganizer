@@ -142,7 +142,7 @@
 							<Interaction.Behaviors>
 								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 							</Interaction.Behaviors>
 						</SelectableTextBlock>
 					</ScrollViewer>

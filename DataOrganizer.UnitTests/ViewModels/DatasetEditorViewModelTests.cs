@@ -544,8 +544,8 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(clipboard);
 
 			builder
-				.RegisterType<SensitiveClipboardWriter>()
-				.As<ISensitiveClipboardWriter>();
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();

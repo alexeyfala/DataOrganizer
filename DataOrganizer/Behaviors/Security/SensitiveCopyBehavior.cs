@@ -22,8 +22,8 @@ internal sealed class SensitiveCopyBehavior : Behavior<Control>
 		set => SetValue(IsSensitiveProperty, value);
 	}
 
-	/// <inheritdoc cref="ISensitiveClipboardWriter" />
-	public ISensitiveClipboardWriter? Writer
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	public IClipboardTextWriter? Writer
 	{
 		get => GetValue(WriterProperty);
 		set => SetValue(WriterProperty, value);
@@ -40,8 +40,8 @@ internal sealed class SensitiveCopyBehavior : Behavior<Control>
 	/// <summary>
 	/// Identifies the <see cref="Writer" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ISensitiveClipboardWriter?> WriterProperty = AvaloniaProperty
-		.Register<SensitiveCopyBehavior, ISensitiveClipboardWriter?>(name: nameof(Writer));
+	public static readonly StyledProperty<IClipboardTextWriter?> WriterProperty = AvaloniaProperty
+		.Register<SensitiveCopyBehavior, IClipboardTextWriter?>(name: nameof(Writer));
 	#endregion
 
 	#region Event Handlers

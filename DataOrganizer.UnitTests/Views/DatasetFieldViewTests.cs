@@ -27,7 +27,7 @@ internal class DatasetFieldViewTests
 		// Arrange
 		string text = RandomString.Create(16);
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		DatasetFieldView sut = new()
 		{
@@ -54,7 +54,7 @@ internal class DatasetFieldViewTests
 	public async Task CopyToClipboardCommand_Skips_A_Blank_Text()
 	{
 		// Arrange
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		DatasetFieldView sut = new()
 		{

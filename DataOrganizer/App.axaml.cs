@@ -145,6 +145,7 @@ public sealed class App : Application
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
+		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
@@ -180,7 +181,6 @@ public sealed class App : Application
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
-		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();

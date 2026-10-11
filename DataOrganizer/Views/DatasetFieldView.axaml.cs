@@ -43,8 +43,8 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		set => SetValue(CanHideProperty, value);
 	}
 
-	/// <inheritdoc cref="ISensitiveClipboardWriter" />
-	public ISensitiveClipboardWriter? ClipboardWriter
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	public IClipboardTextWriter? ClipboardWriter
 	{
 		get => GetValue(ClipboardWriterProperty);
 		set => SetValue(ClipboardWriterProperty, value);
@@ -189,8 +189,8 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Identifies the <see cref="ClipboardWriter" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ISensitiveClipboardWriter?> ClipboardWriterProperty = AvaloniaProperty
-		.Register<DatasetFieldView, ISensitiveClipboardWriter?>(name: nameof(ClipboardWriter));
+	public static readonly StyledProperty<IClipboardTextWriter?> ClipboardWriterProperty = AvaloniaProperty
+		.Register<DatasetFieldView, IClipboardTextWriter?>(name: nameof(ClipboardWriter));
 
 	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.

@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SensitiveClipboardWriter)}"" type")]
-internal class SensitiveClipboardWriterTests
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardTextWriter)}"" type")]
+internal class ClipboardTextWriterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="SensitiveClipboardWriter.WriteTextAsync" />: a sensitive text starts the auto-clear once it is on the clipboard.
+	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: a sensitive text starts the auto-clear once it is on the clipboard.
 	/// </summary>
 	[Test]
 	public async Task WriteTextAsync_Arms_The_Auto_Clear_After_A_Sensitive_Copy()
@@ -28,7 +28,7 @@ internal class SensitiveClipboardWriterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoClear));
 
-		SensitiveClipboardWriter sut = mock.Create<SensitiveClipboardWriter>();
+		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
 		await sut.WriteTextAsync(RandomString.Create(16), isSensitive: true);
@@ -40,7 +40,7 @@ internal class SensitiveClipboardWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="SensitiveClipboardWriter.WriteTextAsync" />: a sensitive text reaches the clipboard as a marked payload.
+	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: a sensitive text reaches the clipboard as a marked payload.
 	/// </summary>
 	[Test]
 	public async Task WriteTextAsync_Places_A_Marked_Payload_For_A_Sensitive_Text()
@@ -52,7 +52,7 @@ internal class SensitiveClipboardWriterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
 
-		SensitiveClipboardWriter sut = mock.Create<SensitiveClipboardWriter>();
+		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
 		bool result = await sut.WriteTextAsync(text, isSensitive: true);
@@ -73,7 +73,7 @@ internal class SensitiveClipboardWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="SensitiveClipboardWriter.WriteTextAsync" />: an ordinary text reaches the clipboard as plain text
+	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: an ordinary text reaches the clipboard as plain text
 	/// and leaves the auto-clear alone.
 	/// </summary>
 	[Test]
@@ -93,7 +93,7 @@ internal class SensitiveClipboardWriterTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		SensitiveClipboardWriter sut = mock.Create<SensitiveClipboardWriter>();
+		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
 		bool result = await sut.WriteTextAsync(text, isSensitive: false);
@@ -117,7 +117,7 @@ internal class SensitiveClipboardWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="SensitiveClipboardWriter.WriteTextAsync" />: a clipboard that refuses the text is reported
+	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: a clipboard that refuses the text is reported
 	/// and starts no auto-clear.
 	/// </summary>
 	[Test]
@@ -149,7 +149,7 @@ internal class SensitiveClipboardWriterTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		SensitiveClipboardWriter sut = mock.Create<SensitiveClipboardWriter>();
+		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
 		bool result = await sut.WriteTextAsync(RandomString.Create(16), isSensitive);

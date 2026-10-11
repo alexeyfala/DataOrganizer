@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
-public sealed class SensitiveClipboardWriter : ISensitiveClipboardWriter
+public sealed class ClipboardTextWriter : IClipboardTextWriter
 {
 	#region Data
 	/// <inheritdoc cref="IClipboardAutoClear" />
@@ -21,7 +21,7 @@ public sealed class SensitiveClipboardWriter : ISensitiveClipboardWriter
 	#endregion
 
 	#region Constructors
-	public SensitiveClipboardWriter(
+	public ClipboardTextWriter(
 		IClipboardAutoClear autoClear,
 		IClipboardAccessor clipboard,
 		ILogger logger)

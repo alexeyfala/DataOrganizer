@@ -594,8 +594,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="ISensitiveClipboardWriter" />
-	private readonly ISensitiveClipboardWriter _clipboardWriter;
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	private readonly IClipboardTextWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
@@ -615,6 +615,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
+		IClipboardTextWriter clipboardWriter,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
@@ -624,7 +625,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,

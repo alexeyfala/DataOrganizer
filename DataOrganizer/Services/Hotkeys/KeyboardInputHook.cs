@@ -55,8 +55,8 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="ISensitiveClipboardWriter" />
-	private readonly ISensitiveClipboardWriter _clipboardWriter;
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	private readonly IClipboardTextWriter _clipboardWriter;
 
 	/// <inheritdoc cref="IContentCipher" />
 	private readonly IContentCipher _contentCipher;
@@ -105,6 +105,7 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
+		IClipboardTextWriter clipboardWriter,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
@@ -113,7 +114,6 @@ public sealed class KeyboardInputHook :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		ISensitiveClipboardWriter clipboardWriter,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
