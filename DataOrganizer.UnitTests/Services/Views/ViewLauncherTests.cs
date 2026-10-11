@@ -1197,6 +1197,108 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the item chosen in the copy history
+	/// of the popup, fixed or not.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CreateFavoritesWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Editor(
+		[Values] bool isPopupFixed)
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		EditorWindow editorWindow = new();
+
+		Guid savedItemId = default;
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			viewLauncher.CreateEditorWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<EditorTabsState?>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(editorWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow(files, null, []);
+
+		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+
+		window
+			.ViewModel
+			.CopyHistorySettings
+			.AddItemIds(files.Select(x => x.Id), files);
+
+		window.ViewModel.IsPopupFixed = isPopupFixed;
+
+		window
+			.ViewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
+		// dispatcher before the choice.
+		window
+			.ViewModel
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistory.SelectedItem = files[1];
+
+		// Act
+		await window
+			.ViewModel
+			.ShowInEditorAsync(default, window);
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		savedItemId
+			.Should()
+			.Be(files[1].Id);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created as the main window.
 	/// </summary>
 	[AvaloniaTest]
