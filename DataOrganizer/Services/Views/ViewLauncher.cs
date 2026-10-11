@@ -189,6 +189,11 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
+		// The right side sheet does not close with the window, so its content is saved before the settings are written.
+		window
+			.ViewModel
+			.SaveRightSideSheetContent();
+
 		_exceptionHandler.Watch(SaveEditorSettingsAsync(window));
 	}
 

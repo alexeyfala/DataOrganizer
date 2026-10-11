@@ -632,6 +632,186 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites saves the item chosen in the copy history of
+	/// the right side sheet.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Favorites()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		FavoritesWindow favoritesWindow = new();
+
+		Guid savedItemId = default;
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			viewLauncher.CreateFavoritesWindow(
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<EditorTabsState?>(),
+				Arg.Any<IEnumerable<FileDto>>())
+			.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow(files, null, []);
+
+		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+
+		window
+			.ViewModel
+			.CopyHistorySettings
+			.AddItemIds(files.Select(x => x.Id), files);
+
+		window
+			.ViewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
+		// the dispatcher before the choice.
+		window
+			.ViewModel
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistory.SelectedItem = files[1];
+
+		// Act
+		window
+			.ViewModel
+			.ShowFavorites(window);
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		favoritesWindow.Close();
+
+		// Assert
+		savedItemId
+			.Should()
+			.Be(files[1].Id);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the item chosen in the copy history of the
+	/// right side sheet.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_The_Chosen_Copy_History_Item_When_The_Window_Closes()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		Guid savedItemId = default;
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow(files, null, []);
+
+		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+
+		window
+			.ViewModel
+			.CopyHistorySettings
+			.AddItemIds(files.Select(x => x.Id), files);
+
+		window
+			.ViewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
+		// the dispatcher before the choice.
+		window
+			.ViewModel
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistory.SelectedItem = files[1];
+
+		// Act
+		window.Close();
+
+		// Assert
+		savedItemId
+			.Should()
+			.Be(files[1].Id);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: an object shown when the editor opens takes the place of the object
 	/// selected before, and both are saved from the loaded window.
 	/// </summary>

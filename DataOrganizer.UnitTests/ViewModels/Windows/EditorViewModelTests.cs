@@ -2045,6 +2045,51 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.IsRightSideSheetOpened" />: closing the right side sheet saves the item chosen in the copy
+	/// history it shows.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsRightSideSheetOpened_Saves_The_Chosen_Copy_History_Item_When_The_Sheet_Closes()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
+
+		sut.AddHierarchy(files);
+
+		sut
+			.CopyHistorySettings
+			.AddItemIds(files.Select(x => x.Id), files);
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
+		// the dispatcher before the choice.
+		sut
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistory.SelectedItem = files[1];
+
+		// Act
+		sut.IsRightSideSheetOpened = false;
+
+		// Assert
+		sut.CopyHistorySettings.SelectedItemId
+			.Should()
+			.Be(files[1].Id);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width is clamped to less than the view width when the view shrinks.
 	/// </summary>
 	[Test]
@@ -2735,6 +2780,53 @@ internal class EditorViewModelTests
 		sut.SelectedObject
 			.Should()
 			.Be(dto);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowExecutingFilesCommand" />: a switch of the right side sheet to the executing files
+	/// saves the item chosen in the copy history it showed.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowExecutingFilesCommand_Saves_The_Chosen_Copy_History_Item()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
+
+		sut.AddHierarchy(files);
+
+		sut
+			.CopyHistorySettings
+			.AddItemIds(files.Select(x => x.Id), files);
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
+		// the dispatcher before the choice.
+		sut
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistory.SelectedItem = files[1];
+
+		// Act
+		sut
+			.ShowExecutingFilesCommand
+			.Execute(null);
+
+		// Assert
+		sut.CopyHistorySettings.SelectedItemId
+			.Should()
+			.Be(files[1].Id);
 	}
 
 	/// <summary>

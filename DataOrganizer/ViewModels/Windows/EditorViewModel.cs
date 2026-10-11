@@ -160,10 +160,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
+		SaveRightSideSheetContent();
 
 		RightSideSheetContent = RightSideSheetContentKind.None;
 	}
@@ -1033,10 +1030,7 @@ public sealed partial class EditorViewModel :
 	[RelayCommand]
 	private void ShowExecutingFiles()
 	{
-		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
+		SaveRightSideSheetContent();
 
 		SwitchRightSideSheetContent(RightSideSheetContentKind.ExecutingFiles);
 	}
@@ -1393,6 +1387,19 @@ public sealed partial class EditorViewModel :
 
 			IsActionInProgress = _actionsInProgress > 0;
 		}
+	}
+
+	/// <summary>
+	/// Saves the state of the copy history while the right side sheet shows it.
+	/// </summary>
+	public void SaveRightSideSheetContent()
+	{
+		if (RightSideSheetContent != RightSideSheetContentKind.CopyHistory)
+		{
+			return;
+		}
+
+		SaveCopyHistory();
 	}
 
 	/// <summary>
