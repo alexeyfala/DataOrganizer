@@ -79,20 +79,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public partial double FontSize { get; set; } = 14.0;
 
 	/// <summary>
-	/// Split of the document to start from: the share of the height of the upper half, or <c>null</c> when it is not split.
-	/// </summary>
-	public double? InitialEditorSplit { get; set; }
-
-	/// <summary>
 	/// <c>True</c> when the document is shown in two halves, one above the other.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsSplit { get; set; }
-
-	/// <summary>
-	/// Callback that reports the split of the document: the share of the height of the upper half, or <c>null</c> when it is not split.
-	/// </summary>
-	public Action<double?>? SetEditorSplitCallback { get; set; }
 
 	/// <inheritdoc cref="FileEditorState.ShowEndOfLine" />
 	[ObservableProperty]
@@ -148,7 +138,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		// The file keeps the split for the session only, apart from the editor state in the database.
-		if (InitialEditorSplit is { } split)
+		if (_editorSplits.Find(FileId) is { } split)
 		{
 			SplitShare = split;
 
@@ -282,6 +272,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private readonly SerialDisposable _documentChanges = new();
 
+	/// <inheritdoc cref="IEditorSplitStore" />
+	private readonly IEditorSplitStore _editorSplits;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
@@ -317,6 +310,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
+		IEditorSplitStore editorSplits,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -332,6 +326,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			exceptionHandler)
 	{
 		_dbFailureReporter = dbFailureReporter;
+
+		_editorSplits = editorSplits;
 
 		_documentChanges.DisposeWith(_disposables);
 	}
@@ -379,7 +375,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Called when <see cref="IsSplit" /> changes.
 	/// </summary>
-	partial void OnIsSplitChanged(bool value) => ReportEditorSplit();
+	partial void OnIsSplitChanged(bool value) => StoreEditorSplit();
 
 	/// <summary>
 	/// Called when <see cref="ShowEndOfLine" /> changes.
@@ -399,7 +395,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Called when <see cref="SplitShare" /> changes.
 	/// </summary>
-	partial void OnSplitShareChanged(double value) => ReportEditorSplit();
+	partial void OnSplitShareChanged(double value) => StoreEditorSplit();
 
 	/// <summary>
 	/// Called when <see cref="SyntaxLanguage" /> changes.
@@ -696,11 +692,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Reports the split of the document through <see cref="SetEditorSplitCallback" />.
-	/// </summary>
-	private void ReportEditorSplit() => SetEditorSplitCallback?.Invoke(IsSplit ? SplitShare : null);
-
-	/// <summary>
 	/// Makes a document the one being edited, whose text is saved after each pause in typing.
 	/// </summary>
 	private void SetDocument(TextDocument document)
@@ -713,6 +704,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			.SetDelay(TimeSpan.FromSeconds(0.5))
 			.Subscribe(Document_TextChanged);
 	}
+
+	/// <summary>
+	/// Keeps the split of the document for the file while the application runs.
+	/// </summary>
+	private void StoreEditorSplit() => _editorSplits.Set(FileId, IsSplit ? SplitShare : null);
 
 	/// <summary>
 	/// Tries to save the editor state.

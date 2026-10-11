@@ -8,6 +8,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
@@ -1061,6 +1062,8 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Restores_The_Split()
 	{
 		// Arrange
+		Guid fileId = Guid.NewGuid();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1071,6 +1074,8 @@ internal class EmbeddedFileEditorViewModelTests
 				IsValid = true
 			};
 
+			IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
+
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
@@ -1079,16 +1084,22 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns((string?)null);
 
+			editorSplits
+				.Find(fileId)
+				.Returns(0.25);
+
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(editorSplits);
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.InitialEditorSplit = 0.25;
+		sut.FileId = fileId;
 
 		// Act
 		await sut.EditorLoaded();
@@ -1970,55 +1981,59 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the end of the split reports that there is none.
+	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the end of the split is kept for the file as no split.
 	/// </summary>
 	[AvaloniaTest]
-	public void IsSplit_Off_Reports_No_Split()
+	public void IsSplit_Off_Stores_No_Split()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		Guid fileId = Guid.NewGuid();
+
+		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
+		sut.FileId = fileId;
+
 		sut.IsSplit = true;
-
-		List<double?> reported = [];
-
-		sut.SetEditorSplitCallback = reported.Add;
 
 		// Act
 		sut.IsSplit = false;
 
 		// Assert
-		reported
-			.Should()
-			.Equal((double?)null);
+		editorSplits
+			.Received(1)
+			.Set(fileId, null);
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the split reports the share of the upper half.
+	/// <see cref="EmbeddedFileEditorViewModel.IsSplit" />: the split keeps the share of the upper half for the file.
 	/// </summary>
 	[AvaloniaTest]
-	public void IsSplit_Reports_The_Share_Of_The_Upper_Half()
+	public void IsSplit_Stores_The_Share_Of_The_Upper_Half()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		Guid fileId = Guid.NewGuid();
+
+		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
+		sut.FileId = fileId;
+
 		sut.SplitShare = 0.25;
-
-		List<double?> reported = [];
-
-		sut.SetEditorSplitCallback = reported.Add;
 
 		// Act
 		sut.IsSplit = true;
 
 		// Assert
-		reported
-			.Should()
-			.Equal(0.25);
+		editorSplits
+			.Received(1)
+			.Set(fileId, 0.25);
 	}
 
 	/// <summary>
@@ -2835,29 +2850,31 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.SplitShare" />: a new share of a split document is reported.
+	/// <see cref="EmbeddedFileEditorViewModel.SplitShare" />: a new share of a split document is kept for the file.
 	/// </summary>
 	[AvaloniaTest]
-	public void SplitShare_Reports_The_New_Share_While_Split()
+	public void SplitShare_Stores_The_New_Share_While_Split()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		Guid fileId = Guid.NewGuid();
+
+		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
+		sut.FileId = fileId;
+
 		sut.IsSplit = true;
-
-		List<double?> reported = [];
-
-		sut.SetEditorSplitCallback = reported.Add;
 
 		// Act
 		sut.SplitShare = 0.25;
 
 		// Assert
-		reported
-			.Should()
-			.Equal(0.25);
+		editorSplits
+			.Received(1)
+			.Set(fileId, 0.25);
 	}
 
 	/// <summary>

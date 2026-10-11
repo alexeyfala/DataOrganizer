@@ -9,7 +9,9 @@ using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -80,6 +82,98 @@ internal class DocumentTabTemplateTests
 			.DataContext
 			.Should()
 			.BeSameAs(tab);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a file opened again gets back the split its editor had, as the split
+	/// lasts while the application runs.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Build_Gives_A_File_Opened_Again_Its_Split()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
+
+		file.IsEditing = true;
+
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+
+			// Both editors of the file share the store, as in the application.
+			builder
+				.RegisterType<EditorSplitStore>()
+				.As<IEditorSplitStore>()
+				.SingleInstance();
+		});
+
+		EmbeddedFileEditorViewModel first = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		// AutoMock gives one instance of a type per scope, while a file opened again gets an editor of its own.
+		using ILifetimeScope reopening = viewModelMock.Container.BeginLifetimeScope();
+
+		EmbeddedFileEditorViewModel second = reopening.Resolve<EmbeddedFileEditorViewModel>();
+
+		using EmbeddedFileEditorView firstView = new(first);
+
+		using EmbeddedFileEditorView secondView = new(second);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(first, second);
+
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(firstView, secondView);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		sut.Build(file);
+
+		await first.EditorLoaded();
+
+		first.SplitShare = 0.25;
+
+		first.IsSplit = true;
+
+		sut.Remove(file);
+
+		// Act
+		sut.Build(file);
+
+		await second.EditorLoaded();
+
+		// Assert
+		second.IsSplit
+			.Should()
+			.BeTrue();
+
+		second.SplitShare
+			.Should()
+			.Be(0.25);
 	}
 
 	/// <summary>

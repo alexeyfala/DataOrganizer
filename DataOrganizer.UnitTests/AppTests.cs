@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Interfaces.Documents;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,6 +86,29 @@ internal class AppTests
 		unsatisfied
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the splits of the editors have one store for the whole application, so a file
+	/// opened again gets its split back.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Shares_One_Store_Of_Editor_Splits()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.ContainSingle(x => x.ServiceType == typeof(IEditorSplitStore))
+			.Which
+			.Lifetime
+			.Should()
+			.Be(ServiceLifetime.Singleton);
 	}
 	#endregion
 

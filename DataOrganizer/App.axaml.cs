@@ -210,6 +210,7 @@ public sealed class App : Application
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton<IEditorSplitStore, EditorSplitStore>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook());

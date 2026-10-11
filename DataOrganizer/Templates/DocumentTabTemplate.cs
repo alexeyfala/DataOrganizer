@@ -98,10 +98,6 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 
 			viewModel.FileName = file.Name;
 
-			viewModel.InitialEditorSplit = file.EditorSplit;
-
-			viewModel.SetEditorSplitCallback = SetEditorSplit;
-
 			Initialize(viewModel);
 
 			control = _viewFactory.CreateUserControl<EmbeddedFileEditorView>(viewModel);
@@ -137,8 +133,6 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 
 			viewModel.Initialize();
 		}
-
-		void SetEditorSplit(double? split) => file.EditorSplit = split;
 
 		void SetEditorState(string state) => file.EditorState = state;
 	}
