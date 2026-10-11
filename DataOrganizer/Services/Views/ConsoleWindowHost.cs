@@ -18,11 +18,6 @@ namespace DataOrganizer.Services.Views;
 
 internal sealed class ConsoleWindowHost : IConsoleWindowHost
 {
-	#region Properties
-	/// <inheritdoc />
-	public ConsoleViewModel ViewModel { get; }
-	#endregion
-
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -38,6 +33,9 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
+
+	/// <inheritdoc cref="ConsoleViewModel" />
+	private readonly ConsoleViewModel _viewModel;
 	#endregion
 
 	#region Constructors
@@ -58,7 +56,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		_viewFactory = viewFactory;
 
-		ViewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
+		_viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
 	}
 	#endregion
 
@@ -66,7 +64,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	/// <inheritdoc />
 	public Task ConfigureAndShowAsync()
 	{
-		ConsoleWindow window = _viewFactory.CreateWindow<ConsoleWindow>(ViewModel);
+		ConsoleWindow window = _viewFactory.CreateWindow<ConsoleWindow>(_viewModel);
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppInfo.AppVersion}";
 
@@ -76,9 +74,9 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 			&& _jsonSerializer.DeserializeFromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
 			&& settings.IsNotDefault())
 		{
-			ViewModel.FontSize = settings.FontSize;
+			_viewModel.FontSize = settings.FontSize;
 
-			ViewModel.WordWrap = settings.WordWrap;
+			_viewModel.WordWrap = settings.WordWrap;
 
 			if (settings.Size is { Width: > 0, Height: > 0 })
 			{
@@ -119,16 +117,16 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 		{
 			try
 			{
-				if (ViewModel.IsSaved)
+				if (_viewModel.IsSaved)
 				{
 					return;
 				}
 
 				ConsoleWindowSettings settings = new()
 				{
-					FontSize = ViewModel.FontSize,
+					FontSize = _viewModel.FontSize,
 					IsTopmost = window.Topmost,
-					WordWrap = ViewModel.WordWrap,
+					WordWrap = _viewModel.WordWrap,
 					WindowState = window.Placement.WindowState,
 					Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
 					X = window.Placement.Position.X,
@@ -140,7 +138,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 					settingsFilePath,
 					false);
 
-				ViewModel.IsSaved = true;
+				_viewModel.IsSaved = true;
 
 				_app.CloseAllWindows();
 			}
@@ -161,5 +159,8 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		return source.Task;
 	}
+
+	/// <inheritdoc />
+	public void Write(string text) => _viewModel.WriteCallback(text);
 	#endregion
 }

@@ -1,27 +1,23 @@
-using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Views;
 
 /// <summary>
-/// Owns the lifetime of <see cref="ConsoleWindow" /> and its <see cref="ConsoleViewModel" />:
-/// creates the view model eagerly so the logger sink can attach to it, then configures and
-/// shows the window on demand.
+/// Owns the lifetime of <see cref="ConsoleWindow" />: keeps the log written before the window opens,
+/// then configures and shows the window on demand.
 /// </summary>
 public interface IConsoleWindowHost
 {
-	#region Properties
-	/// <summary>
-	/// The single <see cref="ConsoleViewModel" /> instance backed by this host.
-	/// </summary>
-	ConsoleViewModel ViewModel { get; }
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Creates, configures and shows <see cref="ConsoleWindow" />.
 	/// </summary>
 	Task ConfigureAndShowAsync();
+
+	/// <summary>
+	/// Appends <paramref name="text" /> to the log of the console.
+	/// </summary>
+	void Write(string text);
 	#endregion
 }

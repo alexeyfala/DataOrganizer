@@ -54,15 +54,8 @@ using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
 using DataOrganizer.Windows;
 using Mapster;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Repository.DbContexts;
-using Repository.Interceptors;
-using Repository.Interfaces;
-using Repository.Interfaces.Database;
-using Repository.Services;
-using Repository.Services.Database;
+using Repository.Extensions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Exceptions;
@@ -75,7 +68,6 @@ using SharpHook;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
 
 namespace DataOrganizer;
 
@@ -88,11 +80,6 @@ public sealed class App : Application
 	/// Consumed by XAML markup extensions and other contexts that cannot use constructor injection.
 	/// </summary>
 	public static IServiceProvider? Services { get; private set; }
-
-	/// <summary>
-	/// The application lifetime timer.
-	/// </summary>
-	public Stopwatch AppLifetimeTimer { get; } = new();
 	#endregion
 
 	#region Methods
@@ -139,6 +126,10 @@ public sealed class App : Application
 
 		services.AddSingleton(CreateMapperConfig());
 
+		services.AddRepository(GetDatabaseFilePath);
+
+		services.AddGitHubReleasesClient();
+
 		RegisterPlatformServices(services);
 
 		#region Transients
@@ -151,7 +142,6 @@ public sealed class App : Application
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
-		services.AddTransient<IDbMaintenance, DbMaintenance>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
@@ -162,20 +152,16 @@ public sealed class App : Application
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
-		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
-		services.AddTransient<IFileRepository, FileRepository>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFileTextCopier, FileTextCopier>();
 		services.AddTransient<IFileTextReader, FileTextReader>();
 		services.AddTransient<IFolderContentsConverter, FolderContentsConverter>();
 		services.AddTransient<IFolderProtection, FolderProtection>();
-		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
-		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<INoteCipher, NoteCipher>();
@@ -200,8 +186,6 @@ public sealed class App : Application
 		#endregion
 
 		#region Singletons
-		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
 		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Main);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Notepad);
@@ -211,6 +195,7 @@ public sealed class App : Application
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
+		services.AddSingleton<IAppUptime, AppUptime>();
 		services.AddSingleton<IAutoLockService, AutoLockService>();
 		services.AddSingleton<IAvaloniaLogForwarder, AvaloniaLogForwarder>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
@@ -219,8 +204,6 @@ public sealed class App : Application
 		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
-		services.AddSingleton<IDbAccess, DbAccess>();
-		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
@@ -327,74 +310,6 @@ public sealed class App : Application
 	}
 
 	/// <summary>
-	/// Configures <see cref="SqliteDbContext" />.
-	/// </summary>
-	private static void ConfigureDbContext(
-		IServiceProvider provider,
-		DbContextOptionsBuilder builder)
-	{
-		try
-		{
-			string directoryPath = provider
-				.GetRequiredService<IAppEnvironment>()
-				.DatabaseDirectoryPath;
-
-			Directory.CreateDirectory(directoryPath);
-
-			string databaseFilePath = Path.Combine(
-				directoryPath,
-				AppInfo.AppName + KnownFileExtensions.Sqlite);
-
-			SqliteConnectionStringBuilder connectionBuilder = new()
-			{
-				DataSource = databaseFilePath,
-				Mode = SqliteOpenMode.ReadWriteCreate,
-				RecursiveTriggers = false,
-				DefaultTimeout = 30,
-				Pooling = true
-			};
-
-			builder.UseSqlite(
-				connectionBuilder.ToString(),
-				x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName));
-
-			// Pooled connections are reused, and the pragmas do not survive in the database file.
-			builder.AddInterceptors(new SqlitePragmaInterceptor());
-
-			//ILogger logger = provider.GetRequiredService<ILogger>();
-
-			//builder.LogTo(logger.LogDebugWithTemplate);
-		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex.ToStringDemystified());
-		}
-	}
-
-	/// <summary>
-	/// Configures the <see cref="HttpClient" /> used to query the GitHub releases API.
-	/// </summary>
-	private static void ConfigureGitHubHttpClient(HttpClient client)
-	{
-		client.Timeout = TimeSpan.FromSeconds(10.0);
-
-		// GitHub requires a User-Agent; Accept and the API version pin the response format.
-		client
-			.DefaultRequestHeaders
-			.UserAgent
-			.ParseAdd($"{AppInfo.AppName}/{AppInfo.AppVersion}");
-
-		client
-			.DefaultRequestHeaders
-			.Accept
-			.ParseAdd("application/vnd.github+json");
-
-		client
-			.DefaultRequestHeaders
-			.Add("X-GitHub-Api-Version", "2022-11-28");
-	}
-
-	/// <summary>
 	/// Creates the mapping rules that every <see cref="MapsterMapper.IMapper" /> of the application uses.
 	/// </summary>
 	private static TypeAdapterConfig CreateMapperConfig()
@@ -428,6 +343,22 @@ public sealed class App : Application
 		}
 
 		return config;
+	}
+
+	/// <summary>
+	/// Returns the path of the database file and creates its directory.
+	/// </summary>
+	private static string GetDatabaseFilePath(IServiceProvider provider)
+	{
+		string directoryPath = provider
+			.GetRequiredService<IAppEnvironment>()
+			.DatabaseDirectoryPath;
+
+		Directory.CreateDirectory(directoryPath);
+
+		return Path.Combine(
+			directoryPath,
+			AppInfo.AppName + KnownFileExtensions.Sqlite);
 	}
 
 	/// <summary>
@@ -495,8 +426,6 @@ public sealed class App : Application
 			return;
 		}
 
-		AppLifetimeTimer.Start();
-
 		ServiceProvider serviceProvider;
 
 		try
@@ -511,6 +440,9 @@ public sealed class App : Application
 
 			return;
 		}
+
+		// The uptime counts from here.
+		_ = serviceProvider.GetRequiredService<IAppUptime>();
 
 		Services = serviceProvider;
 
@@ -549,13 +481,11 @@ public sealed class App : Application
 
 		if (options.ShowConsole)
 		{
-			ConsoleViewModel viewModel = provider
-				.GetRequiredService<IConsoleWindowHost>()
-				.ViewModel;
-
 			LogCallbackSink sink = new()
 			{
-				LogCallback = viewModel.WriteCallback
+				LogCallback = provider
+					.GetRequiredService<IConsoleWindowHost>()
+					.Write
 			};
 
 			configuration

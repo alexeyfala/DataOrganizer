@@ -46,6 +46,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IAppUptime" />
+	private readonly IAppUptime _appUptime;
+
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
@@ -95,6 +98,7 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
+		IAppUptime appUptime,
 		IAutoLockService autoLock,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
@@ -114,6 +118,8 @@ public class ViewLauncher : IViewLauncher
 		_app = app;
 
 		_appEnvironment = appEnvironment;
+
+		_appUptime = appUptime;
 
 		_autoLock = autoLock;
 
@@ -893,15 +899,8 @@ public class ViewLauncher : IViewLauncher
 				.EraseAsync()
 				.ConfigureAwait(false);
 
-			if (_app is App app)
-			{
-				app
-					.AppLifetimeTimer
-					.Stop();
-
-				_logger.LogInformationWithTemplate(
-					$"App life time is: {app.AppLifetimeTimer.GetElapsedTime()}{Environment.NewLine}{Environment.NewLine}");
-			}
+			_logger.LogInformationWithTemplate(
+				$@"App life time is: {_appUptime.Elapsed:hh\:mm\:ss\.fff}{Environment.NewLine}{Environment.NewLine}");
 
 			if (_serviceProvider is not IAsyncDisposable asyncDisposable)
 			{
