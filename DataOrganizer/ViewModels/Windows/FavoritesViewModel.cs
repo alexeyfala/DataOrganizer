@@ -15,7 +15,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -222,13 +221,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsStore settingsStore,
-		IClipboardTextWriter clipboardWriter,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
-		IFileTextReader fileTextReader,
+		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -237,13 +235,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsStore,
-			clipboardWriter,
 			contentVisibility,
 			dbAccess,
 			dialogService,
 			dispatcher,
 			executionEngine,
-			fileTextReader,
+			fileTextCopier,
 			logger,
 			messenger,
 			notification,

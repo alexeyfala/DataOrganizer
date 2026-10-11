@@ -3,14 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -30,9 +27,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardTextWriter" />
-	protected readonly IClipboardTextWriter _clipboardWriter;
-
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
@@ -42,8 +36,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IFileTextReader" />
-	protected readonly IFileTextReader _fileTextReader;
+	/// <inheritdoc cref="IFileTextCopier" />
+	protected readonly IFileTextCopier _fileTextCopier;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
@@ -58,10 +52,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
-		IClipboardTextWriter clipboardWriter,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IFileTextReader fileTextReader,
+		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -69,15 +62,13 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	{
 		_app = app;
 
-		_clipboardWriter = clipboardWriter;
-
 		_dbAccess = dbAccess;
 
 		_dialogService = dialogService;
 
 		_exceptionHandler = exceptionHandler;
 
-		_fileTextReader = fileTextReader;
+		_fileTextCopier = fileTextCopier;
 
 		_logger = logger;
 
@@ -88,6 +79,13 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Inserts a copied file at the top of the copy history; a view model without the history keeps nothing.
+	/// </summary>
+	public virtual void InsertIntoCopyHistory(FileDto file, bool updateView)
+	{
+	}
+
 	/// <summary>
 	/// Finds the last container.
 	/// </summary>
@@ -126,11 +124,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			FileTextReading reading = await _fileTextReader
-				.ReadAsync(file, Strings.CopyContent, token)
-				.ConfigureAwait(true);
-
-			switch (reading.Status)
+			switch (await _fileTextCopier
+				.CopyAsync(file, Strings.CopyContent, token)
+				.ConfigureAwait(true))
 			{
 				case FileTextStatus.Damaged:
 					_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
@@ -151,14 +147,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					return;
 			}
 
-			if (this is ViewModelBase viewModel)
-			{
-				viewModel.InsertIntoCopyHistory(file, updateView);
-			}
-
-			await _clipboardWriter
-				.WriteTextAsync(reading.Text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
-				.ConfigureAwait(true);
+			InsertIntoCopyHistory(file, updateView);
 
 			FolderDto[] parents = [.. file.GetAllParents().Reverse()];
 

@@ -131,6 +131,10 @@ internal class KeyboardInputHookTests
 				.As<IFileTextReader>();
 
 			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
+			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 		});
@@ -227,6 +231,10 @@ internal class KeyboardInputHookTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -294,6 +302,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -370,6 +382,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(clipboard);
 
@@ -455,6 +471,10 @@ internal class KeyboardInputHookTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -539,6 +559,10 @@ internal class KeyboardInputHookTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -619,6 +643,10 @@ internal class KeyboardInputHookTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -680,6 +708,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -751,6 +783,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(clipboard);
 
@@ -910,6 +946,10 @@ internal class KeyboardInputHookTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(clipboard);
 
 			builder
@@ -971,6 +1011,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -1042,6 +1086,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()

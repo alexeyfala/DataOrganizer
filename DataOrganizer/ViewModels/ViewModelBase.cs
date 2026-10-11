@@ -12,7 +12,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -190,13 +189,12 @@ public abstract partial class ViewModelBase :
 	protected ViewModelBase(
 		Application app,
 		IAppSettingsStore settingsStore,
-		IClipboardTextWriter clipboardWriter,
 		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,
-		IFileTextReader fileTextReader,
+		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -204,10 +202,9 @@ public abstract partial class ViewModelBase :
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
-			clipboardWriter,
 			dbAccess,
 			dialogService,
-			fileTextReader,
+			fileTextCopier,
 			logger,
 			messenger,
 			notification,
@@ -249,10 +246,8 @@ public abstract partial class ViewModelBase :
 	/// </summary>
 	public abstract void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
-	/// <summary>
-	/// Inserts or moves to top value in copy history.
-	/// </summary>
-	public void InsertIntoCopyHistory(FileDto file, bool updateView)
+	/// <inheritdoc />
+	public override void InsertIntoCopyHistory(FileDto file, bool updateView)
 	{
 		if (CopyHistorySettings
 			.ItemIds

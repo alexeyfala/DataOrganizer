@@ -1,6 +1,5 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
@@ -8,7 +7,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
@@ -54,17 +52,14 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardTextWriter" />
-	private readonly IClipboardTextWriter _clipboardWriter;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IFileTextReader" />
-	private readonly IFileTextReader _fileTextReader;
+	/// <inheritdoc cref="IFileTextCopier" />
+	private readonly IFileTextCopier _fileTextCopier;
 
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
@@ -98,9 +93,8 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardTextWriter clipboardWriter,
 		IDispatcherAccessor dispatcher,
-		IFileTextReader fileTextReader,
+		IFileTextCopier fileTextCopier,
 		IGlobalHookRunner hookRunner,
 		ILogger logger,
 		IMessenger messenger,
@@ -110,13 +104,11 @@ public sealed class KeyboardInputHook :
 	{
 		_app = app;
 
-		_clipboardWriter = clipboardWriter;
-
 		_dispatcher = dispatcher;
 
 		_exceptionHandler = exceptionHandler;
 
-		_fileTextReader = fileTextReader;
+		_fileTextCopier = fileTextCopier;
 
 		_hookRunner = hookRunner;
 
@@ -314,11 +306,9 @@ public sealed class KeyboardInputHook :
 				await ActivateWindowAsync().ConfigureAwait(false);
 			}
 
-			FileTextReading reading = await _fileTextReader
-				.ReadAsync(file, $"{Strings.CopyContent}: {file.Name}", token)
-				.ConfigureAwait(false);
-
-			switch (reading.Status)
+			switch (await _fileTextCopier
+				.CopyAsync(file, $"{Strings.CopyContent}: {file.Name}", token)
+				.ConfigureAwait(false))
 			{
 				case FileTextStatus.Damaged:
 					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
@@ -340,10 +330,6 @@ public sealed class KeyboardInputHook :
 				case FileTextStatus.Closed:
 					return;
 			}
-
-			await _clipboardWriter
-				.WriteTextAsync(reading.Text, isSensitive: file.EncryptionStatus != EncryptionStatus.None)
-				.ConfigureAwait(false);
 
 			_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 		}

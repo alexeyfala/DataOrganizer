@@ -8,6 +8,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -26,6 +27,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +85,10 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(contentCipher);
 
 			// The running headless application, since Application cannot be substituted.
@@ -132,6 +138,10 @@ internal class CopyContentViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(contentCipher);
 
@@ -197,6 +207,10 @@ internal class CopyContentViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(contentCipher);
 
@@ -267,6 +281,10 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(contentCipher);
 
 			// The running headless application, since Application cannot be substituted.
@@ -334,6 +352,10 @@ internal class CopyContentViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
+
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(contentCipher);
 
@@ -405,6 +427,10 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(contentCipher);
 
 			// The running headless application, since Application cannot be substituted.
@@ -437,6 +463,92 @@ internal class CopyContentViewModelBaseTests
 				.DidNotReceive()
 				.SetDataAsync(Arg.Any<DataTransfer>());
 		}
+	}
+
+	/// <summary>
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: a file whose text is copied goes into the copy history.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CopyContentAsync_Inserts_The_File_Into_The_Copy_History()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			fileTextCopier
+				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+
+		// Act
+		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+
+		// Assert
+		sut.CopyHistory
+			.Should()
+			.Equal(file);
+	}
+
+	/// <summary>
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: a file whose text is not copied stays out of the copy
+	/// history.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CopyContentAsync_Keeps_The_Copy_History_When_Nothing_Is_Copied(
+		[Values(FileTextStatus.Empty, FileTextStatus.NotText, FileTextStatus.Damaged, FileTextStatus.Closed)] FileTextStatus status)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			fileTextCopier
+				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(status);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+
+		// Act
+		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+
+		// Assert
+		sut.CopyHistory
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -479,6 +591,10 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
+			builder
+				.RegisterType<FileTextCopier>()
+				.As<IFileTextCopier>();
+
 			builder.RegisterInstance(contentCipher);
 
 			// The running headless application, since Application cannot be substituted.
@@ -503,22 +619,27 @@ internal class CopyContentViewModelBaseTests
 	/// </summary>
 	private sealed class TestCopyContentViewModel : CopyContentViewModelBase
 	{
+		#region Properties
+		/// <summary>
+		/// Files inserted into the copy history, in order.
+		/// </summary>
+		public List<FileDto> CopyHistory { get; } = [];
+		#endregion
+
 		#region Constructors
 		public TestCopyContentViewModel(
 			Application app,
-			IClipboardTextWriter clipboardWriter,
 			IDbAccess dbAccess,
 			IDialogService dialogService,
-			IFileTextReader fileTextReader,
+			IFileTextCopier fileTextCopier,
 			ILogger logger,
 			IMessenger messenger,
 			INotificationService notification,
 			ITaskExceptionHandler exceptionHandler) : base(
 				app,
-				clipboardWriter,
 				dbAccess,
 				dialogService,
-				fileTextReader,
+				fileTextCopier,
 				logger,
 				messenger,
 				notification,
@@ -528,6 +649,9 @@ internal class CopyContentViewModelBaseTests
 		#endregion
 
 		#region Methods
+		/// <inheritdoc />
+		public override void InsertIntoCopyHistory(FileDto file, bool updateView) => CopyHistory.Add(file);
+
 		public Task InvokeCopyContentAsync(FileDto file, ItemsControl container)
 		{
 			return CopyContentAsync(file, container, updateView: false);

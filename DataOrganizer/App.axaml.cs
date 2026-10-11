@@ -169,6 +169,7 @@ public sealed class App : Application
 		services.AddTransient<IFileRepository, FileRepository>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
+		services.AddTransient<IFileTextCopier, FileTextCopier>();
 		services.AddTransient<IFileTextReader, FileTextReader>();
 		services.AddTransient<IFolderContentsConverter, FolderContentsConverter>();
 		services.AddTransient<IFolderProtection, FolderProtection>();

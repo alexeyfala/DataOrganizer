@@ -75,18 +75,18 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
-		IClipboardTextWriter clipboardWriter,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IFileTextCopier fileTextCopier,
 		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			clipboardWriter,
 			dbAccess,
 			dialogService,
+			fileTextCopier,
 			fileTextReader,
 			logger,
 			messenger,

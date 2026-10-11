@@ -143,27 +143,32 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 	#endregion
 
+	#region Data
+	/// <inheritdoc cref="IFileTextReader" />
+	private readonly IFileTextReader _fileTextReader;
+	#endregion
+
 	#region Constructors
 	protected FileListViewModelBase(
 		Application app,
-		IClipboardTextWriter clipboardWriter,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IFileTextCopier fileTextCopier,
 		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			clipboardWriter,
 			dbAccess,
 			dialogService,
-			fileTextReader,
+			fileTextCopier,
 			logger,
 			messenger,
 			notification,
 			exceptionHandler)
 	{
+		_fileTextReader = fileTextReader;
 	}
 	#endregion
 
