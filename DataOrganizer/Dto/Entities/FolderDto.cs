@@ -1,8 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages.Editor;
 using Entities.Models;
 using Shared.Extensions;
 using System;
@@ -25,23 +23,6 @@ public sealed partial class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 	/// <inheritdoc cref="FolderEntity.IsExpanded" />
 	[ObservableProperty]
 	public override partial bool IsExpanded { get; set; }
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="IsExpanded" /> changes.
-	/// </summary>
-	partial void OnIsExpandedChanged(bool value)
-	{
-		if (Id == default)
-		{
-			return;
-		}
-
-		WeakReferenceMessenger
-			.Default
-			.Send(new FolderExpandedChangedMessage(Id, value));
-	}
 	#endregion
 
 	#region Methods

@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
@@ -32,6 +33,7 @@ using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using DynamicData.Binding;
 using Entities.Enums;
 using NSubstitute;
 using Repository.Dto;
@@ -41,6 +43,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1668,6 +1671,189 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: in read-only mode an expanded folder is not saved.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_In_Read_Only_Mode_Saves_No_Expanded_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		sut.IsReadOnly = true;
+
+		// Act
+		folder.IsExpanded = true;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsExpandedAsync(
+			folder.Id,
+			Arg.Any<bool>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a folder added to the tree after it was shown is saved when it is expanded.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_Saves_A_Folder_Added_Later_When_It_Is_Expanded()
+	{
+		// Arrange
+		FolderDto parent = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto child = ItemDtoFactory.CreateFolderDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(parent);
+
+		child.Parent = parent;
+
+		parent.Children.Add(child);
+
+		// Act
+		child.IsExpanded = true;
+
+		// Assert
+		await propertyWriter.Received(1).UpdateIsExpandedAsync(
+			child.Id,
+			true,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a folder of the tree is saved in the state it is turned to, expanded or
+	/// collapsed.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_Saves_A_Folder_Expanded_Or_Collapsed([Values] bool isExpanded)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.IsExpanded = !isExpanded;
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		// Act
+		folder.IsExpanded = isExpanded;
+
+		// Assert
+		await propertyWriter.Received(1).UpdateIsExpandedAsync(
+			folder.Id,
+			isExpanded,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a folder inside another folder is saved when it is expanded.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_Saves_A_Nested_Folder_When_It_Is_Expanded()
+	{
+		// Arrange
+		FolderDto parent = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto child = ItemDtoFactory.CreateFolderDto();
+
+		child.Parent = parent;
+
+		parent.Children.Add(child);
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(parent);
+
+		// Act
+		child.IsExpanded = true;
+
+		// Assert
+		await propertyWriter.Received(1).UpdateIsExpandedAsync(
+			child.Id,
+			true,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a folder that left the tree is not saved any more.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_Saves_No_Folder_After_It_Left_The_Tree()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		sut.Hierarchy.Remove(folder);
+
+		// Act
+		folder.IsExpanded = true;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsExpandedAsync(
+			folder.Id,
+			Arg.Any<bool>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: while an action runs, an expanded folder is not saved.
+	/// </summary>
+	[Test]
+	public async Task Hierarchy_While_An_Action_Runs_Saves_No_Expanded_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		sut.Receive(new ShowProgressBarMessage(true));
+
+		// Act
+		folder.IsExpanded = true;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsExpandedAsync(
+			folder.Id,
+			Arg.Any<bool>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
 	/// </summary>
 	[Test]
@@ -2167,6 +2353,48 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ResetSelectedObject" />: the object that was selected is saved as not selected.
+	/// </summary>
+	[Test]
+	public void ResetSelectedObject_Saves_The_Object_As_Not_Selected()
+	{
+		// Arrange
+		List<(Guid Id, bool IsSelected)> saved = [];
+
+		FileDto selected = ItemDtoFactory.CreateFileDto();
+
+		selected.IsSelected = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+			propertyWriter.UpdateIsSelectedAsync(
+				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected))),
+				Arg.Any<CancellationToken>());
+
+			builder.RegisterInstance(propertyWriter);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(selected);
+
+		sut.SelectedObject = selected;
+
+		// Only what the reset saves counts.
+		saved.Clear();
+
+		// Act
+		sut.ResetSelectedObject();
+
+		// Assert
+		saved
+			.Should()
+			.Equal((selected.Id, false));
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.RestartApplication" />: the application is shut down and a new process is started.
 	/// </summary>
 	[Test]
@@ -2217,6 +2445,199 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.SelectedObject" />: the object left is cleared and saved as not selected, also when the
+	/// tree never showed its row and so did not clear it.
+	/// </summary>
+	[Test]
+	public void SelectedObject_Clears_The_Object_Left_That_The_Tree_Did_Not()
+	{
+		// Arrange
+		List<(Guid Id, bool IsSelected)> saved = [];
+
+		FileDto left = ItemDtoFactory.CreateFileDto();
+
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		left.IsSelected = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+			propertyWriter.UpdateIsSelectedAsync(
+				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected))),
+				Arg.Any<CancellationToken>());
+
+			builder.RegisterInstance(propertyWriter);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.AddRange([left, chosen]);
+
+		sut.SelectedObject = left;
+
+		// Act
+		// The tree marks the object chosen, while the row of the object left was never shown.
+		chosen.IsSelected = true;
+
+		sut.SelectedObject = chosen;
+
+		// Assert
+		left.IsSelected
+			.Should()
+			.BeFalse();
+
+		saved
+			.Should()
+			.Equal((chosen.Id, true), (left.Id, false));
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SelectedObject" />: in read-only mode a selection in the tree is not saved.
+	/// </summary>
+	[Test]
+	public async Task SelectedObject_In_Read_Only_Mode_Saves_No_Selection()
+	{
+		// Arrange
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(chosen);
+
+		sut.IsReadOnly = true;
+
+		// Act
+		chosen.IsSelected = true;
+
+		sut.SelectedObject = chosen;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
+			Arg.Any<ExplorerItemDtoBase>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SelectedObject" />: the selection of an object removed from the tree is not saved, as the
+	/// object is no longer in the database.
+	/// </summary>
+	[Test]
+	public async Task SelectedObject_Saves_Nothing_For_An_Object_Removed_From_The_Tree()
+	{
+		// Arrange
+		FileDto removed = ItemDtoFactory.CreateFileDto();
+
+		removed.IsSelected = true;
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(removed);
+
+		sut.SelectedObject = removed;
+
+		sut.Hierarchy.Remove(removed);
+
+		// Act
+		// The tree drops the selection of an object it no longer holds.
+		sut.SelectedObject = null;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
+			Arg.Any<ExplorerItemDtoBase>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SelectedObject" />: a selection moved in the tree saves the object left and the object
+	/// chosen, each in its new state.
+	/// </summary>
+	[Test]
+	public void SelectedObject_Saves_The_Object_Left_And_The_Object_Chosen()
+	{
+		// Arrange
+		List<(Guid Id, bool IsSelected)> saved = [];
+
+		FileDto left = ItemDtoFactory.CreateFileDto();
+
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		left.IsSelected = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+			propertyWriter.UpdateIsSelectedAsync(
+				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected))),
+				Arg.Any<CancellationToken>());
+
+			builder.RegisterInstance(propertyWriter);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.AddRange([left, chosen]);
+
+		sut.SelectedObject = left;
+
+		// Only what the move of the selection saves counts.
+		saved.Clear();
+
+		// Act
+		// The tree clears the object left and marks the object chosen before it reports the new selection.
+		left.IsSelected = false;
+
+		chosen.IsSelected = true;
+
+		sut.SelectedObject = chosen;
+
+		// Assert
+		saved
+			.Should()
+			.Equal((left.Id, false), (chosen.Id, true));
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SelectedObject" />: while an action runs, a selection in the tree is not saved.
+	/// </summary>
+	[Test]
+	public async Task SelectedObject_While_An_Action_Runs_Saves_No_Selection()
+	{
+		// Arrange
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(chosen);
+
+		sut.Receive(new ShowProgressBarMessage(true));
+
+		// Act
+		chosen.IsSelected = true;
+
+		sut.SelectedObject = chosen;
+
+		// Assert
+		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
+			Arg.Any<ExplorerItemDtoBase>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and the change is delegated to the property writer.
 	/// </summary>
 	[Test]
@@ -2244,6 +2665,48 @@ internal class EditorViewModelTests
 		await propertyWriter
 			.Received(1)
 			.UpdateIsFavoriteAsync(dto, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetSelectedObject" />: the object selected before is saved as not selected, so one object
+	/// at most stays selected in the database.
+	/// </summary>
+	[Test]
+	public void SetSelectedObject_Saves_The_Object_Left_As_Not_Selected()
+	{
+		// Arrange
+		List<(Guid Id, bool IsSelected)> saved = [];
+
+		FileDto left = ItemDtoFactory.CreateFileDto();
+
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		left.IsSelected = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+			propertyWriter.UpdateIsSelectedAsync(
+				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected))),
+				Arg.Any<CancellationToken>());
+
+			builder.RegisterInstance(propertyWriter);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.AddRange([left, chosen]);
+
+		sut.SelectedObject = left;
+
+		// Act
+		sut.SetSelectedObject(chosen);
+
+		// Assert
+		saved
+			.Should()
+			.Equal((chosen.Id, true), (left.Id, false));
 	}
 
 	/// <summary>
@@ -2465,6 +2928,63 @@ internal class EditorViewModelTests
 		await dialogService
 			.DidNotReceive()
 			.RequestCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowInEditorAsync" />: the object is selected only once the window has loaded, as
+	/// a selection made before would not be saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowInEditorAsync_Selects_The_Object_Once_The_Window_Has_Loaded()
+	{
+		// Arrange
+		List<bool> isLoadedAtSelection = [];
+
+		FileDto shown = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(shown);
+
+		EditorWindow window = new(sut);
+
+		using IDisposable selections = sut
+			.WhenPropertyChanged(x => x.SelectedObject, notifyOnInitialValue: false)
+			.Subscribe(_ => isLoadedAtSelection.Add(window.IsLoaded));
+
+		// The window lays out its tree at once and loads only when the dispatcher gets to it.
+		window.Show();
+
+		// Act
+		_ = sut.ShowInEditorAsync(shown.Id, window);
+
+		await WaitUntilAsync(() => sut.SelectedObject == shown);
+
+		window.Close();
+
+		// Assert
+		isLoadedAtSelection
+			.Should()
+			.Equal(true);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Lets the UI thread run until <paramref name="condition" /> holds, a few seconds at most.
+	/// </summary>
+	private static async Task WaitUntilAsync(Func<bool> condition)
+	{
+		Stopwatch stopwatch = Stopwatch.StartNew();
+
+		while (!condition() && stopwatch.Elapsed < TimeSpan.FromSeconds(5.0))
+		{
+			await Task.Delay(20);
+
+			Dispatcher.UIThread.RunJobs();
+		}
 	}
 	#endregion
 }

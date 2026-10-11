@@ -4,7 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
@@ -15,10 +17,12 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
@@ -26,6 +30,8 @@ using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -520,6 +526,62 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: selecting again the object selected before leaves the read-only mode
+	/// of the open editors alone.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Leaves_The_Read_Only_Mode_Alone_While_Selecting()
+	{
+		// Arrange
+		List<EditorReadOnlyModeChangedMessage> received = [];
+
+		FileDto selected = ItemDtoFactory.CreateFileDto();
+
+		selected.IsSelected = true;
+
+		// The editor lives as long as the test, as it follows its tree while it does.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IMessenger messenger = new StrongReferenceMessenger();
+
+			messenger.Register<EditorReadOnlyModeChangedMessage>(
+				received,
+				static (recipient, message) => ((List<EditorReadOnlyModeChangedMessage>)recipient).Add(message));
+
+			builder.RegisterInstance(messenger);
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		sut.CreateEditorWindow([selected], null, []);
+
+		// Assert
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor gets the tabs to open.
 	/// </summary>
 	[AvaloniaTest]
@@ -565,6 +627,204 @@ internal class ViewLauncherTests
 		window.ViewModel.EditorTabs
 			.Should()
 			.BeSameAs(tabs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: an object shown when the editor opens takes the place of the object
+	/// selected before, and both are saved from the loaded window.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CreateEditorWindow_Saves_The_Object_Shown_In_Place_Of_The_Object_Selected_Before(
+		[Values] bool isSelectedHidden)
+	{
+		// Arrange
+		List<(Guid Id, bool IsSelected, bool IsLoaded)> saved = [];
+
+		EditorWindow? window = null;
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto selected = ItemDtoFactory.CreateFileDto();
+
+		FileDto shown = ItemDtoFactory.CreateFileDto();
+
+		selected.IsSelected = true;
+
+		List<ExplorerItemDtoBase> hierarchy = [folder, shown];
+
+		// A row in a collapsed folder is never shown, so the tree cannot clear it.
+		if (isSelectedHidden)
+		{
+			selected.Parent = folder;
+
+			folder.Children.Add(selected);
+		}
+		else
+		{
+			hierarchy.Insert(0, selected);
+		}
+
+		// The editor lives as long as the test, as it follows its tree while it does.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+			propertyWriter.UpdateIsSelectedAsync(
+				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected, window?.IsLoaded ?? false))),
+				Arg.Any<CancellationToken>());
+
+			builder.RegisterInstance(propertyWriter);
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		window = sut.CreateEditorWindow(hierarchy, null, [], shown.Id);
+
+		window.Show();
+
+		await WaitUntilAsync(() => window.ViewModel.SelectedObject == shown);
+
+		window.Close();
+
+		// Assert
+		selected.IsSelected
+			.Should()
+			.BeFalse();
+
+		shown.IsSelected
+			.Should()
+			.BeTrue();
+
+		// The tree may clear and mark the object shown once more while it moves its selection, so the last write of
+		// each object counts.
+		saved.Where(x => x.Id == selected.Id).Select(x => x.IsSelected)
+			.Should()
+			.EndWith(false);
+
+		saved.Where(x => x.Id == shown.Id).Select(x => x.IsSelected)
+			.Should()
+			.EndWith(true);
+
+		saved
+			.Should()
+			.OnlyContain(x => x.IsLoaded);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the object selected before is selected again also when another object
+	/// is to be shown, so the object shown takes its place as any other choice does.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Selects_The_Object_Selected_Before_Also_When_Another_Is_To_Be_Shown()
+	{
+		// Arrange
+		FileDto selected = ItemDtoFactory.CreateFileDto();
+
+		selected.IsSelected = true;
+
+		// The editor lives as long as the test, as it follows its tree while it does.
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		// An object the tree does not hold, so that the show ends at once.
+		EditorWindow window = sut.CreateEditorWindow([selected], null, [], Guid.NewGuid());
+
+		// Assert
+		window.ViewModel.SelectedObject
+			.Should()
+			.BeSameAs(selected);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the object selected when the editor was open last is selected again
+	/// without being saved once more.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CreateEditorWindow_Selects_The_Object_Selected_Before_Without_Saving_It()
+	{
+		// Arrange
+		FileDto selected = ItemDtoFactory.CreateFileDto();
+
+		selected.IsSelected = true;
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		// The editor lives as long as the test, as it follows its tree while it does.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([selected], null, []);
+
+		// Assert
+		window.ViewModel.SelectedObject
+			.Should()
+			.BeSameAs(selected);
+
+		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
+			Arg.Any<ExplorerItemDtoBase>(),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -1958,6 +2218,23 @@ internal class ViewLauncherTests
 		processTerminator
 			.Received(1)
 			.Terminate(Arg.Any<int>());
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Lets the UI thread run until <paramref name="condition" /> holds, a few seconds at most.
+	/// </summary>
+	private static async Task WaitUntilAsync(Func<bool> condition)
+	{
+		Stopwatch stopwatch = Stopwatch.StartNew();
+
+		while (!condition() && stopwatch.Elapsed < TimeSpan.FromSeconds(5.0))
+		{
+			await Task.Delay(20);
+
+			Dispatcher.UIThread.RunJobs();
+		}
 	}
 	#endregion
 }

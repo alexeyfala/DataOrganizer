@@ -34,6 +34,7 @@ using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
+using DynamicData.Binding;
 using Entities.Enums;
 using Entities.Models;
 using Material.Styles.Controls;
@@ -45,6 +46,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables.Fluent;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +59,6 @@ namespace DataOrganizer.ViewModels.Windows;
 public sealed partial class EditorViewModel :
 	ViewModelBase,
 	INavigationColumnViewModel,
-	IRecipient<FolderExpandedChangedMessage>,
 	IRecipient<ShowInEditorMessage>,
 	IRecipient<ShowProgressBarMessage>,
 	IUpdatePrompt
@@ -174,26 +175,8 @@ public sealed partial class EditorViewModel :
 		ExplorerItemDtoBase? oldValue,
 		ExplorerItemDtoBase? newValue)
 	{
-		if (IsReadOnly
-			|| IsActionInProgress
-			|| _app.HasWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
-		{
-			return;
-		}
-
-		// When an object is removed from a collection, its selection is reset and its existence must be checked
-		// to ensure that no attempt is made to save properties to the database for a non-existent object.
-		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
-		{
-			_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(oldValue));
-		}
-
-		if (newValue is null)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(newValue));
+		// The tree clears only the rows it has shown, while one object at most stays selected.
+		oldValue?.IsSelected = false;
 	}
 
 	/// <summary>
@@ -602,10 +585,6 @@ public sealed partial class EditorViewModel :
 	/// <summary>
 	/// Resets the <see cref="SelectedObject" />.
 	/// </summary>
-	/// <remarks>
-	/// Change to the <see cref="ExplorerItemDtoBase.IsSelected" /> property is saved to the database
-	/// using the <see cref="OnSelectedObjectChanging(ExplorerItemDtoBase?, ExplorerItemDtoBase?)" /> method.
-	/// </remarks>
 	[RelayCommand(CanExecute = nameof(CanResetSelectedObject))]
 	internal void ResetSelectedObject()
 	{
@@ -1307,6 +1286,17 @@ public sealed partial class EditorViewModel :
 		_sampleSeeder = sampleSeeder;
 
 		_themeService = themeService;
+
+		// The expanded folders and the selected object of the tree are kept for the next start.
+		Hierarchy
+			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsExpanded, notifyOnInitialValue: false))
+			.Subscribe(x => SaveIsExpanded(x.Sender.Id, x.Value))
+			.DisposeWith(_disposables);
+
+		Hierarchy
+			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsSelected, notifyOnInitialValue: false))
+			.Subscribe(x => SaveIsSelected(x.Sender))
+			.DisposeWith(_disposables);
 	}
 	#endregion
 
@@ -1387,23 +1377,6 @@ public sealed partial class EditorViewModel :
 		IsInitialized = true;
 	}
 
-	/// <summary>
-	/// <inheritdoc />
-	/// </summary>
-	/// <remarks>
-	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global message to persist the changes to the database in one place.
-	/// </remarks>
-	public void Receive(FolderExpandedChangedMessage message)
-	{
-		if (IsReadOnly || IsActionInProgress)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(message.Id, message.IsExpanded));
-	}
-
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message)
 	{
@@ -1454,7 +1427,8 @@ public sealed partial class EditorViewModel :
 		{
 			treeView = window.FindDescendantOfType<TreeView>();
 
-			return treeView is not null;
+			// A selection made before the window has loaded would not be saved.
+			return treeView is not null && window.IsLoaded;
 		};
 
 		const int delay = 200;
@@ -1554,10 +1528,6 @@ public sealed partial class EditorViewModel :
 	/// <summary>
 	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
-	/// <remarks>
-	/// Changes to the <see cref="ExplorerItemDtoBase.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
-	/// </remarks>
 	internal Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
 		if (!isExpanded)
@@ -1918,6 +1888,34 @@ public sealed partial class EditorViewModel :
 			.Remove(file.Id);
 
 		_copyHistory?.Remove(file);
+	}
+
+	/// <summary>
+	/// Saves a folder of the tree expanded or collapsed, unless the editor is read-only or busy with an action.
+	/// </summary>
+	private void SaveIsExpanded(Guid folderId, bool isExpanded)
+	{
+		if (IsReadOnly || IsActionInProgress)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(folderId, isExpanded));
+	}
+
+	/// <summary>
+	/// Saves an object of the tree selected or cleared, unless the editor is read-only, busy with an action or not shown.
+	/// </summary>
+	private void SaveIsSelected(ExplorerItemDtoBase item)
+	{
+		if (IsReadOnly
+			|| IsActionInProgress
+			|| _app.HasWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(item));
 	}
 
 	/// <summary>

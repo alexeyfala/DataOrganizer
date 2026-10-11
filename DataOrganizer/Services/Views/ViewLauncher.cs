@@ -344,25 +344,16 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.NotifyDecryptedContentsChanged();
 
+		// The selection of the last session comes back first: selecting it again saves nothing, and an object shown then
+		// takes its place as any other choice does.
+		if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
+		{
+			viewModel.SetSelectedObject(selected);
+		}
+
 		if (showObjectId.IsNotDefault())
 		{
 			_exceptionHandler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
-		}
-		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
-		{
-			bool isReadOnly = viewModel.IsReadOnly;
-
-			try
-			{
-				// To avoid saving the "IsSelected" object property in the database.
-				viewModel.IsReadOnly = true;
-
-				viewModel.SetSelectedObject(selected);
-			}
-			finally
-			{
-				viewModel.IsReadOnly = isReadOnly;
-			}
 		}
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings));

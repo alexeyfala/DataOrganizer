@@ -1,10 +1,14 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DynamicData;
+using DynamicData.Binding;
 using Entities.Enums;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.Extensions;
 
@@ -304,6 +308,21 @@ internal static class HierarchyExtensions
 		Func<FolderDto, bool> condition)
 	{
 		return GetFolders(hierarchy).Where(condition);
+	}
+
+	/// <summary>
+	/// Merges what <paramref name="selector" /> gives for each object of the tree at any depth, for as long as the object
+	/// stays in the tree.
+	/// </summary>
+	public static IObservable<T> MergeManyInTree<T>(
+		this ObservableCollection<ExplorerItemDtoBase> hierarchy,
+		Func<ExplorerItemDtoBase, IObservable<T>> selector)
+	{
+		return hierarchy
+			.ToObservableChangeSet()
+			.MergeMany(x => x is FolderDto folder
+				? selector(x).Merge(folder.Children.MergeManyInTree(selector))
+				: selector(x));
 	}
 
 	/// <summary>

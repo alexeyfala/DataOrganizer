@@ -42,7 +42,8 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	public virtual bool IsExpanded { get; set; }
 
 	/// <inheritdoc cref="ExplorerItemBase.IsSelected" />
-	public bool IsSelected { get; set; }
+	[ObservableProperty]
+	public partial bool IsSelected { get; set; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Kind" />
 	public required EntityKind Kind { get; init; }
