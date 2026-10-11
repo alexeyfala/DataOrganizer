@@ -116,6 +116,10 @@ internal class DocumentTabTemplateTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			// Both editors of the file share the store, as in the application.
 			builder
 				.RegisterType<EditorSplitStore>()
@@ -206,6 +210,10 @@ internal class DocumentTabTemplateTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -336,6 +344,10 @@ internal class DocumentTabTemplateTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();

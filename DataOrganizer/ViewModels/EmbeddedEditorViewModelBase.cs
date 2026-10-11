@@ -7,6 +7,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
@@ -107,6 +108,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
+	/// <inheritdoc cref="IFileContentsReader" />
+	protected readonly IFileContentsReader _fileContentsReader;
+
 	/// <inheritdoc cref="IJsonSerializer" />
 	protected readonly IJsonSerializer _jsonSerializer;
 
@@ -137,6 +141,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IFileContentsReader fileContentsReader,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -150,6 +155,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		_contentCipher = contentCipher;
 
 		_exceptionHandler = exceptionHandler;
+
+		_fileContentsReader = fileContentsReader;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -269,22 +276,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		[
 			x => x.SetProperty(x => x.EditorState, json)
 		], token);
-	}
-
-	/// <summary>
-	/// Decrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
-	/// </summary>
-	protected byte[]? TryDecrypt(byte[] input)
-	{
-		if (KeeperId is not { } keeperId || input.IsEmpty())
-		{
-			return input;
-		}
-
-		return _contentCipher.TryDecrypt(
-			keeperId,
-			ContentIdentity.Contents,
-			input);
 	}
 
 	/// <summary>

@@ -1,27 +1,15 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using Serilog;
 using Shared.Extensions;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Encryption;
 
 public sealed class ContentCipher : IContentCipher
 {
 	#region Data
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
-
-	/// <inheritdoc cref="IEncryptionFailureReporter" />
-	private readonly IEncryptionFailureReporter _failureReporter;
-
-	/// <inheritdoc cref="IKeeperUnlocker" />
-	private readonly IKeeperUnlocker _keeperUnlocker;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -30,19 +18,8 @@ public sealed class ContentCipher : IContentCipher
 	#endregion
 
 	#region Constructors
-	public ContentCipher(
-		IEncryptionService encryption,
-		IEncryptionFailureReporter failureReporter,
-		IKeeperUnlocker keeperUnlocker,
-		ILogger logger,
-		ISessionKeyStore sessionKeyStore)
+	public ContentCipher(ILogger logger, ISessionKeyStore sessionKeyStore)
 	{
-		_encryption = encryption;
-
-		_failureReporter = failureReporter;
-
-		_keeperUnlocker = keeperUnlocker;
-
 		_logger = logger;
 
 		_sessionKeyStore = sessionKeyStore;
@@ -85,67 +62,6 @@ public sealed class ContentCipher : IContentCipher
 
 			return null;
 		}
-	}
-
-	/// <inheritdoc />
-	public async Task<byte[]?> TryDecryptContentsAsync(
-		FileDto file,
-		byte[] contents,
-		string header,
-		CancellationToken token = default)
-	{
-		// Empty content is written without encryption, so neither a password nor a key is needed.
-		if (contents.IsEmpty())
-		{
-			return contents;
-		}
-
-		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-		{
-			if (file.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
-			{
-				return null;
-			}
-
-			using PinnedBuffer? decryptedDek = await _keeperUnlocker.RequestDekAsync(
-				keeper: root,
-				header: header,
-				token: token).ConfigureAwait(false);
-
-			if (decryptedDek is null)
-			{
-				return null;
-			}
-
-			try
-			{
-				return _encryption.DecryptWithDek(
-					contents,
-					decryptedDek,
-					ContentIdentity.Contents);
-			}
-			catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
-			{
-				_failureReporter.Report(ex);
-
-				return null;
-			}
-		}
-		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-		{
-			try
-			{
-				return Decrypt(file, contents);
-			}
-			catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
-			{
-				_failureReporter.Report(ex);
-
-				return null;
-			}
-		}
-
-		return contents;
 	}
 
 	/// <inheritdoc />

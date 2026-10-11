@@ -67,6 +67,10 @@ internal class FileListViewModelBaseTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
@@ -122,6 +126,10 @@ internal class FileListViewModelBaseTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
@@ -174,6 +182,10 @@ internal class FileListViewModelBaseTests
 				});
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -235,6 +247,10 @@ internal class FileListViewModelBaseTests
 				.Throws(failure);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -302,6 +318,10 @@ internal class FileListViewModelBaseTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
 
@@ -359,6 +379,10 @@ internal class FileListViewModelBaseTests
 				});
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -419,6 +443,10 @@ internal class FileListViewModelBaseTests
 				});
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -486,6 +514,10 @@ internal class FileListViewModelBaseTests
 				.Returns(decrypted);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileTextReader>()

@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -133,6 +134,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -202,6 +207,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -240,6 +249,55 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents that fail their check close the editor for
+	/// changes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Closes_The_Editor_When_The_Contents_Are_Damaged()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = false
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			// The state reads fine, so only the check of the contents can close the editor.
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsEditingEnabled
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents that are not text close the editor for changes,
 	/// since saving them back as text would rewrite the file.
 	/// </summary>
@@ -267,6 +325,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -282,6 +344,61 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsEditingEnabled
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: contents the session key does not open close the editor
+	/// for changes before its state is read.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Closes_The_Editor_When_The_Decryption_Fails()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			// The key does not open the contents.
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), ContentIdentity.Contents, Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		await dbAccess
+			.DidNotReceive()
+			.GetFileEditorStateAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>
@@ -301,6 +418,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -344,6 +465,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -405,6 +530,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -428,6 +557,66 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.FontSize
 			.Should()
 			.Be(fontSize);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the contents of a protected file reach the document opened
+	/// with the session key of its keeper.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Loads_The_Decrypted_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(10);
+
+		Guid keeperId = Guid.NewGuid();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			byte[] stored = RandomValues.CreateBytes(16);
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = stored,
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(keeperId, ContentIdentity.Contents, stored)
+				.Returns(TextDefaults.Encoding.GetBytes(text));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.KeeperId = keeperId;
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be(text);
 	}
 
 	/// <summary>
@@ -463,6 +652,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -502,6 +695,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -545,6 +742,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -649,6 +850,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -695,6 +900,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -742,6 +951,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -793,6 +1006,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -850,6 +1067,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -907,6 +1128,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -960,6 +1185,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1033,6 +1262,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1093,6 +1326,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(editorSplits);
 		});
@@ -1155,6 +1392,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1203,6 +1444,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1245,6 +1490,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1296,6 +1545,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1342,6 +1595,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1390,6 +1647,10 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -1452,6 +1713,10 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -1518,6 +1783,10 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -1592,6 +1861,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(exceptionHandler);
 		});
 
@@ -1656,6 +1929,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -1733,6 +2010,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(exceptionHandler);
@@ -1793,6 +2074,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1836,6 +2121,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1882,6 +2171,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1940,6 +2233,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2063,6 +2360,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2120,6 +2421,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.ReturnsForAnyArgs(written.Task);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2188,6 +2493,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(exceptionHandler);
 		});
 
@@ -2255,6 +2564,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(exceptionHandler);
 		});
 
@@ -2318,6 +2631,10 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -2393,6 +2710,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -2483,6 +2804,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -2560,6 +2885,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -2635,6 +2964,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -2692,6 +3025,10 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -2773,6 +3110,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -2827,6 +3168,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2911,6 +3256,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2970,6 +3319,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3031,6 +3384,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -3102,6 +3459,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3157,6 +3518,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3214,6 +3579,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3286,6 +3655,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();

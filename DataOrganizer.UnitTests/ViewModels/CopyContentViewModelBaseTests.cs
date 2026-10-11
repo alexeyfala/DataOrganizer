@@ -14,14 +14,12 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
@@ -31,7 +29,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -58,20 +55,15 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
 					Contents = [],
-					IsValid = true
+					Status = FileContentsStatus.Opened
 				});
-
-			// Empty contents come back untouched, as the real cipher hands them back.
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(x => x.ArgAt<byte[]>(1));
 
 			builder.RegisterInstance(clipboard);
 
@@ -89,7 +81,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -107,7 +99,7 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: contents that fail their check are never decrypted.
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: contents that fail their check never reach the clipboard.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task CopyContentAsync_Copies_Nothing_From_Damaged_Contents()
@@ -115,7 +107,7 @@ internal class CopyContentViewModelBaseTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -125,13 +117,20 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
-					Contents = Encoding.UTF8.GetBytes(RandomString.Create(20)),
-					IsValid = false
+					Status = FileContentsStatus.Damaged
 				});
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -143,7 +142,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -155,9 +154,13 @@ internal class CopyContentViewModelBaseTests
 		await sut.InvokeCopyContentAsync(file, new ItemsControl());
 
 		// Assert
-		await contentCipher
+		await clipboard
 			.DidNotReceive()
-			.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.SetTextAsync(Arg.Any<string>());
+
+		await clipboard
+			.DidNotReceive()
+			.SetDataAsync(Arg.Any<DataTransfer>());
 	}
 
 	/// <summary>
@@ -179,22 +182,16 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
-				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
 			// The start of a PNG image
-			byte[] contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D];
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(contents);
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
+				{
+					Contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
+					Status = FileContentsStatus.Opened
+				});
 
 			builder.RegisterInstance(clipboard);
 
@@ -212,7 +209,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -255,19 +252,15 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = contents,
+					Status = FileContentsStatus.Opened
 				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(contents);
 
 			builder.RegisterInstance(clipboard);
 
@@ -285,7 +278,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -327,19 +320,15 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+					Status = FileContentsStatus.Opened
 				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text));
 
 			builder.RegisterInstance(clipboard);
 
@@ -357,7 +346,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -401,19 +390,15 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = Encoding.UTF8.GetBytes(content),
+					Status = FileContentsStatus.Opened
 				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(Encoding.UTF8.GetBytes(content));
 
 			builder.RegisterInstance(clipboard);
 
@@ -431,7 +416,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -571,19 +556,15 @@ internal class CopyContentViewModelBaseTests
 				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
-				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ValidatedContents
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = decrypted,
+					Status = FileContentsStatus.Opened
 				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(decrypted);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -595,7 +576,7 @@ internal class CopyContentViewModelBaseTests
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);

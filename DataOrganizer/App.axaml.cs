@@ -155,6 +155,7 @@ public sealed class App : Application
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();

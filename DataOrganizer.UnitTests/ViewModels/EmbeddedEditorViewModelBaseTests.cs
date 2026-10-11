@@ -5,6 +5,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
@@ -125,105 +126,6 @@ internal class EmbeddedEditorViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: delegates to the cipher when a keeper is known.
-	/// </summary>
-	[Test]
-	public void TryDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
-	{
-		// Arrange
-		byte[] input = [1, 2, 3];
-
-		byte[] decrypted = [7];
-
-		Guid keeperId = Guid.NewGuid();
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			contentCipher
-				.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input)
-				.Returns(decrypted);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		sut.KeeperId = keeperId;
-
-		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(decrypted);
-
-		contentCipher
-			.Received(1)
-			.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input);
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when it is empty.
-	/// </summary>
-	[Test]
-	public void TryDecrypt_Returns_Input_When_Input_Is_Empty()
-	{
-		// Arrange
-		byte[] input = [];
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		sut.KeeperId = Guid.NewGuid();
-
-		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(input);
-
-		contentCipher
-			.DidNotReceive()
-			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when no keeper is known.
-	/// </summary>
-	[Test]
-	public void TryDecrypt_Returns_Input_When_No_Keeper()
-	{
-		// Arrange
-		byte[] input = [1, 2, 3];
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(input);
-
-		contentCipher
-			.DidNotReceive()
-			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.TryEncrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
 	[Test]
@@ -337,6 +239,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
+		IFileContentsReader fileContentsReader,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -345,6 +248,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 			app,
 			contentCipher,
 			dbAccess,
+			fileContentsReader,
 			jsonSerializer,
 			logger,
 			messenger,
@@ -357,8 +261,6 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	/// For each queuing of the pending changes, <c>true</c> when the read-only mode was already on.
 	/// </summary>
 	public List<bool> QueuedWhileReadOnly { get; } = [];
-
-	public byte[]? InvokeTryDecrypt(byte[] input) => TryDecrypt(input);
 
 	public byte[]? InvokeTryEncrypt(byte[] input) => TryEncrypt(input);
 

@@ -5,22 +5,15 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using Repository.Dto;
-using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
-using System;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 
@@ -36,55 +29,6 @@ internal class FileTextReaderTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="FileTextReader.ReadAsync" />: the contents are decrypted under the header of the prompt, then read as text.
-	/// </summary>
-	[Test]
-	public async Task ReadAsync_Decrypts_The_Contents_Under_The_Header()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			byte[] stored = RandomValues.CreateBytes(8);
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
-				{
-					Contents = stored,
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, stored, Header)
-				.Returns(Encoding.UTF8.GetBytes("Hi"));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		FileTextReader sut = mock.Create<FileTextReader>();
-
-		// Act
-		FileTextReading result = await sut.ReadAsync(file, Header);
-
-		// Assert
-		result
-			.Should()
-			.Be(new FileTextReading
-			{
-				Status = FileTextStatus.Text,
-				Text = "Hi"
-			});
-	}
-
-	/// <summary>
 	/// <see cref="FileTextReader.ReadAsync" />: the text is read in the encoding of the contents, without the byte order
 	/// mark, when the file has no choice or its editor state cannot be read.
 	/// </summary>
@@ -98,25 +42,17 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = [0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00],
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns([0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00]);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -151,25 +87,17 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns(CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -188,6 +116,45 @@ internal class FileTextReaderTests
 	}
 
 	/// <summary>
+	/// <see cref="FileTextReader.ReadAsync" />: the contents opened under the header of the prompt are read as text.
+	/// </summary>
+	[Test]
+	public async Task ReadAsync_Reads_The_Text_Opened_Under_The_Header()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
+				{
+					Contents = Encoding.UTF8.GetBytes("Hi"),
+					Status = FileContentsStatus.Opened
+				});
+
+			builder.RegisterInstance(fileContentsReader);
+		});
+
+		FileTextReader sut = mock.Create<FileTextReader>();
+
+		// Act
+		FileTextReading result = await sut.ReadAsync(file, Header);
+
+		// Assert
+		result
+			.Should()
+			.Be(new FileTextReading
+			{
+				Status = FileTextStatus.Text,
+				Text = "Hi"
+			});
+	}
+
+	/// <summary>
 	/// <see cref="FileTextReader.ReadAsync" />: a file without text is told apart from a text.
 	/// </summary>
 	[Test]
@@ -198,26 +165,17 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
 					Contents = [],
-					IsValid = true
+					Status = FileContentsStatus.Opened
 				});
 
-			// Empty contents come back untouched, as the real cipher hands them back.
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns(x => x.ArgAt<byte[]>(1));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -232,7 +190,7 @@ internal class FileTextReaderTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextReader.ReadAsync" />: contents the cipher does not open stay closed.
+	/// <see cref="FileTextReader.ReadAsync" />: contents that stay closed give no text.
 	/// </summary>
 	[Test]
 	public async Task ReadAsync_Reports_Closed_Contents()
@@ -242,26 +200,16 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Status = FileContentsStatus.Closed
 				});
 
-			// The password is not given.
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns((byte[]?)null);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -270,9 +218,12 @@ internal class FileTextReaderTests
 		FileTextReading result = await sut.ReadAsync(file, Header);
 
 		// Assert
-		result.Status
+		result
 			.Should()
-			.Be(FileTextStatus.Closed);
+			.Be(new FileTextReading
+			{
+				Status = FileTextStatus.Closed
+			});
 	}
 
 	/// <summary>
@@ -286,26 +237,18 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
-				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
 			// The start of a PNG image
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D]);
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
+				{
+					Contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
+					Status = FileContentsStatus.Opened
+				});
 
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -323,7 +266,7 @@ internal class FileTextReaderTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextReader.ReadAsync" />: contents that fail their check are never decrypted.
+	/// <see cref="FileTextReader.ReadAsync" />: contents that fail their check give no text.
 	/// </summary>
 	[Test]
 	public async Task ReadAsync_Reports_Damaged_Contents()
@@ -331,23 +274,18 @@ internal class FileTextReaderTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
-					Contents = Encoding.UTF8.GetBytes("Hi"),
-					IsValid = false
+					Status = FileContentsStatus.Damaged
 				});
 
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -356,13 +294,12 @@ internal class FileTextReaderTests
 		FileTextReading result = await sut.ReadAsync(file, Header);
 
 		// Assert
-		result.Status
+		result
 			.Should()
-			.Be(FileTextStatus.Damaged);
-
-		await contentCipher
-			.DidNotReceive()
-			.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.Be(new FileTextReading
+			{
+				Status = FileTextStatus.Damaged
+			});
 	}
 
 	/// <summary>
@@ -379,25 +316,17 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = decrypted,
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(file, Arg.Any<byte[]>(), Header)
-				.Returns(decrypted);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -412,166 +341,27 @@ internal class FileTextReaderTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextReader.ReadUnlockedAsync" />: the contents under an unlocked keeper are decrypted with the key of
-	/// the session, then read as text.
+	/// <see cref="FileTextReader.ReadUnlockedAsync" />: the opened contents are read as text.
 	/// </summary>
 	[Test]
-	public async Task ReadUnlockedAsync_Decrypts_The_Contents_Under_An_Unlocked_Keeper()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			byte[] stored = RandomValues.CreateBytes(8);
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
-				{
-					Contents = stored,
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.Decrypt(file, stored)
-				.Returns(Encoding.UTF8.GetBytes("Hi"));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		FileTextReader sut = mock.Create<FileTextReader>();
-
-		// Act
-		FileTextReading result = await sut.ReadUnlockedAsync(file);
-
-		// Assert
-		result
-			.Should()
-			.Be(new FileTextReading
-			{
-				Status = FileTextStatus.Text,
-				Text = "Hi"
-			});
-	}
-
-	/// <summary>
-	/// <see cref="FileTextReader.ReadUnlockedAsync" />: the contents under a locked keeper stay closed, and no password is
-	/// asked for.
-	/// </summary>
-	[Test]
-	public async Task ReadUnlockedAsync_Keeps_A_Locked_File_Closed()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
-				{
-					Contents = Encoding.UTF8.GetBytes("Hi"),
-					IsValid = true
-				});
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		FileTextReader sut = mock.Create<FileTextReader>();
-
-		// Act
-		FileTextReading result = await sut.ReadUnlockedAsync(file);
-
-		// Assert
-		result.Status
-			.Should()
-			.Be(FileTextStatus.Closed);
-
-		await contentCipher
-			.DidNotReceive()
-			.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="FileTextReader.ReadUnlockedAsync" />: contents the key of the session cannot open stay closed instead of
-	/// throwing.
-	/// </summary>
-	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
-	public async Task ReadUnlockedAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
-				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.Decrypt(file, Arg.Any<byte[]>())
-				.Throws(failure);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		FileTextReader sut = mock.Create<FileTextReader>();
-
-		// Act
-		FileTextReading result = await sut.ReadUnlockedAsync(file);
-
-		// Assert
-		result.Status
-			.Should()
-			.Be(FileTextStatus.Closed);
-	}
-
-	/// <summary>
-	/// <see cref="FileTextReader.ReadUnlockedAsync" />: the contents of a plain file are read as they are stored.
-	/// </summary>
-	[Test]
-	public async Task ReadUnlockedAsync_Reads_The_Text_Of_A_Plain_File()
+	public async Task ReadUnlockedAsync_Reads_The_Text_Of_The_Opened_Contents()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadUnlockedAsync(file)
+				.Returns(new FileContentsReading
 				{
 					Contents = Encoding.UTF8.GetBytes("Hi"),
-					IsValid = true
+					Status = FileContentsStatus.Opened
 				});
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -590,7 +380,44 @@ internal class FileTextReaderTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextReader.ReadUnlockedAsync" />: contents that fail their check are never decrypted.
+	/// <see cref="FileTextReader.ReadUnlockedAsync" />: contents that stay closed give no text.
+	/// </summary>
+	[Test]
+	public async Task ReadUnlockedAsync_Reports_Closed_Contents()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadUnlockedAsync(file)
+				.Returns(new FileContentsReading
+				{
+					Status = FileContentsStatus.Closed
+				});
+
+			builder.RegisterInstance(fileContentsReader);
+		});
+
+		FileTextReader sut = mock.Create<FileTextReader>();
+
+		// Act
+		FileTextReading result = await sut.ReadUnlockedAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.Be(new FileTextReading
+			{
+				Status = FileTextStatus.Closed
+			});
+	}
+
+	/// <summary>
+	/// <see cref="FileTextReader.ReadUnlockedAsync" />: contents that fail their check give no text.
 	/// </summary>
 	[Test]
 	public async Task ReadUnlockedAsync_Reports_Damaged_Contents()
@@ -598,23 +425,18 @@ internal class FileTextReaderTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadUnlockedAsync(file)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = false
+					Status = FileContentsStatus.Damaged
 				});
 
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -623,13 +445,12 @@ internal class FileTextReaderTests
 		FileTextReading result = await sut.ReadUnlockedAsync(file);
 
 		// Assert
-		result.Status
+		result
 			.Should()
-			.Be(FileTextStatus.Damaged);
-
-		contentCipher
-			.DidNotReceive()
-			.Decrypt(Arg.Any<FileDto>(), Arg.Any<byte[]>());
+			.Be(new FileTextReading
+			{
+				Status = FileTextStatus.Damaged
+			});
 	}
 
 	/// <summary>
@@ -645,25 +466,17 @@ internal class FileTextReaderTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(file.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadUnlockedAsync(file)
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(8),
-					IsValid = true
+					Contents = decrypted,
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.Decrypt(file, Arg.Any<byte[]>())
-				.Returns(decrypted);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(fileContentsReader);
 		});
 
 		FileTextReader sut = mock.Create<FileTextReader>();
@@ -676,16 +489,5 @@ internal class FileTextReaderTests
 			.Should()
 			.OnlyContain(static x => x == 0);
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Failures an operation on the key of a session can end with.
-	/// </summary>
-	private static Exception[] SessionCipherFailures() =>
-	[
-		new AuthenticationTagMismatchException(),
-		new InvalidOperationException()
-	];
 	#endregion
 }

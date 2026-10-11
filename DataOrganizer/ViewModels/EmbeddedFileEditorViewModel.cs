@@ -5,13 +5,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
-using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
@@ -147,12 +147,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			ValidatedContents result;
+			FileContentsReading reading;
 
 			try
 			{
-				result = await _dbAccess
-					.GetFileContentsAsync(FileId)
+				reading = await _fileContentsReader
+					.ReadUnlockedAsync(FileId, KeeperId)
 					.ConfigureAwait(true);
 			}
 			catch (Exception ex)
@@ -165,7 +165,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			if (!result.IsValid)
+			if (reading.Status == FileContentsStatus.Damaged)
 			{
 				IsContentUnavailable = true;
 
@@ -178,7 +178,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			if (TryDecrypt(result.Contents) is not { } output)
+			if (reading.Status == FileContentsStatus.Closed)
 			{
 				IsContentUnavailable = true;
 
@@ -190,6 +190,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				return;
 			}
+
+			byte[] output = reading.Contents;
 
 			try
 			{
@@ -311,6 +313,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IEditorSplitStore editorSplits,
+		IFileContentsReader fileContentsReader,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -319,6 +322,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			app,
 			contentCipher,
 			dbAccess,
+			fileContentsReader,
 			jsonSerializer,
 			logger,
 			messenger,

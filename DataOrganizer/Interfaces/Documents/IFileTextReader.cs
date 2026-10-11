@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Documents;
 
 /// <summary>
-/// Reads the text of a file from the database: checks, decrypts and decodes its contents, then wipes the decrypted bytes.
+/// Reads the text of a file: decodes the contents <see cref="IFileContentsReader" /> opens, then wipes the decrypted bytes.
 /// </summary>
 public interface IFileTextReader
 {

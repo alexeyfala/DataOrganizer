@@ -7,15 +7,17 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Models.Dataset;
-using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
@@ -62,12 +64,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			ValidatedContents result;
+			FileContentsReading reading;
 
 			try
 			{
-				result = await _dbAccess
-					.GetFileContentsAsync(FileId)
+				reading = await _fileContentsReader
+					.ReadUnlockedAsync(FileId, KeeperId)
 					.ConfigureAwait(true);
 			}
 			catch (Exception ex)
@@ -80,7 +82,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			if (!result.IsValid)
+			if (reading.Status == FileContentsStatus.Damaged)
 			{
 				IsContentUnavailable = true;
 
@@ -93,28 +95,30 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_container = container;
 
-			if (!result
+			if (reading.Status == FileContentsStatus.Closed)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				return;
+			}
+
+			if (!reading
 				.Contents
 				.IsEmpty())
 			{
-				if (TryDecrypt(result.Contents) is not { } output)
-				{
-					IsContentUnavailable = true;
-
-					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-					return;
-				}
-
 				try
 				{
 					Records.AddRange(_jsonSerializer
-						.Deserialize<DatasetRecordBase[]>(output)
+						.Deserialize<DatasetRecordBase[]>(reading.Contents)
 						.AsNotNull());
 				}
 				finally
 				{
-					output.ZeroMemory();
+					reading
+						.Contents
+						.ZeroMemory();
 				}
 			}
 
@@ -621,6 +625,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
+		IFileContentsReader fileContentsReader,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -629,6 +634,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			app,
 			contentCipher,
 			dbAccess,
+			fileContentsReader,
 			jsonSerializer,
 			logger,
 			messenger,

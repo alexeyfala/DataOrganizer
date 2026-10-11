@@ -3,16 +3,9 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
-using Repository.Dto;
-using Repository.Interfaces.Database;
-using Serilog;
-using Shared.Extensions;
 using Shared.Interfaces;
-using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,33 +15,19 @@ namespace DataOrganizer.Services.Documents;
 public sealed class FileTextReader : IFileTextReader
 {
 	#region Data
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
-
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
+	/// <inheritdoc cref="IFileContentsReader" />
+	private readonly IFileContentsReader _fileContentsReader;
 
 	/// <inheritdoc cref="IJsonSerializer" />
 	private readonly IJsonSerializer _jsonSerializer;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
-	public FileTextReader(
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
-		IJsonSerializer jsonSerializer,
-		ILogger logger)
+	public FileTextReader(IFileContentsReader fileContentsReader, IJsonSerializer jsonSerializer)
 	{
-		_contentCipher = contentCipher;
-
-		_dbAccess = dbAccess;
+		_fileContentsReader = fileContentsReader;
 
 		_jsonSerializer = jsonSerializer;
-
-		_logger = logger;
 	}
 	#endregion
 
@@ -59,39 +38,31 @@ public sealed class FileTextReader : IFileTextReader
 		string header,
 		CancellationToken token = default)
 	{
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(file.Id, token)
+		FileContentsReading reading = await _fileContentsReader
+			.ReadAsync(file, header, token)
 			.ConfigureAwait(false);
 
-		if (!result.IsValid)
-		{
-			return new()
-			{
-				Status = FileTextStatus.Damaged
-			};
-		}
-
-		if (await _contentCipher
-			.TryDecryptContentsAsync(file, result.Contents, header, token)
-			.ConfigureAwait(false) is not { } contents)
-		{
-			return new()
-			{
-				Status = FileTextStatus.Closed
-			};
-		}
-
-		return Decode(file, contents);
+		return Decode(file, reading);
 	}
 
 	/// <inheritdoc />
 	public async Task<FileTextReading> ReadUnlockedAsync(FileDto file, CancellationToken token = default)
 	{
-		ValidatedContents result = await _dbAccess
-			.GetFileContentsAsync(file.Id, token)
+		FileContentsReading reading = await _fileContentsReader
+			.ReadUnlockedAsync(file, token)
 			.ConfigureAwait(false);
 
-		if (!result.IsValid)
+		return Decode(file, reading);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Reads the text of the contents of a file once they are opened, then wipes them if they were decrypted.
+	/// </summary>
+	private FileTextReading Decode(FileDto file, FileContentsReading reading)
+	{
+		if (reading.Status == FileContentsStatus.Damaged)
 		{
 			return new()
 			{
@@ -99,7 +70,7 @@ public sealed class FileTextReader : IFileTextReader
 			};
 		}
 
-		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+		if (reading.Status == FileContentsStatus.Closed)
 		{
 			return new()
 			{
@@ -107,36 +78,8 @@ public sealed class FileTextReader : IFileTextReader
 			};
 		}
 
-		byte[] contents = result.Contents;
+		byte[] contents = reading.Contents;
 
-		if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-		{
-			try
-			{
-				contents = _contentCipher.Decrypt(file, contents);
-			}
-			catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
-			{
-				// The text is read without a prompt, so the failure only reaches the log.
-				_logger.LogException(ex);
-
-				return new()
-				{
-					Status = FileTextStatus.Closed
-				};
-			}
-		}
-
-		return Decode(file, contents);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Reads the text of the opened contents of a file, then wipes them if they were decrypted.
-	/// </summary>
-	private FileTextReading Decode(FileDto file, byte[] contents)
-	{
 		try
 		{
 			if (FileTextCodec.TryRead(contents, FindChosenEncoding(file)) is not { Text: var text })

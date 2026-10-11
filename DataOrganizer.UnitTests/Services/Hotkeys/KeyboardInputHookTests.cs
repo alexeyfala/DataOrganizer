@@ -5,6 +5,7 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
@@ -12,7 +13,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Clipboard;
@@ -23,7 +23,6 @@ using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces.Database;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Services;
@@ -36,7 +35,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Common;
 using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
@@ -106,25 +104,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -206,26 +196,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(dto.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(dto, Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
 					Contents = [],
-					IsValid = true
+					Status = FileContentsStatus.Opened
 				});
 
-			// Empty contents come back untouched, as the real cipher hands them back.
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(dto, Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(x => x.ArgAt<byte[]>(1));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -260,7 +241,8 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: contents that fail their check are never decrypted.
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a hotkey of a file whose contents fail their check puts
+	/// nothing in the clipboard.
 	/// </summary>
 	[Test]
 	public async Task HandleKeyReleasedAsync_Copies_Nothing_From_Damaged_Contents()
@@ -281,23 +263,20 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(hotkey.ToHotkeyDtos());
 
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(dto.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(dto, Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
-					IsValid = false
+					Status = FileContentsStatus.Damaged
 				});
 
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -306,6 +285,12 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<FileTextCopier>()
 				.As<IFileTextCopier>();
+
+			builder.RegisterInstance(clipboard);
+
+			builder
+				.RegisterType<ClipboardTextWriter>()
+				.As<IClipboardTextWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -320,9 +305,13 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
 
 		// Assert
-		await contentCipher
+		await clipboard
 			.DidNotReceive()
-			.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.SetTextAsync(Arg.Any<string>());
+
+		await clipboard
+			.DidNotReceive()
+			.SetDataAsync(Arg.Any<DataTransfer>());
 	}
 
 	/// <summary>
@@ -356,28 +345,18 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
-				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
-				});
-
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
 			// The start of a PNG image
-			byte[] contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D];
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
+				{
+					Contents = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D],
+					Status = FileContentsStatus.Opened
+				});
 
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(contents);
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -447,25 +426,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = contents,
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(contents);
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -535,25 +506,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -619,25 +582,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -695,15 +650,19 @@ internal class KeyboardInputHookTests
 
 		ObservableCollection<ExplorerItemDtoBase> hierarchy = [];
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		dbAccess
-			.GetFileContentsAsync(Arg.Any<Guid>())
-			.Returns(new ValidatedContents());
+		IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dbAccess);
+			// Contents that fail their check end the copy right after the read.
+			fileContentsReader
+				.ReadAsync(dto, Arg.Any<string>())
+				.Returns(new FileContentsReading
+				{
+					Status = FileContentsStatus.Damaged
+				});
+
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -728,9 +687,9 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
 
 		// Assert
-		await dbAccess
+		await fileContentsReader
 			.Received(1)
-			.GetFileContentsAsync(dto.Id);
+			.ReadAsync(dto, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -760,25 +719,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -922,25 +873,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
 					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
-					IsValid = true
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -1002,11 +945,11 @@ internal class KeyboardInputHookTests
 
 		ObservableCollection<ExplorerItemDtoBase> hierarchy = [dto];
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()
@@ -1031,9 +974,9 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
 
 		// Assert
-		await dbAccess
+		await fileContentsReader
 			.DidNotReceive()
-			.GetFileContentsAsync(Arg.Any<Guid>());
+			.ReadAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -1063,25 +1006,17 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
 
-			dbAccess
-				.GetFileContentsAsync(dto.Id)
-				.Returns(new ValidatedContents
+			fileContentsReader
+				.ReadAsync(dto, Arg.Any<string>())
+				.Returns(new FileContentsReading
 				{
-					Contents = RandomValues.CreateBytes(10),
-					IsValid = true
+					Contents = decrypted,
+					Status = FileContentsStatus.Opened
 				});
 
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecryptContentsAsync(dto, Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(decrypted);
-
-			builder.RegisterInstance(contentCipher);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(fileContentsReader);
 
 			builder
 				.RegisterType<FileTextReader>()

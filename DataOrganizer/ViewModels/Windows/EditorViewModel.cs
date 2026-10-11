@@ -10,10 +10,12 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Input;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
@@ -23,6 +25,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -47,7 +50,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -360,12 +362,17 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		ValidatedContents result;
+		// The key that opens the contents also encrypts the changes made to them while the file runs.
+		Guid? keeperId = dto.EncryptionStatus == EncryptionStatus.Decrypted
+			? dto.FindPasswordKeeper()?.Id
+			: null;
+
+		FileContentsReading reading;
 
 		try
 		{
-			result = await _dbAccess
-				.GetFileContentsAsync(dto.Id)
+			reading = await _fileContentsReader
+				.ReadUnlockedAsync(dto.Id, keeperId)
 				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
@@ -377,7 +384,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		if (!result.IsValid)
+		if (reading.Status == FileContentsStatus.Damaged)
 		{
 			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
 
@@ -391,39 +398,24 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
+		if (reading.Status == FileContentsStatus.Closed)
+		{
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+			return;
+		}
+
 		_logger.LogInformation(
-			$"Contents of the {result.Contents.Length}-byte file loaded from the database:{dto.GetPropertyValues(
+			$"Contents of the {reading.Contents.Length}-byte file loaded from the database:{dto.GetPropertyValues(
 				true,
 				nameof(FileDto.Id),
 				nameof(FileDto.Name),
 				nameof(FileDto.Kind),
 				nameof(FileDto.UpdatedAt))}");
 
-		byte[] contents = result.Contents;
-
-		Guid? keeperId = null;
-
-		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindPasswordKeeper() is { } keeper)
-		{
-			keeperId = keeper.Id;
-
-			try
-			{
-				contents = _contentCipher.Decrypt(dto, contents);
-			}
-			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-			{
-				_logger.LogException(ex);
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return;
-			}
-		}
-
 		ExecuteFileParameters parameters = new()
 		{
-			Contents = contents,
+			Contents = reading.Contents,
 			File = dto,
 			IsReadOnly = IsReadOnly,
 			KeeperId = keeperId,
@@ -1151,14 +1143,14 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
 
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
-
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
+
+	/// <inheritdoc cref="IFileContentsReader" />
+	private readonly IFileContentsReader _fileContentsReader;
 
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
@@ -1209,7 +1201,6 @@ public sealed partial class EditorViewModel :
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
@@ -1218,6 +1209,7 @@ public sealed partial class EditorViewModel :
 		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
+		IFileContentsReader fileContentsReader,
 		IFileHotkeyEditor fileHotkeyEditor,
 		IFileTextCopier fileTextCopier,
 		IFolderProtection folderProtection,
@@ -1259,11 +1251,11 @@ public sealed partial class EditorViewModel :
 
 		_clipboardWriter = clipboardWriter;
 
-		_contentCipher = contentCipher;
-
 		_dataExchange = dataExchange;
 
 		_dbFailureReporter = dbFailureReporter;
+
+		_fileContentsReader = fileContentsReader;
 
 		_fileHotkeyEditor = fileHotkeyEditor;
 

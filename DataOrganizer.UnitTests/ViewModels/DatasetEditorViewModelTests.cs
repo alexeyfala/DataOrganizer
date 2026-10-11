@@ -4,11 +4,15 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers.Dataset;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -435,6 +439,10 @@ internal class DatasetEditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(jsonSerializer);
 		});
 
@@ -454,6 +462,175 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the records of a protected dataset come from its contents
+	/// opened with the session key of its keeper.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Adds_The_Decrypted_Records()
+	{
+		// Arrange
+		DatasetRecordBase[] records = [.. new SampleRecords().CreateRandomRecords()];
+
+		Guid keeperId = Guid.NewGuid();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			byte[] stored = RandomValues.CreateBytes(16);
+
+			byte[] opened = RandomValues.CreateBytes(10);
+
+			ValidatedContents contents = new()
+			{
+				Contents = stored,
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(keeperId, ContentIdentity.Contents, stored)
+				.Returns(opened);
+
+			IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
+
+			jsonSerializer
+				.Deserialize<DatasetRecordBase[]>(opened)
+				.Returns(records);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.KeeperId = keeperId;
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.Records
+			.Should()
+			.Contain(records);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: contents that fail their check close the editor for
+	/// changes, and the loading still ends.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Closes_The_Editor_When_The_Contents_Are_Damaged()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = false
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: contents the session key does not open close the editor for
+	/// changes before any record is read.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Closes_The_Editor_When_The_Decryption_Fails()
+	{
+		// Arrange
+		IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			// The key does not open the contents.
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), ContentIdentity.Contents, Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		jsonSerializer
+			.DidNotReceive()
+			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a read the database could not answer closes
 	/// the editor for changes, and the loading still ends.
 	/// </summary>
@@ -470,6 +647,10 @@ internal class DatasetEditorViewModelTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -511,6 +692,10 @@ internal class DatasetEditorViewModelTests
 				.Returns(contents);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(jsonSerializer);
 		});

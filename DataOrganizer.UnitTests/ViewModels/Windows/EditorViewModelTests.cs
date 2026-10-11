@@ -15,9 +15,11 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -28,6 +30,8 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Execution;
+using DataOrganizer.Services.Documents;
+using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -36,6 +40,7 @@ using DataOrganizer.Windows;
 using DynamicData.Binding;
 using Entities.Enums;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Common;
@@ -45,6 +50,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -1056,6 +1062,10 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(engine);
 		});
 
@@ -1068,6 +1078,154 @@ internal class EditorViewModelTests
 		await dbAccess
 			.DidNotReceive()
 			.GetFileContentsAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: contents that fail their check are not run.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Does_Not_Run_Damaged_Contents()
+	{
+		// Arrange
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = false
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(ItemDtoFactory.CreateFileDto());
+
+		// Assert
+		await engine
+			.DidNotReceive()
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: contents the session key does not open are not run.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Does_Not_Run_When_The_Decryption_Fails()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto();
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper
+			.Children
+			.Add(dto);
+
+		dto.Parent = keeper;
+
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Throws(new AuthenticationTagMismatchException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+
+			builder.RegisterInstance(sessionKeyStore);
+
+			// The real cipher, so the contents reach the session key whichever call opens them.
+			builder
+				.RegisterType<ContentCipher>()
+				.As<IContentCipher>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(dto);
+
+		// Assert
+		await engine
+			.DidNotReceive()
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a read the database could not answer is not run.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Does_Not_Run_When_The_Read_Fails()
+	{
+		// Arrange
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(ItemDtoFactory.CreateFileDto());
+
+		// Assert
+		await engine
+			.DidNotReceive()
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
 	}
 
 	/// <summary>
@@ -1101,6 +1259,10 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
 			builder.RegisterInstance(engine);
 		});
 
@@ -1121,6 +1283,89 @@ internal class EditorViewModelTests
 		await engine
 			.Received(1)
 			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a protected file runs with its contents opened by the session key of its
+	/// keeper, and the run keeps the keeper for the changes.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Runs_A_Decrypted_File_With_Its_Opened_Contents()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto();
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper
+			.Children
+			.Add(dto);
+
+		dto.Parent = keeper;
+
+		byte[] opened = RandomValues.CreateBytes(10);
+
+		ExecuteFileParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			byte[] stored = RandomValues.CreateBytes(16);
+
+			ValidatedContents contents = new()
+			{
+				Contents = stored,
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.Returns(contents);
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(keeper.Id, ContentIdentity.Contents, stored)
+				.Returns(opened);
+
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+			engine
+				.ExecuteAsync(Arg.Do<ExecuteFileParameters>(x => parameters = x))
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+
+			builder.RegisterInstance(sessionKeyStore);
+
+			// The real cipher, so the contents reach the session key whichever call opens them.
+			builder
+				.RegisterType<ContentCipher>()
+				.As<IContentCipher>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(dto);
+
+		// Assert
+		parameters!.Contents
+			.Should()
+			.Equal(opened);
+
+		parameters.KeeperId
+			.Should()
+			.Be(keeper.Id);
 	}
 
 	/// <summary>
