@@ -42,10 +42,7 @@ internal static class AppConverters
 	/// <summary>
 	/// Caption of an auto-lock delay in minutes, where <c>0</c> stands for no auto-lock.
 	/// </summary>
-	public static FuncValueConverter<int, string> AutoLockDelay { get; } =
-		new(minutes => minutes <= 0
-			? Strings.Never
-			: string.Format(CultureInfo.CurrentCulture, Strings.MinutesShortFormat, minutes));
+	public static FuncValueConverter<int, string> AutoLockDelay { get; } = new(GetAutoLockDelay);
 
 	/// <summary>
 	/// <c>True</c> while the auto-lock countdown is about to run out.
@@ -56,13 +53,7 @@ internal static class AppConverters
 	/// <summary>
 	/// Caption of the time left before the auto-lock.
 	/// </summary>
-	public static FuncValueConverter<TimeSpan?, string?> AutoLockRemaining { get; } =
-		new(remaining => remaining is not { } left
-			? null
-			: string.Format(
-				CultureInfo.CurrentCulture,
-				Strings.LockedInFormat,
-				left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture)));
+	public static FuncValueConverter<TimeSpan?, string?> AutoLockRemaining { get; } = new(GetAutoLockRemaining);
 
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
@@ -138,11 +129,7 @@ internal static class AppConverters
 	/// <summary>
 	/// Caption of a number with its digits grouped, put into the format given as the parameter.
 	/// </summary>
-	public static FuncValueConverter<int, string, string> NumberCaption { get; } =
-		new((number, format) => string.Format(
-			CultureInfo.CurrentCulture,
-			format ?? "{0}",
-			FormatNumber(number)));
+	public static FuncValueConverter<int, string, string> NumberCaption { get; } = new(GetNumberCaption);
 
 	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.
@@ -179,36 +166,17 @@ internal static class AppConverters
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
 	/// Inputs: [Extent.Height, Viewport.Height].
 	/// </summary>
-	public static FuncMultiValueConverter<double, Thickness> ScrollGutter { get; } =
-		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
-			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
-			: default);
+	public static FuncMultiValueConverter<double, Thickness> ScrollGutter { get; } = new(GetScrollGutter);
 
 	/// <summary>
 	/// Caption of the selection of a document, or of the caret position while nothing is selected.
 	/// </summary>
-	public static FuncValueConverter<DocumentStatus, string> SelectionOrPosition { get; } =
-		new(status => status.SelectionLength > 0
-			? string.Format(
-				CultureInfo.CurrentCulture,
-				Strings.SelectedFormat,
-				FormatNumber(status.SelectionLength),
-				FormatNumber(status.SelectionLineCount))
-			: string.Format(
-				CultureInfo.CurrentCulture,
-				Strings.PositionFormat,
-				// The position counts from one, like the line and the column.
-				FormatNumber(status.CaretOffset + 1)));
+	public static FuncValueConverter<DocumentStatus, string> SelectionOrPosition { get; } = new(GetSelectionOrPosition);
 
 	/// <summary>
 	/// Name of a language of the syntax highlighting; the one of plain text for <c>null</c> and for a language without a grammar.
 	/// </summary>
-	public static FuncValueConverter<string?, string> SyntaxLanguageToName { get; } =
-		new(language => SyntaxRegistry
-			.Instance
-			.Languages
-			.FirstOrDefault(x => x.Id == language)
-			?.Name ?? Strings.PlainText);
+	public static FuncValueConverter<string?, string> SyntaxLanguageToName { get; } = new(GetSyntaxLanguageName);
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
@@ -219,6 +187,34 @@ internal static class AppConverters
 	/// Formats a number with its digits grouped the way the current culture groups them.
 	/// </summary>
 	private static string FormatNumber(int number) => number.ToString("N0", CultureInfo.CurrentCulture);
+
+	/// <summary>
+	/// Returns the caption of an auto-lock delay in minutes.
+	/// </summary>
+	private static string GetAutoLockDelay(int minutes)
+	{
+		if (minutes <= 0)
+		{
+			return Strings.Never;
+		}
+
+		return string.Format(CultureInfo.CurrentCulture, Strings.MinutesShortFormat, minutes);
+	}
+
+	/// <summary>
+	/// Returns the caption of the time left before the auto-lock; <c>null</c> while there is no countdown.
+	/// </summary>
+	private static string? GetAutoLockRemaining(TimeSpan? remaining)
+	{
+		if (remaining is not { } left)
+		{
+			return null;
+		}
+
+		string time = left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture);
+
+		return string.Format(CultureInfo.CurrentCulture, Strings.LockedInFormat, time);
+	}
 
 	/// <summary>
 	/// The parent folder of the objects of a favorites category; a category always has children.
@@ -249,6 +245,64 @@ internal static class AppConverters
 		}
 
 		return $"{Strings.Hotkeys}: {keyStrokes.GetHotkeysPresentation()}";
+	}
+
+	/// <summary>
+	/// Returns a number with its digits grouped, put into a format; the number alone without one.
+	/// </summary>
+	private static string GetNumberCaption(int number, string? format)
+	{
+		return string.Format(
+			CultureInfo.CurrentCulture,
+			format ?? "{0}",
+			FormatNumber(number));
+	}
+
+	/// <summary>
+	/// Returns the right gutter of a scroll viewer: the width of the scroll bar while the content overflows.
+	/// </summary>
+	private static Thickness GetScrollGutter(IEnumerable<double> values)
+	{
+		if (values.ToArray() is [double extent, double viewport] && extent > viewport)
+		{
+			return new Thickness(0.0, 0.0, ScrollBarThickness, 0.0);
+		}
+
+		return default;
+	}
+
+	/// <summary>
+	/// Returns the caption of the selection of a document, or of the caret position while nothing is selected.
+	/// </summary>
+	private static string GetSelectionOrPosition(DocumentStatus status)
+	{
+		if (status.SelectionLength > 0)
+		{
+			return string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.SelectedFormat,
+				FormatNumber(status.SelectionLength),
+				FormatNumber(status.SelectionLineCount));
+		}
+
+		return string.Format(
+			CultureInfo.CurrentCulture,
+			Strings.PositionFormat,
+			// The position counts from one, like the line and the column.
+			FormatNumber(status.CaretOffset + 1));
+	}
+
+	/// <summary>
+	/// Returns the name of a language of the syntax highlighting; the one of plain text for <c>null</c> and for a
+	/// language without a grammar.
+	/// </summary>
+	private static string GetSyntaxLanguageName(string? language)
+	{
+		return SyntaxRegistry
+			.Instance
+			.Languages
+			.FirstOrDefault(x => x.Id == language)
+			?.Name ?? Strings.PlainText;
 	}
 	#endregion
 }

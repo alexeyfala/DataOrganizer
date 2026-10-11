@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
@@ -16,6 +17,42 @@ namespace DataOrganizer.UnitTests.Converters;
 internal class AppConvertersTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AppConverters.AutoLockDelay" />: a delay of zero minutes or less stands for no auto-lock and is named
+	/// apart from a real delay.
+	/// </summary>
+	[Test]
+	public void AutoLockDelay_Names_Every_Missing_Delay_Alike()
+	{
+		// Act
+		object? result = Convert(AppConverters.AutoLockDelay, -5);
+
+		// Assert
+		result
+			.Should()
+			.Be(Convert(AppConverters.AutoLockDelay, 0))
+			.And
+			.NotBe(Convert(AppConverters.AutoLockDelay, 1));
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.AutoLockDelay" />: a delay is shown with its minutes.
+	/// </summary>
+	[Test]
+	public void AutoLockDelay_Shows_The_Minutes()
+	{
+		// Act
+		object? result = Convert(AppConverters.AutoLockDelay, 15);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<string>()
+			.Which
+			.Should()
+			.Contain("15");
+	}
+
 	/// <summary>
 	/// <see cref="AppConverters.AutoLockIsExpiring" />: the warning starts within the last twenty seconds.
 	/// </summary>
@@ -183,6 +220,37 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.ScrollGutter" />: content that fits reserves no gutter.
+	/// </summary>
+	[TestCase(100.0)]
+	[TestCase(50.0)]
+	public void ScrollGutter_Reserves_Nothing_While_The_Content_Fits(double extent)
+	{
+		// Act
+		object? result = Convert(AppConverters.ScrollGutter, extent, 100.0);
+
+		// Assert
+		result
+			.Should()
+			.Be(default(Thickness));
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.ScrollGutter" />: content that overflows reserves the width of the scroll bar on the right.
+	/// </summary>
+	[Test]
+	public void ScrollGutter_Reserves_The_Scroll_Bar_While_The_Content_Overflows()
+	{
+		// Act
+		object? result = Convert(AppConverters.ScrollGutter, 200.0, 100.0);
+
+		// Assert
+		result
+			.Should()
+			.Be(new Thickness(0.0, 0.0, 10.0, 0.0));
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.SelectionOrPosition" />: while nothing is selected, shows the caret position counted from one.
 	/// </summary>
 	[Test]
@@ -279,6 +347,30 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			[hotkeys, hotkeys.Length],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the extent and the viewport heights of a scroll viewer.
+	/// </summary>
+	private static object? Convert(FuncMultiValueConverter<double, Thickness> converter, double extent, double viewport)
+	{
+		return converter.Convert(
+			[extent, viewport],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over an auto-lock delay in minutes.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<int, string> converter, int minutes)
+	{
+		return converter.Convert(
+			minutes,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);
