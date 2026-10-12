@@ -1,6 +1,6 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +21,7 @@ public interface IDataExchangeService
 	/// Imports data.
 	/// </summary>
 	Task<ImportDataResult?> ImportDataAsync(
-		Collection<ExplorerItemDtoBase> hierarchy,
+		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 	#endregion
 }

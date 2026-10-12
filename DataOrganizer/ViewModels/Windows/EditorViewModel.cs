@@ -566,6 +566,8 @@ public sealed partial class EditorViewModel :
 
 		if (result.Variant == ImportMode.Replace)
 		{
+			Hierarchy.Clear();
+
 			CopyHistorySettings
 				.ItemIds
 				.Clear();

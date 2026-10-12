@@ -2099,6 +2099,39 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces leaves only the imported objects in the tree.
+	/// </summary>
+	[Test]
+	public async Task Import_Clears_The_Hierarchy_On_Replacement()
+	{
+		// Arrange
+		FolderDto imported = ItemDtoFactory.CreateFolderDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([imported], ImportMode.Replace));
+
+			builder.RegisterInstance(dataExchange);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(ItemDtoFactory.CreateFolderDto());
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.Hierarchy
+			.Should()
+			.Equal(imported);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
 	/// </summary>
 	[Test]
@@ -2112,7 +2145,7 @@ internal class EditorViewModelTests
 			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
 
 			dataExchange
-				.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
 				.Returns(new ImportDataResult([], ImportMode.Replace));
 
 			builder.RegisterInstance(dataExchange);
@@ -2132,6 +2165,75 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that appends puts the imported objects after those in the tree.
+	/// </summary>
+	[Test]
+	public async Task Import_Keeps_The_Hierarchy_On_Appending()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto imported = ItemDtoFactory.CreateFolderDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([imported], ImportMode.Append));
+
+			builder.RegisterInstance(dataExchange);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.Hierarchy
+			.Should()
+			.Equal(folder, imported);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: a failed import leaves the tree as it is.
+	/// </summary>
+	[Test]
+	public async Task Import_Keeps_The_Hierarchy_When_The_Import_Fails()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			// The import fails.
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns((ImportDataResult?)null);
+
+			builder.RegisterInstance(dataExchange);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.Hierarchy
+			.Should()
+			.Equal(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that appends leaves the hierarchy in place, keys included.
 	/// </summary>
 	[Test]
@@ -2145,7 +2247,7 @@ internal class EditorViewModelTests
 			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
 
 			dataExchange
-				.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
 				.Returns(new ImportDataResult([], ImportMode.Append));
 
 			builder.RegisterInstance(dataExchange);
@@ -2210,7 +2312,7 @@ internal class EditorViewModelTests
 		// Assert
 		await dataExchange
 			.Received(1)
-			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>());
+			.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>

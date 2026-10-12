@@ -15,6 +15,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Explorer;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -34,6 +35,7 @@ using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Explorer;
 using DataOrganizer.Services.Hierarchy;
@@ -153,6 +155,10 @@ public sealed class App : Application
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
+		// The file picker lists the exchange formats in this order.
+		services.AddTransient<IExchangeFormat, JsonExchangeFormat>();
+		services.AddTransient<IExchangeFormat, XmlExchangeFormat>();
+		services.AddTransient<IExchangeFormat, SqliteExchangeFormat>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();

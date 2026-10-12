@@ -8,58 +8,28 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
-using Entities.Serialization;
-using Repository.Dto;
-using Repository.Enums;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace DataOrganizer.Services;
 
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data
-	/// <summary>
-	/// MIME type for JSON files.
-	/// </summary>
-	private const string JsonMime = "application/json";
-
-	/// <summary>
-	/// MIME type for SQLite database files.
-	/// </summary>
-	private const string SqliteMime = "application/x-sqlite3";
-
-	/// <summary>
-	/// MIME type for XML files.
-	/// </summary>
-	private const string XmlMime = "application/xml";
-
-	/// <summary>
-	/// File types for export application objects.
-	/// </summary>
-	private static readonly FilePickerFileType[] ExportFilePickerTypes;
-
-	/// <summary>
-	/// File types for import application objects.
-	/// </summary>
-	private static readonly FilePickerFileType[] ImportFilePickerTypes;
-
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -69,14 +39,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
+	/// <summary>
+	/// The exchange formats, in the order the file picker lists them.
+	/// </summary>
+	private readonly IExchangeFormat[] _formats;
 
 	/// <inheritdoc cref="IImportModePrompt" />
 	private readonly IImportModePrompt _importModePrompt;
-
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -92,59 +61,19 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
-
-	/// <inheritdoc cref="IXmlSerializer" />
-	private readonly IXmlSerializer _xmlSerializer;
 	#endregion
 
 	#region Constructors
-	static DataExchangeService()
-	{
-		FilePickerFileType[] allTypes =
-		[
-			new("All Supported Files")
-			{
-				Patterns = [$"*{KnownFileExtensions.Json}", $"*{KnownFileExtensions.Xml}", $"*{KnownFileExtensions.Sqlite}"],
-				MimeTypes = [JsonMime, XmlMime, SqliteMime]
-			}
-		];
-
-		FilePickerFileType[] concreteTypes =
-		[
-			new("JSON File")
-			{
-				Patterns = [$"*{KnownFileExtensions.Json}"],
-				MimeTypes = [JsonMime]
-			},
-			new("XML File")
-			{
-				Patterns = [$"*{KnownFileExtensions.Xml}"],
-				MimeTypes = [XmlMime]
-			},
-			new("SQLite Database File")
-			{
-				Patterns = [$"*{KnownFileExtensions.Sqlite}"],
-				MimeTypes = [SqliteMime]
-			}
-		];
-
-		ExportFilePickerTypes = concreteTypes;
-
-		ImportFilePickerTypes = [.. allTypes, .. concreteTypes];
-	}
-
 	public DataExchangeService(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IEntityLoader entityLoader,
-		IFileSystem fileSystem,
+		IEnumerable<IExchangeFormat> formats,
 		IFileSystemPicker picker,
 		IImportModePrompt importModePrompt,
-		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		IXmlSerializer xmlSerializer,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
@@ -153,11 +82,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		_entityLoader = entityLoader;
 
-		_fileSystem = fileSystem;
+		_formats = [.. formats];
 
 		_importModePrompt = importModePrompt;
-
-		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
 
@@ -168,8 +95,6 @@ public sealed class DataExchangeService : IDataExchangeService
 		_picker = picker;
 
 		_timeProvider = timeProvider;
-
-		_xmlSerializer = xmlSerializer;
 	}
 	#endregion
 
@@ -180,7 +105,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		FilePickerSaveOptions options = new()
 		{
 			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
-			FileTypeChoices = ExportFilePickerTypes,
+			FileTypeChoices = [.. _formats.Select(CreateFileType)],
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppInfo.AppName,
 			Title = Strings.SaveAs
@@ -197,23 +122,9 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			switch (Path.GetExtension(filePath))
-			{
-				case KnownFileExtensions.Json:
-					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
-					break;
-
-				case KnownFileExtensions.Xml:
-					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
-					break;
-
-				case KnownFileExtensions.Sqlite:
-					await ExportToSqliteAsync(filePath, token).ConfigureAwait(false);
-					break;
-
-				default:
-					throw new NotImplementedException();
-			}
+			await GetFormat(filePath)
+				.ExportAsync(filePath, token)
+				.ConfigureAwait(false);
 
 			_notification.ShowInformationSnackbar(Strings.DataExportCompleted);
 		}
@@ -227,7 +138,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc />
 	public async Task<ImportDataResult?> ImportDataAsync(
-		Collection<ExplorerItemDtoBase> hierarchy,
+		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		ImportMode variant = ImportMode.Replace;
@@ -247,7 +158,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		FilePickerOpenOptions options = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = ImportFilePickerTypes,
+			FileTypeFilter = [CreateAllFormatsFileType(), .. _formats.Select(CreateFileType)],
 			Title = Strings.Select
 		};
 
@@ -275,60 +186,19 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			string filePath = filePaths[0];
 
-			List<ExplorerItemDtoBase> imported = [];
+			IExchangeFormat format = GetFormat(filePath);
 
-			switch (Path.GetExtension(filePath))
+			ExplorerItemDtoBase[]? imported = variant == ImportMode.Replace && format.IsDatabaseCopy
+				? await ReplaceDatabaseAsync(filePath, token).ConfigureAwait(false)
+				: await AddObjectsAsync(format, filePath, variant, hierarchy, token).ConfigureAwait(false);
+
+			if (imported is null)
 			{
-				case KnownFileExtensions.Json:
-					if (!await ImportFromJsonAsync(
-						filePath,
-						variant,
-						imported,
-						hierarchy,
-						token).ConfigureAwait(false))
-					{
-						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
+				_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
+				await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
 
-						return null;
-					}
-					break;
-
-				case KnownFileExtensions.Xml:
-					if (!await ImportFromXmlAsync(
-						filePath,
-						variant,
-						imported,
-						hierarchy,
-						token).ConfigureAwait(false))
-					{
-						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
-
-						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
-
-						return null;
-					}
-					break;
-
-				case KnownFileExtensions.Sqlite:
-					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSqliteAsync(
-						filePath,
-						variant,
-						imported,
-						hierarchy,
-						token).ConfigureAwait(false))
-					{
-						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
-
-						await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
-
-						return null;
-					}
-					break;
-
-				default:
-					throw new NotImplementedException();
+				return null;
 			}
 
 			FileDto[] unreadable = [.. imported.GetFilesWithUnreadableHotkeys()];
@@ -361,131 +231,21 @@ public sealed class DataExchangeService : IDataExchangeService
 			return null;
 		}
 	}
-
-	/// <summary>
-	/// Appends data from SQLite database.
-	/// </summary>
-	internal async Task<bool> AppendFromSqliteAsync(
-		string filePath,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
-	{
-		LoadedEntities result = _dbAccess.LoadEntities(filePath);
-
-		RegenerateId(result.Folders, result.Files);
-
-		SetupIndex(hierarchy, result.Folders, result.Files);
-
-		if (result.Folders.IsNotEmpty())
-		{
-			await _dbAccess
-				.AddFoldersAsync(result.Folders, token)
-				.ConfigureAwait(false);
-		}
-
-		if (result.Files.IsNotEmpty())
-		{
-			await _dbAccess
-				.AddFilesAsync(result.Files, token)
-				.ConfigureAwait(false);
-		}
-
-		imported.AddRange(_entityLoader.Map(result.Folders, result.Files));
-
-		return true;
-	}
-
-	/// <summary>
-	/// Imports entities.
-	/// </summary>
-	internal async Task<bool> ImportEntitiesAsync(
-		ExplorerItemBase[] entities,
-		ImportMode variant,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
-	{
-		if (variant == ImportMode.Replace)
-		{
-			await _dbAccess
-				.ClearDatabaseAsync(token)
-				.ConfigureAwait(false);
-		}
-
-		DateTime now = _timeProvider
-			.GetLocalNow()
-			.LocalDateTime;
-
-		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
-
-		FolderEntity[] folders = [.. entities.OfType<FolderEntity>()];
-
-		FileEntity[] files = [.. entities.OfType<FileEntity>()];
-
-		RegenerateId(folders, files);
-
-		if (variant == ImportMode.Append)
-		{
-			SetupIndex(hierarchy, folders, files);
-		}
-
-		if (folders.IsNotEmpty())
-		{
-			await _dbAccess
-				.AddFoldersAsync(folders, token)
-				.ConfigureAwait(false);
-		}
-
-		if (files.IsNotEmpty())
-		{
-			await _dbAccess
-				.AddFilesAsync(files, token)
-				.ConfigureAwait(false);
-		}
-
-		imported.AddRange(_entityLoader.Map(
-			folders,
-			files));
-
-		if (variant == ImportMode.Replace)
-		{
-			hierarchy.Clear();
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Replaces with data from SQLite database.
-	/// </summary>
-	internal async Task<bool> ReplaceFromSqliteAsync(
-		string filePath,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
-	{
-		await _dbAccess
-			.RestoreFromBackupAsync(filePath, token)
-			.ConfigureAwait(false);
-
-		if (await _entityLoader
-			.LoadHierarchyAsync(token)
-			.ConfigureAwait(false) is not { } result)
-		{
-			// The imported database is in place but unreadable, so the caller restores the copy it took.
-			return false;
-		}
-
-		imported.AddRange(result);
-
-		hierarchy.Clear();
-
-		return true;
-	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Describes the files of <paramref name="format" /> for the file picker.
+	/// </summary>
+	private static FilePickerFileType CreateFileType(IExchangeFormat format)
+	{
+		return new(format.FileTypeName)
+		{
+			MimeTypes = [format.MimeType],
+			Patterns = [$"*{format.Extension}"]
+		};
+	}
+
 	/// <summary>
 	/// Regenerates identifiers.
 	/// </summary>
@@ -528,7 +288,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// from <paramref name="hierarchy"/> max element index.
 	/// </summary>
 	private static void SetupIndex(
-		Collection<ExplorerItemDtoBase> hierarchy,
+		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
 		FolderEntity[] folders,
 		FileEntity[] files)
 	{
@@ -550,6 +310,80 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			   startIndex++;
 		   });
+	}
+
+	/// <summary>
+	/// Adds the folders and files of the file to the database, cleared first for a replacing import; <c>null</c> when the
+	/// file holds none that can be read.
+	/// </summary>
+	private async Task<ExplorerItemDtoBase[]?> AddObjectsAsync(
+		IExchangeFormat format,
+		string filePath,
+		ImportMode variant,
+		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token)
+	{
+		if (await format
+			.ReadAsync(filePath, token)
+			.ConfigureAwait(false) is not { } entities)
+		{
+			return null;
+		}
+
+		if (variant == ImportMode.Replace)
+		{
+			await _dbAccess
+				.ClearDatabaseAsync(token)
+				.ConfigureAwait(false);
+		}
+
+		if (!format.IsDatabaseCopy)
+		{
+			// The file keeps no dates, so the objects get the time of the import.
+			DateTime now = _timeProvider
+				.GetLocalNow()
+				.LocalDateTime;
+
+			entities
+				.Folders
+				.Concat<ExplorerItemBase>(entities.Files)
+				.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
+		}
+
+		RegenerateId(entities.Folders, entities.Files);
+
+		if (variant == ImportMode.Append)
+		{
+			SetupIndex(hierarchy, entities.Folders, entities.Files);
+		}
+
+		if (entities.Folders.IsNotEmpty())
+		{
+			await _dbAccess
+				.AddFoldersAsync(entities.Folders, token)
+				.ConfigureAwait(false);
+		}
+
+		if (entities.Files.IsNotEmpty())
+		{
+			await _dbAccess
+				.AddFilesAsync(entities.Files, token)
+				.ConfigureAwait(false);
+		}
+
+		return _entityLoader.Map(entities.Folders, entities.Files);
+	}
+
+	/// <summary>
+	/// Describes the files of every format at once for the file picker.
+	/// </summary>
+	private FilePickerFileType CreateAllFormatsFileType()
+	{
+		return new("All Supported Files")
+		{
+			MimeTypes = [.. _formats.Select(static x => x.MimeType)],
+			Patterns = [.. _formats.Select(static x => $"*{x.Extension}")]
+		};
 	}
 
 	/// <summary>
@@ -577,162 +411,35 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Exports data to JSON.
+	/// Returns the format of <paramref name="filePath" /> by its extension.
 	/// </summary>
-	private async Task ExportToJsonAsync(string filePath, CancellationToken token)
+	private IExchangeFormat GetFormat(string filePath)
 	{
-		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+		string extension = Path.GetExtension(filePath);
 
-		// Streaming serialization: writes Json directly to the file without
-		// materializing the whole document as a string in memory.
-		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
-
-		await _jsonSerializer
-			.SerializeAsync(stream, entities, JsonDefaults.Options, token)
-			.ConfigureAwait(false);
+		return _formats.FirstOrDefault(x => x.Extension == extension)
+			?? throw new NotSupportedException($@"No exchange format reads ""{extension}"" files.");
 	}
 
 	/// <summary>
-	/// Exports data to SQLite database.
+	/// Puts a copy of the database in its place and reads the objects back; <c>null</c> when the copy is not a database
+	/// or cannot be read.
 	/// </summary>
-	private Task ExportToSqliteAsync(string filePath, CancellationToken token)
+	private async Task<ExplorerItemDtoBase[]?> ReplaceDatabaseAsync(string filePath, CancellationToken token)
 	{
-		CopyDatabaseParameters parameters = new()
+		if (!_dbAccess.IsValidSqliteDatabase(filePath))
 		{
-			ClearDestinationPool = true,
-			ClearSourcePool = false,
-			DestinationFilePath = filePath,
-			SourceFilePath = _dbAccess.GetDbFilePath()
-		};
+			return null;
+		}
 
-		return _dbAccess.CopyDatabaseAsync(parameters, token);
-	}
-
-	/// <summary>
-	/// Exports data to XML.
-	/// </summary>
-	private async Task ExportToXmlAsync(string filePath, CancellationToken token)
-	{
-		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
-
-		// Streaming serialization: XmlSerializer writes directly to the file
-		// without materializing the whole document as a string in memory.
-		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
-
-		_xmlSerializer.Serialize(stream, entities);
-	}
-
-	/// <summary>
-	/// Loads all entities from the database.
-	/// </summary>
-	private async Task<ExplorerItemBase[]> GetEntitiesFromDbAsync(CancellationToken token)
-	{
-		FolderEntity[] folders = await _dbAccess
-			.GetAllFoldersAsync(token)
+		await _dbAccess
+			.RestoreFromBackupAsync(filePath, token)
 			.ConfigureAwait(false);
 
-		FileEntity[] files = await _dbAccess
-			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
+		// A copy in place that cannot be read gives null, so the caller restores the copy it took.
+		return await _entityLoader
+			.LoadHierarchyAsync(token)
 			.ConfigureAwait(false);
-
-		return [.. folders.Concat<ExplorerItemBase>(files)];
-	}
-
-	/// <summary>
-	/// Imports data from JSON.
-	/// </summary>
-	private async Task<bool> ImportFromJsonAsync(
-		string filePath,
-		ImportMode variant,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token)
-	{
-		// Streaming deserialization: avoids loading the entire file into a string before parsing.
-		ExplorerItemBase[]? entities;
-
-		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
-		{
-			entities = await _jsonSerializer
-				.DeserializeAsync<ExplorerItemBase[]>(stream, token)
-				.ConfigureAwait(false);
-		}
-
-		if (entities is null)
-		{
-			return false;
-		}
-
-		return await ImportEntitiesAsync(
-			entities,
-			variant,
-			imported,
-			hierarchy,
-			token).ConfigureAwait(false);
-	}
-
-	/// <summary>
-	/// Imports data from SQLite database.
-	/// </summary>
-	private Task<bool> ImportFromSqliteAsync(
-		string filePath,
-		ImportMode variant,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token)
-	{
-		return variant switch
-		{
-			ImportMode.Replace => ReplaceFromSqliteAsync(
-				filePath,
-				imported,
-				hierarchy,
-				token),
-			ImportMode.Append => AppendFromSqliteAsync(
-				filePath,
-				imported,
-				hierarchy,
-				token),
-			_ => throw new NotImplementedException()
-		};
-	}
-
-	/// <summary>
-	/// Imports data from XML.
-	/// </summary>
-	private async Task<bool> ImportFromXmlAsync(
-		string filePath,
-		ImportMode variant,
-		List<ExplorerItemDtoBase> imported,
-		Collection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token)
-	{
-		// The document is read as a whole, so that hotkey names the library no longer knows
-		// can be replaced before the serializer rejects the whole file because of them.
-		ExplorerItemBase[]? entities;
-
-		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
-		{
-			XDocument document = await _xmlSerializer
-				.LoadDocumentAsync(stream, token)
-				.ConfigureAwait(false);
-
-			HotkeyXmlSanitizer.Sanitize(document);
-
-			entities = _xmlSerializer.Deserialize<ExplorerItemBase[]>(document);
-		}
-
-		if (entities is null)
-		{
-			return false;
-		}
-
-		return await ImportEntitiesAsync(
-			entities,
-			variant,
-			imported,
-			hierarchy,
-			token).ConfigureAwait(false);
 	}
 
 	/// <summary>

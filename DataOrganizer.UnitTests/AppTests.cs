@@ -4,8 +4,10 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Text;
+using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using Entities.Models;
 using MapsterMapper;
@@ -136,6 +138,24 @@ internal class AppTests
 		unsatisfied
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the exchange formats are registered in the order the file picker lists them.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Registers_The_Exchange_Formats_In_The_Order_Of_The_File_Picker()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services.Where(static x => x.ServiceType == typeof(IExchangeFormat)).Select(static x => x.ImplementationType)
+			.Should()
+			.Equal(typeof(JsonExchangeFormat), typeof(XmlExchangeFormat), typeof(SqliteExchangeFormat));
 	}
 
 	/// <summary>
