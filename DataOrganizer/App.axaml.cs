@@ -25,6 +25,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services;
@@ -224,6 +225,7 @@ public sealed class App : Application
 		services.AddSingleton<INotificationService, NotificationService>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
+		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion

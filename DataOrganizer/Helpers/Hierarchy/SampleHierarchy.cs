@@ -3,6 +3,7 @@ using DataOrganizer.Dto.Hierarchy;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
@@ -217,6 +218,9 @@ internal sealed class SampleHierarchy
 	/// </summary>
 	private readonly SampleRecords _records = new();
 
+	/// <inheritdoc cref="ISyntaxRegistry" />
+	private readonly ISyntaxRegistry _syntaxRegistry;
+
 	/// <summary>
 	/// Hotkeys a snippet must not clash with: those of the saved files and those given out so far.
 	/// </summary>
@@ -229,9 +233,14 @@ internal sealed class SampleHierarchy
 	#endregion
 
 	#region Constructors
-	private SampleHierarchy(DateTime now, KeyStroke[][] takenHotkeys)
+	private SampleHierarchy(
+		DateTime now,
+		KeyStroke[][] takenHotkeys,
+		ISyntaxRegistry syntaxRegistry)
 	{
 		_now = now;
+
+		_syntaxRegistry = syntaxRegistry;
 
 		_takenHotkeys = [.. takenHotkeys];
 
@@ -258,9 +267,10 @@ internal sealed class SampleHierarchy
 	public static SampleObjects Create(
 		int rootIndex,
 		DateTime now,
-		KeyStroke[][] takenHotkeys)
+		KeyStroke[][] takenHotkeys,
+		ISyntaxRegistry syntaxRegistry)
 	{
-		return new SampleHierarchy(now, takenHotkeys).Build(rootIndex);
+		return new SampleHierarchy(now, takenHotkeys, syntaxRegistry).Build(rootIndex);
 	}
 	#endregion
 
@@ -684,7 +694,7 @@ internal sealed class SampleHierarchy
 
 			string name = $"File {number}.{extension}";
 
-			if (SyntaxRegistry.Instance.FindLanguage(name) is null && !ExecutableFileDetector.IsExecutable(name))
+			if (_syntaxRegistry.FindLanguage(name) is null && !ExecutableFileDetector.IsExecutable(name))
 			{
 				return name;
 			}

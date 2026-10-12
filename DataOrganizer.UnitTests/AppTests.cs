@@ -2,8 +2,10 @@ using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Execution;
 using Entities.Models;
 using MapsterMapper;
@@ -59,6 +61,29 @@ internal class AppTests
 		result
 			.Should()
 			.BeOfType<FileDto>();
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the view models get the registry of grammars the editor controls use, so
+	/// the grammars are read once.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Gives_The_Syntax_Registry_Of_The_Editor_Controls()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		ISyntaxRegistry result = provider.GetRequiredService<ISyntaxRegistry>();
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(SyntaxRegistry.Instance);
 	}
 
 	/// <summary>

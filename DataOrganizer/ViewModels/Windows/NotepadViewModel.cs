@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DynamicData;
 using DynamicData.Binding;
@@ -232,6 +233,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="INotepadStore" />
 	private readonly INotepadStore _store;
 
+	/// <inheritdoc cref="ISyntaxRegistry" />
+	private readonly ISyntaxRegistry _syntaxRegistry;
+
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 
@@ -260,6 +264,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		INotepadSessionState sessionState,
 		INotepadStore store,
 		INotificationService notification,
+		ISyntaxRegistry syntaxRegistry,
 		IViewCache viewCache,
 		IViewLauncher viewLauncher,
 		TimeProvider timeProvider)
@@ -273,6 +278,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_store = store;
 
 		_notification = notification;
+
+		_syntaxRegistry = syntaxRegistry;
 
 		_viewCache = viewCache;
 
@@ -409,38 +416,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <c>True</c> when the text of the tab has more than white space.
 	/// </summary>
 	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Document.Text);
-
-	/// <summary>
-	/// Returns a tab with the name, the editor state and the split kept in its settings; its text is read later, in the
-	/// encoding kept with them.
-	/// </summary>
-	private static NotepadTabViewModel RestoreTab(NotepadTabSettings settings)
-	{
-		NotepadTabViewModel tab = new()
-		{
-			Name = settings.Name,
-			Number = settings.Number
-		};
-
-		if (settings.Split is { } split)
-		{
-			tab.SplitShare = split;
-
-			tab.IsSplit = true;
-		}
-
-		if (settings.EditorState is not { } state)
-		{
-			return tab;
-		}
-
-		EditorStateMapper.Apply(tab, state);
-
-		// Reading no bytes gives the tab the kept encoding, which its text is read in later.
-		tab.Codec.Read([], state.Encoding);
-
-		return tab;
-	}
 
 	/// <summary>
 	/// Reads the text of a tab again from the same bytes in the encoding chosen for it; an encoding that cannot read them
@@ -620,6 +595,38 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		}
 
 		AddTab();
+	}
+
+	/// <summary>
+	/// Returns a tab with the name, the editor state and the split kept in its settings; its text is read later, in the
+	/// encoding kept with them.
+	/// </summary>
+	private NotepadTabViewModel RestoreTab(NotepadTabSettings settings)
+	{
+		NotepadTabViewModel tab = new()
+		{
+			Name = settings.Name,
+			Number = settings.Number
+		};
+
+		if (settings.Split is { } split)
+		{
+			tab.SplitShare = split;
+
+			tab.IsSplit = true;
+		}
+
+		if (settings.EditorState is not { } state)
+		{
+			return tab;
+		}
+
+		EditorStateMapper.Apply(tab, state, _syntaxRegistry);
+
+		// Reading no bytes gives the tab the kept encoding, which its text is read in later.
+		tab.Codec.Read([], state.Encoding);
+
+		return tab;
 	}
 
 	/// <summary>

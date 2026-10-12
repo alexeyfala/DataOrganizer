@@ -11,6 +11,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Text;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
@@ -212,9 +213,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				// A new document starts with an empty undo stack, so the loaded text cannot be undone.
 				SetDocument(new(text));
 
-				DefaultSyntaxLanguage = SyntaxRegistry
-					.Instance
-					.FindLanguage(FileName);
+				DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
 
 				// The language comes after the text, so the highlighting starts on the document it colors.
 				SyntaxLanguage = DefaultSyntaxLanguage;
@@ -288,6 +287,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		SingleWriter = true
 	});
 
+	/// <inheritdoc cref="ISyntaxRegistry" />
+	private readonly ISyntaxRegistry _syntaxRegistry;
+
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
 	/// Intended to skip persistence when the text matches what is already stored.
@@ -317,6 +319,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
@@ -331,6 +334,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		_dbFailureReporter = dbFailureReporter;
 
 		_editorSplits = editorSplits;
+
+		_syntaxRegistry = syntaxRegistry;
 
 		_documentChanges.DisposeWith(_disposables);
 	}
@@ -485,7 +490,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		EditorStateMapper.Apply(this, value);
+		EditorStateMapper.Apply(this, value, _syntaxRegistry);
 
 		_logger.LogDebug(
 			$@"Editor state of ""{FileId}"" is initialized:{value.GetPropertyValues(true)}");

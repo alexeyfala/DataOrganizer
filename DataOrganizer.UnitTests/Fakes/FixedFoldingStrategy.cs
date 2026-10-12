@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.Interfaces.Text;
 using System.Collections.Generic;
@@ -22,11 +21,11 @@ internal sealed class FixedFoldingStrategy : ILineFoldingStrategy
 	/// <summary>
 	/// Blocks it returns for any text.
 	/// </summary>
-	private readonly NewFolding[] _blocks;
+	private readonly TextFolding[] _blocks;
 	#endregion
 
 	#region Constructors
-	public FixedFoldingStrategy(params NewFolding[] blocks)
+	public FixedFoldingStrategy(params TextFolding[] blocks)
 	{
 		_blocks = blocks;
 	}
@@ -34,7 +33,7 @@ internal sealed class FixedFoldingStrategy : ILineFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public NewFolding[] CreateNewFoldings(FoldingText text)
+	public TextFolding[] CreateNewFoldings(FoldingText text)
 	{
 		Texts.Add(text);
 

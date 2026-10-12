@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
 using System;
@@ -62,7 +61,7 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public NewFolding[] CreateNewFoldings(FoldingText text)
+	public TextFolding[] CreateNewFoldings(FoldingText text)
 	{
 		List<(int Start, int End)> blocks = FindBlocks(text);
 
@@ -73,7 +72,11 @@ internal sealed class IndentFoldingStrategy : ILineFoldingStrategy
 		}
 
 		// The first line of a block stays in view, and the rest of the block folds into it.
-		return [.. blocks.Select(x => new NewFolding(text.GetLineEnd(x.Start), text.GetLineEnd(x.End)))];
+		return [.. blocks.Select(x => new TextFolding
+		{
+			EndOffset = text.GetLineEnd(x.End),
+			StartOffset = text.GetLineEnd(x.Start)
+		})];
 	}
 	#endregion
 

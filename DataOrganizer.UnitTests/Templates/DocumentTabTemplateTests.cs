@@ -10,6 +10,7 @@ using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Templates;
@@ -214,6 +215,10 @@ internal class DocumentTabTemplateTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();

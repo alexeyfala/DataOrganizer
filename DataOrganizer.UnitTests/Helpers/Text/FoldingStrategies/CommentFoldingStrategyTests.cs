@@ -1,5 +1,4 @@
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers;
@@ -40,12 +39,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("  /* a\n  b */ x();");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
@@ -63,12 +62,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/// a\n/// b\n\n/// c\n/// d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -86,12 +85,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n/* c\nd */");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -109,12 +108,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n  // c\n  // d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -132,12 +131,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\nx\n// c\n// d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -154,12 +153,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/* a\nb */\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -177,12 +176,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("  // a\n  // b\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
@@ -199,12 +198,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -222,12 +221,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n/// c\n/// d\n// e\n// f");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -244,12 +243,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/* a */\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -266,12 +265,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n/* c\nd */");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(new SyntaxFoldingRules());
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -288,12 +287,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -311,12 +310,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n\n  \n// b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -333,12 +332,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// #region A\n// a\n// b\n// #endregion");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -356,7 +355,7 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("\"\"\"\nDoc\n\"\"\"");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		SyntaxFoldingRules rules = Rules with
 		{
@@ -367,7 +366,7 @@ internal partial class CommentFoldingStrategyTests
 		CommentFoldingStrategy sut = new(rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -377,7 +376,7 @@ internal partial class CommentFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded block comment shows its first line with
-	/// dots after it, and the comment starts unfolded.
+	/// dots after it.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Names_A_Block_Comment_After_Its_First_Line()
@@ -385,22 +384,22 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("  /** Doc  \n   */");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
-		foldings.Select(static x => (x.Name, x.DefaultClosed))
+		foldings.Select(static x => x.Name)
 			.Should()
-			.Equal(($"/** Doc {Glyphs.ThreeDots}", false));
+			.Equal($"/** Doc {Glyphs.ThreeDots}");
 	}
 
 	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded documentation comment shows the plain
-	/// text of its summary, and the comment starts unfolded.
+	/// text of its summary.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Names_A_Doc_Comment_After_Its_Summary()
@@ -408,17 +407,17 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("  /// <summary>\n  /// Calls <see cref=\"Run\"/>.\n  /// </summary>");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
-		foldings.Select(static x => (x.Name, x.DefaultClosed))
+		foldings.Select(static x => x.Name)
 			.Should()
-			.Equal(("/// <summary> Calls Run.", false));
+			.Equal("/// <summary> Calls Run.");
 	}
 
 	/// <summary>
@@ -431,12 +430,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/// <param name=\"x\">X</param>  \n/// <returns>Y</returns>");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => x.Name)
@@ -446,7 +445,7 @@ internal partial class CommentFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the box of a folded group shows its first line with dots
-	/// after it, and the group starts unfolded.
+	/// after it.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Names_A_Group_After_Its_First_Line()
@@ -454,17 +453,17 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("  // a  \n  // b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
-		foldings.Select(static x => (x.Name, x.DefaultClosed))
+		foldings.Select(static x => x.Name)
 			.Should()
-			.Equal(($"// a {Glyphs.ThreeDots}", false));
+			.Equal($"// a {Glyphs.ThreeDots}");
 	}
 
 	/// <summary>
@@ -476,12 +475,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -499,12 +498,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/// <summary>\n/// Calls Run\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => x.Name)
@@ -522,12 +521,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("// a\n// b\n/* c\n// d\n// e");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -545,7 +544,7 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("--[[ a\nb ]]");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		SyntaxFoldingRules rules = Rules with
 		{
@@ -557,7 +556,7 @@ internal partial class CommentFoldingStrategyTests
 		CommentFoldingStrategy sut = new(rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -575,12 +574,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/// a\n/// b\n//// c\n//// d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -597,12 +596,12 @@ internal partial class CommentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("x // a\ny // b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		CommentFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -621,7 +620,7 @@ internal partial class CommentFoldingStrategyTests
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.
 	/// </summary>
-	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<NewFolding> foldings)
+	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<TextFolding> foldings)
 	{
 		return [.. foldings.Select(x => (
 			document.GetLineByOffset(x.StartOffset).LineNumber,

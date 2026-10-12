@@ -10,6 +10,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
@@ -755,6 +756,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1141,6 +1146,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1503,6 +1512,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1608,6 +1621,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3674,6 +3691,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3737,6 +3758,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();

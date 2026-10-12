@@ -5,6 +5,7 @@ using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Text;
 using Entities.Models;
 using Repository.Dto;
 using Repository.Enums;
@@ -28,6 +29,9 @@ public sealed class SampleSeeder : ISampleSeeder
 	/// <inheritdoc cref="IFolderProtection" />
 	private readonly IFolderProtection _folderProtection;
 
+	/// <inheritdoc cref="ISyntaxRegistry" />
+	private readonly ISyntaxRegistry _syntaxRegistry;
+
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 	#endregion
@@ -37,6 +41,7 @@ public sealed class SampleSeeder : ISampleSeeder
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
 		IFolderProtection folderProtection,
+		ISyntaxRegistry syntaxRegistry,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
@@ -44,6 +49,8 @@ public sealed class SampleSeeder : ISampleSeeder
 		_entityLoader = entityLoader;
 
 		_folderProtection = folderProtection;
+
+		_syntaxRegistry = syntaxRegistry;
 
 		_timeProvider = timeProvider;
 	}
@@ -67,7 +74,8 @@ public sealed class SampleSeeder : ISampleSeeder
 		SampleObjects samples = SampleHierarchy.Create(
 			rootIndex,
 			_timeProvider.GetLocalNow().LocalDateTime,
-			takenHotkeys);
+			takenHotkeys,
+			_syntaxRegistry);
 
 		FolderDto run = await WriteAsync(samples.Items, token).ConfigureAwait(false);
 

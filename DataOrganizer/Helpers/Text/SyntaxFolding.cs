@@ -248,14 +248,14 @@ internal sealed class SyntaxFolding : IDisposable
 	/// </summary>
 	private static IFoldingStrategy CreateStrategy(SyntaxFoldingRules rules, int tabSize) => rules.Kind switch
 	{
-		SyntaxFoldingKind.Headings => new CompositeFoldingStrategy(
+		SyntaxFoldingKind.Headings => new DocumentFoldingAdapter(new CompositeFoldingStrategy(
 			new MarkdownFoldingStrategy(rules, tabSize),
-			new CommentFoldingStrategy(rules)),
+			new CommentFoldingStrategy(rules))),
 		SyntaxFoldingKind.Tags => new XmlTagFoldingStrategy(),
-		_ => new CompositeFoldingStrategy(
+		_ => new DocumentFoldingAdapter(new CompositeFoldingStrategy(
 			new IndentFoldingStrategy(rules, tabSize),
 			new ImportFoldingStrategy(rules),
-			new CommentFoldingStrategy(rules))
+			new CommentFoldingStrategy(rules)))
 	};
 
 	/// <summary>

@@ -1,5 +1,6 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Text;
 
 namespace DataOrganizer.Helpers.Text;
 
@@ -10,9 +11,12 @@ internal static class EditorStateMapper
 {
 	#region Methods
 	/// <summary>
-	/// Gives the values of an editor those of a saved state.
+	/// Gives the values of an editor those of a saved state; a stored language counts only while it has a grammar.
 	/// </summary>
-	public static void Apply(IEditorStateValues values, FileEditorState state)
+	public static void Apply(
+		IEditorStateValues values,
+		FileEditorState state,
+		ISyntaxRegistry syntaxRegistry)
 	{
 		values.FontSize = state.FontSize;
 
@@ -22,7 +26,10 @@ internal static class EditorStateMapper
 
 		values.ShowTabs = state.ShowTabs;
 
-		values.SyntaxLanguage = GetSyntaxLanguage(state.SyntaxLanguage, values.DefaultSyntaxLanguage);
+		values.SyntaxLanguage = GetSyntaxLanguage(
+			state.SyntaxLanguage,
+			values.DefaultSyntaxLanguage,
+			syntaxRegistry);
 
 		values.WordWrap = state.WordWrap;
 
@@ -84,7 +91,10 @@ internal static class EditorStateMapper
 	/// <summary>
 	/// Returns the language of the text for the one stored in the editor state.
 	/// </summary>
-	private static string? GetSyntaxLanguage(string? stored, string? defaultLanguage)
+	private static string? GetSyntaxLanguage(
+		string? stored,
+		string? defaultLanguage,
+		ISyntaxRegistry syntaxRegistry)
 	{
 		if (stored is null)
 		{
@@ -92,9 +102,7 @@ internal static class EditorStateMapper
 		}
 
 		// Plain text is stored as a language without a grammar, and so is a language whose grammar is gone.
-		return SyntaxRegistry
-			.Instance
-			.FindScope(stored) is null ? null : stored;
+		return syntaxRegistry.FindScope(stored) is null ? null : stored;
 	}
 	#endregion
 }

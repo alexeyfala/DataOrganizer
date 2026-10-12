@@ -1,5 +1,4 @@
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
@@ -42,12 +41,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"import a\nimport b\n{marker}\nimport c\nimport d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -65,12 +64,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b\nx\nimport c\nimport d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -88,12 +87,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b\n/*\nimport c\nimport d");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -110,12 +109,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -137,12 +136,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new(content);
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
@@ -159,7 +158,7 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		SyntaxFoldingRules rules = Rules with
 		{
@@ -169,7 +168,7 @@ internal partial class ImportFoldingStrategyTests
 		ImportFoldingStrategy sut = new(rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -187,12 +186,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import {\n  a,\n  b\n} from 'x'\nimport c\ny");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -201,7 +200,7 @@ internal partial class ImportFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: the box of a run shows the dots, and the run starts unfolded.
+	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: the box of a run shows the dots.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Gives_A_Run_No_Name()
@@ -209,18 +208,21 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
-		// The engine declares the name as never null, while its default is null.
-		foldings.Select(static x => ((string?)x.Name, x.DefaultClosed))
+		foldings
 			.Should()
-			.Equal((null, false));
+			.ContainSingle()
+			.Which
+			.Name
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -237,12 +239,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"import a\nimport b\n{gap}\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -267,12 +269,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"import a\n{gap}\nimport b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -290,12 +292,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\nimport b\nx\nimport c (\nimport d\nimport e");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -318,12 +320,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"{first}\nimport b\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -341,7 +343,7 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("\"\"\"\nimport a\nimport b\n\"\"\"\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		SyntaxFoldingRules rules = Rules with
 		{
@@ -352,7 +354,7 @@ internal partial class ImportFoldingStrategyTests
 		ImportFoldingStrategy sut = new(rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -372,12 +374,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new(content);
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -394,12 +396,12 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("/*\nimport a\nimport b\n*/\nx");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		ImportFoldingStrategy sut = new(Rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -417,7 +419,7 @@ internal partial class ImportFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("import a\n#if X\nimport b");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		SyntaxFoldingRules rules = Rules with
 		{
@@ -427,7 +429,7 @@ internal partial class ImportFoldingStrategyTests
 		ImportFoldingStrategy sut = new(rules);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -452,7 +454,7 @@ internal partial class ImportFoldingStrategyTests
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.
 	/// </summary>
-	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<NewFolding> foldings)
+	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<TextFolding> foldings)
 	{
 		return [.. foldings.Select(x => (
 			document.GetLineByOffset(x.StartOffset).LineNumber,

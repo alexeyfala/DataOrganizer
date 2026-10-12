@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
 using System;
@@ -38,9 +37,9 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public NewFolding[] CreateNewFoldings(FoldingText text)
+	public TextFolding[] CreateNewFoldings(FoldingText text)
 	{
-		List<NewFolding> blocks = [];
+		List<TextFolding> blocks = [];
 
 		// The group under way: its first and last lines, the number of its lines, the blanks before each of them and whether
 		// they are lines of a documentation comment.
@@ -93,9 +92,11 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 				// A comment of one line has nothing to fold.
 				if (close.Line > number)
 				{
-					blocks.Add(new NewFolding(text.GetLineStart(number) + indentLength, close.End)
+					blocks.Add(new TextFolding
 					{
-						Name = CreateName(content)
+						EndOffset = close.End,
+						Name = CreateName(content),
+						StartOffset = text.GetLineStart(number) + indentLength
 					});
 				}
 
@@ -178,7 +179,7 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 	/// <summary>
 	/// Adds the block of a group that holds enough lines, from the token of its first line to the end of its last line.
 	/// </summary>
-	private void AddGroup(FoldingText text, List<NewFolding> blocks, int first, int last, int lineCount, bool isDoc)
+	private void AddGroup(FoldingText text, List<TextFolding> blocks, int first, int last, int lineCount, bool isDoc)
 	{
 		if (lineCount < MinGroupLineCount)
 		{
@@ -198,9 +199,11 @@ internal sealed class CommentFoldingStrategy : ILineFoldingStrategy
 			? DocCommentBanner.Create(token, text.GetText(start, end))
 			: null;
 
-		blocks.Add(new NewFolding(start, end)
+		blocks.Add(new TextFolding
 		{
-			Name = summary ?? CreateName(line[indentLength..])
+			EndOffset = end,
+			Name = summary ?? CreateName(line[indentLength..]),
+			StartOffset = start
 		});
 	}
 

@@ -1,5 +1,4 @@
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.UnitTests.Fakes;
@@ -34,7 +33,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 4)));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -57,7 +56,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 3)));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -75,14 +74,21 @@ internal class CompositeFoldingStrategyTests
 		// Arrange
 		TextDocument document = new(Text);
 
-		NewFolding first = CreateBlock(document, 1, 2);
+		// The names tell the alike blocks apart.
+		TextFolding first = CreateBlock(document, 1, 2) with
+		{
+			Name = "first"
+		};
 
 		CompositeFoldingStrategy sut = new(
 			new FixedFoldingStrategy(first),
-			new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
+			new FixedFoldingStrategy(CreateBlock(document, 1, 2) with
+			{
+				Name = "second"
+			}));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		foldings
@@ -104,7 +110,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 3), CreateBlock(document, 4, 5)));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -123,14 +129,18 @@ internal class CompositeFoldingStrategyTests
 		TextDocument document = new(Text);
 
 		// The first block holds the other one, so only their shared line tells them apart.
-		NewFolding first = new(0, document.GetLineByNumber(3).EndOffset);
+		TextFolding first = new()
+		{
+			EndOffset = document.GetLineByNumber(3).EndOffset,
+			StartOffset = 0
+		};
 
 		CompositeFoldingStrategy sut = new(
 			new FixedFoldingStrategy(CreateBlock(document, 1, 2)),
 			new FixedFoldingStrategy(first));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		foldings
@@ -152,7 +162,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 1, 3)));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -176,7 +186,7 @@ internal class CompositeFoldingStrategyTests
 		CompositeFoldingStrategy sut = new(first, second);
 
 		// Act
-		sut.CreateNewFoldings(document, out _);
+		sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		second.Texts
@@ -185,26 +195,6 @@ internal class CompositeFoldingStrategyTests
 			.Which
 			.Should()
 			.BeSameAs(first.Texts.Single());
-	}
-
-	/// <summary>
-	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: the ways read any text, so there is no error to report.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Reports_No_Error()
-	{
-		// Arrange
-		TextDocument document = new(Text);
-
-		CompositeFoldingStrategy sut = new(new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
-
-		// Act
-		sut.CreateNewFoldings(document, out int firstErrorOffset);
-
-		// Assert
-		firstErrorOffset
-			.Should()
-			.Be(-1);
 	}
 
 	/// <summary>
@@ -221,7 +211,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
 
 		// Act
-		IEnumerable<NewFolding> foldings = sut.CreateNewFoldings(document, out _);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -234,15 +224,19 @@ internal class CompositeFoldingStrategyTests
 	/// <summary>
 	/// Returns a block from the end of a line to the end of another, as the blocks by indentation run.
 	/// </summary>
-	private static NewFolding CreateBlock(TextDocument document, int startLine, int endLine)
+	private static TextFolding CreateBlock(TextDocument document, int startLine, int endLine)
 	{
-		return new NewFolding(document.GetLineByNumber(startLine).EndOffset, document.GetLineByNumber(endLine).EndOffset);
+		return new TextFolding
+		{
+			EndOffset = document.GetLineByNumber(endLine).EndOffset,
+			StartOffset = document.GetLineByNumber(startLine).EndOffset
+		};
 	}
 
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.
 	/// </summary>
-	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<NewFolding> foldings)
+	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<TextFolding> foldings)
 	{
 		return [.. foldings.Select(x => (
 			document.GetLineByOffset(x.StartOffset).LineNumber,

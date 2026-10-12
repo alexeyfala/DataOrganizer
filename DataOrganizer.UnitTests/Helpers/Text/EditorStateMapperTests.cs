@@ -36,7 +36,7 @@ internal class EditorStateMapperTests
 		};
 
 		// Act
-		EditorStateMapper.Apply(values, state);
+		EditorStateMapper.Apply(values, state, SyntaxRegistry.Instance);
 
 		// Assert
 		DocumentViewState expected = new()
@@ -98,7 +98,7 @@ internal class EditorStateMapperTests
 		};
 
 		// Act
-		EditorStateMapper.Apply(values, state);
+		EditorStateMapper.Apply(values, state, SyntaxRegistry.Instance);
 
 		// Assert
 		values.SyntaxLanguage

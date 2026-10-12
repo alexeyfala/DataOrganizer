@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
 using System;
@@ -59,17 +58,17 @@ internal sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public NewFolding[] CreateNewFoldings(FoldingText text)
+	public TextFolding[] CreateNewFoldings(FoldingText text)
 	{
-		Dictionary<int, NewFolding> foldings = [];
+		Dictionary<int, TextFolding> foldings = [];
 
-		foreach (NewFolding section in FindSections(text))
+		foreach (TextFolding section in FindSections(text))
 		{
 			foldings[section.StartOffset] = section;
 		}
 
 		// A section holds a block that starts on the line of its heading, so the line goes to the section.
-		foreach (NewFolding block in _indentStrategy.CreateNewFoldings(text))
+		foreach (TextFolding block in _indentStrategy.CreateNewFoldings(text))
 		{
 			foldings.TryAdd(block.StartOffset, block);
 		}
@@ -82,7 +81,7 @@ internal sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 	/// <summary>
 	/// Adds the section of a heading down to a line, leaving a blank line before the next heading in view, as VS Code does.
 	/// </summary>
-	private static void AddSection(FoldingText text, List<NewFolding> sections, int heading, int end)
+	private static void AddSection(FoldingText text, List<TextFolding> sections, int heading, int end)
 	{
 		if (end > heading && text.GetLine(end).IsWhiteSpace())
 		{
@@ -92,7 +91,11 @@ internal sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 		// A heading needs a line to fold under it.
 		if (end > heading)
 		{
-			sections.Add(new NewFolding(text.GetLineEnd(heading), text.GetLineEnd(end)));
+			sections.Add(new TextFolding
+			{
+				EndOffset = text.GetLineEnd(end),
+				StartOffset = text.GetLineEnd(heading)
+			});
 		}
 	}
 
@@ -170,9 +173,9 @@ internal sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 	/// <summary>
 	/// Returns the sections of the headings of a text, each down to the next heading of its level or of a higher one.
 	/// </summary>
-	private static List<NewFolding> FindSections(FoldingText text)
+	private static List<TextFolding> FindSections(FoldingText text)
 	{
-		List<NewFolding> sections = [];
+		List<TextFolding> sections = [];
 
 		// The headings whose sections are still open; a heading closes those of its level and of the deeper ones.
 		List<(int Line, int Level)> openHeadings = [];

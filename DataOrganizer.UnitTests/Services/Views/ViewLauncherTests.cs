@@ -24,6 +24,7 @@ using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Settings;
@@ -71,6 +72,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -141,6 +143,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -235,6 +238,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -293,6 +297,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -1885,6 +1890,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -1964,6 +1970,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2024,6 +2031,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System);
@@ -2076,6 +2084,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2170,6 +2179,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2231,6 +2241,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2285,6 +2296,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2344,6 +2356,7 @@ internal class ViewLauncherTests
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2546,6 +2559,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -2717,6 +2731,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -2883,6 +2898,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -2931,6 +2947,7 @@ internal class ViewLauncherTests
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))

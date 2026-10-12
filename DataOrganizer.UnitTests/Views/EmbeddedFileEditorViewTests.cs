@@ -11,6 +11,7 @@ using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -133,6 +134,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -502,6 +507,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();

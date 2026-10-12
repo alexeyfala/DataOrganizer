@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Interfaces.Text;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace DataOrganizer.Helpers.Text;
 /// <summary>
 /// Grammars and color themes of the syntax highlighting, read once and shared by all editors.
 /// </summary>
-internal sealed class SyntaxRegistry : IRegistryOptions
+internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 {
 	#region Properties
 	/// <summary>
@@ -83,9 +84,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 	/// </summary>
 	public SyntaxFoldingRules? FindFoldingRules(string language) => _foldingRules.GetOrAdd(language, CreateFoldingRules);
 
-	/// <summary>
-	/// Returns the language of a file by the extension of its name; <c>null</c> when no grammar knows the extension.
-	/// </summary>
+	/// <inheritdoc />
 	public string? FindLanguage(string? fileName)
 	{
 		ReadOnlySpan<char> extension = FileNameHelper.GetExtension(fileName);
@@ -104,9 +103,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions
 			?.Id;
 	}
 
-	/// <summary>
-	/// Returns the scope name of the grammar of a language; <c>null</c> for a language without a grammar.
-	/// </summary>
+	/// <inheritdoc />
 	public string? FindScope(string language) => _options.GetScopeByLanguageId(language);
 
 	/// <summary>
