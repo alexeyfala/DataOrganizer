@@ -253,6 +253,47 @@ internal class DocumentTabTemplateTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: the date of change that the editor of a file reports reaches the file.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Hands_The_Date_Of_Change_To_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
+
+		file.IsEditing = true;
+
+		DateTime updatedAt = new(2026, 10, 12, 18, 30, 0);
+
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(viewModel);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		sut.Build(file);
+
+		// Act
+		viewModel.SetUpdatedAtCallback!(updatedAt);
+
+		// Assert
+		file.UpdatedAt
+			.Should()
+			.Be(updatedAt);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabTemplate.Build" />: a tab of the notepad shown again gets back the editor it had, with all it
 	/// holds.
 	/// </summary>

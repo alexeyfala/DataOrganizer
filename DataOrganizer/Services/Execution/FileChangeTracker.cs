@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Execution;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Execution;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -28,14 +28,11 @@ public class FileChangeTracker : IFileChangeTracker
 	/// </summary>
 	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(800.0);
 
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
-
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
+
+	/// <inheritdoc cref="IFileContentsWriter" />
+	private readonly IFileContentsWriter _fileContentsWriter;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -55,20 +52,17 @@ public class FileChangeTracker : IFileChangeTracker
 
 	#region Constructors
 	public FileChangeTracker(
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
+		IFileContentsWriter fileContentsWriter,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		TimeProvider timeProvider)
 	{
-		_dbAccess = dbAccess;
-
 		_dbFailureReporter = dbFailureReporter;
 
-		_contentCipher = contentCipher;
+		_fileContentsWriter = fileContentsWriter;
 
 		_fileSystem = fileSystem;
 
@@ -176,75 +170,16 @@ public class FileChangeTracker : IFileChangeTracker
 					.ReadExactlyAsync(bytes, token)
 					.ConfigureAwait(false);
 
-				byte[]? cleartext = null;
-
 				try
 				{
-					if (parameters.KeeperId is { } keeperId)
+					if (!await WriteContentsAsync(parameters, bytes, token).ConfigureAwait(false))
 					{
-						byte[] encrypted;
-
-						if (_contentCipher.TryEncrypt(
-							keeperId,
-							ContentIdentity.Contents,
-							bytes) is not { } ciphertext)
-						{
-							PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
-
-							return null;
-						}
-
-						encrypted = ciphertext;
-
-						cleartext = bytes;
-
-						bytes = encrypted;
-					}
-
-					DateTime updatedAt = _timeProvider
-						.GetLocalNow()
-						.LocalDateTime;
-
-					try
-					{
-						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
-							[
-								x => x.SetProperty(x => x.Contents, bytes),
-								x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-							], token).ConfigureAwait(false))
-						{
-							_logger.LogDebug(
-								"Contents of file is updated in database:" + Environment.NewLine +
-								$"File Id = {parameters.File.Id}," + Environment.NewLine +
-								$"New bytes length = {bytes.Length}.");
-
-							parameters
-								.File
-								.UpdatedAt = updatedAt;
-						}
-					}
-					catch (OperationCanceledException)
-					{
-						// Cancellation stops the tracking on its own terms, so it is left to the outer handler.
-						throw;
-					}
-					catch (Exception ex)
-					{
-						// The changes have nowhere to go, so tracking them further would only lose more of them.
-						_dbFailureReporter.Report(
-							ex,
-							$@"{Strings.FailedToSaveFileContents} ""{parameters.FileName}""");
-
-						CloseExecutingFile(parameters);
-
 						return null;
 					}
 				}
 				finally
 				{
 					bytes.ZeroMemory();
-
-					cleartext?.ZeroMemory();
 				}
 			}
 		}
@@ -272,6 +207,57 @@ public class FileChangeTracker : IFileChangeTracker
 		_notification.ShowErrorSnackbar(message);
 
 		CloseExecutingFile(parameters);
+	}
+
+	/// <summary>
+	/// Writes the changed contents of the file and gives the file its new date of change; <c>false</c> when tracking is
+	/// to stop.
+	/// </summary>
+	private async Task<bool> WriteContentsAsync(
+		TrackChangesParameters parameters,
+		byte[] contents,
+		CancellationToken token)
+	{
+		FileContentsWriting writing;
+
+		try
+		{
+			writing = await _fileContentsWriter
+				.WriteAsync(parameters.File.Id, parameters.KeeperId, contents, FileContentsChange.Edit, token)
+				.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			// Cancellation stops the tracking on its own terms, so it is left to the outer handler.
+			throw;
+		}
+		catch (Exception ex)
+		{
+			// The changes have nowhere to go, so tracking them further would only lose more of them.
+			_dbFailureReporter.Report(
+				ex,
+				$@"{Strings.FailedToSaveFileContents} ""{parameters.FileName}""");
+
+			CloseExecutingFile(parameters);
+
+			return false;
+		}
+
+		if (writing.Status == FileContentsWriteStatus.Closed)
+		{
+			PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
+
+			return false;
+		}
+
+		if (writing.UpdatedAt is { } updatedAt)
+		{
+			parameters
+				.File
+				.UpdatedAt = updatedAt;
+		}
+
+		return true;
 	}
 	#endregion
 }

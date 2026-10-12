@@ -10,7 +10,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -309,20 +308,20 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
 		Application app,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IEditorSplitStore editorSplits,
 		IFileContentsReader fileContentsReader,
+		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			contentCipher,
 			dbAccess,
 			fileContentsReader,
+			fileContentsWriter,
 			jsonSerializer,
 			logger,
 			messenger,
@@ -617,27 +616,21 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					continue;
 				}
 
-				if (TryEncrypt(latest) is not { } output)
-				{
-					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-					latest.ZeroMemory();
-
-					Volatile.Write(ref _lastSaveFailed, true);
-
-					continue;
-				}
-
 				try
 				{
-					bool isSaved = await SaveContentsAsync(output).ConfigureAwait(false);
+					FileContentsWriteStatus status = await SaveContentsAsync(latest, FileContentsChange.Edit)
+						.ConfigureAwait(false);
 
-					if (isSaved)
+					if (status == FileContentsWriteStatus.Written)
 					{
 						_lastSavedContentHash = hash;
 					}
+					else if (status == FileContentsWriteStatus.Closed)
+					{
+						_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+					}
 
-					Volatile.Write(ref _lastSaveFailed, !isSaved);
+					Volatile.Write(ref _lastSaveFailed, status != FileContentsWriteStatus.Written);
 				}
 				catch (Exception ex)
 				{
@@ -649,8 +642,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				finally
 				{
 					latest.ZeroMemory();
-
-					output.ZeroMemory();
 				}
 			}
 			finally

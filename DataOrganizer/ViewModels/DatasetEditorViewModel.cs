@@ -15,7 +15,6 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Models.Dataset;
 using Repository.Interfaces.Database;
@@ -168,7 +167,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation($"{nameof(ValueRecord.IsHidden)} property of record is changed");
 
-		return SaveContentsAsync();
+		return SaveContentsAsync(FileContentsChange.View);
 	}
 
 	/// <summary>
@@ -187,7 +186,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Records reordered by drag-and-drop");
 
-		return SaveContentsAsync();
+		return SaveContentsAsync(FileContentsChange.Edit);
 	}
 
 	/// <summary>
@@ -460,7 +459,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		// If this event is not handled, it may fire multiple times, especially in highly nested groups.
 		e.Handled = true;
 
-		return SaveContentsAsync();
+		return SaveContentsAsync(FileContentsChange.View);
 	}
 
 	/// <summary>
@@ -614,27 +613,32 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Cached reference to the records <see cref="ItemsRepeater" />.
 	/// </summary>
 	private ItemsRepeater? _container;
+
+	/// <summary>
+	/// Change of the records whose save failed; <c>null</c> while every change is saved.
+	/// </summary>
+	private FileContentsChange? _unsavedChange;
 	#endregion
 
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IFileContentsReader fileContentsReader,
+		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			contentCipher,
 			dbAccess,
 			fileContentsReader,
+			fileContentsWriter,
 			jsonSerializer,
 			logger,
 			messenger,
@@ -710,7 +714,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		AddInGroupOrInRecords(record, group);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc cref="AddKeyValue" />
@@ -731,7 +735,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		AddInGroupOrInRecords(record, group);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc cref="AddValue" />
@@ -750,7 +754,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		AddInGroupOrInRecords(record, group);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <summary>
@@ -762,7 +766,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		DeleteRecord(Records, record);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc cref="EditKeyValue" />
@@ -785,7 +789,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		target.Value = value;
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc cref="EditNote(DatasetRecordBase?)" />
@@ -798,7 +802,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		record.Note = note;
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc cref="EditValue(ValueRecord?)" />
@@ -818,7 +822,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		target.Value = value;
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <summary>
@@ -847,7 +851,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
 			.ConfigureAwait(false);
 
-		await SaveContentsAsync(token).ConfigureAwait(false);
+		await SaveContentsAsync(FileContentsChange.View, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc cref="RenameGroup" />
@@ -867,7 +871,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Renaming a group");
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <summary>
@@ -892,7 +896,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.ForEach(x => x.IsHidden = hide);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.View, token);
 	}
 
 	/// <summary>
@@ -924,16 +928,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		records.AddRange(sorted);
 
-		return SaveContentsAsync(token);
+		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
 
 	/// <inheritdoc />
 	protected override Task<bool> FlushAsync(CancellationToken token = default)
 	{
-		// Nothing to write is not a failed write, so the check stays here: a refused save answers "false".
-		return IsReadOnly || IsContentUnavailable
+		// Each change is saved as it is made, so only a change whose save failed is left to write. Nothing to write is
+		// not a failed write, so the checks stay here: a refused save answers "false".
+		return IsReadOnly || IsContentUnavailable || _unsavedChange is not { } change
 			? Task.FromResult(true)
-			: SaveContentsAsync(token);
+			: SaveContentsAsync(change, token);
 	}
 	#endregion
 
@@ -1243,40 +1248,48 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 	}
 
-	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
-	private async Task<bool> SaveContentsAsync(CancellationToken token = default)
+	/// <summary>
+	/// Saves the records, which also hold an earlier change whose save failed; <c>false</c> when they are not saved.
+	/// </summary>
+	private async Task<bool> SaveContentsAsync(FileContentsChange change, CancellationToken token = default)
 	{
 		if (IsReadOnly || IsContentUnavailable)
 		{
 			return false;
 		}
 
-		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
-
-		if (TryEncrypt(contents) is not { } output)
+		// An edit whose save failed goes with these records, so they are written as an edit.
+		if (_unsavedChange == FileContentsChange.Edit)
 		{
-			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
-
-			contents.ZeroMemory();
-
-			return false;
+			change = FileContentsChange.Edit;
 		}
+
+		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
 		try
 		{
-			return await SaveContentsAsync(output, token).ConfigureAwait(false);
+			FileContentsWriteStatus status = await SaveContentsAsync(contents, change, token).ConfigureAwait(false);
+
+			if (status == FileContentsWriteStatus.Closed)
+			{
+				_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
+			}
+
+			_unsavedChange = status == FileContentsWriteStatus.Written ? null : change;
+
+			return status == FileContentsWriteStatus.Written;
 		}
 		catch (Exception ex)
 		{
 			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
+
+			_unsavedChange = change;
 
 			return false;
 		}
 		finally
 		{
 			contents.ZeroMemory();
-
-			output.ZeroMemory();
 		}
 	}
 

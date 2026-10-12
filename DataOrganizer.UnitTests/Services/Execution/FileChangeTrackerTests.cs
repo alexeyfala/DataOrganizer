@@ -5,8 +5,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Execution;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
@@ -86,6 +88,10 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
 			builder.RegisterInstance<TimeProvider>(time);
 		});
 
@@ -158,6 +164,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -248,6 +258,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 		});
@@ -309,6 +323,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -333,6 +351,101 @@ internal class FileChangeTrackerTests
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a change that finds no file in the database leaves its date of
+	/// change alone and keeps it open.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Keeps_The_Date_When_The_File_Is_Not_In_The_Database()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		StrongReferenceMessenger messenger = new();
+
+		Guid? receivedClosedId = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] previousContents = RandomValues.CreateBytes(32);
+
+			byte[] currentContents = RandomValues.CreateBytes(32);
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(
+					_ => new MemoryStream(previousContents),
+					_ => new MemoryStream(currentContents));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(RandomValues.CreateBytes(32));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			// No row takes the change, as the file is gone from the database.
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					cancellation.Cancel();
+
+					return false;
+				});
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		DateTime updatedAt = parameters.File.UpdatedAt;
+
+		// Act
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		// Assert
+		parameters.File.UpdatedAt
+			.Should()
+			.Be(updatedAt);
+
+		receivedClosedId
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -375,6 +488,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -453,6 +570,10 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
 			builder.RegisterInstance(dbFailureReporter);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
@@ -473,9 +594,16 @@ internal class FileChangeTrackerTests
 		};
 
 		// Act
-		await sut.TrackChangesAsync(parameters);
+		Task tracking = sut.TrackChangesAsync(parameters);
 
 		// Assert
+		// The tracking stops at once rather than waiting for the next check.
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
+
 		dbFailureReporter.Received(1).Report(
 			Arg.Any<DatabaseNotWritableException>(),
 			Arg.Any<string>());
@@ -483,6 +611,88 @@ internal class FileChangeTrackerTests
 		receivedClosedId
 			.Should()
 			.Be(parameters.File.Id);
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file emptied under a keeper is saved without encryption, as empty
+	/// content always is.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Saves_Emptied_Contents_Unencrypted_Under_A_Keeper()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream());
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(RandomValues.CreateBytes(32));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					cancellation.Cancel();
+
+					return true;
+				});
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10),
+			KeeperId = Guid.NewGuid()
+		};
+
+		// Act
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		// Assert
+		contentCipher
+			.DidNotReceiveWithAnyArgs()
+			.TryEncrypt(default, default, default!);
+
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			parameters.File.Id,
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -540,6 +750,10 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
 			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
@@ -555,7 +769,15 @@ internal class FileChangeTrackerTests
 		};
 
 		// Act
-		await sut.TrackChangesAsync(parameters);
+		Task tracking = sut.TrackChangesAsync(parameters);
+
+		// Assert
+		// The tracking stops at once rather than waiting for the next check.
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
 
 		receivedClosedId
 			.Should()
@@ -619,6 +841,10 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});

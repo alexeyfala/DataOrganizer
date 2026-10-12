@@ -10,6 +10,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
@@ -17,6 +18,7 @@ using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
@@ -27,6 +29,7 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -62,6 +65,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -104,6 +115,168 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddGroupAsync" />: an edit of the records reports the date of change it is written
+	/// with.
+	/// </summary>
+	[Test]
+	public async Task AddGroupAsync_Reports_The_Date_Of_Change()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		// Assert
+		reported
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddGroupAsync" />: the records of a protected dataset are saved encrypted under its
+	/// keeper.
+	/// </summary>
+	[Test]
+	public async Task AddGroupAsync_Saves_The_Records_Encrypted_Under_The_Keeper()
+	{
+		// Arrange
+		byte[] contents = RandomValues.CreateBytes(10);
+
+		Guid keeperId = Guid.NewGuid();
+
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(contents);
+
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.KeeperId = keeperId;
+
+		// Act
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		// Assert
+		contentCipher
+			.Received(1)
+			.TryEncrypt(keeperId, ContentIdentity.Contents, contents);
+
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddGroupAsync" />: records the keeper refuses to encrypt are not written.
+	/// </summary>
+	[Test]
+	public async Task AddGroupAsync_Writes_Nothing_When_The_Encryption_Is_Refused()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			// The cipher swallows the failure and answers with a refusal.
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.KeeperId = Guid.NewGuid();
+
+		// Act
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: adds a key-value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
@@ -127,6 +300,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -188,6 +369,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -293,6 +482,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -354,6 +551,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -798,6 +1003,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -848,6 +1061,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -903,6 +1124,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1014,6 +1243,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1239,6 +1476,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1287,6 +1532,132 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: an edit whose save failed goes with the next save, which
+	/// then writes the date of change of the edit.
+	/// </summary>
+	[Test]
+	public async Task ExpandCollapseAsync_Dates_An_Edit_Whose_Save_Failed()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			// The save of the edit fails, the next one succeeds.
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(
+					Task.FromException<bool>(new InvalidOperationException()),
+					Task.FromResult(true));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// The new group starts expanded.
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		// Act
+		await sut.ExpandCollapseAsync(null, false);
+
+		// Assert
+		reported
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: expanded groups are saved as a change of view, which keeps
+	/// the date of change of the dataset.
+	/// </summary>
+	[Test]
+	public async Task ExpandCollapseAsync_Keeps_The_Date_Of_Change()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			// A save as an edit would take its date from this clock.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut
+			.Records
+			.Add(new RecordsGroup
+			{
+				IsExpanded = false
+			});
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.ExpandCollapseAsync(null, true);
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups, in a group or at the root, and persists it.
 	/// </summary>
 	[Test]
@@ -1313,6 +1684,10 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -1373,6 +1748,61 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: a value shown or hidden is saved as a change of view, which
+	/// keeps the date of change of the dataset.
+	/// </summary>
+	[Test]
+	public async Task IsHiddenChanged_Keeps_The_Date_Of_Change()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			// A save as an edit would take its date from this clock.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.IsHiddenChanged();
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: persists the content only when not read-only.
 	/// </summary>
 	[Test]
@@ -1392,6 +1822,10 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1405,6 +1839,244 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush writes nothing,
+	/// not even records whose save failed.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_In_Read_Only_Mode_Writes_Nothing()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(Task.FromException<bool>(new InvalidOperationException()));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		sut.IsReadOnly = true;
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(true);
+
+		// Only the failed save of the new group
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes again a change of view whose
+	/// save failed, still without a date of change.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Keeps_The_Date_Of_A_View_Change_Whose_Save_Failed()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			// The save of the change fails, the next one succeeds.
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(
+					Task.FromException<bool>(new InvalidOperationException()),
+					Task.FromResult(true));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			// A save as an edit would take its date from this clock.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		await sut.IsHiddenChanged();
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		await flush.GetResponsesAsync();
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.ReceivedWithAnyArgs(2)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes nothing while every change is
+	/// saved, so the date of change stays as it is.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Writes_Nothing_Without_A_Failed_Save()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(true);
+
+		// Only the save of the new group
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a flush writes the records again after their
+	/// save failed.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Writes_The_Records_Whose_Save_Failed()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(
+					Task.FromException<bool>(new InvalidOperationException()),
+					Task.FromResult(true));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(true);
+
+		await dbAccess
+			.ReceivedWithAnyArgs(2)
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -1428,6 +2100,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -1464,6 +2144,56 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.RecordMoved" />: moved records are an edit, which reports the date of change it is
+	/// written with.
+	/// </summary>
+	[Test]
+	public async Task RecordMoved_Reports_The_Date_Of_Change()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.RecordMoved(new ValueRecord());
+
+		// Assert
+		reported
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.RenameGroupAsync" />: updates the group's name, persisting only when the name actually changed.
 	/// </summary>
 	[Test]
@@ -1492,6 +2222,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1507,6 +2245,65 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: hidden values are saved as a change of view, which keeps the date
+	/// of change of the dataset.
+	/// </summary>
+	[Test]
+	public async Task ShowHideAsync_Keeps_The_Date_Of_Change()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			// A save as an edit would take its date from this clock.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut
+			.Records
+			.Add(new ValueRecord());
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.ShowHideAsync(null, true);
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.ReceivedWithAnyArgs(1)
+			.UpdateFilePropertiesAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -1541,6 +2338,10 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1592,6 +2393,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1609,6 +2418,56 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorted records are an edit, which reports the date of change it is
+	/// written with.
+	/// </summary>
+	[Test]
+	public async Task SortAsync_Reports_The_Date_Of_Change()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateFilePropertiesAsync(default, default!, default)
+				.ReturnsForAnyArgs(true);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		// Act
+		await sut.SortAsync(null, ListSortDirection.Ascending);
+
+		// Assert
+		reported
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
 	}
 
 	/// <summary>
@@ -1635,6 +2494,14 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();

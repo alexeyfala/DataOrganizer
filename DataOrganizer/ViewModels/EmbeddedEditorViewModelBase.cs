@@ -3,12 +3,12 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Diagnostics;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
@@ -19,7 +19,6 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -83,6 +82,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// Callback that reports the editor state.
 	/// </summary>
 	public Action<string>? SetEditorStateCallback { get; set; }
+
+	/// <summary>
+	/// Callback that reports the date of change written with an edit of the contents.
+	/// </summary>
+	public Action<DateTime>? SetUpdatedAtCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -129,8 +133,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
+	/// <inheritdoc cref="IFileContentsWriter" />
+	private readonly IFileContentsWriter _fileContentsWriter;
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
@@ -139,9 +143,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
-		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IFileContentsReader fileContentsReader,
+		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
@@ -152,11 +156,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_dbAccess = dbAccess;
 
-		_contentCipher = contentCipher;
-
 		_exceptionHandler = exceptionHandler;
 
 		_fileContentsReader = fileContentsReader;
+
+		_fileContentsWriter = fileContentsWriter;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -249,17 +253,23 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileEntity.Contents" /> in the database.
+	/// Saves the contents of the file, encrypted when it is protected, and reports the date of change of an edit.
 	/// </summary>
-	/// <returns><c>true</c> when the row was updated.</returns>
-	protected Task<bool> SaveContentsAsync(byte[] contents, CancellationToken token = default)
+	protected async Task<FileContentsWriteStatus> SaveContentsAsync(
+		byte[] contents,
+		FileContentsChange change,
+		CancellationToken token = default)
 	{
-		_logger.LogDebug($@"Saving contents of ""{FileId}"" in the database");
+		FileContentsWriting writing = await _fileContentsWriter
+			.WriteAsync(FileId, KeeperId, contents, change, token)
+			.ConfigureAwait(false);
 
-		return _dbAccess.UpdateFilePropertiesAsync(FileId,
-		[
-			x => x.SetProperty(x => x.Contents, contents)
-		], token);
+		if (writing.UpdatedAt is { } updatedAt)
+		{
+			SetUpdatedAtCallback?.Invoke(updatedAt);
+		}
+
+		return writing.Status;
 	}
 
 	/// <summary>
@@ -276,22 +286,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		[
 			x => x.SetProperty(x => x.EditorState, json)
 		], token);
-	}
-
-	/// <summary>
-	/// Encrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
-	/// </summary>
-	protected byte[]? TryEncrypt(byte[] input)
-	{
-		if (KeeperId is not { } keeperId || input.IsEmpty())
-		{
-			return input;
-		}
-
-		return _contentCipher.TryEncrypt(
-			keeperId,
-			ContentIdentity.Contents,
-			input);
 	}
 	#endregion
 }

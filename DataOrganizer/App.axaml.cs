@@ -156,6 +156,7 @@ public sealed class App : Application
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
+		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
