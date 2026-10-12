@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
@@ -90,7 +90,7 @@ internal class ConsoleViewModelTests
 			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
 
 			dispatcher
-				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>()))
+				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<UiPriority>()))
 				.Do(x => posted.Add(x.Arg<Action>()));
 
 			builder.RegisterInstance(dispatcher);

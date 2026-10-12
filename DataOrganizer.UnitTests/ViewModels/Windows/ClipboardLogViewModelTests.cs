@@ -3,12 +3,14 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
@@ -325,6 +327,115 @@ internal class ClipboardLogViewModelTests
 		sut.IsSearchEnabled
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogViewModel.OpenUrlCommand" />: an entry that is not a link opens nothing, even when its
+	/// text looks like one.
+	/// </summary>
+	[Test]
+	public void OpenUrlCommand_Ignores_An_Entry_That_Is_Not_A_Link()
+	{
+		// Arrange
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			clipboardLog
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
+
+		// Act
+		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateTextEntry("https://example.com/", [1]));
+
+		// Assert
+		processManager
+			.DidNotReceive()
+			.OpenWithShell(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogViewModel.OpenUrlCommand" />: the URL of a link entry is opened by the program the operating
+	/// system assigns to it.
+	/// </summary>
+	[Test]
+	public void OpenUrlCommand_Opens_The_Url_Of_A_Link_Entry()
+	{
+		// Arrange
+		const string url = "https://example.com/";
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			clipboardLog
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
+
+		// Act
+		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateUrlEntry(url));
+
+		// Assert
+		processManager
+			.Received(1)
+			.OpenWithShell(url);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogViewModel.OpenUrlCommand" />: a link that fails to open does not break the command.
+	/// </summary>
+	[Test]
+	public void OpenUrlCommand_Swallows_A_Failure_To_Open_The_Url()
+	{
+		// Arrange
+		const string url = "https://example.com/";
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			clipboardLog
+				.Entries
+				.Returns([]);
+
+			processManager
+				.When(x => x.OpenWithShell(url))
+				.Throw(new Win32Exception());
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
+
+		// Act
+		Action act = () => sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateUrlEntry(url));
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
 	}
 
 	/// <summary>

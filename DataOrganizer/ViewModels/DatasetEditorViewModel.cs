@@ -1,13 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -182,7 +182,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return Task.CompletedTask;
 		}
 
-		_dispatcher.Post(() => record?.PulseHighlight(), DispatcherPriority.Background);
+		_dispatcher.Post(() => record?.PulseHighlight(), UiPriority.Background);
 
 		_logger.LogInformation("Records reordered by drag-and-drop");
 
@@ -848,7 +848,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation($"{(expand ? "Expand" : "Collapse")} all groups");
 
 		await groups
-			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
+			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, UiPriority.Background))
 			.ConfigureAwait(false);
 
 		await SaveContentsAsync(FileContentsChange.View, token).ConfigureAwait(false);
@@ -1347,7 +1347,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					x => scrollViewer.ScrollChanged -= x)
 					.SetDelay(TimeSpan.FromSeconds(0.5))
 					.Subscribe(ScrollViewer_ScrollChanged);
-			}, DispatcherPriority.Loaded);
+			}, UiPriority.Loaded);
 		}
 	}
 	#endregion

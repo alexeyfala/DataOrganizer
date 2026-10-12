@@ -12,6 +12,11 @@ public interface IProcessManager
 	void KillProcess(int processId);
 
 	/// <summary>
+	/// Opens <paramref name="target" />, a file or a URL, with the program the operating system assigns to it.
+	/// </summary>
+	void OpenWithShell(string target);
+
+	/// <summary>
 	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
 	/// </summary>
 	bool ProcessExists(int processId);

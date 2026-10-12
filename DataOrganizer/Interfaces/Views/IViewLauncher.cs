@@ -3,6 +3,7 @@ using Avalonia.Layout;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System;
@@ -121,7 +122,7 @@ public interface IViewLauncher
 	}
 
 	/// <summary>
-	/// Sets default <see cref="INavigationColumnViewModel.NavigationColumnWidth" />.
+	/// Sets default <see cref="FavoritesViewSettings.NavigationColumnWidth" />.
 	/// </summary>
 	internal static void SetDefaultNavigationColumnWidth(FavoritesViewModel viewModel)
 	{
@@ -131,7 +132,7 @@ public interface IViewLauncher
 	}
 
 	/// <summary>
-	/// Sets default <see cref="INavigationColumnViewModel.NavigationColumnWidth" />.
+	/// Sets default <see cref="EditorViewModel.NavigationColumnWidth" />.
 	/// </summary>
 	internal static void SetDefaultNavigationColumnWidth(Window window, EditorViewModel viewModel)
 	{

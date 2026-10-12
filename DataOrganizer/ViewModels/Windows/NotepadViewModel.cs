@@ -1,10 +1,10 @@
 using Avalonia.Controls;
-using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
@@ -579,7 +579,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			// The snackbar of the window takes messages only once the window is loaded, which comes before the background.
 			_dispatcher.Post(
 				() => _notification.ShowErrorSnackbar(message, SnackbarHostIdentifiers.Notepad),
-				DispatcherPriority.Background);
+				UiPriority.Background);
 
 			return;
 		}

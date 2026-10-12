@@ -1,11 +1,10 @@
-using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Dialogs;
 
 /// <summary>
-/// Provides dialogs for selecting file system entries.
+/// Provides dialogs for selecting file system entries over the main window.
 /// </summary>
 public interface IFileSystemPicker
 {
@@ -13,11 +12,11 @@ public interface IFileSystemPicker
 	/// <summary>
 	/// Opens a dialog for saving the file and returns the path to it.
 	/// </summary>
-	Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window;
+	Task<string?> SaveFileAsync(FilePickerSaveOptions options);
 
 	/// <summary>
 	/// Opens a dialog for selecting files and returns paths to them.
 	/// </summary>
-	Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window;
+	Task<string[]> SelectFilesAsync(FilePickerOpenOptions options);
 	#endregion
 }

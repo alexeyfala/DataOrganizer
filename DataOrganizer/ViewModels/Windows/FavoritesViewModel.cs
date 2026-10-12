@@ -1,12 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
@@ -95,9 +95,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		// overlay stops dismissing the popup once it is fixed, swallowing every press over the window.
 		IsPopupOpen = false;
 
-		// The RestorePopupContent method must be executed in DispatcherPriority.Background
+		// The RestorePopupContent method must be executed in UiPriority.Background
 		// otherwise the UI will freeze.
-		_dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
+		_dispatcher.Post(RestorePopupContent, UiPriority.Background);
 	}
 
 	/// <summary>
@@ -161,7 +161,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	/// Opens the popup with the restored content on hovering over the fix toggle.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowPopupOnHover))]
-	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
+	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, UiPriority.Background);
 
 	/// <summary>
 	/// Handles the display of the favorites.
@@ -285,7 +285,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 					IsPopupOpen = false;
 				}
 			}
-		}, DispatcherPriority.Background);
+		}, UiPriority.Background);
 	}
 
 	/// <summary>

@@ -60,7 +60,6 @@ namespace DataOrganizer.ViewModels.Windows;
 /// </summary>
 public sealed partial class EditorViewModel :
 	ViewModelBase,
-	INavigationColumnViewModel,
 	IRecipient<ShowInEditorMessage>,
 	IRecipient<ShowProgressBarMessage>,
 	IUpdatePrompt
@@ -99,7 +98,9 @@ public sealed partial class EditorViewModel :
 	[ObservableProperty]
 	public partial bool IsRightSideSheetOpened { get; set; }
 
-	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
+	/// <summary>
+	/// Width of the navigation column.
+	/// </summary>
 	[ObservableProperty]
 	public partial GridLength NavigationColumnWidth { get; set; }
 
@@ -181,7 +182,15 @@ public sealed partial class EditorViewModel :
 	/// <summary>
 	/// Called when <see cref="ViewWidth" /> changes.
 	/// </summary>
-	partial void OnViewWidthChanged(double value) => ((INavigationColumnViewModel)this).SetNavigationColumnWidth(value);
+	partial void OnViewWidthChanged(double value)
+	{
+		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth.Value, value) is not { } width)
+		{
+			return;
+		}
+
+		NavigationColumnWidth = new GridLength(width);
+	}
 	#endregion
 
 	#region Auto-Generated Commands

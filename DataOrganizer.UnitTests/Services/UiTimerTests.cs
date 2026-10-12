@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Fakes;
@@ -63,7 +63,7 @@ internal class UiTimerTests
 
 		dispatcher
 			.Received(1)
-			.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>());
+			.Post(Arg.Any<Action>(), Arg.Any<UiPriority>());
 	}
 
 	/// <summary>

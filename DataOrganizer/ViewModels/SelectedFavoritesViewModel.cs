@@ -9,7 +9,6 @@ using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
@@ -32,7 +31,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>SelectedFavoritesView</c>.
 /// </summary>
-public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel
+public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings.Categories" />
@@ -65,7 +64,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// </summary>
 	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 
-	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
+	/// <summary>
+	/// Width of the navigation column.
+	/// </summary>
 	[ObservableProperty]
 	public partial GridLength NavigationColumnWidth { get; set; }
 
@@ -158,12 +159,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	[RelayCommand]
 	private void SizeChanged(SizeChangedEventArgs? e)
 	{
-		if (e is null)
+		if (e is null || NavigationColumnHelper.FitWidth(NavigationColumnWidth.Value, e.NewSize.Width) is not { } width)
 		{
 			return;
 		}
 
-		((INavigationColumnViewModel)this).SetNavigationColumnWidth(e.NewSize.Width);
+		NavigationColumnWidth = new GridLength(width);
 	}
 
 	/// <summary>

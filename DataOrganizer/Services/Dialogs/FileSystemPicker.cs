@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Dialogs;
@@ -23,9 +22,9 @@ public sealed class FileSystemPicker : IFileSystemPicker
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window
+	public async Task<string?> SaveFileAsync(FilePickerSaveOptions options)
 	{
-		if (FindStorageProvider<T>() is not { } provider || await provider
+		if (FindStorageProvider() is not { } provider || await provider
 			.SaveFilePickerAsync(options)
 			.ConfigureAwait(false) is not { } file)
 		{
@@ -45,9 +44,9 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	}
 
 	/// <inheritdoc />
-	public async Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window
+	public async Task<string[]> SelectFilesAsync(FilePickerOpenOptions options)
 	{
-		if (FindStorageProvider<T>() is not { } provider)
+		if (FindStorageProvider() is not { } provider)
 		{
 			return [];
 		}
@@ -69,12 +68,12 @@ public sealed class FileSystemPicker : IFileSystemPicker
 
 	#region Helpers
 	/// <summary>
-	/// Tries to get <see cref="IStorageProvider" /> in the application.
+	/// Tries to get <see cref="IStorageProvider" /> of the main window.
 	/// </summary>
-	private IStorageProvider? FindStorageProvider<T>() where T : Window
+	private IStorageProvider? FindStorageProvider()
 	{
 		return _app
-			.FindWindow<T>()?
+			.FindMainWindow()?
 			.StorageProvider;
 	}
 	#endregion

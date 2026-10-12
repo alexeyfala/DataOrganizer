@@ -10,7 +10,6 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Windows;
 using Entities.Models;
 using Entities.Serialization;
 using Repository.Dto;
@@ -188,7 +187,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		};
 
 		if (await _picker
-			.SaveFileAsync<EditorWindow>(options)
+			.SaveFileAsync(options)
 			.ConfigureAwait(false) is not { } filePath)
 		{
 			return;
@@ -253,7 +252,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		};
 
 		string[] filePaths = await _picker
-			.SelectFilesAsync<EditorWindow>(options)
+			.SelectFilesAsync(options)
 			.ConfigureAwait(false);
 
 		if (filePaths.IsEmpty())

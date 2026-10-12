@@ -9,7 +9,6 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.Windows;
 using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -110,7 +109,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
 				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Json));
 
 			builder.RegisterInstance(picker);
@@ -151,7 +150,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
 				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite));
 
 			builder.RegisterInstance(picker);
@@ -190,7 +189,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
 				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Xml));
 
 			builder.RegisterInstance(picker);
@@ -238,7 +237,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			dbAccess
@@ -305,7 +304,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			dbAccess
@@ -362,7 +361,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
@@ -403,7 +402,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			dbAccess
@@ -478,7 +477,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
@@ -547,7 +546,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -608,7 +607,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -653,7 +652,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -742,7 +741,7 @@ internal class DataExchangeServiceTests
 
 		await picker
 			.DidNotReceive()
-			.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>());
+			.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>());
 	}
 
 	/// <summary>

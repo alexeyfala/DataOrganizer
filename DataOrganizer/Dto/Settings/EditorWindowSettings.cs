@@ -1,4 +1,3 @@
-using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Dto.Settings;
@@ -12,7 +11,7 @@ public sealed class EditorWindowSettings : WindowPlacementSettings
 	/// <inheritdoc cref="EditorViewModel.IsReadOnly" />
 	public required bool IsReadOnly { get; init; }
 
-	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
+	/// <inheritdoc cref="EditorViewModel.NavigationColumnWidth" />
 	public required double NavigationColumnWidth { get; init; }
 	#endregion
 }

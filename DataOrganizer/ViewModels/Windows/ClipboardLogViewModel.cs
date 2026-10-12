@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DynamicData.Binding;
@@ -11,7 +12,6 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -84,11 +84,7 @@ public sealed partial class ClipboardLogViewModel :
 
 		try
 		{
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = urlEntry.Url,
-				UseShellExecute = true,
-			});
+			_processManager.OpenWithShell(urlEntry.Url);
 		}
 		catch (Exception ex)
 		{
@@ -181,6 +177,9 @@ public sealed partial class ClipboardLogViewModel :
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processManager;
+
 	/// <summary>
 	/// Backing collection for <see cref="VisibleEntries" />.
 	/// </summary>
@@ -197,7 +196,8 @@ public sealed partial class ClipboardLogViewModel :
 		IClipboardLogService clipboardLog,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		IProcessManager processManager)
 	{
 		_clipboardLog = clipboardLog;
 
@@ -206,6 +206,8 @@ public sealed partial class ClipboardLogViewModel :
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_processManager = processManager;
 
 		messenger.RegisterAll(this);
 

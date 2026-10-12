@@ -7,6 +7,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
@@ -366,7 +367,7 @@ internal class DialogServiceTests
 
 		dispatcher
 			.Received(1)
-			.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>());
+			.Post(Arg.Any<Action>(), Arg.Any<UiPriority>());
 	}
 
 	/// <summary>

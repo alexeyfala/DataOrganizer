@@ -6,7 +6,6 @@ using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Windows;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +60,7 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 		};
 
 		string[] filePaths = await _fileSystemPicker
-			.SelectFilesAsync<EditorWindow>(options)
+			.SelectFilesAsync(options)
 			.ConfigureAwait(true);
 
 		if (filePaths.Length == 0)

@@ -1,4 +1,6 @@
 using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.UnitTests.Factories;
@@ -124,6 +126,33 @@ internal class SelectedFavoritesViewModelTests
 		sut.SelectedPairs
 			.Should()
 			.NotBeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.SizeChangedCommand" />: the navigation column narrows below the view width
+	/// when the view shrinks.
+	/// </summary>
+	[Test]
+	public void SizeChangedCommand_Clamps_The_Navigation_Column_To_Less_Than_The_View_Width()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		const double viewWidth = 250.0;
+
+		sut.NavigationColumnWidth = new GridLength(viewWidth * 2);
+
+		// Act
+		sut.SizeChangedCommand.Execute(new SizeChangedEventArgs(null, null, default, new Size(viewWidth, viewWidth)));
+
+		// Assert
+		sut.NavigationColumnWidth.Value
+			.Should()
+			.BeLessThan(viewWidth);
 	}
 	#endregion
 }

@@ -21,6 +21,16 @@ public sealed class ProcessManager : IProcessManager
 	}
 
 	/// <inheritdoc />
+	public void OpenWithShell(string target)
+	{
+		using Process? process = Process.Start(new ProcessStartInfo
+		{
+			FileName = target,
+			UseShellExecute = true
+		});
+	}
+
+	/// <inheritdoc />
 	public bool ProcessExists(int processId)
 	{
 		return Process

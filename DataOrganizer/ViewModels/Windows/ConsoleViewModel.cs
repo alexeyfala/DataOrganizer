@@ -1,8 +1,8 @@
-using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
@@ -184,7 +184,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 
 		// The pause is checked on the UI thread, which owns the document and sets the pause,
 		// so a record posted just before a pause waits with the ones written after it.
-		_dispatcher.Post(ReadFromBuffer, DispatcherPriority.Background);
+		_dispatcher.Post(ReadFromBuffer, UiPriority.Background);
 	}
 	#endregion
 }
