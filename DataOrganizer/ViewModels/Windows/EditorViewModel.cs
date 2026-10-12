@@ -1311,36 +1311,10 @@ public sealed partial class EditorViewModel :
 		EditorWindowSettings windowSettings,
 		CopyHistoryViewSettings copyHistorySettings)
 	{
-		if (windowSettings.Size is { Width: > 0, Height: > 0 })
-		{
-			window.Width = windowSettings.Size.Width;
+		// The stored size, when there is one, replaces the default.
+		IViewLauncher.SetDefaultSize(window);
 
-			window.Height = windowSettings.Size.Height;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultSize(window);
-		}
-
-		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
-
-		if (windowSettings.X > 0
-			&& windowSettings.Y > 0
-			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-		{
-			window.Position = savedPosition;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-		}
-
-		if (windowSettings.WindowState != WindowState.Minimized)
-		{
-			window.WindowState = windowSettings.WindowState;
-		}
-
-		window.Topmost = windowSettings.IsTopmost;
+		WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
 
 		if (windowSettings.NavigationColumnWidth > default(double))
 		{

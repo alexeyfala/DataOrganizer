@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -22,8 +23,10 @@ using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -385,6 +388,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -414,6 +421,225 @@ internal class ViewLauncherTests
 			.ActiveFilter
 			.Should()
 			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: a window saved without a size keeps the size its markup gives
+	/// it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateClipboardLogWindow_Keeps_Its_Own_Size_Without_A_Saved_One()
+	{
+		// Arrange
+		ClipboardLogWindow markup = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ClipboardLogWindowSettings settings = new()
+			{
+				Size = new(0, 0),
+				X = 10,
+				Y = 10
+			};
+
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		ClipboardLogWindow window = sut.CreateClipboardLogWindow(new Window());
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(markup.Width);
+
+		window.Height
+			.Should()
+			.Be(markup.Height);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: without saved settings the window opens in the lower right
+	/// corner of the screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateClipboardLogWindow_Opens_In_The_Corner_For_The_First_Launch()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		// Act
+		ClipboardLogWindow window = sut.CreateClipboardLogWindow(owner);
+
+		// Assert
+		Screen screen = owner.Screens!.Primary!;
+
+		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
+
+		screen.WorkingArea.Contains(bounds)
+			.Should()
+			.BeTrue();
+
+		bounds.Center.X
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.X);
+
+		bounds.Center.Y
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.Y);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: a window saved off every screen opens in the lower right corner
+	/// of the screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateClipboardLogWindow_Places_A_Window_Saved_Off_The_Screens_In_The_Corner()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ClipboardLogWindowSettings settings = new()
+			{
+				Size = new(300, 300),
+				X = 50000,
+				Y = 50000
+			};
+
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		// Act
+		ClipboardLogWindow window = sut.CreateClipboardLogWindow(owner);
+
+		// Assert
+		Screen screen = owner.Screens!.Primary!;
+
+		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
+
+		screen.WorkingArea.Contains(bounds)
+			.Should()
+			.BeTrue();
+
+		bounds.Center.X
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.X);
+
+		bounds.Center.Y
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.Y);
 	}
 
 	/// <summary>
@@ -514,6 +740,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -687,6 +917,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -773,6 +1007,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1108,6 +1346,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1238,6 +1480,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1336,6 +1582,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1433,6 +1683,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1590,6 +1844,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1652,6 +1910,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -1727,6 +1989,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2044,6 +2310,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2093,6 +2363,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2140,6 +2414,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(clipboardLogService);
 
 			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2190,6 +2468,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(clipboardLogService);
 
 			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2231,6 +2513,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(clipboardLogService);
 
 			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -2305,10 +2591,16 @@ internal class ViewLauncherTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(fileSystem));
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		EditorWindow window = mock.Create<EditorWindow>();
 
@@ -2338,10 +2630,16 @@ internal class ViewLauncherTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(fileSystem));
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		FavoritesWindow window = mock.Create<FavoritesWindow>();
 
@@ -2405,6 +2703,10 @@ internal class ViewLauncherTests
 				.Do(call => captured = call.Arg<NotepadWindowSettings>());
 
 			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();

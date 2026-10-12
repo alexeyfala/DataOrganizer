@@ -19,6 +19,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -26,13 +27,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Size = System.Drawing.Size;
 
 namespace DataOrganizer.Services.Views;
 
@@ -64,11 +63,6 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
-
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	private readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
@@ -92,6 +86,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
+
+	/// <inheritdoc cref="IWindowSettingsStore" />
+	private readonly IWindowSettingsStore _windowSettings;
 	#endregion
 
 	#region Constructors
@@ -103,8 +100,6 @@ public class ViewLauncher : IViewLauncher
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
-		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IPasswordPrompt passwordPrompt,
 		IProcessTerminator processTerminator,
@@ -113,6 +108,7 @@ public class ViewLauncher : IViewLauncher
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
+		IWindowSettingsStore windowSettings,
 		Lazy<IKeyboardInputHook> keyboardInputHook)
 	{
 		_app = app;
@@ -131,10 +127,6 @@ public class ViewLauncher : IViewLauncher
 
 		_executionEngine = executionEngine;
 
-		_fileSystem = fileSystem;
-
-		_jsonSerializer = jsonSerializer;
-
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
@@ -150,6 +142,8 @@ public class ViewLauncher : IViewLauncher
 		_serviceProvider = serviceProvider;
 
 		_viewFactory = viewFactory;
+
+		_windowSettings = windowSettings;
 	}
 	#endregion
 
@@ -285,31 +279,13 @@ public class ViewLauncher : IViewLauncher
 
 		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
-
-		if (_jsonSerializer.DeserializeFromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
+		if (_windowSettings.Read<ClipboardLogWindowSettings>() is { } settings)
 		{
 			viewModel.ActiveFilter = settings.ActiveFilter;
 
 			viewModel.KeepOpen = settings.KeepOpen;
 
-			if (settings.Size.Width > 0 && settings.Size.Height > 0)
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-
-			PixelPoint candidate = new(settings.X, settings.Y);
-
-			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
-			{
-				window.Position = candidate;
-			}
-			else
-			{
-				PositionAtScreenBottomRight(window, owner);
-			}
+			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenBottomRight(x, owner));
 		}
 		else
 		{
@@ -358,14 +334,12 @@ public class ViewLauncher : IViewLauncher
 			_exceptionHandler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
 		}
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings));
-
-		if (_jsonSerializer.DeserializeFromFile<EditorWindowSettings>(filePath) is { } windowSettings)
+		if (_windowSettings.Read<EditorWindowSettings>() is { } windowSettings)
 		{
 			viewModel.Initialize(
 				window,
 				windowSettings,
-				GetHistorySettingsFromFile());
+				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());
 		}
 		else
 		{
@@ -401,15 +375,13 @@ public class ViewLauncher : IViewLauncher
 			.ExecutingFiles
 			.AddRange(executingFiles);
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
-
-		if (_jsonSerializer.DeserializeFromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
+		if (_windowSettings.Read<FavoritesWindowSettings>() is { } windowSettings)
 		{
 			viewModel.Initialize(
 				window,
 				windowSettings,
-				GetFavoritesSettingsFromFile(),
-				GetHistorySettingsFromFile());
+				_windowSettings.Read<FavoritesViewSettings>() ?? new(),
+				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());
 		}
 		else
 		{
@@ -428,9 +400,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
-
-		if (_jsonSerializer.DeserializeFromFile<WindowKind>(filePath) is { } settings)
+		if (_windowSettings.Read<WindowKind>() is { } settings)
 		{
 			return settings switch
 			{
@@ -456,42 +426,15 @@ public class ViewLauncher : IViewLauncher
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings));
+		// The stored size, when there is one, replaces the default.
+		IViewLauncher.SetDefaultSize(window);
 
-		if (_jsonSerializer.DeserializeFromFile<NotepadWindowSettings>(filePath) is { } settings)
+		if (_windowSettings.Read<NotepadWindowSettings>() is { } settings)
 		{
-			if (settings.Size is { Width: > 0, Height: > 0 })
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-			else
-			{
-				IViewLauncher.SetDefaultSize(window);
-			}
-
-			PixelPoint savedPosition = new(settings.X, settings.Y);
-
-			if (IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-			{
-				window.Position = savedPosition;
-			}
-			else
-			{
-				PositionAtScreenCenter(window, owner);
-			}
-
-			window.Topmost = settings.IsTopmost;
-
-			window.WindowState = settings.WindowState == WindowState.Minimized
-				? WindowState.Normal
-				: settings.WindowState;
+			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenCenter(x, owner));
 		}
 		else
 		{
-			IViewLauncher.SetDefaultSize(window);
-
 			PositionAtScreenCenter(window, owner);
 		}
 
@@ -509,15 +452,12 @@ public class ViewLauncher : IViewLauncher
 			{
 				ActiveFilter = window.ViewModel.ActiveFilter,
 				KeepOpen = window.ViewModel.KeepOpen,
-				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				Size = window.Placement.Size,
 				X = window.Placement.Position.X,
 				Y = window.Placement.Position.Y,
 			};
 
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings)),
-				false);
+			_windowSettings.Write(settings);
 		}
 		catch (Exception ex)
 		{
@@ -530,33 +470,22 @@ public class ViewLauncher : IViewLauncher
 	{
 		try
 		{
-			Size size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height);
-
 			EditorWindowSettings settings = new()
 			{
 				IsReadOnly = window.ViewModel.IsReadOnly,
 				IsTopmost = window.Topmost,
 				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
-				Size = size,
+				Size = window.Placement.Size,
 				WindowState = window.Placement.WindowState,
 				X = window.Placement.Position.X,
 				Y = window.Placement.Position.Y
 			};
 
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings)),
-				false);
+			_windowSettings.Write(settings);
 
-			_fileSystem.SerializeToJsonFile(
-				window.ViewModel.CopyHistorySettings,
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
-				false);
+			_windowSettings.Write(window.ViewModel.CopyHistorySettings);
 
-			_fileSystem.SerializeToJsonFile(
-				WindowKind.Editor,
-				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
-				false);
+			_windowSettings.Write(WindowKind.Editor);
 
 			if (!window
 				.ViewModel
@@ -592,25 +521,13 @@ public class ViewLauncher : IViewLauncher
 				Y = window.Placement.Position.Y
 			};
 
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings)),
-				false);
+			_windowSettings.Write(settings);
 
-			_fileSystem.SerializeToJsonFile(
-				window.ViewModel.FavoritesSettings,
-				_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings)),
-				false);
+			_windowSettings.Write(window.ViewModel.FavoritesSettings);
 
-			_fileSystem.SerializeToJsonFile(
-				window.ViewModel.CopyHistorySettings,
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
-				false);
+			_windowSettings.Write(window.ViewModel.CopyHistorySettings);
 
-			_fileSystem.SerializeToJsonFile(
-				WindowKind.Favorites,
-				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
-				false);
+			_windowSettings.Write(WindowKind.Favorites);
 
 			if (!window
 				.ViewModel
@@ -641,16 +558,13 @@ public class ViewLauncher : IViewLauncher
 			NotepadWindowSettings settings = new()
 			{
 				IsTopmost = window.Topmost,
-				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				Size = window.Placement.Size,
 				WindowState = window.Placement.WindowState,
 				X = window.Placement.Position.X,
 				Y = window.Placement.Position.Y
 			};
 
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(NotepadWindowSettings)),
-				false);
+			_windowSettings.Write(settings);
 		}
 		catch (Exception ex)
 		{
@@ -804,24 +718,6 @@ public class ViewLauncher : IViewLauncher
 			.WorkingArea
 			.CenterRect(new PixelRect(size))
 			.Position;
-	}
-
-	/// <summary>
-	/// Returns <see cref="FavoritesViewSettings" /> settings from a file.
-	/// </summary>
-	private FavoritesViewSettings GetFavoritesSettingsFromFile()
-	{
-		return _jsonSerializer.DeserializeFromFile<FavoritesViewSettings>(
-			_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
-	}
-
-	/// <summary>
-	/// Returns <see cref="CopyHistoryViewSettings" /> settings from a file.
-	/// </summary>
-	private CopyHistoryViewSettings GetHistorySettingsFromFile()
-	{
-		return _jsonSerializer.DeserializeFromFile<CopyHistoryViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
 	}
 
 	/// <summary>

@@ -297,18 +297,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		FavoritesViewSettings favoritesSettings,
 		CopyHistoryViewSettings copyHistorySettings)
 	{
-		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
-
-		if (windowSettings.X > 0
-			&& windowSettings.Y > 0
-			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-		{
-			window.Position = savedPosition;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-		}
+		WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
 
 		if (windowSettings.PopupWidth > 0.0 && windowSettings.PopupHeight > 0.0)
 		{

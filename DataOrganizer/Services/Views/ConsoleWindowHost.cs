@@ -1,14 +1,13 @@
 using Avalonia;
-using Avalonia.Controls;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Shared.Common;
-using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Diagnostics;
@@ -25,38 +24,32 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
-
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 
 	/// <inheritdoc cref="ConsoleViewModel" />
 	private readonly ConsoleViewModel _viewModel;
+
+	/// <inheritdoc cref="IWindowSettingsStore" />
+	private readonly IWindowSettingsStore _windowSettings;
 	#endregion
 
 	#region Constructors
 	public ConsoleWindowHost(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IFileSystem fileSystem,
-		IJsonSerializer jsonSerializer,
-		IViewFactory viewFactory)
+		IViewFactory viewFactory,
+		IWindowSettingsStore windowSettings)
 	{
 		_app = app;
 
 		_appEnvironment = appEnvironment;
 
-		_fileSystem = fileSystem;
-
-		_jsonSerializer = jsonSerializer;
-
 		_viewFactory = viewFactory;
 
 		_viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
+
+		_windowSettings = windowSettings;
 	}
 	#endregion
 
@@ -68,49 +61,20 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppInfo.AppVersion}";
 
-		string settingsFilePath = _appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
+		// The stored size, when there is one, replaces the default.
+		IViewLauncher.SetDefaultSize(window);
 
-		if (_fileSystem.FileExists(settingsFilePath)
-			&& _jsonSerializer.DeserializeFromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
-			&& settings.IsNotDefault())
+		if (_windowSettings.Read<ConsoleWindowSettings>() is { } settings)
 		{
 			_viewModel.FontSize = settings.FontSize;
 
 			_viewModel.WordWrap = settings.WordWrap;
 
-			if (settings.Size is { Width: > 0, Height: > 0 })
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-			else
-			{
-				IViewLauncher.SetDefaultSize(window);
-			}
-
-			PixelPoint savedPosition = new(settings.X, settings.Y);
-
-			if (IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-			{
-				window.Position = savedPosition;
-			}
-			else
-			{
-				IViewLauncher.SetDefaultLocation(window);
-			}
-
-			window.Topmost = settings.IsTopmost;
-
-			window.WindowState = settings.WindowState == WindowState.Minimized
-				? WindowState.Normal
-				: settings.WindowState;
+			WindowPlacementHelper.Restore(window, settings, IViewLauncher.SetDefaultLocation);
 		}
 		else
 		{
 			IViewLauncher.SetDefaultLocation(window);
-
-			IViewLauncher.SetDefaultSize(window);
 		}
 
 		window.Closing += delegate
@@ -128,15 +92,12 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 					IsTopmost = window.Topmost,
 					WordWrap = _viewModel.WordWrap,
 					WindowState = window.Placement.WindowState,
-					Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+					Size = window.Placement.Size,
 					X = window.Placement.Position.X,
 					Y = window.Placement.Position.Y
 				};
 
-				_fileSystem.SerializeToJsonFile(
-					settings,
-					settingsFilePath,
-					false);
+				_windowSettings.Write(settings);
 
 				_viewModel.IsSaved = true;
 

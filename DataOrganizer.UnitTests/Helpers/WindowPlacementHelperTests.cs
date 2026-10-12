@@ -1,6 +1,10 @@
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
+using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.Helpers;
 
@@ -56,6 +60,221 @@ internal class WindowPlacementHelperTests
 		grown
 			.Should()
 			.Be(new PixelPoint(small.X - 200, small.Y - 60));
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.IsOnScreen" />: a window counts as on a screen while its title bar lies on the
+	/// working area, also past the left or top edge, and not when it is far away.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0, 0, true)]
+	[TestCase(-50, 100, true)]
+	[TestCase(-20000, -20000, false)]
+	public void IsOnScreen_Finds_The_Title_Bar_On_A_Screen(int offsetX, int offsetY, bool expected)
+	{
+		// Arrange
+		Window window = new();
+
+		PixelPoint position = window.Screens!.Primary!.WorkingArea.TopLeft + new PixelVector(offsetX, offsetY);
+
+		// Act
+		bool result = WindowPlacementHelper.IsOnScreen(window, position);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: the stored size, position, state and topmost flag are given to the
+	/// window.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Applies_The_Stored_Placement()
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = true,
+			Size = new(640, 480),
+			WindowState = WindowState.Maximized,
+			X = 120,
+			Y = 90
+		};
+
+		List<Window> placedByDefault = [];
+
+		Window window = new();
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, placedByDefault.Add);
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(640);
+
+		window.Height
+			.Should()
+			.Be(480);
+
+		window.Position
+			.Should()
+			.Be(new PixelPoint(120, 90));
+
+		window.Topmost
+			.Should()
+			.BeTrue();
+
+		window.WindowState
+			.Should()
+			.Be(WindowState.Maximized);
+
+		placedByDefault
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: a window stored without a size keeps the size it has.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Keeps_The_Size_Of_A_Window_Stored_Without_One()
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = false,
+			Size = new(0, 0),
+			WindowState = WindowState.Normal,
+			X = 120,
+			Y = 90
+		};
+
+		Window window = new()
+		{
+			Height = 200.0,
+			Width = 300.0
+		};
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, _ => { });
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(300.0);
+
+		window.Height
+			.Should()
+			.Be(200.0);
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: settings that keep only a position leave the size, the state and the
+	/// topmost flag of the window as they are.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Leaves_All_But_The_Position_Of_A_Window_That_Keeps_Only_Its_Position()
+	{
+		// Arrange
+		PositionSettings settings = new()
+		{
+			X = 120,
+			Y = 90
+		};
+
+		Window window = new()
+		{
+			Height = 200.0,
+			Width = 300.0
+		};
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, _ => { });
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(120, 90));
+
+		window.Width
+			.Should()
+			.Be(300.0);
+
+		window.Height
+			.Should()
+			.Be(200.0);
+
+		window.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+
+		window.Topmost
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: a window closed minimized comes back in the normal state.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Opens_A_Window_Saved_Minimized_In_The_Normal_State()
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = false,
+			Size = new(640, 480),
+			WindowState = WindowState.Minimized,
+			X = 120,
+			Y = 90
+		};
+
+		Window window = new();
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, _ => { });
+
+		// Assert
+		window.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: a window stored off every screen gets the default placement instead
+	/// of the stored position.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Places_A_Window_Saved_Off_The_Screens_By_Default()
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = false,
+			Size = new(640, 480),
+			WindowState = WindowState.Normal,
+			X = -20000,
+			Y = -20000
+		};
+
+		List<Window> placedByDefault = [];
+
+		Window window = new();
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, placedByDefault.Add);
+
+		// Assert
+		placedByDefault
+			.Should()
+			.Equal(window);
+
+		window.Position
+			.Should()
+			.NotBe(new PixelPoint(-20000, -20000));
 	}
 	#endregion
 }

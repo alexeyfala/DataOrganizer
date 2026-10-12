@@ -1,9 +1,15 @@
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Platform;
+using DataOrganizer.Dto.Settings;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.Helpers;
 
 /// <summary>
-/// Window coordinate arithmetic over the working area of a screen.
+/// Places windows on the working areas of screens.
 /// </summary>
 internal static class WindowPlacementHelper
 {
@@ -12,6 +18,11 @@ internal static class WindowPlacementHelper
 	/// Default gap between a corner placed window and the edges of the working area, in pixels.
 	/// </summary>
 	public const int CornerMargin = 10;
+
+	/// <summary>
+	/// Size of the area at the top left of a window that has to stay on a screen, so that the window can be dragged back.
+	/// </summary>
+	private static readonly PixelSize TitleBarSize = new(100, 30);
 	#endregion
 
 	#region Methods
@@ -23,6 +34,63 @@ internal static class WindowPlacementHelper
 		return new PixelPoint(
 			workingArea.X + workingArea.Width - (windowSize.Width + margin),
 			workingArea.Y + workingArea.Height - (windowSize.Height + margin));
+	}
+
+	/// <summary>
+	/// <c>True</c> when the title bar of a window at <paramref name="position" /> lies on the working area of a connected
+	/// screen.
+	/// </summary>
+	public static bool IsOnScreen(Window window, PixelPoint position)
+	{
+		IReadOnlyList<Screen>? screens = window
+			.Screens?
+			.All;
+
+		if (screens is null || screens.Count == 0)
+		{
+			return true;
+		}
+
+		PixelRect titleBar = new(position, TitleBarSize);
+
+		return screens.Any(x => x.WorkingArea.Intersects(titleBar));
+	}
+
+	/// <summary>
+	/// Gives the window the stored size, state and topmost flag where the settings keep them, and the stored position when
+	/// it lies on a screen; a position off every screen goes to <paramref name="placeByDefault" /> instead.
+	/// </summary>
+	public static void Restore(Window window, PositionSettings settings, Action<Window> placeByDefault)
+	{
+		if (settings is PositionSizeSettings { Size: { Width: > 0, Height: > 0 } size })
+		{
+			window.Width = size.Width;
+
+			window.Height = size.Height;
+		}
+
+		PixelPoint position = new(settings.X, settings.Y);
+
+		if (IsOnScreen(window, position))
+		{
+			window.Position = position;
+		}
+		else
+		{
+			placeByDefault(window);
+		}
+
+		if (settings is not WindowPlacementSettings placement)
+		{
+			return;
+		}
+
+		window.Topmost = placement.IsTopmost;
+
+		// A window closed minimized comes back in the normal state.
+		window.WindowState = placement.WindowState == WindowState.Minimized
+			? WindowState.Normal
+			: placement.WindowState;
 	}
 	#endregion
 }

@@ -142,6 +142,40 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.Initialize" />: a window saved off every screen opens in the center of the screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void Initialize_Centers_A_Window_Saved_Off_The_Screens()
+	{
+		// Arrange
+		FavoritesWindowSettings windowSettings = new()
+		{
+			PopupHeight = 250.0,
+			PopupWidth = 500.0,
+			X = 50000,
+			Y = 50000
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		Window window = new();
+
+		// Act
+		sut.Initialize(
+			window,
+			windowSettings,
+			new FavoritesViewSettings(),
+			new CopyHistoryViewSettings());
+
+		// Assert
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.Initialize" />: applies window, favorites and copy-history settings.
 	/// </summary>
 	[AvaloniaTest]
@@ -210,6 +244,47 @@ internal class FavoritesViewModelTests
 		sut.CopyHistorySettings
 			.Should()
 			.BeEquivalentTo(copyHistorySettings);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.Initialize" />: a window saved at zero or negative coordinates, as at the edge of the
+	/// screen or on a screen left of the main one, comes back there.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0, 0)]
+	[TestCase(-50, 100)]
+	public void Initialize_Restores_A_Window_Saved_At_Zero_Or_Negative_Coordinates(int x, int y)
+	{
+		// Arrange
+		FavoritesWindowSettings windowSettings = new()
+		{
+			PopupHeight = 250.0,
+			PopupWidth = 500.0,
+			X = x,
+			Y = y
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// The window stands elsewhere, so only the restore brings it to the stored position.
+		Window window = new()
+		{
+			Position = new PixelPoint(200, 150)
+		};
+
+		// Act
+		sut.Initialize(
+			window,
+			windowSettings,
+			new FavoritesViewSettings(),
+			new CopyHistoryViewSettings());
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(x, y));
 	}
 
 	/// <summary>

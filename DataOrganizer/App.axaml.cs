@@ -183,6 +183,7 @@ public sealed class App : Application
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IWindowSettingsStore, WindowSettingsStore>();
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 

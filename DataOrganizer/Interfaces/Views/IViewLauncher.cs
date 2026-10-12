@@ -1,7 +1,5 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Platform;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
@@ -9,7 +7,6 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Views;
@@ -114,29 +111,6 @@ public interface IViewLauncher
 	/// Reports a database that cannot be worked with and ends the launch once the report is closed.
 	/// </summary>
 	Task ShowStartupErrorAsync(string databaseFilePath);
-
-	/// <summary>
-	/// Checks whether <paramref name="position" /> places the window's title bar
-	/// area on a working area of any connected screen. Used to prevent restoring
-	/// the window onto a disconnected monitor.
-	/// </summary>
-	internal static bool IsWindowPositionOnScreen(Window window, PixelPoint position)
-	{
-		IReadOnlyList<Screen>? screens = window
-			.Screens?
-			.All;
-
-		if (screens is null || screens.Count == 0)
-		{
-			return true;
-		}
-
-		// Roughly title-bar sized area at the top-left of the window — must be
-		// reachable by the user so they can drag the window back.
-		PixelRect titleBarRect = new(position.X, position.Y, 100, 30);
-
-		return screens.Any(x => x.WorkingArea.Intersects(titleBarRect));
-	}
 
 	/// <summary>
 	/// Sets default <see cref="Window.WindowStartupLocation" /> to the window.
