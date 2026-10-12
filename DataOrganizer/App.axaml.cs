@@ -153,7 +153,6 @@ public sealed class App : Application
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
-		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
@@ -379,12 +378,18 @@ public sealed class App : Application
 		{
 			services.AddTransient<IAppPickerService, WindowsAppPickerService>();
 
+			services.AddTransient<IAppResolver, WindowsAppResolver>();
+
 			services.AddTransient<IExplorerManager, WindowsExplorerManager>();
+
+			services.AddTransient<IFileAssociationService, FileAssociationService>();
 
 			return;
 		}
 
 		services.AddTransient<IAppPickerService, UnsupportedAppPickerService>();
+
+		services.AddTransient<IAppResolver, SystemAppResolver>();
 
 		if (OperatingSystem.IsLinux())
 		{

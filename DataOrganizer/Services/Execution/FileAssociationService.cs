@@ -1,6 +1,7 @@
 using DataOrganizer.Interfaces.Execution;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 /*
  * Path to the "Open with" list in the registry:
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 namespace DataOrganizer.Services.Execution;
 
 /// <inheritdoc cref="IFileAssociationService" />
+[SupportedOSPlatform("windows")]
 public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods

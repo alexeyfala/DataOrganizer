@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
@@ -17,6 +18,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 
 namespace DataOrganizer.Converters;
@@ -163,6 +165,11 @@ internal static class AppConverters
 		new(strength => (double)strength);
 
 	/// <summary>
+	/// Image of a PNG; <c>null</c> without one.
+	/// </summary>
+	public static FuncValueConverter<byte[]?, Bitmap?> PngToBitmap { get; } = new(GetBitmap);
+
+	/// <summary>
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
 	/// Inputs: [Extent.Height, Viewport.Height].
 	/// </summary>
@@ -214,6 +221,21 @@ internal static class AppConverters
 		string time = left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture);
 
 		return string.Format(CultureInfo.CurrentCulture, Strings.LockedInFormat, time);
+	}
+
+	/// <summary>
+	/// Returns the image of <paramref name="png" />; <c>null</c> without one.
+	/// </summary>
+	private static Bitmap? GetBitmap(byte[]? png)
+	{
+		if (png is null)
+		{
+			return null;
+		}
+
+		using MemoryStream stream = new(png);
+
+		return new Bitmap(stream);
 	}
 
 	/// <summary>

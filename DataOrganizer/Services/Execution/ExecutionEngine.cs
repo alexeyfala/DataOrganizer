@@ -22,8 +22,8 @@ namespace DataOrganizer.Services.Execution;
 public sealed class ExecutionEngine : IExecutionEngine
 {
 	#region Data
-	/// <inheritdoc cref="IAppPickerService" />
-	private readonly IAppPickerService _appPicker;
+	/// <inheritdoc cref="IAppResolver" />
+	private readonly IAppResolver _appResolver;
 
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
@@ -33,9 +33,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
 	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
-
-	/// <inheritdoc cref="IFileAssociationService" />
-	private readonly IFileAssociationService _fileAssociation;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -63,8 +60,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IAppPickerService appPicker,
-		IFileAssociationService fileAssociation,
+		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
@@ -73,11 +69,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
-		_appPicker = appPicker;
+		_appResolver = appResolver;
 
 		_changeTracker = changeTracker;
-
-		_fileAssociation = fileAssociation;
 
 		_fileSystem = fileSystem;
 
@@ -313,12 +307,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		string filePath = Path.Combine(directoryPath, fileName);
 
-		(bool shouldContinue, string? selectedAppPath) = await TryResolveAppPathAsync(
-			fileName,
-			filePath,
-			token).ConfigureAwait(false);
+		AppResolution app = await _appResolver
+			.ResolveAsync(filePath, token)
+			.ConfigureAwait(false);
 
-		if (!shouldContinue)
+		if (app.IsCancelled)
 		{
 			return false;
 		}
@@ -365,7 +358,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				token).ConfigureAwait(false);
 
 			int processId = StartFileProcess(
-				selectedAppPath,
+				app.AppPath,
 				filePath,
 				parameters.File.Id);
 
@@ -646,45 +639,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 		}
-	}
-
-	/// <summary>
-	/// On Windows: resolves which application should open the file. Returns the user's
-	/// pick when the system association is missing or points at "OpenWith.exe", or
-	/// <c>null</c> selectedAppPath when the default shell-execute path is fine. The
-	/// bool flag is <c>False</c> only when the user cancelled the picker.
-	/// </summary>
-	private async Task<(bool ShouldContinue, string? SelectedAppPath)> TryResolveAppPathAsync(
-		string fileName,
-		string filePath,
-		CancellationToken token)
-	{
-		if (!OperatingSystem.IsWindows())
-		{
-			return (true, null);
-		}
-
-		string? appPath = _fileAssociation.FindApplicationByExtension(Path.GetExtension(fileName));
-
-		if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) == false)
-		{
-			_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
-
-			return (true, null);
-		}
-
-		AssociatedAppInfo? selected = await _appPicker
-			.PickAppAsync(filePath, token)
-			.ConfigureAwait(false);
-
-		if (selected is null)
-		{
-			_logger.LogInformation($@"User cancelled the application picker for ""{filePath}"".");
-
-			return (false, null);
-		}
-
-		return (true, selected.AppPath);
 	}
 	#endregion
 }

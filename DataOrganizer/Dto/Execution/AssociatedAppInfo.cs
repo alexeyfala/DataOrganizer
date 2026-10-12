@@ -1,5 +1,3 @@
-using Avalonia.Media.Imaging;
-
 namespace DataOrganizer.Dto.Execution;
 
 /// <summary>
@@ -20,8 +18,8 @@ public sealed class AssociatedAppInfo
 	public required string AppPath { get; init; }
 
 	/// <summary>
-	/// Optional icon shown next to the application name; <c>null</c> when unavailable.
+	/// Optional icon shown next to the application name, as a PNG image; <c>null</c> when unavailable.
 	/// </summary>
-	public Bitmap? Icon { get; init; }
+	public byte[]? IconPng { get; init; }
 	#endregion
 }

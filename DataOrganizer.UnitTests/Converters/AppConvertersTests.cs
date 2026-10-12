@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
+using Avalonia.Headless.NUnit;
+using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
 using DataOrganizer.Dto.Documents;
@@ -220,6 +222,39 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.PngToBitmap" />: the bytes of a PNG become its image.
+	/// </summary>
+	[AvaloniaTest]
+	public void PngToBitmap_Builds_The_Image_Of_A_Png()
+	{
+		// Arrange
+		const string onePixelPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+		// Act
+		object? result = Convert(AppConverters.PngToBitmap, System.Convert.FromBase64String(onePixelPng));
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<Bitmap>();
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.PngToBitmap" />: without bytes there is no image.
+	/// </summary>
+	[Test]
+	public void PngToBitmap_Without_A_Png_Is_Empty()
+	{
+		// Act
+		object? result = Convert(AppConverters.PngToBitmap, null);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.ScrollGutter" />: content that fits reserves no gutter.
 	/// </summary>
 	[TestCase(100.0)]
@@ -409,6 +444,18 @@ internal class AppConvertersTests
 			number,
 			typeof(object),
 			format,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the bytes of a PNG.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<byte[]?, Bitmap?> converter, byte[]? png)
+	{
+		return converter.Convert(
+			png,
+			typeof(object),
+			null,
 			CultureInfo.CurrentCulture);
 	}
 

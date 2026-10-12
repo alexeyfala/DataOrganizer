@@ -26,9 +26,9 @@ internal class ExecutionEngineTests
 {
 	#region Data
 	/// <summary>
-	/// Path of the application a file extension is associated with.
+	/// Path of the application the user picks to open a file.
 	/// </summary>
-	private const string AssociatedAppPath = @"C:\Apps\test.exe";
+	private const string PickedAppPath = @"C:\Apps\picked.exe";
 	#endregion
 
 	#region Methods
@@ -48,8 +48,6 @@ internal class ExecutionEngineTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
-
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -72,17 +70,11 @@ internal class ExecutionEngineTests
 				.ProcessExists(Arg.Any<int>())
 				.Returns(true);
 
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
-
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
 
 			builder.RegisterInstance(sandbox);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -166,8 +158,6 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			IProcessManager processManager = Substitute.For<IProcessManager>();
 
 			sandbox
@@ -185,10 +175,6 @@ internal class ExecutionEngineTests
 			fileSystem
 				.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
 				.Returns(true);
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
@@ -208,8 +194,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -253,8 +237,6 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
@@ -262,10 +244,6 @@ internal class ExecutionEngineTests
 			fileSystem
 				.FileExists(Arg.Any<string>())
 				.Returns(true);
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
@@ -285,8 +263,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -334,8 +310,6 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
@@ -349,17 +323,11 @@ internal class ExecutionEngineTests
 					return true;
 				});
 
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
-
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -401,6 +369,85 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: without an associated program, or with the "Open with" dialog of
+	/// Windows as one, the file opens in the program the user picks.
+	/// </summary>
+	[TestCase(null)]
+	[TestCase(@"C:\Windows\System32\OpenWith.exe")]
+	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_A_Usable_Association(string? associatedAppPath)
+	{
+		// Arrange
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppPickerService appPicker = Substitute.For<IAppPickerService>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			appPicker
+				.PickAppAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(new AssociatedAppInfo
+				{
+					AppName = "Picked",
+					AppPath = PickedAppPath
+				});
+
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns(associatedAppPath);
+
+			processManager
+				.StartProcess(PickedAppPath, Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[2] = RandomValues.CreateIntFrom10To100();
+
+					return true;
+				});
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			builder.RegisterInstance(appPicker);
+
+			builder.RegisterInstance(fileAssociation);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(sandbox);
+
+			builder
+				.RegisterType<WindowsAppResolver>()
+				.As<IAppResolver>();
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = false
+		};
+
+		// Act
+		bool result = await sut.ExecuteAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		processManager
+			.Received(1)
+			.StartProcess(PickedAppPath, Arg.Any<string>(), out Arg.Any<int>());
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.ExecuteAsync" />: overwrites the plain text it was given, read-only files included,
 	/// and hands the tracker a hash instead of the contents.
 	/// </summary>
@@ -414,8 +461,6 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -425,10 +470,6 @@ internal class ExecutionEngineTests
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
 
 			changeTracker
 				.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
@@ -448,8 +489,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
 
 			builder.RegisterInstance(changeTracker);
 		});
@@ -507,17 +546,11 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
 
 			fileSystem
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
@@ -526,8 +559,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(fileAssociation);
 
 			builder.RegisterInstance(notification);
 		});
@@ -604,17 +635,11 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
@@ -630,8 +655,6 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -659,6 +682,85 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: when the user cancels the choice of a program, the file is not
+	/// written and nothing starts.
+	/// </summary>
+	[Test]
+	public async Task ExecuteAsync_Starts_Nothing_When_The_Choice_Of_A_Program_Is_Cancelled()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppPickerService appPicker = Substitute.For<IAppPickerService>();
+
+			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			// The user closes the picker without a program.
+			appPicker
+				.PickAppAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns((AssociatedAppInfo?)null);
+
+			// No program is associated with the extension.
+			fileAssociation
+				.FindApplicationByExtension(Arg.Any<string>())
+				.Returns((string?)null);
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			builder.RegisterInstance(appPicker);
+
+			builder.RegisterInstance(fileAssociation);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(sandbox);
+
+			builder
+				.RegisterType<WindowsAppResolver>()
+				.As<IAppResolver>();
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = false
+		};
+
+		// Act
+		bool result = await sut.ExecuteAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		fileSystem
+			.DidNotReceive()
+			.CreateDirectory(Arg.Any<string>());
+
+		processManager
+			.DidNotReceiveWithAnyArgs()
+			.StartProcess(default!, default!, out _);
+
+		processManager
+			.DidNotReceiveWithAnyArgs()
+			.StartProcess(default!, out _);
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.ExecuteAsync" />: writes the file into the sandbox under a name that the file system accepts.
 	/// </summary>
 	[Test]
@@ -677,21 +779,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
-
 			sandbox
 				.GetFileDirectoryPath(dto.Id)
 				.Returns(directoryPath);
 
-			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(AssociatedAppPath);
-
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();

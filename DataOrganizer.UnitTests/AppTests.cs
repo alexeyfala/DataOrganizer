@@ -3,6 +3,8 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Services.Execution;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,6 +59,29 @@ internal class AppTests
 		result
 			.Should()
 			.BeOfType<FileDto>();
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the program that opens a file is chosen the way of the operating system the
+	/// application runs on.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Picks_The_App_Resolver_Of_The_Operating_System()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.ContainSingle(x => x.ServiceType == typeof(IAppResolver))
+			.Which
+			.ImplementationType
+			.Should()
+			.Be(OperatingSystem.IsWindows() ? typeof(WindowsAppResolver) : typeof(SystemAppResolver));
 	}
 
 	/// <summary>
