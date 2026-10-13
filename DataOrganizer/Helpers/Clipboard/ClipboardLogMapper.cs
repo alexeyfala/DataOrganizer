@@ -2,14 +2,13 @@ using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Helpers.Clipboard;
 
 /// <summary>
 /// Maps clipboard log entries between the in-memory domain model and the on-disk persisted model.
 /// </summary>
-internal static partial class ClipboardLogMapper
+internal static class ClipboardLogMapper
 {
 	#region Methods
 	/// <summary>
@@ -48,63 +47,28 @@ internal static partial class ClipboardLogMapper
 
 		return history;
 	}
-
-	/// <summary>
-	/// Matches when the entire input is an http(s) URL.
-	/// </summary>
-	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
-	public static partial Regex WholeStringUrlRegex();
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Builds a domain text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
-	/// </summary>
-	/// <remarks>
-	/// Mirrors the URL detection used while capturing; kept local so persistence stays self-contained.
-	/// </remarks>
-	private static ClipboardLogEntryBase BuildTextEntry(PersistedTextEntry entry)
-	{
-		string trimmed = entry.Text.Trim();
-
-		return WholeStringUrlRegex().IsMatch(trimmed)
-			? new ClipboardUrlEntry
-			{
-				Text = entry.Text,
-				Html = entry.Html,
-				Rtf = entry.Rtf,
-				Url = trimmed,
-				Hash = entry.Hash,
-				IsPinned = entry.IsPinned
-			}
-			: new ClipboardTextEntry
-			{
-				Text = entry.Text,
-				Html = entry.Html,
-				Rtf = entry.Rtf,
-				Hash = entry.Hash,
-				IsPinned = entry.IsPinned
-			};
-	}
-
 	/// <summary>
 	/// Maps a single persisted entry to its domain counterpart; <c>null</c> for unknown types.
 	/// </summary>
 	private static ClipboardLogEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
 	{
-		PersistedImageEntry image => new ClipboardImageEntry
-		{
-			OriginalPng = image.OriginalPng,
-			Hash = image.Hash,
-			IsPinned = image.IsPinned
-		},
-		PersistedFilesEntry files => new ClipboardFilesEntry
-		{
-			FileSystemEntries = [.. files.Files.Select(static x => new ClipboardFileSystemEntry(x.Path, x.IsFolder))],
-			Hash = files.Hash,
-			IsPinned = files.IsPinned
-		},
-		PersistedTextEntry text => BuildTextEntry(text),
+		PersistedImageEntry image => ClipboardLogEntryFactory.CreateImage(
+			image.OriginalPng,
+			image.Hash,
+			isPinned: image.IsPinned),
+		PersistedFilesEntry files => ClipboardLogEntryFactory.CreateFiles(
+			[.. files.Files.Select(static x => new ClipboardFileSystemEntry(x.Path, x.IsFolder))],
+			files.Hash,
+			isPinned: files.IsPinned),
+		PersistedTextEntry text => ClipboardLogEntryFactory.CreateText(
+			text.Text,
+			text.Html,
+			text.Rtf,
+			text.Hash,
+			isPinned: text.IsPinned),
 		_ => null
 	};
 
@@ -125,8 +89,8 @@ internal static partial class ClipboardLogMapper
 			Hash = files.Hash,
 			IsPinned = files.IsPinned
 		},
-		// Catches ClipboardUrlEntry too (derived from ClipboardTextEntry); URL is re-derived on load.
-		ClipboardTextEntry text => new PersistedTextEntry
+		// A link is stored as its text, and the factory finds the link again on load.
+		ClipboardTextEntryBase text => new PersistedTextEntry
 		{
 			Text = text.Text,
 			Html = text.Html,

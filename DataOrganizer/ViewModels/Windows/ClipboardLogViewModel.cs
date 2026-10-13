@@ -266,7 +266,7 @@ public sealed partial class ClipboardLogViewModel :
 	{
 		return filter switch
 		{
-			ClipboardLogEntryFilter.Text => static entry => entry is ClipboardTextEntry and not ClipboardUrlEntry,
+			ClipboardLogEntryFilter.Text => static entry => entry is ClipboardTextEntry,
 			ClipboardLogEntryFilter.Url => static entry => entry is ClipboardUrlEntry,
 			ClipboardLogEntryFilter.Image => static entry => entry is ClipboardImageEntry,
 			ClipboardLogEntryFilter.Files => static entry => entry is ClipboardFilesEntry,

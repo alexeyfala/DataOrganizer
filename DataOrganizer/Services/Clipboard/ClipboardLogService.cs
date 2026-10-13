@@ -20,7 +20,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,12 +69,6 @@ public sealed class ClipboardLogService : IClipboardLogService
 		ClipboardSensitivityMarkers.KdePasswordManagerHint,
 		ClipboardSensitivityMarkers.NsPasteboardConcealedType
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-
-	/// <summary>
-	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
-	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
-	/// </summary>
-	private static readonly Regex WholeStringUrlRegex = ClipboardLogMapper.WholeStringUrlRegex();
 
 	/// <inheritdoc cref="IClipboardAutoClear" />
 	private readonly IClipboardAutoClear _autoClear;
@@ -349,9 +342,9 @@ public sealed class ClipboardLogService : IClipboardLogService
 		{
 			switch (entry)
 			{
-				case ClipboardTextEntry textEntry:
+				case ClipboardTextEntryBase textEntry:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {nameof(ClipboardTextEntry)}, {textEntry.Text.Length} chars" +
+						$"Restoring clipboard entry: {textEntry.GetType().Name}, {textEntry.Text.Length} chars" +
 						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
 						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
@@ -488,35 +481,6 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <summary>
-	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
-	/// </summary>
-	internal static ClipboardLogEntryBase BuildTextEntry(
-		string text,
-		string? html,
-		string? rtf,
-		byte[] hash)
-	{
-		string? url = TryDetectUrl(text);
-
-		return url is null
-			? new ClipboardTextEntry
-			{
-				Text = text,
-				Html = html,
-				Rtf = rtf,
-				Hash = hash
-			}
-			: new ClipboardUrlEntry
-			{
-				Text = text,
-				Html = html,
-				Rtf = rtf,
-				Url = url,
-				Hash = hash
-			};
-	}
-
-	/// <summary>
 	/// Hashes a text payload together with whether it carries companion formats, so the same text
 	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
 	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
@@ -615,11 +579,9 @@ public sealed class ClipboardLogService : IClipboardLogService
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
 
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
-				{
-					FileSystemEntries = fileSystemEntries,
-					Hash = hash
-				}, isSensitive)).ConfigureAwait(false);
+				await _dispatcher
+					.PostAsync(() => HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateFiles(fileSystemEntries, hash), isSensitive))
+					.ConfigureAwait(false);
 
 				return;
 			}
@@ -628,11 +590,9 @@ public sealed class ClipboardLogService : IClipboardLogService
 			{
 				byte[] hash = ComputeHash(png);
 
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
-				{
-					OriginalPng = png,
-					Hash = hash
-				}, isSensitive)).ConfigureAwait(false);
+				await _dispatcher
+					.PostAsync(() => HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateImage(png, hash), isSensitive))
+					.ConfigureAwait(false);
 
 				return;
 			}
@@ -648,7 +608,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
 				await _dispatcher
-					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash), isSensitive))
+					.PostAsync(() => HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateText(text, html, rtf, hash), isSensitive))
 					.ConfigureAwait(false);
 
 				return;
@@ -752,17 +712,6 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <c>True</c> when two payload hashes are byte-equal.
 	/// </summary>
 	private static bool HashEquals(byte[] left, byte[] right) => left.AsSpan().SequenceEqual(right);
-
-	/// <summary>
-	/// Returns the trimmed value of <paramref name="text" /> when it matches an
-	/// absolute http(s) URL (whole-string match); otherwise <c>null</c>.
-	/// </summary>
-	private static string? TryDetectUrl(string text)
-	{
-		string trimmed = text.Trim();
-
-		return WholeStringUrlRegex.IsMatch(trimmed) ? trimmed : null;
-	}
 
 	/// <summary>
 	/// Clears the active-entry highlight from every entry. UI-thread only.

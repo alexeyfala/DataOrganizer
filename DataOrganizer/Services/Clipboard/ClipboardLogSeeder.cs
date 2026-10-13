@@ -56,25 +56,17 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 		[
 			.. SampleClipboardContents
 				.CreateTexts(faker)
-				.Select(static x => ClipboardLogService.BuildTextEntry(
+				.Select(static x => ClipboardLogEntryFactory.CreateText(
 					x.Text,
 					x.Html,
 					x.Rtf,
 					ClipboardLogService.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
 			.. SampleClipboardContents
 				.CreateImages()
-				.Select(static x => new ClipboardImageEntry
-				{
-					Hash = SHA256.HashData(x),
-					OriginalPng = x
-				}),
+				.Select(static x => ClipboardLogEntryFactory.CreateImage(x, SHA256.HashData(x))),
 			.. SampleClipboardContents
 				.CreateFileLists(faker)
-				.Select(static x => new ClipboardFilesEntry
-				{
-					FileSystemEntries = x,
-					Hash = ClipboardLogService.HashFiles(x)
-				})
+				.Select(static x => ClipboardLogEntryFactory.CreateFiles(x, ClipboardLogService.HashFiles(x)))
 		];
 
 		// The entries of the history belong to the UI thread.

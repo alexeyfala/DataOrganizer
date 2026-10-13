@@ -254,6 +254,76 @@ internal class ClipboardLogMapperTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />: a link keeps its companion
+	/// formats and its hash.
+	/// </summary>
+	[Test]
+	public void RoundTrip_Preserves_The_Formats_And_The_Hash_Of_A_Link()
+	{
+		// Arrange
+		ClipboardUrlEntry entry = new()
+		{
+			Hash = [7, 8],
+			Html = """<a href="https://example.com">example</a>""",
+			Rtf = @"{\rtf1 example}",
+			Text = "https://example.com",
+			Url = "https://example.com"
+		};
+
+		// Act
+		ClipboardLogEntryBase result = RoundTrip(entry);
+
+		// Assert
+		ClipboardUrlEntry link = result
+			.Should()
+			.BeOfType<ClipboardUrlEntry>()
+			.Subject;
+
+		link.Html
+			.Should()
+			.Be("""<a href="https://example.com">example</a>""");
+
+		link.Rtf
+			.Should()
+			.Be(@"{\rtf1 example}");
+
+		link.Hash
+			.Should()
+			.Equal(7, 8);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />: the pinned flag survives
+	/// the round-trip for files, an image and a link.
+	/// </summary>
+	[Test]
+	public void RoundTrip_Preserves_The_Pinned_State_Of_Every_Kind()
+	{
+		// Arrange
+		ClipboardFilesEntry files = ClipboardEntryFactory.CreateFilesEntry(hash: [1]);
+
+		ClipboardImageEntry image = ClipboardEntryFactory.CreateImageEntry([2, 2], [2]);
+
+		ClipboardUrlEntry link = ClipboardEntryFactory.CreateUrlEntry("https://example.com", [3]);
+
+		files.IsPinned = true;
+
+		image.IsPinned = true;
+
+		link.IsPinned = true;
+
+		// Act
+		List<ClipboardLogEntryBase> result = ClipboardLogMapper.ToDomain(ClipboardLogMapper.ToPersisted([files, image, link]));
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(3)
+			.And
+			.OnlyContain(x => x.IsPinned);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogMapper.ToDomain" />: a whole-string URL becomes a URL entry.
 	/// </summary>
 	[Test]

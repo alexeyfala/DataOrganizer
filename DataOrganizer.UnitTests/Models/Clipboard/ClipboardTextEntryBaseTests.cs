@@ -1,0 +1,79 @@
+using AwesomeAssertions;
+using DataOrganizer.Models.Clipboard;
+using DataOrganizer.UnitTests.Factories;
+
+namespace DataOrganizer.UnitTests.Models.Clipboard;
+
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardTextEntryBase)}"" type")]
+internal class ClipboardTextEntryBaseTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="ClipboardTextEntryBase.IsHtml" />, <see cref="ClipboardTextEntryBase.IsRtf" />: plain text carries no companion format.
+	/// </summary>
+	[Test]
+	public void IsHtml_And_IsRtf_Are_False_For_Plain_Text()
+	{
+		// Arrange
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("plain");
+
+		// Act, Assert
+		sut.IsHtml
+			.Should()
+			.BeFalse();
+
+		sut.IsRtf
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntryBase.IsHtml" />, <see cref="ClipboardTextEntryBase.IsRtf" />: both companion formats are reported.
+	/// </summary>
+	[Test]
+	public void IsHtml_And_IsRtf_Reflect_Companion_Formats()
+	{
+		// Arrange
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("x", html: "<b>x</b>", rtf: @"{\rtf1 x}");
+
+		// Act, Assert
+		sut.IsHtml
+			.Should()
+			.BeTrue();
+
+		sut.IsRtf
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntryBase.IsSensitive" />: ordinary prose is not flagged.
+	/// </summary>
+	[Test]
+	public void IsSensitive_Is_False_For_Plain_Prose()
+	{
+		// Arrange
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("hello world");
+
+		// Act, Assert
+		sut.IsSensitive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntryBase.IsSensitive" />: a high-entropy token is flagged.
+	/// </summary>
+	[Test]
+	public void IsSensitive_Is_True_For_Secret_Like_Token()
+	{
+		// Arrange
+		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("Xy7$kQ9pLm2!");
+
+		// Act, Assert
+		sut.IsSensitive
+			.Should()
+			.BeTrue();
+	}
+	#endregion
+}

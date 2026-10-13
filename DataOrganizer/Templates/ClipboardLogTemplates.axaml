@@ -19,7 +19,7 @@
 	<!-- ClipboardTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
-		x:DataType="clipboard:ClipboardTextEntry">
+		x:DataType="clipboard:ClipboardTextEntryBase">
 		<ScrollViewer
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
 			HorizontalScrollBarVisibility="Disabled"

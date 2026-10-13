@@ -26,58 +26,6 @@ internal class ClipboardLogServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ClipboardLogService.BuildTextEntry" />: plain text becomes a text entry.
-	/// </summary>
-	[Test]
-	public void BuildTextEntry_Builds_Text_Entry_For_Plain_Text()
-	{
-		// Act
-		ClipboardLogEntryBase entry = ClipboardLogService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
-
-		// Assert
-		ClipboardTextEntry text = entry
-			.Should()
-			.BeOfType<ClipboardTextEntry>()
-			.Subject;
-
-		text.Text
-			.Should()
-			.Be("just text");
-
-		text.Html
-			.Should()
-			.Be("<b>x</b>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardLogService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
-	/// </summary>
-	[Test]
-	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
-	{
-		// Act
-		ClipboardLogEntryBase entry = ClipboardLogService.BuildTextEntry(
-			text: "  https://example.com/x  ",
-			html: null,
-			rtf: null,
-			hash: [1]);
-
-		// Assert
-		ClipboardUrlEntry url = entry
-			.Should()
-			.BeOfType<ClipboardUrlEntry>()
-			.Subject;
-
-		url.Url
-			.Should()
-			.Be("https://example.com/x");
-
-		url.Text
-			.Should()
-			.Be("  https://example.com/x  ");
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogService.ClearAllAsync" />: the active highlight is cleared from a surviving pin.
 	/// </summary>
 	[Test]
@@ -910,6 +858,50 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: a text that is a whole link is captured as a link entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_Captures_A_Link_As_A_Link_Entry()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			clipboard
+				.TryGetTextAsync()
+				.Returns(" https://example.com/page ");
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardUrlEntry>()
+			.Which
+			.Url
+			.Should()
+			.Be("https://example.com/page");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: files are captured with folders sorted first.
 	/// </summary>
 	[Test]
@@ -1674,6 +1666,41 @@ internal class ClipboardLogServiceTests
 			.Which
 			.Should()
 			.Be(top);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring a link puts its text back on the clipboard.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Puts_The_Text_Of_A_Link_On_The_Clipboard()
+	{
+		// Arrange
+		const string url = "https://example.com/page";
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardUrlEntry link = ClipboardEntryFactory.CreateUrlEntry(url, [1]);
+
+		sut.Entries.Add(link);
+
+		// Act
+		await sut.RestoreAsync(link);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == url));
 	}
 
 	/// <summary>

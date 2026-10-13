@@ -372,7 +372,7 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	}
 
 	/// <summary>
-	/// <see cref="Control.ContextRequested" /> event handler of the splitter.
+	/// <see cref="InputElement.ContextRequested" /> event handler of the splitter.
 	/// </summary>
 	private void GridSplitter_ContextRequested(object? sender, ContextRequestedEventArgs e)
 	{

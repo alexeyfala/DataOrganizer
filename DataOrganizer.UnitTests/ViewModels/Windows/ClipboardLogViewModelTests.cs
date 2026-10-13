@@ -240,6 +240,26 @@ internal class ClipboardLogViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogViewModel" />: the <see cref="ClipboardLogEntryFilter.Url" /> filter matches a link but not
+	/// plain text.
+	/// </summary>
+	[Test]
+	public void BuildTypePredicate_Url_Excludes_Text()
+	{
+		// Arrange
+		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url);
+
+		// Act, Assert
+		predicate(ClipboardEntryFactory.CreateUrlEntry("https://example.com", [1]))
+			.Should()
+			.BeTrue();
+
+		predicate(ClipboardEntryFactory.CreateTextEntry("text", [2]))
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogViewModel" />: Clear is disabled when only pinned entries remain.
 	/// </summary>
 	[Test]

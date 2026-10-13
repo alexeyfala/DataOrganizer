@@ -8,7 +8,7 @@ namespace DataOrganizer.Models.Clipboard;
 /// <summary>
 /// Text entry whose whole trimmed content matches an absolute http(s) URL.
 /// </summary>
-public sealed class ClipboardUrlEntry : ClipboardTextEntry
+public sealed class ClipboardUrlEntry : ClipboardTextEntryBase
 {
 	#region Properties
 	/// <inheritdoc />

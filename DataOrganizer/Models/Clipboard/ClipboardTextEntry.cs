@@ -1,5 +1,4 @@
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 
 namespace DataOrganizer.Models.Clipboard;
@@ -7,44 +6,9 @@ namespace DataOrganizer.Models.Clipboard;
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public class ClipboardTextEntry : ClipboardLogEntryBase
+public sealed class ClipboardTextEntry : ClipboardTextEntryBase
 {
 	#region Properties
-	/// <summary>
-	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
-	/// source app provided one. Pushed back to the clipboard alongside plain text
-	/// on restore so paste targets can pick up the formatting.
-	/// </summary>
-	public required string? Html { get; init; }
-
-	/// <summary>
-	/// <c>True</c> when <see cref="Html" /> is not null.
-	/// </summary>
-	public bool IsHtml => Html is not null;
-
-	/// <summary>
-	/// <c>True</c> when <see cref="Rtf" /> is not null.
-	/// </summary>
-	public bool IsRtf => Rtf is not null;
-
-	/// <summary>
-	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
-	/// </summary>
-	public override bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
-
-	/// <summary>
-	/// RTF version of <see cref="Text" /> when the source app provided one.
-	/// </summary>
-	public required string? Rtf { get; init; }
-
-	/// <inheritdoc />
-	public override string? SearchableText => Text;
-
-	/// <summary>
-	/// Plain text content.
-	/// </summary>
-	public required string Text { get; init; }
-
 	/// <inheritdoc />
 	public override string TypeGlyph => BuildTypeGlyph();
 

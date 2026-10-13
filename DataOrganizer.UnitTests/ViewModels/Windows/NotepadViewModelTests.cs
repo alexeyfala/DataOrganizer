@@ -10,6 +10,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.UnitTests.Fakes;
@@ -913,7 +914,7 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IDialogService, IDispatcherAccessor, INotepadSessionState, INotepadStore, INotificationService, IViewCache, IViewLauncher, TimeProvider)" />:
+	/// <see cref="NotepadViewModel(IDialogService, IDispatcherAccessor, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, IViewCache, IViewLauncher, TimeProvider)" />:
 	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]
