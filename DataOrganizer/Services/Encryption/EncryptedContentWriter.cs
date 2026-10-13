@@ -25,6 +25,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbBackupService" />
+	private readonly IDbBackupService _dbBackupService;
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
@@ -41,12 +44,15 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
+		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		INotificationService notification,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
+
+		_dbBackupService = dbBackupService;
 
 		_dbFailureReporter = dbFailureReporter;
 
@@ -162,7 +168,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 		try
 		{
 			// The rollback has to run even when the operation was cancelled.
-			await _dbAccess
+			await _dbBackupService
 				.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
 				.ConfigureAwait(false);
 		}

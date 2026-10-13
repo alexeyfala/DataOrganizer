@@ -37,6 +37,9 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbBackupService" />
+	private readonly IDbBackupService _dbBackupService;
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
@@ -65,6 +68,7 @@ public sealed class FolderProtection : IFolderProtection
 		IEncryptedContentWriter contentWriter,
 		IFolderContentsConverter converter,
 		IDbAccess dbAccess,
+		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter encryptionFailureReporter,
@@ -80,6 +84,8 @@ public sealed class FolderProtection : IFolderProtection
 		_converter = converter;
 
 		_dbAccess = dbAccess;
+
+		_dbBackupService = dbBackupService;
 
 		_dbFailureReporter = dbFailureReporter;
 
@@ -204,7 +210,7 @@ public sealed class FolderProtection : IFolderProtection
 				return;
 			}
 
-			using DatabaseBackup? backup = await _dbAccess
+			using DatabaseBackup? backup = await _dbBackupService
 				.CreateBackupAsync(token)
 				.ConfigureAwait(false);
 
@@ -322,7 +328,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.
-				using DatabaseBackup? backup = await _dbAccess
+				using DatabaseBackup? backup = await _dbBackupService
 					.CreateBackupAsync(token)
 					.ConfigureAwait(false);
 

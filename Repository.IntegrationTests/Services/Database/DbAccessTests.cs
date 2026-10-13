@@ -136,6 +136,66 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.CopyToAsync" />: the database is copied into the file, and nothing keeps the copy open
+	/// afterwards.
+	/// </summary>
+	[Test]
+	public async Task CopyToAsync_Copies_The_Database_Into_A_File_Nothing_Holds_Open()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+
+			TempSqliteFile.Execute(connection, "INSERT INTO Payloads (Payload) VALUES ('kept');");
+		}
+
+		string copyFilePath = Path.Combine(Path.GetDirectoryName(file.FilePath)!, "Copy.db");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		await sut.CopyToAsync(copyFilePath);
+
+		// Assert
+		string copyConnectionString = new SqliteConnectionStringBuilder
+		{
+			DataSource = copyFilePath,
+			Pooling = false
+		}.ToString();
+
+		await using (SqliteConnection copy = new(copyConnectionString))
+		{
+			copy.Open();
+
+			TempSqliteFile
+				.Read(copy, "SELECT COUNT(*) FROM Payloads;")
+				.Should()
+				.Be(1L);
+		}
+
+		// A connection left in the pool would hold the copy open, and a file held open cannot be deleted.
+		Action delete = () => File.Delete(copyFilePath);
+
+		delete
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.CreateBackupAsync" />: the copy appears in the folder of the copies and is gone once released.
 	/// </summary>
 	[Test]

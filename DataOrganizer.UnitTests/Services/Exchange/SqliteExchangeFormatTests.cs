@@ -29,18 +29,9 @@ internal class SqliteExchangeFormatTests
 	public async Task ExportAsync_Copies_The_Database()
 	{
 		// Arrange
-		const string databaseFilePath = @"C:\data\organizer.sqlite";
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbAccess
-				.GetDbFilePath()
-				.Returns(databaseFilePath);
-
-			builder.RegisterInstance(dbAccess);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbBackupService));
 
 		SqliteExchangeFormat sut = mock.Create<SqliteExchangeFormat>();
 
@@ -48,15 +39,9 @@ internal class SqliteExchangeFormatTests
 		await sut.ExportAsync(FilePath);
 
 		// Assert
-		await dbAccess.Received(1).CopyDatabaseAsync(
-			new CopyDatabaseParameters
-			{
-				ClearDestinationPool = true,
-				ClearSourcePool = false,
-				DestinationFilePath = FilePath,
-				SourceFilePath = databaseFilePath
-			},
-			Arg.Any<CancellationToken>());
+		await dbBackupService
+			.Received(1)
+			.CopyToAsync(FilePath, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -67,16 +52,16 @@ internal class SqliteExchangeFormatTests
 	public async Task ReadAsync_Gives_Null_For_A_File_That_Is_Not_A_Database()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbImporter dbImporter = Substitute.For<IDbImporter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			// The file is not a database, though that is also the default answer.
-			dbAccess
+			dbImporter
 				.IsValidSqliteDatabase(FilePath)
 				.Returns(false);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbImporter);
 		});
 
 		SqliteExchangeFormat sut = mock.Create<SqliteExchangeFormat>();
@@ -89,7 +74,7 @@ internal class SqliteExchangeFormatTests
 			.Should()
 			.BeNull();
 
-		dbAccess
+		dbImporter
 			.DidNotReceive()
 			.LoadEntities(Arg.Any<string>());
 	}
@@ -109,17 +94,17 @@ internal class SqliteExchangeFormatTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbImporter dbImporter = Substitute.For<IDbImporter>();
 
-			dbAccess
+			dbImporter
 				.IsValidSqliteDatabase(FilePath)
 				.Returns(true);
 
-			dbAccess
+			dbImporter
 				.LoadEntities(FilePath)
 				.Returns(loaded);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbImporter);
 		});
 
 		SqliteExchangeFormat sut = mock.Create<SqliteExchangeFormat>();

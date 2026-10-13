@@ -33,8 +33,14 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbBackupService" />
+	private readonly IDbBackupService _dbBackupService;
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
+
+	/// <inheritdoc cref="IDbImporter" />
+	private readonly IDbImporter _dbImporter;
 
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
@@ -66,7 +72,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	#region Constructors
 	public DataExchangeService(
 		IDbAccess dbAccess,
+		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
+		IDbImporter dbImporter,
 		IEntityLoader entityLoader,
 		IEnumerable<IExchangeFormat> formats,
 		IFileSystemPicker picker,
@@ -78,7 +86,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		_dbAccess = dbAccess;
 
+		_dbBackupService = dbBackupService;
+
 		_dbFailureReporter = dbFailureReporter;
+
+		_dbImporter = dbImporter;
 
 		_entityLoader = entityLoader;
 
@@ -332,7 +344,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (variant == ImportMode.Replace)
 		{
-			await _dbAccess
+			await _dbImporter
 				.ClearDatabaseAsync(token)
 				.ConfigureAwait(false);
 		}
@@ -427,12 +439,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<ExplorerItemDtoBase[]?> ReplaceDatabaseAsync(string filePath, CancellationToken token)
 	{
-		if (!_dbAccess.IsValidSqliteDatabase(filePath))
+		if (!_dbImporter.IsValidSqliteDatabase(filePath))
 		{
 			return null;
 		}
 
-		await _dbAccess
+		await _dbBackupService
 			.RestoreFromBackupAsync(filePath, token)
 			.ConfigureAwait(false);
 
@@ -449,7 +461,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		try
 		{
-			await _dbAccess
+			await _dbBackupService
 				.RestoreFromBackupAsync(backupFilePath, token)
 				.ConfigureAwait(false);
 		}
@@ -467,7 +479,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		try
 		{
-			return await _dbAccess
+			return await _dbBackupService
 				.CreateBackupAsync(token)
 				.ConfigureAwait(false);
 		}

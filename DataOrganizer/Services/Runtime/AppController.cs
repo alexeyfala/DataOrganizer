@@ -42,8 +42,8 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
+	/// <inheritdoc cref="IDbConnector" />
+	private readonly IDbConnector _dbConnector;
 
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
@@ -84,7 +84,7 @@ public sealed class AppController : IAppController
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICommandLineOptions options,
-		IDbAccess dbAccess,
+		IDbConnector dbConnector,
 		IEntityLoader entityLoader,
 		IExecutionSandbox sandbox,
 		IFileSystem fileSystem,
@@ -104,7 +104,7 @@ public sealed class AppController : IAppController
 
 		_consoleWindowHost = consoleWindowHost;
 
-		_dbAccess = dbAccess;
+		_dbConnector = dbConnector;
 
 		_entityLoader = entityLoader;
 
@@ -156,7 +156,7 @@ public sealed class AppController : IAppController
 
 			// TODO: Display a splash screen while connecting to database.
 
-			DbConnectionStatus status = await _dbAccess
+			DbConnectionStatus status = await _dbConnector
 				.ConnectAsync(token)
 				.ConfigureAwait(true);
 
@@ -166,7 +166,7 @@ public sealed class AppController : IAppController
 				_logger.LogError($"The schema of the database is {status}, the launch ends.", breakInDebugger: false);
 
 				await _viewLauncher
-					.ShowStartupErrorAsync(_dbAccess.GetDbFilePath())
+					.ShowStartupErrorAsync(_dbConnector.GetDbFilePath())
 					.ConfigureAwait(true);
 
 				return;

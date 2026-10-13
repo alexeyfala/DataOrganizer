@@ -287,9 +287,9 @@ internal class FolderProtectionTests
 					Notes = notes
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -299,7 +299,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -404,9 +404,9 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -418,7 +418,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -480,9 +480,9 @@ internal class FolderProtectionTests
 					Notes = [new(folder.Id, EntityKind.Folder, decryptedNote)]
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -492,7 +492,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -514,7 +514,7 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Refuses_A_Failed_Conversion()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
@@ -553,7 +553,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -562,7 +562,7 @@ internal class FolderProtectionTests
 		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
-		await dbAccess
+		await dbBackupService
 			.DidNotReceiveWithAnyArgs()
 			.CreateBackupAsync();
 
@@ -616,9 +616,9 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -628,7 +628,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -712,9 +712,9 @@ internal class FolderProtectionTests
 					Notes = [new(folder.Id, EntityKind.Folder, decryptedNote)]
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -724,7 +724,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -787,7 +787,7 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Does_Not_Persist_When_A_Note_Cannot_Be_Encrypted()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
@@ -826,7 +826,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -835,7 +835,7 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		await dbAccess
+		await dbBackupService
 			.DidNotReceive()
 			.CreateBackupAsync();
 
@@ -903,9 +903,9 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(backup);
 
@@ -917,7 +917,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -979,9 +979,9 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -993,7 +993,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -1071,9 +1071,9 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -1085,7 +1085,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();

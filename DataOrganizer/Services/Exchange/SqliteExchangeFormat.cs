@@ -13,14 +13,19 @@ namespace DataOrganizer.Services.Exchange;
 public sealed class SqliteExchangeFormat : IExchangeFormat
 {
 	#region Data
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
+	/// <inheritdoc cref="IDbBackupService" />
+	private readonly IDbBackupService _dbBackupService;
+
+	/// <inheritdoc cref="IDbImporter" />
+	private readonly IDbImporter _dbImporter;
 	#endregion
 
 	#region Constructors
-	public SqliteExchangeFormat(IDbAccess dbAccess)
+	public SqliteExchangeFormat(IDbBackupService dbBackupService, IDbImporter dbImporter)
 	{
-		_dbAccess = dbAccess;
+		_dbBackupService = dbBackupService;
+
+		_dbImporter = dbImporter;
 	}
 	#endregion
 
@@ -42,22 +47,14 @@ public sealed class SqliteExchangeFormat : IExchangeFormat
 	/// <inheritdoc />
 	public Task ExportAsync(string filePath, CancellationToken token = default)
 	{
-		CopyDatabaseParameters parameters = new()
-		{
-			ClearDestinationPool = true,
-			ClearSourcePool = false,
-			DestinationFilePath = filePath,
-			SourceFilePath = _dbAccess.GetDbFilePath()
-		};
-
-		return _dbAccess.CopyDatabaseAsync(parameters, token);
+		return _dbBackupService.CopyToAsync(filePath, token);
 	}
 
 	/// <inheritdoc />
 	public Task<LoadedEntities?> ReadAsync(string filePath, CancellationToken token = default)
 	{
-		LoadedEntities? result = _dbAccess.IsValidSqliteDatabase(filePath)
-			? _dbAccess.LoadEntities(filePath)
+		LoadedEntities? result = _dbImporter.IsValidSqliteDatabase(filePath)
+			? _dbImporter.LoadEntities(filePath)
 			: null;
 
 		return Task.FromResult(result);

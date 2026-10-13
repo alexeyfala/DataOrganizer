@@ -26,7 +26,15 @@ using System.Threading.Tasks;
 
 namespace Repository.Services.Database;
 
-public sealed class DbAccess : IDbAccess
+/// <summary>
+/// Works with the SQLite database in every role: connection, objects, backups and import.
+/// </summary>
+public sealed class DbAccess :
+	IDbAccess,
+	IDbBackupService,
+	IDbConnector,
+	IDbImporter,
+	IDisposable
 {
 	#region Properties
 	/// <inheritdoc />
@@ -355,9 +363,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task CopyDatabaseAsync(
-		CopyDatabaseParameters parameters,
-		CancellationToken token = default)
+	public async Task CopyToAsync(string filePath, CancellationToken token = default)
 	{
 		await _semaphore
 			.WaitAsync(token)
@@ -365,6 +371,14 @@ public sealed class DbAccess : IDbAccess
 
 		try
 		{
+			CopyDatabaseParameters parameters = new()
+			{
+				ClearDestinationPool = true,
+				ClearSourcePool = false,
+				DestinationFilePath = filePath,
+				SourceFilePath = GetDbFilePath()
+			};
+
 			CopyDatabase(parameters);
 		}
 		finally
@@ -1030,7 +1044,9 @@ public sealed class DbAccess : IDbAccess
 		SqliteConnection.ClearPool(connection);
 	}
 
-	/// <inheritdoc cref="CopyDatabaseAsync" />
+	/// <summary>
+	/// Copies one database file onto another through the SQLite backup API.
+	/// </summary>
 	private static void CopyDatabase(CopyDatabaseParameters parameters)
 	{
 		SqliteConnectionStringBuilder sourceBuilder = new()

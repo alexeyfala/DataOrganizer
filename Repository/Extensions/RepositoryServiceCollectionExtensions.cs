@@ -33,7 +33,13 @@ public static class RepositoryServiceCollectionExtensions
 		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
 
-		services.AddSingleton<IDbAccess, DbAccess>();
+		// One object serves every role of the database, so the roles share one lock and one refusal of writes.
+		services.AddSingleton<DbAccess>();
+		services.AddSingleton<IDbAccess>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbBackupService>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbConnector>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbImporter>(static x => x.GetRequiredService<DbAccess>());
+
 		services.AddSingleton<IDbContextService, DbContextService>();
 
 		return services;

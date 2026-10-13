@@ -120,18 +120,12 @@ internal class DataExchangeServiceTests
 	public async Task ExportDataAsync_Exports_To_Sqlite()
 	{
 		// Arrange
-		const string databaseFilePath = @"C:\data\organizer.sqlite";
-
 		string filePath = RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite);
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.GetDbFilePath()
-				.Returns(databaseFilePath);
-
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
@@ -140,7 +134,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(picker);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<SqliteExchangeFormat>()
@@ -153,15 +147,9 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		await dbAccess.Received(1).CopyDatabaseAsync(
-			new CopyDatabaseParameters
-			{
-				ClearDestinationPool = true,
-				ClearSourcePool = false,
-				DestinationFilePath = filePath,
-				SourceFilePath = databaseFilePath
-			},
-			Arg.Any<CancellationToken>());
+		await dbBackupService
+			.Received(1)
+			.CopyToAsync(filePath, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -296,7 +284,7 @@ internal class DataExchangeServiceTests
 	public async Task ExportDataAsync_Writes_Nothing_To_A_File_Of_Another_Type()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -308,7 +296,7 @@ internal class DataExchangeServiceTests
 				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
 				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Txt));
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -337,9 +325,9 @@ internal class DataExchangeServiceTests
 			.DidNotReceive()
 			.CreateSequentialWrite(Arg.Any<string>());
 
-		await dbAccess
+		await dbBackupService
 			.DidNotReceive()
-			.CopyDatabaseAsync(Arg.Any<CopyDatabaseParameters>(), Arg.Any<CancellationToken>());
+			.CopyToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -366,7 +354,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
-			dbAccess
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -387,6 +377,8 @@ internal class DataExchangeServiceTests
 				.Returns([.. folders, .. files]);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -448,6 +440,8 @@ internal class DataExchangeServiceTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
@@ -462,15 +456,17 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([filePath]);
 
-			dbAccess
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
-			dbAccess
+			dbImporter
 				.IsValidSqliteDatabase(filePath)
 				.Returns(true);
 
-			dbAccess
+			dbImporter
 				.LoadEntities(filePath)
 				.Returns(new LoadedEntities
 				{
@@ -485,6 +481,10 @@ internal class DataExchangeServiceTests
 				.Returns(mapped);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -515,7 +515,7 @@ internal class DataExchangeServiceTests
 			Arg.Is<IEnumerable<FileEntity>>(x => x.SequenceEqual(files)),
 			Arg.Any<CancellationToken>());
 
-		await dbAccess
+		await dbImporter
 			.DidNotReceive()
 			.ClearDatabaseAsync(Arg.Any<CancellationToken>());
 
@@ -540,7 +540,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Appends_When_Append_Is_Chosen()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbImporter dbImporter = Substitute.For<IDbImporter>();
 
 		Collection<ExplorerItemDtoBase> hierarchy = [ItemDtoFactory.CreateFolderDto()];
 
@@ -558,7 +558,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			dbAccess
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -574,7 +576,9 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns([]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -603,7 +607,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.Be(ImportMode.Append);
 
-		await dbAccess
+		await dbImporter
 			.DidNotReceive()
 			.ClearDatabaseAsync(Arg.Any<CancellationToken>());
 
@@ -619,7 +623,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Cannot_Import_From_Json()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -629,7 +633,7 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -651,7 +655,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(picker);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<JsonExchangeFormat>()
@@ -668,7 +672,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeNull();
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
@@ -680,7 +684,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Cannot_Import_From_SQLite()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -690,13 +694,13 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(picker);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<SqliteExchangeFormat>()
@@ -713,7 +717,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeNull();
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
@@ -725,7 +729,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Cannot_Import_From_Xml()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -735,7 +739,7 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -761,7 +765,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(picker);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<XmlExchangeFormat>()
@@ -778,7 +782,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeNull();
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
@@ -810,9 +814,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -828,7 +832,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(entities);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -894,9 +898,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -912,7 +916,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns([folder, subfolder, file]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -985,7 +989,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
-			dbAccess
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -993,13 +999,11 @@ internal class DataExchangeServiceTests
 				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			dbAccess
+			IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
+			dbImporter
 				.IsValidSqliteDatabase(Arg.Any<string>())
 				.Returns(true);
-
-			dbAccess
-				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(Task.CompletedTask);
 
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -1008,6 +1012,10 @@ internal class DataExchangeServiceTests
 				.Returns([file]);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -1058,15 +1066,11 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
-
-			dbAccess
-				.ClearDatabaseAsync()
-				.Returns(Task.CompletedTask);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1080,7 +1084,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns([]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1123,21 +1127,21 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
-			dbAccess
+			IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
+			dbImporter
 				.IsValidSqliteDatabase(Arg.Any<string>())
 				.Returns(true);
 
-			dbAccess
-				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(Task.CompletedTask);
+			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(picker);
 
@@ -1172,15 +1176,11 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
-
-			dbAccess
-				.ClearDatabaseAsync()
-				.Returns(Task.CompletedTask);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1198,7 +1198,7 @@ internal class DataExchangeServiceTests
 				.Deserialize<ExplorerItemBase[]>(Arg.Any<XDocument>())
 				.Returns([]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1283,14 +1283,14 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 			// No copy of the database can be made.
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns((DatabaseBackup?)null);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1342,9 +1342,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -1360,7 +1360,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns([.. EntityFactory.CreateFolders(2)]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1453,7 +1453,9 @@ internal class DataExchangeServiceTests
 
 		ExplorerItemDtoBase[] loaded = [ItemDtoFactory.CreateFolderDto()];
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+		IDbImporter dbImporter = Substitute.For<IDbImporter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1463,11 +1465,11 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([filePath]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
-			dbAccess
+			dbImporter
 				.IsValidSqliteDatabase(filePath)
 				.Returns(true);
 
@@ -1477,7 +1479,9 @@ internal class DataExchangeServiceTests
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns(loaded);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -1498,11 +1502,11 @@ internal class DataExchangeServiceTests
 			.Should()
 			.Equal(loaded);
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(filePath, Arg.Any<CancellationToken>());
 
-		dbAccess
+		dbImporter
 			.DidNotReceive()
 			.LoadEntities(Arg.Any<string>());
 	}
@@ -1549,9 +1553,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -1567,7 +1571,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns([folder, file, child]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1621,6 +1625,8 @@ internal class DataExchangeServiceTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
@@ -1629,7 +1635,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
-			dbAccess
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -1654,6 +1662,10 @@ internal class DataExchangeServiceTests
 				.Returns(mapped);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -1684,7 +1696,7 @@ internal class DataExchangeServiceTests
 
 		Received.InOrder(() =>
 		{
-			dbAccess.ClearDatabaseAsync(Arg.Any<CancellationToken>());
+			dbImporter.ClearDatabaseAsync(Arg.Any<CancellationToken>());
 
 			dbAccess.AddFoldersAsync(
 				Arg.Is<IEnumerable<FolderEntity>>(x => x.SequenceEqual(folders)),
@@ -1714,9 +1726,9 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
@@ -1740,7 +1752,7 @@ internal class DataExchangeServiceTests
 				.Deserialize<ExplorerItemBase[]>(Arg.Do<XDocument>(x => code = x.Descendants(nameof(HotkeyEntity.Code)).Single().Value))
 				.Returns([]);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1778,7 +1790,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>());
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1788,11 +1800,11 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Txt)]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(backup);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(picker);
 
@@ -1819,7 +1831,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeNull();
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(backup.FilePath, Arg.Any<CancellationToken>());
 	}
@@ -1836,7 +1848,7 @@ internal class DataExchangeServiceTests
 
 		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>());
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1846,11 +1858,13 @@ internal class DataExchangeServiceTests
 				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
 				.Returns([filePath]);
 
-			dbAccess
+			dbBackupService
 				.CreateBackupAsync()
 				.Returns(backup);
 
-			dbAccess
+			IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
+			dbImporter
 				.IsValidSqliteDatabase(filePath)
 				.Returns(true);
 
@@ -1861,7 +1875,9 @@ internal class DataExchangeServiceTests
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns((ExplorerItemDtoBase[]?)null);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -1884,9 +1900,9 @@ internal class DataExchangeServiceTests
 
 		Received.InOrder(() =>
 		{
-			dbAccess.RestoreFromBackupAsync(filePath, Arg.Any<CancellationToken>());
+			dbBackupService.RestoreFromBackupAsync(filePath, Arg.Any<CancellationToken>());
 
-			dbAccess.RestoreFromBackupAsync(backup.FilePath, Arg.Any<CancellationToken>());
+			dbBackupService.RestoreFromBackupAsync(backup.FilePath, Arg.Any<CancellationToken>());
 		});
 	}
 	#endregion

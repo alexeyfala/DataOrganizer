@@ -3,7 +3,7 @@ namespace Repository.Dto;
 /// <summary>
 /// Parameters of a copy of the database file made through SQLite.
 /// </summary>
-public readonly struct CopyDatabaseParameters
+internal readonly struct CopyDatabaseParameters
 {
 	#region Properties
 	/// <summary>

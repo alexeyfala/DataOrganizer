@@ -45,17 +45,17 @@ internal class AppControllerTests
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
-			dbAccess
+			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
 				.Returns(status);
 
-			dbAccess
+			dbConnector
 				.GetDbFilePath()
 				.Returns(databaseFilePath);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -157,9 +157,9 @@ internal class AppControllerTests
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
-			dbAccess
+			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
 				.Returns(DbConnectionStatus.Connected);
 
@@ -169,7 +169,7 @@ internal class AppControllerTests
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns((ExplorerItemDtoBase[]?)null);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(entityLoader);
 
@@ -198,7 +198,7 @@ internal class AppControllerTests
 		// Arrange
 		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -220,11 +220,11 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(viewLauncher);
 
-			dbAccess
+			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
 				.Returns(DbConnectionStatus.Connected);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(settingsStore);
 		});
@@ -235,7 +235,7 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		await dbAccess
+		await dbConnector
 			.Received(1)
 			.ConnectAsync();
 
@@ -268,13 +268,13 @@ internal class AppControllerTests
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
-			dbAccess
+			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
 				.Returns(DbConnectionStatus.FileUnreadable);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(entityLoader);
 

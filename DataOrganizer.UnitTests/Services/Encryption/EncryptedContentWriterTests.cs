@@ -118,15 +118,19 @@ internal class EncryptedContentWriterTests
 			Notes = []
 		};
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
 				.UpdateProtectionAsync(Arg.Any<ProtectionUpdate>())
 				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -143,7 +147,7 @@ internal class EncryptedContentWriterTests
 			.Should()
 			.Be(UpdateDatabaseOutcome.SaveFailed);
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
@@ -166,15 +170,19 @@ internal class EncryptedContentWriterTests
 			Notes = []
 		};
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
 				.UpdateProtectionAsync(Arg.Any<ProtectionUpdate>())
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -191,7 +199,7 @@ internal class EncryptedContentWriterTests
 			.Should()
 			.Be(UpdateDatabaseOutcome.ExceptionThrown);
 
-		await dbAccess
+		await dbBackupService
 			.Received(1)
 			.RestoreFromBackupAsync(parameters.BackupFilePath);
 	}
