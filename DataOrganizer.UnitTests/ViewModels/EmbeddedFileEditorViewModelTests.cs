@@ -244,7 +244,12 @@ internal class EmbeddedFileEditorViewModelTests
 
 		string json = new SystemTextJsonSerializer().Serialize(new FileEditorState
 		{
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FontSize = 20.0,
 			ScrollOffset = new(15, 480),
 			SelectionLength = 4,
@@ -1400,7 +1405,12 @@ internal class EmbeddedFileEditorViewModelTests
 
 			FileEditorState state = new()
 			{
-				CaretPosition = new(line: 3, column: 2),
+				CaretPosition = new()
+				{
+					Column = 2,
+					Line = 3,
+					VisualColumn = -1
+				},
 				FontSize = 14.0,
 				ScrollOffset = new(15, 480),
 				SelectionLength = 4,
@@ -4054,7 +4064,12 @@ internal class EmbeddedFileEditorViewModelTests
 		string expected = new SystemTextJsonSerializer().Serialize(
 			new FileEditorState
 			{
-				CaretPosition = new(line: 3, column: 2),
+				CaretPosition = new()
+				{
+					Column = 2,
+					Line = 3,
+					VisualColumn = -1
+				},
 				FontSize = sut.FontSize,
 				ScrollOffset = new(15, 480),
 				SelectionLength = 4,

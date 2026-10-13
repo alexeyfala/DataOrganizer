@@ -1,3 +1,4 @@
+using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
@@ -22,7 +23,12 @@ internal class EditorStateMapperTests
 		FileEditorState state = new()
 		{
 			Bookmarks = [3, 7],
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [12],
 			FontSize = 18.5,
 			ScrollOffset = new(15, 480),
@@ -76,6 +82,42 @@ internal class EditorStateMapperTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorStateMapper.Apply" />: the caret of the view state keeps every field of the stored one.
+	/// </summary>
+	[Test]
+	public void Apply_Keeps_Every_Field_Of_The_Caret()
+	{
+		// Arrange
+		IEditorStateValues values = Substitute.For<IEditorStateValues>();
+
+		FileEditorState state = new()
+		{
+			CaretPosition = new()
+			{
+				Column = 5,
+				IsAtEndOfLine = true,
+				Line = 3,
+				VisualColumn = 4
+			}
+		};
+
+		// Act
+		EditorStateMapper.Apply(values, state, SyntaxRegistry.Instance);
+
+		// Assert
+		TextViewPosition? caret = values
+			.ViewState?
+			.CaretPosition;
+
+		caret
+			.Should()
+			.Be(new TextViewPosition(line: 3, column: 5, visualColumn: 4)
+			{
+				IsAtEndOfLine = true
+			});
+	}
+
+	/// <summary>
 	/// <see cref="EditorStateMapper.Apply" />: a stored language is restored, none gives the default one, and a language
 	/// without a grammar leaves the text plain.
 	/// </summary>
@@ -104,6 +146,41 @@ internal class EditorStateMapperTests
 		values.SyntaxLanguage
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="EditorStateMapper.Create" />: the stored caret keeps every field of the one of the view state.
+	/// </summary>
+	[Test]
+	public void Create_Keeps_Every_Field_Of_The_Caret()
+	{
+		// Arrange
+		IEditorStateValues values = Substitute.For<IEditorStateValues>();
+
+		values.ViewState = new DocumentViewState
+		{
+			CaretPosition = new(line: 3, column: 5, visualColumn: 4)
+			{
+				IsAtEndOfLine = true
+			},
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		// Act
+		FileEditorState state = EditorStateMapper.Create(values, encoding: null, isEncrypted: false);
+
+		// Assert
+		state.CaretPosition
+			.Should()
+			.Be(new CaretPosition
+			{
+				Column = 5,
+				IsAtEndOfLine = true,
+				Line = 3,
+				VisualColumn = 4
+			});
 	}
 
 	/// <summary>
@@ -150,7 +227,12 @@ internal class EditorStateMapperTests
 		FileEditorState expected = new()
 		{
 			Bookmarks = [3, 7],
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			Encoding = "cp866",
 			FoldedBlocks = [12],
 			FontSize = 18.5,

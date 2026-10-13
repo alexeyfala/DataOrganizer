@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Settings;
@@ -355,7 +354,12 @@ internal class NotepadStoreTests
 					EditorState = new FileEditorState
 					{
 						Bookmarks = [3, 5],
-						CaretPosition = new TextViewPosition(2, 4),
+						CaretPosition = new()
+						{
+							Column = 4,
+							Line = 2,
+							VisualColumn = -1
+						},
 						Encoding = Encoding.Unicode.WebName,
 						FoldedBlocks = [10],
 						FontSize = 16.0,
