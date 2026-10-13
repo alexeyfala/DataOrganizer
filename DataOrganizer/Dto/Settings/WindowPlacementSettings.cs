@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+using DataOrganizer.Enums.Views;
 
 namespace DataOrganizer.Dto.Settings;
 
@@ -13,7 +13,7 @@ public class WindowPlacementSettings : PositionSizeSettings
 	/// </summary>
 	public required bool IsTopmost { get; init; }
 
-	/// <inheritdoc cref="Avalonia.Controls.WindowState" />
-	public required WindowState WindowState { get; init; }
+	/// <inheritdoc cref="WindowShowState" />
+	public required WindowShowState WindowState { get; init; }
 	#endregion
 }

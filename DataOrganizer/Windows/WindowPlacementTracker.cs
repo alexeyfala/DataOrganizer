@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers;
 
 namespace DataOrganizer.Windows;
@@ -16,6 +17,13 @@ internal sealed class WindowPlacementTracker
 	/// Position of the window in the <see cref="WindowState.Normal" /> state.
 	/// </summary>
 	public PixelPoint Position => _position ?? _window.Position;
+
+	/// <summary>
+	/// State of the window as the settings store it, where a minimized window is reported as a normal one.
+	/// </summary>
+	public WindowShowState ShowState => _window.WindowState == WindowState.Minimized
+		? WindowShowState.Normal
+		: (WindowShowState)_window.WindowState;
 
 	/// <summary>
 	/// Size of the window in the <see cref="WindowState.Normal" /> state, in whole pixels as the settings store it.
@@ -34,14 +42,6 @@ internal sealed class WindowPlacementTracker
 			return new((int)size.Width, (int)size.Height);
 		}
 	}
-
-	/// <summary>
-	/// State of the window, where <see cref="WindowState.Minimized" /> is reported
-	/// as <see cref="WindowState.Normal" />.
-	/// </summary>
-	public WindowState WindowState => _window.WindowState == WindowState.Minimized
-		? WindowState.Normal
-		: _window.WindowState;
 	#endregion
 
 	#region Data

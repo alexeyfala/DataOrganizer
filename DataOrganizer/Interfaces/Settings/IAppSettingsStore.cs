@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Settings;
-using Material.Colors;
-using Material.Styles.Themes.Base;
+using DataOrganizer.Enums.Settings;
 using System.Globalization;
 
 namespace DataOrganizer.Interfaces.Settings;
@@ -31,9 +30,9 @@ public interface IAppSettingsStore
 	public static AppSettings CreateDefaultSettings() => new()
 	{
 		Language = CultureInfo.InstalledUICulture.LCID == 1049 ? Languages[1].Name : Languages[0].Name,
-		PrimaryColor = PrimaryColor.Teal,
-		SecondaryColor = SecondaryColor.Amber,
-		Theme = BaseThemeMode.Inherit
+		PrimaryColor = ThemePrimaryColor.Teal,
+		SecondaryColor = ThemeSecondaryColor.Amber,
+		Theme = ThemeMode.Inherit
 	};
 
 	/// <summary>

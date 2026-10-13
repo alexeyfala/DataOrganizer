@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Settings;
-using Material.Colors;
-using Material.Styles.Themes.Base;
+using DataOrganizer.Enums.Settings;
 
 namespace DataOrganizer.UnitTests.Factories;
 
@@ -17,9 +16,9 @@ public static class SettingsFactory
 	{
 		AutoLockMinutes = autoLockMinutes,
 		Language = "ja-JP",
-		PrimaryColor = PrimaryColor.Red,
-		SecondaryColor = SecondaryColor.Red,
-		Theme = BaseThemeMode.Dark,
+		PrimaryColor = ThemePrimaryColor.Red,
+		SecondaryColor = ThemeSecondaryColor.Red,
+		Theme = ThemeMode.Dark,
 		TrackHotkeys = trackHotkeys
 	};
 	#endregion

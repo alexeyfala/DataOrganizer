@@ -1,12 +1,14 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Headless.NUnit;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Enums.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.UnitTests.Factories;
 using System;
@@ -204,6 +206,44 @@ internal class AppConvertersTests
 		result
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.MaterialDesignColorToBrush" />: a primary color is painted with its swatch.
+	/// </summary>
+	[Test]
+	public void MaterialDesignColorToBrush_Paints_A_Primary_Color_With_Its_Swatch()
+	{
+		// Act
+		object? result = Convert(AppConverters.MaterialDesignColorToBrush, ThemePrimaryColor.Teal);
+
+		// Assert
+		result
+			.Should()
+			.BeAssignableTo<ISolidColorBrush>()
+			.Which
+			.Color
+			.Should()
+			.Be(Color.Parse("#009688"));
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.MaterialDesignColorToBrush" />: an accent color is painted with its swatch.
+	/// </summary>
+	[Test]
+	public void MaterialDesignColorToBrush_Paints_A_Secondary_Color_With_Its_Swatch()
+	{
+		// Act
+		object? result = Convert(AppConverters.MaterialDesignColorToBrush, ThemeSecondaryColor.Amber);
+
+		// Assert
+		result
+			.Should()
+			.BeAssignableTo<ISolidColorBrush>()
+			.Which
+			.Color
+			.Should()
+			.Be(Color.Parse("#FFAB00"));
 	}
 
 	/// <summary>
@@ -430,6 +470,18 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			ending,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over a color of the theme.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<object?, IBrush?> converter, object color)
+	{
+		return converter.Convert(
+			color,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

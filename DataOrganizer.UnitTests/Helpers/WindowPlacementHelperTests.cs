@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers;
 using System.Collections.Generic;
 
@@ -98,7 +99,7 @@ internal class WindowPlacementHelperTests
 		{
 			IsTopmost = true,
 			Size = new(640, 480),
-			WindowState = WindowState.Maximized,
+			WindowState = WindowShowState.Maximized,
 			X = 120,
 			Y = 90
 		};
@@ -137,6 +138,40 @@ internal class WindowPlacementHelperTests
 	}
 
 	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: the window takes the stored state.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(WindowShowState.Normal, WindowState.Normal)]
+	[TestCase(WindowShowState.Maximized, WindowState.Maximized)]
+	[TestCase(WindowShowState.FullScreen, WindowState.FullScreen)]
+	public void Restore_Gives_The_Window_The_Stored_State(WindowShowState stored, WindowState expected)
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = false,
+			Size = new(640, 480),
+			WindowState = stored,
+			X = 120,
+			Y = 90
+		};
+
+		// No row expects the minimized state, so every row shows the window leave it.
+		Window window = new()
+		{
+			WindowState = WindowState.Minimized
+		};
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, _ => { });
+
+		// Assert
+		window.WindowState
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
 	/// <see cref="WindowPlacementHelper.Restore" />: a window stored without a size keeps the size it has.
 	/// </summary>
 	[AvaloniaTest]
@@ -147,7 +182,7 @@ internal class WindowPlacementHelperTests
 		{
 			IsTopmost = false,
 			Size = new(0, 0),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = 120,
 			Y = 90
 		};
@@ -227,7 +262,7 @@ internal class WindowPlacementHelperTests
 		{
 			IsTopmost = false,
 			Size = new(640, 480),
-			WindowState = WindowState.Minimized,
+			WindowState = WindowShowState.Minimized,
 			X = 120,
 			Y = 90
 		};
@@ -255,7 +290,7 @@ internal class WindowPlacementHelperTests
 		{
 			IsTopmost = false,
 			Size = new(640, 480),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = -20000,
 			Y = -20000
 		};

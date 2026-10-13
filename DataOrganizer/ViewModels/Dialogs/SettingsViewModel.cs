@@ -2,11 +2,10 @@ using Baksteen.Extensions.DeepCopy;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
-using Material.Colors;
-using Material.Styles.Themes.Base;
 using System;
 using System.Globalization;
 
@@ -31,12 +30,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// The sequence of the primary colors of the application.
 	/// </summary>
-	public static PrimaryColor[] PrimaryColors { get; } = Enum.GetValues<PrimaryColor>();
+	public static ThemePrimaryColor[] PrimaryColors { get; } = Enum.GetValues<ThemePrimaryColor>();
 
 	/// <summary>
 	/// The sequence of the accent colors of the application.
 	/// </summary>
-	public static SecondaryColor[] SecondaryColors { get; } = Enum.GetValues<SecondaryColor>();
+	public static ThemeSecondaryColor[] SecondaryColors { get; } = Enum.GetValues<ThemeSecondaryColor>();
 
 	/// <inheritdoc cref="AppSettings.AutoLockMinutes" />
 	[ObservableProperty]
@@ -58,7 +57,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public partial bool IsConfirmingClose { get; set; }
 
 	/// <summary>
-	/// Specifies that the <see cref="BaseThemeMode.Dark" /> theme is used.
+	/// Specifies that the <see cref="ThemeMode.Dark" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsDarkTheme { get; set; }
@@ -74,7 +73,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public bool IsDiscarded { get; private set; }
 
 	/// <summary>
-	/// Specifies that the <see cref="BaseThemeMode.Light" /> theme is used.
+	/// Specifies that the <see cref="ThemeMode.Light" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsLightTheme { get; set; }
@@ -85,7 +84,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public bool IsSaved { get; private set; }
 
 	/// <summary>
-	/// Specifies that the <see cref="BaseThemeMode.Inherit" /> theme is used.
+	/// Specifies that the <see cref="ThemeMode.Inherit" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsThemeInherited { get; set; }
@@ -100,11 +99,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 	/// <inheritdoc cref="AppSettings.PrimaryColor" />
 	[ObservableProperty]
-	public partial PrimaryColor PrimaryColor { get; set; }
+	public partial ThemePrimaryColor PrimaryColor { get; set; }
 
 	/// <inheritdoc cref="AppSettings.SecondaryColor" />
 	[ObservableProperty]
-	public partial SecondaryColor SecondaryColor { get; set; }
+	public partial ThemeSecondaryColor SecondaryColor { get; set; }
 
 	/// <summary>
 	/// Index of the settings category displayed in the view.
@@ -156,7 +155,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 			return;
 		}
 
-		const BaseThemeMode theme = BaseThemeMode.Dark;
+		const ThemeMode theme = ThemeMode.Dark;
 
 		CurrentSettings.Theme = theme;
 
@@ -178,7 +177,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 			return;
 		}
 
-		const BaseThemeMode theme = BaseThemeMode.Light;
+		const ThemeMode theme = ThemeMode.Light;
 
 		CurrentSettings.Theme = theme;
 
@@ -200,7 +199,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 			return;
 		}
 
-		const BaseThemeMode theme = BaseThemeMode.Inherit;
+		const ThemeMode theme = ThemeMode.Inherit;
 
 		CurrentSettings.Theme = theme;
 
@@ -240,7 +239,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Called when <see cref="PrimaryColor" /> changes.
 	/// </summary>
-	partial void OnPrimaryColorChanged(PrimaryColor value)
+	partial void OnPrimaryColorChanged(ThemePrimaryColor value)
 	{
 		CurrentSettings.PrimaryColor = value;
 
@@ -255,7 +254,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Called when <see cref="SecondaryColor" /> changes.
 	/// </summary>
-	partial void OnSecondaryColorChanged(SecondaryColor value)
+	partial void OnSecondaryColorChanged(ThemeSecondaryColor value)
 	{
 		CurrentSettings.SecondaryColor = value;
 
@@ -350,11 +349,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 		Language = new(defaults.Language);
 
 		// A handler of a theme flag acts on the selected one only, so the order of the assignments does not matter.
-		IsLightTheme = defaults.Theme == BaseThemeMode.Light;
+		IsLightTheme = defaults.Theme == ThemeMode.Light;
 
-		IsThemeInherited = defaults.Theme == BaseThemeMode.Inherit;
+		IsThemeInherited = defaults.Theme == ThemeMode.Inherit;
 
-		IsDarkTheme = defaults.Theme == BaseThemeMode.Dark;
+		IsDarkTheme = defaults.Theme == ThemeMode.Dark;
 	}
 
 	/// <summary>
@@ -428,11 +427,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		Language = new(CurrentSettings.Language);
 
-		IsLightTheme = CurrentSettings.Theme == BaseThemeMode.Light;
+		IsLightTheme = CurrentSettings.Theme == ThemeMode.Light;
 
-		IsThemeInherited = CurrentSettings.Theme == BaseThemeMode.Inherit;
+		IsThemeInherited = CurrentSettings.Theme == ThemeMode.Inherit;
 
-		IsDarkTheme = CurrentSettings.Theme == BaseThemeMode.Dark;
+		IsDarkTheme = CurrentSettings.Theme == ThemeMode.Dark;
 	}
 	#endregion
 

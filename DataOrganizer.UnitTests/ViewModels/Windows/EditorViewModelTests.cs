@@ -14,6 +14,7 @@ using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -2328,7 +2329,7 @@ internal class EditorViewModelTests
 			IsTopmost = false,
 			NavigationColumnWidth = 200.0,
 			Size = new(700, 500),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = 50000,
 			Y = 50000
 		};
@@ -2365,7 +2366,7 @@ internal class EditorViewModelTests
 			IsTopmost = false,
 			NavigationColumnWidth = 0.0,
 			Size = new(0, 0),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = 100,
 			Y = 100
 		};
@@ -2411,7 +2412,7 @@ internal class EditorViewModelTests
 			IsTopmost = true,
 			NavigationColumnWidth = positiveValue - 20,
 			Size = new(positiveValue, positiveValue),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = positiveValue,
 			Y = positiveValue
 		};
@@ -2453,7 +2454,7 @@ internal class EditorViewModelTests
 
 		window.WindowState
 			.Should()
-			.Be(windowSettings.WindowState);
+			.Be(WindowState.Normal);
 
 		window.Topmost
 			.Should()
@@ -2485,7 +2486,7 @@ internal class EditorViewModelTests
 			IsTopmost = false,
 			NavigationColumnWidth = 200.0,
 			Size = new(700, 500),
-			WindowState = WindowState.Minimized,
+			WindowState = WindowShowState.Minimized,
 			X = 100,
 			Y = 100
 		};
@@ -2524,7 +2525,7 @@ internal class EditorViewModelTests
 			IsTopmost = false,
 			NavigationColumnWidth = 200.0,
 			Size = new(700, 500),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = x,
 			Y = y
 		};

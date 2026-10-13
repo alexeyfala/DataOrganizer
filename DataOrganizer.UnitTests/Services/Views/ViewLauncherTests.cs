@@ -713,7 +713,7 @@ internal class ViewLauncherTests
 			IsTopmost = true,
 			NavigationColumnWidth = positiveValue - 20,
 			Size = new(positiveValue, positiveValue),
-			WindowState = WindowState.Normal,
+			WindowState = WindowShowState.Normal,
 			X = positiveValue,
 			Y = positiveValue
 		};
@@ -1879,7 +1879,7 @@ internal class ViewLauncherTests
 			{
 				IsTopmost = true,
 				Size = new(500, 400),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				X = 30,
 				Y = 40
 			};
@@ -1959,7 +1959,7 @@ internal class ViewLauncherTests
 			{
 				IsTopmost = false,
 				Size = new(500, 400),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				X = -20000,
 				Y = -20000
 			};
@@ -2274,9 +2274,9 @@ internal class ViewLauncherTests
 	/// <see cref="ViewLauncher.CreateNotepadWindow" />: the window opens in the saved state, a minimized one as a normal one.
 	/// </summary>
 	[AvaloniaTest]
-	[TestCase(WindowState.Maximized, WindowState.Maximized)]
-	[TestCase(WindowState.Minimized, WindowState.Normal)]
-	public void CreateNotepadWindow_Restores_The_Saved_State(WindowState saved, WindowState expected)
+	[TestCase(WindowShowState.Maximized, WindowState.Maximized)]
+	[TestCase(WindowShowState.Minimized, WindowState.Normal)]
+	public void CreateNotepadWindow_Restores_The_Saved_State(WindowShowState saved, WindowState expected)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -2636,6 +2636,40 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: a maximized window is saved as maximized.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Saves_The_State_Of_A_Maximized_Window()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		window.WindowState = WindowState.Maximized;
+
+		// Act
+		await sut.SaveEditorSettingsAsync(window);
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<EditorWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.SaveFavoritesSettingsAsync" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
@@ -2752,10 +2786,54 @@ internal class ViewLauncherTests
 			{
 				IsTopmost = true,
 				Size = new(500, 400),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				X = 30,
 				Y = 40
 			});
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveNotepadSettings" />: a maximized window is saved as maximized.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveNotepadSettings_Saves_The_State_Of_A_Maximized_Window()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<IDialogService>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<IViewCache>(),
+			Substitute.For<IViewLauncher>(),
+			TimeProvider.System))
+		{
+			WindowState = WindowState.Maximized
+		};
+
+		// Act
+		sut.SaveNotepadSettings(window);
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<NotepadWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
 	}
 
 	/// <summary>

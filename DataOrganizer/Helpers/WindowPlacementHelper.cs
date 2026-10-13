@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,9 +89,9 @@ internal static class WindowPlacementHelper
 		window.Topmost = placement.IsTopmost;
 
 		// A window closed minimized comes back in the normal state.
-		window.WindowState = placement.WindowState == WindowState.Minimized
+		window.WindowState = placement.WindowState == WindowShowState.Minimized
 			? WindowState.Normal
-			: placement.WindowState;
+			: (WindowState)placement.WindowState;
 	}
 	#endregion
 }

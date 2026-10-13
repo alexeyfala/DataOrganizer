@@ -91,7 +91,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 					FontSize = _viewModel.FontSize,
 					IsTopmost = window.Topmost,
 					WordWrap = _viewModel.WordWrap,
-					WindowState = window.Placement.WindowState,
+					WindowState = window.Placement.ShowState,
 					Size = window.Placement.Size,
 					X = window.Placement.Position.X,
 					Y = window.Placement.Position.Y

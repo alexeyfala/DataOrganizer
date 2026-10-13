@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
@@ -45,7 +46,7 @@ internal class ConsoleWindowHostTests
 				FontSize = 17.0,
 				IsTopmost = true,
 				Size = new(640, 480),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				WordWrap = true,
 				X = 120,
 				Y = 90
@@ -129,7 +130,7 @@ internal class ConsoleWindowHostTests
 				FontSize = 14.0,
 				IsTopmost = false,
 				Size = new(640, 480),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				WordWrap = false,
 				X = 50000,
 				Y = 50000
@@ -192,7 +193,7 @@ internal class ConsoleWindowHostTests
 				FontSize = 14.0,
 				IsTopmost = false,
 				Size = new(640, 480),
-				WindowState = WindowState.Minimized,
+				WindowState = WindowShowState.Minimized,
 				WordWrap = false,
 				X = 120,
 				Y = 90
@@ -353,11 +354,64 @@ internal class ConsoleWindowHostTests
 				FontSize = 18.0,
 				IsTopmost = true,
 				Size = new(IViewLauncher.DefaultWindowSize.Width, IViewLauncher.DefaultWindowSize.Height),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				WordWrap = true,
 				X = position.X,
 				Y = position.Y
 			});
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleWindowHost.ConfigureAndShowAsync" />: a window closed maximized is saved as maximized.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConfigureAndShowAsync_Saves_The_State_Of_A_Window_Closed_Maximized()
+	{
+		// Arrange
+		ConsoleViewModel viewModel = new(
+			Substitute.For<IAppEnvironment>(),
+			Substitute.For<IDirectoryAccessor>(),
+			new InlineDispatcherAccessor());
+
+		ConsoleWindow consoleWindow = new(viewModel);
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ConsoleViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
+				.Returns(consoleWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ConsoleWindowHost sut = mock.Create<ConsoleWindowHost>();
+
+		_ = sut.ConfigureAndShowAsync();
+
+		consoleWindow.WindowState = WindowState.Maximized;
+
+		// Act
+		consoleWindow.Close();
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<ConsoleWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
 	}
 
 	/// <summary>

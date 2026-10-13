@@ -7,11 +7,11 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Text;
 using Entities.Enums;
-using Material.Colors;
 using Material.Icons;
 using Repository.Dto;
 using Shared.Properties;
@@ -120,8 +120,8 @@ internal static class AppConverters
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch
 		{
-			PrimaryColor primary => primary.GetBrush(),
-			SecondaryColor secondary => secondary.GetBrush(),
+			ThemePrimaryColor primary => primary.GetBrush(),
+			ThemeSecondaryColor secondary => secondary.GetBrush(),
 			_ => Brushes.Transparent
 		});
 

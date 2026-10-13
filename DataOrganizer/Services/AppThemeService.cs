@@ -1,9 +1,10 @@
 using Avalonia;
 using Avalonia.Styling;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Settings;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
-using Material.Colors;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using Serilog;
@@ -60,28 +61,30 @@ public sealed class AppThemeService : IAppThemeService
 
 	/// <inheritdoc />
 	public void SetTheme(
-		BaseThemeMode mode,
-		PrimaryColor primaryColor,
-		SecondaryColor secondaryColor)
+		ThemeMode mode,
+		ThemePrimaryColor primaryColor,
+		ThemeSecondaryColor secondaryColor)
 	{
 		MaterialTheme appTheme = GetAppTheme();
 
-		if (appTheme.BaseTheme != mode)
+		BaseThemeMode baseTheme = mode.ToMaterial();
+
+		if (appTheme.BaseTheme != baseTheme)
 		{
-			appTheme.BaseTheme = mode;
+			appTheme.BaseTheme = baseTheme;
 
 			_app.RequestedThemeVariant = mode switch
 			{
-				BaseThemeMode.Inherit => ThemeVariant.Default,
-				BaseThemeMode.Light => ThemeVariant.Light,
-				BaseThemeMode.Dark => ThemeVariant.Dark,
+				ThemeMode.Inherit => ThemeVariant.Default,
+				ThemeMode.Light => ThemeVariant.Light,
+				ThemeMode.Dark => ThemeVariant.Dark,
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		appTheme.PrimaryColor = primaryColor;
+		appTheme.PrimaryColor = primaryColor.ToMaterial();
 
-		appTheme.SecondaryColor = secondaryColor;
+		appTheme.SecondaryColor = secondaryColor.ToMaterial();
 	}
 	#endregion
 

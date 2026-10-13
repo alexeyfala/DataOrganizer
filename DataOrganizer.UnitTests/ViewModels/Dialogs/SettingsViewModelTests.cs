@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
@@ -9,9 +10,9 @@ using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using Material.Colors;
-using Material.Styles.Themes.Base;
 using NSubstitute;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 
@@ -103,7 +104,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_PrimaryColor()
 	{
 		// Arrange
-		const PrimaryColor primaryColor = PrimaryColor.Red;
+		const ThemePrimaryColor primaryColor = ThemePrimaryColor.Red;
 
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
@@ -120,9 +121,9 @@ internal class SettingsViewModelTests
 			.Be(primaryColor);
 
 		themeService.Received().SetTheme(
-			Arg.Any<BaseThemeMode>(),
-			Arg.Any<PrimaryColor>(),
-			Arg.Any<SecondaryColor>());
+			Arg.Any<ThemeMode>(),
+			Arg.Any<ThemePrimaryColor>(),
+			Arg.Any<ThemeSecondaryColor>());
 	}
 
 	/// <summary>
@@ -132,7 +133,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_SecondaryColor()
 	{
 		// Arrange
-		const SecondaryColor secondaryColor = SecondaryColor.Red;
+		const ThemeSecondaryColor secondaryColor = ThemeSecondaryColor.Red;
 
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
@@ -149,9 +150,9 @@ internal class SettingsViewModelTests
 			.Be(secondaryColor);
 
 		themeService.Received().SetTheme(
-			Arg.Any<BaseThemeMode>(),
-			Arg.Any<PrimaryColor>(),
-			Arg.Any<SecondaryColor>());
+			Arg.Any<ThemeMode>(),
+			Arg.Any<ThemePrimaryColor>(),
+			Arg.Any<ThemeSecondaryColor>());
 	}
 
 	/// <summary>
@@ -191,7 +192,7 @@ internal class SettingsViewModelTests
 	/// <see cref="SettingsViewModel.IsThemeInherited" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
 	/// </summary>
 	[Test]
-	public void CurrentSettings_Applies_Theme([Values] BaseThemeMode theme)
+	public void CurrentSettings_Applies_Theme([Values] ThemeMode theme)
 	{
 		// Arrange
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
@@ -209,15 +210,15 @@ internal class SettingsViewModelTests
 		// Act
 		switch (theme)
 		{
-			case BaseThemeMode.Inherit:
+			case ThemeMode.Inherit:
 				sut.IsThemeInherited = true;
 				break;
 
-			case BaseThemeMode.Light:
+			case ThemeMode.Light:
 				sut.IsLightTheme = true;
 				break;
 
-			case BaseThemeMode.Dark:
+			case ThemeMode.Dark:
 				sut.IsDarkTheme = true;
 				break;
 		}
@@ -228,9 +229,9 @@ internal class SettingsViewModelTests
 			.Be(theme);
 
 		themeService.Received().SetTheme(
-			Arg.Any<BaseThemeMode>(),
-			Arg.Any<PrimaryColor>(),
-			Arg.Any<SecondaryColor>());
+			Arg.Any<ThemeMode>(),
+			Arg.Any<ThemePrimaryColor>(),
+			Arg.Any<ThemeSecondaryColor>());
 	}
 
 	/// <summary>
@@ -331,6 +332,21 @@ internal class SettingsViewModelTests
 			.Be(settings)
 			.And
 			.NotBeSameAs(settings);
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.PrimaryColors" />: the choice holds the primary colors of Material design, in its order.
+	/// </summary>
+	[Test]
+	public void PrimaryColors_Lists_The_Primary_Colors_Of_Material_Design()
+	{
+		// Act
+		string[] result = [.. SettingsViewModel.PrimaryColors.Select(x => x.ToString())];
+
+		// Assert
+		result
+			.Should()
+			.Equal(Enum.GetNames<PrimaryColor>());
 	}
 
 	/// <summary>
@@ -527,6 +543,21 @@ internal class SettingsViewModelTests
 		canExecute
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.SecondaryColors" />: the choice holds the accent colors of Material design, in its order.
+	/// </summary>
+	[Test]
+	public void SecondaryColors_Lists_The_Secondary_Colors_Of_Material_Design()
+	{
+		// Act
+		string[] result = [.. SettingsViewModel.SecondaryColors.Select(x => x.ToString())];
+
+		// Assert
+		result
+			.Should()
+			.Equal(Enum.GetNames<SecondaryColor>());
 	}
 
 	/// <summary>

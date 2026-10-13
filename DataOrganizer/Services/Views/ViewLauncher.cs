@@ -476,7 +476,7 @@ public class ViewLauncher : IViewLauncher
 				IsTopmost = window.Topmost,
 				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
 				Size = window.Placement.Size,
-				WindowState = window.Placement.WindowState,
+				WindowState = window.Placement.ShowState,
 				X = window.Placement.Position.X,
 				Y = window.Placement.Position.Y
 			};
@@ -559,7 +559,7 @@ public class ViewLauncher : IViewLauncher
 			{
 				IsTopmost = window.Topmost,
 				Size = window.Placement.Size,
-				WindowState = window.Placement.WindowState,
+				WindowState = window.Placement.ShowState,
 				X = window.Placement.Position.X,
 				Y = window.Placement.Position.Y
 			};

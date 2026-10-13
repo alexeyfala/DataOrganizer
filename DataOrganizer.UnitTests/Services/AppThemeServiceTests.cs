@@ -5,6 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Styling;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Settings;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using Material.Colors;
@@ -34,11 +35,11 @@ internal class AppThemeServiceTests
 		// Arrange
 		AppSettings settings = IAppSettingsStore.CreateDefaultSettings();
 
-		settings.Theme = BaseThemeMode.Light;
+		settings.Theme = ThemeMode.Light;
 
-		settings.PrimaryColor = PrimaryColor.Purple;
+		settings.PrimaryColor = ThemePrimaryColor.Purple;
 
-		settings.SecondaryColor = SecondaryColor.Lime;
+		settings.SecondaryColor = ThemeSecondaryColor.Lime;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -132,9 +133,9 @@ internal class AppThemeServiceTests
 
 		// Act
 		sut.SetTheme(
-			BaseThemeMode.Dark,
-			PrimaryColor.Indigo,
-			SecondaryColor.Cyan);
+			ThemeMode.Dark,
+			ThemePrimaryColor.Indigo,
+			ThemeSecondaryColor.Cyan);
 
 		// Assert
 		MaterialTheme theme = application.LocateMaterialTheme<MaterialTheme>();
@@ -158,6 +159,50 @@ internal class AppThemeServiceTests
 			.RequestedThemeVariant
 			.Should()
 			.Be(ThemeVariant.Dark);
+	}
+
+	/// <summary>
+	/// <see cref="AppThemeService.SetTheme" />: each mode reaches the Material theme and gives the application its variant.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(ThemeMode.Dark, ThemeMode.Inherit, BaseThemeMode.Inherit, "Default")]
+	[TestCase(ThemeMode.Inherit, ThemeMode.Light, BaseThemeMode.Light, "Light")]
+	[TestCase(ThemeMode.Light, ThemeMode.Dark, BaseThemeMode.Dark, "Dark")]
+	public void SetTheme_Gives_The_Application_The_Variant_Of_The_Mode(
+		ThemeMode previous,
+		ThemeMode mode,
+		BaseThemeMode expectedBaseTheme,
+		string expectedVariant)
+	{
+		// Arrange
+		Application application = Application.Current!;
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(application));
+
+		AppThemeService sut = mock.Create<AppThemeService>();
+
+		// Another mode set first makes the mode under test a change of the theme.
+		sut.SetTheme(
+			previous,
+			ThemePrimaryColor.Teal,
+			ThemeSecondaryColor.Amber);
+
+		// Act
+		sut.SetTheme(
+			mode,
+			ThemePrimaryColor.Teal,
+			ThemeSecondaryColor.Amber);
+
+		// Assert
+		MaterialTheme theme = application.LocateMaterialTheme<MaterialTheme>();
+
+		theme.BaseTheme
+			.Should()
+			.Be(expectedBaseTheme);
+
+		application.RequestedThemeVariant!.Key
+			.Should()
+			.Be(expectedVariant);
 	}
 	#endregion
 }

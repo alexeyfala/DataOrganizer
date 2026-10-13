@@ -1,6 +1,6 @@
-using Avalonia.Controls;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Enums.Views;
 using Shared.Services;
 
 namespace DataOrganizer.UnitTests.Dto.Settings;
@@ -87,7 +87,7 @@ internal class WindowSettingsFormatCompatibilityTests
 				FontSize = 16.5,
 				IsTopmost = true,
 				Size = new(1024, 768),
-				WindowState = WindowState.Maximized,
+				WindowState = WindowShowState.Maximized,
 				WordWrap = true,
 				X = 120,
 				Y = 80
@@ -116,7 +116,7 @@ internal class WindowSettingsFormatCompatibilityTests
 				IsTopmost = true,
 				NavigationColumnWidth = 312.5,
 				Size = new(1280, 800),
-				WindowState = WindowState.Maximized,
+				WindowState = WindowShowState.Maximized,
 				X = -1500,
 				Y = 40
 			});
@@ -142,7 +142,7 @@ internal class WindowSettingsFormatCompatibilityTests
 			{
 				IsTopmost = true,
 				Size = new(700, 500),
-				WindowState = WindowState.Normal,
+				WindowState = WindowShowState.Normal,
 				X = 300,
 				Y = 200
 			});

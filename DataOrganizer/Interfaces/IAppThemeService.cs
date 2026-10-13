@@ -1,6 +1,4 @@
-using Material.Colors;
-using Material.Styles.Themes;
-using Material.Styles.Themes.Base;
+using DataOrganizer.Enums.Settings;
 
 namespace DataOrganizer.Interfaces;
 
@@ -16,11 +14,11 @@ public interface IAppThemeService
 	void ApplyFromSettings();
 
 	/// <summary>
-	/// Sets the application theme <see cref="MaterialTheme" />.
+	/// Sets the theme of the application.
 	/// </summary>
 	void SetTheme(
-		BaseThemeMode mode,
-		PrimaryColor primaryColor,
-		SecondaryColor secondaryColor);
+		ThemeMode mode,
+		ThemePrimaryColor primaryColor,
+		ThemeSecondaryColor secondaryColor);
 	#endregion
 }
