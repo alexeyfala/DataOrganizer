@@ -137,10 +137,9 @@ public sealed class FolderProtection : IFolderProtection
 				newPasswordBinary,
 				ContentIdentity.Dek);
 
-			if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
-				[
-					x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
-				], token).ConfigureAwait(false))
+			if (!await _dbAccess
+				.UpdateEncryptedDekAsync(folder.Id, encryptedDek, token)
+				.ConfigureAwait(false))
 			{
 				return;
 			}

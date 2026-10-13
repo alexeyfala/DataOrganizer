@@ -164,11 +164,9 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		contents[^1] ^= byte.MaxValue;
 
+		// The damage is not an edit, so the file keeps its date.
 		await _dbAccess
-			.UpdateFilePropertiesAsync(
-				id,
-				[builder => builder.SetProperty(x => x.Contents, contents)],
-				token)
+			.UpdateFileContentsAsync(id, contents, null, token)
 			.ConfigureAwait(false);
 	}
 

@@ -14,11 +14,16 @@ using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
+using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
+using Repository.Enums;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
@@ -28,6 +33,8 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -115,7 +122,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// The writes wait for the test, so the queue gets to the edit queued on closing only after the close.
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(_ =>
 				{
 					writing.TrySetResult();
@@ -810,7 +817,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileEditorStateAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -882,7 +889,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileEditorStateAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -2016,7 +2023,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
@@ -2308,7 +2315,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileEditorStateAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -2452,7 +2459,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 
 		responses
 			.Should()
@@ -2487,7 +2494,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// No row takes the edit, as the file is gone from the database.
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(false);
 
 			builder.RegisterInstance(dbAccess);
@@ -2583,7 +2590,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -2616,7 +2623,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// The save of the edit lasts until the test lets it end.
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(written.Task);
 
 			builder.RegisterInstance(dbAccess);
@@ -2736,7 +2743,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 
 		responses
 			.Should()
@@ -2813,7 +2820,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 
 		responses
 			.Should()
@@ -2889,7 +2896,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 
 		responses
 			.Should()
@@ -2925,7 +2932,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -2994,7 +3001,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
@@ -3095,7 +3102,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
@@ -3180,7 +3187,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
 					Task.FromException<bool>(new InvalidOperationException()),
 					Task.FromResult(true));
@@ -3260,7 +3267,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
@@ -3347,7 +3354,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((string?)null);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
@@ -3475,7 +3482,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 
 		responses
 			.Should()
@@ -3622,7 +3629,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -3922,7 +3929,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileEditorStateAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -3993,38 +4000,52 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task ViewState_Saves_The_Editor_State()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: TextDefaults.Encoding.GetBytes(RandomString.Create(10)));
 
 		string? reported = null;
 
+		List<Task> watched = [];
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
+			builder.RegisterInstance(database.Context);
+
+			builder.RegisterInstance(exceptionHandler);
 
 			builder
-				.RegisterType<SystemTextJsonSerializer>()
-				.As<IJsonSerializer>();
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 		});
 
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
+
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileId = file.Id;
 
 		sut.SetEditorStateCallback = x => reported = x;
 
@@ -4042,6 +4063,8 @@ internal class EmbeddedFileEditorViewModelTests
 			},
 			JsonDefaults.Options);
 
+		int watchedBefore = watched.Count;
+
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
@@ -4051,14 +4074,23 @@ internal class EmbeddedFileEditorViewModelTests
 			SelectionStart = 20
 		};
 
+		// The save of the editor state is the next task handed over.
+		await watched[watchedBefore];
+
 		// Assert
 		reported
 			.Should()
 			.Be(expected);
 
-		await dbAccess
-			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.EditorState);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EditorState
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -4192,7 +4224,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileEditorStateAsync(default, default!, default);
 	}
 	#endregion
 

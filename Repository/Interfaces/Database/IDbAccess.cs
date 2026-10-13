@@ -1,7 +1,7 @@
+using Entities.Enums;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Exceptions;
@@ -108,20 +108,12 @@ public interface IDbAccess : IDisposable
 	Task<DatabaseBackup?> CreateBackupAsync(CancellationToken token = default);
 
 	/// <summary>
-	/// Deletes an <see cref="FileEntity" /> from the database by identifier.
+	/// Deletes a folder with everything in it, or a file with its hotkeys; <c>false</c> when there is no such object.
 	/// </summary>
 	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
 	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
 	/// <exception cref="SqliteException">The rows could not be deleted.</exception>
-	Task<bool> DeleteFileAsync(Guid id, CancellationToken token = default);
-
-	/// <summary>
-	/// Deletes an <see cref="FolderEntity" /> from the database by identifier.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="SqliteException">The rows could not be deleted.</exception>
-	Task<bool> DeleteFolderAsync(Guid id, CancellationToken token = default);
+	Task<bool> DeleteAsync(EntityKind kind, Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Deletes <see cref="FileEntity.Hotkeys" /> from the database by file identifier.
@@ -188,6 +180,19 @@ public interface IDbAccess : IDisposable
 	LoadedEntities LoadEntities(string databaseFilePath);
 
 	/// <summary>
+	/// Gives a folder or a file a new name and date of change; <c>false</c> when there is no such object.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The properties could not be written.</exception>
+	Task<bool> RenameAsync(
+		EntityKind kind,
+		Guid id,
+		string name,
+		DateTime updatedAt,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Restores database from backup.
 	/// </summary>
 	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
@@ -196,57 +201,82 @@ public interface IDbAccess : IDisposable
 	Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of multiple <see cref="FileEntity" /> and <see cref="FolderEntity" /> entities
-	/// in a single transaction.
+	/// Writes <see cref="FolderEntity.EncryptedDek" />; <c>false</c> when there is no such folder.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The property could not be written.</exception>
+	Task<bool> UpdateEncryptedDekAsync(Guid folderId, byte[] encryptedDek, CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="FileEntity.Contents" /> with the date of change; a <c>null</c> date keeps the one the file has.
+	/// <c>False</c> when there is no such file.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The properties could not be written.</exception>
+	Task<bool> UpdateFileContentsAsync(
+		Guid fileId,
+		byte[] contents,
+		DateTime? updatedAt,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="FileEntity.EditorState" />; <c>false</c> when there is no such file.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The property could not be written.</exception>
+	Task<bool> UpdateFileEditorStateAsync(Guid fileId, string editorState, CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="FolderEntity.IsExpanded" />; <c>false</c> when there is no such folder.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The property could not be written.</exception>
+	Task<bool> UpdateIsExpandedAsync(Guid folderId, bool isExpanded, CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="FileEntity.IsFavorite" />; <c>false</c> when there is no such file.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The property could not be written.</exception>
+	Task<bool> UpdateIsFavoriteAsync(Guid fileId, bool isFavorite, CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="ExplorerItemBase.IsSelected" /> of a folder or a file; <c>false</c> when there is no such object.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The property could not be written.</exception>
+	Task<bool> UpdateIsSelectedAsync(
+		EntityKind kind,
+		Guid id,
+		bool isSelected,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Writes <see cref="ExplorerItemBase.Note" /> of a folder or a file with the date of change; <c>false</c> when there is
+	/// no such object.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="SqliteException">The properties could not be written.</exception>
+	Task<bool> UpdateNoteAsync(
+		EntityKind kind,
+		Guid id,
+		byte[]? note,
+		DateTime updatedAt,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Writes the rewritten contents, notes and wrapped key of a folder whose protection changes, in one transaction.
 	/// </summary>
 	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
 	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
 	/// <exception cref="SqliteException">The transaction could not be carried through.</exception>
-	Task UpdateFileAndFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates properties of <see cref="FileEntity" />.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="SqliteException">The properties could not be written.</exception>
-	Task<bool> UpdateFilePropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<FileEntity>>[] setters,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates properties of multiple <see cref="FileEntity" /> entities in a single transaction.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="SqliteException">The properties could not be written.</exception>
-	Task<bool> UpdateFilePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates properties of <see cref="FolderEntity" />.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="SqliteException">The properties could not be written.</exception>
-	Task<bool> UpdateFolderPropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates properties of multiple <see cref="FolderEntity" /> entities in a single transaction.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="SqliteException">The properties could not be written.</exception>
-	Task<bool> UpdateFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
-		CancellationToken token = default);
+	Task UpdateProtectionAsync(ProtectionUpdate update, CancellationToken token = default);
 	#endregion
 }

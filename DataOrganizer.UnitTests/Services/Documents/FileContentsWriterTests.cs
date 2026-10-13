@@ -7,15 +7,19 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Documents;
 using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Repository.Enums;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 
@@ -30,30 +34,44 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Dates_An_Edit()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
+
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		FakeTimeProvider time = new();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			fileId,
+			file.Id,
 			null,
-			RandomValues.CreateBytes(10),
+			contents,
 			FileContentsChange.Edit);
 
 		// Assert
@@ -65,53 +83,79 @@ internal class FileContentsWriterTests
 				UpdatedAt = time.GetLocalNow().LocalDateTime
 			});
 
-		// The contents and the date of change
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
-			fileId,
-			Arg.Is<Action<UpdateSettersBuilder<FileEntity>>[]>(x => x.Length == 2),
-			Arg.Any<CancellationToken>());
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Contents = contents,
+				UpdatedAt = time.GetLocalNow().LocalDateTime
+			});
 	}
 
 	/// <summary>
 	/// <see cref="FileContentsWriter.WriteAsync" />: the contents of a protected file are encrypted with the session key of
-	/// its keeper.
+	/// its keeper, and the ciphertext is what the database gets.
 	/// </summary>
 	[Test]
 	public async Task WriteAsync_Encrypts_The_Contents_Under_A_Keeper()
 	{
 		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile();
+
 		Guid keeperId = Guid.NewGuid();
 
 		byte[] contents = RandomValues.CreateBytes(10);
+
+		byte[] ciphertext = RandomValues.CreateBytes(26);
+
+		// The writer wipes its ciphertext after the write.
+		byte[] expected = [.. ciphertext];
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
-
 			contentCipher
 				.TryEncrypt(keeperId, ContentIdentity.Contents, contents)
-				.Returns(RandomValues.CreateBytes(26));
-
-			builder.RegisterInstance(dbAccess);
+				.Returns(ciphertext);
 
 			builder.RegisterInstance(contentCipher);
+
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			Guid.NewGuid(),
+			file.Id,
 			keeperId,
 			contents,
 			FileContentsChange.Edit);
@@ -124,6 +168,16 @@ internal class FileContentsWriterTests
 		contentCipher
 			.Received(1)
 			.TryEncrypt(keeperId, ContentIdentity.Contents, contents);
+
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Contents
+			.Should()
+			.Equal(expected);
 	}
 
 	/// <summary>
@@ -134,26 +188,45 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Keeps_The_Date_Of_A_View_Change()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
+		using TestDatabase database = new();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		file.UpdatedAt = updatedAt;
+
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
+			builder.RegisterInstance(database.Context);
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			fileId,
+			file.Id,
 			null,
-			RandomValues.CreateBytes(10),
+			contents,
 			FileContentsChange.View);
 
 		// Assert
@@ -164,11 +237,18 @@ internal class FileContentsWriterTests
 				Status = FileContentsWriteStatus.Written
 			});
 
-		// The contents alone
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
-			fileId,
-			Arg.Is<Action<UpdateSettersBuilder<FileEntity>>[]>(x => x.Length == 1),
-			Arg.Any<CancellationToken>());
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Contents = contents,
+				UpdatedAt = updatedAt
+			});
 	}
 
 	/// <summary>
@@ -183,7 +263,7 @@ internal class FileContentsWriterTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ThrowsAsyncForAnyArgs(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
@@ -216,20 +296,27 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Reports_A_File_Gone_From_The_Database()
 	{
 		// Arrange
+		using TestDatabase database = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			builder.RegisterInstance(database.Context);
 
-			// No row takes the contents.
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(false);
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
@@ -267,7 +354,7 @@ internal class FileContentsWriterTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
@@ -311,32 +398,44 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Writes_Empty_Contents_Unencrypted_Under_A_Keeper()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
-
 			builder.RegisterInstance(contentCipher);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			fileId,
+			file.Id,
 			Guid.NewGuid(),
 			[],
 			FileContentsChange.Edit);
@@ -350,10 +449,15 @@ internal class FileContentsWriterTests
 			.DidNotReceiveWithAnyArgs()
 			.TryEncrypt(default, default, default!);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
-			fileId,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Contents
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -363,7 +467,16 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Writes_Nothing_When_The_Encryption_Is_Refused()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		using TestDatabase database = new();
+
+		byte[] original = RandomValues.CreateBytes(10);
+
+		FileEntity file = EntityFactory.CreateFile(contents: original);
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		file.UpdatedAt = updatedAt;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -376,14 +489,30 @@ internal class FileContentsWriterTests
 
 			builder.RegisterInstance(contentCipher);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			Guid.NewGuid(),
+			file.Id,
 			Guid.NewGuid(),
 			RandomValues.CreateBytes(10),
 			FileContentsChange.Edit);
@@ -396,9 +525,18 @@ internal class FileContentsWriterTests
 				Status = FileContentsWriteStatus.Closed
 			});
 
-		await dbAccess
-			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Contents = original,
+				UpdatedAt = updatedAt
+			});
 	}
 
 	/// <summary>
@@ -408,34 +546,48 @@ internal class FileContentsWriterTests
 	public async Task WriteAsync_Writes_The_Contents_As_They_Are_Without_A_Keeper()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
+
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
-
 			builder.RegisterInstance(contentCipher);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
 
 		FileContentsWriter sut = mock.Create<FileContentsWriter>();
 
 		// Act
 		FileContentsWriting result = await sut.WriteAsync(
-			fileId,
+			file.Id,
 			null,
-			RandomValues.CreateBytes(10),
+			contents,
 			FileContentsChange.Edit);
 
 		// Assert
@@ -447,10 +599,15 @@ internal class FileContentsWriterTests
 			.DidNotReceiveWithAnyArgs()
 			.TryEncrypt(default, default, default!);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
-			fileId,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Contents
+			.Should()
+			.Equal(contents);
 	}
 	#endregion
 }

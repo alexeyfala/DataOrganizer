@@ -11,8 +11,6 @@ using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.UnitTests.Factories;
-using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -73,9 +71,10 @@ internal class FileChangeTrackerTests
 				.Returns(previousHash, RandomValues.CreateBytes(32));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -119,9 +118,10 @@ internal class FileChangeTrackerTests
 
 		await tracking;
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 
 		// The change is stamped with the moment the pause ended, so the check came neither earlier nor later.
@@ -190,9 +190,10 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+		await dbAccess.DidNotReceive().UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -240,9 +241,10 @@ internal class FileChangeTrackerTests
 				.Returns(encryptedContents);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -285,9 +287,10 @@ internal class FileChangeTrackerTests
 			.Received(1)
 			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -347,9 +350,10 @@ internal class FileChangeTrackerTests
 			.Should()
 			.NotThrowAsync();
 
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+		await dbAccess.DidNotReceive().UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -397,9 +401,10 @@ internal class FileChangeTrackerTests
 
 			// No row takes the change, as the file is gone from the database.
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -479,9 +484,10 @@ internal class FileChangeTrackerTests
 				.Returns(RandomValues.CreateBytes(32));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -512,9 +518,10 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -544,9 +551,10 @@ internal class FileChangeTrackerTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
@@ -644,9 +652,10 @@ internal class FileChangeTrackerTests
 				.Returns(RandomValues.CreateBytes(32));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -689,9 +698,10 @@ internal class FileChangeTrackerTests
 			.DidNotReceiveWithAnyArgs()
 			.TryEncrypt(default, default, default!);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -783,9 +793,10 @@ internal class FileChangeTrackerTests
 			.Should()
 			.Be(parameters.File.Id);
 
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+		await dbAccess.DidNotReceive().UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -827,9 +838,10 @@ internal class FileChangeTrackerTests
 				.Returns(currentHash);
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -863,9 +875,10 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
 
 		parameters.File.UpdatedAt

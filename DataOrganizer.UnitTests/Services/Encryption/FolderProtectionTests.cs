@@ -12,12 +12,13 @@ using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.Dto;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System;
@@ -26,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -139,7 +141,7 @@ internal class FolderProtectionTests
 
 		await dbAccess
 			.DidNotReceive()
-			.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
+			.UpdateEncryptedDekAsync(Arg.Any<Guid>(), Arg.Any<byte[]>());
 
 		folder.EncryptedDek
 			.Should()
@@ -153,11 +155,17 @@ internal class FolderProtectionTests
 	public async Task ChangePasswordAsync_Rewraps_The_Dek()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		using TestDatabase database = new();
+
+		FolderEntity entity = EntityFactory.CreateFolder(encryptedDek: RandomValues.CreateBytes(10));
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(id: entity.Id);
 
 		byte[] encryptedDek = RandomValues.CreateBytes(10);
 
 		folder.EncryptedDek = encryptedDek;
+
+		byte[] rewrapped = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -182,22 +190,32 @@ internal class FolderProtectionTests
 
 			encryption
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(RandomValues.CreateBytes(10));
+				.Returns(rewrapped);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
-				.Returns(true);
-
-			builder.RegisterInstance(unlocker);
-
-			builder.RegisterInstance(passwordPrompt);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(encryption);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(passwordPrompt);
+
+			builder.RegisterInstance(unlocker);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([entity]);
 
 		FolderProtection sut = mock.Create<FolderProtection>();
 
@@ -207,7 +225,17 @@ internal class FolderProtectionTests
 		// Assert
 		folder.EncryptedDek
 			.Should()
-			.NotBeEquivalentTo(encryptedDek);
+			.BeSameAs(rewrapped);
+
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EncryptedDek
+			.Should()
+			.Equal(rewrapped);
 	}
 
 	/// <summary>

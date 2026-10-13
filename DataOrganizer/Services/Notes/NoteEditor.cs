@@ -2,7 +2,6 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
-using Entities.Enums;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -86,26 +85,16 @@ public sealed class NoteEditor : INoteEditor
 			.GetLocalNow()
 			.LocalDateTime;
 
-		Task<bool> task = item.Kind switch
-		{
-			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
-			[
-				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(item.Id,
-			[
-				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			_ => throw new NotImplementedException()
-		};
-
 		bool isSaved;
 
 		try
 		{
-			isSaved = await task.ConfigureAwait(false);
+			isSaved = await _dbAccess.UpdateNoteAsync(
+				item.Kind,
+				item.Id,
+				encoded,
+				updatedAt,
+				token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

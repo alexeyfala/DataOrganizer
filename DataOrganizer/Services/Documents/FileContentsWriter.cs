@@ -4,8 +4,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
-using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -72,7 +70,7 @@ public sealed class FileContentsWriter : IFileContentsWriter
 				: null;
 
 			if (!await _dbAccess
-				.UpdateFilePropertiesAsync(fileId, CreateSetters(output, updatedAt), token)
+				.UpdateFileContentsAsync(fileId, output, updatedAt, token)
 				.ConfigureAwait(false))
 			{
 				return new()
@@ -101,23 +99,6 @@ public sealed class FileContentsWriter : IFileContentsWriter
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates the setters of the contents and, when a date is given, of the date of change.
-	/// </summary>
-	private static Action<UpdateSettersBuilder<FileEntity>>[] CreateSetters(byte[] contents, DateTime? updatedAt)
-	{
-		if (updatedAt is not { } date)
-		{
-			return [x => x.SetProperty(x => x.Contents, contents)];
-		}
-
-		return
-		[
-			x => x.SetProperty(x => x.Contents, contents),
-			x => x.SetProperty(x => x.UpdatedAt, date)
-		];
-	}
-
 	/// <summary>
 	/// Encrypts the contents with the session key of a keeper, if one is given; <c>null</c> reports a refusal.
 	/// </summary>

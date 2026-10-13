@@ -125,10 +125,9 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 				return;
 			}
 
-			if (!await _dbAccess.UpdateFolderPropertiesAsync(keeper.Id,
-				[
-					x => x.SetProperty(x => x.EncryptedDek, rewrapped)
-				], token).ConfigureAwait(false))
+			if (!await _dbAccess
+				.UpdateEncryptedDekAsync(keeper.Id, rewrapped, token)
+				.ConfigureAwait(false))
 			{
 				return;
 			}

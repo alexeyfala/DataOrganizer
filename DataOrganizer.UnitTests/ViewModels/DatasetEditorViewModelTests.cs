@@ -16,8 +16,6 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
-using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -109,9 +107,10 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is RecordsGroup);
 		}
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -135,7 +134,7 @@ internal class DatasetEditorViewModelTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -219,9 +218,10 @@ internal class DatasetEditorViewModelTests
 			.Received(1)
 			.TryEncrypt(keeperId, ContentIdentity.Contents, contents);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -273,7 +273,7 @@ internal class DatasetEditorViewModelTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -344,9 +344,10 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is KeyValueRecord);
 		}
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -526,9 +527,10 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is ValueRecord);
 		}
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1027,9 +1029,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.NotContain(toBeDeleted);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1053,9 +1056,10 @@ internal class DatasetEditorViewModelTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(
+				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
+					Arg.Any<byte[]>(),
+					Arg.Any<DateTime?>())
 				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
 			builder.RegisterInstance(serializer);
@@ -1148,9 +1152,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(value);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1263,9 +1268,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(note);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1496,9 +1502,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(value);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1553,7 +1560,7 @@ internal class DatasetEditorViewModelTests
 
 			// The save of the edit fails, the next one succeeds.
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
 					Task.FromException<bool>(new InvalidOperationException()),
 					Task.FromResult(true));
@@ -1610,7 +1617,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -1654,7 +1661,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -1717,9 +1724,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsExpanded == expand);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1766,7 +1774,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -1799,7 +1807,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -1836,9 +1844,10 @@ internal class DatasetEditorViewModelTests
 		await sut.IsHiddenChanged();
 
 		// Assert
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -1860,7 +1869,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(_ => RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(Task.FromException<bool>(new InvalidOperationException()));
 
 			builder.RegisterInstance(serializer);
@@ -1897,7 +1906,7 @@ internal class DatasetEditorViewModelTests
 		// Only the failed save of the new group
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -1920,7 +1929,7 @@ internal class DatasetEditorViewModelTests
 
 			// The save of the change fails, the next one succeeds.
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
 					Task.FromException<bool>(new InvalidOperationException()),
 					Task.FromResult(true));
@@ -1961,7 +1970,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(2)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -1983,7 +1992,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(_ => RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -2018,7 +2027,7 @@ internal class DatasetEditorViewModelTests
 		// Only the save of the new group
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -2040,7 +2049,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(_ => RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
 					Task.FromException<bool>(new InvalidOperationException()),
 					Task.FromResult(true));
@@ -2076,7 +2085,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(2)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -2134,9 +2143,10 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 
 		highlighted
 			.Should()
@@ -2164,7 +2174,7 @@ internal class DatasetEditorViewModelTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -2242,9 +2252,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(name);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -2266,7 +2277,7 @@ internal class DatasetEditorViewModelTests
 				.Returns(RandomValues.CreateBytes(10));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -2303,7 +2314,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess
 			.ReceivedWithAnyArgs(1)
-			.UpdateFilePropertiesAsync(default, default!, default);
+			.UpdateFileContentsAsync(default, default!, default, default);
 	}
 
 	/// <summary>
@@ -2367,9 +2378,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsHidden == hide);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -2415,9 +2427,10 @@ internal class DatasetEditorViewModelTests
 		await sut.SortAsync(group: null, ListSortDirection.Ascending);
 
 		// Assert
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
+		await dbAccess.DidNotReceive().UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 
 	/// <summary>
@@ -2441,7 +2454,7 @@ internal class DatasetEditorViewModelTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(default, default!, default)
+				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(serializer);
@@ -2537,9 +2550,10 @@ internal class DatasetEditorViewModelTests
 				.BeInDescendingOrder(x => x.Value, StringComparer.CurrentCulture);
 		}
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+		await dbAccess.Received(1).UpdateFileContentsAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
 	}
 	#endregion
 }

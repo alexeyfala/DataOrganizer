@@ -20,15 +20,21 @@ public static class EntityFactory
 		in Guid id = default,
 		byte[]? contents = null,
 		string? editorState = null,
-		in Guid? parentId = null) => new()
+		in Guid? parentId = null,
+		bool isFavorite = false,
+		bool isSelected = false,
+		byte[]? note = null) => new()
 		{
 			Contents = contents ?? [],
 			CreatedAt = DateTime.Now,
 			EditorState = editorState,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = RandomValues.CreateIntFrom10To100(),
+			IsFavorite = isFavorite,
+			IsSelected = isSelected,
 			Kind = EntityKind.File,
 			Name = RandomString.Create(10),
+			Note = note,
 			ParentId = parentId,
 			UpdatedAt = DateTime.Now
 		};
@@ -47,16 +53,26 @@ public static class EntityFactory
 	/// <summary>
 	/// Creates a <see cref="FolderEntity" /> with random properties.
 	/// </summary>
-	public static FolderEntity CreateFolder(in Guid id = default, in Guid? parentId = null) => new()
-	{
-		CreatedAt = DateTime.Now,
-		Id = id == default ? Guid.NewGuid() : id,
-		Index = RandomValues.CreateIntFrom10To100(),
-		Kind = EntityKind.Folder,
-		Name = RandomString.Create(10),
-		ParentId = parentId,
-		UpdatedAt = DateTime.Now
-	};
+	public static FolderEntity CreateFolder(
+		in Guid id = default,
+		in Guid? parentId = null,
+		byte[]? encryptedDek = null,
+		bool isExpanded = false,
+		bool isSelected = false,
+		byte[]? note = null) => new()
+		{
+			CreatedAt = DateTime.Now,
+			EncryptedDek = encryptedDek,
+			Id = id == default ? Guid.NewGuid() : id,
+			Index = RandomValues.CreateIntFrom10To100(),
+			IsExpanded = isExpanded,
+			IsSelected = isSelected,
+			Kind = EntityKind.Folder,
+			Name = RandomString.Create(10),
+			Note = note,
+			ParentId = parentId,
+			UpdatedAt = DateTime.Now
+		};
 
 
 	/// <summary>

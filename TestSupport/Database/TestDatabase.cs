@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
 using System;
 
-namespace Repository.UnitTests.Fixtures;
+namespace TestSupport.Database;
 
 /// <summary>
 /// Owns an open in-memory SQLite connection and a schema-created <see cref="SqliteDbContext" /> for a single test.
 /// </summary>
-internal sealed class TestDatabase : IDisposable
+public sealed class TestDatabase : IDisposable
 {
 	#region Data
 	private readonly SqliteConnection _connection;

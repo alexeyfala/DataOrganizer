@@ -282,10 +282,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		_logger.LogDebug(
 			$@"Saving the editor state of ""{FileId}"" in the database:{json}");
 
-		return _dbAccess.UpdateFilePropertiesAsync(FileId,
-		[
-			x => x.SetProperty(x => x.EditorState, json)
-		], token);
+		return _dbAccess.UpdateFileEditorStateAsync(FileId, json, token);
 	}
 	#endregion
 }

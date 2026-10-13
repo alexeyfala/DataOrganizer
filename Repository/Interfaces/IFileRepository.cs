@@ -66,16 +66,5 @@ public interface IFileRepository
 		Guid id,
 		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates properties of multiple entities in a single transaction. Each dictionary entry
-	/// maps an entity Id to the setters to apply to that entity.
-	/// </summary>
-	/// <param name="updates">Map from entity Id to its property setters.</param>
-	/// <param name="token">Cancellation token.</param>
-	/// <returns>The total number of rows affected across all updates.</returns>
-	Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
-		CancellationToken token = default);
 	#endregion
 }

@@ -119,7 +119,7 @@ public sealed class DbAccess : IDbAccess
 
 		try
 		{
-			ExplorerItemBase entity = parameters.Kind == EntityKind.Folder
+			ExplorerItemBase entity = IsFolder(parameters.Kind)
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 
@@ -462,7 +462,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> DeleteFileAsync(Guid id, CancellationToken token = default)
+	public async Task<bool> DeleteAsync(EntityKind kind, Guid id, CancellationToken token = default)
 	{
 		ThrowIfWriteRefused();
 
@@ -472,63 +472,9 @@ public sealed class DbAccess : IDbAccess
 
 		try
 		{
-			await _hotkeysRepository
-				.RemoveRangeByOwnerIdAsync(id, token)
-				.ConfigureAwait(false);
-
-			int count = await _fileRepository
-				.RemoveAsync(id, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> DeleteFolderAsync(Guid id, CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
-		{
-			Guid[] folderIds = await _folderRepository
-				.GetFolderSubtreeIdsAsync(id, token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false);
-
-			Guid[] fileIds = await _fileRepository
-				.GetFileIdsAsync(folderIds, token)
-				.ConfigureAwait(false);
-
-			if (fileIds.Length > 0)
-			{
-				await _hotkeysRepository
-					.RemoveRangeByOwnerIdsAsync(fileIds, token)
-					.ConfigureAwait(false);
-
-				await _fileRepository
-					.RemoveRangeByIdsAsync(fileIds, token)
-					.ConfigureAwait(false);
-			}
-
-			int count = await _folderRepository
-				.RemoveRangeByIdsAsync(folderIds, token)
-				.ConfigureAwait(false);
+			int count = IsFolder(kind)
+				? await DeleteFolderTreeAsync(id, token).ConfigureAwait(false)
+				: await DeleteFileWithHotkeysAsync(id, token).ConfigureAwait(false);
 
 			return count > 0;
 		}
@@ -828,6 +774,26 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> RenameAsync(
+		EntityKind kind,
+		Guid id,
+		string name,
+		DateTime updatedAt,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateItemAsync(kind, id, SetName, SetName, token).ConfigureAwait(false);
+
+		void SetName<T>(UpdateSettersBuilder<T> builder) where T : ExplorerItemBase
+		{
+			builder
+				.SetProperty(x => x.Name, name)
+				.SetProperty(x => x.UpdatedAt, updatedAt);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
 		ThrowIfWriteRefused();
@@ -869,10 +835,122 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task UpdateFileAndFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
+	public async Task<bool> UpdateEncryptedDekAsync(
+		Guid folderId,
+		byte[] encryptedDek,
 		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateFolderAsync(
+			folderId,
+			x => x.SetProperty(x => x.EncryptedDek, encryptedDek),
+			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateFileContentsAsync(
+		Guid fileId,
+		byte[] contents,
+		DateTime? updatedAt,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateFileAsync(fileId, SetContents, token).ConfigureAwait(false);
+
+		void SetContents(UpdateSettersBuilder<FileEntity> builder)
+		{
+			builder.SetProperty(x => x.Contents, contents);
+
+			if (updatedAt is { } date)
+			{
+				builder.SetProperty(x => x.UpdatedAt, date);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateFileEditorStateAsync(
+		Guid fileId,
+		string editorState,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateFileAsync(
+			fileId,
+			x => x.SetProperty(x => x.EditorState, editorState),
+			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateIsExpandedAsync(
+		Guid folderId,
+		bool isExpanded,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateFolderAsync(
+			folderId,
+			x => x.SetProperty(x => x.IsExpanded, isExpanded),
+			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateIsFavoriteAsync(
+		Guid fileId,
+		bool isFavorite,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateFileAsync(
+			fileId,
+			x => x.SetProperty(x => x.IsFavorite, isFavorite),
+			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateIsSelectedAsync(
+		EntityKind kind,
+		Guid id,
+		bool isSelected,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateItemAsync(kind, id, SetIsSelected, SetIsSelected, token).ConfigureAwait(false);
+
+		void SetIsSelected<T>(UpdateSettersBuilder<T> builder) where T : ExplorerItemBase
+		{
+			builder.SetProperty(x => x.IsSelected, isSelected);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateNoteAsync(
+		EntityKind kind,
+		Guid id,
+		byte[]? note,
+		DateTime updatedAt,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		return await UpdateItemAsync(kind, id, SetNote, SetNote, token).ConfigureAwait(false);
+
+		void SetNote<T>(UpdateSettersBuilder<T> builder) where T : ExplorerItemBase
+		{
+			builder
+				.SetProperty(x => x.Note, note)
+				.SetProperty(x => x.UpdatedAt, updatedAt);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task UpdateProtectionAsync(ProtectionUpdate update, CancellationToken token = default)
 	{
 		ThrowIfWriteRefused();
 
@@ -884,17 +962,18 @@ public sealed class DbAccess : IDbAccess
 		{
 			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
 			{
-				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> update in fileUpdates)
+				foreach ((Guid fileId, byte[] contents) in update.Contents)
 				{
 					await _fileRepository
-						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.UpdatePropertiesAsync(fileId, [x => SetFile(x, fileId, contents)], innerToken)
 						.ConfigureAwait(false);
 				}
 
-				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> update in folderUpdates)
+				// The folder of the key keeps its place among the folders whose notes change.
+				foreach (Guid folderId in update.FolderNotes.Keys.Append(update.FolderId).Distinct())
 				{
 					await _folderRepository
-						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.UpdatePropertiesAsync(folderId, [x => SetFolder(x, folderId)], innerToken)
 						.ConfigureAwait(false);
 				}
 			}, token).ConfigureAwait(false);
@@ -910,134 +989,31 @@ public sealed class DbAccess : IDbAccess
 				// Service was disposed concurrently — safe to ignore.
 			}
 		}
-	}
 
-	/// <inheritdoc />
-	public async Task<bool> UpdateFilePropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<FileEntity>>[] setters,
-		CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
+		void SetFile(UpdateSettersBuilder<FileEntity> builder, Guid fileId, byte[] contents)
 		{
-			int count = await _fileRepository
-				.UpdatePropertiesAsync(id, setters, token)
-				.ConfigureAwait(false);
+			builder
+				.SetProperty(x => x.Contents, contents)
+				.SetProperty(x => x.UpdatedAt, update.UpdatedAt);
 
-			return count > 0;
-		}
-		finally
-		{
-			try
+			if (update.FileNotes.TryGetValue(fileId, out byte[]? note))
 			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
+				builder.SetProperty(x => x.Note, note);
 			}
 		}
-	}
 
-	/// <inheritdoc />
-	public async Task<bool> UpdateFilePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
-		CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
+		void SetFolder(UpdateSettersBuilder<FolderEntity> builder, Guid folderId)
 		{
-			int count = await _fileRepository
-				.UpdatePropertiesAsync(updates, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		finally
-		{
-			try
+			if (update.FolderNotes.TryGetValue(folderId, out byte[]? note))
 			{
-				_semaphore.Release();
+				builder
+					.SetProperty(x => x.Note, note)
+					.SetProperty(x => x.UpdatedAt, update.UpdatedAt);
 			}
-			catch (ObjectDisposedException)
+
+			if (folderId == update.FolderId)
 			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdateFolderPropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
-		CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
-		{
-			int count = await _folderRepository
-				.UpdatePropertiesAsync(id, setters, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdateFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
-		CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
-		{
-			int count = await _folderRepository
-				.UpdatePropertiesAsync(updates, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
+				builder.SetProperty(x => x.EncryptedDek, update.EncryptedDek);
 			}
 		}
 	}
@@ -1105,6 +1081,16 @@ public sealed class DbAccess : IDbAccess
 
 		return new(options);
 	}
+
+	/// <summary>
+	/// <c>True</c> when an object of <paramref name="kind" /> is kept with the folders, <c>false</c> when with the files.
+	/// </summary>
+	private static bool IsFolder(EntityKind kind) => kind switch
+	{
+		EntityKind.Folder => true,
+		EntityKind.File or EntityKind.Dataset => false,
+		_ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+	};
 
 	/// <summary>
 	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyEntity" />.
@@ -1183,6 +1169,50 @@ public sealed class DbAccess : IDbAccess
 			.ConfigureAwait(false);
 
 		return folder;
+	}
+
+	/// <summary>
+	/// Removes a file with its hotkeys; returns the number of files removed.
+	/// </summary>
+	private async Task<int> DeleteFileWithHotkeysAsync(Guid id, CancellationToken token)
+	{
+		await _hotkeysRepository
+			.RemoveRangeByOwnerIdAsync(id, token)
+			.ConfigureAwait(false);
+
+		return await _fileRepository
+			.RemoveAsync(id, token)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Removes a folder with everything in it; returns the number of folders removed.
+	/// </summary>
+	private async Task<int> DeleteFolderTreeAsync(Guid id, CancellationToken token)
+	{
+		Guid[] folderIds = await _folderRepository
+			.GetFolderSubtreeIdsAsync(id, token)
+			.ToArrayAsync(token)
+			.ConfigureAwait(false);
+
+		Guid[] fileIds = await _fileRepository
+			.GetFileIdsAsync(folderIds, token)
+			.ConfigureAwait(false);
+
+		if (fileIds.Length > 0)
+		{
+			await _hotkeysRepository
+				.RemoveRangeByOwnerIdsAsync(fileIds, token)
+				.ConfigureAwait(false);
+
+			await _fileRepository
+				.RemoveRangeByIdsAsync(fileIds, token)
+				.ConfigureAwait(false);
+		}
+
+		return await _folderRepository
+			.RemoveRangeByIdsAsync(folderIds, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -1289,6 +1319,88 @@ public sealed class DbAccess : IDbAccess
 
 			return failureStatus;
 		}
+	}
+
+	/// <summary>
+	/// Writes to a file; <c>false</c> when there is no such file.
+	/// </summary>
+	private async Task<bool> UpdateFileAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FileEntity>> setter,
+		CancellationToken token)
+	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
+		try
+		{
+			int count = await _fileRepository
+				.UpdatePropertiesAsync(id, [setter], token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <summary>
+	/// Writes to a folder; <c>false</c> when there is no such folder.
+	/// </summary>
+	private async Task<bool> UpdateFolderAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FolderEntity>> setter,
+		CancellationToken token)
+	{
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
+		try
+		{
+			int count = await _folderRepository
+				.UpdatePropertiesAsync(id, [setter], token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <summary>
+	/// Writes to the folder or the file, whichever <paramref name="kind" /> keeps the object with; the caller passes one
+	/// setter for each.
+	/// </summary>
+	private Task<bool> UpdateItemAsync(
+		EntityKind kind,
+		Guid id,
+		Action<UpdateSettersBuilder<FolderEntity>> folderSetter,
+		Action<UpdateSettersBuilder<FileEntity>> fileSetter,
+		CancellationToken token)
+	{
+		return IsFolder(kind)
+			? UpdateFolderAsync(id, folderSetter, token)
+			: UpdateFileAsync(id, fileSetter, token);
 	}
 	#endregion
 }

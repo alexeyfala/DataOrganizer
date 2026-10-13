@@ -3,11 +3,11 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
-using Repository.UnitTests.Fixtures;
 using SharpHook.Data;
 using System;
 using System.Data.Common;
 using System.Threading.Tasks;
+using TestSupport.Database;
 
 namespace Repository.UnitTests.DbContexts;
 

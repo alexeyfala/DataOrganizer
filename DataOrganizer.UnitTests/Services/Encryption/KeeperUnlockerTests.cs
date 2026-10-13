@@ -8,15 +8,21 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using Entities.Models;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -214,7 +220,7 @@ internal class KeeperUnlockerTests
 
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFolderPropertiesAsync(default, default!, default);
+			.UpdateEncryptedDekAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -390,23 +396,21 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Writes_The_Wrapper_At_The_Current_Cost()
 	{
 		// Arrange
+		using TestDatabase database = new();
+
 		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
 		byte[] rewrapped = RandomValues.CreateBytes(20);
 
 		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
+		FolderEntity entity = EntityFactory.CreateFolder(id: keeper.Id, encryptedDek: keeper.EncryptedDek);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
 
 			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
@@ -423,12 +427,28 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())
 			.Returns(rewrapped);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
+
+			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(encryption);
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([entity]);
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
@@ -445,6 +465,16 @@ internal class KeeperUnlockerTests
 		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(rewrapped);
+
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EncryptedDek
+			.Should()
+			.Equal(rewrapped);
 	}
 	#endregion
 

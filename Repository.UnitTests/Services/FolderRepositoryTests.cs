@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using Entities.Models;
 using Repository.Services;
-using Repository.UnitTests.Fixtures;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TestSupport.Database;
 using TestSupport.Models;
 
 namespace Repository.UnitTests.Services;

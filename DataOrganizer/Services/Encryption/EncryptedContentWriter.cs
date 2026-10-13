@@ -5,8 +5,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
-using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
+using Repository.Dto;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -67,50 +66,26 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		try
 		{
-			DateTime updatedAt = _timeProvider
-				.GetLocalNow()
-				.LocalDateTime;
-
-			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
-				.Contents
-				.ToDictionary(x => x.Id, pair =>
+			ProtectionUpdate update = new()
 			{
-				return new Action<UpdateSettersBuilder<FileEntity>>[]
-				{
-					builder => builder.SetProperty(x => x.Contents, pair.Contents),
-					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
-				};
-			});
-
-			// A note of a file is stored in the same transaction as its contents.
-			foreach (NoteUpdate note in parameters.Notes.Where(x => !x.IsFolderNote()))
-			{
-				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileEntity>>[]? setters))
-				{
-					continue;
-				}
-
-				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
-			}
-
-			Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = parameters
-				.Notes
-				.Where(x => x.IsFolderNote())
-				.ToDictionary(x => x.Id, note =>
-			{
-				return new Action<UpdateSettersBuilder<FolderEntity>>[]
-				{
-					builder => builder.SetProperty(x => x.Note, note.Note),
-					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
-				};
-			});
-
-			Action<UpdateSettersBuilder<FolderEntity>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
-
-			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
+				Contents = parameters.Contents.ToDictionary(x => x.Id, x => x.Contents),
+				EncryptedDek = parameters.EncryptedDek,
+				FileNotes = parameters
+					.Notes
+					.Where(x => !x.IsFolderNote())
+					.ToDictionary(x => x.Id, x => x.Note),
+				FolderId = parameters.Folder.Id,
+				FolderNotes = parameters
+					.Notes
+					.Where(x => x.IsFolderNote())
+					.ToDictionary(x => x.Id, x => x.Note),
+				UpdatedAt = _timeProvider
+					.GetLocalNow()
+					.LocalDateTime
+			};
 
 			await _dbAccess
-				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
+				.UpdateProtectionAsync(update, token)
 				.ConfigureAwait(false);
 
 			ExplorerItemDtoBase[] objects =
@@ -128,11 +103,6 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.EncryptedDek = parameters.EncryptedDek;
 
 			return UpdateDatabaseOutcome.Saved;
-
-			void SetDek(UpdateSettersBuilder<FolderEntity> builder)
-			{
-				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
-			}
 		}
 		catch (DatabaseNotWritableException ex)
 		{
