@@ -7,7 +7,7 @@ namespace DataOrganizer.Models.Dataset;
 	$"{nameof(Type)} = {{{nameof(Type)}}}, " +
 	$"{nameof(Key)} = {{{nameof(Key)}}}, " +
 	$"{nameof(Value)} = {{{nameof(Value)}}}")]
-public sealed partial class KeyValueRecord : ValueRecord
+public sealed partial class KeyValueRecord : ValueRecordBase
 {
 	#region Properties
 	/// <summary>

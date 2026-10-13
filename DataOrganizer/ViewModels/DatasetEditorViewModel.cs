@@ -154,7 +154,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Handles when the user has manually changed <see cref="ValueRecord.IsHidden" />.
+	/// Handles when the user has manually changed <see cref="ValueRecordBase.IsHidden" />.
 	/// </summary>
 	[RelayCommand]
 	internal Task IsHiddenChanged()
@@ -165,7 +165,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation($"{nameof(ValueRecord.IsHidden)} property of record is changed");
+		_logger.LogInformation($"{nameof(ValueRecordBase.IsHidden)} property of record is changed");
 
 		return SaveContentsAsync(FileContentsChange.View);
 	}
@@ -463,7 +463,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Sets <see cref="ValueRecord.IsHidden" /> value to <c>True</c> to all records in <see cref="RecordsGroup" />.
+	/// Sets <see cref="ValueRecordBase.IsHidden" /> value to <c>True</c> to all records in <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private Task Hide(RecordsGroup? group) => ShowHideAsync(group, true);
@@ -529,13 +529,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Sets <see cref="ValueRecord.IsHidden" /> value to <c>False</c> to all records in <see cref="RecordsGroup" />.
+	/// Sets <see cref="ValueRecordBase.IsHidden" /> value to <c>False</c> to all records in <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private Task Show(RecordsGroup? group) => ShowHideAsync(group, false);
 
 	/// <summary>
-	/// Sets <see cref="ValueRecord.IsHidden" /> value from <paramref name="hide"/> to all records in <see cref="Records" />.
+	/// Sets <see cref="ValueRecordBase.IsHidden" /> value from <paramref name="hide"/> to all records in <see cref="Records" />.
 	/// </summary>
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
@@ -875,16 +875,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Sets <see cref="ValueRecord.IsHidden" /> value from <paramref name="hide"/> to all records in <see cref="RecordsGroup" /> or in <see cref="Records" />.
+	/// Sets <see cref="ValueRecordBase.IsHidden" /> value from <paramref name="hide"/> to all records in <see cref="RecordsGroup" /> or in <see cref="Records" />.
 	/// </summary>
 	internal Task ShowHideAsync(
 		RecordsGroup? group,
 		bool hide,
 		CancellationToken token = default)
 	{
-		ValueRecord[] records = [.. (group is not null ? group.Children : Records)
+		ValueRecordBase[] records = [.. (group is not null ? group.Children : Records)
 			.Flatten()
-			.OfType<ValueRecord>()
+			.OfType<ValueRecordBase>()
 			.Where(x => x.IsHidden != hide)];
 
 		if (records.IsEmpty())

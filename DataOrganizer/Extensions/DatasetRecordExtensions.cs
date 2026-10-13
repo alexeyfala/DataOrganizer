@@ -59,15 +59,15 @@ internal static class DatasetRecordExtensions
 
 		KeyValueRecord[] keyValues = direction switch
 		{
-			ListSortDirection.Ascending => [.. records.OfSpecificType<DatasetRecordBase, KeyValueRecord>().OrderBy(x => x.Key)],
-			ListSortDirection.Descending => [.. records.OfSpecificType<DatasetRecordBase, KeyValueRecord>().OrderByDescending(x => x.Key)],
+			ListSortDirection.Ascending => [.. records.OfType<KeyValueRecord>().OrderBy(x => x.Key)],
+			ListSortDirection.Descending => [.. records.OfType<KeyValueRecord>().OrderByDescending(x => x.Key)],
 			_ => throw new NotImplementedException()
 		};
 
 		ValueRecord[] values = direction switch
 		{
-			ListSortDirection.Ascending => [.. records.OfSpecificType<DatasetRecordBase, ValueRecord>().OrderBy(x => x.Value)],
-			ListSortDirection.Descending => [.. records.OfSpecificType<DatasetRecordBase, ValueRecord>().OrderByDescending(x => x.Value)],
+			ListSortDirection.Ascending => [.. records.OfType<ValueRecord>().OrderBy(x => x.Value)],
+			ListSortDirection.Descending => [.. records.OfType<ValueRecord>().OrderByDescending(x => x.Value)],
 			_ => throw new NotImplementedException()
 		};
 

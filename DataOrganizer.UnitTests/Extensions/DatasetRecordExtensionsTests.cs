@@ -102,7 +102,7 @@ internal class DatasetRecordExtensionsTests
 
 		KeyValueRecord[] keyValueRecords = [.. result.OfType<KeyValueRecord>()];
 
-		ValueRecord[] values = [.. result.Where(x => x.GetType() == typeof(ValueRecord)).Cast<ValueRecord>()];
+		ValueRecord[] values = [.. result.OfType<ValueRecord>()];
 
 		if (direction == ListSortDirection.Ascending)
 		{

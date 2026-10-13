@@ -2330,9 +2330,9 @@ internal class DatasetEditorViewModelTests
 
 		SampleRecords samples = new();
 
-		ValueRecord[] records = [.. samples
+		ValueRecordBase[] records = [.. samples
 			.CreateValueRecords(count)
-			.Concat(samples.CreateKeyValueRecords(count))
+			.Concat<ValueRecordBase>(samples.CreateKeyValueRecords(count))
 			.ToArray()
 			.ForEach(x => x.IsHidden = !hide)];
 
@@ -2539,13 +2539,13 @@ internal class DatasetEditorViewModelTests
 		// The records follow the order of the current culture, as the assertions would compare by code point otherwise.
 		if (direction == ListSortDirection.Ascending)
 		{
-			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfType<ValueRecord>()
 				.Should()
 				.BeInAscendingOrder(x => x.Value, StringComparer.CurrentCulture);
 		}
 		else
 		{
-			target.OfSpecificType<DatasetRecordBase, ValueRecord>()
+			target.OfType<ValueRecord>()
 				.Should()
 				.BeInDescendingOrder(x => x.Value, StringComparer.CurrentCulture);
 		}
