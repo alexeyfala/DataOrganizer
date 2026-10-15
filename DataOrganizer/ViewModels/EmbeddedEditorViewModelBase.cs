@@ -13,7 +13,6 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
 using Entities.Models;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -106,8 +105,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDbAccess" />
-	protected readonly IDbAccess _dbAccess;
+	/// <inheritdoc cref="IEditorStateStore" />
+	protected readonly IEditorStateStore _editorStateStore;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
@@ -143,7 +142,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
-		IDbAccess dbAccess,
+		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
@@ -154,7 +153,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	{
 		_app = app;
 
-		_dbAccess = dbAccess;
+		_editorStateStore = editorStateStore;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -279,10 +278,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		[StringSyntax(StringSyntaxAttribute.Json)] string json,
 		CancellationToken token = default)
 	{
-		_logger.LogDebug(
-			$@"Saving the editor state of ""{FileId}"" in the database:{json}");
-
-		return _dbAccess.UpdateFileEditorStateAsync(FileId, json, token);
+		return _editorStateStore.WriteAsync(FileId, json, token);
 	}
 	#endregion
 }

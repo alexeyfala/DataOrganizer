@@ -116,10 +116,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			// The writes wait for the test, so the queue gets to the edit queued on closing only after the close.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -226,6 +222,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -292,11 +292,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			// The state reads fine, so only the check of the contents can close the editor.
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -341,10 +336,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -398,6 +389,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -482,10 +477,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -554,6 +545,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -608,10 +603,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -669,10 +660,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -711,10 +698,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -764,6 +747,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -878,6 +865,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -920,10 +911,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -971,10 +958,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1032,6 +1015,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -1095,6 +1082,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -1156,6 +1147,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
@@ -1215,6 +1210,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -1294,6 +1293,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -1342,10 +1345,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			editorSplits
 				.Find(fileId)
@@ -1429,6 +1428,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -1448,6 +1451,63 @@ internal class EmbeddedFileEditorViewModelTests
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the editor starts from the state it is given, which the file
+	/// keeps from an earlier editor, and leaves the stored one unread.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Starts_From_The_Given_State()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(new FileEditorState
+		{
+			WordWrap = true
+		});
+
+		// Act
+		await sut.EditorLoaded();
+
+		// Assert
+		sut.WordWrap
+			.Should()
+			.BeTrue();
+
+		await dbAccess
+			.DidNotReceive()
+			.GetFileEditorStateAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>
@@ -1473,10 +1533,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1519,10 +1575,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1586,6 +1638,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -1628,10 +1684,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1680,10 +1732,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -1746,10 +1794,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -1816,10 +1860,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -1905,6 +1945,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
@@ -1958,10 +2002,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -2027,10 +2067,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -2120,10 +2156,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -2166,10 +2198,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -2216,10 +2244,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -2284,6 +2308,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -2408,10 +2436,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			// The session key opens the file and then refuses the edit.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -2498,10 +2522,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			// No row takes the edit, as the file is gone from the database.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -2563,10 +2583,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -2626,10 +2642,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			// The save of the edit lasts until the test lets it end.
 			dbAccess
@@ -2707,10 +2719,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
@@ -2786,10 +2794,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
@@ -2861,10 +2865,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -2938,10 +2938,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns(fileContents);
 
 			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
@@ -3005,10 +3001,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -3108,10 +3100,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns(fileContents);
 
 			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
@@ -3193,10 +3181,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns(fileContents);
 
 			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
 					Task.FromException<bool>(new InvalidOperationException()),
@@ -3271,10 +3255,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -3360,10 +3340,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.Returns(fileContents);
 
 			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
@@ -3439,10 +3415,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(read.Task);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -3525,10 +3497,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -3602,10 +3570,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -3695,10 +3659,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
@@ -3762,10 +3722,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
@@ -3823,10 +3779,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			// A protected file hands its contents to the cipher, which gives them back as they are.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
@@ -3917,6 +3869,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 		});
@@ -3964,10 +3920,6 @@ internal class EmbeddedFileEditorViewModelTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
-
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -4035,6 +3987,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DbContextService>()
 				.As<IDbContextService>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()
@@ -4132,10 +4088,6 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
@@ -4207,6 +4159,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IJsonSerializer>();
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
 
 			builder
 				.RegisterType<FileContentsReader>()

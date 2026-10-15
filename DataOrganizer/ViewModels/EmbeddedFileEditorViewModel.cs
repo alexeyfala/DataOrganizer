@@ -12,7 +12,6 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -310,9 +309,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
 		Application app,
-		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IEditorSplitStore editorSplits,
+		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
@@ -322,7 +321,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			dbAccess,
+			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
 			jsonSerializer,
@@ -663,8 +662,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	private async Task<FileEditorState?> ReadEditorStateAsync(CancellationToken token = default)
 	{
 		// The restored values reach the view through bindings, so they are set on the UI thread.
-		string? value = InitialEditorState ?? await _dbAccess
-			.GetFileEditorStateAsync(FileId, token)
+		string? value = InitialEditorState ?? await _editorStateStore
+			.ReadAsync(FileId, token)
 			.ConfigureAwait(true);
 
 		if (value is null)

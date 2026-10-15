@@ -1,12 +1,19 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
@@ -26,6 +33,7 @@ using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,6 +48,31 @@ namespace DataOrganizer.UnitTests.ViewModels;
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetEditorViewModel)}"" type")]
 internal class DatasetEditorViewModelTests
 {
+	#region Data
+	/// <summary>
+	/// Number of the records that the scroll tests load.
+	/// </summary>
+	private const int RecordCount = 50;
+
+	/// <summary>
+	/// Height of a record in the scroll tests.
+	/// </summary>
+	private const double RecordHeight = 40.0;
+
+	/// <summary>
+	/// Index of the record at the top in the scroll tests.
+	/// </summary>
+	private const int TopRecordIndex = 30;
+
+	/// <summary>
+	/// Template that shows every record at <see cref="RecordHeight" />.
+	/// </summary>
+	private static readonly FuncDataTemplate<DatasetRecordBase> RecordTemplate = new((_, _) => new Border
+	{
+		Height = RecordHeight
+	});
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddGroupAsync" />: adds a group to the parent group (expanding it) or to the root records and persists the change.
@@ -876,6 +909,184 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a scroll of the loaded records saves the record at the top,
+	/// and the file gets the same state.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ContainerLoaded_Saves_The_Record_At_The_Top_After_A_Scroll()
+	{
+		// Arrange
+		const double withinRecordOffset = 10.0;
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		List<Task> watched = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(CreateRecords()),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The dataset has no stored position yet.
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns((string?)null);
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+
+			// The editor follows the scroll at once instead of posting the subscription.
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.FileId = Guid.NewGuid();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		ItemsRepeater container = new()
+		{
+			ItemsSource = sut.Records,
+			ItemTemplate = RecordTemplate
+		};
+
+		ScrollViewer scrollViewer = Show(container);
+
+		await sut.ContainerLoaded(container);
+
+		Func<bool> isReported = () =>
+		{
+			// The pause after the scroll ends on a timer, which posts the save to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return reported is not null;
+		};
+
+		// Act
+		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + withinRecordOffset);
+
+		await isReported.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+
+		await Task.WhenAll(watched);
+
+		// Assert
+		reported
+			.Should()
+			.NotBeNull();
+
+		DatasetEditorState state = new SystemTextJsonSerializer().Deserialize<DatasetEditorState>(reported!);
+
+		state.TopRecordIndex
+			.Should()
+			.Be(TopRecordIndex);
+
+		state.WithinRecordOffset
+			.Should()
+			.BeApproximately(withinRecordOffset, 0.5);
+
+		await dbAccess
+			.Received(1)
+			.UpdateFileEditorStateAsync(sut.FileId, reported!, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the stored editor state brings back to the top the record that
+	/// was there.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ContainerLoaded_Scrolls_To_The_Stored_Record()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(CreateRecords()),
+				IsValid = true
+			};
+
+			DatasetEditorState state = new()
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = 0.0
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(serializer.Serialize(state));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		ItemsRepeater container = new()
+		{
+			ItemsSource = sut.Records,
+			ItemTemplate = RecordTemplate
+		};
+
+		ScrollViewer scrollViewer = Show(container);
+
+		// Act
+		await sut.ContainerLoaded(container);
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(TopRecordIndex * RecordHeight, 0.5);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: does not attempt deserialization when the file contents are empty, but still marks the view model initialized.
 	/// </summary>
 	[Test]
@@ -920,6 +1131,72 @@ internal class DatasetEditorViewModelTests
 		jsonSerializer
 			.DidNotReceive()
 			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the editor starts from the state it is given, which the file
+	/// keeps from an earlier editor, and leaves the stored one unread.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ContainerLoaded_Starts_From_The_Given_State()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(CreateRecords()),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(new DatasetEditorState
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = 0.0
+		});
+
+		ItemsRepeater container = new()
+		{
+			ItemsSource = sut.Records,
+			ItemTemplate = RecordTemplate
+		};
+
+		ScrollViewer scrollViewer = Show(container);
+
+		// Act
+		await sut.ContainerLoaded(container);
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(TopRecordIndex * RecordHeight, 0.5);
+
+		await dbAccess
+			.DidNotReceive()
+			.GetFileEditorStateAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>
@@ -2554,6 +2831,35 @@ internal class DatasetEditorViewModelTests
 			Arg.Any<Guid>(),
 			Arg.Any<byte[]>(),
 			Arg.Any<DateTime?>());
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates more records of a dataset than the scroll tests show at once.
+	/// </summary>
+	private static DatasetRecordBase[] CreateRecords() => [.. Enumerable.Range(0, RecordCount).Select(_ => new ValueRecord())];
+
+	/// <summary>
+	/// Shows the records in a window, inside a scroll viewer too short to hold them all.
+	/// </summary>
+	private static ScrollViewer Show(ItemsRepeater container)
+	{
+		ScrollViewer scrollViewer = new()
+		{
+			Content = container
+		};
+
+		Window window = new()
+		{
+			Content = scrollViewer,
+			Height = 200.0,
+			Width = 300.0
+		};
+
+		window.Show();
+
+		return scrollViewer;
 	}
 	#endregion
 }

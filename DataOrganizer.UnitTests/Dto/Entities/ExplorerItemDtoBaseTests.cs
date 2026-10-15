@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 
@@ -121,6 +122,50 @@ internal class ExplorerItemDtoBaseTests
 		result
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.FindUnlockedKeeper" />: an object that is not decrypted gets no keeper, even under
+	/// one.
+	/// </summary>
+	[Test]
+	public void FindUnlockedKeeper_Returns_Null_When_The_Object_Is_Not_Decrypted(
+		[Values(EncryptionStatus.None, EncryptionStatus.Encrypted)] EncryptionStatus status)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: status);
+
+		file.Parent = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
+
+		// Act
+		FolderDto? result = file.FindUnlockedKeeper();
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.FindUnlockedKeeper" />: a decrypted object gets the keeper it belongs to.
+	/// </summary>
+	[Test]
+	public void FindUnlockedKeeper_Returns_The_Keeper_Of_A_Decrypted_Object()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		file.Parent = keeper;
+
+		// Act
+		FolderDto? result = file.FindUnlockedKeeper();
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(keeper);
 	}
 
 	/// <summary>

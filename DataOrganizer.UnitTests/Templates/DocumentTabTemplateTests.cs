@@ -17,6 +17,7 @@ using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using Entities.Enums;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -47,6 +48,100 @@ internal class DocumentTabTemplateTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a dataset opened in the editor gets the editor of its records.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Creates_The_Editor_Of_A_Dataset()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true, kind: EntityKind.Dataset);
+
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		DatasetEditorViewModel viewModel = viewModelMock.Create<DatasetEditorViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<DatasetEditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<DatasetEditorView>(Arg.Any<object[]>())
+				.Returns(x => new DatasetEditorView((DatasetEditorViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		Control? control = sut.Build(file);
+
+		// Assert
+		control
+			.Should()
+			.BeOfType<DatasetEditorView>()
+			.Which
+			.DataContext
+			.Should()
+			.BeSameAs(viewModel);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a file opened in the editor gets the editor of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Creates_The_Editor_Of_A_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(x => new EmbeddedFileEditorView((EmbeddedFileEditorViewModel)x.Arg<object[]>()[0]));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		Control? control = sut.Build(file);
+
+		// Assert
+		control
+			.Should()
+			.BeOfType<EmbeddedFileEditorView>()
+			.Which
+			.DataContext
+			.Should()
+			.BeSameAs(viewModel);
+	}
+
 	/// <summary>
 	/// <see cref="DocumentTabTemplate.Build" />: a tab of the notepad gets the editor of its text.
 	/// </summary>
@@ -111,10 +206,6 @@ internal class DocumentTabTemplateTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -152,6 +243,10 @@ internal class DocumentTabTemplateTests
 				.Returns(firstView, secondView);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -206,10 +301,6 @@ internal class DocumentTabTemplateTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -238,6 +329,10 @@ internal class DocumentTabTemplateTests
 				.Returns(view);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -255,47 +350,6 @@ internal class DocumentTabTemplateTests
 			.SyntaxLanguage
 			.Should()
 			.Be(PowerShellLanguage);
-	}
-
-	/// <summary>
-	/// <see cref="DocumentTabTemplate.Build" />: the date of change that the editor of a file reports reaches the file.
-	/// </summary>
-	[AvaloniaTest]
-	public void Build_Hands_The_Date_Of_Change_To_The_File()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
-
-		file.IsEditing = true;
-
-		DateTime updatedAt = new(2026, 10, 12, 18, 30, 0);
-
-		using AutoMock viewModelMock = AutoMock.GetLoose();
-
-		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EmbeddedFileEditorViewModel>()
-				.Returns(viewModel);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
-
-		sut.Build(file);
-
-		// Act
-		viewModel.SetUpdatedAtCallback!(updatedAt);
-
-		// Assert
-		file.UpdatedAt
-			.Should()
-			.Be(updatedAt);
 	}
 
 	/// <summary>
@@ -385,10 +439,6 @@ internal class DocumentTabTemplateTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
@@ -413,6 +463,10 @@ internal class DocumentTabTemplateTests
 				.Returns(view);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();

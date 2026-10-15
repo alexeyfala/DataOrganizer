@@ -17,7 +17,6 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Models.Dataset;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -624,10 +623,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	public DatasetEditorViewModel(
 		Application app,
 		IClipboardTextWriter clipboardWriter,
-		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
+		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
@@ -636,7 +635,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			dbAccess,
+			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
 			jsonSerializer,
@@ -1217,8 +1216,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ItemsRepeater container,
 		CancellationToken token = default)
 	{
-		string? value = InitialEditorState ?? await _dbAccess
-			.GetFileEditorStateAsync(FileId, token)
+		string? value = InitialEditorState ?? await _editorStateStore
+			.ReadAsync(FileId, token)
 			.ConfigureAwait(false);
 
 		if (value is null)

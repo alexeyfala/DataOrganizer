@@ -11,7 +11,6 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Interfaces;
 using System;
@@ -236,7 +235,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
 	public TestEditor(
 		Application app,
-		IDbAccess dbAccess,
+		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
@@ -245,7 +244,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			dbAccess,
+			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
 			jsonSerializer,

@@ -372,9 +372,7 @@ public sealed partial class EditorViewModel :
 		}
 
 		// The key that opens the contents also encrypts the changes made to them while the file runs.
-		Guid? keeperId = dto.EncryptionStatus == EncryptionStatus.Decrypted
-			? dto.FindPasswordKeeper()?.Id
-			: null;
+		Guid? keeperId = dto.FindUnlockedKeeper()?.Id;
 
 		FileContentsReading reading;
 

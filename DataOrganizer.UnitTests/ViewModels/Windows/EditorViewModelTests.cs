@@ -1370,6 +1370,66 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a file that is not protected runs with its stored contents and without a
+	/// key, even under a keeper.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Runs_A_File_That_Is_Not_Protected_Without_A_Key()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto.Parent = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
+
+		byte[] stored = RandomValues.CreateBytes(10);
+
+		ExecuteFileParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = stored,
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(dto.Id)
+				.Returns(contents);
+
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+			engine
+				.ExecuteAsync(Arg.Do<ExecuteFileParameters>(x => parameters = x))
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(dto);
+
+		// Assert
+		parameters!.Contents
+			.Should()
+			.Equal(stored);
+
+		parameters.KeeperId
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Exit" />: the application is shut down.
 	/// </summary>
 	[Test]

@@ -113,6 +113,17 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	public virtual FolderDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
 
 	/// <summary>
+	/// Searches the password keeper whose session key opens the object now; <c>null</c> when the object is not decrypted
+	/// or has no keeper.
+	/// </summary>
+	public FolderDto? FindUnlockedKeeper()
+	{
+		return EncryptionStatus == EncryptionStatus.Decrypted
+			? FindPasswordKeeper()
+			: null;
+	}
+
+	/// <summary>
 	/// Returns a sequence of <see cref="FolderDto" /> parent objects.
 	/// </summary>
 	public IEnumerable<FolderDto> GetAllParents()
