@@ -476,6 +476,35 @@ internal class NoteCipherTests
 	}
 
 	/// <summary>
+	/// <see cref="NoteCipher.Encode" />: returns <c>null</c> when the object is marked as protected but has no password
+	/// keeper.
+	/// </summary>
+	[Test]
+	public void Encode_Returns_Null_When_Keeper_Is_Missing()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
+
+		NoteCipher sut = mock.Create<NoteCipher>();
+
+		// Act
+		byte[]? result = sut.Encode(file, RandomString.Create(20));
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+
+		contentCipher
+			.DidNotReceive()
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+	}
+
+	/// <summary>
 	/// <see cref="NoteCipher.Encode" />: blank text is stored as <c>null</c>.
 	/// </summary>
 	[Test]
