@@ -34,11 +34,6 @@ public interface IAvaloniaClipboard
 	Task SetDataAsync(DataTransfer transfer);
 
 	/// <summary>
-	/// Places a text on the clipboard in the UI thread.
-	/// </summary>
-	Task SetTextAsync(string text);
-
-	/// <summary>
 	/// Returns a bitmap, if available, from the clipboard in the UI thread.
 	/// </summary>
 	Task<Bitmap?> TryGetBitmapAsync();

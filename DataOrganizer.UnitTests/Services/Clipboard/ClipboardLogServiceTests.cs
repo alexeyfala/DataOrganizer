@@ -996,7 +996,7 @@ internal class ClipboardLogServiceTests
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 			clipboard
-				.SetTextWithFormatsAsync(secret, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true)
 				.Returns(true);
 
 			builder
@@ -1036,7 +1036,7 @@ internal class ClipboardLogServiceTests
 
 			// The text reaches the clipboard, so only its kind keeps the auto-clear off.
 			clipboard
-				.SetTextWithFormatsAsync(text, html: null, rtf: null, isSensitive: false)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: false)
 				.Returns(true);
 
 			builder
@@ -1076,7 +1076,7 @@ internal class ClipboardLogServiceTests
 
 			// The clipboard refuses the text.
 			clipboard
-				.SetTextWithFormatsAsync(secret, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true)
 				.Returns(false);
 
 			builder
@@ -1127,7 +1127,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextWithFormatsAsync(secret, html: null, rtf: null, isSensitive: true);
+			.SetTextAsync(secret, html: null, rtf: null, isSensitive: true);
 	}
 
 	/// <summary>
@@ -1354,7 +1354,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextWithFormatsAsync("hello", html, rtf, isSensitive: false);
+			.SetTextAsync("hello", html, rtf, isSensitive: false);
 	}
 
 	/// <summary>
@@ -1385,7 +1385,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextWithFormatsAsync(url, html: null, rtf: null, isSensitive: false);
+			.SetTextAsync(url, html: null, rtf: null, isSensitive: false);
 	}
 
 	/// <summary>

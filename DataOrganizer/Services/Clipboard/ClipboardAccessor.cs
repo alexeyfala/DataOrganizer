@@ -213,15 +213,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
-	public Task SetTextAsync(string text, bool isSensitive)
-	{
-		return isSensitive
-			? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-			: _clipboard.SetTextAsync(text);
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> SetTextWithFormatsAsync(
+	public async Task<bool> SetTextAsync(
 		string text,
 		string? html,
 		string? rtf,

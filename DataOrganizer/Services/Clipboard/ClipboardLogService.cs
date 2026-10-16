@@ -228,7 +228,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
 						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
-					bool isWritten = await _clipboard.SetTextWithFormatsAsync(
+					bool isWritten = await _clipboard.SetTextAsync(
 						textEntry.Text,
 						textEntry.Html,
 						textEntry.Rtf,

@@ -562,10 +562,10 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetTextAsync" />: a sensitive text reaches the clipboard as a marked payload.
+	/// <see cref="ClipboardAccessor.SetTextAsync" />: a sensitive text goes to the clipboard marked as a secret.
 	/// </summary>
 	[Test]
-	public async Task SetTextAsync_Places_A_Marked_Payload_For_A_Sensitive_Text()
+	public async Task SetTextAsync_Marks_A_Sensitive_Text_As_Secret()
 	{
 		// Arrange
 		string text = RandomString.Create(16);
@@ -577,21 +577,21 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetTextAsync(text, isSensitive: true);
+		bool result = await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: true);
 
 		// Assert
+		result
+			.Should()
+			.BeTrue();
+
 		await clipboard
 			.Received(1)
 			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == text
 				&& ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker(x.Formats)));
-
-		await clipboard
-			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetTextAsync" />: an ordinary text reaches the clipboard as plain text.
+	/// <see cref="ClipboardAccessor.SetTextAsync" />: an ordinary text reaches the clipboard as plain text, without markers.
 	/// </summary>
 	[Test]
 	public async Task SetTextAsync_Places_Plain_Text_For_An_Ordinary_Text()
@@ -606,52 +606,19 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetTextAsync(text, isSensitive: false);
+		await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
 
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text);
-
-		await clipboard
-			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == text && x.Formats.Count == 1));
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetTextWithFormatsAsync" />: a sensitive text goes to the clipboard marked as a secret.
+	/// <see cref="ClipboardAccessor.SetTextAsync" />: a text goes to the clipboard with its HTML and RTF.
 	/// </summary>
 	[Test]
-	public async Task SetTextWithFormatsAsync_Marks_A_Sensitive_Text_As_Secret()
-	{
-		// Arrange
-		string text = RandomString.Create(16);
-
-		IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
-
-		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
-
-		// Act
-		bool result = await sut.SetTextWithFormatsAsync(text, html: null, rtf: null, isSensitive: true);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		await clipboard
-			.Received(1)
-			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == text
-				&& ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker(x.Formats)));
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardAccessor.SetTextWithFormatsAsync" />: a text goes to the clipboard with its HTML and RTF.
-	/// </summary>
-	[Test]
-	public async Task SetTextWithFormatsAsync_Puts_The_Html_And_Rtf_On_The_Clipboard()
+	public async Task SetTextAsync_Puts_The_Html_And_Rtf_On_The_Clipboard()
 	{
 		// Arrange
 		const string html = "<b>hello</b>";
@@ -672,7 +639,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetTextWithFormatsAsync("hello", html, rtf, isSensitive: false);
+		await sut.SetTextAsync("hello", html, rtf, isSensitive: false);
 
 		// Assert
 		DataTransfer transfer = placed!;
@@ -692,10 +659,10 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetTextWithFormatsAsync" />: a clipboard that refuses the text is reported.
+	/// <see cref="ClipboardAccessor.SetTextAsync" />: a clipboard that refuses the text is reported.
 	/// </summary>
 	[Test]
-	public async Task SetTextWithFormatsAsync_Reports_A_Refused_Write()
+	public async Task SetTextAsync_Reports_A_Refused_Write()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -712,7 +679,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		bool result = await sut.SetTextWithFormatsAsync(RandomString.Create(16), html: null, rtf: null, isSensitive: false);
+		bool result = await sut.SetTextAsync(RandomString.Create(16), html: null, rtf: null, isSensitive: false);
 
 		// Assert
 		result

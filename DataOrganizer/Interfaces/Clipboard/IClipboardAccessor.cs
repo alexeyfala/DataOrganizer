@@ -36,15 +36,10 @@ public interface IClipboardAccessor
 	Task SetImageAsync(byte[] png);
 
 	/// <summary>
-	/// Puts a text on the clipboard, marked as a secret when it is sensitive.
-	/// </summary>
-	Task SetTextAsync(string text, bool isSensitive);
-
-	/// <summary>
 	/// Puts a text with its HTML and RTF on the clipboard, marked as a secret when it is sensitive; <c>false</c> when the
 	/// clipboard refused it.
 	/// </summary>
-	Task<bool> SetTextWithFormatsAsync(
+	Task<bool> SetTextAsync(
 		string text,
 		string? html,
 		string? rtf,

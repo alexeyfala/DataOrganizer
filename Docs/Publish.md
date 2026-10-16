@@ -25,6 +25,17 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 3\. Build the **Bundle** project → produces the `*.exe` file.
 
+### Updating the .NET runtime in the bundle
+
+The bundle installs the .NET Runtime from `Bundle\Resources\`. For a new 10.0 patch:
+
+1\. Download the x64 Windows installer of the .NET Runtime (`dotnet-runtime-<version>-win-x64.exe`)
+from <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>.
+
+2\. Put it into `Bundle\Resources\` and delete the old installer.
+
+3\. Set `DotNetVersion` in `Bundle\Bundle.wixproj` to the new version.
+
 ### Portable — Release
 
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:

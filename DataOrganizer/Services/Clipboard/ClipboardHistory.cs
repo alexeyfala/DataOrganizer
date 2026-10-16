@@ -134,8 +134,6 @@ public sealed class ClipboardHistory : IClipboardHistory
 	/// <inheritdoc />
 	public void MarkRestored(ClipboardLogEntryBase entry, bool keepPosition)
 	{
-		_lastHash = entry.Hash;
-
 		_restoredEntry = entry;
 
 		// With a pinned-open window, only highlight so entries don't jump under the user.

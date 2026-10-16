@@ -236,7 +236,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -306,7 +306,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -382,7 +382,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -458,7 +458,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync("Hi", isSensitive: false);
+			.SetTextAsync("Hi", html: null, rtf: null, isSensitive: false);
 	}
 
 	/// <summary>
@@ -542,7 +542,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, isSensitive: false);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
 	}
 
 	/// <summary>
@@ -614,7 +614,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -755,11 +755,11 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(Arg.Any<string>(), isSensitive: true);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -909,7 +909,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 	}
 
 	/// <summary>

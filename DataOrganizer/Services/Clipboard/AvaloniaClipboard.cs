@@ -78,17 +78,6 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	}
 
 	/// <inheritdoc />
-	public Task SetTextAsync(string text)
-	{
-		if (_app.FindClipboard() is not { } clipboard)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _dispatcher.PostAsync(() => clipboard.SetTextAsync(text));
-	}
-
-	/// <inheritdoc />
 	public Task<Bitmap?> TryGetBitmapAsync()
 	{
 		if (_app.FindClipboard() is not { } clipboard)

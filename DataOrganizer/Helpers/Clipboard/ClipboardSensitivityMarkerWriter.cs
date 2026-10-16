@@ -44,25 +44,6 @@ internal static class ClipboardSensitivityMarkerWriter
 	{
 		return formats.Any(static format => format.Identifier == OwnershipFormat.Identifier);
 	}
-
-	/// <summary>
-	/// Builds a single-item <see cref="DataTransfer" /> holding <paramref name="text" /> plus the sensitivity markers.
-	/// </summary>
-	public static DataTransfer CreateSensitiveText(string text)
-	{
-		DataTransferItem item = new();
-
-		item.SetText(text);
-
-		AttachSensitivityMarkers(item);
-
-		// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
-		DataTransfer transfer = new();
-
-		transfer.Add(item);
-
-		return transfer;
-	}
 	#endregion
 
 	#region Helpers

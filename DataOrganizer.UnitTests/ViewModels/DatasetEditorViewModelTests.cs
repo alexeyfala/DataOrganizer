@@ -1239,21 +1239,21 @@ internal class DatasetEditorViewModelTests
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 		}
 		else
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
 		}
 	}
 

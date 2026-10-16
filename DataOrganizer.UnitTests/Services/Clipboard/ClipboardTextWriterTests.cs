@@ -4,9 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Shared.Common;
-using System;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
@@ -22,14 +20,27 @@ internal class ClipboardTextWriterTests
 	public async Task WriteTextAsync_Arms_The_Auto_Clear_After_A_Sensitive_Copy()
 	{
 		// Arrange
+		string text = RandomString.Create(16);
+
 		IClipboardAutoClear autoClear = Substitute.For<IClipboardAutoClear>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoClear));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: true)
+				.Returns(true);
+
+			builder.RegisterInstance(autoClear);
+
+			builder.RegisterInstance(clipboard);
+		});
 
 		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
-		await sut.WriteTextAsync(RandomString.Create(16), isSensitive: true);
+		await sut.WriteTextAsync(text, isSensitive: true);
 
 		// Assert
 		autoClear
@@ -48,7 +59,14 @@ internal class ClipboardTextWriterTests
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			clipboard
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: true)
+				.Returns(true);
+
+			builder.RegisterInstance(clipboard);
+		});
 
 		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
@@ -62,11 +80,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, isSensitive: true);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: true);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -85,6 +103,10 @@ internal class ClipboardTextWriterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			clipboard
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: false)
+				.Returns(true);
+
 			builder.RegisterInstance(autoClear);
 
 			builder.RegisterInstance(clipboard);
@@ -102,11 +124,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, isSensitive: false);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), isSensitive: true);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
 
 		autoClear
 			.DidNotReceive()
@@ -121,15 +143,18 @@ internal class ClipboardTextWriterTests
 	public async Task WriteTextAsync_Reports_A_Refused_Write([Values] bool isSensitive)
 	{
 		// Arrange
+		string text = RandomString.Create(16);
+
 		IClipboardAutoClear autoClear = Substitute.For<IClipboardAutoClear>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
+			// The clipboard refuses the text.
 			clipboard
-				.SetTextAsync(Arg.Any<string>(), isSensitive)
-				.ThrowsAsync(new InvalidOperationException());
+				.SetTextAsync(text, html: null, rtf: null, isSensitive)
+				.Returns(false);
 
 			builder.RegisterInstance(autoClear);
 
@@ -139,7 +164,7 @@ internal class ClipboardTextWriterTests
 		ClipboardTextWriter sut = mock.Create<ClipboardTextWriter>();
 
 		// Act
-		bool result = await sut.WriteTextAsync(RandomString.Create(16), isSensitive);
+		bool result = await sut.WriteTextAsync(text, isSensitive);
 
 		// Assert
 		result
