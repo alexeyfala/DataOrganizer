@@ -45,35 +45,5 @@ internal class ClipboardTextEntryBaseTests
 			.Should()
 			.BeTrue();
 	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntryBase.IsSensitive" />: ordinary prose is not flagged.
-	/// </summary>
-	[Test]
-	public void IsSensitive_Is_False_For_Plain_Prose()
-	{
-		// Arrange
-		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("hello world");
-
-		// Act, Assert
-		sut.IsSensitive
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntryBase.IsSensitive" />: a high-entropy token is flagged.
-	/// </summary>
-	[Test]
-	public void IsSensitive_Is_True_For_Secret_Like_Token()
-	{
-		// Arrange
-		ClipboardTextEntry sut = ClipboardEntryFactory.CreateTextEntry("Xy7$kQ9pLm2!");
-
-		// Act, Assert
-		sut.IsSensitive
-			.Should()
-			.BeTrue();
-	}
 	#endregion
 }

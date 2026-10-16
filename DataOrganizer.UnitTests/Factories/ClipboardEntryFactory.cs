@@ -1,5 +1,6 @@
 using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Factories;
 
@@ -9,6 +10,16 @@ namespace DataOrganizer.UnitTests.Factories;
 public static class ClipboardEntryFactory
 {
 	#region Methods
+	/// <summary>
+	/// Creates the required number of plain files, named in order from <c>file0.txt</c>.
+	/// </summary>
+	public static ClipboardFileSystemEntry[] CreateFiles(int count)
+	{
+		return [.. Enumerable
+			.Range(0, count)
+			.Select(static i => new ClipboardFileSystemEntry($@"C:\dir\file{i}.txt", IsFolder: false))];
+	}
+
 	/// <summary>
 	/// Creates a <see cref="ClipboardFilesEntry" /> holding the given entries, a single plain file by default.
 	/// </summary>
@@ -42,18 +53,20 @@ public static class ClipboardEntryFactory
 	}
 
 	/// <summary>
-	/// Creates a <see cref="ClipboardTextEntry" /> with optional companion formats.
+	/// Creates a <see cref="ClipboardTextEntry" /> with optional companion formats, treated as a secret when asked.
 	/// </summary>
 	public static ClipboardTextEntry CreateTextEntry(
 		string text,
 		byte[]? hash = null,
 		string? html = null,
-		string? rtf = null) => new()
+		string? rtf = null,
+		bool isSensitive = false) => new()
 		{
 			Text = text,
 			Html = html,
 			Rtf = rtf,
-			Hash = hash ?? [1]
+			Hash = hash ?? [1],
+			IsSensitive = isSensitive
 		};
 
 	/// <summary>

@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -5,7 +6,8 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Helpers.Clipboard;
 
 /// <summary>
-/// Creates the entries of the clipboard log, a text that is a whole link as a link entry.
+/// Creates the entries of the clipboard log, a text that is a whole link as a link entry and a text that looks like a
+/// secret as a sensitive one.
 /// </summary>
 internal static partial class ClipboardLogEntryFactory
 {
@@ -43,7 +45,8 @@ internal static partial class ClipboardLogEntryFactory
 	}
 
 	/// <summary>
-	/// Creates the entry of a text: a link when the whole trimmed text is an http(s) URL, plain text otherwise.
+	/// Creates the entry of a text: a link when the whole trimmed text is an http(s) URL, plain text otherwise;
+	/// sensitive when the text looks like a secret.
 	/// </summary>
 	public static ClipboardTextEntryBase CreateText(
 		string text,
@@ -54,6 +57,8 @@ internal static partial class ClipboardLogEntryFactory
 	{
 		string trimmed = text.Trim();
 
+		bool isSensitive = SensitiveTextDetector.LooksLikeSecret(text);
+
 		if (!WholeStringUrlRegex().IsMatch(trimmed))
 		{
 			return new ClipboardTextEntry
@@ -61,6 +66,7 @@ internal static partial class ClipboardLogEntryFactory
 				Hash = hash,
 				Html = html,
 				IsPinned = isPinned,
+				IsSensitive = isSensitive,
 				Rtf = rtf,
 				Text = text
 			};
@@ -71,6 +77,7 @@ internal static partial class ClipboardLogEntryFactory
 			Hash = hash,
 			Html = html,
 			IsPinned = isPinned,
+			IsSensitive = isSensitive,
 			Rtf = rtf,
 			Text = text,
 			Url = trimmed

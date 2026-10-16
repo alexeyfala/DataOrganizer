@@ -1,5 +1,3 @@
-using DataOrganizer.Helpers.Security;
-
 namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
@@ -24,11 +22,6 @@ public abstract class ClipboardTextEntryBase : ClipboardLogEntryBase
 	/// <c>True</c> when <see cref="Rtf" /> is not null.
 	/// </summary>
 	public bool IsRtf => Rtf is not null;
-
-	/// <summary>
-	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
-	/// </summary>
-	public override bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.

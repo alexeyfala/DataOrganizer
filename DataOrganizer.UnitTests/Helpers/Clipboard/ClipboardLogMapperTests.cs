@@ -356,6 +356,37 @@ internal class ClipboardLogMapperTests
 			.Should()
 			.BeTrue();
 	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogMapper.ToDomain" />: a stored text that looks like a secret loads as a sensitive entry.
+	/// </summary>
+	[Test]
+	public void ToDomain_Marks_A_Stored_Secret_As_Sensitive()
+	{
+		// Arrange
+		PersistedClipboardLog log = new()
+		{
+			Entries =
+			[
+				new PersistedTextEntry
+				{
+					Text = "Xk7#pQ2!mZ"
+				}
+			]
+		};
+
+		// Act
+		List<ClipboardLogEntryBase> result = ClipboardLogMapper.ToDomain(log);
+
+		// Assert
+		result
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsSensitive
+			.Should()
+			.BeTrue();
+	}
 	#endregion
 
 	#region Helpers

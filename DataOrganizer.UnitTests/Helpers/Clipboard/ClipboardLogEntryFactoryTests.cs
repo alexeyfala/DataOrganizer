@@ -80,5 +80,54 @@ internal class ClipboardLogEntryFactoryTests
 			.Should()
 			.Be("  https://example.com/x  ");
 	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogEntryFactory.CreateText" />: a link is never treated as a secret, even with a token-like part.
+	/// </summary>
+	[Test]
+	public void CreateText_Leaves_A_Link_Not_Sensitive()
+	{
+		// Act
+		ClipboardTextEntryBase entry = ClipboardLogEntryFactory.CreateText("https://example.com/Xk7#pQ2!mZ", null, null, [1]);
+
+		// Assert
+		entry.IsUrl
+			.Should()
+			.BeTrue();
+
+		entry.IsSensitive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogEntryFactory.CreateText" />: ordinary prose is not flagged.
+	/// </summary>
+	[Test]
+	public void CreateText_Leaves_Plain_Prose_Not_Sensitive()
+	{
+		// Act
+		ClipboardTextEntryBase entry = ClipboardLogEntryFactory.CreateText("hello world", null, null, [1]);
+
+		// Assert
+		entry.IsSensitive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogEntryFactory.CreateText" />: a high-entropy token is flagged.
+	/// </summary>
+	[Test]
+	public void CreateText_Marks_A_Secret_Like_Token_As_Sensitive()
+	{
+		// Act
+		ClipboardTextEntryBase entry = ClipboardLogEntryFactory.CreateText("Xy7$kQ9pLm2!", null, null, [1]);
+
+		// Assert
+		entry.IsSensitive
+			.Should()
+			.BeTrue();
+	}
 	#endregion
 }

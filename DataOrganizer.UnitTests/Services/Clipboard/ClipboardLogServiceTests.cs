@@ -383,6 +383,47 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: a text that looks like a secret is captured as a sensitive entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_Captures_A_Secret_As_A_Sensitive_Entry()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.TryReadTextAsync()
+				.Returns("Xk7#pQ2!mZ");
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsSensitive
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: an image is captured with its PNG and the hash of the PNG.
 	/// </summary>
 	[Test]
@@ -1011,7 +1052,7 @@ internal class ClipboardLogServiceTests
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		// Act
-		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret));
+		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret, isSensitive: true));
 
 		// Assert
 		autoClear
@@ -1091,7 +1132,7 @@ internal class ClipboardLogServiceTests
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		// Act
-		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret));
+		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret, isSensitive: true));
 
 		// Assert
 		autoClear
@@ -1122,7 +1163,7 @@ internal class ClipboardLogServiceTests
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		// Act
-		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret));
+		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry(secret, isSensitive: true));
 
 		// Assert
 		await clipboard
