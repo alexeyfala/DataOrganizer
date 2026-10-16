@@ -13,10 +13,5 @@ public enum UiPriority
 	/// <summary>
 	/// After the other non-idle work has completed.
 	/// </summary>
-	Background,
-
-	/// <summary>
-	/// After layout and render, before input.
-	/// </summary>
-	Loaded
+	Background
 }

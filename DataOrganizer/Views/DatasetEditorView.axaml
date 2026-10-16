@@ -9,6 +9,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:scrolling="using:DataOrganizer.Behaviors.Scrolling"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:DatasetEditorViewModel"
 	mc:Ignorable="d">
@@ -64,16 +65,14 @@
 
 			<Button
 				Classes="primary"
-				Command="{Binding ScrollToTopCommand}"
-				CommandParameter="{Binding #RecordsScroller}"
+				Command="{Binding #RecordsScrolling.ScrollToTopCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
 
 			<Button
 				Classes="primary"
-				Command="{Binding ScrollToEndCommand}"
-				CommandParameter="{Binding #RecordsScroller}"
+				Command="{Binding #RecordsScrolling.ScrollToEndCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
@@ -170,6 +169,11 @@
 
 			<Interaction.Behaviors>
 				<dragAndDrop:DatasetAutoScrollOnDragBehavior />
+
+				<scrolling:DatasetScrollBehavior
+					x:Name="RecordsScrolling"
+					IsEnabled="{Binding IsInitialized, Mode=OneWay}"
+					ViewState="{Binding ViewState, Mode=TwoWay}" />
 			</Interaction.Behaviors>
 
 			<ItemsRepeater
@@ -178,9 +182,7 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="Loaded">
-						<InvokeCommandAction
-							Command="{Binding ContainerLoadedCommand}"
-							CommandParameter="{Binding #RecordsHost}" />
+						<InvokeCommandAction Command="{Binding ContainerLoadedCommand}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 

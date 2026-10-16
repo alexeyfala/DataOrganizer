@@ -1,8 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
@@ -12,7 +9,6 @@ using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
@@ -20,8 +16,10 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
+using DynamicData.Binding;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -50,27 +48,19 @@ internal class DatasetEditorViewModelTests
 {
 	#region Data
 	/// <summary>
-	/// Number of the records that the scroll tests load.
+	/// Number of the records that the tests of the stored place load.
 	/// </summary>
 	private const int RecordCount = 50;
 
 	/// <summary>
-	/// Height of a record in the scroll tests.
-	/// </summary>
-	private const double RecordHeight = 40.0;
-
-	/// <summary>
-	/// Index of the record at the top in the scroll tests.
+	/// Index of the record at the top in the tests of the stored place.
 	/// </summary>
 	private const int TopRecordIndex = 30;
 
 	/// <summary>
-	/// Template that shows every record at <see cref="RecordHeight" />.
+	/// Distance from the top edge of the record at the top to the top of the list.
 	/// </summary>
-	private static readonly FuncDataTemplate<DatasetRecordBase> RecordTemplate = new((_, _) => new Border
-	{
-		Height = RecordHeight
-	});
+	private const double WithinRecordOffset = 7.0;
 	#endregion
 
 	#region Methods
@@ -689,7 +679,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.IsInitialized
@@ -759,7 +749,7 @@ internal class DatasetEditorViewModelTests
 		sut.KeeperId = keeperId;
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.Records
@@ -799,7 +789,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.IsContentUnavailable
@@ -858,7 +848,7 @@ internal class DatasetEditorViewModelTests
 		sut.KeeperId = Guid.NewGuid();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.IsContentUnavailable
@@ -896,7 +886,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.IsContentUnavailable
@@ -934,12 +924,124 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		command(sut).CanExecute(null)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a dataset without records has no place to come back to, so its
+	/// stored state is left unread.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Does_Not_Read_The_Stored_State_Without_Records()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		await dbAccess
+			.DidNotReceive()
+			.GetFileEditorStateAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the state read with the records is neither reported to the file
+	/// nor saved again.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Does_Not_Save_The_Stored_State_Back()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			DatasetEditorState state = new()
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(serializer.Serialize(state));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -974,7 +1076,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		command(sut).CanExecute(null)
@@ -983,24 +1085,20 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a scroll of the loaded records saves the record at the top,
-	/// and the file gets the same state.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read leaves no place to come back
+	/// to, and the editor stays open.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task ContainerLoaded_Saves_The_Record_At_The_Top_After_A_Scroll()
+	[Test]
+	public async Task ContainerLoaded_Leaves_The_View_State_Unset_For_A_Damaged_Stored_State()
 	{
 		// Arrange
-		const double withinRecordOffset = 10.0;
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		List<Task> watched = [];
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			ValidatedContents contents = new()
 			{
-				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(CreateRecords()),
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
 				IsValid = true
 			};
 
@@ -1008,14 +1106,10 @@ internal class DatasetEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(contents);
 
-			// The dataset has no stored position yet.
+			// The stored state breaks off after its first character.
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
-
-			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+				.Returns("{");
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1030,76 +1124,36 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			// The editor follows the scroll at once instead of posting the subscription.
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(exceptionHandler);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.FileId = Guid.NewGuid();
-
-		string? reported = null;
-
-		sut.SetEditorStateCallback = x => reported = x;
-
-		ItemsRepeater container = new()
-		{
-			ItemsSource = sut.Records,
-			ItemTemplate = RecordTemplate
-		};
-
-		ScrollViewer scrollViewer = Show(container);
-
-		await sut.ContainerLoaded(container);
-
-		Func<bool> isReported = () =>
-		{
-			// The pause after the scroll ends on a timer, which posts the save to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return reported is not null;
-		};
-
 		// Act
-		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + withinRecordOffset);
-
-		await isReported.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
-
-		await Task.WhenAll(watched);
+		await sut.ContainerLoaded();
 
 		// Assert
-		reported
+		sut.ViewState
 			.Should()
-			.NotBeNull();
+			.BeNull();
 
-		DatasetEditorState state = new SystemTextJsonSerializer().Deserialize<DatasetEditorState>(reported!);
-
-		state.TopRecordIndex
+		sut.IsContentUnavailable
 			.Should()
-			.Be(TopRecordIndex);
-
-		state.WithinRecordOffset
-			.Should()
-			.BeApproximately(withinRecordOffset, 0.5);
-
-		await dbAccess
-			.Received(1)
-			.UpdateFileEditorStateAsync(sut.FileId, reported!, Arg.Any<CancellationToken>());
+			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the stored editor state brings back to the top the record that
-	/// was there.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the place stored for the dataset comes with its records.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task ContainerLoaded_Scrolls_To_The_Stored_Record()
+	[Test]
+	public async Task ContainerLoaded_Reads_The_Stored_State()
 	{
 		// Arrange
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1108,14 +1162,8 @@ internal class DatasetEditorViewModelTests
 
 			ValidatedContents contents = new()
 			{
-				Contents = serializer.SerializeToUtf8Bytes(CreateRecords()),
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
 				IsValid = true
-			};
-
-			DatasetEditorState state = new()
-			{
-				TopRecordIndex = TopRecordIndex,
-				WithinRecordOffset = 0.0
 			};
 
 			dbAccess
@@ -1143,21 +1191,85 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		ItemsRepeater container = new()
-		{
-			ItemsSource = sut.Records,
-			ItemTemplate = RecordTemplate
-		};
-
-		ScrollViewer scrollViewer = Show(container);
-
 		// Act
-		await sut.ContainerLoaded(container);
+		await sut.ContainerLoaded();
 
 		// Assert
-		scrollViewer.Offset.Y
+		sut.ViewState
 			.Should()
-			.BeApproximately(TopRecordIndex * RecordHeight, 0.5);
+			.Be(state);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the stored state, which reaches the view through a binding, is
+	/// set on the UI thread even when the store answers on another thread.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ContainerLoaded_Sets_The_View_State_On_The_UI_Thread()
+	{
+		// Arrange
+		bool? isUiThread = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			string? state = serializer.Serialize(new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			});
+
+			IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The store answers on a thread of the pool, as a read from the database may.
+			editorStateStore
+				.ReadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+				.Returns(_ => Task.Run<string?>(async () =>
+				{
+					await Task.Delay(10);
+
+					return state;
+				}));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(editorStateStore);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		using IDisposable stateChanges = sut
+			.WhenValueChanged(static x => x.ViewState, notifyOnInitialValue: false)
+			.Subscribe(_ => isUiThread = Dispatcher.UIThread.CheckAccess());
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		isUiThread
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1195,7 +1307,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		// Assert
 		sut.IsInitialized
@@ -1211,17 +1323,23 @@ internal class DatasetEditorViewModelTests
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the editor starts from the state it is given, which the file
 	/// keeps from an earlier editor, and leaves the stored one unread.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task ContainerLoaded_Starts_From_The_Given_State()
 	{
 		// Arrange
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			ValidatedContents contents = new()
 			{
-				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(CreateRecords()),
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
 				IsValid = true
 			};
 
@@ -1246,27 +1364,15 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(new DatasetEditorState
-		{
-			TopRecordIndex = TopRecordIndex,
-			WithinRecordOffset = 0.0
-		});
-
-		ItemsRepeater container = new()
-		{
-			ItemsSource = sut.Records,
-			ItemTemplate = RecordTemplate
-		};
-
-		ScrollViewer scrollViewer = Show(container);
+		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(state);
 
 		// Act
-		await sut.ContainerLoaded(container);
+		await sut.ContainerLoaded();
 
 		// Assert
-		scrollViewer.Offset.Y
+		sut.ViewState
 			.Should()
-			.BeApproximately(TopRecordIndex * RecordHeight, 0.5);
+			.Be(state);
 
 		await dbAccess
 			.DidNotReceive()
@@ -2329,7 +2435,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		sut
 			.Records
@@ -2418,7 +2524,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		sut
 			.Records
@@ -2512,7 +2618,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		sut.IsReadOnly = isReadOnly;
 
@@ -2608,7 +2714,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		await sut.ContainerLoaded(null);
+		await sut.ContainerLoaded();
 
 		sut
 			.Records
@@ -3281,14 +3387,382 @@ internal class DatasetEditorViewModelTests
 			Arg.Any<byte[]>(),
 			Arg.Any<DateTime?>());
 	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: a place that comes back to the one saved last, after a change that
+	/// the read-only mode kept unsaved, is not saved again.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Does_Not_Save_The_State_Saved_Last()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded();
+
+		DatasetEditorState saved = new()
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		sut.ViewState = saved;
+
+		sut.IsReadOnly = true;
+
+		sut.ViewState = new DatasetEditorState
+		{
+			TopRecordIndex = TopRecordIndex + 1,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		sut.IsReadOnly = false;
+
+		// Act
+		sut.ViewState = saved;
+
+		// Assert
+		await dbAccess
+			.Received(1)
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: once the editor is closed, a new place of the list is neither
+	/// reported to the file nor saved.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Is_Not_Saved_After_The_Editor_Is_Closed()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.ContainerLoaded();
+
+		sut.Dispose();
+
+		// Act
+		sut.ViewState = new DatasetEditorState
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: before the records are read, a place of the list is neither reported
+	/// to the file nor saved.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Is_Not_Saved_Before_The_Records_Are_Read()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		// Act
+		sut.ViewState = new DatasetEditorState
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: when the contents could not be read, a place of the list is neither
+	/// reported to the file nor saved.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Is_Not_Saved_When_The_Contents_Are_Unavailable()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.ContainerLoaded();
+
+		// Act
+		sut.ViewState = new DatasetEditorState
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		// Assert
+		reported
+			.Should()
+			.BeNull();
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: in the read-only mode a new place of the list reaches the file but is
+	/// not saved.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Reports_The_State_Without_Saving_It_In_The_ReadOnly_Mode()
+	{
+		// Arrange
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.ContainerLoaded();
+
+		sut.IsReadOnly = true;
+
+		// Act
+		sut.ViewState = state;
+
+		// Assert
+		reported
+			.Should()
+			.NotBeNull();
+
+		new SystemTextJsonSerializer().Deserialize<DatasetEditorState>(reported!)
+			.Should()
+			.Be(state);
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ViewState" />: a new place of the list is saved, and the file gets the same state.
+	/// </summary>
+	[Test]
+	public async Task ViewState_Saves_The_State_With_The_File()
+	{
+		// Arrange
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = TopRecordIndex,
+			WithinRecordOffset = WithinRecordOffset
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.FileId = Guid.NewGuid();
+
+		string? reported = null;
+
+		sut.SetEditorStateCallback = x => reported = x;
+
+		await sut.ContainerLoaded();
+
+		// Act
+		sut.ViewState = state;
+
+		// Assert
+		reported
+			.Should()
+			.NotBeNull();
+
+		new SystemTextJsonSerializer().Deserialize<DatasetEditorState>(reported!)
+			.Should()
+			.Be(state);
+
+		await dbAccess
+			.Received(1)
+			.UpdateFileEditorStateAsync(sut.FileId, reported!, Arg.Any<CancellationToken>());
+	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates more records of a dataset than the scroll tests show at once.
-	/// </summary>
-	private static DatasetRecordBase[] CreateRecords() => [.. Enumerable.Range(0, RecordCount).Select(_ => new ValueRecord())];
-
 	/// <summary>
 	/// The commands that change the records, each case named after its command.
 	/// </summary>
@@ -3322,28 +3796,6 @@ internal class DatasetEditorViewModelTests
 		{
 			return new TestCaseData(command).SetArgDisplayNames(name);
 		}
-	}
-
-	/// <summary>
-	/// Shows the records in a window, inside a scroll viewer too short to hold them all.
-	/// </summary>
-	private static ScrollViewer Show(ItemsRepeater container)
-	{
-		ScrollViewer scrollViewer = new()
-		{
-			Content = container
-		};
-
-		Window window = new()
-		{
-			Content = scrollViewer,
-			Height = 200.0,
-			Width = 300.0
-		};
-
-		window.Show();
-
-		return scrollViewer;
 	}
 	#endregion
 

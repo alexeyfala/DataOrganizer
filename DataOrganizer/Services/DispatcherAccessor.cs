@@ -78,7 +78,6 @@ public sealed class DispatcherAccessor : IDispatcherAccessor
 	{
 		UiPriority.Default => default,
 		UiPriority.Background => DispatcherPriority.Background,
-		UiPriority.Loaded => DispatcherPriority.Loaded,
 		_ => throw new NotImplementedException()
 	};
 	#endregion

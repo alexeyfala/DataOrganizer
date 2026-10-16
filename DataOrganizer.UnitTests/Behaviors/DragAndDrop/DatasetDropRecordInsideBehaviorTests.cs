@@ -1030,7 +1030,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 
 		using DatasetEditorViewModel dataset = mock.Create<DatasetEditorViewModel>();
 
-		await dataset.ContainerLoaded(null);
+		await dataset.ContainerLoaded();
 
 		dataset
 			.Records

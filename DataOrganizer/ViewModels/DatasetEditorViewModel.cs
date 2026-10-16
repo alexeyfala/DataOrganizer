@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
@@ -28,10 +28,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,6 +43,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// The records of the dataset being edited.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Records { get; } = [];
+
+	/// <summary>
+	/// The record at the top of the list and how far the list is scrolled into it.
+	/// </summary>
+	[ObservableProperty]
+	public partial DatasetEditorState? ViewState { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -54,7 +56,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsRepeater" />.
 	/// </summary>
 	[RelayCommand]
-	internal async Task ContainerLoaded(ItemsRepeater? container)
+	internal async Task ContainerLoaded()
 	{
 		if (IsInitialized)
 		{
@@ -92,8 +94,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			_container = container;
-
 			if (reading.Status == FileContentsStatus.Closed)
 			{
 				IsContentUnavailable = true;
@@ -121,21 +121,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				}
 			}
 
-			if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
-			{
-				return;
-			}
-
-			// A dataset that starts without records has nothing to realize and no position to restore,
-			// yet the position it gains once records are added still has to be kept.
+			// A dataset that starts without records has no position to restore.
 			if (Records.Count > 0)
 			{
-				await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
-
-				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
+				// The state reaches the view through a binding, so it is set on the UI thread.
+				ViewState = await ReadViewStateAsync().ConfigureAwait(true);
 			}
-
-			SetupScrollSubscription(scrollViewer);
 		}
 		catch (Exception ex)
 		{
@@ -502,38 +493,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Scrolls the list to the end.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanScrollToEnd))]
-	private Task ScrollToEnd(ScrollViewer? scrollViewer)
-	{
-		if (scrollViewer is null || Records.Count == 0)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Scroll records to the end");
-
-		return SmoothScrollAsync(scrollViewer, toEnd: true);
-	}
-
-	/// <summary>
-	/// Scrolls the list to the top.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanScrollToTop))]
-	private Task ScrollToTop(ScrollViewer? scrollViewer)
-	{
-		if (scrollViewer is null || Records.Count == 0)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Scroll records to the top");
-
-		return SmoothScrollAsync(scrollViewer, toEnd: false);
-	}
-
-	/// <summary>
 	/// Sets <see cref="ValueRecordBase.IsHidden" /> value to <c>False</c> to all records in <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
@@ -615,11 +574,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <summary>
-	/// Cached reference to the records <see cref="ItemsRepeater" />.
-	/// </summary>
-	private ItemsRepeater? _container;
-
-	/// <summary>
 	/// Change of the records whose save failed; <c>null</c> while every change is saved.
 	/// </summary>
 	private FileContentsChange? _unsavedChange;
@@ -660,33 +614,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 	#endregion
 
-	#region Event Handlers
+	#region Partial
 	/// <summary>
-	/// <see cref="ScrollViewer.ScrollChanged" /> event handler.
+	/// Called when <see cref="ViewState" /> changes.
 	/// </summary>
-	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
+	partial void OnViewStateChanged(DatasetEditorState? value)
 	{
-		if (IsContentUnavailable || e.Sender is not ScrollViewer scrollViewer || _container is null)
+		// The state read with the records is not a change, and the view may still report its state for a moment after
+		// the file has been closed.
+		if (value is not { } state || !IsInitialized || IsContentUnavailable || IsDisposed)
 		{
 			return;
 		}
-
-		// Skip layout-driven events (Extent/Viewport changed but not Offset).
-		if (e.EventArgs.OffsetDelta == default)
-		{
-			return;
-		}
-
-		if (TryGetTopVisibleRecord(_container, scrollViewer) is not { } anchor)
-		{
-			return;
-		}
-
-		DatasetEditorState state = new()
-		{
-			TopRecordIndex = anchor.Index,
-			WithinRecordOffset = anchor.WithinRecordOffset
-		};
 
 		string json = _jsonSerializer.Serialize(state, JsonDefaults.Options);
 
@@ -954,189 +893,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Any() ?? false;
 	}
 
-	/// <summary>
-	/// Smoothly scrolls <paramref name="scrollViewer" /> to the absolute top
-	/// (<paramref name="toEnd" /> <c>False</c>) or bottom (<c>True</c>).
-	/// </summary>
-	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
-	{
-		return StepOffsetUntilDoneAsync(scrollViewer, () =>
-		{
-			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-			double targetY = toEnd ? maxY : 0;
-
-			return targetY - scrollViewer.Offset.Y;
-		});
-	}
-
-	/// <summary>
-	/// Smoothly scrolls <paramref name="scrollViewer" /> so the record at
-	/// <paramref name="topRecordIndex" /> sits with its top edge at
-	/// <c>y = -<paramref name="withinRecordOffset" /></c> in viewport coordinates.
-	/// </summary>
-	private static async Task SmoothScrollAsync(
-		ScrollViewer scrollViewer,
-		ItemsRepeater container,
-		int topRecordIndex,
-		int totalRecords,
-		double withinRecordOffset)
-	{
-		if (totalRecords <= 0)
-		{
-			return;
-		}
-
-		await StepOffsetUntilDoneAsync(scrollViewer, () =>
-		{
-			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-			double targetY = Math.Clamp(
-				((double)topRecordIndex / totalRecords * scrollViewer.Extent.Height) - withinRecordOffset,
-				0,
-				maxY);
-
-			return targetY - scrollViewer.Offset.Y;
-		}).ConfigureAwait(true);
-
-		double targetViewportY = -withinRecordOffset;
-
-		await StepOffsetUntilDoneAsync(scrollViewer, () =>
-		{
-			Control? child = container.TryGetElement(topRecordIndex) ?? container.GetOrCreateElement(topRecordIndex);
-
-			if (child is null)
-			{
-				return 0;
-			}
-
-			container.UpdateLayout();
-
-			if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
-			{
-				return 0;
-			}
-
-			return pointInViewport.Y - targetViewportY;
-		}).ConfigureAwait(true);
-	}
-
-	/// <summary>
-	/// Shared step-loop for the <c>SmoothScrollAsync</c> overloads.
-	/// <paramref name="getRemainingDelta" /> returns signed pixels still to move
-	/// (positive scrolls down).
-	/// </summary>
-	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
-	{
-		// Pixels moved per step. Smaller = more reliable realization, slower travel.
-		const double stepPx = 100;
-
-		// Pause between steps. Larger = more time for the layout pass to materialize items.
-		const int delayMs = 16;
-
-		// Safety cap against runaway loops if the offset never converges (e.g. extent keeps growing).
-		const int maxIterations = 1000;
-
-		for (int i = 0; i < maxIterations; i++)
-		{
-			double delta = getRemainingDelta();
-
-			if (Math.Abs(delta) < 0.5)
-			{
-				return;
-			}
-
-			double currentY = scrollViewer.Offset.Y;
-
-			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), stepPx);
-
-			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-			double newY = Math.Clamp(currentY + step, 0, maxY);
-
-			if (Math.Abs(newY - currentY) < 0.5)
-			{
-				return;
-			}
-
-			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
-
-			await Task
-				.Delay(delayMs)
-				.ConfigureAwait(true);
-		}
-	}
-
-	/// <summary>
-	/// Returns the data index and pixel offset of the realized record whose top edge
-	/// is the closest one at or above the <paramref name="scrollViewer" /> viewport
-	/// top, or <c>null</c> if no realized child qualifies.
-	/// </summary>
-	private static (int Index, double WithinRecordOffset)? TryGetTopVisibleRecord(
-		ItemsRepeater container,
-		ScrollViewer scrollViewer)
-	{
-		int topIndex = -1;
-
-		double bestViewportY = double.NegativeInfinity;
-
-		foreach (Control child in container.Children)
-		{
-			int index = container.GetElementIndex(child);
-
-			if (index < 0)
-			{
-				continue;
-			}
-
-			if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
-			{
-				continue;
-			}
-
-			double viewportY = pointInViewport.Y;
-
-			if (viewportY <= 0 && viewportY > bestViewportY)
-			{
-				bestViewportY = viewportY;
-
-				topIndex = index;
-			}
-		}
-
-		return topIndex < 0 ? null : (topIndex, -bestViewportY);
-	}
-
-	/// <summary>
-	/// Waits until <paramref name="container" /> has realized at least one child.
-	/// </summary>
-	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(
-		ItemsRepeater container,
-		CancellationToken token = default)
-	{
-		Func<bool> condition = () => container
-			.Children
-			.Count > 0;
-
-		await condition
-			.WaitAsync(400, 10, token)
-			.ConfigureAwait(true);
-
-		return container
-			.Children
-			.Count > 0;
-	}
-
-	/// <summary>
-	/// Validates <see cref="ScrollToEndCommand" />.
-	/// </summary>
-	private bool CanScrollToEnd() => !ScrollToTopCommand.IsRunning;
-
-	/// <summary>
-	/// Validates <see cref="ScrollToTopCommand" />.
-	/// </summary>
-	private bool CanScrollToTop() => !ScrollToEndCommand.IsRunning;
-
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
 	private async Task DeleteRecordAsync(
 		DatasetRecordBase record,
@@ -1159,12 +915,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private bool HasRecords() => Records.Any();
 
 	/// <summary>
-	/// Restores the editor state from the database.
+	/// Reads the stored view state; <c>null</c> when there is none or it cannot be read.
 	/// </summary>
-	private async Task InitializeEditorStateAsync(
-		ScrollViewer scrollViewer,
-		ItemsRepeater container,
-		CancellationToken token = default)
+	private async Task<DatasetEditorState?> ReadViewStateAsync(CancellationToken token = default)
 	{
 		string? value = InitialEditorState ?? await _editorStateStore
 			.ReadAsync(FileId, token)
@@ -1172,28 +925,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (value is null)
 		{
-			return;
+			return null;
 		}
 
 		try
 		{
-			DatasetEditorState state = _jsonSerializer.Deserialize<DatasetEditorState>(value);
-
-			if (state.TopRecordIndex < 0 || state.TopRecordIndex >= Records.Count)
-			{
-				return;
-			}
-
-			await SmoothScrollAsync(
-				scrollViewer,
-				container,
-				state.TopRecordIndex,
-				Records.Count,
-				state.WithinRecordOffset).ConfigureAwait(false);
+			return _jsonSerializer.Deserialize<DatasetEditorState>(value);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, false);
+
+			return null;
 		}
 	}
 
@@ -1239,64 +982,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		finally
 		{
 			contents.ZeroMemory();
-		}
-	}
-
-	/// <summary>
-	/// Wires up the debounced subscription to <see cref="ScrollViewer.ScrollChanged" />
-	/// on <paramref name="scrollViewer" />, re-attaching the handler whenever the
-	/// scroll viewer is detached / re-attached to the visual tree, and disposing
-	/// everything with the view-model's lifetime.
-	/// </summary>
-	private void SetupScrollSubscription(ScrollViewer scrollViewer)
-	{
-		SerialDisposable scrollSubscription = new();
-
-		scrollSubscription.DisposeWith(_disposables);
-
-		bool isAttached = true;
-
-		scrollViewer.DetachedFromVisualTree += ScrollViewer_DetachedFromVisualTree;
-
-		scrollViewer.AttachedToVisualTree += ScrollViewer_AttachedToVisualTree;
-
-		Disposable.Create(() =>
-		{
-			scrollViewer.DetachedFromVisualTree -= ScrollViewer_DetachedFromVisualTree;
-			scrollViewer.AttachedToVisualTree -= ScrollViewer_AttachedToVisualTree;
-		}).DisposeWith(_disposables);
-
-		SubscribeToScrollChanged();
-
-		void ScrollViewer_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-		{
-			isAttached = false;
-
-			scrollSubscription.Disposable = null;
-		}
-
-		void ScrollViewer_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-		{
-			isAttached = true;
-
-			SubscribeToScrollChanged();
-		}
-
-		void SubscribeToScrollChanged()
-		{
-			if (!isAttached)
-			{
-				return;
-			}
-
-			_dispatcher.Post(() =>
-			{
-				scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
-					x => scrollViewer.ScrollChanged += x,
-					x => scrollViewer.ScrollChanged -= x)
-					.SetDelay(TimeSpan.FromSeconds(0.5))
-					.Subscribe(ScrollViewer_ScrollChanged);
-			}, UiPriority.Loaded);
 		}
 	}
 	#endregion

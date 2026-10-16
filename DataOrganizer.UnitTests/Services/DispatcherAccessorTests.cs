@@ -67,8 +67,7 @@ internal class DispatcherAccessorTests
 	private static TestCaseData[] Priorities() =>
 	[
 		new(UiPriority.Default, default(DispatcherPriority)),
-		new(UiPriority.Background, DispatcherPriority.Background),
-		new(UiPriority.Loaded, DispatcherPriority.Loaded)
+		new(UiPriority.Background, DispatcherPriority.Background)
 	];
 	#endregion
 }
