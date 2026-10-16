@@ -1,8 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Input;
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using NSubstitute;
@@ -40,10 +38,10 @@ internal class ClipboardTextWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: a sensitive text reaches the clipboard as a marked payload.
+	/// <see cref="ClipboardTextWriter.WriteTextAsync" />: a sensitive text reaches the clipboard marked as a secret.
 	/// </summary>
 	[Test]
-	public async Task WriteTextAsync_Places_A_Marked_Payload_For_A_Sensitive_Text()
+	public async Task WriteTextAsync_Marks_A_Sensitive_Text_As_Secret()
 	{
 		// Arrange
 		string text = RandomString.Create(16);
@@ -64,12 +62,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == text
-				&& ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker(x.Formats)));
+			.SetTextAsync(text, isSensitive: true);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -105,11 +102,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text);
+			.SetTextAsync(text, isSensitive: false);
 
 		await clipboard
 			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 
 		autoClear
 			.DidNotReceive()
@@ -130,19 +127,9 @@ internal class ClipboardTextWriterTests
 		{
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-			// Each row reaches only the write of its own kind.
-			if (isSensitive)
-			{
-				clipboard
-					.SetDataAsync(Arg.Any<DataTransfer>())
-					.ThrowsAsync(new InvalidOperationException());
-			}
-			else
-			{
-				clipboard
-					.SetTextAsync(Arg.Any<string>())
-					.ThrowsAsync(new InvalidOperationException());
-			}
+			clipboard
+				.SetTextAsync(Arg.Any<string>(), isSensitive)
+				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(autoClear);
 

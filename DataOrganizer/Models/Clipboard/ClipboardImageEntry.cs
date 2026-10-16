@@ -1,9 +1,7 @@
-using Avalonia.Media.Imaging;
 using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Buffers.Binary;
-using System.IO;
 
 namespace DataOrganizer.Models.Clipboard;
 
@@ -17,11 +15,6 @@ public sealed class ClipboardImageEntry : ClipboardLogEntryBase
 	public override string? ContentToolTip => field ??= BuildContentToolTip();
 
 	/// <summary>
-	/// Lazily-built downscaled bitmap for display.
-	/// </summary>
-	public Bitmap? ImagePreview => field ??= BuildImagePreview();
-
-	/// <summary>
 	/// Original full-size PNG bytes.
 	/// </summary>
 	public required byte[] OriginalPng { get; init; }
@@ -31,13 +24,6 @@ public sealed class ClipboardImageEntry : ClipboardLogEntryBase
 
 	/// <inheritdoc />
 	public override string TypeToolTip => Strings.Image;
-	#endregion
-
-	#region Data
-	/// <summary>
-	/// Longest side of the cached preview in device-independent pixels.
-	/// </summary>
-	private const int PreviewMaxSide = 160;
 	#endregion
 
 	#region Helpers
@@ -74,29 +60,6 @@ public sealed class ClipboardImageEntry : ClipboardLogEntryBase
 		return TryReadPngSize(OriginalPng, out int width, out int height)
 			? $"{width} × {height}"
 			: null;
-	}
-
-	/// <summary>
-	/// Decodes <see cref="OriginalPng" /> into a downscaled <see cref="Bitmap" />.
-	/// </summary>
-	private Bitmap? BuildImagePreview()
-	{
-		if (OriginalPng.Length == 0)
-		{
-			return null;
-		}
-
-		try
-		{
-			using MemoryStream stream = new(OriginalPng);
-
-			// DecodeToWidth keeps aspect ratio and avoids decoding the full-size image.
-			return Bitmap.DecodeToWidth(stream, PreviewMaxSide);
-		}
-		catch
-		{
-			return null;
-		}
 	}
 	#endregion
 }

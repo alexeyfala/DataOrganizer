@@ -40,21 +40,6 @@ internal class ClipboardImageEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardImageEntry.ImagePreview" />: empty bytes produce no preview.
-	/// </summary>
-	[Test]
-	public void ImagePreview_Is_Null_For_Empty_Bytes()
-	{
-		// Arrange
-		ClipboardImageEntry sut = ClipboardEntryFactory.CreateImageEntry([]);
-
-		// Act, Assert
-		sut.ImagePreview
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardImageEntry.TypeGlyph" />: the badge marks an image.
 	/// </summary>
 	[Test]

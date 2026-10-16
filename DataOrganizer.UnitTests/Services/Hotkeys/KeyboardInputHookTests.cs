@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
@@ -237,7 +236,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -307,11 +306,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
-
-		await clipboard
-			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -387,11 +382,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
-
-		await clipboard
-			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -467,7 +458,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync("Hi");
+			.SetTextAsync("Hi", isSensitive: false);
 	}
 
 	/// <summary>
@@ -551,7 +542,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text);
+			.SetTextAsync(text, isSensitive: false);
 	}
 
 	/// <summary>
@@ -623,7 +614,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -693,7 +684,7 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: protected contents are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />).
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: protected contents are flagged sensitive.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
@@ -764,11 +755,11 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 	}
 
 	/// <summary>
@@ -918,7 +909,7 @@ internal class KeyboardInputHookTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 	}
 
 	/// <summary>

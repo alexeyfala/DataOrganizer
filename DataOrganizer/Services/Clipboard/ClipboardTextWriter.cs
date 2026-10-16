@@ -1,4 +1,3 @@
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using Serilog;
 using Shared.Extensions;
@@ -40,20 +39,14 @@ public sealed class ClipboardTextWriter : IClipboardTextWriter
 	{
 		try
 		{
-			if (!isSensitive)
-			{
-				await _clipboard
-					.SetTextAsync(text)
-					.ConfigureAwait(false);
-
-				return true;
-			}
-
 			await _clipboard
-				.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+				.SetTextAsync(text, isSensitive)
 				.ConfigureAwait(false);
 
-			_autoClear.Arm();
+			if (isSensitive)
+			{
+				_autoClear.Arm();
+			}
 
 			return true;
 		}

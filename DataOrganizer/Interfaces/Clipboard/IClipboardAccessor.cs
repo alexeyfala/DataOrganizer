@@ -1,61 +1,78 @@
-using Avalonia.Input;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform.Storage;
+using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
-/// Provides means to interact with system clipboard.
+/// The system clipboard in plain data: texts with their formats, images as PNG and files by their paths.
 /// </summary>
 public interface IClipboardAccessor
 {
 	#region Methods
 	/// <summary>
-	/// Clears any data from the system clipboard in the UI thread.
+	/// Empties the system clipboard.
 	/// </summary>
 	Task ClearAsync();
 
 	/// <summary>
-	/// Gets a list containing the formats currently available from the clipboard in the UI thread.
+	/// <c>True</c> when the clipboard holds a secret this application placed on it.
 	/// </summary>
-	Task<IReadOnlyList<DataFormat>> GetDataFormatsAsync();
+	Task<bool> ContainsOwnershipMarkerAsync();
 
 	/// <summary>
-	/// Places a bitmap on the clipboard in the UI thread.
+	/// <c>True</c> when a password manager marked the contents of the clipboard as a secret.
 	/// </summary>
-	Task SetBitmapAsync(Bitmap bitmap);
+	Task<bool> ContainsSensitivityMarkerAsync();
 
 	/// <summary>
-	/// Places a data object on the clipboard in the UI thread.
-	/// The data object is responsible for providing supported formats and data upon request.
+	/// Puts files and folders on the clipboard by their paths, leaving out the ones that are gone.
 	/// </summary>
-	Task SetDataAsync(DataTransfer transfer);
+	Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries);
 
 	/// <summary>
-	/// Places a text on the clipboard in the UI thread.
+	/// Puts the image of a PNG on the clipboard.
 	/// </summary>
-	Task SetTextAsync(string text);
+	Task SetImageAsync(byte[] png);
 
 	/// <summary>
-	/// Returns a bitmap, if available, from the clipboard in the UI thread.
+	/// Puts a text on the clipboard, marked as a secret when it is sensitive.
 	/// </summary>
-	Task<Bitmap?> TryGetBitmapAsync();
+	Task SetTextAsync(string text, bool isSensitive);
 
 	/// <summary>
-	/// Returns a list of files, if available, from the clipboard in the UI thread.
+	/// Puts a text with its HTML and RTF on the clipboard, marked as a secret when it is sensitive; <c>false</c> when the
+	/// clipboard refused it.
 	/// </summary>
-	Task<IStorageItem[]?> TryGetFilesAsync();
+	Task<bool> SetTextWithFormatsAsync(
+		string text,
+		string? html,
+		string? rtf,
+		bool isSensitive);
 
 	/// <summary>
-	/// Returns a text, if available, from the clipboard in the UI thread.
+	/// Returns the files and folders on the clipboard, folders first; <c>null</c> without them.
 	/// </summary>
-	Task<string?> TryGetTextAsync();
+	Task<IReadOnlyList<ClipboardFileSystemEntry>?> TryReadFilesAsync();
 
 	/// <summary>
-	/// Tries to get a value for a given format from the clipboard in the UI thread.
+	/// Returns the HTML on the clipboard; <c>null</c> without it.
 	/// </summary>
-	Task<T?> TryGetValueAsync<T>(DataFormat<T> format) where T : class;
+	Task<string?> TryReadHtmlAsync();
+
+	/// <summary>
+	/// Returns the image on the clipboard as PNG; <c>null</c> without it.
+	/// </summary>
+	Task<byte[]?> TryReadImagePngAsync();
+
+	/// <summary>
+	/// Returns the RTF on the clipboard; <c>null</c> without it.
+	/// </summary>
+	Task<string?> TryReadRtfAsync();
+
+	/// <summary>
+	/// Returns the text on the clipboard; <c>null</c> without it.
+	/// </summary>
+	Task<string?> TryReadTextAsync();
 	#endregion
 }

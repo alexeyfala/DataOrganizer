@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
@@ -95,7 +94,7 @@ internal class CopyContentViewModelBaseTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -156,11 +155,7 @@ internal class CopyContentViewModelBaseTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
-
-		await clipboard
-			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -223,11 +218,7 @@ internal class CopyContentViewModelBaseTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>());
-
-		await clipboard
-			.DidNotReceive()
-			.SetDataAsync(Arg.Any<DataTransfer>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -292,7 +283,7 @@ internal class CopyContentViewModelBaseTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync("Hi");
+			.SetTextAsync("Hi", isSensitive: false);
 	}
 
 	/// <summary>
@@ -364,11 +355,11 @@ internal class CopyContentViewModelBaseTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text);
+			.SetTextAsync(text, isSensitive: false);
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: encrypted content is flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext content uses <see cref="IClipboardAccessor.SetTextAsync" />.
+	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: encrypted content is flagged sensitive, plaintext content is not.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task CopyContentAsync_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
@@ -432,21 +423,21 @@ internal class CopyContentViewModelBaseTests
 		{
 			await clipboard
 				.Received(1)
-				.SetDataAsync(Arg.Any<DataTransfer>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 		}
 		else
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(content);
+				.SetTextAsync(content, isSensitive: false);
 
 			await clipboard
 				.DidNotReceive()
-				.SetDataAsync(Arg.Any<DataTransfer>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 		}
 	}
 

@@ -140,6 +140,7 @@ public sealed class App : Application
 		services.AddTransient<IAppPickerPrompt, DialogService>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
 		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
@@ -215,6 +216,7 @@ public sealed class App : Application
 		services.AddSingleton<IAvaloniaLogForwarder, AvaloniaLogForwarder>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
+		services.AddSingleton<IClipboardHistory, ClipboardHistory>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
 		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();

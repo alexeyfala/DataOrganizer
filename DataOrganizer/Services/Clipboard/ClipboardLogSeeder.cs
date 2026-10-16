@@ -60,13 +60,13 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 					x.Text,
 					x.Html,
 					x.Rtf,
-					ClipboardLogService.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
+					ClipboardHistory.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
 			.. SampleClipboardContents
 				.CreateImages()
 				.Select(static x => ClipboardLogEntryFactory.CreateImage(x, SHA256.HashData(x))),
 			.. SampleClipboardContents
 				.CreateFileLists(faker)
-				.Select(static x => ClipboardLogEntryFactory.CreateFiles(x, ClipboardLogService.HashFiles(x)))
+				.Select(static x => ClipboardLogEntryFactory.CreateFiles(x, ClipboardHistory.HashFiles(x)))
 		];
 
 		// The entries of the history belong to the UI thread.

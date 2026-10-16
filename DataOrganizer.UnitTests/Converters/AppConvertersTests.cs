@@ -295,6 +295,37 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.PngToPreview" />: the image is decoded at the width given as the parameter, whatever its own
+	/// size.
+	/// </summary>
+	[AvaloniaTest]
+	public void PngToPreview_Decodes_The_Png_At_The_Width_Given()
+	{
+		// Act
+		Bitmap? result = (Bitmap?)Convert(AppConverters.PngToPreview, ImageFactory.CreatePng(), 48.0);
+
+		// Assert
+		result!.PixelSize.Width
+			.Should()
+			.Be(48);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.PngToPreview" />: empty bytes give no image.
+	/// </summary>
+	[Test]
+	public void PngToPreview_Without_A_Png_Is_Empty()
+	{
+		// Act
+		object? result = Convert(AppConverters.PngToPreview, [], 48.0);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.ScrollGutter" />: content that fits reserves no gutter.
 	/// </summary>
 	[TestCase(100.0)]
@@ -508,6 +539,18 @@ internal class AppConvertersTests
 			png,
 			typeof(object),
 			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the bytes of a PNG with the width given as the parameter.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<byte[]?, double, Bitmap?> converter, byte[]? png, double width)
+	{
+		return converter.Convert(
+			png,
+			typeof(object),
+			width,
 			CultureInfo.CurrentCulture);
 	}
 

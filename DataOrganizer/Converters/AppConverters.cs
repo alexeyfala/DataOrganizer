@@ -170,6 +170,11 @@ internal static class AppConverters
 	public static FuncValueConverter<byte[]?, Bitmap?> PngToBitmap { get; } = new(GetBitmap);
 
 	/// <summary>
+	/// Image of a PNG decoded at the width given as the parameter; <c>null</c> without one or when it does not decode.
+	/// </summary>
+	public static FuncValueConverter<byte[]?, double, Bitmap?> PngToPreview { get; } = new(GetPreview);
+
+	/// <summary>
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
 	/// Inputs: [Extent.Height, Viewport.Height].
 	/// </summary>
@@ -278,6 +283,30 @@ internal static class AppConverters
 			CultureInfo.CurrentCulture,
 			format ?? "{0}",
 			FormatNumber(number));
+	}
+
+	/// <summary>
+	/// Returns the image of <paramref name="png" /> decoded at <paramref name="width" />; <c>null</c> without one or when it
+	/// does not decode.
+	/// </summary>
+	private static Bitmap? GetPreview(byte[]? png, double width)
+	{
+		if (png is not { Length: > 0 })
+		{
+			return null;
+		}
+
+		try
+		{
+			using MemoryStream stream = new(png);
+
+			// DecodeToWidth keeps aspect ratio and avoids decoding the full-size image.
+			return Bitmap.DecodeToWidth(stream, (int)width);
+		}
+		catch
+		{
+			return null;
+		}
 	}
 
 	/// <summary>

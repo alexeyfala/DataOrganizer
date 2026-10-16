@@ -1,7 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Input;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Clipboard;
@@ -41,8 +39,8 @@ internal class ClipboardAutoClearTests
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
 			clipboard
-				.GetDataFormatsAsync()
-				.Returns([DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership)]);
+				.ContainsOwnershipMarkerAsync()
+				.Returns(true);
 
 			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
 
@@ -87,9 +85,10 @@ internal class ClipboardAutoClearTests
 		{
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
+			// Something else was copied since.
 			clipboard
-				.GetDataFormatsAsync()
-				.Returns([]);
+				.ContainsOwnershipMarkerAsync()
+				.Returns(false);
 
 			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
 
@@ -135,8 +134,8 @@ internal class ClipboardAutoClearTests
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
 			clipboard
-				.GetDataFormatsAsync()
-				.Returns([DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership)]);
+				.ContainsOwnershipMarkerAsync()
+				.Returns(true);
 
 			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
 

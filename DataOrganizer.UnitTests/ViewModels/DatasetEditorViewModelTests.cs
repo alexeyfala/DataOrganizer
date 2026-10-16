@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dataset;
@@ -1200,7 +1199,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.CopyKeyValueToClipboardCommand" />: encrypted copies are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext copies use <see cref="IClipboardAccessor.SetTextAsync" />.
+	/// <see cref="DatasetEditorViewModel.CopyKeyValueToClipboardCommand" />: encrypted copies are flagged sensitive, plaintext copies are not.
 	/// </summary>
 	[Test]
 	public async Task CopyKeyValueToClipboardCommand_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
@@ -1240,21 +1239,21 @@ internal class DatasetEditorViewModelTests
 		{
 			await clipboard
 				.Received(1)
-				.SetDataAsync(Arg.Any<DataTransfer>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 		}
 		else
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(Arg.Any<string>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: false);
 
 			await clipboard
 				.DidNotReceive()
-				.SetDataAsync(Arg.Any<DataTransfer>());
+				.SetTextAsync(Arg.Any<string>(), isSensitive: true);
 		}
 	}
 
