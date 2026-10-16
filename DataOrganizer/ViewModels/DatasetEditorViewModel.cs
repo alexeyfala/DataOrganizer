@@ -10,6 +10,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -170,18 +171,23 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Persists the dataset after records have been reordered and highlights the moved record.
+	/// Moves a dragged record to the place it is dropped at, highlights it and saves the records.
 	/// </summary>
 	[RelayCommand]
-	internal Task RecordMoved(DatasetRecordBase? record)
+	internal Task MoveRecord(DatasetRecordMove? move)
 	{
-		// Do not check "IsReadOnly" in "CanExecute", the gesture is already gated at the drag source.
-		if (IsReadOnly || IsContentUnavailable)
+		// The drop target runs the command without asking "CanExecute", so the rule is checked here.
+		if (move is null || !IsEditingEnabled)
 		{
 			return Task.CompletedTask;
 		}
 
-		_dispatcher.Post(() => record?.PulseHighlight(), UiPriority.Background);
+		if (!DatasetRecordTree.Move(Records, move.Record, move.Target, move.Index))
+		{
+			return Task.CompletedTask;
+		}
+
+		_dispatcher.Post(() => move.Record.PulseHighlight(), UiPriority.Background);
 
 		_logger.LogInformation("Records reordered by drag-and-drop");
 
@@ -191,7 +197,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -214,7 +220,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -242,7 +248,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task AddValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -295,7 +301,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="RecordsGroup" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private Task DeleteGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -309,7 +315,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="KeyValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private Task DeleteKeyValueRecord(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -323,7 +329,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="ValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private Task DeleteValueRecord(ValueRecord? record)
 	{
 		if (record is null)
@@ -337,7 +343,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task EditKeyValue(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -372,7 +378,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits <see cref="DatasetRecordBase.Note" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task EditNote(DatasetRecordBase? record)
 	{
 		if (record is null)
@@ -405,7 +411,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task EditValue(ValueRecord? record)
 	{
 		if (record is null)
@@ -447,7 +453,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Handles the <see cref="Expander.Expanded" />, <see cref="Expander.Collapsed" /> events by user.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
 	{
 		if (e?.Source is not Expander expander || !expander.IsPointerOver)
@@ -470,7 +476,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Renames a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanEdit))]
+	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
 	private async Task RenameGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -711,7 +717,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			Name = name
 		};
 
-		AddInGroupOrInRecords(record, group);
+		DatasetRecordTree.Add(Records, record, group);
 
 		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
@@ -732,7 +738,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			Value = value
 		};
 
-		AddInGroupOrInRecords(record, group);
+		DatasetRecordTree.Add(Records, record, group);
 
 		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
@@ -751,7 +757,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			Value = value
 		};
 
-		AddInGroupOrInRecords(record, group);
+		DatasetRecordTree.Add(Records, record, group);
 
 		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
@@ -763,7 +769,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		_logger.LogInformation("Deleting a record");
 
-		DeleteRecord(Records, record);
+		DatasetRecordTree.Delete(Records, record);
 
 		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
@@ -834,8 +840,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		IEnumerable<DatasetRecordBase> source = group is not null ? [group] : Records;
 
-		RecordsGroup[] groups = [.. source
-			.Flatten()
+		RecordsGroup[] groups = [.. DatasetRecordTree
+			.Flatten(source)
 			.OfType<RecordsGroup>()
 			.Where(x => x.IsExpanded != expand)];
 
@@ -881,8 +887,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		bool hide,
 		CancellationToken token = default)
 	{
-		ValueRecordBase[] records = [.. (group is not null ? group.Children : Records)
-			.Flatten()
+		ValueRecordBase[] records = [.. DatasetRecordTree
+			.Flatten(group is not null ? group.Children : Records)
 			.OfType<ValueRecordBase>()
 			.Where(x => x.IsHidden != hide)];
 
@@ -912,20 +918,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			? group.Children
 			: Records;
 
-		int beforeCount = records.GetCount();
-
-		DatasetRecordBase[] sorted = records.Sort(direction);
-
-		int afterCount = sorted.GetCount();
-
-		if (afterCount != beforeCount)
+		if (!DatasetRecordTree.Sort(records, direction))
 		{
 			return Task.CompletedTask;
 		}
-
-		records.Clear();
-
-		records.AddRange(sorted);
 
 		return SaveContentsAsync(FileContentsChange.Edit, token);
 	}
@@ -942,27 +938,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Deletes a record from the sequence.
-	/// </summary>
-	private static void DeleteRecord(
-		Collection<DatasetRecordBase> sequence,
-		DatasetRecordBase record)
-	{
-		foreach (DatasetRecordBase item in sequence)
-		{
-			if (ReferenceEquals(item, record) && sequence.Remove(record))
-			{
-				return;
-			}
-
-			if (item is RecordsGroup group && group.Children.Count > 0)
-			{
-				DeleteRecord(group.Children, record);
-			}
-		}
-	}
-
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
@@ -1151,31 +1126,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Children
 			.Count > 0;
 	}
-
-	/// <summary>
-	/// Adds <see cref="DatasetRecordBase" /> in <see cref="RecordsGroup" /> or in <see cref="Records" />
-	/// if  <see cref="RecordsGroup" /> is null.
-	/// </summary>
-	private void AddInGroupOrInRecords(DatasetRecordBase record, RecordsGroup? group)
-	{
-		if (group is not null)
-		{
-			group.IsExpanded = true;
-
-			group
-				.Children
-				.Add(record);
-		}
-		else
-		{
-			Records.Add(record);
-		}
-	}
-
-	/// <summary>
-	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentUnavailable" /> is <c>False</c>.
-	/// </summary>
-	private bool CanEdit() => !IsReadOnly && !IsContentUnavailable;
 
 	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.

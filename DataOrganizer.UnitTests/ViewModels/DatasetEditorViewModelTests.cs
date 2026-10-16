@@ -40,6 +40,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -903,6 +904,80 @@ internal class DatasetEditorViewModelTests
 			.BeTrue();
 
 		sut.IsInitialized
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: contents that could not be read close every command that
+	/// changes the records.
+	/// </summary>
+	[TestCaseSource(nameof(EditCommands))]
+	public async Task ContainerLoaded_Disables_The_Edit_Commands_When_The_Read_Fails(Func<DatasetEditorViewModel, ICommand> command)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		command(sut).CanExecute(null)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: once the contents are loaded, every command that changes the
+	/// records can run.
+	/// </summary>
+	[TestCaseSource(nameof(EditCommands))]
+	public async Task ContainerLoaded_Enables_The_Edit_Commands(Func<DatasetEditorViewModel, ICommand> command)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		command(sut).CanExecute(null)
 			.Should()
 			.BeTrue();
 	}
@@ -2127,6 +2202,439 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsInitialized" />: the commands that change the records wait until the
+	/// contents are loaded.
+	/// </summary>
+	[TestCaseSource(nameof(EditCommands))]
+	public void IsInitialized_Gates_The_Edit_Commands(Func<DatasetEditorViewModel, ICommand> command)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		bool canExecute = command(sut).CanExecute(null);
+
+		// Assert
+		sut.IsInitialized
+			.Should()
+			.BeFalse();
+
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsReadOnly" />: no command that changes the records runs in the read-only
+	/// mode.
+	/// </summary>
+	[TestCaseSource(nameof(EditCommands))]
+	public void IsReadOnly_Disables_The_Edit_Commands(Func<DatasetEditorViewModel, ICommand> command)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		sut.IsReadOnly = true;
+
+		// Assert
+		command(sut).CanExecute(null)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.MoveRecord" />: a record dropped before the contents are loaded stays where it is.
+	/// </summary>
+	[Test]
+	public async Task MoveRecord_Does_Nothing_Before_The_Contents_Are_Loaded()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		bool highlighted = false;
+
+		// A move that got through would pulse the record at once.
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<InlineDispatcherAccessor>()
+			.As<IDispatcherAccessor>());
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut
+			.Records
+			.AddRange([first, second]);
+
+		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+
+		DatasetRecordMove move = new()
+		{
+			Index = 2,
+			Record = first,
+			Target = sut.Records
+		};
+
+		// Act
+		await sut.MoveRecord(move);
+
+		// Assert
+		sut.Records
+			.Should()
+			.Equal(first, second);
+
+		highlighted
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.MoveRecord" />: a record dropped into records that could not be read stays where it
+	/// is.
+	/// </summary>
+	[Test]
+	public async Task MoveRecord_Does_Nothing_When_The_Contents_Are_Unavailable()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		bool highlighted = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			// A move that got through would pulse the record at once.
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded(null);
+
+		sut
+			.Records
+			.AddRange([first, second]);
+
+		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+
+		DatasetRecordMove move = new()
+		{
+			Index = 2,
+			Record = first,
+			Target = sut.Records
+		};
+
+		// Act
+		await sut.MoveRecord(move);
+
+		// Assert
+		sut.Records
+			.Should()
+			.Equal(first, second);
+
+		highlighted
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.MoveRecord" />: a record dropped onto its own edge stays where it is, so nothing is
+	/// saved or pulsed.
+	/// </summary>
+	[Test]
+	public async Task MoveRecord_Leaves_A_Record_At_Its_Own_Edge()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		int changes = 0;
+
+		bool highlighted = false;
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded(null);
+
+		sut
+			.Records
+			.AddRange([first, second, third]);
+
+		sut.Records.CollectionChanged += (_, _) => changes++;
+
+		using IDisposable subscription = second.HighlightSignal.Subscribe(_ => highlighted = true);
+
+		// The slot right after the first record is where the second one already is.
+		DatasetRecordMove move = new()
+		{
+			Index = 1,
+			Record = second,
+			Target = sut.Records
+		};
+
+		// Act
+		await sut.MoveRecord(move);
+
+		// Assert
+		changes
+			.Should()
+			.Be(0);
+
+		highlighted
+			.Should()
+			.BeFalse();
+
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.MoveRecord" />: moves the dropped record, saves the records and pulses the record,
+	/// doing none of it when the dataset is read-only.
+	/// </summary>
+	[Test]
+	public async Task MoveRecord_Moves_Saves_And_Highlights_Only_When_Editable([Values] bool isReadOnly)
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		bool highlighted = false;
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded(null);
+
+		sut.IsReadOnly = isReadOnly;
+
+		sut
+			.Records
+			.AddRange([first, second, third]);
+
+		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+
+		DatasetRecordMove move = new()
+		{
+			Index = 3,
+			Record = first,
+			Target = sut.Records
+		};
+
+		DatasetRecordBase[] expected = isReadOnly
+			? [first, second, third]
+			: [second, third, first];
+
+		// Act
+		await sut
+			.MoveRecordCommand
+			.ExecuteAsync(move);
+
+		// Assert
+		sut.Records
+			.Should()
+			.Equal(expected);
+
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFileContentsAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<DateTime?>());
+
+		highlighted
+			.Should()
+			.Be(!isReadOnly);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.MoveRecord" />: moved records are an edit, which reports the date of change it is
+	/// written with.
+	/// </summary>
+	[Test]
+	public async Task MoveRecord_Reports_The_Date_Of_Change()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.UpdateFileContentsAsync(default, default!, default, default)
+				.ReturnsForAnyArgs(true);
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded(null);
+
+		sut
+			.Records
+			.AddRange([first, second]);
+
+		DateTime? reported = null;
+
+		sut.SetUpdatedAtCallback = x => reported = x;
+
+		DatasetRecordMove move = new()
+		{
+			Index = 2,
+			Record = first,
+			Target = sut.Records
+		};
+
+		// Act
+		await sut.MoveRecord(move);
+
+		// Assert
+		reported
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush writes nothing,
 	/// not even records whose save failed.
 	/// </summary>
@@ -2365,121 +2873,6 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.RecordMoved" />: persists the reorder and pulses the moved record's
-	/// highlight, doing neither when the dataset is read-only.
-	/// </summary>
-	[Test]
-	public async Task RecordMoved_Persists_And_Highlights_Only_When_Editable([Values] bool isReadOnly)
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(serializer);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsWriter>()
-				.As<IFileContentsWriter>();
-
-			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		sut.IsReadOnly = isReadOnly;
-
-		KeyValueRecord record = new()
-		{
-			Key = RandomString.Create(10),
-			Value = RandomString.Create(10)
-		};
-
-		bool highlighted = false;
-
-		using IDisposable subscription = record.HighlightSignal.Subscribe(_ => highlighted = true);
-
-		// Act
-		await sut
-			.RecordMovedCommand
-			.ExecuteAsync(record);
-
-		// Assert
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFileContentsAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<byte[]>(),
-			Arg.Any<DateTime?>());
-
-		highlighted
-			.Should()
-			.Be(!isReadOnly);
-	}
-
-	/// <summary>
-	/// <see cref="DatasetEditorViewModel.RecordMoved" />: moved records are an edit, which reports the date of change it is
-	/// written with.
-	/// </summary>
-	[Test]
-	public async Task RecordMoved_Reports_The_Date_Of_Change()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateFileContentsAsync(default, default!, default, default)
-				.ReturnsForAnyArgs(true);
-
-			builder.RegisterInstance(serializer);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsWriter>()
-				.As<IFileContentsWriter>();
-
-			builder.RegisterInstance<TimeProvider>(time);
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		DateTime? reported = null;
-
-		sut.SetUpdatedAtCallback = x => reported = x;
-
-		// Act
-		await sut.RecordMoved(new ValueRecord());
-
-		// Assert
-		reported
-			.Should()
-			.Be(time.GetLocalNow().LocalDateTime);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetEditorViewModel.RenameGroupAsync" />: updates the group's name, persisting only when the name actually changed.
 	/// </summary>
 	[Test]
@@ -2710,6 +3103,63 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: records of a kind the sort does not know would be lost, so the
+	/// records keep their order and nothing is saved.
+	/// </summary>
+	[Test]
+	public async Task SortAsync_Keeps_Records_It_Cannot_Sort()
+	{
+		// Arrange
+		ForeignRecord foreign = new();
+
+		ValueRecord value = new()
+		{
+			Value = RandomString.Create(10)
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut
+			.Records
+			.AddRange([foreign, value]);
+
+		// Act
+		await sut.SortAsync(null, ListSortDirection.Ascending);
+
+		// Assert
+		sut.Records
+			.Should()
+			.Equal(foreign, value);
+
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorted records are an edit, which reports the date of change it is
 	/// written with.
 	/// </summary>
@@ -2840,6 +3290,41 @@ internal class DatasetEditorViewModelTests
 	private static DatasetRecordBase[] CreateRecords() => [.. Enumerable.Range(0, RecordCount).Select(_ => new ValueRecord())];
 
 	/// <summary>
+	/// The commands that change the records, each case named after its command.
+	/// </summary>
+	private static IEnumerable<TestCaseData> EditCommands()
+	{
+		yield return Case(static x => x.AddGroupCommand, nameof(DatasetEditorViewModel.AddGroupCommand));
+
+		yield return Case(static x => x.AddKeyValueCommand, nameof(DatasetEditorViewModel.AddKeyValueCommand));
+
+		yield return Case(static x => x.AddValueCommand, nameof(DatasetEditorViewModel.AddValueCommand));
+
+		yield return Case(static x => x.DeleteGroupCommand, nameof(DatasetEditorViewModel.DeleteGroupCommand));
+
+		yield return Case(static x => x.DeleteKeyValueRecordCommand, nameof(DatasetEditorViewModel.DeleteKeyValueRecordCommand));
+
+		yield return Case(static x => x.DeleteValueRecordCommand, nameof(DatasetEditorViewModel.DeleteValueRecordCommand));
+
+		yield return Case(static x => x.EditKeyValueCommand, nameof(DatasetEditorViewModel.EditKeyValueCommand));
+
+		yield return Case(static x => x.EditNoteCommand, nameof(DatasetEditorViewModel.EditNoteCommand));
+
+		yield return Case(static x => x.EditValueCommand, nameof(DatasetEditorViewModel.EditValueCommand));
+
+		yield return Case(
+			static x => x.GroupExpandedCollapsedByUserCommand,
+			nameof(DatasetEditorViewModel.GroupExpandedCollapsedByUserCommand));
+
+		yield return Case(static x => x.RenameGroupCommand, nameof(DatasetEditorViewModel.RenameGroupCommand));
+
+		static TestCaseData Case(Func<DatasetEditorViewModel, ICommand> command, string name)
+		{
+			return new TestCaseData(command).SetArgDisplayNames(name);
+		}
+	}
+
+	/// <summary>
 	/// Shows the records in a window, inside a scroll viewer too short to hold them all.
 	/// </summary>
 	private static ScrollViewer Show(ItemsRepeater container)
@@ -2860,5 +3345,12 @@ internal class DatasetEditorViewModelTests
 
 		return scrollViewer;
 	}
+	#endregion
+
+	#region Nested Types
+	/// <summary>
+	/// Record of a kind that the sort does not know.
+	/// </summary>
+	private sealed class ForeignRecord : DatasetRecordBase;
 	#endregion
 }

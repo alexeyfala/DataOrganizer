@@ -4,28 +4,29 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
-using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Models.Dataset;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace DataOrganizer.Behaviors.DragAndDrop;
 
 /// <summary>
-/// Accepts a record dragged by <see cref="DatasetRecordDragBehavior" /> and moves it into the
-/// associated element's position, drawing an insertion indicator while the pointer is over the target.
+/// Accepts a record dragged by <see cref="DatasetRecordDragBehavior" /> onto the associated element and hands its move to
+/// <see cref="MoveCommand" />, drawing an insertion indicator while the pointer is over the target.
 /// </summary>
 internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
-	/// Command invoked after a successful move.
+	/// Command that moves the dropped record, given a <see cref="DatasetRecordMove" />.
 	/// </summary>
-	public IRelayCommand? MovedCommand
+	public ICommand? MoveCommand
 	{
-		get => GetValue(MovedCommandProperty);
-		set => SetValue(MovedCommandProperty, value);
+		get => GetValue(MoveCommandProperty);
+		set => SetValue(MoveCommandProperty, value);
 	}
 
 	/// <summary>
@@ -40,10 +41,10 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 	#region Styled Properties
 	/// <summary>
-	/// Identifies the <see cref="MovedCommand" /> avalonia property.
+	/// Identifies the <see cref="MoveCommand" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<IRelayCommand?> MovedCommandProperty = AvaloniaProperty
-		.Register<DatasetDropRecordInsideBehavior, IRelayCommand?>(name: nameof(MovedCommand));
+	public static readonly StyledProperty<ICommand?> MoveCommandProperty = AvaloniaProperty
+		.Register<DatasetDropRecordInsideBehavior, ICommand?>(name: nameof(MoveCommand));
 
 	/// <summary>
 	/// Identifies the <see cref="Records" /> avalonia property.
@@ -129,7 +130,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 		if (!TryResolve(e, out ObservableCollection<DatasetRecordBase> target, out int index, out _)
 			|| Records is null
-			|| DatasetRecordMover.FindOwner(Records, dragged) is not { } source)
+			|| DatasetRecordTree.FindOwner(Records, dragged) is null)
 		{
 			e.DragEffects = DragDropEffects.None;
 
@@ -142,24 +143,12 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 		e.Handled = true;
 
-		// Dropping onto its own edge leaves the record where it is; skip the move and the save.
-		int sourceIndex = source.IndexOf(dragged);
-
-		int finalIndex = ReferenceEquals(source, target) && index > sourceIndex
-			? index - 1
-			: index;
-
-		if (ReferenceEquals(source, target) && finalIndex == sourceIndex)
+		MoveCommand?.Execute(new DatasetRecordMove
 		{
-			return;
-		}
-
-		if (!DatasetRecordMover.Move(source, dragged, target, index))
-		{
-			return;
-		}
-
-		MovedCommand?.Execute(dragged);
+			Index = index,
+			Record = dragged,
+			Target = target
+		});
 	}
 	#endregion
 
@@ -289,7 +278,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 			? e.GetPosition(AssociatedObject).Y / AssociatedObject.Bounds.Height
 			: 0.0;
 
-		return DatasetRecordMover.TryResolveTarget(
+		return DatasetRecordTree.TryResolveTarget(
 			Records,
 			dragged,
 			AssociatedObject.DataContext as DatasetRecordBase,
