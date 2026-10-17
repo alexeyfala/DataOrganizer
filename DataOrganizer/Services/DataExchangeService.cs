@@ -5,13 +5,13 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Exchange;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
-using Entities.Models;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Serilog;
@@ -260,72 +260,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Regenerates identifiers.
-	/// </summary>
-	private static void RegenerateId(FolderEntity[] folders, FileEntity[] files)
-	{
-		files.ForEach(file =>
-		{
-			Guid newFileId = Guid.NewGuid();
-
-			file.Id = newFileId;
-
-			file.Hotkeys.ForEach(hotkey =>
-			{
-				hotkey.Id = Guid.NewGuid();
-
-				hotkey.OwnerId = newFileId;
-			});
-		});
-
-		ILookup<Guid?, FolderEntity> foldersByParent = folders.ToLookup(x => x.ParentId);
-
-		ILookup<Guid?, FileEntity> filesByParent = files.ToLookup(x => x.ParentId);
-
-		folders.ForEach(folder =>
-		{
-			Guid newFolderId = Guid.NewGuid();
-
-			Guid oldFolderId = folder.Id;
-
-			folder.Id = newFolderId;
-
-			foldersByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
-
-			filesByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
-		});
-	}
-
-	/// <summary>
-	/// Sets <see cref="EntityBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
-	/// from <paramref name="hierarchy"/> max element index.
-	/// </summary>
-	private static void SetupIndex(
-		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
-		FolderEntity[] folders,
-		FileEntity[] files)
-	{
-		if (hierarchy.Count == 0)
-		{
-			return;
-		}
-
-		int startIndex = hierarchy.Max(x => x.Index) + 1;
-
-		folders
-		   .OfType<ExplorerItemBase>()
-		   .Concat(files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = startIndex;
-
-			   startIndex++;
-		   });
-	}
-
-	/// <summary>
 	/// Adds the folders and files of the file to the database, cleared first for a replacing import; <c>null</c> when the
 	/// file holds none that can be read.
 	/// </summary>
@@ -353,21 +287,19 @@ public sealed class DataExchangeService : IDataExchangeService
 		if (!format.IsDatabaseCopy)
 		{
 			// The file keeps no dates, so the objects get the time of the import.
-			DateTime now = _timeProvider
-				.GetLocalNow()
-				.LocalDateTime;
-
-			entities
-				.Folders
-				.Concat<ExplorerItemBase>(entities.Files)
-				.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
+			ImportedEntityRules.SetDates(
+				entities.Folders,
+				entities.Files,
+				_timeProvider
+					.GetLocalNow()
+					.LocalDateTime);
 		}
 
-		RegenerateId(entities.Folders, entities.Files);
+		ImportedEntityRules.RegenerateIds(entities.Folders, entities.Files);
 
 		if (variant == ImportMode.Append)
 		{
-			SetupIndex(hierarchy, entities.Folders, entities.Files);
+			ImportedEntityRules.PlaceAfter(hierarchy, entities.Folders, entities.Files);
 		}
 
 		if (entities.Folders.IsNotEmpty())
