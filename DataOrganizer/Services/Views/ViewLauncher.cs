@@ -3,16 +3,11 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
@@ -41,8 +36,8 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
-	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+	/// <inheritdoc cref="IClipboardHistoryUnlocker" />
+	private readonly IClipboardHistoryUnlocker _clipboardHistoryUnlocker;
 
 	/// <inheritdoc cref="ICopyHistoryStore" />
 	private readonly ICopyHistoryStore _copyHistory;
@@ -56,12 +51,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
-	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notification;
-
-	/// <inheritdoc cref="IPasswordPrompt" />
-	private readonly IPasswordPrompt _passwordPrompt;
-
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 
@@ -73,12 +62,10 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IClipboardHistoryUnlocker clipboardHistoryUnlocker,
 		ICopyHistoryStore copyHistory,
 		ILogger logger,
 		IMessenger messenger,
-		INotificationService notification,
-		IPasswordPrompt passwordPrompt,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		IWindowSettingsStore windowSettings)
@@ -87,7 +74,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		_appEnvironment = appEnvironment;
 
-		_clipboardLogPersistence = clipboardLogPersistence;
+		_clipboardHistoryUnlocker = clipboardHistoryUnlocker;
 
 		_copyHistory = copyHistory;
 
@@ -96,10 +83,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		_logger = logger;
 
 		_messenger = messenger;
-
-		_notification = notification;
-
-		_passwordPrompt = passwordPrompt;
 
 		_viewFactory = viewFactory;
 
@@ -215,7 +198,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 			return;
 		}
 
-		BringToScreenCenter(window, owner);
+		WindowPlacementHelper.BringToScreenCenter(window, owner);
 	}
 
 	/// <inheritdoc />
@@ -226,7 +209,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 			return;
 		}
 
-		BringToScreenCenter(window, owner);
+		WindowPlacementHelper.BringToScreenCenter(window, owner);
 	}
 
 	/// <inheritdoc />
@@ -354,14 +337,16 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	{
 		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
 		{
-			PositionAtScreenBottomRight(existing, owner);
+			WindowPlacementHelper.PositionAtScreenBottomRight(existing, owner);
 
 			existing.Activate();
 
 			return;
 		}
 
-		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
+		await _clipboardHistoryUnlocker
+			.UnlockIfRequiredAsync()
+			.ConfigureAwait(true);
 
 		CreateClipboardLogWindow(owner).Show();
 	}
@@ -423,65 +408,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 	#region Helpers
 	/// <summary>
-	/// Restores and activates <paramref name="target" />, then places it in the center of the screen
-	/// of <paramref name="owner" />.
-	/// </summary>
-	private static void BringToScreenCenter(Window target, Window owner)
-	{
-		target.RestoreAndActivate();
-
-		// A maximized window fills its own screen and stays there.
-		if (target.WindowState == WindowState.Maximized)
-		{
-			return;
-		}
-
-		PositionAtScreenCenter(target, owner);
-	}
-
-	/// <summary>
-	/// Places <paramref name="target" /> at the bottom-right corner of the screen
-	/// that <paramref name="owner" /> currently lives on.
-	/// </summary>
-	private static void PositionAtScreenBottomRight(Window target, Window owner)
-	{
-		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
-		{
-			return;
-		}
-
-		// 16 device-independent pixels of padding from the screen edge.
-		const int marginDip = 16;
-
-		target.Position = WindowPlacementHelper.GetLowerRightPosition(
-			screen.WorkingArea,
-			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
-			(int)(marginDip * screen.Scaling));
-	}
-
-	/// <summary>
-	/// Places <paramref name="target" /> in the center of the working area of the screen
-	/// that <paramref name="owner" /> currently lives on.
-	/// </summary>
-	private static void PositionAtScreenCenter(Window target, Window owner)
-	{
-		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
-		{
-			return;
-		}
-
-		// A shown window knows its outer size, a new one only the size it asks for.
-		PixelSize size = PixelSize.FromSize(
-			target.FrameSize ?? new Avalonia.Size(target.Width, target.Height),
-			screen.Scaling);
-
-		target.Position = screen
-			.WorkingArea
-			.CenterRect(new PixelRect(size))
-			.Position;
-	}
-
-	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	private ClipboardLogWindow CreateClipboardLogWindow(Window owner)
@@ -498,11 +424,11 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 			viewModel.KeepOpen = settings.KeepOpen;
 
-			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenBottomRight(x, owner));
+			WindowPlacementHelper.Restore(window, settings, x => WindowPlacementHelper.PositionAtScreenBottomRight(x, owner));
 		}
 		else
 		{
-			PositionAtScreenBottomRight(window, owner);
+			WindowPlacementHelper.PositionAtScreenBottomRight(window, owner);
 		}
 
 		window.Closing += ClipboardLogWindow_Closing;
@@ -530,11 +456,11 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		if (_windowSettings.Read<NotepadWindowSettings>() is { } settings)
 		{
-			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenCenter(x, owner));
+			WindowPlacementHelper.Restore(window, settings, x => WindowPlacementHelper.PositionAtScreenCenter(x, owner));
 		}
 		else
 		{
-			PositionAtScreenCenter(window, owner);
+			WindowPlacementHelper.PositionAtScreenCenter(window, owner);
 		}
 
 		window.Closing += NotepadWindow_Closing;
@@ -700,65 +626,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		window.Show();
 
 		return closed.Task;
-	}
-
-	/// <summary>
-	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
-	/// saved history. Cancelling the prompt leaves the session in-memory only.
-	/// </summary>
-	private async Task UnlockClipboardHistoryIfRequiredAsync()
-	{
-		string? label = null;
-
-		while (_clipboardLogPersistence.RequiresUnlock)
-		{
-			// The first password of the history is created here, every later one is only checked.
-			bool hasPassword = _clipboardLogPersistence.HasPassword;
-
-			label ??= hasPassword
-				? Strings.Password
-				: Strings.NewPassword;
-
-			using PinnedSecret password = await _passwordPrompt.RequestPasswordAsync(
-				header: Strings.ClipboardHistory,
-				label: label,
-				description: hasPassword
-					? Strings.SavedHistoryPasswordDescription
-					: Strings.NewSavedHistoryPasswordDescription,
-				mode: hasPassword
-					? PasswordPromptMode.Verify
-					: PasswordPromptMode.Create).ConfigureAwait(true);
-
-			if (password.IsEmpty)
-			{
-				return;
-			}
-
-			using PinnedBuffer passwordBytes = password.ToUtf8Buffer();
-
-			ClipboardLogStatus status = await _clipboardLogPersistence
-				.TryUnlockAndMergeAsync(passwordBytes)
-				.ConfigureAwait(true);
-
-			if (status == ClipboardLogStatus.Unlocked)
-			{
-				return;
-			}
-
-			// Only a wrong password is worth asking again; the rest no password can fix.
-			if (status != ClipboardLogStatus.WrongPassword)
-			{
-				string text = status == ClipboardLogStatus.Damaged
-					? Strings.EncryptedDataIsDamaged
-					: Strings.FailedToUnlockClipboardHistory;
-
-				_notification.ShowErrorSnackbar(text);
-
-				return;
-			}
-
-			label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
-		}
 	}
 	#endregion
 }

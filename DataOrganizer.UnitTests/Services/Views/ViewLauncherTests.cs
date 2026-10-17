@@ -18,10 +18,8 @@ using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -3314,81 +3312,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the first password of the saved
-	/// history is created with a confirmation, a later one is only checked.
-	/// </summary>
-	[AvaloniaTest]
-	[TestCase(false, PasswordPromptMode.Create)]
-	[TestCase(true, PasswordPromptMode.Verify)]
-	public async Task ShowClipboardLogWindowAsync_Asks_For_The_History_Password(bool hasPassword, PasswordPromptMode expected)
-	{
-		// Arrange
-		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
-			{
-				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-				clipboardLogService
-					.Entries
-					.Returns([]);
-
-				windowBuilder.RegisterInstance(clipboardLogService);
-			});
-
-			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
-
-			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
-				.Returns(clipboardWindow);
-
-			IClipboardLogPersistenceCoordinator persistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
-
-			persistence
-				.RequiresUnlock
-				.Returns(true);
-
-			persistence
-				.HasPassword
-				.Returns(hasPassword);
-
-			// A cancelled prompt leaves the session in memory, which is enough to reach the assert.
-			passwordPrompt
-				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
-
-			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(persistence);
-
-			builder.RegisterInstance(passwordPrompt);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
-
-		// Assert
-		await passwordPrompt.Received(1).RequestPasswordAsync(
-			Arg.Any<string>(),
-			Arg.Any<string>(),
-			Arg.Any<string>(),
-			expected,
-			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: an already-open window is focused instead of opening a duplicate.
 	/// </summary>
 	[AvaloniaTest]
@@ -3514,7 +3437,7 @@ internal class ViewLauncherTests
 
 	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: without saved settings the window opens in the lower right
-	/// corner of the screen of the owner.
+	/// corner of the screen of the owner, apart from its edges.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task ShowClipboardLogWindowAsync_Opens_In_The_Corner_For_The_First_Launch()
@@ -3571,10 +3494,19 @@ internal class ViewLauncherTests
 		bounds.Center.Y
 			.Should()
 			.BeGreaterThan(screen.WorkingArea.Center.Y);
+
+		bounds.Right
+			.Should()
+			.BeLessThan(screen.WorkingArea.Right);
+
+		bounds.Bottom
+			.Should()
+			.BeLessThan(screen.WorkingArea.Bottom);
 	}
 
 	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved off every screen opens in the lower right
+
 	/// corner of the screen of the owner.
 	/// </summary>
 	[AvaloniaTest]
@@ -3850,6 +3782,58 @@ internal class ViewLauncherTests
 		captured.ActiveFilter
 			.Should()
 			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the saved history is opened before the window shows it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Unlocks_The_Saved_History()
+	{
+		// Arrange
+		IClipboardHistoryUnlocker unlocker = Substitute.For<IClipboardHistoryUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+				clipboardLogService
+					.Entries
+					.Returns([]);
+
+				windowBuilder.RegisterInstance(clipboardLogService);
+			});
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(unlocker);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Assert
+		await unlocker
+			.Received(1)
+			.UnlockIfRequiredAsync();
 	}
 
 	/// <summary>

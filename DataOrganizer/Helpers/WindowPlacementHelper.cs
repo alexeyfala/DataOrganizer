@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
+using DataOrganizer.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,23 @@ internal static class WindowPlacementHelper
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Restores and activates <paramref name="target" />, then places it in the center of the screen
+	/// of <paramref name="owner" />.
+	/// </summary>
+	public static void BringToScreenCenter(Window target, Window owner)
+	{
+		target.RestoreAndActivate();
+
+		// A maximized window fills its own screen and stays there.
+		if (target.WindowState == WindowState.Maximized)
+		{
+			return;
+		}
+
+		PositionAtScreenCenter(target, owner);
+	}
+
 	public static PixelPoint GetLowerRightPosition(
 		PixelRect workingArea,
 		PixelSize windowSize,
@@ -61,6 +79,48 @@ internal static class WindowPlacementHelper
 		PixelRect titleBar = new(position, TitleBarSize);
 
 		return screens.Any(x => x.WorkingArea.Intersects(titleBar));
+	}
+
+	/// <summary>
+	/// Places <paramref name="target" /> at the bottom-right corner of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	public static void PositionAtScreenBottomRight(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// 16 device-independent pixels of padding from the screen edge.
+		const int marginDip = 16;
+
+		target.Position = WindowPlacementHelper.GetLowerRightPosition(
+			screen.WorkingArea,
+			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
+			(int)(marginDip * screen.Scaling));
+	}
+
+	/// <summary>
+	/// Places <paramref name="target" /> in the center of the working area of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	public static void PositionAtScreenCenter(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// A shown window knows its outer size, a new one only the size it asks for.
+		PixelSize size = PixelSize.FromSize(
+			target.FrameSize ?? new Avalonia.Size(target.Width, target.Height),
+			screen.Scaling);
+
+		target.Position = screen
+			.WorkingArea
+			.CenterRect(new PixelRect(size))
+			.Position;
 	}
 
 	/// <summary>

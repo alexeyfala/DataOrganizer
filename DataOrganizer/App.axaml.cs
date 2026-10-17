@@ -144,6 +144,7 @@ public sealed class App : Application
 		services.AddTransient<IBackgroundServiceControl, BackgroundServices>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
+		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
 		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
 		services.AddTransient<IContentCipher, ContentCipher>();
