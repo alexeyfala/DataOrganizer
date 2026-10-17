@@ -764,6 +764,62 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a file whose text is not copied stays out of the copy
+	/// history.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Keeps_The_Copy_History_When_Nothing_Is_Copied(
+		[Values(FileTextStatus.Empty, FileTextStatus.NotText, FileTextStatus.Damaged, FileTextStatus.Closed)] FileTextStatus status)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			fileTextCopier
+				.CopyAsync(dto, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(status);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		copyHistory
+			.DidNotReceive()
+			.Add(Arg.Any<FileDto>(), Arg.Any<bool>());
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a released modifier or lock key neither adds a key nor ends
 	/// the hotkey being typed.
 	/// </summary>
@@ -836,6 +892,61 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.HaveCount(keyCount);
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a file copied by its hotkey goes into the copy history,
+	/// and a shown list moves it at once.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Puts_The_File_Into_The_Copy_History()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] hotkey =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		dto
+			.Hotkeys
+			.AddRange(hotkey.ToHotkeyDtos());
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			fileTextCopier
+				.CopyAsync(dto, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		// Act
+		await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		copyHistory
+			.Received(1)
+			.Add(dto, true);
 	}
 
 	/// <summary>

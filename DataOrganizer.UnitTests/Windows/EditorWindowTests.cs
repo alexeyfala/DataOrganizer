@@ -16,6 +16,7 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -125,6 +126,10 @@ internal class EditorWindowTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
 
 			builder
 				.RegisterType<WorkSession>()

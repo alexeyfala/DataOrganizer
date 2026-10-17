@@ -51,6 +51,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
+	/// <inheritdoc cref="ICopyHistory" />
+	private readonly ICopyHistory _copyHistory;
+
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
@@ -89,6 +92,7 @@ public class ViewLauncher : IViewLauncher
 		IAppUptime appUptime,
 		IBackgroundServices backgroundServices,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		ICopyHistory copyHistory,
 		IExecutionEngine executionEngine,
 		IExecutionSandbox sandbox,
 		ILogger logger,
@@ -109,6 +113,8 @@ public class ViewLauncher : IViewLauncher
 		_backgroundServices = backgroundServices;
 
 		_clipboardLogPersistence = clipboardLogPersistence;
+
+		_copyHistory = copyHistory;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -167,11 +173,6 @@ public class ViewLauncher : IViewLauncher
 		window.Closing -= EditorWindow_Closing;
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
-
-		// The right side sheet does not close with the window, so its content is saved before the settings are written.
-		window
-			.ViewModel
-			.SaveRightSideSheetContent();
 
 		_exceptionHandler.Watch(SaveEditorSettingsAsync(window));
 	}
@@ -319,9 +320,7 @@ public class ViewLauncher : IViewLauncher
 				IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
 			}
 
-			viewModel.Initialize(
-				windowSettings,
-				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());
+			viewModel.Initialize(windowSettings);
 		}
 		else
 		{
@@ -350,10 +349,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
 
-			viewModel.Initialize(
-				windowSettings,
-				_windowSettings.Read<FavoritesViewSettings>() ?? new(),
-				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());
+			viewModel.Initialize(windowSettings, _windowSettings.Read<FavoritesViewSettings>() ?? new());
 		}
 		else
 		{
@@ -455,7 +451,7 @@ public class ViewLauncher : IViewLauncher
 
 			_windowSettings.Write(settings);
 
-			_windowSettings.Write(window.ViewModel.CopyHistorySettings);
+			_copyHistory.Save();
 
 			_windowSettings.Write(WindowKind.Editor);
 
@@ -497,7 +493,7 @@ public class ViewLauncher : IViewLauncher
 
 			_windowSettings.Write(window.ViewModel.FavoritesSettings);
 
-			_windowSettings.Write(window.ViewModel.CopyHistorySettings);
+			_copyHistory.Save();
 
 			_windowSettings.Write(WindowKind.Favorites);
 

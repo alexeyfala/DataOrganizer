@@ -1,44 +1,84 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Interfaces.Database;
-using Serilog;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.Services.Clipboard;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CopyContentViewModelBase)}"" type")]
-internal class CopyContentViewModelBaseTests
+[TestFixture(Description = $@"Tests of ""{nameof(ContentCopier)}"" type")]
+internal class ContentCopierTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: a file without text puts nothing on the clipboard.
+	/// <see cref="ContentCopier.CopyAsync" />: a file that is no longer in the database is neither read nor put into the
+	/// copy history.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Copies_Nothing_From_An_Empty_File()
+	[Test]
+	public async Task CopyAsync_Copies_Nothing_From_A_File_That_No_Longer_Exists()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			// The file left the database.
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+		});
+
+		ContentCopier sut = mock.Create<ContentCopier>();
+
+		// Act
+		bool result = await sut.CopyAsync(file, showAtOnce: false);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		await fileTextCopier
+			.DidNotReceive()
+			.CopyAsync(Arg.Any<FileDto>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+		copyHistory
+			.DidNotReceive()
+			.Add(Arg.Any<FileDto>(), Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentCopier.CopyAsync" />: a file without text puts nothing on the clipboard.
+	/// </summary>
+	[Test]
+	public async Task CopyAsync_Copies_Nothing_From_An_Empty_File()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -80,15 +120,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		await clipboard
@@ -97,10 +134,10 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: contents that fail their check never reach the clipboard.
+	/// <see cref="ContentCopier.CopyAsync" />: contents that fail their check never reach the clipboard.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Copies_Nothing_From_Damaged_Contents()
+	[Test]
+	public async Task CopyAsync_Copies_Nothing_From_Damaged_Contents()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -141,15 +178,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		await clipboard
@@ -158,10 +192,10 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: contents that are not text never reach the clipboard.
+	/// <see cref="ContentCopier.CopyAsync" />: contents that are not text never reach the clipboard.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Copies_Nothing_That_Is_Not_Text()
+	[Test]
+	public async Task CopyAsync_Copies_Nothing_That_Is_Not_Text()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -204,15 +238,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		await clipboard
@@ -221,13 +252,13 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: copies the text in the encoding of the file, without its byte
+	/// <see cref="ContentCopier.CopyAsync" />: copies the text in the encoding of the file, without its byte
 	/// order mark.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x48, 0x69 })]
 	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
-	public async Task CopyContentAsync_Copies_The_Text_In_Its_Encoding(byte[] contents)
+	public async Task CopyAsync_Copies_The_Text_In_Its_Encoding(byte[] contents)
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -269,15 +300,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		await clipboard
@@ -286,11 +314,11 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: copies the text in the encoding chosen for the file rather
+	/// <see cref="ContentCopier.CopyAsync" />: copies the text in the encoding chosen for the file rather
 	/// than in the one found from its contents.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Copies_The_Text_In_The_Chosen_Encoding()
+	[Test]
+	public async Task CopyAsync_Copies_The_Text_In_The_Chosen_Encoding()
 	{
 		// Arrange
 		const string text = "Привет, мир";
@@ -341,15 +369,12 @@ internal class CopyContentViewModelBaseTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		await clipboard
@@ -358,10 +383,10 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: encrypted content is flagged sensitive, plaintext content is not.
+	/// <see cref="ContentCopier.CopyAsync" />: encrypted content is flagged sensitive, plaintext content is not.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
+	[Test]
+	public async Task CopyAsync_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
 		string content = RandomString.Create(20);
@@ -407,15 +432,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		if (isEncrypted)
@@ -441,13 +463,16 @@ internal class CopyContentViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: a file whose text is copied goes into the copy history.
+	/// <see cref="ContentCopier.CopyAsync" />: a file whose text is copied goes into the copy history, which hands on
+	/// whether a shown list moves it at once.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Inserts_The_File_Into_The_Copy_History()
+	[Test]
+	public async Task CopyAsync_Inserts_The_File_Into_The_Copy_History([Values] bool showAtOnce)
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -463,35 +488,39 @@ internal class CopyContentViewModelBaseTests
 				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(FileTextStatus.Text);
 
+			builder.RegisterInstance(copyHistory);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		bool result = await sut.CopyAsync(file, showAtOnce);
 
 		// Assert
-		sut.CopyHistory
+		result
 			.Should()
-			.Equal(file);
+			.BeTrue();
+
+		copyHistory
+			.Received(1)
+			.Add(file, showAtOnce);
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: a file whose text is not copied stays out of the copy
-	/// history.
+	/// <see cref="ContentCopier.CopyAsync" />: a file whose text is not copied stays out of the copy history.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Keeps_The_Copy_History_When_Nothing_Is_Copied(
+	[Test]
+	public async Task CopyAsync_Keeps_The_Copy_History_When_Nothing_Is_Copied(
 		[Values(FileTextStatus.Empty, FileTextStatus.NotText, FileTextStatus.Damaged, FileTextStatus.Closed)] FileTextStatus status)
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -507,30 +536,33 @@ internal class CopyContentViewModelBaseTests
 				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(status);
 
+			builder.RegisterInstance(copyHistory);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		bool result = await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
-		sut.CopyHistory
+		result
 			.Should()
-			.BeEmpty();
+			.BeFalse();
+
+		copyHistory
+			.DidNotReceive()
+			.Add(Arg.Any<FileDto>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
-	/// <see cref="CopyContentViewModelBase.CopyContentAsync" />: the decrypted contents are wiped once their text is read.
+	/// <see cref="ContentCopier.CopyAsync" />: the decrypted contents are wiped once their text is read.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task CopyContentAsync_Zeroes_The_Decrypted_Contents(
+	[Test]
+	public async Task CopyAsync_Zeroes_The_Decrypted_Contents(
 		[Values(EncryptionStatus.Encrypted, EncryptionStatus.Decrypted)] EncryptionStatus encryptionStatus)
 	{
 		// Arrange
@@ -567,15 +599,12 @@ internal class CopyContentViewModelBaseTests
 				.As<IFileTextCopier>();
 
 			builder.RegisterInstance(fileContentsReader);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
+		ContentCopier sut = mock.Create<ContentCopier>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file);
+		await sut.CopyAsync(file, showAtOnce: false);
 
 		// Assert
 		decrypted
@@ -584,47 +613,4 @@ internal class CopyContentViewModelBaseTests
 	}
 	#endregion
 
-	#region Nested Types
-	/// <summary>
-	/// Minimal concrete <see cref="CopyContentViewModelBase" /> exposing the protected copy operation.
-	/// </summary>
-	private sealed class TestCopyContentViewModel : CopyContentViewModelBase
-	{
-		#region Properties
-		/// <summary>
-		/// Files inserted into the copy history, in order.
-		/// </summary>
-		public List<FileDto> CopyHistory { get; } = [];
-		#endregion
-
-		#region Constructors
-		public TestCopyContentViewModel(
-			Application app,
-			IDbAccess dbAccess,
-			IDialogService dialogService,
-			IFileTextCopier fileTextCopier,
-			ILogger logger,
-			IMessenger messenger,
-			INotificationService notification,
-			ITaskExceptionHandler exceptionHandler) : base(
-				app,
-				dbAccess,
-				dialogService,
-				fileTextCopier,
-				logger,
-				messenger,
-				notification,
-				exceptionHandler)
-		{
-		}
-		#endregion
-
-		#region Methods
-		/// <inheritdoc />
-		public override void InsertIntoCopyHistory(FileDto file, bool updateView) => CopyHistory.Add(file);
-
-		public Task InvokeCopyContentAsync(FileDto file) => CopyContentAsync(file, updateView: false);
-		#endregion
-	}
-	#endregion
 }

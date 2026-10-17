@@ -23,7 +23,6 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Windows;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -221,11 +220,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		Application app,
 		IAppSettingsStore settingsStore,
 		IContentVisibility contentVisibility,
-		IDbAccess dbAccess,
+		ICopyHistory copyHistory,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutingFiles executingFiles,
-		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -236,11 +234,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			app,
 			settingsStore,
 			contentVisibility,
-			dbAccess,
+			copyHistory,
 			dialogService,
 			dispatcher,
 			executingFiles,
-			fileTextCopier,
 			logger,
 			messenger,
 			notification,
@@ -284,12 +281,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	}
 
 	/// <summary>
-	/// Restores the popup size, the favorites and the copy history from the stored settings.
+	/// Restores the popup size and the favorites from the stored settings.
 	/// </summary>
-	public void Initialize(
-		FavoritesWindowSettings windowSettings,
-		FavoritesViewSettings favoritesSettings,
-		CopyHistoryViewSettings copyHistorySettings)
+	public void Initialize(FavoritesWindowSettings windowSettings, FavoritesViewSettings favoritesSettings)
 	{
 		if (windowSettings.PopupWidth > 0.0 && windowSettings.PopupHeight > 0.0)
 		{
@@ -317,36 +311,20 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 
 		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
 
-		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
-
-		if (CopyHistorySettings
-			.ItemIds
-			.Count > 0)
-		{
-			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
-		}
-
 		IsInitialized = true;
 	}
 
 	/// <summary>
-	/// Saves current content in popup.
+	/// Saves the favorites while the popup shows them.
 	/// </summary>
 	public void SaveContent()
 	{
-		if (PopupContent == FavoritesPopupContentKind.None)
+		if (PopupContent != FavoritesPopupContentKind.Favorites)
 		{
 			return;
 		}
 
-		if (PopupContent == FavoritesPopupContentKind.Favorites)
-		{
-			SaveFavorites();
-		}
-		else if (PopupContent == FavoritesPopupContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
+		SaveFavorites();
 	}
 
 	/// <inheritdoc />
@@ -387,13 +365,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			.SelectedPairs
 			.Clear();
 
-		CopyHistorySettings
-			.ItemIds
-			.Clear();
-
 		PopupContent = FavoritesPopupContentKind.None;
 
-		_copyHistory?.Dispose();
+		_copyHistoryViewModel?.Dispose();
 
 		_favorites?.Dispose();
 	}

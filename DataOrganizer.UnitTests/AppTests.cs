@@ -192,6 +192,29 @@ internal class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the copy history is one for the whole application, so every window and the
+	/// hotkeys add to the same list.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Shares_One_Copy_History()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.ContainSingle(x => x.ServiceType == typeof(ICopyHistory))
+			.Which
+			.Lifetime
+			.Should()
+			.Be(ServiceLifetime.Singleton);
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the executing files have one owner for the whole application, so every main
 	/// window lists the same files.
 	/// </summary>

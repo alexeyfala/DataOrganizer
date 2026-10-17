@@ -1,8 +1,4 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
-using Shared.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.Dto.Settings;
@@ -25,23 +21,5 @@ public sealed class CopyHistoryViewSettings
 	/// The selected item identifier in <see cref="ItemIds" />.
 	/// </summary>
 	public Guid SelectedItemId { get; set; }
-	#endregion
-
-	#region Methods
-	/// <summary>
-	/// Adds objects to <see cref="ItemIds" /> from <paramref name="source" /> if they are in <paramref name="hierarchy" />.
-	/// </summary>
-	public void AddItemIds(IEnumerable<Guid> source, IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		source.ForEach(id =>
-		{
-			if (!hierarchy.ContainsFileBy(x => x.Id == id))
-			{
-				return;
-			}
-
-			ItemIds.Add(id);
-		});
-	}
 	#endregion
 }

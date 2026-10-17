@@ -1,11 +1,17 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Enums.Documents;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using NSubstitute;
+using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +24,56 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a file copied from the list goes into the copy history,
+	/// and a shown list moves it at its next showing.
+	/// </summary>
+	[Test]
+	public void CopyContentCommand_Puts_The_File_Into_The_Copy_History()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			fileTextCopier
+				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
+		});
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.CopyContentCommand
+			.Execute(file);
+
+		// Assert
+		copyHistory
+			.Received(1)
+			.Add(file, false);
+	}
+
 	/// <summary>
 	/// <see cref="FileListViewModelBase.CopyContentCommand" />: the copied file becomes the selected favorite.
 	/// </summary>

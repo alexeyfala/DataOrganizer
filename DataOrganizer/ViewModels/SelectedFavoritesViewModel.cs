@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
@@ -11,10 +10,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Notifications;
-using Repository.Interfaces.Database;
-using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -198,20 +193,10 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	#region Constructors
 	public SelectedFavoritesViewModel(
 		Application app,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IFileTextCopier fileTextCopier,
-		ILogger logger,
-		IMessenger messenger,
-		INotificationService notification,
+		IContentCopier contentCopier,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
-			dbAccess,
-			dialogService,
-			fileTextCopier,
-			logger,
-			messenger,
-			notification,
+			contentCopier,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(

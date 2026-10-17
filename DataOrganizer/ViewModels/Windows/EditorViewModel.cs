@@ -37,7 +37,6 @@ using Entities.Enums;
 using Entities.Models;
 using Material.Styles.Controls;
 using Repository.Dto;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -69,6 +68,11 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	[ObservableProperty]
 	public partial string? HierarchySummary { get; set; }
+
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	public IObservable<ExplorerItemDtoBase> HighlightSignal => _highlightSignal;
 
 	/// <summary>
 	/// Controls the progress bar for an action.
@@ -168,8 +172,6 @@ public sealed partial class EditorViewModel :
 		{
 			return;
 		}
-
-		SaveRightSideSheetContent();
 
 		RightSideSheetContent = RightSideSheetContentKind.None;
 	}
@@ -565,9 +567,7 @@ public sealed partial class EditorViewModel :
 		{
 			Hierarchy.Clear();
 
-			CopyHistorySettings
-				.ItemIds
-				.Clear();
+			_copyHistory.Clear();
 
 			IsRightSideSheetOpened = false;
 
@@ -646,7 +646,7 @@ public sealed partial class EditorViewModel :
 
 		window?.Close();
 
-		_copyHistory?.Dispose();
+		_copyHistoryViewModel?.Dispose();
 
 		_sessionEditorTabs.EditorTabs = _editingFiles?.State;
 
@@ -736,14 +736,14 @@ public sealed partial class EditorViewModel :
 
 		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
-			if (CopyHistorySettings.ItemIds.Count == 0 || !await _dialogService
+			if (_copyHistory.ItemIds.Count == 0 || !await _dialogService
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
 				return;
 			}
 
-			ClearCopyHistory();
+			_copyHistory.Clear();
 		}
 		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
@@ -778,18 +778,23 @@ public sealed partial class EditorViewModel :
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
-	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
+	/// <inheritdoc cref="IContentCopier.CopyAsync" />
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
-	private Task CopyContentByContextMenu(FileDto? dto)
+	private async Task CopyContentByContextMenu(FileDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return CopyContentAsync(
-			file: dto,
-			updateView: true);
+		if (!await _contentCopier
+			.CopyAsync(dto, showAtOnce: true)
+			.ConfigureAwait(true))
+		{
+			return;
+		}
+
+		Highlight(dto);
 	}
 
 	/// <summary>
@@ -993,8 +998,6 @@ public sealed partial class EditorViewModel :
 	[RelayCommand]
 	private void ShowExecutingFiles()
 	{
-		SaveRightSideSheetContent();
-
 		SwitchRightSideSheetContent(RightSideSheetContentKind.ExecutingFiles);
 	}
 
@@ -1097,6 +1100,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
 
+	/// <inheritdoc cref="IContentCopier" />
+	private readonly IContentCopier _contentCopier;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1114,6 +1120,11 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
+
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
@@ -1159,9 +1170,10 @@ public sealed partial class EditorViewModel :
 		IBackgroundServiceControl backgroundServiceControl,
 		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
+		IContentCopier contentCopier,
 		IContentVisibility contentVisibility,
+		ICopyHistory copyHistory,
 		IDataExchangeService dataExchange,
-		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
@@ -1169,7 +1181,6 @@ public sealed partial class EditorViewModel :
 		IExecutingFiles executingFiles,
 		IFileContentsReader fileContentsReader,
 		IFileHotkeyEditor fileHotkeyEditor,
-		IFileTextCopier fileTextCopier,
 		IFolderProtection folderProtection,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
@@ -1188,11 +1199,10 @@ public sealed partial class EditorViewModel :
 			app,
 			settingsStore,
 			contentVisibility,
-			dbAccess,
+			copyHistory,
 			dialogService,
 			dispatcher,
 			executingFiles,
-			fileTextCopier,
 			logger,
 			messenger,
 			notification,
@@ -1210,6 +1220,8 @@ public sealed partial class EditorViewModel :
 		_clipboardLogSeeder = clipboardLogSeeder;
 
 		_clipboardWriter = clipboardWriter;
+
+		_contentCopier = contentCopier;
 
 		_dataExchange = dataExchange;
 
@@ -1260,11 +1272,9 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Restores the navigation column, the read-only mode and the copy history from the stored settings.
+	/// Restores the navigation column and the read-only mode from the stored settings.
 	/// </summary>
-	public void Initialize(
-		EditorWindowSettings windowSettings,
-		CopyHistoryViewSettings copyHistorySettings)
+	public void Initialize(EditorWindowSettings windowSettings)
 	{
 		// A width that was never stored keeps the default one.
 		if (windowSettings.NavigationColumnWidth > default(double))
@@ -1273,13 +1283,6 @@ public sealed partial class EditorViewModel :
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
-
-		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
-
-		if (CopyHistorySettings.ItemIds.Count > 0)
-		{
-			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
-		}
 
 		IsInitialized = true;
 	}
@@ -1297,19 +1300,6 @@ public sealed partial class EditorViewModel :
 
 			IsActionInProgress = _actionsInProgress > 0;
 		}
-	}
-
-	/// <summary>
-	/// Saves the state of the copy history while the right side sheet shows it.
-	/// </summary>
-	public void SaveRightSideSheetContent()
-	{
-		if (RightSideSheetContent != RightSideSheetContentKind.CopyHistory)
-		{
-			return;
-		}
-
-		SaveCopyHistory();
 	}
 
 	/// <summary>
@@ -1383,7 +1373,7 @@ public sealed partial class EditorViewModel :
 		{
 			CloseFile(deletedFile);
 
-			RemoveFromCopyHistory(deletedFile);
+			_copyHistory.Remove(deletedFile);
 		}
 
 		if (dto is FolderDto deletedFolder)
@@ -1650,26 +1640,9 @@ public sealed partial class EditorViewModel :
 	private bool CanShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
-	/// Clears copy history.
+	/// Asks the view to highlight an object where it shows it.
 	/// </summary>
-	private void ClearCopyHistory()
-	{
-		_copyHistory?.Clear();
-
-		SaveCopyHistory();
-	}
-
-	/// <summary>
-	/// Tries to remove value from copy history.
-	/// </summary>
-	private void RemoveFromCopyHistory(FileDto file)
-	{
-		CopyHistorySettings
-			.ItemIds
-			.Remove(file.Id);
-
-		_copyHistory?.Remove(file);
-	}
+	private void Highlight(ExplorerItemDtoBase dto) => _highlightSignal.OnNext(dto);
 
 	/// <summary>
 	/// Saves a folder of the tree expanded or collapsed, unless the editor is read-only or busy with an action.

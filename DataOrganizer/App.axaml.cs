@@ -147,6 +147,7 @@ public sealed class App : Application
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
 		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
 		services.AddTransient<IContentCipher, ContentCipher>();
+		services.AddTransient<IContentCopier, ContentCopier>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogCloser, DialogCloser>();
@@ -226,6 +227,7 @@ public sealed class App : Application
 		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
+		services.AddSingleton<ICopyHistory, CopyHistory>();
 		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEditorSplitStore, EditorSplitStore>();

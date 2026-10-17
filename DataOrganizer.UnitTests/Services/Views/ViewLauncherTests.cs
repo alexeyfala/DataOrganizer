@@ -32,6 +32,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
@@ -1219,8 +1220,8 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites saves the item chosen in the copy history of
-	/// the right side sheet.
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites saves the copy history with the item chosen
+	/// in its list.
 	/// </summary>
 	[AvaloniaTest]
 	public void CreateEditorWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Favorites()
@@ -1235,13 +1236,33 @@ internal class ViewLauncherTests
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
 
 			viewLauncher
 				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
+			builder.RegisterInstance(fileSystem);
+
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1262,15 +1283,6 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
-
 			viewFactory
 				.CreateViewModel<EditorViewModel>()
 				.Returns(viewModel);
@@ -1279,41 +1291,27 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		EditorWindow window = sut.CreateEditorWindow();
 
-		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
 
-		window
-			.ViewModel
-			.CopyHistorySettings
-			.AddItemIds(files.Select(x => x.Id), files);
+		copyHistory.Add(files[1], showAtOnce: false);
 
-		window
-			.ViewModel
-			.ShowCopyHistoryCommand
-			.Execute(null);
+		copyHistory.Add(files[0], showAtOnce: false);
 
-		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
-		// the dispatcher before the choice.
-		window
-			.ViewModel
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
+		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
+		// The stored selection comes back through the dispatcher before the choice.
 		Dispatcher.UIThread.RunJobs();
 
-		copyHistory.SelectedItem = files[1];
+		copyHistoryList.SelectedItem = files[1];
 
 		// Act
 		window
@@ -1330,8 +1328,8 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the item chosen in the copy history of the
-	/// right side sheet.
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the copy history with the item chosen in its
+	/// list.
 	/// </summary>
 	[AvaloniaTest]
 	public void CreateEditorWindow_Saves_The_Chosen_Copy_History_Item_When_The_Window_Closes()
@@ -1342,10 +1340,33 @@ internal class ViewLauncherTests
 		Guid savedItemId = default;
 
 		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1360,15 +1381,6 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
-
 			viewFactory
 				.CreateViewModel<EditorViewModel>()
 				.Returns(viewModel);
@@ -1377,41 +1389,27 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		EditorWindow window = sut.CreateEditorWindow();
 
-		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
 
-		window
-			.ViewModel
-			.CopyHistorySettings
-			.AddItemIds(files.Select(x => x.Id), files);
+		copyHistory.Add(files[1], showAtOnce: false);
 
-		window
-			.ViewModel
-			.ShowCopyHistoryCommand
-			.Execute(null);
+		copyHistory.Add(files[0], showAtOnce: false);
 
-		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
-		// the dispatcher before the choice.
-		window
-			.ViewModel
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
+		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
+		// The stored selection comes back through the dispatcher before the choice.
 		Dispatcher.UIThread.RunJobs();
 
-		copyHistory.SelectedItem = files[1];
+		copyHistoryList.SelectedItem = files[1];
 
 		// Act
 		window.Close();
@@ -2325,12 +2323,11 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the item chosen in the copy history
-	/// of the popup, fixed or not.
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the copy history with the item chosen
+	/// in its list.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task CreateFavoritesWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Editor(
-		[Values] bool isPopupFixed)
+	public async Task CreateFavoritesWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Editor()
 	{
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
@@ -2342,13 +2339,33 @@ internal class ViewLauncherTests
 		// The favorites live as long as the test, as the window saves them when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
 
 			viewLauncher
 				.CreateEditorWindow()
 				.Returns(editorWindow);
 
+			builder.RegisterInstance(fileSystem);
+
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2369,15 +2386,6 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
-
 			viewFactory
 				.CreateViewModel<FavoritesViewModel>()
 				.Returns(viewModel);
@@ -2386,43 +2394,27 @@ internal class ViewLauncherTests
 				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
-		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
+		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
 
-		window
-			.ViewModel
-			.CopyHistorySettings
-			.AddItemIds(files.Select(x => x.Id), files);
+		copyHistory.Add(files[1], showAtOnce: false);
 
-		window.ViewModel.IsPopupFixed = isPopupFixed;
+		copyHistory.Add(files[0], showAtOnce: false);
 
-		window
-			.ViewModel
-			.ShowCopyHistoryCommand
-			.Execute(null);
+		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
-		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
-		// dispatcher before the choice.
-		window
-			.ViewModel
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
-
+		// The stored selection comes back through the dispatcher before the choice.
 		Dispatcher.UIThread.RunJobs();
 
-		copyHistory.SelectedItem = files[1];
+		copyHistoryList.SelectedItem = files[1];
 
 		// Act
 		await window

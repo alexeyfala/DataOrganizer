@@ -15,6 +15,7 @@ using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -326,6 +327,80 @@ internal class AppControllerTests
 		viewLauncher
 			.Received(1)
 			.CreateMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the copy history is read for the tree of the work session before the
+	/// main window opens.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Loads_The_Copy_History_Of_The_Tree_Before_The_Main_Window()
+	{
+		// Arrange
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
+
+		ExplorerItemDtoBase[]? loaded = null;
+
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			copyHistory
+				.When(x => x.Load(Arg.Any<IEnumerable<ExplorerItemDtoBase>>()))
+				.Do(call => loaded = [.. call.Arg<IEnumerable<ExplorerItemDtoBase>>()]);
+
+			dbConnector
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(DbConnectionStatus.Connected);
+
+			entityLoader
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
+				.Returns(hierarchy);
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(dbConnector);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		loaded
+			.Should()
+			.Equal(hierarchy);
+
+		Received.InOrder(() =>
+		{
+			copyHistory.Load(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+
+			viewLauncher.CreateMainWindow();
+		});
 	}
 
 	/// <summary>

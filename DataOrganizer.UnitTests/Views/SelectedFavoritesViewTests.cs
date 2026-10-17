@@ -13,6 +13,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -61,6 +62,10 @@ internal class SelectedFavoritesViewTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);

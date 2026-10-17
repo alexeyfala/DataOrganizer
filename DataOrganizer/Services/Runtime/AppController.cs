@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -37,6 +38,9 @@ public sealed class AppController : IAppController
 
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
+
+	/// <inheritdoc cref="ICopyHistory" />
+	private readonly ICopyHistory _copyHistory;
 
 	/// <inheritdoc cref="IDbConnector" />
 	private readonly IDbConnector _dbConnector;
@@ -82,6 +86,7 @@ public sealed class AppController : IAppController
 		IAvaloniaLogForwarder avaloniaLogForwarder,
 		IBackgroundServices backgroundServices,
 		ICommandLineOptions options,
+		ICopyHistory copyHistory,
 		IDbConnector dbConnector,
 		IEntityLoader entityLoader,
 		IExecutionSandbox sandbox,
@@ -100,6 +105,8 @@ public sealed class AppController : IAppController
 		_backgroundServices = backgroundServices;
 
 		_consoleWindowHost = consoleWindowHost;
+
+		_copyHistory = copyHistory;
 
 		_dbConnector = dbConnector;
 
@@ -218,6 +225,8 @@ public sealed class AppController : IAppController
 			_backgroundServices.Start(token);
 
 			_sessionHierarchy.Hierarchy.AddRange(hierarchy ?? []);
+
+			_copyHistory.Load(_sessionHierarchy.Hierarchy);
 
 			Window? mainWindow = _viewLauncher.CreateMainWindow();
 

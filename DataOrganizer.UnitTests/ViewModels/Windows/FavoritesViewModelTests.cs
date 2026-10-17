@@ -20,6 +20,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -27,7 +28,6 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -74,7 +74,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, IDbAccess, IDialogService, IDispatcherAccessor, IExecutingFiles, IFileTextCopier, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewLauncher)" />:
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewLauncher)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -124,7 +124,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ObservableDisposableBase.Dispose" />: clears favorites and copy-history settings collections.
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears the collections of the favorites settings.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()
@@ -156,11 +156,6 @@ internal class FavoritesViewModelTests
 			.SelectedPairs
 			.AddRange(FavoriteFactory.CreateFavoriteSelections(count));
 
-		sut
-			.CopyHistorySettings
-			.ItemIds
-			.AddRange(RandomValues.CreateGuids(count));
-
 		// Act
 		sut.Dispose();
 
@@ -176,10 +171,44 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings.SelectedPairs
 			.Should()
 			.BeEmpty();
+	}
 
-		sut.CopyHistorySettings.ItemIds
+	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: the window disposes the list of the shown copy history.
+	/// </summary>
+	[Test]
+	public void Dispose_Disposes_The_Shown_Copy_History_List()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
+
+		// The view of the popup hands its view model over once loaded.
+		sut
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistoryList);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		copyHistoryList.IsDisposed
 			.Should()
-			.BeEmpty();
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -217,7 +246,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel.Initialize" />: applies the popup size, the favorites and the copy history settings.
+	/// <see cref="FavoritesViewModel.Initialize" />: applies the popup size and the favorites settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void Initialize_Initializes_Properties()
@@ -241,14 +270,6 @@ internal class FavoritesViewModelTests
 			SelectedPairs = [.. FavoriteFactory.CreateFavoriteSelections(5)]
 		};
 
-		FileDto[] historyFiles = [.. ItemDtoFactory.CreateFileDtos(5)];
-
-		CopyHistoryViewSettings copyHistorySettings = new()
-		{
-			ItemIds = [.. historyFiles.Select(x => x.Id)],
-			SelectedItemId = Guid.NewGuid()
-		};
-
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
 			.AsImplementedInterfaces()
@@ -256,15 +277,8 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut
-			.Hierarchy
-			.AddRange(historyFiles);
-
 		// Act
-		sut.Initialize(
-			windowSettings,
-			favoritesSettings,
-			copyHistorySettings);
+		sut.Initialize(windowSettings, favoritesSettings);
 
 		// Assert
 		sut.PopupWidth
@@ -279,40 +293,6 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings
 			.Should()
 			.BeEquivalentTo(favoritesSettings, static options => options.Excluding(x => x.Categories));
-
-		sut.CopyHistorySettings
-			.Should()
-			.BeEquivalentTo(copyHistorySettings);
-	}
-
-	/// <summary>
-	/// <see cref="ViewModelBase.InsertIntoCopyHistory" />: inserts the new value at the top of copy history.
-	/// </summary>
-	[Test]
-	public void InsertIntoCopyHistory_Inserts_New_Value_To_Top()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut
-			.CopyHistorySettings
-			.ItemIds
-			.AddRange(RandomValues.CreateGuids(5));
-
-		// Act
-		sut.InsertIntoCopyHistory(file, false);
-
-		// Assert
-		sut.CopyHistorySettings.ItemIds[0]
-			.Should()
-			.Be(file.Id);
 	}
 
 	/// <summary>

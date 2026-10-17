@@ -31,6 +31,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
@@ -193,6 +194,125 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ClearRightSideSheetCommand" />: an empty copy history is not worth a question.
+	/// </summary>
+	[Test]
+	public async Task ClearRightSideSheetCommand_Asks_Nothing_For_An_Empty_Copy_History()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// Act
+		await sut
+			.ClearRightSideSheetCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await dialogService
+			.DidNotReceive()
+			.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ClearRightSideSheetCommand" />: the copy history and the list that shows it are emptied
+	/// only when the clear is confirmed.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ClearRightSideSheetCommand_Clears_The_Copy_History_Only_When_Confirmed([Values] bool isConfirmed)
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(isConfirmed);
+
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+
+		sut
+			.Hierarchy
+			.AddRange(files);
+
+		copyHistory.Add(files[1], showAtOnce: false);
+
+		copyHistory.Add(files[0], showAtOnce: false);
+
+		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		// The view of the side sheet hands its view model over once loaded.
+		sut
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistoryList);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await sut
+			.ClearRightSideSheetCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		copyHistory.ItemIds.Count
+			.Should()
+			.Be(isConfirmed ? 0 : files.Length);
+
+		copyHistoryList.Items.Count
+			.Should()
+			.Be(isConfirmed ? 0 : files.Length);
+	}
+
+	/// <summary>
 	/// <see cref="ViewModelBase.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
 	/// </summary>
 	[Test]
@@ -304,6 +424,72 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.CopyContentByContextMenuCommand" />: a file copied again moves to the top of the copy
+	/// history without a second entry.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CopyContentByContextMenuCommand_Moves_The_File_To_The_Top_Of_The_Copy_History()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			dbAccess
+				.ExistsAsync(files[1].Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			fileTextCopier
+				.CopyAsync(files[1], Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+
+		sut
+			.Hierarchy
+			.AddRange(files);
+
+		copyHistory.Add(files[1], showAtOnce: false);
+
+		copyHistory.Add(files[0], showAtOnce: false);
+
+		// Act
+		await sut
+			.CopyContentByContextMenuCommand
+			.ExecuteAsync(files[1]);
+
+		// Assert
+		copyHistory.ItemIds
+			.Should()
+			.Equal(files[1].Id, files[0].Id);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.CopyContentByContextMenuCommand" />: the copied file shows at once in the open copy
 	/// history.
 	/// </summary>
@@ -330,6 +516,20 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -361,6 +561,41 @@ internal class EditorViewModelTests
 		copyHistory.Items
 			.Should()
 			.Equal(file);
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.CopyHistoryItemIds" />: the window counts the files of the copy history.
+	/// </summary>
+	[Test]
+	public void CopyHistoryItemIds_Lists_The_Copy_History()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		mock
+			.Create<ICopyHistory>()
+			.Add(file, showAtOnce: false);
+
+		// Assert
+		sut.CopyHistoryItemIds
+			.Should()
+			.Equal(file.Id);
 	}
 
 	/// <summary>
@@ -894,6 +1129,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -901,15 +1141,11 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.CopyHistorySettings
-			.ItemIds
-			.Add(nestedFile.Id);
+		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
 
-		sut
-			.CopyHistorySettings
-			.ItemIds
-			.Add(keptFile.Id);
+		copyHistory.Add(nestedFile, showAtOnce: false);
+
+		copyHistory.Add(keptFile, showAtOnce: false);
 
 		// Act
 		bool result = await sut.DeleteAsync(folder);
@@ -919,7 +1155,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		sut.CopyHistorySettings.ItemIds
+		copyHistory.ItemIds
 			.Should()
 			.Equal(keptFile.Id);
 	}
@@ -2421,6 +2657,44 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree empties the copy history.
+	/// </summary>
+	[Test]
+	public async Task Import_Clears_The_Copy_History_On_Replacement()
+	{
+		// Arrange
+		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([], ImportMode.Replace));
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		copyHistory
+			.Received(1)
+			.Clear();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that replaces leaves only the imported objects in the tree.
 	/// </summary>
 	[Test]
@@ -2668,8 +2942,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: the navigation column, the read-only mode and the copy history come from the
-	/// supplied settings.
+	/// <see cref="EditorViewModel.Initialize" />: the navigation column and the read-only mode come from the supplied settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void Initialize_Initializes_Properties()
@@ -2688,14 +2961,6 @@ internal class EditorViewModelTests
 			Y = positiveValue
 		};
 
-		FileDto[] historyFiles = [.. ItemDtoFactory.CreateFileDtos(5)];
-
-		CopyHistoryViewSettings copyHistorySettings = new()
-		{
-			ItemIds = [.. historyFiles.Select(x => x.Id)],
-			SelectedItemId = Guid.NewGuid()
-		};
-
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
 			.AsImplementedInterfaces()
@@ -2703,14 +2968,8 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.Hierarchy
-			.AddRange(historyFiles);
-
 		// Act
-		sut.Initialize(
-			windowSettings,
-			copyHistorySettings);
+		sut.Initialize(windowSettings);
 
 		// Assert
 		sut.NavigationColumnWidth.Value
@@ -2720,10 +2979,6 @@ internal class EditorViewModelTests
 		sut.IsReadOnly
 			.Should()
 			.Be(windowSettings.IsReadOnly);
-
-		sut.CopyHistorySettings
-			.Should()
-			.BeEquivalentTo(copyHistorySettings);
 	}
 
 	/// <summary>
@@ -2787,56 +3042,6 @@ internal class EditorViewModelTests
 		sent
 			.Should()
 			.Be(new EditorReadOnlyModeChangedMessage(true));
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.IsRightSideSheetOpened" />: closing the right side sheet saves the item chosen in the copy
-	/// history it shows.
-	/// </summary>
-	[AvaloniaTest]
-	public void IsRightSideSheetOpened_Saves_The_Chosen_Copy_History_Item_When_The_Sheet_Closes()
-	{
-		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
-
-		sut
-			.Hierarchy
-			.AddRange(files);
-
-		sut
-			.CopyHistorySettings
-			.AddItemIds(files.Select(x => x.Id), files);
-
-		sut
-			.ShowCopyHistoryCommand
-			.Execute(null);
-
-		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
-		// the dispatcher before the choice.
-		sut
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
-
-		Dispatcher.UIThread.RunJobs();
-
-		copyHistory.SelectedItem = files[1];
-
-		// Act
-		sut.IsRightSideSheetOpened = false;
-
-		// Assert
-		sut.CopyHistorySettings.SelectedItemId
-			.Should()
-			.Be(files[1].Id);
 	}
 
 	/// <summary>
@@ -3631,55 +3836,62 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowExecutingFilesCommand" />: a switch of the right side sheet to the executing files
-	/// saves the item chosen in the copy history it showed.
+	/// <see cref="EditorViewModel.ShowFavorites" />: the switch to the favorites disposes the list of the shown copy
+	/// history.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowExecutingFilesCommand_Saves_The_Chosen_Copy_History_Item()
+	public void ShowFavorites_Disposes_The_Shown_Copy_History_List()
 	{
 		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+		FavoritesWindow? favoritesWindow = null;
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>();
+
+			viewLauncher
+				.CreateFavoritesWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
+		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
 
-		sut
-			.Hierarchy
-			.AddRange(files);
-
-		sut
-			.CopyHistorySettings
-			.AddItemIds(files.Select(x => x.Id), files);
-
-		sut
-			.ShowCopyHistoryCommand
-			.Execute(null);
-
-		// The view of the side sheet hands its view model over once loaded, and the stored selection comes back through
-		// the dispatcher before the choice.
+		// The view of the side sheet hands its view model over once loaded.
 		sut
 			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
-
-		Dispatcher.UIThread.RunJobs();
-
-		copyHistory.SelectedItem = files[1];
+			.Execute(copyHistoryList);
 
 		// Act
-		sut
-			.ShowExecutingFilesCommand
-			.Execute(null);
+		sut.ShowFavorites(null);
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		favoritesWindow?.Close();
 
 		// Assert
-		sut.CopyHistorySettings.SelectedItemId
+		copyHistoryList.IsDisposed
 			.Should()
-			.Be(files[1].Id);
+			.BeTrue();
 	}
 
 	/// <summary>

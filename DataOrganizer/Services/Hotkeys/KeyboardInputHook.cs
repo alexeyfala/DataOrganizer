@@ -53,6 +53,9 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
+	/// <inheritdoc cref="ICopyHistory" />
+	private readonly ICopyHistory _copyHistory;
+
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -97,6 +100,7 @@ public sealed class KeyboardInputHook :
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
+		ICopyHistory copyHistory,
 		IDispatcherAccessor dispatcher,
 		IFileTextCopier fileTextCopier,
 		IGlobalHookRunner hookRunner,
@@ -108,6 +112,8 @@ public sealed class KeyboardInputHook :
 		TimeProvider timeProvider)
 	{
 		_app = app;
+
+		_copyHistory = copyHistory;
 
 		_dispatcher = dispatcher;
 
@@ -337,6 +343,10 @@ public sealed class KeyboardInputHook :
 			}
 
 			_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+
+			await _dispatcher
+				.PostAsync(() => _copyHistory.Add(file, showAtOnce: true))
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

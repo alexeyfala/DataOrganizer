@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Interfaces;
@@ -19,7 +18,6 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -36,12 +34,12 @@ namespace DataOrganizer.ViewModels;
 /// Base view model.
 /// </summary>
 public abstract partial class ViewModelBase :
-	CopyContentViewModelBase,
+	ObservableDisposableBase,
 	IRecipient<SessionAutoLockedMessage>
 {
 	#region Properties
-	/// <inheritdoc cref="CopyHistoryViewSettings" />
-	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
+	/// <inheritdoc cref="ICopyHistory.ItemIds" />
+	public ReadOnlyObservableCollection<Guid> CopyHistoryItemIds => _copyHistory.ItemIds;
 
 	/// <inheritdoc cref="IExecutingFiles.Files" />
 	public ReadOnlyObservableCollection<FileDto> ExecutingFiles => _executingFiles.Files;
@@ -96,17 +94,10 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Handles the display of copy history.
+	/// Keeps the view model of the shown copy history.
 	/// </summary>
 	[RelayCommand]
-	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
-	{
-		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.ItemIds),
-			CopyHistorySettings.SelectedItemId);
-
-		_copyHistory = viewModel;
-	}
+	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel) => _copyHistoryViewModel = viewModel;
 
 	/// <summary>
 	/// Opens the custom clipboard history overlay.
@@ -138,14 +129,35 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Application" />
+	protected readonly Application _app;
+
 	/// <inheritdoc cref="IContentVisibility" />
 	protected readonly IContentVisibility _contentVisibility;
+
+	/// <inheritdoc cref="ICopyHistory" />
+	protected readonly ICopyHistory _copyHistory;
+
+	/// <inheritdoc cref="IDialogService" />
+	protected readonly IDialogService _dialogService;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	protected readonly IDispatcherAccessor _dispatcher;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	protected readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <inheritdoc cref="IExecutingFiles" />
 	protected readonly IExecutingFiles _executingFiles;
+
+	/// <inheritdoc cref="ILogger" />
+	protected readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMessenger" />
+	protected readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="INotificationService" />
+	protected readonly INotificationService _notification;
 
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	protected readonly ISessionEditorTabs _sessionEditorTabs;
@@ -160,7 +172,7 @@ public abstract partial class ViewModelBase :
 	protected readonly IViewLauncher _viewLauncher;
 
 	/// <inheritdoc cref="CopyHistoryViewModel" />
-	protected CopyHistoryViewModel? _copyHistory;
+	protected CopyHistoryViewModel? _copyHistoryViewModel;
 	#endregion
 
 	#region Constructors
@@ -168,32 +180,37 @@ public abstract partial class ViewModelBase :
 		Application app,
 		IAppSettingsStore settingsStore,
 		IContentVisibility contentVisibility,
-		IDbAccess dbAccess,
+		ICopyHistory copyHistory,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutingFiles executingFiles,
-		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher) : base(
-			app,
-			dbAccess,
-			dialogService,
-			fileTextCopier,
-			logger,
-			messenger,
-			notification,
-			exceptionHandler)
+		IViewLauncher viewLauncher)
 	{
+		_app = app;
+
 		_contentVisibility = contentVisibility;
+
+		_copyHistory = copyHistory;
+
+		_dialogService = dialogService;
 
 		_dispatcher = dispatcher;
 
+		_exceptionHandler = exceptionHandler;
+
 		_executingFiles = executingFiles;
+
+		_logger = logger;
+
+		_messenger = messenger;
+
+		_notification = notification;
 
 		_sessionEditorTabs = sessionEditorTabs;
 
@@ -210,32 +227,6 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public override void InsertIntoCopyHistory(FileDto file, bool updateView)
-	{
-		if (CopyHistorySettings
-			.ItemIds
-			.Contains(file.Id))
-		{
-			CopyHistorySettings
-				.ItemIds
-				.MoveToTop(CopyHistorySettings.ItemIds.IndexOf(file.Id));
-		}
-		else
-		{
-			CopyHistorySettings
-				.ItemIds
-				.Insert(0, file.Id);
-		}
-
-		if (!updateView)
-		{
-			return;
-		}
-
-		_copyHistory?.InsertOrMoveToTop(file);
-	}
-
 	/// <inheritdoc />
 	public void Receive(SessionAutoLockedMessage message)
 	{
@@ -324,21 +315,6 @@ public abstract partial class ViewModelBase :
 
 		return responses.All(x => x);
 	}
-
-	/// <summary>
-	/// Saves data in <see cref="CopyHistorySettings" />.
-	/// </summary>
-	protected void SaveCopyHistory()
-	{
-		if (_copyHistory is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Save copy history");
-
-		SaveCopyHistory(_copyHistory);
-	}
 	#endregion
 
 	#region Helpers
@@ -365,35 +341,6 @@ public abstract partial class ViewModelBase :
 		NotifyDecryptedContentsChanged();
 
 		_notification.ShowInformationSnackbar(Strings.ContentsHiddenByAutoLock);
-	}
-
-	/// <inheritdoc cref="SaveCopyHistory()" />
-	private void SaveCopyHistory(CopyHistoryViewModel viewModel)
-	{
-		if (viewModel.SelectedItem is { } selected)
-		{
-			CopyHistorySettings.SelectedItemId = selected.Id;
-		}
-		else
-		{
-			CopyHistorySettings.SelectedItemId = default;
-		}
-
-		Guid[] identifiers = [.. viewModel.GetItemIds()];
-
-		foreach (Guid item in CopyHistorySettings
-			.ItemIds
-			.ToArray())
-		{
-			if (identifiers.Contains(item))
-			{
-				continue;
-			}
-
-			CopyHistorySettings
-				.ItemIds
-				.Remove(item);
-		}
 	}
 	#endregion
 }

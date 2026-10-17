@@ -1,23 +1,27 @@
 using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Notifications;
-using Repository.Interfaces.Database;
-using Serilog;
 using System;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
-public abstract partial class FileListViewModelBase : CopyContentViewModelBase
+public abstract partial class FileListViewModelBase : ObservableDisposableBase
 {
+	#region Properties
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	public IObservable<ExplorerItemDtoBase> HighlightSignal => _highlightSignal;
+	#endregion
+
 	#region Auto-Generated Commands
-	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
+	/// <inheritdoc cref="IContentCopier.CopyAsync" />
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
 	private void CopyContent(FileDto? file)
 	{
@@ -28,9 +32,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		SelectFile(file);
 
-		_exceptionHandler.Watch(CopyContentAsync(
-			file: file,
-			updateView: false));
+		_exceptionHandler.Watch(CopyContentAsync(file));
 	}
 
 	/// <summary>
@@ -48,25 +50,33 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 	#endregion
 
+	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
+	/// <inheritdoc cref="IContentCopier" />
+	private readonly IContentCopier _contentCopier;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
+	#endregion
+
 	#region Constructors
 	protected FileListViewModelBase(
 		Application app,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IFileTextCopier fileTextCopier,
-		ILogger logger,
-		IMessenger messenger,
-		INotificationService notification,
-		ITaskExceptionHandler exceptionHandler) : base(
-			app,
-			dbAccess,
-			dialogService,
-			fileTextCopier,
-			logger,
-			messenger,
-			notification,
-			exceptionHandler)
+		IContentCopier contentCopier,
+		ITaskExceptionHandler exceptionHandler)
 	{
+		_app = app;
+
+		_contentCopier = contentCopier;
+
+		_exceptionHandler = exceptionHandler;
 	}
 	#endregion
 
@@ -82,5 +92,20 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
 	private static bool CanCopyContent(FileDto? file) => file?.IsOpened() != true;
+
+	/// <summary>
+	/// Copies the contents of a file of the list and highlights it; a shown copy history moves it at its next showing.
+	/// </summary>
+	private async Task CopyContentAsync(FileDto file)
+	{
+		if (!await _contentCopier
+			.CopyAsync(file, showAtOnce: false)
+			.ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_highlightSignal.OnNext(file);
+	}
 	#endregion
 }

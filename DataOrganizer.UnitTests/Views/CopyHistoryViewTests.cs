@@ -15,6 +15,8 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -23,6 +25,7 @@ using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Extensions;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,6 +50,10 @@ internal class CopyHistoryViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
@@ -57,17 +64,33 @@ internal class CopyHistoryViewTests
 				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(FileTextStatus.Text);
 
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
-
-		viewModel.Initialize([file], Guid.Empty);
 
 		CopyHistoryView view = new()
 		{
@@ -112,6 +135,10 @@ internal class CopyHistoryViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
@@ -124,17 +151,33 @@ internal class CopyHistoryViewTests
 				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(FileTextStatus.Text);
 
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
-
-		viewModel.Initialize([file], Guid.Empty);
 
 		CopyHistoryView view = new()
 		{
@@ -188,13 +231,33 @@ internal class CopyHistoryViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([.. files.Select(x => x.Id)]));
+
+			copyHistory
+				.SelectedItemId
+				.Returns(files[0].Id);
+
+			session
+				.Hierarchy
+				.AddRange(files);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
-
-		viewModel.Initialize(files, files[0].Id);
 
 		CopyHistoryView view = new()
 		{
@@ -238,13 +301,29 @@ internal class CopyHistoryViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
-
-		viewModel.Initialize([file], Guid.Empty);
 
 		CopyHistoryView view = new()
 		{
@@ -287,17 +366,33 @@ internal class CopyHistoryViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
 			reader
 				.ReadPreviewAsync(file)
 				.Returns("Hi");
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
-
-		viewModel.Initialize([file], Guid.Empty);
 
 		CopyHistoryView view = new()
 		{

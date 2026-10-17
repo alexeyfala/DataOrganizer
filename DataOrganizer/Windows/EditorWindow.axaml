@@ -366,7 +366,7 @@
 										Theme="{StaticResource MaterialFlatButton}"
 										ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-									<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
+									<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
 								</Panel>
 							</StackPanel>
 						</Grid>
