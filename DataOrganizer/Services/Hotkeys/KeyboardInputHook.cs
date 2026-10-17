@@ -49,8 +49,8 @@ public sealed class KeyboardInputHook :
 	/// </summary>
 	private static readonly TimeSpan StrokeTimeout = TimeSpan.FromSeconds(3);
 
-	/// <inheritdoc cref="ICopyHistory" />
-	private readonly ICopyHistory _copyHistory;
+	/// <inheritdoc cref="ICopyHistoryRecorder" />
+	private readonly ICopyHistoryRecorder _copyHistory;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -98,7 +98,7 @@ public sealed class KeyboardInputHook :
 
 	#region Constructors
 	public KeyboardInputHook(
-		ICopyHistory copyHistory,
+		ICopyHistoryRecorder copyHistory,
 		IDispatcherAccessor dispatcher,
 		IFileTextCopier fileTextCopier,
 		IGlobalHookRunner hookRunner,

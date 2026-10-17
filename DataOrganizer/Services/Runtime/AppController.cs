@@ -53,8 +53,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
-	/// <inheritdoc cref="ICopyHistory" />
-	private readonly ICopyHistory _copyHistory;
+	/// <inheritdoc cref="ICopyHistoryStore" />
+	private readonly ICopyHistoryStore _copyHistory;
 
 	/// <inheritdoc cref="IDbConnector" />
 	private readonly IDbConnector _dbConnector;
@@ -123,7 +123,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		IAvaloniaLogForwarder avaloniaLogForwarder,
 		IBackgroundServices backgroundServices,
 		ICommandLineOptions options,
-		ICopyHistory copyHistory,
+		ICopyHistoryStore copyHistory,
 		IDbConnector dbConnector,
 		IEntityLoader entityLoader,
 		IExecutionEngine executionEngine,

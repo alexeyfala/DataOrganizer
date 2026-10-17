@@ -16,8 +16,8 @@ namespace DataOrganizer.Services.Clipboard;
 public sealed class ContentCopier : IContentCopier
 {
 	#region Data
-	/// <inheritdoc cref="ICopyHistory" />
-	private readonly ICopyHistory _copyHistory;
+	/// <inheritdoc cref="ICopyHistoryRecorder" />
+	private readonly ICopyHistoryRecorder _copyHistory;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -34,7 +34,7 @@ public sealed class ContentCopier : IContentCopier
 
 	#region Constructors
 	public ContentCopier(
-		ICopyHistory copyHistory,
+		ICopyHistoryRecorder copyHistory,
 		IDbAccess dbAccess,
 		IFileTextCopier fileTextCopier,
 		ILogger logger,

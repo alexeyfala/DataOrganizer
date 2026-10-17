@@ -44,8 +44,8 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
-	/// <inheritdoc cref="ICopyHistory" />
-	private readonly ICopyHistory _copyHistory;
+	/// <inheritdoc cref="ICopyHistoryStore" />
+	private readonly ICopyHistoryStore _copyHistory;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -74,7 +74,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		Application app,
 		IAppEnvironment appEnvironment,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
-		ICopyHistory copyHistory,
+		ICopyHistoryStore copyHistory,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,

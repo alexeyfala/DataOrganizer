@@ -256,7 +256,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -304,7 +305,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -324,7 +326,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+		CopyHistory copyHistory = mock.Create<CopyHistory>();
 
 		sut
 			.Hierarchy
@@ -537,7 +539,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -548,7 +551,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+		CopyHistory copyHistory = mock.Create<CopyHistory>();
 
 		sut
 			.Hierarchy
@@ -603,7 +606,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -659,7 +663,8 @@ internal class EditorViewModelTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -672,7 +677,7 @@ internal class EditorViewModelTests
 
 		// Act
 		mock
-			.Create<ICopyHistory>()
+			.Create<CopyHistory>()
 			.Add(file, showAtOnce: false);
 
 		// Assert
@@ -1285,7 +1290,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -1296,7 +1302,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+		CopyHistory copyHistory = mock.Create<CopyHistory>();
 
 		copyHistory.Add(nestedFile, showAtOnce: false);
 
@@ -1327,7 +1333,8 @@ internal class EditorViewModelTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -3086,7 +3093,7 @@ internal class EditorViewModelTests
 	public async Task Import_Clears_The_Copy_History_On_Replacement()
 	{
 		// Arrange
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -3546,7 +3553,8 @@ internal class EditorViewModelTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -4533,7 +4541,8 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder

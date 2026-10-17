@@ -459,7 +459,7 @@ internal class AppControllerTests
 
 		ExplorerItemDtoBase[]? loaded = null;
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryStore copyHistory = Substitute.For<ICopyHistoryStore>();
 
 		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 

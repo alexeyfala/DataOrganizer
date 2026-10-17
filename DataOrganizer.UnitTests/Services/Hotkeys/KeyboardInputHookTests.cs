@@ -843,7 +843,7 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(hotkey.ToHotkeyDtos());
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1025,7 +1025,7 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(hotkey.ToHotkeyDtos());
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

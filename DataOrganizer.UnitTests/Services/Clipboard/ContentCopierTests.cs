@@ -35,7 +35,7 @@ internal class ContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
 
@@ -472,7 +472,7 @@ internal class ContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -520,7 +520,7 @@ internal class ContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

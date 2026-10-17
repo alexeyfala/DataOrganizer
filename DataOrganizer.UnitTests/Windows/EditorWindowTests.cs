@@ -431,7 +431,8 @@ internal class EditorWindowTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder

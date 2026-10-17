@@ -12,8 +12,10 @@ using System.Collections.ObjectModel;
 
 namespace DataOrganizer.Services.Clipboard;
 
-/// <inheritdoc cref="ICopyHistory" />
-public sealed class CopyHistory : ICopyHistory
+/// <summary>
+/// The files whose contents were copied, the latest first, with the one chosen in their list; kept in a file of its own.
+/// </summary>
+public sealed class CopyHistory : ICopyHistory, ICopyHistoryRecorder, ICopyHistoryStore
 {
 	#region Properties
 	/// <inheritdoc />

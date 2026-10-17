@@ -8,7 +8,6 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
@@ -178,7 +177,8 @@ internal class FavoritesWindowTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder

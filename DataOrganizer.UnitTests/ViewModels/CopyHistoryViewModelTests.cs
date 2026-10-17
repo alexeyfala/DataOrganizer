@@ -123,11 +123,12 @@ internal class CopyHistoryViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 		});
 
-		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+		CopyHistory copyHistory = mock.Create<CopyHistory>();
 
 		// The history lists the first file above the second.
 		copyHistory.Add(files[1], showAtOnce: false);
@@ -195,11 +196,12 @@ internal class CopyHistoryViewModelTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 		});
 
-		ICopyHistory copyHistory = mock.Create<ICopyHistory>();
+		CopyHistory copyHistory = mock.Create<CopyHistory>();
 
 		// The history lists the first file above the second.
 		copyHistory.Add(files[1], showAtOnce: false);

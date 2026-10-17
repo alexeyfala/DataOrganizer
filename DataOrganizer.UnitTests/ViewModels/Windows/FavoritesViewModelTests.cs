@@ -189,7 +189,8 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -731,7 +732,8 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder

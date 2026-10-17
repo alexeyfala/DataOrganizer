@@ -1442,7 +1442,8 @@ internal class ViewLauncherTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -1476,7 +1477,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
+			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -1485,7 +1486,7 @@ internal class ViewLauncherTests
 
 		EditorWindow window = sut.CreateEditorWindow();
 
-		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
+		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
 
 		copyHistory.Add(files[1], showAtOnce: false);
 
@@ -1540,7 +1541,8 @@ internal class ViewLauncherTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -1574,7 +1576,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
+			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -1583,7 +1585,7 @@ internal class ViewLauncherTests
 
 		EditorWindow window = sut.CreateEditorWindow();
 
-		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
+		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
 
 		copyHistory.Add(files[1], showAtOnce: false);
 
@@ -2959,7 +2961,8 @@ internal class ViewLauncherTests
 
 			builder
 				.RegisterType<CopyHistory>()
-				.As<ICopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
 				.SingleInstance();
 
 			builder
@@ -2993,7 +2996,7 @@ internal class ViewLauncherTests
 				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(windowMock.Create<ICopyHistory>());
+			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -3002,7 +3005,7 @@ internal class ViewLauncherTests
 
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
-		ICopyHistory copyHistory = windowMock.Create<ICopyHistory>();
+		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
 
 		copyHistory.Add(files[1], showAtOnce: false);
 

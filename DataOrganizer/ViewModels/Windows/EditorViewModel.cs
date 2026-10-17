@@ -480,7 +480,7 @@ public sealed partial class EditorViewModel :
 		{
 			Hierarchy.Clear();
 
-			_copyHistory.Clear();
+			_copyHistoryRecorder.Clear();
 
 			IsRightSideSheetOpened = false;
 
@@ -630,7 +630,7 @@ public sealed partial class EditorViewModel :
 				return;
 			}
 
-			_copyHistory.Clear();
+			_copyHistoryRecorder.Clear();
 		}
 		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
@@ -974,6 +974,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IContentCopier" />
 	private readonly IContentCopier _contentCopier;
 
+	/// <inheritdoc cref="ICopyHistoryRecorder" />
+	private readonly ICopyHistoryRecorder _copyHistoryRecorder;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1048,6 +1051,7 @@ public sealed partial class EditorViewModel :
 		IContentCopier contentCopier,
 		IContentVisibility contentVisibility,
 		ICopyHistory copyHistory,
+		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
@@ -1101,6 +1105,8 @@ public sealed partial class EditorViewModel :
 		_clipboardWriter = clipboardWriter;
 
 		_contentCopier = contentCopier;
+
+		_copyHistoryRecorder = copyHistoryRecorder;
 
 		_dataExchange = dataExchange;
 
@@ -1259,7 +1265,7 @@ public sealed partial class EditorViewModel :
 		{
 			CloseFile(deletedFile);
 
-			_copyHistory.Remove(deletedFile);
+			_copyHistoryRecorder.Remove(deletedFile);
 		}
 
 		if (dto is FolderDto deletedFolder)

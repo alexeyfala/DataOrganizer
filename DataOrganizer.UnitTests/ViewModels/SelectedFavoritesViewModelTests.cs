@@ -35,7 +35,7 @@ internal class SelectedFavoritesViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
