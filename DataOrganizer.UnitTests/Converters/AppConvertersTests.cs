@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Headless.NUnit;
 using Avalonia.Media;
@@ -411,6 +412,39 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.SizeChangedToWidth" />: a changed size gives its new width.
+	/// </summary>
+	[Test]
+	public void SizeChangedToWidth_Gives_The_New_Width()
+	{
+		// Arrange
+		SizeChangedEventArgs args = new(null, null, new Size(500.0, 300.0), new Size(250.0, 400.0));
+
+		// Act
+		object? result = Convert(AppConverters.SizeChangedToWidth, args);
+
+		// Assert
+		result
+			.Should()
+			.Be(250.0);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SizeChangedToWidth" />: no change gives no width.
+	/// </summary>
+	[Test]
+	public void SizeChangedToWidth_Without_A_Change_Is_Not_A_Number()
+	{
+		// Act
+		object? result = Convert(AppConverters.SizeChangedToWidth, null);
+
+		// Assert
+		result
+			.Should()
+			.Be(double.NaN);
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.SyntaxLanguageToName" />: a language takes the name its grammar gives it.
 	/// </summary>
 	[Test]
@@ -567,8 +601,21 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// Runs a converter over a change of the size of a control.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<SizeChangedEventArgs?, double> converter, SizeChangedEventArgs? args)
+	{
+		return converter.Convert(
+			args,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
 	/// Runs a converter over a language of the syntax highlighting.
 	/// </summary>
+
 	private static object? Convert(FuncValueConverter<string?, string> converter, string? language)
 	{
 		return converter.Convert(

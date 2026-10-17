@@ -12,11 +12,13 @@
 	mc:Ignorable="d">
 
 	<Interaction.Behaviors>
-		<EventTriggerBehavior EventName="KeyUp">
-			<InvokeCommandAction
-				Command="{Binding KeyUpCommand}"
-				PassEventArgsToCommand="True" />
-		</EventTriggerBehavior>
+		<KeyGestureTrigger
+			EventRoutingStrategy="Bubble"
+			FiredOn="KeyUp"
+			Gesture="Enter">
+			<InvokeCommandAction Command="{Binding SaveAndCloseCommand}" />
+		</KeyGestureTrigger>
+
 	</Interaction.Behaviors>
 
 	<StackPanel

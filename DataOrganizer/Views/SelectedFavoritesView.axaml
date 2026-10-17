@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Views.SelectedFavoritesView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
@@ -12,13 +13,16 @@
 
 	<Interaction.Behaviors>
 		<EventTriggerBehavior EventName="SizeChanged">
-			<InvokeCommandAction Command="{Binding SizeChangedCommand}" PassEventArgsToCommand="True" />
+			<InvokeCommandAction
+				Command="{Binding SizeChangedCommand}"
+				InputConverter="{x:Static converters:AppConverters.SizeChangedToWidth}"
+				PassEventArgsToCommand="True" />
 		</EventTriggerBehavior>
 	</Interaction.Behaviors>
 
 	<Grid RowDefinitions="Auto,*">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay}" />
+			<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay, Converter={x:Static converters:AppConverters.PixelsToGridLength}}" />
 			<ColumnDefinition Width="Auto" />
 			<ColumnDefinition Width="*" />
 		</Grid.ColumnDefinitions>

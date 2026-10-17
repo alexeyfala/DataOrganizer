@@ -12,7 +12,9 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
@@ -266,6 +268,9 @@ internal class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
 		viewModel.Hierarchy.Add(file);
 
 		EditorWindow sut = new(viewModel);
@@ -379,6 +384,79 @@ internal class EditorWindowTests
 		viewModel.EditingFiles.Items
 			.Should()
 			.Equal(files);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width a dragged splitter gives the navigation column comes
+	/// back to the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public void NavigationColumnWidth_Follows_The_Navigation_Column()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Initialize(CreateWindowSettings(navigationColumnWidth: 150.0));
+
+		EditorWindow sut = new(viewModel)
+		{
+			Width = 1000.0
+		};
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		FindNavigationColumn(sut).Width = new GridLength(222.0);
+
+		sut.Close();
+
+		// Assert
+		viewModel.NavigationColumnWidth
+			.Should()
+			.Be(222.0);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width of the view model reaches the navigation column.
+	/// </summary>
+	[AvaloniaTest]
+	public void NavigationColumnWidth_Reaches_The_Navigation_Column()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Initialize(CreateWindowSettings(navigationColumnWidth: 150.0));
+
+		EditorWindow sut = new(viewModel)
+		{
+			Width = 1000.0
+		};
+
+		// Act
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		GridLength width = FindNavigationColumn(sut).Width;
+
+		sut.Close();
+
+		// Assert
+		width
+			.Should()
+			.Be(new GridLength(150.0));
 	}
 
 	/// <summary>
@@ -549,6 +627,9 @@ internal class EditorWindowTests
 			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
 
 		viewModel
 			.Hierarchy
@@ -725,6 +806,23 @@ internal class EditorWindowTests
 
 	#region Helpers
 	/// <summary>
+	/// Returns the settings of an editor window with a navigation column of a width.
+	/// </summary>
+	private static EditorWindowSettings CreateWindowSettings(double navigationColumnWidth)
+	{
+		return new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = navigationColumnWidth,
+			Size = new(1000, 600),
+			WindowState = WindowShowState.Normal,
+			X = 0,
+			Y = 0
+		};
+	}
+
+	/// <summary>
 	/// Returns the point in the middle of the control.
 	/// </summary>
 	private static Point Center(Visual root, Visual target)
@@ -758,8 +856,22 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// Returns the column of the tree in a window.
+	/// </summary>
+	private static ColumnDefinition FindNavigationColumn(EditorWindow window)
+	{
+		return ((Grid)window
+			.GetVisualDescendants()
+			.OfType<TreeView>()
+			.First()
+			.Parent!)
+			.ColumnDefinitions[0];
+	}
+
+	/// <summary>
 	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
 	/// </summary>
+
 	private static async Task RunJobsUntilAsync(Func<bool> condition)
 	{
 		Func<bool> isMet = () =>

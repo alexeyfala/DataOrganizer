@@ -125,9 +125,104 @@ internal class SelectedFavoritesViewTests
 			.Should()
 			.NotBeSameAs(background);
 	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.NavigationColumnWidth" />: the width a dragged splitter gives the navigation
+	/// column comes back to the view model.
+	/// </summary>
+	[AvaloniaTest]
+	public void NavigationColumnWidth_Follows_The_Navigation_Column()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		// Act
+		FindNavigationColumn(window).Width = new GridLength(222.0);
+
+		window.Close();
+
+		// Assert
+		viewModel.NavigationColumnWidth
+			.Should()
+			.Be(222.0);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.NavigationColumnWidth" />: the width of the view model reaches the navigation
+	/// column.
+	/// </summary>
+	[AvaloniaTest]
+	public void NavigationColumnWidth_Reaches_The_Navigation_Column()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		GridLength width = FindNavigationColumn(window).Width;
+
+		window.Close();
+
+		// Assert
+		width
+			.Should()
+			.Be(new GridLength(150.0));
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.NavigationColumnWidth" />: a view that narrows below the navigation column
+	/// narrows the column, leaving a margin beside it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Resize_Narrows_The_Navigation_Column()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		Window window = Show(viewModel, navigationColumnWidth: 300.0);
+
+		// Act
+		window.Width = 200.0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		GridLength width = FindNavigationColumn(window).Width;
+
+		window.Close();
+
+		// Assert
+		width
+			.Should()
+			.Be(new GridLength(180.0));
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the navigation column of the favorites view a window shows.
+
+	/// </summary>
+	private static ColumnDefinition FindNavigationColumn(Window window)
+	{
+		return window
+			.GetVisualDescendants()
+			.OfType<SelectedFavoritesView>()
+			.Single()
+			.GetVisualDescendants()
+			.OfType<Grid>()
+			.First()
+			.ColumnDefinitions[0];
+	}
+
 	/// <summary>
 	/// Returns the item of the favorites list that shows a file; <c>null</c> while the list shows none.
 	/// </summary>
@@ -153,5 +248,35 @@ internal class SelectedFavoritesViewTests
 
 		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
+
+	/// <summary>
+	/// Shows the favorites view without categories, with a navigation column of a width, in a window 600 wide.
+	/// </summary>
+	private static Window Show(SelectedFavoritesViewModel viewModel, double navigationColumnWidth)
+	{
+		viewModel.Initialize(
+			navigationColumnWidth: navigationColumnWidth,
+			selectedCategoryId: Guid.Empty,
+			categories: [],
+			orderedCategoryIds: [],
+			selectedPairs: []);
+
+		Window window = new()
+		{
+			Content = new SelectedFavoritesView
+			{
+				DataContext = viewModel
+			},
+			Height = 300.0,
+			Width = 600.0
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		return window;
+	}
 	#endregion
+
 }

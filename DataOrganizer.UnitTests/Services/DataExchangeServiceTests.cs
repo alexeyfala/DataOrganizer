@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Dialogs;
@@ -80,7 +80,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
 				.Returns(filePath);
 
 			builder.RegisterInstance(dbAccess);
@@ -129,7 +129,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
 				.Returns(filePath);
 
 			builder.RegisterInstance(picker);
@@ -193,7 +193,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
 				.Returns(filePath);
 
 			builder.RegisterInstance(dbAccess);
@@ -232,7 +232,7 @@ internal class DataExchangeServiceTests
 	public async Task ExportDataAsync_Offers_The_File_Types_Of_The_Formats()
 	{
 		// Arrange
-		FilePickerSaveOptions? options = null;
+		FileSaveParameters? parameters = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -240,7 +240,7 @@ internal class DataExchangeServiceTests
 
 			// The picker is closed, so the export stops at the choice.
 			picker
-				.SaveFileAsync(Arg.Do<FilePickerSaveOptions>(x => options = x))
+				.SaveFileAsync(Arg.Do<FileSaveParameters>(x => parameters = x))
 				.Returns((string?)null);
 
 			builder.RegisterInstance(picker);
@@ -265,14 +265,14 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		options!.FileTypeChoices!.Select(static x => (x.Name, string.Join(", ", x.Patterns!), string.Join(", ", x.MimeTypes!)))
+		parameters!.FileTypes.Select(static x => (x.Name, string.Join(", ", x.Patterns), string.Join(", ", x.MimeTypes!)))
 			.Should()
 			.Equal(
 				("JSON File", "*.json", "application/json"),
 				("XML File", "*.xml", "application/xml"),
 				("SQLite Database File", "*.sqlite", "application/x-sqlite3"));
 
-		options.DefaultExtension
+		parameters.DefaultExtension
 			.Should()
 			.Be("json");
 	}
@@ -293,7 +293,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SaveFileAsync(Arg.Any<FilePickerSaveOptions>())
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
 				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Txt));
 
 			builder.RegisterInstance(dbBackupService);
@@ -351,7 +351,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -453,7 +453,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([filePath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -555,7 +555,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -630,7 +630,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			dbBackupService
@@ -691,7 +691,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbBackupService
@@ -736,7 +736,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			dbBackupService
@@ -811,7 +811,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -895,7 +895,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -986,7 +986,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1063,7 +1063,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1124,7 +1124,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1173,7 +1173,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1262,7 +1262,7 @@ internal class DataExchangeServiceTests
 
 		await picker
 			.DidNotReceive()
-			.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>());
+			.SelectFilesAsync(Arg.Any<FileOpenParameters>());
 	}
 
 	/// <summary>
@@ -1280,7 +1280,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1339,7 +1339,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1402,13 +1402,13 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Offers_The_File_Types_Of_The_Formats()
 	{
 		// Arrange
-		FilePickerOpenOptions? options = null;
+		FileOpenParameters? parameters = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
-			picker.SelectFilesAsync(Arg.Do<FilePickerOpenOptions>(x => options = x));
+			picker.SelectFilesAsync(Arg.Do<FileOpenParameters>(x => parameters = x));
 
 			builder.RegisterInstance(picker);
 
@@ -1432,7 +1432,7 @@ internal class DataExchangeServiceTests
 		await sut.ImportDataAsync([]);
 
 		// Assert
-		options!.FileTypeFilter!.Select(static x => (x.Name, string.Join(", ", x.Patterns!), string.Join(", ", x.MimeTypes!)))
+		parameters!.FileTypes.Select(static x => (x.Name, string.Join(", ", x.Patterns), string.Join(", ", x.MimeTypes!)))
 			.Should()
 			.Equal(
 				("All Supported Files", "*.json, *.xml, *.sqlite", "application/json, application/xml, application/x-sqlite3"),
@@ -1462,7 +1462,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([filePath]);
 
 			dbBackupService
@@ -1550,7 +1550,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1632,7 +1632,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1723,7 +1723,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
@@ -1797,7 +1797,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Txt)]);
 
 			dbBackupService
@@ -1855,7 +1855,7 @@ internal class DataExchangeServiceTests
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
-				.SelectFilesAsync(Arg.Any<FilePickerOpenOptions>())
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
 				.Returns([filePath]);
 
 			dbBackupService

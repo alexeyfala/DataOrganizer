@@ -128,7 +128,7 @@ public sealed partial class EditorViewModel :
 	/// Width of the navigation column.
 	/// </summary>
 	[ObservableProperty]
-	public partial GridLength NavigationColumnWidth { get; set; }
+	public partial double NavigationColumnWidth { get; set; }
 
 	/// <inheritdoc cref="RightSideSheetContentKind" />
 	[ObservableProperty]
@@ -218,12 +218,12 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	partial void OnViewWidthChanged(double value)
 	{
-		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth.Value, value) is not { } width)
+		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth, value) is not { } width)
 		{
 			return;
 		}
 
-		NavigationColumnWidth = new GridLength(width);
+		NavigationColumnWidth = width;
 	}
 	#endregion
 
@@ -1168,7 +1168,7 @@ public sealed partial class EditorViewModel :
 		// A width that was never stored keeps the default one.
 		if (windowSettings.NavigationColumnWidth > default(double))
 		{
-			NavigationColumnWidth = new GridLength(windowSettings.NavigationColumnWidth);
+			NavigationColumnWidth = windowSettings.NavigationColumnWidth;
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
@@ -1309,7 +1309,7 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	internal void SetDefaultNavigationColumnWidth(double windowWidth)
 	{
-		NavigationColumnWidth = new GridLength(windowWidth / 3.0);
+		NavigationColumnWidth = windowWidth / 3.0;
 	}
 
 	/// <summary>

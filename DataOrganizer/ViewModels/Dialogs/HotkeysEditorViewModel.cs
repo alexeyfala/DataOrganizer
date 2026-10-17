@@ -1,4 +1,3 @@
-using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -59,21 +58,6 @@ public sealed partial class HotkeysEditorViewModel :
 	[RelayCommand]
 	internal void Clear() => Buffer.Clear();
 
-	/// <summary>
-	/// <see cref="InputElement.KeyUp" /> event handler of the dialog view.
-	/// </summary>
-	[RelayCommand]
-	internal void KeyUp(KeyEventArgs? e)
-	{
-		if (e is null
-			|| e.KeyModifiers != KeyModifiers.None
-			|| e.Key != Key.Enter)
-		{
-			return;
-		}
-
-		SaveAndClose();
-	}
 
 	/// <summary>
 	/// Saves hotkeys and closes the view.

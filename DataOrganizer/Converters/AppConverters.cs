@@ -1,5 +1,7 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data.Converters;
+
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DataOrganizer.Dto.Documents;
@@ -164,6 +166,9 @@ internal static class AppConverters
 	public static FuncValueConverter<PasswordStrength, double> PasswordStrengthToValue { get; } =
 		new(strength => (double)strength);
 
+	/// <inheritdoc cref="PixelsToGridLengthConverter" />
+	public static PixelsToGridLengthConverter PixelsToGridLength { get; } = new();
+
 	/// <summary>
 	/// Image of a PNG; <c>null</c> without one.
 	/// </summary>
@@ -184,6 +189,12 @@ internal static class AppConverters
 	/// Caption of the selection of a document, or of the caret position while nothing is selected.
 	/// </summary>
 	public static FuncValueConverter<DocumentStatus, string> SelectionOrPosition { get; } = new(GetSelectionOrPosition);
+
+	/// <summary>
+	/// New width of a control whose size changed; not a number without the change.
+	/// </summary>
+	public static FuncValueConverter<SizeChangedEventArgs?, double> SizeChangedToWidth { get; } =
+		new(static x => x?.NewSize.Width ?? double.NaN);
 
 	/// <summary>
 	/// Name of a language of the syntax highlighting; the one of plain text for <c>null</c> and for a language without a grammar.

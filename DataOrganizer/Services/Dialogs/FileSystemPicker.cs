@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Platform.Storage;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Dialogs;
 using Shared.Extensions;
@@ -22,10 +23,10 @@ public sealed class FileSystemPicker : IFileSystemPicker
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<string?> SaveFileAsync(FilePickerSaveOptions options)
+	public async Task<string?> SaveFileAsync(FileSaveParameters parameters)
 	{
 		if (FindStorageProvider() is not { } provider || await provider
-			.SaveFilePickerAsync(options)
+			.SaveFilePickerAsync(FilePickerOptionsMapper.ToSaveOptions(parameters))
 			.ConfigureAwait(false) is not { } file)
 		{
 			return null;
@@ -44,7 +45,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	}
 
 	/// <inheritdoc />
-	public async Task<string[]> SelectFilesAsync(FilePickerOpenOptions options)
+	public async Task<string[]> SelectFilesAsync(FileOpenParameters parameters)
 	{
 		if (FindStorageProvider() is not { } provider)
 		{
@@ -52,7 +53,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 		}
 
 		IReadOnlyList<IStorageFile> files = await provider
-			.OpenFilePickerAsync(options)
+			.OpenFilePickerAsync(FilePickerOptionsMapper.ToOpenOptions(parameters))
 			.ConfigureAwait(false);
 
 		try

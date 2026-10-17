@@ -1,6 +1,6 @@
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -114,17 +114,17 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc />
 	public async Task ExportDataAsync(CancellationToken token = default)
 	{
-		FilePickerSaveOptions options = new()
+		FileSaveParameters parameters = new()
 		{
 			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
-			FileTypeChoices = [.. _formats.Select(CreateFileType)],
+			FileTypes = [.. _formats.Select(CreateFileType)],
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppInfo.AppName,
 			Title = Strings.SaveAs
 		};
 
 		if (await _picker
-			.SaveFileAsync(options)
+			.SaveFileAsync(parameters)
 			.ConfigureAwait(false) is not { } filePath)
 		{
 			return;
@@ -167,15 +167,15 @@ public sealed class DataExchangeService : IDataExchangeService
 			}
 		}
 
-		FilePickerOpenOptions options = new()
+		FileOpenParameters parameters = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = [CreateAllFormatsFileType(), .. _formats.Select(CreateFileType)],
+			FileTypes = [CreateAllFormatsFileType(), .. _formats.Select(CreateFileType)],
 			Title = Strings.Select
 		};
 
 		string[] filePaths = await _picker
-			.SelectFilesAsync(options)
+			.SelectFilesAsync(parameters)
 			.ConfigureAwait(false);
 
 		if (filePaths.IsEmpty())
@@ -249,11 +249,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Describes the files of <paramref name="format" /> for the file picker.
 	/// </summary>
-	private static FilePickerFileType CreateFileType(IExchangeFormat format)
+	private static FileTypeFilter CreateFileType(IExchangeFormat format)
 	{
-		return new(format.FileTypeName)
+		return new()
 		{
 			MimeTypes = [format.MimeType],
+			Name = format.FileTypeName,
 			Patterns = [$"*{format.Extension}"]
 		};
 	}
@@ -389,11 +390,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Describes the files of every format at once for the file picker.
 	/// </summary>
-	private FilePickerFileType CreateAllFormatsFileType()
+	private FileTypeFilter CreateAllFormatsFileType()
 	{
-		return new("All Supported Files")
+		return new()
 		{
 			MimeTypes = [.. _formats.Select(static x => x.MimeType)],
+			Name = "All Supported Files",
 			Patterns = [.. _formats.Select(static x => $"*{x.Extension}")]
 		};
 	}

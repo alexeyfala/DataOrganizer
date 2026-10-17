@@ -381,7 +381,7 @@
 
 						<Grid RowDefinitions="*,Auto">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay}" />
+								<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay, Converter={x:Static converters:AppConverters.PixelsToGridLength}}" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition />
 								<ColumnDefinition Width="Auto" />

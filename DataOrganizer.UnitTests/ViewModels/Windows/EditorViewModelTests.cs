@@ -3469,7 +3469,7 @@ internal class EditorViewModelTests
 		sut.Initialize(windowSettings);
 
 		// Assert
-		sut.NavigationColumnWidth.Value
+		sut.NavigationColumnWidth
 			.Should()
 			.Be(windowSettings.NavigationColumnWidth);
 
@@ -3606,13 +3606,13 @@ internal class EditorViewModelTests
 
 		sut.ViewWidth = initialViewWidth;
 
-		sut.NavigationColumnWidth = new GridLength(initialViewWidth / 2);
+		sut.NavigationColumnWidth = initialViewWidth / 2;
 
 		// Act
 		sut.ViewWidth = initialViewWidth / 4;
 
 		// Assert
-		sut.NavigationColumnWidth.Value
+		sut.NavigationColumnWidth
 			.Should()
 			.BeLessThan(sut.ViewWidth);
 	}

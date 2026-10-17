@@ -837,7 +837,7 @@ internal class ViewLauncherTests
 			.Should()
 			.Be(WindowStartupLocation.CenterScreen);
 
-		window.ViewModel.NavigationColumnWidth.Value
+		window.ViewModel.NavigationColumnWidth
 			.Should()
 			.Be(window.Width / 3.0);
 	}
@@ -911,7 +911,7 @@ internal class ViewLauncherTests
 			.Should()
 			.Be(WindowPlacementHelper.DefaultWindowSize.Height);
 
-		window.ViewModel.NavigationColumnWidth.Value
+		window.ViewModel.NavigationColumnWidth
 			.Should()
 			.Be(WindowPlacementHelper.DefaultWindowSize.Width / 3.0);
 	}
@@ -1718,7 +1718,64 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the width of its navigation column.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_The_Navigation_Column_Width_When_The_Window_Closes()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.ViewModel.NavigationColumnWidth = 222.0;
+
+		// Act
+		window.Close();
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<EditorWindowSettings>(x => x.NavigationColumnWidth == 222.0),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the read-only mode for the next editor.
+
 	/// </summary>
 	[AvaloniaTest]
 	public void CreateEditorWindow_Saves_The_Read_Only_Mode_When_The_Window_Closes()

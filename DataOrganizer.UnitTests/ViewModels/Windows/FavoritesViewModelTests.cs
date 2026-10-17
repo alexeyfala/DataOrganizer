@@ -463,7 +463,43 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.IsPopupOpen" />: closing the popup saves the width of the navigation column of the
+	/// favorites it shows.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsPopupOpen_Saves_The_Navigation_Column_Width_When_The_Popup_Closes()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowFavorites();
+
+		sut.SelectedFavorites!.NavigationColumnWidth = 222.0;
+
+		// Act
+		sut.IsPopupOpen = false;
+
+		// Assert
+		sut.FavoritesSettings.NavigationColumnWidth
+			.Should()
+			.Be(222.0);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
+
 	/// </summary>
 	[Test]
 	public void IsShowOnHoverEnabled_Is_Initialized_From_The_Settings()

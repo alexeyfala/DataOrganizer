@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto;
@@ -62,7 +61,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	/// Width of the navigation column.
 	/// </summary>
 	[ObservableProperty]
-	public partial GridLength NavigationColumnWidth { get; set; }
+	public partial double NavigationColumnWidth { get; set; }
 
 	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategoryIds" />
 	public List<Guid> OrderedCategoryIds { get; } = [];
@@ -148,17 +147,17 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	}
 
 	/// <summary>
-	/// <see cref="Control.SizeChanged" /> event handler of <see cref="UserControl" />.
+	/// Keeps <see cref="NavigationColumnWidth" /> narrower than the view, whose new width is <paramref name="viewWidth" />.
 	/// </summary>
 	[RelayCommand]
-	private void SizeChanged(SizeChangedEventArgs? e)
+	private void SizeChanged(double viewWidth)
 	{
-		if (e is null || NavigationColumnHelper.FitWidth(NavigationColumnWidth.Value, e.NewSize.Width) is not { } width)
+		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth, viewWidth) is not { } width)
 		{
 			return;
 		}
 
-		NavigationColumnWidth = new GridLength(width);
+		NavigationColumnWidth = width;
 	}
 
 	/// <summary>
@@ -274,7 +273,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 		IReadOnlyCollection<Guid> orderedCategoryIds,
 		IReadOnlyCollection<FavoriteSelection> selectedPairs)
 	{
-		NavigationColumnWidth = new(navigationColumnWidth);
+		NavigationColumnWidth = navigationColumnWidth;
 
 		Guid[] identifiers = [.. categories.Select(x => x.Id)];
 

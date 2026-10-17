@@ -1,14 +1,9 @@
-using Avalonia;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Bogus;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Clipboard;
 using System;
-using System.Buffers.Binary;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace DataOrganizer.Helpers.Clipboard;
 
@@ -20,19 +15,9 @@ internal static class SampleClipboardContents
 {
 	#region Data
 	/// <summary>
-	/// Number of bytes of a pixel of the images.
-	/// </summary>
-	private const int BytesPerPixel = 4;
-
-	/// <summary>
 	/// Color of the disc on the transparent image.
 	/// </summary>
 	private const uint DiscColor = 0xFF2E7D32;
-
-	/// <summary>
-	/// Resolution of the images, in dots per inch.
-	/// </summary>
-	private const double Dpi = 96.0;
 
 	/// <summary>
 	/// Level of the color channel that the gradients keep the same.
@@ -112,20 +97,19 @@ internal static class SampleClipboardContents
 	}
 
 	/// <summary>
-	/// Returns images in PNG of several shapes, one of them with transparent pixels.
+	/// Returns images of several shapes, one of them with transparent pixels: the size of each and the ARGB color of a pixel
+	/// by its column and row and the size.
 	/// </summary>
-	public static byte[][] CreateImages()
+	public static (int Width, int Height, Func<int, int, int, int, uint> Paint)[] CreateImageShapes()
 	{
 		// One row is one image.
-		(int Width, int Height, Func<int, int, int, int, uint> Paint)[] images =
+		return
 		[
 			(64, 64, PaintDisc),
 			(1600, 400, PaintBars),
 			(400, 1200, PaintVerticalGradient),
 			(1920, 1080, PaintDiagonalGradient)
 		];
-
-		return [.. images.Select(static x => CreatePng(x.Width, x.Height, x.Paint))];
 	}
 
 	/// <summary>
@@ -185,47 +169,6 @@ internal static class SampleClipboardContents
 	/// Returns a link to a page of the domain for examples.
 	/// </summary>
 	private static string CreateLink(Faker faker, string protocol) => faker.Internet.UrlWithPath(protocol, LinkDomain);
-
-	/// <summary>
-	/// Draws an image pixel by pixel and returns it in PNG.
-	/// </summary>
-	private static byte[] CreatePng(
-		int width,
-		int height,
-		Func<int, int, int, int, uint> paint)
-	{
-		using WriteableBitmap bitmap = new(
-			new PixelSize(width, height),
-			new Vector(Dpi, Dpi),
-			PixelFormat.Bgra8888,
-			AlphaFormat.Unpremul);
-
-		using (ILockedFramebuffer framebuffer = bitmap.Lock())
-		{
-			byte[] row = new byte[width * BytesPerPixel];
-
-			for (int y = 0; y < height; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					// The little-endian form of an ARGB color is blue, green, red and alpha, the order of the format.
-					BinaryPrimitives.WriteUInt32LittleEndian(row.AsSpan(x * BytesPerPixel), paint(x, y, width, height));
-				}
-
-				Marshal.Copy(
-					row,
-					0,
-					framebuffer.Address + (y * framebuffer.RowBytes),
-					row.Length);
-			}
-		}
-
-		using MemoryStream stream = new();
-
-		bitmap.Save(stream, PngBitmapEncoderOptions.Default);
-
-		return stream.ToArray();
-	}
 
 	/// <summary>
 	/// Returns the RTF of a text in bold.

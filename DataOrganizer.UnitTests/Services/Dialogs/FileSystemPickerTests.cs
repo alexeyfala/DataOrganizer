@@ -1,5 +1,4 @@
 using Autofac.Extras.Moq;
-using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Services.Dialogs;
 using System.Threading.Tasks;
@@ -22,7 +21,14 @@ internal class FileSystemPickerTests
 		FileSystemPicker sut = mock.Create<FileSystemPicker>();
 
 		// Act
-		string? result = await sut.SaveFileAsync(new FilePickerSaveOptions());
+		string? result = await sut.SaveFileAsync(new()
+		{
+			DefaultExtension = "json",
+			FileTypes = [],
+			ShowOverwritePrompt = true,
+			SuggestedFileName = "name",
+			Title = "title"
+		});
 
 		// Assert
 		result
@@ -42,7 +48,12 @@ internal class FileSystemPickerTests
 		FileSystemPicker sut = mock.Create<FileSystemPicker>();
 
 		// Act
-		string[] result = await sut.SelectFilesAsync(new FilePickerOpenOptions());
+		string[] result = await sut.SelectFilesAsync(new()
+		{
+			AllowMultiple = false,
+			FileTypes = [],
+			Title = "title"
+		});
 
 		// Assert
 		result

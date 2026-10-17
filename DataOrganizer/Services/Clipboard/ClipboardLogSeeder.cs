@@ -24,19 +24,25 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="IPngPainter" />
+	private readonly IPngPainter _pngPainter;
 	#endregion
 
 	#region Constructors
 	public ClipboardLogSeeder(
 		IClipboardLogMerger clipboardLog,
 		IDispatcherAccessor dispatcher,
-		IMessenger messenger)
+		IMessenger messenger,
+		IPngPainter pngPainter)
 	{
 		_clipboardLog = clipboardLog;
 
 		_dispatcher = dispatcher;
 
 		_messenger = messenger;
+
+		_pngPainter = pngPainter;
 	}
 	#endregion
 
@@ -62,8 +68,10 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 					x.Rtf,
 					ClipboardHistory.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
 			.. SampleClipboardContents
-				.CreateImages()
+				.CreateImageShapes()
+				.Select(x => _pngPainter.Paint(x.Width, x.Height, x.Paint))
 				.Select(static x => ClipboardLogEntryFactory.CreateImage(x, SHA256.HashData(x))),
+
 			.. SampleClipboardContents
 				.CreateFileLists(faker)
 				.Select(static x => ClipboardLogEntryFactory.CreateFiles(x, ClipboardHistory.HashFiles(x)))

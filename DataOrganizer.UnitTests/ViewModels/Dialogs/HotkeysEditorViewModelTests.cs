@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Dialogs;
@@ -201,98 +200,6 @@ internal class HotkeysEditorViewModelTests
 		sut.Buffer[0].Mask
 			.Should()
 			.Be(EventMask.LeftCtrl);
-	}
-
-	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when the event args are null.
-	/// </summary>
-	[Test]
-	public void KeyUp_Does_Nothing_When_Args_Is_Null()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
-
-		// Act
-		sut.KeyUp(null);
-
-		// Assert
-		sut.IsSaved
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when the pressed key is not Enter.
-	/// </summary>
-	[Test]
-	public void KeyUp_Does_Nothing_When_Key_Is_Not_Enter()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
-
-		// Act
-		sut.KeyUp(new()
-		{
-			Key = Key.A,
-			KeyModifiers = KeyModifiers.None
-		});
-
-		// Assert
-		sut.IsSaved
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when a modifier is set alongside Enter.
-	/// </summary>
-	[Test]
-	public void KeyUp_Does_Nothing_When_Modifier_Is_Set()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
-
-		// Act
-		sut.KeyUp(new()
-		{
-			Key = Key.Enter,
-			KeyModifiers = KeyModifiers.Control
-		});
-
-		// Assert
-		sut.IsSaved
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.KeyUp" />: saves the hotkeys when Enter is pressed without modifiers.
-	/// </summary>
-	[Test]
-	public void KeyUp_Saves_Hotkeys_By_Enter_Key_Pressed()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
-
-		// Act
-		sut.KeyUp(new()
-		{
-			Key = Key.Enter,
-			KeyModifiers = KeyModifiers.None
-		});
-
-		// Assert
-		sut.IsSaved
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

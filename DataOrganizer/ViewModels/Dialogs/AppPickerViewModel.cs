@@ -1,6 +1,6 @@
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
@@ -45,21 +45,23 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 	[RelayCommand]
 	private async Task Browse()
 	{
-		FilePickerOpenOptions options = new()
+		FileOpenParameters parameters = new()
 		{
-			Title = "Select application",
 			AllowMultiple = false,
-			FileTypeFilter =
+			FileTypes =
 			[
-				new FilePickerFileType("Executable")
+				new()
 				{
+					MimeTypes = null,
+					Name = "Executable",
 					Patterns = ["*.exe"]
 				}
-			]
+			],
+			Title = "Select application"
 		};
 
 		string[] filePaths = await _fileSystemPicker
-			.SelectFilesAsync(options)
+			.SelectFilesAsync(parameters)
 			.ConfigureAwait(true);
 
 		if (filePaths.Length == 0)

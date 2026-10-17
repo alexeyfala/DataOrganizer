@@ -1,7 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
@@ -219,7 +217,7 @@ internal class SelectedFavoritesViewModelTests
 			selectedPairs: [.. FavoriteFactory.CreateFavoriteSelections(count)]);
 
 		// Assert
-		sut.NavigationColumnWidth.Value
+		sut.NavigationColumnWidth
 			.Should()
 			.NotBe(default);
 
@@ -282,13 +280,13 @@ internal class SelectedFavoritesViewModelTests
 
 		const double viewWidth = 250.0;
 
-		sut.NavigationColumnWidth = new GridLength(viewWidth * 2);
+		sut.NavigationColumnWidth = viewWidth * 2;
 
 		// Act
-		sut.SizeChangedCommand.Execute(new SizeChangedEventArgs(null, null, default, new Size(viewWidth, viewWidth)));
+		sut.SizeChangedCommand.Execute(viewWidth);
 
 		// Assert
-		sut.NavigationColumnWidth.Value
+		sut.NavigationColumnWidth
 			.Should()
 			.BeLessThan(viewWidth);
 	}

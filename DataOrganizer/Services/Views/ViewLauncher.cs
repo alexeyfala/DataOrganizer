@@ -590,7 +590,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 			{
 				IsReadOnly = window.ViewModel.IsReadOnly,
 				IsTopmost = window.Topmost,
-				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
+				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth,
 				Size = window.Placement.Size,
 				WindowState = window.Placement.ShowState,
 				X = window.Placement.Position.X,

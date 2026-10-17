@@ -520,9 +520,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 
 		_logger.LogInformation("Save favorites");
 
-		FavoritesSettings.NavigationColumnWidth = favorites
-			.NavigationColumnWidth
-			.Value;
+		FavoritesSettings.NavigationColumnWidth = favorites.NavigationColumnWidth;
 
 		if (favorites.SelectedCategory is { } category)
 		{
