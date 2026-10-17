@@ -5,6 +5,8 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:enums="using:DataOrganizer.Enums.Views"
+
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
@@ -184,11 +186,11 @@
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
-											<selectors:FavoritesPopupContentTemplateSelector>
-												<StaticResource ResourceKey="CopyHistoryTemplate" />
+											<selectors:ContentKindTemplateSelector>
+												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
 
-												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
-											</selectors:FavoritesPopupContentTemplateSelector>
+												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.Favorites}" Template="{StaticResource SelectedFavoritesViewTemplate}" />
+											</selectors:ContentKindTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>

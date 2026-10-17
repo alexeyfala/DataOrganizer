@@ -8,7 +8,9 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -162,6 +164,71 @@ internal class FavoritesWindowTests
 		sut.IsVisible
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowCopyHistoryCommand" />: the popup shows the list of the copy history that the
+	/// window made and not the favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowCopyHistoryCommand_Shows_The_List_Of_The_Window()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel viewModel = mock.Create<FavoritesViewModel>();
+
+		FavoritesWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		object?[] shown =
+		[
+			.. sut
+				.GetLogicalDescendants()
+				.OfType<Control>()
+				.Where(x => x is CopyHistoryView or SelectedFavoritesView)
+				.Select(x => x.DataContext)
+		];
+
+		CopyHistoryViewModel? list = viewModel.CopyHistoryList;
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+
+			.NotBeNull()
+			.And
+			.BeSameAs(list);
 	}
 
 	/// <summary>

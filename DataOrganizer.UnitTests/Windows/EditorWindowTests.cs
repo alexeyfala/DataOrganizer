@@ -478,6 +478,60 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowExecutingFilesCommand" />: the side sheet shows the list of the executing files and
+	/// not the copy history.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowExecutingFilesCommand_Shows_The_List_Of_The_Executing_Files()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel
+			.ShowExecutingFilesCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Control[] shown =
+		[
+			.. sut
+				.GetVisualDescendants()
+				.OfType<Control>()
+				.Where(x => x is ExecutingFilesView or CopyHistoryView)
+		];
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ExecutingFilesView>();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowInEditorAsync" />: an object far down the tree is brought into view.
 	/// </summary>
 	[AvaloniaTest]

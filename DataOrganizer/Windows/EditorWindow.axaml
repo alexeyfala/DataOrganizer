@@ -11,6 +11,8 @@
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:enums="using:DataOrganizer.Enums.Views"
+
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -439,11 +441,11 @@
 								SideSheetPadding="4.0"
 								Theme="{StaticResource ScrollableSideSheetTheme}">
 								<materialControls:SideSheet.SideSheetContentTemplate>
-									<selectors:RightSideSheetContentTemplateSelector>
-										<StaticResource ResourceKey="CopyHistoryTemplate" />
+									<selectors:ContentKindTemplateSelector>
+										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
 
-										<StaticResource ResourceKey="ExecutingFilesTemplate" />
-									</selectors:RightSideSheetContentTemplateSelector>
+										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.ExecutingFiles}" Template="{StaticResource ExecutingFilesTemplate}" />
+									</selectors:ContentKindTemplateSelector>
 								</materialControls:SideSheet.SideSheetContentTemplate>
 							</materialControls:SideSheet>
 
