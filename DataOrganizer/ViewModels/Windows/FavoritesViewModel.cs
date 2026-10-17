@@ -19,11 +19,11 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Windows;
-using DynamicData;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -230,6 +230,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionEditorTabs sessionEditorTabs,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -244,25 +246,21 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			logger,
 			messenger,
 			notification,
+			sessionEditorTabs,
+			sessionHierarchy,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
 	{
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
+
+		FavoritesSettings
+			.Categories
+			.AddRange(GetCategories(Hierarchy));
 	}
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		Hierarchy.AddRange(hierarchy);
-
-		FavoritesSettings
-			.Categories
-			.AddRange(GetCategories(hierarchy));
-	}
-
 	/// <inheritdoc />
 	public Task<bool> ConfirmUpdateAsync(string text, CancellationToken token = default)
 	{
@@ -364,11 +362,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 
 		window.Close();
 
-		_viewLauncher.CreateEditorWindow(
-			Hierarchy,
-			EditorTabs,
-			ExecutingFiles,
-			id).Show();
+		_viewLauncher
+			.CreateEditorWindow(ExecutingFiles, id)
+			.Show();
 
 		return Task.CompletedTask;
 	}

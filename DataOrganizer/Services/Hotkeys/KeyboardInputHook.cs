@@ -9,6 +9,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
@@ -76,6 +77,9 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
+
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 
@@ -99,6 +103,7 @@ public sealed class KeyboardInputHook :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
@@ -117,6 +122,8 @@ public sealed class KeyboardInputHook :
 		_messenger = messenger;
 
 		_notification = notification;
+
+		_sessionHierarchy = sessionHierarchy;
 
 		_timeProvider = timeProvider;
 
@@ -151,9 +158,7 @@ public sealed class KeyboardInputHook :
 	}
 
 	/// <inheritdoc />
-	public async Task StartTrackingAsync(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
+	public async Task StartTrackingAsync(CancellationToken token = default)
 	{
 		Func<bool> condition = () => !IsRunning;
 
@@ -181,7 +186,7 @@ public sealed class KeyboardInputHook :
 				return;
 			}
 
-			Hierarchy = hierarchy;
+			Hierarchy = _sessionHierarchy.Hierarchy;
 		}
 		catch (Exception ex)
 		{

@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
@@ -14,6 +13,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -34,35 +34,16 @@ internal class FavoritesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FavoritesViewModel.AddHierarchy" />: adds the given objects to the hierarchy.
-	/// </summary>
-	[Test]
-	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
-
-		// Act
-		sut.AddHierarchy(hierarchy);
-
-		// Assert
-		sut.Hierarchy
-			.Should()
-			.Contain(hierarchy);
-	}
-
-	/// <summary>
 	/// <see cref="FavoritesViewModel.ClosePopupByEsc" />: unfixes and closes the popup.
 	/// </summary>
 	[Test]
 	public void ClosePopupByEsc_Closes_Popup()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -90,7 +71,10 @@ internal class FavoritesViewModelTests
 	public void Dispose_Clears_Properties()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -140,6 +124,40 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.FavoritesSettings" />: a new favorites window gathers the favorite files of the tree of
+	/// the work session into categories.
+	/// </summary>
+	[Test]
+	public void FavoritesSettings_Holds_The_Favorites_Of_The_Session_Tree()
+	{
+		// Arrange
+		FileDto favorite = ItemDtoFactory.CreateFileDto();
+
+		favorite.IsFavorite = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.AddRange([favorite, ItemDtoFactory.CreateFileDto()]);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		// Act
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		sut.FavoritesSettings.Categories.SelectMany(static x => x.Children)
+			.Should()
+			.Equal(favorite);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.Initialize" />: applies the popup size, the favorites and the copy history settings.
 	/// </summary>
 	[AvaloniaTest]
@@ -172,11 +190,16 @@ internal class FavoritesViewModelTests
 			SelectedItemId = Guid.NewGuid()
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.AddHierarchy(historyFiles);
+		sut
+			.Hierarchy
+			.AddRange(historyFiles);
 
 		// Act
 		sut.Initialize(
@@ -212,7 +235,10 @@ internal class FavoritesViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -250,6 +276,11 @@ internal class FavoritesViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		// Act
@@ -278,6 +309,8 @@ internal class FavoritesViewModelTests
 
 		List<Task> scheduled = [];
 
+		WorkSession session = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
@@ -295,13 +328,19 @@ internal class FavoritesViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.AddHierarchy([file]);
+		sut
+			.Hierarchy
+			.AddRange([file]);
 
-		sut.EditorTabs = new()
+		session.EditorTabs = new()
 		{
 			Files = [file],
 			PreviousFile = null,
@@ -318,65 +357,13 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.EditorTabs
+		session.EditorTabs
 			.Should()
 			.BeNull();
 
 		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
-	}
-
-	/// <summary>
-	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: the editor window gets back its tabs.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Passes_The_Editor_Tabs()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		EditorTabsState tabs = new()
-		{
-			Files = [file],
-			PreviousFile = null,
-			SelectedFile = file
-		};
-
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
-
-		EditorWindow? editorWindow = null;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose();
-
-			editorWindow = windowMock.Create<EditorWindow>();
-
-			viewLauncher.CreateEditorWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(editorWindow);
-
-			builder.RegisterInstance(viewLauncher);
-		});
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut.EditorTabs = tabs;
-
-		// Act
-		await sut.ShowInEditorAsync(default, new());
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		editorWindow?.Close();
-
-		// Assert
-		viewLauncher.Received(1).CreateEditorWindow(
-			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			tabs,
-			Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>
@@ -392,17 +379,23 @@ internal class FavoritesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			editorWindow = windowMock.Create<EditorWindow>();
 
-			viewLauncher.CreateEditorWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(editorWindow);
+			viewLauncher
+				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
@@ -418,10 +411,9 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received(1).CreateEditorWindow(
-			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			Arg.Any<EditorTabsState?>(),
-			Arg.Any<IEnumerable<FileDto>>());
+		viewLauncher
+			.Received(1)
+			.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>
@@ -432,9 +424,17 @@ internal class FavoritesViewModelTests
 	public void ShowPopupOnHover_Opens_Popup()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -464,7 +464,10 @@ internal class FavoritesViewModelTests
 	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Disabled_In_Settings()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -486,7 +489,10 @@ internal class FavoritesViewModelTests
 	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Fixed()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -512,7 +518,10 @@ internal class FavoritesViewModelTests
 	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Opened()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
@@ -538,7 +547,10 @@ internal class FavoritesViewModelTests
 	public void ShowPopupOnHoverCommand_CanExecute_Returns_True_When_Enabled_And_Popup_Closed()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 

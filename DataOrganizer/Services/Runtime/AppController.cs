@@ -66,6 +66,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
+
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
 
@@ -91,6 +94,7 @@ public sealed class AppController : IAppController
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
 		INotificationService notification,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -119,6 +123,8 @@ public sealed class AppController : IAppController
 		_options = options;
 
 		_sandbox = sandbox;
+
+		_sessionHierarchy = sessionHierarchy;
 
 		_settingsStore = settingsStore;
 
@@ -225,7 +231,9 @@ public sealed class AppController : IAppController
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
-			Window? mainWindow = _viewLauncher.CreateMainWindow(hierarchy ?? []);
+			_sessionHierarchy.Hierarchy.AddRange(hierarchy ?? []);
+
+			Window? mainWindow = _viewLauncher.CreateMainWindow();
 
 			mainWindow?.Show();
 

@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
@@ -16,6 +15,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
@@ -47,19 +47,12 @@ public abstract partial class ViewModelBase :
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
 
 	/// <summary>
-	/// Tabs of the editor kept until the editor opens them; <c>null</c> stands for none.
-	/// </summary>
-	public EditorTabsState? EditorTabs { get; set; }
-
-	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
 	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
 
-	/// <summary>
-	/// Hierarchical sequence of objects.
-	/// </summary>
-	public ObservableCollection<ExplorerItemDtoBase> Hierarchy { get; } = [];
+	/// <inheritdoc cref="ISessionHierarchy.Hierarchy" />
+	public ObservableCollection<ExplorerItemDtoBase> Hierarchy => _sessionHierarchy.Hierarchy;
 
 	/// <summary>
 	/// <c>True</c> when clipboard history tracking is enabled in settings.
@@ -175,6 +168,12 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	protected readonly ISessionEditorTabs _sessionEditorTabs;
+
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
+
 	/// <inheritdoc cref="IAppSettingsStore" />
 	protected readonly IAppSettingsStore _settingsStore;
 
@@ -198,6 +197,8 @@ public abstract partial class ViewModelBase :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionEditorTabs sessionEditorTabs,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -218,6 +219,10 @@ public abstract partial class ViewModelBase :
 
 		_keyboardInputHook = keyboardInputHook;
 
+		_sessionEditorTabs = sessionEditorTabs;
+
+		_sessionHierarchy = sessionHierarchy;
+
 		_settingsStore = settingsStore;
 
 		_viewLauncher = viewLauncher;
@@ -236,16 +241,11 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_exceptionHandler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
+		_exceptionHandler.Watch(keyboardInputHook.Value.StartTrackingAsync());
 	}
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Adds objects to <see cref="Hierarchy" />.
-	/// </summary>
-	public abstract void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy);
-
 	/// <inheritdoc />
 	public override void InsertIntoCopyHistory(FileDto file, bool updateView)
 	{
@@ -401,7 +401,7 @@ public abstract partial class ViewModelBase :
 			openedFiles.Where(x => x.IsEditing),
 			openedFiles.Where(x => x.IsExecuting));
 
-		EditorTabs = null;
+		_sessionEditorTabs.EditorTabs = null;
 
 		_contentVisibility.HideAllContents(Hierarchy);
 

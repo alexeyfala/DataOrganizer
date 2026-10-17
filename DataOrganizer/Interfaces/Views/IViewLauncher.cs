@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.ViewModels.Windows;
@@ -49,23 +48,18 @@ public interface IViewLauncher
 	/// Configures <see cref="EditorWindow" />.
 	/// </summary>
 	EditorWindow CreateEditorWindow(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default);
 
 	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
-	FavoritesWindow CreateFavoritesWindow(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		EditorTabsState? editorTabs,
-		IEnumerable<FileDto> executingFiles);
+	FavoritesWindow CreateFavoritesWindow(IEnumerable<FileDto> executingFiles);
 
 	/// <summary>
-	/// Configures the main application window.
+	/// Configures the main application window, which shows the tree of the work session.
 	/// </summary>
-	Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
+	Window CreateMainWindow();
 
 	/// <summary>
 	/// Configures <see cref="NotepadWindow" />.

@@ -1,3 +1,4 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,6 +7,7 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels.Windows;
 using DialogHostAvalonia;
 using NSubstitute;
@@ -68,7 +70,10 @@ internal class ApplicationExtensionsTests
 	public void FindMainWindow_Finds_The_Window_Of_A_Main_View_Model()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		Window mainWindow = new()
 		{

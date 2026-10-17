@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +15,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Dataset;
 using Serilog;
 using Shared.Common;
@@ -569,7 +569,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Constructors
 	public DatasetEditorViewModel(
-		Application app,
 		IClipboardTextWriter clipboardWriter,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
@@ -581,8 +580,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -590,6 +589,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			logger,
 			messenger,
 			notification,
+			sessionReadOnlyMode,
 			exceptionHandler)
 	{
 		_clipboardWriter = clipboardWriter;

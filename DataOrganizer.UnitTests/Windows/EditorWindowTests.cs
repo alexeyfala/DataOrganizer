@@ -16,6 +16,7 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
@@ -45,7 +46,15 @@ internal class EditorWindowTests
 		// Arrange
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorWindow sut = new(mock.Create<EditorViewModel>());
 
@@ -116,6 +125,11 @@ internal class EditorWindowTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
@@ -154,7 +168,10 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -194,7 +211,15 @@ internal class EditorWindowTests
 
 		IClipboardTextWriter clipboardWriter = Substitute.For<IClipboardTextWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboardWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(clipboardWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -226,7 +251,10 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -272,7 +300,15 @@ internal class EditorWindowTests
 		// Arrange
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorWindow sut = new(mock.Create<EditorViewModel>());
 
@@ -303,7 +339,10 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -339,11 +378,16 @@ internal class EditorWindowTests
 
 		FileDto shown = files[90];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.AddHierarchy(files);
+		viewModel
+			.Hierarchy
+			.AddRange(files);
 
 		EditorWindow sut = new(viewModel);
 
@@ -398,7 +442,10 @@ internal class EditorWindowTests
 
 		inner.IsExpanded = true;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -438,7 +485,10 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -479,7 +529,10 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 

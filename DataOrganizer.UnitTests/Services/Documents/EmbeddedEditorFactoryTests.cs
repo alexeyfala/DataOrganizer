@@ -1,17 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
-using DataOrganizer.ViewModels.Windows;
-using DataOrganizer.Windows;
 using Entities.Enums;
 using NSubstitute;
 using Shared.Common;
@@ -389,34 +386,23 @@ internal class EmbeddedEditorFactoryTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorFactory.Create" />: the editor of a file opens in the read-only mode of the editor window.
+	/// <see cref="EmbeddedEditorFactory.Create" />: the editor of a file opens in the read-only mode of the work session.
 	/// </summary>
-	[AvaloniaTest]
-	public void Create_Takes_The_Read_Only_Mode_Of_The_Editor_Window()
+	[Test]
+	public void Create_Takes_The_Read_Only_Mode_Of_The_Session()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		// The window lives as long as the test, as the editor reads the mode from it.
-		using AutoMock windowMock = AutoMock.GetLoose();
-
 		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			EditorViewModel editor = windowMock.Create<EditorViewModel>();
+			ISessionReadOnlyMode sessionReadOnlyMode = Substitute.For<ISessionReadOnlyMode>();
 
-			editor.IsReadOnly = true;
+			sessionReadOnlyMode
+				.IsReadOnly
+				.Returns(true);
 
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			lifetime
-				.Windows
-				.Returns([new EditorWindow(editor)]);
-
-			Application app = Substitute.For<Application>();
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app);
+			builder.RegisterInstance(sessionReadOnlyMode);
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();

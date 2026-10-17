@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -12,7 +13,6 @@ using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -80,7 +80,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.DidNotReceive()
-			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow();
 	}
 
 	/// <summary>
@@ -136,7 +136,7 @@ internal class AppControllerTests
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			viewLauncher.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			viewLauncher.CreateMainWindow();
 		});
 	}
 
@@ -186,17 +186,20 @@ internal class AppControllerTests
 		// Assert
 		viewLauncher
 			.Received(1)
-			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow();
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities and configures the main window.
+	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities into the work session and
+	/// configures the main window.
 	/// </summary>
 	[Test]
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
 	{
 		// Arrange
 		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
+
+		ExplorerItemDtoBase[]? shown = null;
 
 		IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
@@ -208,9 +211,20 @@ internal class AppControllerTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
+			WorkSession session = new();
+
 			settingsStore
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			// The tree the window finds in the session when it opens.
+			viewLauncher
+				.When(x => x.CreateMainWindow())
+				.Do(_ => shown = [.. session.Hierarchy]);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
@@ -243,10 +257,14 @@ internal class AppControllerTests
 			.Received()
 			.LoadHierarchyAsync();
 
-		// What was read from the database is what the window is given.
+		// What was read from the database is in the session before the window opens.
+		shown
+			.Should()
+			.Equal(hierarchy);
+
 		viewLauncher
 			.Received(1)
-			.CreateMainWindow(hierarchy);
+			.CreateMainWindow();
 	}
 
 	/// <summary>
@@ -295,7 +313,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.Received(1)
-			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow();
 	}
 	#endregion
 }

@@ -8,7 +8,6 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
@@ -29,6 +28,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
@@ -36,6 +36,7 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
+using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,10 @@ internal class ViewLauncherTests
 	public void ActivateMainWindow_Restores_The_Main_Window()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		Window mainWindow = new()
 		{
@@ -132,7 +136,10 @@ internal class ViewLauncherTests
 	public void CenterMainWindow_Centers_The_Main_Window_On_The_Screen_Of_The_Owner()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		Window mainWindow = new()
 		{
@@ -193,7 +200,10 @@ internal class ViewLauncherTests
 		// Arrange
 		PixelPoint position = new(5, 5);
 
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		Window mainWindow = new()
 		{
@@ -677,7 +687,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -711,7 +724,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.WindowStartupLocation
@@ -728,7 +741,10 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -750,7 +766,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.Width
@@ -791,7 +807,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -825,7 +844,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.Width
@@ -863,7 +882,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -897,7 +919,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -929,10 +951,20 @@ internal class ViewLauncherTests
 				static (recipient, message) => ((List<EditorReadOnlyModeChangedMessage>)recipient).Add(message));
 
 			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.Add(selected);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -953,7 +985,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.CreateEditorWindow([selected], null, []);
+		sut.CreateEditorWindow([]);
 
 		// Assert
 		received
@@ -981,7 +1013,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1015,60 +1050,12 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.WindowState
 			.Should()
 			.Be(WindowState.Normal);
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor gets the tabs to open.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateEditorWindow_Passes_The_Editor_Tabs()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		EditorTabsState tabs = new()
-		{
-			Files = [file],
-			PreviousFile = null,
-			SelectedFile = file
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose();
-
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		EditorWindow window = sut.CreateEditorWindow([], tabs, []);
-
-		// Assert
-		window.ViewModel.EditorTabs
-			.Should()
-			.BeSameAs(tabs);
 	}
 
 	/// <summary>
@@ -1094,7 +1081,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1128,7 +1118,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.Position
@@ -1175,7 +1165,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1212,7 +1205,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.Position
@@ -1239,17 +1232,25 @@ internal class ViewLauncherTests
 		{
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-			viewLauncher.CreateFavoritesWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(favoritesWindow);
+			viewLauncher
+				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(files);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -1284,7 +1285,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		EditorWindow window = sut.CreateEditorWindow(files, null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -1336,10 +1337,18 @@ internal class ViewLauncherTests
 		Guid savedItemId = default;
 
 		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(files);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -1374,7 +1383,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		EditorWindow window = sut.CreateEditorWindow(files, null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -1453,10 +1462,20 @@ internal class ViewLauncherTests
 				Arg.Any<CancellationToken>());
 
 			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(hierarchy);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -1477,7 +1496,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		window = sut.CreateEditorWindow(hierarchy, null, [], shown.Id);
+		window = sut.CreateEditorWindow([], shown.Id);
 
 		window.Show();
 
@@ -1522,10 +1541,18 @@ internal class ViewLauncherTests
 		selected.IsSelected = true;
 
 		// The editor lives as long as the test, as it follows its tree while it does.
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.Add(selected);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -1547,7 +1574,7 @@ internal class ViewLauncherTests
 
 		// Act
 		// An object the tree does not hold, so that the show ends at once.
-		EditorWindow window = sut.CreateEditorWindow([selected], null, [], Guid.NewGuid());
+		EditorWindow window = sut.CreateEditorWindow([], Guid.NewGuid());
 
 		// Assert
 		window.ViewModel.SelectedObject
@@ -1570,10 +1597,23 @@ internal class ViewLauncherTests
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
 		// The editor lives as long as the test, as it follows its tree while it does.
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.Add(selected);
+
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
@@ -1594,7 +1634,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([selected], null, []);
+		EditorWindow window = sut.CreateEditorWindow([]);
 
 		// Assert
 		window.ViewModel.SelectedObject
@@ -1604,6 +1644,71 @@ internal class ViewLauncherTests
 		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
 			Arg.Any<ExplorerItemDtoBase>(),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor opens in the read-only mode of the saved settings.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Takes_The_Read_Only_Mode_From_Saved_Settings()
+	{
+		// Arrange
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = true,
+			IsTopmost = false,
+			NavigationColumnWidth = 200.0,
+			Size = new(800, 600),
+			WindowState = WindowShowState.Normal,
+			X = 100,
+			Y = 100
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([]);
+
+		// Assert
+		window.ViewModel.IsReadOnly
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1624,7 +1729,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -1658,7 +1766,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		// Assert
 		window.WindowStartupLocation
@@ -1675,7 +1783,10 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -1697,7 +1808,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		// Assert
 		window.WindowStartupLocation
@@ -1740,7 +1851,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -1774,60 +1888,12 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		// Assert
 		window.ViewModel.IsInitialized
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites keep the tabs of the editor.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateFavoritesWindow_Passes_The_Editor_Tabs()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		EditorTabsState tabs = new()
-		{
-			Files = [file],
-			PreviousFile = null,
-			SelectedFile = file
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose();
-
-			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
-
-			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<FavoritesViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], tabs, []);
-
-		// Assert
-		window.ViewModel.EditorTabs
-			.Should()
-			.BeSameAs(tabs);
 	}
 
 	/// <summary>
@@ -1849,7 +1915,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -1883,7 +1952,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		// Assert
 		window.Position
@@ -1911,7 +1980,10 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -1948,7 +2020,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		// Assert
 		window.Position
@@ -1980,13 +2052,16 @@ internal class ViewLauncherTests
 		{
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-			viewLauncher.CreateEditorWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(editorWindow);
+			viewLauncher
+				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -2033,7 +2108,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
 
@@ -2097,7 +2172,10 @@ internal class ViewLauncherTests
 		Guid savedCategoryId = default;
 
 		// The favorites live as long as the test, as the window saves them when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose();
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -2135,7 +2213,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
 
@@ -2191,17 +2269,25 @@ internal class ViewLauncherTests
 		{
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-			viewLauncher.CreateEditorWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(editorWindow);
+			viewLauncher
+				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(files);
+
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
 			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
@@ -2236,7 +2322,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow(files, null, []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([]);
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -2286,7 +2372,10 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -2308,7 +2397,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.CreateMainWindow([]);
+		Window window = sut.CreateMainWindow();
 
 		// Assert
 		window
@@ -2325,7 +2414,10 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -2347,7 +2439,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.CreateMainWindow([]);
+		Window window = sut.CreateMainWindow();
 
 		// Assert
 		window
@@ -2364,7 +2456,10 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
 
@@ -2398,7 +2493,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.CreateMainWindow([]);
+		Window window = sut.CreateMainWindow();
 
 		// Assert
 		window
@@ -3137,6 +3232,11 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -3170,6 +3270,11 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -3194,6 +3299,45 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the read-only mode is saved for the next editor.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Saves_The_Read_Only_Mode()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		window.ViewModel.IsReadOnly = true;
+
+		// Act
+		await sut.SaveEditorSettingsAsync(window);
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<EditorWindowSettings>(x => x.IsReadOnly),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: a maximized window is saved as maximized.
 	/// </summary>
 	[AvaloniaTest]
@@ -3209,6 +3353,11 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -3243,6 +3392,11 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();

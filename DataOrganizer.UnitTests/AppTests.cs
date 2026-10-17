@@ -9,6 +9,7 @@ using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
@@ -209,6 +210,35 @@ internal class AppTests
 			.Lifetime
 			.Should()
 			.Be(ServiceLifetime.Singleton);
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the tree, the editor tabs and the read-only mode live in one work session for
+	/// the whole application, so every main window sees the same.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Shares_One_Work_Session()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		object[] roles =
+		[
+			provider.GetRequiredService<ISessionEditorTabs>(),
+			provider.GetRequiredService<ISessionHierarchy>(),
+			provider.GetRequiredService<ISessionReadOnlyMode>(),
+			provider.GetRequiredService<ISessionHierarchy>()
+		];
+
+		// Assert
+		roles
+			.Should()
+			.AllSatisfy(x => x.Should().BeSameAs(roles[0]));
 	}
 	#endregion
 

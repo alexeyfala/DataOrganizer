@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -29,7 +30,15 @@ internal class FavoritesWindowTests
 		// Arrange
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 
@@ -56,7 +65,10 @@ internal class FavoritesWindowTests
 	public void DoubleClick_On_The_Fix_Switch_Keeps_The_Window_Open()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 
@@ -87,7 +99,15 @@ internal class FavoritesWindowTests
 		// Arrange
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 
@@ -116,7 +136,10 @@ internal class FavoritesWindowTests
 	public void DoubleClick_On_The_Notepad_Button_Keeps_The_Window_Open()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 

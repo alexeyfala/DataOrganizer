@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
@@ -299,8 +298,6 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc />
 	public EditorWindow CreateEditorWindow(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		EditorTabsState? editorTabs,
 		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default)
 	{
@@ -312,10 +309,6 @@ public class ViewLauncher : IViewLauncher
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
 
-		viewModel.AddHierarchy(hierarchy);
-
-		viewModel.EditorTabs = editorTabs;
-
 		viewModel
 			.ExecutingFiles
 			.AddRange(executingFiles);
@@ -324,7 +317,7 @@ public class ViewLauncher : IViewLauncher
 
 		// The selection of the last session comes back first: selecting it again saves nothing, and an object shown then
 		// takes its place as any other choice does.
-		if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
+		if (viewModel.Hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{
 			viewModel.SetSelectedObject(selected);
 		}
@@ -365,20 +358,13 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public FavoritesWindow CreateFavoritesWindow(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		EditorTabsState? editorTabs,
-		IEnumerable<FileDto> executingFiles)
+	public FavoritesWindow CreateFavoritesWindow(IEnumerable<FileDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
 		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
 
 		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
-
-		viewModel.AddHierarchy(hierarchy);
-
-		viewModel.EditorTabs = editorTabs;
 
 		viewModel
 			.ExecutingFiles
@@ -408,19 +394,19 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	public Window CreateMainWindow()
 	{
 		if (_windowSettings.Read<WindowKind>() is { } settings)
 		{
 			return settings switch
 			{
-				WindowKind.Editor => CreateEditorWindow(hierarchy, null, []),
-				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, null, []),
+				WindowKind.Editor => CreateEditorWindow([]),
+				WindowKind.Favorites => CreateFavoritesWindow([]),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return CreateEditorWindow(hierarchy, null, []);
+		return CreateEditorWindow([]);
 	}
 
 	/// <inheritdoc />

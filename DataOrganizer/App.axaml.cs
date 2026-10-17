@@ -236,11 +236,15 @@ public sealed class App : Application
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<INotepadSessionState, NotepadSessionState>();
 		services.AddSingleton<INotificationService, NotificationService>();
+		services.AddSingleton<ISessionEditorTabs>(static x => x.GetRequiredService<WorkSession>());
+		services.AddSingleton<ISessionHierarchy>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
+		services.AddSingleton<ISessionReadOnlyMode>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
+		services.AddSingleton<WorkSession>();
 		#endregion
 
 		#endregion

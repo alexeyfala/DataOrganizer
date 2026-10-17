@@ -34,6 +34,7 @@ using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -88,6 +89,11 @@ internal class EditorViewModelTests
 				.Returns(created);
 
 			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -114,28 +120,6 @@ internal class EditorViewModelTests
 		sut.HierarchySummary
 			.Should()
 			.NotBeNull();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.AddHierarchy" />: the supplied objects are added to the Hierarchy property.
-	/// </summary>
-	[Test]
-	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
-
-		// Act
-		sut.AddHierarchy(hierarchy);
-
-		// Assert
-		sut.Hierarchy
-			.Should()
-			.Contain(hierarchy);
 	}
 
 	/// <summary>
@@ -176,6 +160,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -217,6 +206,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -257,9 +251,17 @@ internal class EditorViewModelTests
 
 		executingFiles.ForEach(x => x.IsExecuting = true);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -303,6 +305,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -369,6 +376,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -399,7 +411,10 @@ internal class EditorViewModelTests
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
 
@@ -437,6 +452,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -515,6 +535,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(executionEngine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -579,6 +604,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -617,6 +647,11 @@ internal class EditorViewModelTests
 				.Returns(false);
 
 			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -669,6 +704,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -715,6 +755,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -767,6 +812,11 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -804,11 +854,15 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		WorkSession session = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(session)
+			.AsImplementedInterfaces());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.EditorTabs = new()
+		session.EditorTabs = new()
 		{
 			Files = files,
 			PreviousFile = files[2],
@@ -858,6 +912,11 @@ internal class EditorViewModelTests
 				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -911,6 +970,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(noteEditor);
 
 			builder.RegisterInstance(noteReader);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -957,6 +1021,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(noteEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -980,7 +1049,10 @@ internal class EditorViewModelTests
 		[Values] EncryptionStatus encryptionStatus)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -1004,7 +1076,10 @@ internal class EditorViewModelTests
 	public void EditNoteCommand_CanExecute_Returns_False_Without_An_Object()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -1057,6 +1132,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1087,7 +1167,10 @@ internal class EditorViewModelTests
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
 
@@ -1124,6 +1207,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1167,6 +1255,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1235,6 +1328,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<ContentCipher>()
 				.As<IContentCipher>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1272,6 +1370,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1321,6 +1424,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1408,6 +1516,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<ContentCipher>()
 				.As<IContentCipher>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1468,6 +1581,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1492,7 +1610,10 @@ internal class EditorViewModelTests
 	public void Exit_Shutdowns_The_Application()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -1525,7 +1646,10 @@ internal class EditorViewModelTests
 			.GetFolders()
 			.ForEach(x => x.IsExpanded = !isExpandAll);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -1587,11 +1711,18 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance(autoLock);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
 
 		AppSettings changed = SettingsFactory.CreateSettings();
 
@@ -1636,6 +1767,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(themeService);
 
 			builder.RegisterInstance(hook);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1655,7 +1791,7 @@ internal class EditorViewModelTests
 
 			await hook
 				.Received(1)
-				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+				.StartTrackingAsync();
 
 			settingsStore
 				.Received(1)
@@ -1698,11 +1834,18 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance(autoLock);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
 
 		// Act
 		await sut.HandleSettingsChangedAsync(true, settings);
@@ -1751,11 +1894,18 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy(editingFiles.Concat(executingFiles));
+		sut
+			.Hierarchy
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		// Act
 		await sut.HideAllFileContents();
@@ -1804,11 +1954,18 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([file]);
+		sut
+			.Hierarchy
+			.AddRange([file]);
 
 		// Act
 		await sut.HideAllFileContents();
@@ -1851,6 +2008,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1905,6 +2067,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1960,6 +2127,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2015,6 +2187,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2043,7 +2220,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2074,7 +2259,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2108,7 +2301,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2141,7 +2342,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2168,7 +2377,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2197,7 +2414,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2213,6 +2438,37 @@ internal class EditorViewModelTests
 			folder.Id,
 			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HierarchySummary" />: a new editor counts the objects of the tree of the work session.
+	/// </summary>
+	[Test]
+	public void HierarchySummary_Counts_The_Objects_Of_The_Session_Tree()
+	{
+		// Arrange
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.AddRange(hierarchy);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		// Act
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Assert
+		sut.HierarchySummary
+			.Should()
+			.Be(hierarchy.GetCount().AsString());
 	}
 
 	/// <summary>
@@ -2233,6 +2489,11 @@ internal class EditorViewModelTests
 				.Returns(new ImportDataResult([imported], ImportMode.Replace));
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2268,6 +2529,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dataExchange);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2301,6 +2567,11 @@ internal class EditorViewModelTests
 				.Returns(new ImportDataResult([imported], ImportMode.Append));
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2335,6 +2606,11 @@ internal class EditorViewModelTests
 				.Returns((ImportDataResult?)null);
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2370,6 +2646,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dataExchange);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2411,6 +2692,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2461,11 +2747,16 @@ internal class EditorViewModelTests
 			SelectedItemId = Guid.NewGuid()
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy(historyFiles);
+		sut
+			.Hierarchy
+			.AddRange(historyFiles);
 
 		// Act
 		sut.Initialize(
@@ -2487,6 +2778,69 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.IsReadOnly" />: a change of the mode refreshes the commands that add and delete objects.
+	/// </summary>
+	[Test]
+	public void IsReadOnly_Refreshes_The_Add_And_Delete_Commands()
+	{
+		// Arrange
+		List<string> refreshed = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.AddCommand));
+
+		sut.DeleteCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.DeleteCommand));
+
+		// Act
+		sut.IsReadOnly = true;
+
+		// Assert
+		refreshed
+			.Should()
+			.BeEquivalentTo(nameof(sut.AddCommand), nameof(sut.DeleteCommand));
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.IsReadOnly" />: a change of the mode reaches the embedded editors.
+	/// </summary>
+	[Test]
+	public void IsReadOnly_Tells_The_Embedded_Editors()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		EditorReadOnlyModeChangedMessage? sent = null;
+
+		messenger.Register<EditorReadOnlyModeChangedMessage>(this, (_, message) => sent = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut.IsReadOnly = true;
+
+		// Assert
+		sent
+			.Should()
+			.Be(new EditorReadOnlyModeChangedMessage(true));
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.IsRightSideSheetOpened" />: closing the right side sheet saves the item chosen in the copy
 	/// history it shows.
 	/// </summary>
@@ -2496,13 +2850,18 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
 
-		sut.AddHierarchy(files);
+		sut
+			.Hierarchy
+			.AddRange(files);
 
 		sut
 			.CopyHistorySettings
@@ -2538,7 +2897,10 @@ internal class EditorViewModelTests
 	public void NavigationColumnWidth_Is_Clamped_To_Less_Than_The_View_Width()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2566,11 +2928,21 @@ internal class EditorViewModelTests
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(autoLock);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
 
 		// Act
 		sut.NotifyDecryptedContentsChanged();
@@ -2594,11 +2966,21 @@ internal class EditorViewModelTests
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(autoLock);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted)]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted)]);
 
 		// Act
 		sut.NotifyDecryptedContentsChanged();
@@ -2638,6 +3020,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2696,6 +3083,8 @@ internal class EditorViewModelTests
 
 		List<Task> scheduled = [];
 
+		WorkSession session = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
@@ -2713,13 +3102,19 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([editingFile, executingFile]);
+		sut
+			.Hierarchy
+			.AddRange([editingFile, executingFile]);
 
-		sut.EditorTabs = new()
+		session.EditorTabs = new()
 		{
 			Files = [editingFile],
 			PreviousFile = null,
@@ -2740,7 +3135,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.EditorTabs
+		session.EditorTabs
 			.Should()
 			.BeNull();
 
@@ -2788,11 +3183,18 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy([file]);
+		sut
+			.Hierarchy
+			.AddRange([file]);
 
 		// Act
 		messenger.Send(new SessionAutoLockedMessage());
@@ -2820,7 +3222,10 @@ internal class EditorViewModelTests
 
 		dto.IsSelected = true;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2861,6 +3266,11 @@ internal class EditorViewModelTests
 				Arg.Any<CancellationToken>());
 
 			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2890,7 +3300,10 @@ internal class EditorViewModelTests
 		// Arrange
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processManager));
 
@@ -2916,7 +3329,15 @@ internal class EditorViewModelTests
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(autoLock);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2952,7 +3373,10 @@ internal class EditorViewModelTests
 
 		inner.Children.Add(file);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2994,6 +3418,11 @@ internal class EditorViewModelTests
 				Arg.Any<CancellationToken>());
 
 			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3029,7 +3458,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -3062,7 +3499,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -3107,6 +3552,11 @@ internal class EditorViewModelTests
 				Arg.Any<CancellationToken>());
 
 			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3143,7 +3593,15 @@ internal class EditorViewModelTests
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(propertyWriter));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -3175,7 +3633,10 @@ internal class EditorViewModelTests
 
 		dto.IsFavorite = initialValue;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(propertyWriter));
 
@@ -3217,6 +3678,11 @@ internal class EditorViewModelTests
 				Arg.Any<CancellationToken>());
 
 			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3245,7 +3711,10 @@ internal class EditorViewModelTests
 
 		dto.IsSelected = false;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -3272,13 +3741,18 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
 
-		sut.AddHierarchy(files);
+		sut
+			.Hierarchy
+			.AddRange(files);
 
 		sut
 			.CopyHistorySettings
@@ -3310,34 +3784,39 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window gets the tabs of the editor with the selected
-	/// one and the previous one.
+	/// <see cref="EditorViewModel.ShowFavorites" />: the work session keeps the tabs of the editor with the selected one
+	/// and the previous one.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowFavorites_Passes_The_Editor_Tabs()
+	public void ShowFavorites_Keeps_The_Editor_Tabs_In_The_Session()
 	{
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
 
-		EditorTabsState? passed = null;
+		WorkSession session = new();
 
 		FavoritesWindow? favoritesWindow = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher.CreateFavoritesWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Do<EditorTabsState?>(x => passed = x),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(favoritesWindow);
+			viewLauncher
+				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3363,15 +3842,17 @@ internal class EditorViewModelTests
 		favoritesWindow?.Close();
 
 		// Assert
-		passed!.Files
+		EditorTabsState? kept = session.EditorTabs;
+
+		kept!.Files
 			.Should()
 			.Equal(files);
 
-		passed.SelectedFile
+		kept.SelectedFile
 			.Should()
 			.BeSameAs(files[1]);
 
-		passed.PreviousFile
+		kept.PreviousFile
 			.Should()
 			.BeSameAs(files[2]);
 	}
@@ -3389,17 +3870,23 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher.CreateFavoritesWindow(
-				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-				Arg.Any<EditorTabsState?>(),
-				Arg.Any<IEnumerable<FileDto>>())
-			.Returns(favoritesWindow);
+			viewLauncher
+				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3415,10 +3902,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received(1).CreateFavoritesWindow(
-			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
-			Arg.Any<EditorTabsState?>(),
-			Arg.Any<IEnumerable<FileDto>>());
+		viewLauncher
+			.Received(1)
+			.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>
@@ -3459,6 +3945,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3489,7 +3980,10 @@ internal class EditorViewModelTests
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
 
@@ -3514,7 +4008,10 @@ internal class EditorViewModelTests
 
 		FileDto shown = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 

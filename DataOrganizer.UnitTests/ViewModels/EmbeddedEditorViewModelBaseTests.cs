@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
@@ -8,6 +7,7 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.ViewModels;
 using NSubstitute;
@@ -234,7 +234,6 @@ internal class EmbeddedEditorViewModelBaseTests
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
 	public TestEditor(
-		Application app,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
@@ -242,8 +241,8 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -251,6 +250,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 			logger,
 			messenger,
 			notification,
+			sessionReadOnlyMode,
 			exceptionHandler)
 	{
 	}

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
@@ -11,6 +10,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Text;
 using DynamicData.Binding;
 using Serilog;
@@ -222,7 +222,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
-		Application app,
 		IDbFailureReporter dbFailureReporter,
 		IDocumentEncodingSwitcher encodingSwitcher,
 		IEditorSplitStore editorSplits,
@@ -233,9 +232,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -243,6 +242,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			logger,
 			messenger,
 			notification,
+			sessionReadOnlyMode,
 			exceptionHandler)
 	{
 		_dbFailureReporter = dbFailureReporter;

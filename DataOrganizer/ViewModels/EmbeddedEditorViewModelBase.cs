@@ -1,16 +1,14 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
-using DataOrganizer.Windows;
 using Entities.Models;
 using Serilog;
 using Shared.Extensions;
@@ -120,19 +118,18 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// </summary>
 	protected string? _lastSavedEditorState;
 
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IFileContentsWriter" />
 	private readonly IFileContentsWriter _fileContentsWriter;
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISessionReadOnlyMode" />
+	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
-		Application app,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
@@ -140,10 +137,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler)
 	{
-		_app = app;
-
 		_editorStateStore = editorStateStore;
 
 		_exceptionHandler = exceptionHandler;
@@ -159,6 +155,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		_messenger = messenger;
 
 		_notification = notification;
+
+		_sessionReadOnlyMode = sessionReadOnlyMode;
 
 		messenger.RegisterAll(this);
 	}
@@ -182,19 +180,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 	#region Methods
 	/// <summary>
-	/// Takes the read-only mode over from the editor window.
+	/// Takes the read-only mode over from the work session.
 	/// </summary>
-	public void Initialize()
-	{
-		if (_app.FindWindow<EditorWindow>() is not EditorWindow window)
-		{
-			return;
-		}
-
-		IsReadOnly = window
-			.ViewModel
-			.IsReadOnly;
-	}
+	public void Initialize() => IsReadOnly = _sessionReadOnlyMode.IsReadOnly;
 
 	/// <inheritdoc />
 	public void Receive(EditorReadOnlyModeChangedMessage message)

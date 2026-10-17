@@ -26,6 +26,7 @@ using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
@@ -81,11 +82,31 @@ public sealed partial class EditorViewModel :
 	[ObservableProperty]
 	public partial bool IsLeftDrawerOpened { get; set; }
 
-	/// <summary>
-	/// <c>True</c> when the contents cannot be edited.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsReadOnly { get; set; }
+	/// <inheritdoc cref="ISessionReadOnlyMode.IsReadOnly" />
+	public bool IsReadOnly
+	{
+		get => _sessionReadOnlyMode.IsReadOnly;
+		set
+		{
+			if (!SetProperty(
+				_sessionReadOnlyMode.IsReadOnly,
+				value,
+				_sessionReadOnlyMode,
+				static (mode, isReadOnly) => mode.IsReadOnly = isReadOnly))
+			{
+				return;
+			}
+
+			AddCommand.NotifyCanExecuteChanged();
+
+			DeleteCommand.NotifyCanExecuteChanged();
+
+			_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
+
+			_logger.LogDebug(
+				$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
+		}
+	}
 
 	/// <summary>
 	/// <c>True</c> when the right side sheet should be opened.
@@ -136,21 +157,6 @@ public sealed partial class EditorViewModel :
 		SeedSamplesCommand.NotifyCanExecuteChanged();
 
 		ShowFavoritesCommand.NotifyCanExecuteChanged();
-	}
-
-	/// <summary>
-	/// Called when <see cref="IsReadOnly" /> changes.
-	/// </summary>
-	partial void OnIsReadOnlyChanged(bool value)
-	{
-		AddCommand.NotifyCanExecuteChanged();
-
-		DeleteCommand.NotifyCanExecuteChanged();
-
-		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
-
-		_logger.LogDebug(
-			$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
 	}
 
 	/// <summary>
@@ -649,10 +655,11 @@ public sealed partial class EditorViewModel :
 
 		_copyHistory?.Dispose();
 
-		_viewLauncher.CreateFavoritesWindow(
-			Hierarchy,
-			_editingFiles?.State,
-			ExecutingFiles).Show();
+		_sessionEditorTabs.EditorTabs = _editingFiles?.State;
+
+		_viewLauncher
+			.CreateFavoritesWindow(ExecutingFiles)
+			.Show();
 
 		if (_editingFiles is null)
 		{
@@ -866,14 +873,14 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Handles loading event for rendering the file editor: opens the tabs of <see cref="ViewModelBase.EditorTabs" />.
+	/// Handles loading event for rendering the file editor: opens the tabs of <see cref="ISessionEditorTabs.EditorTabs" />.
 	/// </summary>
 	[RelayCommand]
 	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
 	{
 		_editingFiles = viewModel;
 
-		if (viewModel is null || EditorTabs is not { } tabs)
+		if (viewModel is null || _sessionEditorTabs.EditorTabs is not { } tabs)
 		{
 			return;
 		}
@@ -1049,7 +1056,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync());
 	}
 
 	/// <inheritdoc cref="ShowObject" />
@@ -1142,6 +1149,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISampleSeeder" />
 	private readonly ISampleSeeder _sampleSeeder;
 
+	/// <inheritdoc cref="ISessionReadOnlyMode" />
+	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
+
 	/// <inheritdoc cref="ShowSignal" />
 	private readonly Subject<ExplorerItemDtoBase> _showSignal = new();
 
@@ -1187,6 +1197,9 @@ public sealed partial class EditorViewModel :
 		INotificationService notification,
 		IProcessManager processManager,
 		ISampleSeeder sampleSeeder,
+		ISessionEditorTabs sessionEditorTabs,
+		ISessionHierarchy sessionHierarchy,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1201,6 +1214,8 @@ public sealed partial class EditorViewModel :
 			logger,
 			messenger,
 			notification,
+			sessionEditorTabs,
+			sessionHierarchy,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
@@ -1237,6 +1252,8 @@ public sealed partial class EditorViewModel :
 
 		_sampleSeeder = sampleSeeder;
 
+		_sessionReadOnlyMode = sessionReadOnlyMode;
+
 		_themeService = themeService;
 
 		// The expanded folders and the selected object of the tree are kept for the next start.
@@ -1249,18 +1266,12 @@ public sealed partial class EditorViewModel :
 			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsSelected, notifyOnInitialValue: false))
 			.Subscribe(x => SaveIsSelected(x.Sender))
 			.DisposeWith(_disposables);
+
+		UpdateHierarchySummary();
 	}
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		Hierarchy.AddRange(hierarchy);
-
-		UpdateHierarchySummary();
-	}
-
 	/// <inheritdoc />
 	public Task<bool> ConfirmUpdateAsync(
 		string text,
@@ -1488,7 +1499,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(token));
 	}
 
 	/// <summary>
@@ -1567,6 +1578,16 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="FileDto.IsOpened" />
 	private static bool IsOpened(FileDto dto) => dto.IsOpened();
+
+	/// <summary>
+	/// Adds objects to <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	private void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		Hierarchy.AddRange(hierarchy);
+
+		UpdateHierarchySummary();
+	}
 
 	/// <summary>
 	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,

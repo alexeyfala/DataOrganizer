@@ -17,6 +17,7 @@ using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Hotkeys;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
@@ -1058,7 +1059,8 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// <see cref="KeyboardInputHook.StartTrackingAsync" />: the hook is started and the given hierarchy is tracked.
+	/// <see cref="KeyboardInputHook.StartTrackingAsync" />: the hook is started and the tree of the work session is
+	/// tracked.
 	/// </summary>
 	[Test]
 	public async Task StartTrackingAsync_Starts_Hook()
@@ -1066,16 +1068,18 @@ internal class KeyboardInputHookTests
 		// Arrange
 		TestGlobalHook hook = new();
 
-		ExplorerItemDtoBase[] hierarchy = [ItemDtoFactory.CreateFileDto()];
+		WorkSession session = new();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(session)
+			.AsImplementedInterfaces());
 
 		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
 
 		// Act
-		await sut.StartTrackingAsync(hierarchy);
+		await sut.StartTrackingAsync();
 
 		// Assert
 		sut.IsRunning
@@ -1084,7 +1088,7 @@ internal class KeyboardInputHookTests
 
 		sut.Hierarchy
 			.Should()
-			.BeSameAs(hierarchy);
+			.BeSameAs(session.Hierarchy);
 	}
 
 	/// <summary>
