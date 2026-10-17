@@ -1069,13 +1069,18 @@ public sealed partial class EditorViewModel :
 
 		_logger.LogInformation("Show settings");
 
-		ShowSettingsResult result = await _dialogService
+		await _dialogService
 			.ShowSettingsAsync()
 			.ConfigureAwait(true);
 
-		await HandleSettingsChangedAsync(
-			result.IsSaved,
-			result.Settings).ConfigureAwait(false);
+		if (await _settingsCommit
+			.EndAsync()
+			.ConfigureAwait(true) is not { } saved)
+		{
+			return;
+		}
+
+		IsClipboardHistoryEnabled = saved.TrackClipboardHistory;
 	}
 	#endregion
 
@@ -1134,8 +1139,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ShowSignal" />
 	private readonly Subject<ExplorerItemDtoBase> _showSignal = new();
 
-	/// <inheritdoc cref="IAppThemeService" />
-	private readonly IAppThemeService _themeService;
+	/// <inheritdoc cref="ISettingsCommit" />
+	private readonly ISettingsCommit _settingsCommit;
 
 	/// <summary>
 	/// Number of operations showing the progress bar.
@@ -1150,7 +1155,6 @@ public sealed partial class EditorViewModel :
 	public EditorViewModel(
 		Application app,
 		IAppSettingsStore settingsStore,
-		IAppThemeService themeService,
 		IAutoLockService autoLock,
 		IBackgroundServiceControl backgroundServiceControl,
 		IClipboardLogSeeder clipboardLogSeeder,
@@ -1178,6 +1182,7 @@ public sealed partial class EditorViewModel :
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ISessionReadOnlyMode sessionReadOnlyMode,
+		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher) : base(
 			app,
@@ -1228,7 +1233,7 @@ public sealed partial class EditorViewModel :
 
 		_sessionReadOnlyMode = sessionReadOnlyMode;
 
-		_themeService = themeService;
+		_settingsCommit = settingsCommit;
 
 		// The expanded folders and the selected object of the tree are kept for the next start.
 		Hierarchy
@@ -1409,51 +1414,6 @@ public sealed partial class EditorViewModel :
 		}
 
 		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
-	}
-
-	/// <summary>
-	/// Handles changing application settings.
-	/// </summary>
-	internal async Task HandleSettingsChangedAsync(
-		bool isSave,
-		AppSettings settings,
-		CancellationToken token = default)
-	{
-		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
-		bool wasPersistingClipboard = _settingsStore
-			.Settings
-			.PersistClipboardHistory;
-
-		// Captured before overwrite so that only a changed delay restarts the countdown.
-		int previousAutoLockMinutes = _settingsStore
-			.Settings
-			.AutoLockMinutes;
-
-		if (isSave)
-		{
-			_settingsStore.Overwrite(settings);
-
-			_settingsStore.Save();
-		}
-		else
-		{
-			_themeService.ApplyFromSettings();
-		}
-
-		if (!isSave)
-		{
-			return;
-		}
-
-		IsClipboardHistoryEnabled = settings.TrackClipboardHistory;
-
-		await _backgroundServiceControl
-			.ApplySettingsAsync(
-				settings,
-				wasPersistingClipboard,
-				previousAutoLockMinutes,
-				token)
-			.ConfigureAwait(false);
 	}
 
 	/// <summary>

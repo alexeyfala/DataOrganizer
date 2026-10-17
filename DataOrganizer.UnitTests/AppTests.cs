@@ -10,6 +10,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
@@ -23,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests;
@@ -210,6 +212,35 @@ internal class AppTests
 			.Lifetime
 			.Should()
 			.Be(ServiceLifetime.Singleton);
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the settings view, the dialog and the editor share one settings session, so the
+	/// edits the view makes are the ones the editor saves.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task RegisterServices_Shares_One_Settings_Session()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		await using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		object[] roles =
+		[
+			provider.GetRequiredService<ISettingsCloseGuard>(),
+			provider.GetRequiredService<ISettingsCommit>(),
+			provider.GetRequiredService<ISettingsDraft>(),
+			provider.GetRequiredService<ISettingsDraft>()
+		];
+
+		// Assert
+		roles
+			.Should()
+			.AllSatisfy(x => x.Should().BeSameAs(roles[0]));
 	}
 
 	/// <summary>

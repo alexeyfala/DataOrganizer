@@ -29,7 +29,13 @@ internal class SettingsViewModelTests
 		// Arrange
 		const int minutes = 5;
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
@@ -62,6 +68,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -84,7 +95,13 @@ internal class SettingsViewModelTests
 		// Arrange
 		AppSettings settings = SettingsFactory.CreateSettings();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
@@ -108,9 +125,17 @@ internal class SettingsViewModelTests
 
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(themeService);
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Act
 		sut.PrimaryColor = primaryColor;
@@ -137,9 +162,17 @@ internal class SettingsViewModelTests
 
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(themeService);
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Act
 		sut.SecondaryColor = secondaryColor;
@@ -175,6 +208,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -197,9 +235,17 @@ internal class SettingsViewModelTests
 		// Arrange
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(themeService);
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		sut.IsThemeInherited = false;
 
@@ -254,6 +300,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -287,6 +338,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -320,6 +376,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		// Act
@@ -332,6 +393,40 @@ internal class SettingsViewModelTests
 			.Be(settings)
 			.And
 			.NotBeSameAs(settings);
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.DiscardAndClose" />: marks the settings as discarded and closes the dialog.
+	/// </summary>
+	[Test]
+	public void DiscardAndClose_Marks_The_Settings_Discarded_And_Closes_The_Dialog()
+	{
+		// Arrange
+		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogHostCloser);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.DiscardAndClose();
+
+		// Assert
+		sut.IsDiscarded
+			.Should()
+			.BeTrue();
+
+		dialogHostCloser
+			.Received(1)
+			.Close();
 	}
 
 	/// <summary>
@@ -367,6 +462,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -412,6 +512,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -458,7 +563,15 @@ internal class SettingsViewModelTests
 		// Arrange
 		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogHostCloser));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogHostCloser);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
@@ -493,6 +606,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -528,6 +646,11 @@ internal class SettingsViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -581,6 +704,11 @@ internal class SettingsViewModelTests
 			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance<ISettingsSessionState>(sessionState);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();

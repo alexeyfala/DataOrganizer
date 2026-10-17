@@ -14,9 +14,11 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
@@ -646,10 +648,15 @@ internal class DialogServiceTests
 			.Settings
 			.Returns(SettingsFactory.CreateSettings());
 
-		SettingsViewModel viewModel = new(
+		// The view model and the dialog service share one settings session, as they do in the application.
+		SettingsSession session = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
+			Substitute.For<IBackgroundServiceControl>());
+
+		SettingsViewModel viewModel = new(
 			Substitute.For<IDialogHostCloser>(),
+			session,
 			Substitute.For<ISettingsSessionState>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -665,6 +672,10 @@ internal class DialogServiceTests
 				.Returns(new SettingsView(viewModel));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterInstance(session)
+				.As<ISettingsCloseGuard>();
 		});
 
 		DialogService sut = mock.Create<DialogService>();
@@ -680,7 +691,7 @@ internal class DialogServiceTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Task<ShowSettingsResult> showTask = sut.ShowSettingsAsync();
+		Task showTask = sut.ShowSettingsAsync();
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -711,12 +722,12 @@ internal class DialogServiceTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		ShowSettingsResult result = await showTask;
+		await showTask;
 
 		// Closed before the assertion, otherwise the host leaks into the following tests.
 		window.Close();
 
-		result.IsSaved
+		viewModel.IsSaved
 			.Should()
 			.BeFalse();
 	}

@@ -35,6 +35,7 @@ using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
@@ -1791,385 +1792,6 @@ internal class EditorViewModelTests
 				.Should()
 				.BeFalse();
 		}
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a changed auto-lock delay restarts the countdown at once.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Applies_A_Changed_Auto_Lock_Delay()
-	{
-		// Arrange
-		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
-
-		AppSettings saved = SettingsFactory.CreateSettings();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(saved);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(autoLock);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut
-			.Hierarchy
-			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
-
-		AppSettings changed = SettingsFactory.CreateSettings();
-
-		changed.AutoLockMinutes = 5;
-
-		// Act
-		await sut.HandleSettingsChangedAsync(true, changed);
-
-		// Assert
-		autoLock
-			.Received(1)
-			.Arm();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a saved setting that turns the clipboard history on makes
-	/// it available in the window.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Enables_The_Clipboard_History_Turned_On()
-	{
-		// Arrange
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.TrackClipboardHistory = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings());
-
-			builder.RegisterInstance(settingsStore);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleSettingsChangedAsync(isSave: true, settings);
-
-		// Assert
-		sut.IsClipboardHistoryEnabled
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
-	{
-		// Arrange
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-		IAppThemeService themeService = Substitute.For<IAppThemeService>();
-
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		AppSettings settings = SettingsFactory.CreateSettings(trackHotkeys: true);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			hook
-				.IsRunning
-				.Returns(true);
-
-			settingsStore
-				.Settings
-				.Returns(settings);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(themeService);
-
-			// The hook is a lazy singleton that an earlier window has already used.
-			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
-
-			_ = lazyHook.Value;
-
-			builder.RegisterInstance(lazyHook);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleSettingsChangedAsync(isSave, settings);
-
-		// Assert
-		if (isSave)
-		{
-			await hook
-				.Received(1)
-				.StopTrackingAsync();
-
-			await hook
-				.Received(1)
-				.StartTrackingAsync();
-
-			settingsStore
-				.Received(1)
-				.Overwrite(Arg.Any<AppSettings>());
-
-			settingsStore
-				.Received(1)
-				.Save();
-		}
-		else
-		{
-			themeService
-				.Received()
-				.ApplyFromSettings();
-
-		}
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: an unchanged auto-lock delay leaves the countdown running.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Keeps_An_Unchanged_Auto_Lock_Delay()
-	{
-		// Arrange
-		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
-
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.AutoLockMinutes = 5;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(settings);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(autoLock);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut
-			.Hierarchy
-			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
-
-		// Act
-		await sut.HandleSettingsChangedAsync(true, settings);
-
-		// Assert
-		autoLock
-			.DidNotReceive()
-			.Arm();
-
-		autoLock
-			.DidNotReceive()
-			.Stop();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a saved setting that turns the clipboard history on starts
-	/// it.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Starts_The_Clipboard_History_Turned_On()
-	{
-		// Arrange
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.TrackClipboardHistory = true;
-
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings());
-
-			builder.RegisterInstance(clipboardLog);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleSettingsChangedAsync(isSave: true, settings);
-
-		// Assert
-		await clipboardLog
-			.Received(1)
-			.StartAsync(Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a saved setting that turns the saving of the clipboard
-	/// history off stops the saving.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Stops_Saving_The_Clipboard_History_Turned_Off()
-	{
-		// Arrange
-		AppSettings settings = SettingsFactory.CreateSettings();
-
-		settings.TrackClipboardHistory = true;
-
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			AppSettings previous = SettingsFactory.CreateSettings();
-
-			previous.PersistClipboardHistory = true;
-
-			previous.TrackClipboardHistory = true;
-
-			settingsStore
-				.Settings
-				.Returns(previous);
-
-			builder.RegisterInstance(clipboardLogPersistence);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleSettingsChangedAsync(isSave: true, settings);
-
-		// Assert
-		clipboardLogPersistence
-			.Received(1)
-			.DisablePersistence();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a saved setting that turns the clipboard history off stops
-	/// it and drops its entries.
-	/// </summary>
-	[Test]
-	public async Task HandleSettingsChangedAsync_Stops_The_Clipboard_History_Turned_Off()
-	{
-		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			AppSettings previous = SettingsFactory.CreateSettings();
-
-			previous.TrackClipboardHistory = true;
-
-			clipboardLog
-				.IsRunning
-				.Returns(true);
-
-			settingsStore
-				.Settings
-				.Returns(previous);
-
-			builder.RegisterInstance(clipboardLog);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleSettingsChangedAsync(isSave: true, SettingsFactory.CreateSettings());
-
-		// Assert
-		clipboardLog
-			.Received(1)
-			.Stop();
-
-		await clipboardLog
-			.Received(1)
-			.ClearEntriesAsync();
 	}
 
 	/// <summary>
@@ -4387,6 +4009,173 @@ internal class EditorViewModelTests
 			.Should()
 			.Equal(true);
 	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowSettingsCommand" />: saved settings that turn the clipboard history on make it
+	/// available in the window.
+	/// </summary>
+	[Test]
+	public async Task ShowSettingsCommand_Enables_The_Clipboard_History_Turned_On()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The dialog is not shown here, so the session it would hold is edited by hand.
+		ISettingsDraft draft = mock.Create<ISettingsDraft>();
+
+		draft.Begin().TrackClipboardHistory = true;
+
+		draft.Save();
+
+		// Act
+		await sut
+			.ShowSettingsCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		sut.IsClipboardHistoryEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowSettingsCommand" />: settings closed without saving roll the previewed theme back
+	/// and write nothing.
+	/// </summary>
+	[Test]
+	public async Task ShowSettingsCommand_Rolls_The_Theme_Back_When_Not_Saved()
+	{
+		// Arrange
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(themeService);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The dialog is not shown here, so the session it would hold is started by hand.
+		mock
+			.Create<ISettingsDraft>()
+			.Begin();
+
+		// Act
+		await sut
+			.ShowSettingsCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		themeService
+			.Received(1)
+			.ApplyFromSettings();
+
+		settingsStore
+			.DidNotReceive()
+			.Save();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowSettingsCommand" />: saved settings are written to the store.
+	/// </summary>
+	[Test]
+	public async Task ShowSettingsCommand_Writes_The_Saved_Settings()
+	{
+		// Arrange
+		AppSettings settings = SettingsFactory.CreateSettings(trackHotkeys: true);
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SettingsSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The dialog is not shown here, so the session it would hold is edited by hand.
+		ISettingsDraft draft = mock.Create<ISettingsDraft>();
+
+		draft.Begin().TrackHotkeys = true;
+
+		draft.Save();
+
+		// Act
+		await sut
+			.ShowSettingsCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		settingsStore
+			.Received(1)
+			.Overwrite(settings);
+
+		settingsStore
+			.Received(1)
+			.Save();
+	}
+
 	#endregion
 
 	#region Helpers

@@ -1,9 +1,7 @@
-using Baksteen.Extensions.DeepCopy;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Settings;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using System;
@@ -62,15 +60,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial bool IsDarkTheme { get; set; }
 
-	/// <summary>
-	/// <c>True</c> when the current settings differ from the saved ones.
-	/// </summary>
-	public bool IsDirty => !Equals(CurrentSettings, _settingsStore.Settings);
+	/// <inheritdoc cref="ISettingsDraft.IsDirty" />
+	public bool IsDirty => _settingsDraft.IsDirty;
 
-	/// <summary>
-	/// <c>True</c> when the user has chosen to close the view without saving.
-	/// </summary>
-	public bool IsDiscarded { get; private set; }
+	/// <inheritdoc cref="ISettingsDraft.IsDiscarded" />
+	public bool IsDiscarded => _settingsDraft.IsDiscarded;
 
 	/// <summary>
 	/// Specifies that the <see cref="ThemeMode.Light" /> theme is used.
@@ -78,10 +72,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial bool IsLightTheme { get; set; }
 
-	/// <summary>
-	/// <c>True</c> when the user has saved the settings.
-	/// </summary>
-	public bool IsSaved { get; private set; }
+	/// <inheritdoc cref="ISettingsDraft.IsSaved" />
+	public bool IsSaved => _settingsDraft.IsSaved;
 
 	/// <summary>
 	/// Specifies that the <see cref="ThemeMode.Inherit" /> theme is used.
@@ -161,7 +153,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetTheme(
+		_settingsDraft.PreviewTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -183,7 +175,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetTheme(
+		_settingsDraft.PreviewTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -205,7 +197,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetTheme(
+		_settingsDraft.PreviewTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -245,7 +237,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetTheme(
+		_settingsDraft.PreviewTheme(
 			CurrentSettings.Theme,
 			value,
 			SecondaryColor);
@@ -260,7 +252,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetTheme(
+		_settingsDraft.PreviewTheme(
 			CurrentSettings.Theme,
 			PrimaryColor,
 			value);
@@ -309,7 +301,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[RelayCommand]
 	internal void DiscardAndClose()
 	{
-		IsDiscarded = true;
+		_settingsDraft.Discard();
 
 		IsConfirmingClose = false;
 
@@ -362,7 +354,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[RelayCommand(CanExecute = nameof(CanSaveAndClose))]
 	internal void SaveAndClose()
 	{
-		IsSaved = true;
+		_settingsDraft.Save();
 
 		IsConfirmingClose = false;
 
@@ -383,31 +375,25 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <inheritdoc cref="ISettingsSessionState" />
 	private readonly ISettingsSessionState _sessionState;
 
-	/// <inheritdoc cref="IAppSettingsStore" />
-	private readonly IAppSettingsStore _settingsStore;
-
-	/// <inheritdoc cref="IAppThemeService" />
-	private readonly IAppThemeService _themeService;
+	/// <inheritdoc cref="ISettingsDraft" />
+	private readonly ISettingsDraft _settingsDraft;
 	#endregion
 
 	#region Constructors
 	public SettingsViewModel(
-		IAppSettingsStore settingsStore,
-		IAppThemeService themeService,
 		IDialogHostCloser dialogHostCloser,
+		ISettingsDraft settingsDraft,
 		ISettingsSessionState sessionState)
 	{
 		_dialogHostCloser = dialogHostCloser;
 
 		_sessionState = sessionState;
 
-		_settingsStore = settingsStore;
-
-		_themeService = themeService;
+		_settingsDraft = settingsDraft;
 
 		SelectedCategoryIndex = sessionState.LastCategoryIndex;
 
-		CurrentSettings = settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
+		CurrentSettings = settingsDraft.Begin();
 
 		CheckForUpdates = CurrentSettings.CheckForUpdates;
 

@@ -56,6 +56,6 @@ public interface IDialogService :
 	/// <summary>
 	/// Shows application settings.
 	/// </summary>
-	Task<ShowSettingsResult> ShowSettingsAsync();
+	Task ShowSettingsAsync();
 	#endregion
 }
