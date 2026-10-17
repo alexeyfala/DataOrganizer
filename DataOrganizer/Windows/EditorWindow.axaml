@@ -66,13 +66,12 @@
 					chrome:WindowDecorationProperties.ElementRole="User"
 					Classes="CaptionButtonStyle primary"
 					Command="{Binding ShowNotepadCommand}"
-					CommandParameter="{Binding $parent[Window]}"
-					Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,
+										Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,
 					                                        IconSize={StaticResource CaptionIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.Notepad}">
 					<Interaction.Behaviors>
 						<DoubleTappedTrigger MarkAsHandled="True">
-							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" CommandParameter="{Binding $parent[Window]}" />
+							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" />
 						</DoubleTappedTrigger>
 					</Interaction.Behaviors>
 				</Button>
@@ -118,7 +117,7 @@
 									</Style>
 								</Menu.Styles>
 
-								<MenuItem Command="{Binding ShowFavoritesCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem Command="{Binding ShowFavoritesCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -293,8 +292,7 @@
 								<Button
 									Classes="primary"
 									Command="{Binding ShowCustomClipboardCommand}"
-									CommandParameter="{Binding $parent[Window]}"
-									IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
+																		IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
 									Theme="{StaticResource CustomClipboardButtonTheme}" />
 
 								<Panel Classes="VerticalSeparatorPanelStyle" IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}" />

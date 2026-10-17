@@ -1,15 +1,19 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,15 +33,27 @@ internal class HotkeyContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		List<string> steps = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowFavoritesMessage>(this, (_, _) => steps.Add("favorites"));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
+
+			mainWindowActivator
+				.When(x => x.ActivateMainWindow())
+				.Do(_ => steps.Add("activate"));
+
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(mainWindowLauncher);
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder.RegisterInstance(messenger);
 		});
 
 		HotkeyContentCopier sut = mock.Create<HotkeyContentCopier>();
@@ -46,12 +62,9 @@ internal class HotkeyContentCopierTests
 		await sut.CopyAsync(file);
 
 		// Assert
-		Received.InOrder(() =>
-		{
-			mainWindowLauncher.ActivateMainWindow();
-
-			mainWindowLauncher.ShowFavorites();
-		});
+		steps
+			.Should()
+			.Equal("activate", "favorites");
 	}
 
 	/// <summary>
@@ -106,7 +119,7 @@ internal class HotkeyContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -114,7 +127,7 @@ internal class HotkeyContentCopierTests
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(mainWindowLauncher);
+			builder.RegisterInstance(mainWindowActivator);
 		});
 
 		HotkeyContentCopier sut = mock.Create<HotkeyContentCopier>();
@@ -123,7 +136,7 @@ internal class HotkeyContentCopierTests
 		await sut.CopyAsync(file);
 
 		// Assert
-		mainWindowLauncher
+		mainWindowActivator
 			.DidNotReceive()
 			.ActivateMainWindow();
 	}

@@ -6,12 +6,10 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Runtime;
-using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Serilog;
@@ -26,7 +24,7 @@ namespace DataOrganizer.Services.Views;
 /// <summary>
 /// Creates, shows and closes the windows of the application and saves their settings.
 /// </summary>
-public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWindowLauncher
+public class ViewLauncher : IMainWindowActivator, IMainWindowLauncher, INoticeLauncher, ISecondaryWindowLauncher
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
@@ -37,9 +35,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 	/// <inheritdoc cref="ICopyHistoryStore" />
 	private readonly ICopyHistoryStore _copyHistory;
-
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -64,7 +59,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		ICopyHistoryStore copyHistory,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		IWindowFinder windowFinder,
 		IWindowSettingsStore windowSettings)
@@ -74,8 +68,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		_clipboardHistoryUnlocker = clipboardHistoryUnlocker;
 
 		_copyHistory = copyHistory;
-
-		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -127,7 +119,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		SaveEditorSettings(window);
 
-		ExitUnlessSwitching(window.ViewModel);
+		ExitUnlessSwitching(window);
 	}
 
 	/// <summary>
@@ -152,7 +144,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		SaveFavoritesSettings(window);
 
-		ExitUnlessSwitching(window.ViewModel);
+		ExitUnlessSwitching(window);
 	}
 
 	/// <summary>
@@ -190,9 +182,9 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public void CenterMainWindow(Window owner)
+	public void CenterMainWindow()
 	{
-		if (_windowFinder.FindMainWindow() is not { } window)
+		if (_windowFinder.FindMainWindow() is not { } window || _windowFinder.FindWindow<NotepadWindow>() is not { } owner)
 		{
 			return;
 		}
@@ -201,9 +193,9 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public void CenterNotepadWindow(Window owner)
+	public void CenterNotepadWindow()
 	{
-		if (_windowFinder.FindWindow<NotepadWindow>() is not { } window)
+		if (_windowFinder.FindWindow<NotepadWindow>() is not { } window || _windowFinder.FindMainWindow() is not { } owner)
 		{
 			return;
 		}
@@ -233,8 +225,10 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		}
 	}
 
-	/// <inheritdoc />
-	public EditorWindow CreateEditorWindow(in Guid showObjectId = default)
+	/// <summary>
+	/// Configures <see cref="EditorWindow" />.
+	/// </summary>
+	internal EditorWindow CreateEditorWindow(in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
 
@@ -255,7 +249,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		if (showObjectId.IsNotDefault())
 		{
-			_exceptionHandler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
+			viewModel.ShowObject(showObjectId);
 		}
 
 		if (_windowSettings.Read<EditorWindowSettings>() is { } windowSettings)
@@ -286,8 +280,10 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		return window;
 	}
 
-	/// <inheritdoc />
-	public FavoritesWindow CreateFavoritesWindow()
+	/// <summary>
+	/// Configures <see cref="FavoritesWindow" />.
+	/// </summary>
+	internal FavoritesWindow CreateFavoritesWindow()
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
@@ -316,8 +312,13 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public async Task ShowClipboardLogWindowAsync(Window owner)
+	public async Task ShowClipboardLogWindowAsync()
 	{
+		if (_windowFinder.FindMainWindow() is not { } owner)
+		{
+			return;
+		}
+
 		if (_windowFinder.FindWindow<ClipboardLogWindow>() is { } existing)
 		{
 			WindowPlacementHelper.PositionAtScreenBottomRight(existing, owner);
@@ -335,28 +336,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public void ShowFavorites()
-	{
-		if (_windowFinder.FindMainWindow()?.DataContext is not FavoritesViewModel favorites)
-		{
-			return;
-		}
-
-		favorites.ShowFavorites();
-	}
-
-	/// <inheritdoc />
-	public void ShowInEditor(Guid id)
-	{
-		if (_windowFinder.FindMainWindow() is not { DataContext: ViewModelBase viewModel } window)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(viewModel.ShowInEditorAsync(id, window));
-	}
-
-	/// <inheritdoc />
 	public void ShowMainWindow()
 	{
 		Window window = _windowSettings.Read<WindowKind>() switch
@@ -370,12 +349,17 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public void ShowNotepadWindow(Window owner)
+	public void ShowNotepadWindow()
 	{
 		if (_windowFinder.FindWindow<NotepadWindow>() is { } existing)
 		{
 			existing.RestoreAndActivate();
 
+			return;
+		}
+
+		if (_windowFinder.FindMainWindow() is not { } owner)
+		{
 			return;
 		}
 
@@ -399,6 +383,22 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		{
 			_logger.LogException(ex);
 		}
+	}
+
+	/// <inheritdoc />
+	public void SwitchToEditor(Guid showObjectId = default)
+	{
+		CloseMainWindowToSwitch();
+
+		CreateEditorWindow(showObjectId).Show();
+	}
+
+	/// <inheritdoc />
+	public void SwitchToFavorites()
+	{
+		CloseMainWindowToSwitch();
+
+		CreateFavoritesWindow().Show();
 	}
 	#endregion
 
@@ -432,6 +432,20 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		return window;
 	}
 
+	/// <summary>
+	/// Closes the main window to give way to the other one; such a close asks for no exit.
+	/// </summary>
+	private void CloseMainWindowToSwitch()
+	{
+		if (_windowFinder.FindMainWindow() is not IMainWindow window)
+		{
+			return;
+		}
+
+		window.IsClosingToSwitch = true;
+
+		window.Close();
+	}
 	/// <summary>
 	/// Configures <see cref="NotepadWindow" />.
 	/// </summary>
@@ -467,9 +481,9 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <summary>
 	/// Asks for the exit of the application when a main window closes for any reason but a switch to the other one.
 	/// </summary>
-	private void ExitUnlessSwitching(ViewModelBase viewModel)
+	private void ExitUnlessSwitching(IMainWindow window)
 	{
-		if (viewModel.IsSwitchingWindow)
+		if (window.IsClosingToSwitch)
 		{
 			return;
 		}

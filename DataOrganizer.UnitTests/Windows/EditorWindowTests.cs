@@ -5,6 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -28,6 +30,7 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Entities.Enums;
+using Material.Styles.Controls;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
@@ -43,6 +46,65 @@ namespace DataOrganizer.UnitTests.Windows;
 internal class EditorWindowTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowFavoritesCommand" />: the item of the side menu switches to the favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Favorites_Menu_Item_Switches_To_The_Favorites()
+	{
+		// Arrange
+		FileDto favorite = ItemDtoFactory.CreateFileDto();
+
+		favorite.IsFavorite = true;
+
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(favorite);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		// The menu is in the side drawer, which the user opens first.
+		viewModel.IsLeftDrawerOpened = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		NavigationDrawer drawer = sut
+			.GetLogicalDescendants()
+			.OfType<NavigationDrawer>()
+			.Single();
+
+		MenuItem item = ((Panel)drawer.LeftDrawerContent!).Children
+			.OfType<Menu>()
+			.Single()
+			.Items
+			.OfType<MenuItem>()
+			.Single(x => x.Command == viewModel.ShowFavoritesCommand);
+
+		// Act
+		item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+		sut.Close();
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.SwitchToFavorites();
+	}
+
 	/// <summary>
 	/// <see cref="ViewModelBase.ShowNotepadCommand" />: a click on the notepad button of the title bar opens the notepad
 	/// for the window.
@@ -77,7 +139,7 @@ internal class EditorWindowTests
 		// Assert
 		secondaryWindowLauncher
 			.Received(1)
-			.ShowNotepadWindow(sut);
+			.ShowNotepadWindow();
 	}
 
 	/// <summary>
@@ -340,7 +402,7 @@ internal class EditorWindowTests
 		// Assert
 		secondaryWindowLauncher
 			.Received(1)
-			.CenterNotepadWindow(sut);
+			.CenterNotepadWindow();
 	}
 
 	/// <summary>
@@ -746,10 +808,10 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowInEditorAsync" />: an object far down the tree is brought into view.
+	/// <see cref="EditorViewModel.ShowObject" />: an object far down the tree is brought into view.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Brings_The_Object_Into_View()
+	public async Task ShowObject_Brings_The_Object_Into_View()
 	{
 		// Arrange
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(100)];
@@ -777,7 +839,7 @@ internal class EditorWindowTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		_ = viewModel.ShowInEditorAsync(shown.Id, sut);
+		viewModel.ShowObject(shown.Id);
 
 		await RunJobsUntilAsync(() => viewModel.SelectedObject == shown);
 
@@ -797,11 +859,11 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowInEditorAsync" />: an object inside nested folders is highlighted in its own place
+	/// <see cref="EditorViewModel.ShowObject" />: an object inside nested folders is highlighted in its own place
 	/// of the tree.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Highlights_An_Object_Inside_Nested_Folders()
+	public async Task ShowObject_Highlights_An_Object_Inside_Nested_Folders()
 	{
 		// Arrange
 		FolderDto outer = ItemDtoFactory.CreateFolderDto();
@@ -843,7 +905,7 @@ internal class EditorWindowTests
 		IBrush? background = item.Background;
 
 		// Act
-		_ = viewModel.ShowInEditorAsync(file.Id, sut);
+		viewModel.ShowObject(file.Id);
 
 		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
@@ -858,10 +920,10 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowInEditorAsync" />: the shown object is highlighted in the tree.
+	/// <see cref="EditorViewModel.ShowObject" />: the shown object is highlighted in the tree.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Highlights_The_Object_In_The_Tree()
+	public async Task ShowObject_Highlights_The_Object_In_The_Tree()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -886,7 +948,7 @@ internal class EditorWindowTests
 		IBrush? background = item.Background;
 
 		// Act
-		_ = viewModel.ShowInEditorAsync(file.Id, sut);
+		viewModel.ShowObject(file.Id);
 
 		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 

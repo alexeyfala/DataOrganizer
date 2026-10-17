@@ -32,7 +32,6 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Updates;
-using DataOrganizer.Windows;
 using DynamicData.Binding;
 using Entities.Enums;
 using Entities.Models;
@@ -560,19 +559,13 @@ public sealed partial class EditorViewModel :
 	/// Displays the "Favorites" window.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
-	internal void ShowFavorites(EditorWindow? window)
+	internal void ShowFavorites()
 	{
-		IsSwitchingWindow = true;
-
-		window?.Close();
-
 		CloseCopyHistoryList();
 
 		_sessionEditorTabs.EditorTabs = EditingFiles.State;
 
-		_mainWindowLauncher
-			.CreateFavoritesWindow()
-			.Show();
+		_mainWindowLauncher.SwitchToFavorites();
 
 		Hierarchy
 			.GetFilesBy(x => x.IsEditing)
@@ -1239,18 +1232,22 @@ public sealed partial class EditorViewModel :
 		SelectedObject = selected;
 	}
 
-	/// <inheritdoc />
-	/// <remarks>
-	/// The editor shows the object in its own tree, whichever window asks.
-	/// </remarks>
-	public override Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken token = default)
+	/// <summary>
+	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
+	/// </summary>
+	internal void ShowObject(Guid id)
 	{
-		ShowObject(id);
+		if (Hierarchy.FindById(id) is not { } found)
+		{
+			return;
+		}
 
-		return Task.CompletedTask;
+		foreach (FolderDto parent in found.GetAllParents())
+		{
+			parent.IsExpanded = true;
+		}
+
+		_showSignal.OnNext(found);
 	}
 
 	/// <summary>
@@ -1641,24 +1638,6 @@ public sealed partial class EditorViewModel :
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		return true;
-	}
-
-	/// <summary>
-	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
-	/// </summary>
-	private void ShowObject(Guid id)
-	{
-		if (Hierarchy.FindById(id) is not { } found)
-		{
-			return;
-		}
-
-		foreach (FolderDto parent in found.GetAllParents())
-		{
-			parent.IsExpanded = true;
-		}
-
-		_showSignal.OnNext(found);
 	}
 
 	/// <summary>

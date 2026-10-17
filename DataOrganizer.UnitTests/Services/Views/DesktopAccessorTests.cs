@@ -7,9 +7,8 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Views;
-using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;
 using NSubstitute;
 using Shared.Extensions;
@@ -109,21 +108,13 @@ internal class DesktopAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="DesktopAccessor.FindMainWindow" />: finds the window of a main view model among the other windows.
+	/// <see cref="DesktopAccessor.FindMainWindow" />: finds the main window among the other windows.
 	/// </summary>
 	[AvaloniaTest]
-	public void FindMainWindow_Finds_The_Window_Of_A_Main_View_Model()
+	public void FindMainWindow_Finds_The_Main_Window_Among_The_Others()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		Window mainWindow = new()
-		{
-			DataContext = windowMock.Create<FavoritesViewModel>()
-		};
+		TestMainWindow mainWindow = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

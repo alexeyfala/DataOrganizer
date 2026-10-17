@@ -24,7 +24,9 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Dialogs;
@@ -36,7 +38,6 @@ using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
-using DataOrganizer.Windows;
 using DialogHostAvalonia;
 using NSubstitute;
 using Serilog;
@@ -823,6 +824,77 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.Receive(ShowFavoritesMessage)" />: the favorites open in the popup.
+	/// </summary>
+	[AvaloniaTest]
+	public void Receive_ShowFavorites_Opens_The_Favorites()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		messenger.Send(new ShowFavoritesMessage());
+
+		// Assert
+		sut.PopupContent
+			.Should()
+			.Be(FavoritesPopupContentKind.Favorites);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.Receive(ShowInEditorMessage)" />: the window gives way to an editor that shows the
+	/// object.
+	/// </summary>
+	[Test]
+	public void Receive_ShowInEditor_Switches_To_An_Editor_With_The_Object()
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		_ = mock.Create<FavoritesViewModel>();
+
+		// Act
+		messenger.Send(new ShowInEditorMessage(id));
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.SwitchToEditor(id);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.SaveContent" />: a second save keeps the stored order of the categories, since the
 	/// favorites stay alive while the popup shows them.
 	/// </summary>
@@ -872,14 +944,12 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.ShowCustomClipboardCommand" />: the clipboard history opens for the window.
+	/// <see cref="ViewModelBase.ShowCustomClipboardCommand" />: the clipboard history opens.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowCustomClipboardCommand_Shows_The_Clipboard_History_For_The_Window()
+	public async Task ShowCustomClipboardCommand_Shows_The_Clipboard_History()
 	{
 		// Arrange
-		Window owner = new();
-
 		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -897,12 +967,44 @@ internal class FavoritesViewModelTests
 		// Act
 		await sut
 			.ShowCustomClipboardCommand
-			.ExecuteAsync(owner);
+			.ExecuteAsync(null);
 
 		// Assert
 		await secondaryWindowLauncher
 			.Received(1)
-			.ShowClipboardLogWindowAsync(owner);
+			.ShowClipboardLogWindowAsync();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowEditorCommand" />: the window gives way to the editor.
+	/// </summary>
+	[Test]
+	public void ShowEditorCommand_Switches_To_The_Editor()
+	{
+		// Arrange
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		sut
+			.ShowEditorCommand
+			.Execute(null);
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.SwitchToEditor(default);
 	}
 
 	/// <summary>
@@ -995,52 +1097,6 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings.Categories
 			.Should()
 			.Equal(categories);
-	}
-
-	/// <summary>
-	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: configures and shows the editor window.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Shows_Editor_Window()
-	{
-		// Arrange
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-		EditorWindow? editorWindow = null;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			editorWindow = windowMock.Create<EditorWindow>();
-
-			mainWindowLauncher
-				.CreateEditorWindow()
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		// Act
-		await sut.ShowInEditorAsync(default, new());
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		editorWindow?.Close();
-
-		// Assert
-		mainWindowLauncher
-			.Received(1)
-			.CreateEditorWindow();
 	}
 
 	/// <summary>

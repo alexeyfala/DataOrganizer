@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
 using System;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ public abstract partial class FileListViewModelBase : ObservableDisposableBase
 	/// Displays object in "Editor".
 	/// </summary>
 	[RelayCommand]
-	private void ShowInEditor(Guid id) => _mainWindowLauncher.ShowInEditor(id);
+	private void ShowInEditor(Guid id) => _messenger.Send(new ShowInEditorMessage(id));
 	#endregion
 
 	#region Data
@@ -52,21 +53,21 @@ public abstract partial class FileListViewModelBase : ObservableDisposableBase
 	/// </summary>
 	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
 
-	/// <inheritdoc cref="IMainWindowLauncher" />
-	private readonly IMainWindowLauncher _mainWindowLauncher;
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
 	protected FileListViewModelBase(
 		IContentCopier contentCopier,
-		IMainWindowLauncher mainWindowLauncher,
+		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_contentCopier = contentCopier;
 
 		_exceptionHandler = exceptionHandler;
 
-		_mainWindowLauncher = mainWindowLauncher;
+		_messenger = messenger;
 	}
 	#endregion
 

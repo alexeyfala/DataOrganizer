@@ -49,7 +49,7 @@
 					ToolTip.Tip="{x:Static prop:Strings.MainWindow}">
 					<Interaction.Behaviors>
 						<DoubleTappedTrigger MarkAsHandled="True">
-							<InvokeCommandAction Command="{Binding CenterMainWindowCommand}" CommandParameter="{Binding $parent[Window]}" />
+							<InvokeCommandAction Command="{Binding CenterMainWindowCommand}" />
 						</DoubleTappedTrigger>
 					</Interaction.Behaviors>
 				</Button>

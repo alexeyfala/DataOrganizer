@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-using DataOrganizer.Windows;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Views;
@@ -11,9 +9,9 @@ public interface ISecondaryWindowLauncher
 {
 	#region Methods
 	/// <summary>
-	/// Brings the open <see cref="NotepadWindow" /> to the center of the screen of <paramref name="owner" />.
+	/// Brings the open notepad to the center of the screen of the main window.
 	/// </summary>
-	void CenterNotepadWindow(Window owner);
+	void CenterNotepadWindow();
 
 	/// <summary>
 	/// Closes the console and the notepad, and waits for a console that is still saving its log.
@@ -21,14 +19,14 @@ public interface ISecondaryWindowLauncher
 	Task CloseSecondaryWindowsAsync();
 
 	/// <summary>
-	/// Prompts to unlock the persisted clipboard history when required, then opens
-	/// <see cref="ClipboardLogWindow" />.
+	/// Prompts to unlock the persisted clipboard history when required, then opens the window of the clipboard history
+	/// on the screen of the main window.
 	/// </summary>
-	Task ShowClipboardLogWindowAsync(Window owner);
+	Task ShowClipboardLogWindowAsync();
 
 	/// <summary>
-	/// Activates the open <see cref="NotepadWindow" /> or opens a new one.
+	/// Activates the open notepad or opens a new one on the screen of the main window.
 	/// </summary>
-	void ShowNotepadWindow(Window owner);
+	void ShowNotepadWindow();
 	#endregion
 }

@@ -1,11 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -239,7 +240,7 @@ internal class SelectedFavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.ShowInEditorCommand" />: the object is shown in the editor of the main window.
+	/// <see cref="FileListViewModelBase.ShowInEditorCommand" />: the object is shown in the editor, whichever main window shows.
 	/// </summary>
 	[Test]
 	public void ShowInEditorCommand_Shows_The_Object_In_The_Editor()
@@ -247,9 +248,13 @@ internal class SelectedFavoritesViewModelTests
 		// Arrange
 		Guid id = Guid.NewGuid();
 
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		List<Guid> shown = [];
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowLauncher));
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowInEditorMessage>(this, (_, message) => shown.Add(message.Id));
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(messenger));
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
 
@@ -259,9 +264,9 @@ internal class SelectedFavoritesViewModelTests
 			.Execute(id);
 
 		// Assert
-		mainWindowLauncher
-			.Received(1)
-			.ShowInEditor(id);
+		shown
+			.Should()
+			.Equal(id);
 	}
 
 	/// <summary>

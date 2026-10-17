@@ -250,9 +250,9 @@ internal class NotepadWindowTests
 	public void Click_On_The_Home_Button_Activates_The_Main_Window()
 	{
 		// Arrange
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowActivator));
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -266,7 +266,7 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		mainWindowLauncher
+		mainWindowActivator
 			.Received(1)
 			.ActivateMainWindow();
 	}
@@ -464,9 +464,9 @@ internal class NotepadWindowTests
 	public void DoubleClick_On_The_Home_Button_Centers_The_Main_Window()
 	{
 		// Arrange
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowActivator));
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -482,9 +482,9 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		mainWindowLauncher
+		mainWindowActivator
 			.Received(1)
-			.CenterMainWindow(sut);
+			.CenterMainWindow();
 	}
 
 	/// <summary>

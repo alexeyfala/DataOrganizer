@@ -4665,25 +4665,8 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		FavoritesWindow? favoritesWindow = null;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			favoritesWindow = windowMock.Create<FavoritesWindow>();
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
 			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
@@ -4697,10 +4680,7 @@ internal class EditorViewModelTests
 		sut.EditingFiles.OpenInEditor(file);
 
 		// Act
-		sut.ShowFavorites(null);
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		favoritesWindow?.Close();
+		sut.ShowFavorites();
 
 		// Assert
 		sut.EditingFiles.Items
@@ -4716,25 +4696,8 @@ internal class EditorViewModelTests
 	public void ShowFavorites_Disposes_The_Shown_Copy_History_List()
 	{
 		// Arrange
-		FavoritesWindow? favoritesWindow = null;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			favoritesWindow = windowMock.Create<FavoritesWindow>();
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
 			builder
 				.RegisterType<CopyHistory>()
 				.AsSelf()
@@ -4760,10 +4723,7 @@ internal class EditorViewModelTests
 		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
 		// Act
-		sut.ShowFavorites(null);
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		favoritesWindow?.Close();
+		sut.ShowFavorites();
 
 		// Assert
 		copyHistoryList.IsDisposed
@@ -4783,25 +4743,8 @@ internal class EditorViewModelTests
 
 		WorkSession session = new();
 
-		FavoritesWindow? favoritesWindow = null;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			favoritesWindow = windowMock.Create<FavoritesWindow>();
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
@@ -4811,19 +4754,16 @@ internal class EditorViewModelTests
 
 		EditingFilesViewModel editingFiles = sut.EditingFiles;
 
-		editingFiles
-			.Items
-			.AddRange(files);
+		sut.Hierarchy.AddRange(files);
+
+		files.ForEach(editingFiles.OpenInEditor);
 
 		editingFiles.SelectedIndex = 1;
 
 		editingFiles.PreviousFile = files[2];
 
 		// Act
-		sut.ShowFavorites(null);
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		favoritesWindow?.Close();
+		sut.ShowFavorites();
 
 		// Assert
 		EditorTabsState? kept = session.EditorTabs;
@@ -4842,29 +4782,16 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window is configured and shown without shutting down the application.
+	/// <see cref="EditorViewModel.ShowFavorites" />: the window gives way to the favorites window.
 	/// </summary>
-	[AvaloniaTest]
-	public void ShowFavorites_Shows_Favorites_Window()
+	[Test]
+	public void ShowFavorites_Switches_To_The_Favorites()
 	{
 		// Arrange
 		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
-		FavoritesWindow? favoritesWindow = null;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			favoritesWindow = windowMock.Create<FavoritesWindow>();
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
 			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
@@ -4876,15 +4803,12 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.ShowFavorites(null);
-
-		// Closed here, otherwise its dialog host stays in the list every headless test shares.
-		favoritesWindow?.Close();
+		sut.ShowFavorites();
 
 		// Assert
 		mainWindowLauncher
 			.Received(1)
-			.CreateFavoritesWindow();
+			.SwitchToFavorites();
 	}
 
 	/// <summary>
@@ -5122,11 +5046,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowInEditorAsync" />: the object is selected only once the window has loaded, as
+	/// <see cref="EditorViewModel.ShowObject" />: the object is selected only once the window has loaded, as
 	/// a selection made before would not be saved.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowInEditorAsync_Selects_The_Object_Once_The_Window_Has_Loaded()
+	public async Task ShowObject_Selects_The_Object_Once_The_Window_Has_Loaded()
 	{
 		// Arrange
 		List<bool> isLoadedAtSelection = [];
@@ -5152,7 +5076,7 @@ internal class EditorViewModelTests
 		window.Show();
 
 		// Act
-		_ = sut.ShowInEditorAsync(shown.Id, window);
+		sut.ShowObject(shown.Id);
 
 		await WaitUntilAsync(() => sut.SelectedObject == shown);
 

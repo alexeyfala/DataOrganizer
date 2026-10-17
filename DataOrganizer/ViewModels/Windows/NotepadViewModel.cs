@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -73,7 +72,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// Brings the main window back from the minimized state and activates it.
 	/// </summary>
 	[RelayCommand]
-	private void ActivateMainWindow() => _mainWindowLauncher.ActivateMainWindow();
+	private void ActivateMainWindow() => _mainWindowActivator.ActivateMainWindow();
 
 	/// <summary>
 	/// Adds a tab with the smallest free number at the end and selects it.
@@ -111,15 +110,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// Brings the main window to the center of the screen of the notepad.
 	/// </summary>
 	[RelayCommand]
-	private void CenterMainWindow(Window? owner)
-	{
-		if (owner is null)
-		{
-			return;
-		}
-
-		_mainWindowLauncher.CenterMainWindow(owner);
-	}
+	private void CenterMainWindow() => _mainWindowActivator.CenterMainWindow();
 
 	/// <summary>
 	/// Closes a tab, after a question when it has text; the last one gives way to a new tab.
@@ -228,8 +219,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private readonly HashSet<NotepadTabViewModel> _failedWrites = [];
 
-	/// <inheritdoc cref="IMainWindowLauncher" />
-	private readonly IMainWindowLauncher _mainWindowLauncher;
+	/// <inheritdoc cref="IMainWindowActivator" />
+	private readonly IMainWindowActivator _mainWindowActivator;
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
@@ -274,7 +265,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		IConfirmationPrompt confirmationPrompt,
 		IDispatcherAccessor dispatcher,
 		IDocumentEncodingSwitcher encodingSwitcher,
-		IMainWindowLauncher mainWindowLauncher,
+		IMainWindowActivator mainWindowActivator,
 		INotepadSessionState sessionState,
 		INotepadStore store,
 		INotificationService notification,
@@ -290,7 +281,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		_encodingSwitcher = encodingSwitcher;
 
-		_mainWindowLauncher = mainWindowLauncher;
+		_mainWindowActivator = mainWindowActivator;
 
 		_sessionState = sessionState;
 

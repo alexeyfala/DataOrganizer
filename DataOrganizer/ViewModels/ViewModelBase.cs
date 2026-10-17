@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,7 +13,6 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -51,10 +49,6 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 
-	/// <summary>
-	/// <c>True</c> when the window closes to switch to the other main window.
-	/// </summary>
-	public bool IsSwitchingWindow { get; protected set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -73,46 +67,22 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	}
 
 	/// <summary>
-	/// Brings the open notepad to the center of the screen of the window.
+	/// Brings the open notepad to the center of the screen of the main window.
 	/// </summary>
 	[RelayCommand]
-	private void CenterNotepad(Window? owner)
-	{
-		if (owner is null)
-		{
-			return;
-		}
-
-		_secondaryWindowLauncher.CenterNotepadWindow(owner);
-	}
+	private void CenterNotepad() => _secondaryWindowLauncher.CenterNotepadWindow();
 
 	/// <summary>
 	/// Opens the custom clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
-	private Task ShowCustomClipboard(Window? owner)
-	{
-		if (owner is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _secondaryWindowLauncher.ShowClipboardLogWindowAsync(owner);
-	}
+	private Task ShowCustomClipboard() => _secondaryWindowLauncher.ShowClipboardLogWindowAsync();
 
 	/// <summary>
 	/// Activates the open notepad or opens a new one.
 	/// </summary>
 	[RelayCommand]
-	private void ShowNotepad(Window? owner)
-	{
-		if (owner is null)
-		{
-			return;
-		}
-
-		_secondaryWindowLauncher.ShowNotepadWindow(owner);
-	}
+	private void ShowNotepad() => _secondaryWindowLauncher.ShowNotepadWindow();
 	#endregion
 
 	#region Data
@@ -176,14 +146,6 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Displays object in the "Editor" window.
-	/// </summary>
-	public abstract Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken token = default);
-
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{

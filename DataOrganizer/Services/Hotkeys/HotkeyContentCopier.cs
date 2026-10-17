@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
@@ -5,6 +6,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Services.Clipboard;
 using Serilog;
 using Shared.Extensions;
@@ -27,8 +29,11 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMainWindowLauncher" />
-	private readonly IMainWindowLauncher _mainWindowLauncher;
+	/// <inheritdoc cref="IMainWindowActivator" />
+	private readonly IMainWindowActivator _mainWindowActivator;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
@@ -40,7 +45,8 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 		IDispatcherAccessor dispatcher,
 		IFileTextCopier fileTextCopier,
 		ILogger logger,
-		IMainWindowLauncher mainWindowLauncher,
+		IMainWindowActivator mainWindowActivator,
+		IMessenger messenger,
 		INotificationService notification) : base(fileTextCopier)
 	{
 		_copyHistory = copyHistory;
@@ -49,7 +55,9 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 
 		_logger = logger;
 
-		_mainWindowLauncher = mainWindowLauncher;
+		_mainWindowActivator = mainWindowActivator;
+
+		_messenger = messenger;
 
 		_notification = notification;
 	}
@@ -104,9 +112,9 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	/// </summary>
 	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
 	{
-		_mainWindowLauncher.ActivateMainWindow();
+		_mainWindowActivator.ActivateMainWindow();
 
-		_mainWindowLauncher.ShowFavorites();
+		_messenger.Send(new ShowFavoritesMessage());
 	});
 	#endregion
 }

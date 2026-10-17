@@ -74,14 +74,8 @@ internal class ViewLauncherTests
 	public void ActivateMainWindow_Restores_The_Main_Window()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		Window mainWindow = new()
+		TestMainWindow mainWindow = new()
 		{
-			DataContext = windowMock.Create<FavoritesViewModel>(),
 			WindowState = WindowState.Minimized
 		};
 
@@ -89,7 +83,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -154,14 +148,8 @@ internal class ViewLauncherTests
 	public void CenterMainWindow_Centers_The_Main_Window_On_The_Screen_Of_The_Owner()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		Window mainWindow = new()
+		TestMainWindow mainWindow = new()
 		{
-			DataContext = windowMock.Create<FavoritesViewModel>(),
 			Height = 300.0,
 			Width = 400.0
 		};
@@ -170,7 +158,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -204,7 +192,7 @@ internal class ViewLauncherTests
 		mainWindow.Show();
 
 		// Act
-		sut.CenterMainWindow(notepad);
+		sut.CenterMainWindow();
 
 		// Assert
 		PixelRect bounds = new(mainWindow.Position, new PixelSize(400, 300));
@@ -223,17 +211,25 @@ internal class ViewLauncherTests
 		// Arrange
 		PixelPoint position = new(5, 5);
 
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		Window mainWindow = new()
+		TestMainWindow mainWindow = new()
 		{
-			DataContext = windowMock.Create<FavoritesViewModel>(),
 			Position = position,
 			WindowState = WindowState.Maximized
 		};
+
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<IConfirmationPrompt>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			Substitute.For<IMainWindowActivator>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<ITextInputPrompt>(),
+			Substitute.For<IViewCache>(),
+			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -243,7 +239,7 @@ internal class ViewLauncherTests
 
 			lifetime
 				.Windows
-				.Returns([mainWindow]);
+				.Returns([notepad, mainWindow]);
 
 			app.ApplicationLifetime = lifetime;
 
@@ -259,7 +255,7 @@ internal class ViewLauncherTests
 		mainWindow.Show();
 
 		// Act
-		sut.CenterMainWindow(new Window());
+		sut.CenterMainWindow();
 
 		// Assert
 		mainWindow.Position
@@ -279,7 +275,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -293,6 +289,8 @@ internal class ViewLauncherTests
 			Width = 400.0
 		};
 
+		TestMainWindow owner = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
@@ -301,7 +299,7 @@ internal class ViewLauncherTests
 
 			lifetime
 				.Windows
-				.Returns([notepad]);
+				.Returns([notepad, owner]);
 
 			app.ApplicationLifetime = lifetime;
 
@@ -314,12 +312,10 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		notepad.Show();
 
 		// Act
-		sut.CenterNotepadWindow(owner);
+		sut.CenterNotepadWindow();
 
 		PixelRect bounds = new(notepad.Position, new PixelSize(400, 300));
 
@@ -345,7 +341,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -367,7 +363,7 @@ internal class ViewLauncherTests
 
 			lifetime
 				.Windows
-				.Returns([notepad]);
+				.Returns([notepad, new TestMainWindow()]);
 
 			app.ApplicationLifetime = lifetime;
 
@@ -383,7 +379,7 @@ internal class ViewLauncherTests
 		notepad.Show();
 
 		// Act
-		sut.CenterNotepadWindow(new Window());
+		sut.CenterNotepadWindow();
 
 		PixelPoint actual = notepad.Position;
 
@@ -513,7 +509,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -1070,78 +1066,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites closes the editor without asking for the
-	/// exit of the application.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateEditorWindow_Keeps_The_Application_Running_After_A_Switch_To_The_Favorites()
-	{
-		// Arrange
-		FavoritesWindow favoritesWindow = new();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		ExitAppMessage? sent = null;
-
-		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
-
-		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = sut.CreateEditorWindow();
-
-		// Act
-		window
-			.ViewModel
-			.ShowFavorites(window);
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		favoritesWindow.Close();
-
-		// Assert
-		sent
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: selecting again the object selected before leaves the read-only mode
 	/// of the open editors alone.
 	/// </summary>
@@ -1487,115 +1411,6 @@ internal class ViewLauncherTests
 			WindowKind.Editor,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites saves the copy history with the item chosen
-	/// in its list.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateEditorWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Favorites()
-	{
-		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		FavoritesWindow favoritesWindow = new();
-
-		Guid savedItemId = default;
-
-		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
-
-			mainWindowLauncher
-				.CreateFavoritesWindow()
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<CopyHistory>()
-				.AsSelf()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			windowMock
-				.Create<ISessionHierarchy>()
-				.Hierarchy
-				.AddRange(files);
-
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = sut.CreateEditorWindow();
-
-		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
-
-		copyHistory.Add(files[1], showAtOnce: false);
-
-		copyHistory.Add(files[0], showAtOnce: false);
-
-		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
-
-		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
-
-		copyHistoryList.SelectedItem = files[1];
-
-		// Act
-		window
-			.ViewModel
-			.ShowFavorites(window);
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		favoritesWindow.Close();
-
-		// Assert
-		savedItemId
-			.Should()
-			.Be(files[1].Id);
 	}
 
 	/// <summary>
@@ -2551,78 +2366,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor closes the favorites without asking for the
-	/// exit of the application.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task CreateFavoritesWindow_Keeps_The_Application_Running_After_A_Switch_To_The_Editor()
-	{
-		// Arrange
-		EditorWindow editorWindow = new();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		ExitAppMessage? sent = null;
-
-		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
-
-		// The favorites live as long as the test, as the window saves them when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			mainWindowLauncher
-				.CreateEditorWindow()
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
-
-			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<FavoritesViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		FavoritesWindow window = sut.CreateFavoritesWindow();
-
-		// Act
-		await window
-			.ViewModel
-			.ShowInEditorAsync(default, window);
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		editorWindow.Close();
-
-		// Assert
-		sent
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the window takes the position saved for it.
 	/// </summary>
 	[AvaloniaTest]
@@ -2846,135 +2589,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the category chosen in the popup,
-	/// fixed or not, and keeps the favorite selected in each category.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task CreateFavoritesWindow_Saves_The_Chosen_Category_When_Switching_To_The_Editor(
-		[Values] bool isPopupFixed)
-	{
-		// Arrange
-		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
-
-		FavoriteSelection[] pairs = [.. FavoriteFactory.CreateFavoriteSelections(2)];
-
-		EditorWindow editorWindow = new();
-
-		Guid savedCategoryId = default;
-
-		FavoriteSelection[] savedPairs = [];
-
-		// The favorites live as long as the test, as the window saves them when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			mainWindowLauncher
-				.CreateEditorWindow()
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<ScopeViewFactory>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
-
-			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			// The settings are cleared once written, so they are read at the write.
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<FavoritesViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call =>
-				{
-					FavoritesViewSettings settings = call.Arg<FavoritesViewSettings>();
-
-					savedCategoryId = settings.SelectedCategoryId;
-
-					savedPairs = [.. settings.SelectedPairs];
-				});
-
-			viewFactory
-				.CreateViewModel<FavoritesViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		FavoritesWindow window = sut.CreateFavoritesWindow();
-
-		window
-			.ViewModel
-			.FavoritesSettings
-			.Categories
-			.AddRange(categories);
-
-		window
-			.ViewModel
-			.FavoritesSettings
-			.SelectedPairs
-			.AddRange(pairs);
-
-		window.ViewModel.IsPopupFixed = isPopupFixed;
-
-		window
-			.ViewModel
-			.ShowFavorites();
-
-		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
-
-		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
-
-		favorites.SelectedCategory = categories[1];
-
-		// Act
-		await window
-			.ViewModel
-			.ShowInEditorAsync(default, window);
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		editorWindow.Close();
-
-		// Assert
-		savedCategoryId
-			.Should()
-			.Be(categories[1].Id);
-
-		savedPairs
-			.Should()
-			.Equal(pairs);
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: closing the window saves the category chosen in the popup, fixed
 	/// or not.
 	/// </summary>
@@ -3066,115 +2680,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor saves the copy history with the item chosen
-	/// in its list.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task CreateFavoritesWindow_Saves_The_Chosen_Copy_History_Item_When_Switching_To_The_Editor()
-	{
-		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		EditorWindow editorWindow = new();
-
-		Guid savedItemId = default;
-
-		// The favorites live as long as the test, as the window saves them when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
-
-			mainWindowLauncher
-				.CreateEditorWindow()
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<CopyHistory>()
-				.AsSelf()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			windowMock
-				.Create<ISessionHierarchy>()
-				.Hierarchy
-				.AddRange(files);
-
-			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
-
-			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<FavoritesViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		FavoritesWindow window = sut.CreateFavoritesWindow();
-
-		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
-
-		copyHistory.Add(files[1], showAtOnce: false);
-
-		copyHistory.Add(files[0], showAtOnce: false);
-
-		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
-
-		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
-
-		copyHistoryList.SelectedItem = files[1];
-
-		// Act
-		await window
-			.ViewModel
-			.ShowInEditorAsync(default, window);
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		editorWindow.Close();
-
-		// Assert
-		savedItemId
-			.Should()
-			.Be(files[1].Id);
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
@@ -3207,6 +2712,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
@@ -3223,6 +2730,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -3230,12 +2741,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		window.Width
@@ -3293,7 +2806,7 @@ internal class ViewLauncherTests
 
 			lifetime
 				.Windows
-				.Returns([existing]);
+				.Returns([existing, new TestMainWindow()]);
 
 			app.ApplicationLifetime = lifetime;
 
@@ -3309,7 +2822,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		viewFactory
@@ -3342,6 +2855,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			ClipboardLogWindowSettings settings = new()
 			{
 				Size = new(0, 0),
@@ -3365,6 +2880,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -3372,12 +2891,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		window.Width
@@ -3410,8 +2931,12 @@ internal class ViewLauncherTests
 
 		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
 
+		Window owner = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -3422,15 +2947,19 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(owner);
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		// Act
-		await sut.ShowClipboardLogWindowAsync(owner);
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		Screen screen = owner.Screens!.Primary!;
@@ -3480,8 +3009,12 @@ internal class ViewLauncherTests
 
 		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
 
+		Window owner = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			ClipboardLogWindowSettings settings = new()
 			{
 				Size = new(400, 300),
@@ -3505,6 +3038,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(owner);
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -3512,14 +3049,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		// Act
-		await sut.ShowClipboardLogWindowAsync(owner);
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		Screen screen = owner.Screens!.Primary!;
@@ -3563,6 +3100,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -3573,6 +3112,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
@@ -3580,11 +3123,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Act
 		window.Close();
@@ -3620,6 +3165,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -3639,6 +3186,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
@@ -3646,11 +3197,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		window.ViewModel.KeepOpen = true;
 
@@ -3691,6 +3244,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -3710,6 +3265,10 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
@@ -3717,11 +3276,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
 
@@ -3749,6 +3310,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
 			{
 				IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
@@ -3774,158 +3337,26 @@ internal class ViewLauncherTests
 				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(clipboardWindow);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
 		await unlocker
 			.Received(1)
 			.UnlockIfRequiredAsync();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowFavorites" />: the favorites window that is the main window opens its favorites in the
-	/// popup.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowFavorites_Opens_The_Favorites_Of_The_Favorites_Window()
-	{
-		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<ScopeViewFactory>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		FavoritesWindow window = windowMock.Create<FavoritesWindow>(TypedParameter.From(windowMock.Create<FavoritesViewModel>()));
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([window]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-
-			builder
-				.RegisterType<DesktopAccessor>()
-				.AsImplementedInterfaces();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		window.Show();
-
-		// Act
-		sut.ShowFavorites();
-
-		FavoritesPopupContentKind popupContent = window.ViewModel.PopupContent;
-
-		// Closed before the assertion: its dialog host would stay in the list every headless test shares.
-		window.Close();
-
-		// Assert
-		popupContent
-			.Should()
-			.Be(FavoritesPopupContentKind.Favorites);
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowInEditor" />: the favorites window that is the main window gives way to an editor that
-	/// shows the object.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowInEditor_Switches_The_Favorites_Window_To_An_Editor_With_The_Object()
-	{
-		// Arrange
-		Guid id = Guid.NewGuid();
-
-		bool isClosed = false;
-
-		EditorWindow editor = new();
-
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			mainWindowLauncher
-				.CreateEditorWindow(id)
-				.Returns(editor);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<ScopeViewFactory>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		FavoritesWindow window = windowMock.Create<FavoritesWindow>(TypedParameter.From(windowMock.Create<FavoritesViewModel>()));
-
-		window.Closed += (_, _) => isClosed = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([window]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-
-			builder
-				.RegisterType<DesktopAccessor>()
-				.AsImplementedInterfaces();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		window.Show();
-
-		// Act
-		sut.ShowInEditor(id);
-
-		bool isEditorShown = editor.IsVisible;
-
-		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
-		editor.Close();
-
-		// Assert
-		isClosed
-			.Should()
-			.BeTrue();
-
-		isEditorShown
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>
@@ -4110,7 +3541,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4122,6 +3553,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			NotepadWindowSettings settings = new()
 			{
 				IsTopmost = true,
@@ -4147,6 +3580,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -4154,12 +3591,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		PixelPoint position = window.Position;
 
@@ -4196,7 +3635,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4206,8 +3645,12 @@ internal class ViewLauncherTests
 			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
+		Window owner = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			NotepadWindowSettings settings = new()
 			{
 				IsTopmost = false,
@@ -4233,6 +3676,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(owner);
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -4240,14 +3687,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		// Act
-		sut.ShowNotepadWindow(owner);
+		sut.ShowNotepadWindow();
 
 		PixelRect bounds = new(window.Position, new PixelSize(500, 400));
 
@@ -4272,7 +3719,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4284,6 +3731,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -4294,12 +3743,18 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		// Act
 		window.Close();
@@ -4321,7 +3776,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4333,6 +3788,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -4343,13 +3800,19 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(notepad);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		bool isVisible = notepad.IsVisible;
 
@@ -4374,7 +3837,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4384,8 +3847,12 @@ internal class ViewLauncherTests
 			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
+		Window owner = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -4396,15 +3863,19 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(owner);
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		// Act
-		sut.ShowNotepadWindow(owner);
+		sut.ShowNotepadWindow();
 
 		PixelRect bounds = new(
 			window.Position,
@@ -4438,6 +3909,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			NotepadViewSettings settings = new()
 			{
 				SelectedTabNumber = 1,
@@ -4477,7 +3950,7 @@ internal class ViewLauncherTests
 				Substitute.For<IConfirmationPrompt>(),
 				Substitute.For<IDispatcherAccessor>(),
 				Substitute.For<IDocumentEncodingSwitcher>(),
-				Substitute.For<IMainWindowLauncher>(),
+				Substitute.For<IMainWindowActivator>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
@@ -4498,13 +3971,19 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(_ => window = new NotepadWindow(viewModel));
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		object? selected = window!.Tabs.SelectedItem;
 
@@ -4532,6 +4011,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			INotepadStore store = Substitute.For<INotepadStore>();
 
 			store
@@ -4542,7 +4023,7 @@ internal class ViewLauncherTests
 				Substitute.For<IConfirmationPrompt>(),
 				Substitute.For<IDispatcherAccessor>(),
 				Substitute.For<IDocumentEncodingSwitcher>(),
-				Substitute.For<IMainWindowLauncher>(),
+				Substitute.For<IMainWindowActivator>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
@@ -4562,13 +4043,19 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(_ => window = new NotepadWindow(viewModel));
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		string text = window!.ViewModel.Tabs[0].Editor.Document.Text;
 
@@ -4592,7 +4079,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4633,7 +4120,7 @@ internal class ViewLauncherTests
 		notepad.Show();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		WindowState state = notepad.WindowState;
 
@@ -4663,7 +4150,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4675,6 +4162,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			NotepadWindowSettings settings = new()
 			{
 				IsTopmost = false,
@@ -4700,6 +4189,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(serializer);
@@ -4707,12 +4200,14 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		WindowState state = window.WindowState;
 
@@ -4738,7 +4233,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4750,6 +4245,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -4769,6 +4266,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
@@ -4776,11 +4277,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		window.Height = 400.0;
 
@@ -4819,7 +4322,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4831,6 +4334,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -4841,6 +4346,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(fileSystem);
@@ -4848,11 +4357,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		// Act
 		window.Close();
@@ -4877,7 +4388,7 @@ internal class ViewLauncherTests
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDispatcherAccessor>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
@@ -4889,6 +4400,8 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
@@ -4899,6 +4412,10 @@ internal class ViewLauncherTests
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewFactory);
@@ -4906,11 +4423,13 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow();
 
 		window.WindowState = WindowState.Maximized;
 
@@ -4976,6 +4495,730 @@ internal class ViewLauncherTests
 		viewModel.IsTopmost
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToEditor" />: the switch closes the favorites without asking for the
+	/// exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToEditor_Keeps_The_Application_Running()
+	{
+		// Arrange
+		EditorWindow? editorWindow = null;
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			EditorViewModel editorViewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(editorViewModel));
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(editorViewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		_ = sut.CreateFavoritesWindow();
+
+		// Act
+		sut.SwitchToEditor();
+
+		ExitAppMessage? sentOnSwitch = sent;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares. Its own close
+		// asks for the exit.
+		editorWindow!.Close();
+
+		// Assert
+		sentOnSwitch
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToEditor" />: the switch saves the category chosen in the popup,
+	/// fixed or not, and keeps the favorite selected in each category.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToEditor_Saves_The_Chosen_Category(
+		[Values] bool isPopupFixed)
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		FavoriteSelection[] pairs = [.. FavoriteFactory.CreateFavoriteSelections(2)];
+
+		EditorWindow? editorWindow = null;
+
+		Guid savedCategoryId = default;
+
+		FavoriteSelection[] savedPairs = [];
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			EditorViewModel editorViewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(editorViewModel));
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			// The settings are cleared once written, so they are read at the write.
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<FavoritesViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call =>
+				{
+					FavoritesViewSettings settings = call.Arg<FavoritesViewSettings>();
+
+					savedCategoryId = settings.SelectedCategoryId;
+
+					savedPairs = [.. settings.SelectedPairs];
+				});
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(editorViewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		window
+			.ViewModel
+			.FavoritesSettings
+			.SelectedPairs
+			.AddRange(pairs);
+
+		window.ViewModel.IsPopupFixed = isPopupFixed;
+
+		window
+			.ViewModel
+			.ShowFavorites();
+
+		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
+
+		// The stored selection comes back through the dispatcher before the choice.
+		Dispatcher.UIThread.RunJobs();
+
+		favorites.SelectedCategory = categories[1];
+
+		// Act
+		sut.SwitchToEditor();
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow!.Close();
+
+		// Assert
+		savedCategoryId
+			.Should()
+			.Be(categories[1].Id);
+
+		savedPairs
+			.Should()
+			.Equal(pairs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToEditor" />: the switch saves the copy history with the item chosen
+	/// in its list.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToEditor_Saves_The_Chosen_Copy_History_Item()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		EditorWindow? editorWindow = null;
+
+		Guid savedItemId = default;
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(files);
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			EditorViewModel editorViewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(editorViewModel));
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(editorViewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
+
+		copyHistory.Add(files[1], showAtOnce: false);
+
+		copyHistory.Add(files[0], showAtOnce: false);
+
+		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
+
+		// The stored selection comes back through the dispatcher before the choice.
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistoryList.SelectedItem = files[1];
+
+		// Act
+		sut.SwitchToEditor();
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow!.Close();
+
+		// Assert
+		savedItemId
+			.Should()
+			.Be(files[1].Id);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToEditor" />: the favorites window gives way to an editor that shows the object.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToEditor_Shows_The_Object_In_A_New_Editor()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		file.Parent = folder;
+
+		folder
+			.Children
+			.Add(file);
+
+		bool isClosed = false;
+
+		EditorWindow? editorWindow = null;
+
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		windowMock
+			.Create<ISessionHierarchy>()
+			.Hierarchy
+			.Add(folder);
+
+		FavoritesWindow window = windowMock.Create<FavoritesWindow>(TypedParameter.From(windowMock.Create<FavoritesViewModel>()));
+
+		window.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel editorViewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(editorViewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(editorViewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(window);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		window.Show();
+
+		// Act
+		sut.SwitchToEditor(file.Id);
+
+		bool isEditorShown = editorWindow!.IsVisible;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+
+		isEditorShown
+			.Should()
+			.BeTrue();
+
+		folder.IsExpanded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToFavorites" />: the editor window gives way to the favorites window.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToFavorites_Closes_The_Editor_And_Shows_The_Favorites()
+	{
+		// Arrange
+		bool isEditorClosed = false;
+
+		FavoritesWindow? favoritesWindow = null;
+
+		// The windows live as long as the test, as they save their view models when they close.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			FavoritesViewModel favoritesViewModel = windowMock.Create<FavoritesViewModel>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(favoritesViewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			editorWindow.Closed += (_, _) => isEditorClosed = true;
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(favoritesViewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		sut
+			.CreateEditorWindow()
+			.Show();
+
+		// Act
+		sut.SwitchToFavorites();
+
+		bool isFavoritesShown = favoritesWindow!.IsVisible;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		favoritesWindow.Close();
+
+		// Assert
+		isEditorClosed
+			.Should()
+			.BeTrue();
+
+		isFavoritesShown
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToFavorites" />: the switch closes the editor without asking for the
+	/// exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToFavorites_Keeps_The_Application_Running()
+	{
+		// Arrange
+		FavoritesWindow? favoritesWindow = null;
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			FavoritesViewModel favoritesViewModel = windowMock.Create<FavoritesViewModel>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(favoritesViewModel));
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(favoritesViewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		_ = sut.CreateEditorWindow();
+
+		// Act
+		sut.SwitchToFavorites();
+
+		ExitAppMessage? sentOnSwitch = sent;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares. Its own close
+		// asks for the exit.
+		favoritesWindow!.Close();
+
+		// Assert
+		sentOnSwitch
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SwitchToFavorites" />: the switch saves the copy history with the item chosen
+	/// in its list.
+	/// </summary>
+	[AvaloniaTest]
+	public void SwitchToFavorites_Saves_The_Chosen_Copy_History_Item()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		FavoritesWindow? favoritesWindow = null;
+
+		Guid savedItemId = default;
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CopyHistoryViewSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange(files);
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			FavoritesViewModel favoritesViewModel = windowMock.Create<FavoritesViewModel>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(favoritesViewModel));
+
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(favoritesViewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(editorWindow);
+
+			builder.RegisterInstance<ICopyHistoryStore>(windowMock.Create<CopyHistory>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		CopyHistory copyHistory = windowMock.Create<CopyHistory>();
+
+		copyHistory.Add(files[1], showAtOnce: false);
+
+		copyHistory.Add(files[0], showAtOnce: false);
+
+		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
+
+		// The stored selection comes back through the dispatcher before the choice.
+		Dispatcher.UIThread.RunJobs();
+
+		copyHistoryList.SelectedItem = files[1];
+
+		// Act
+		sut.SwitchToFavorites();
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		favoritesWindow!.Close();
+
+		// Assert
+		savedItemId
+			.Should()
+			.Be(files[1].Id);
 	}
 	#endregion
 

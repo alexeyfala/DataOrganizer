@@ -17,6 +17,7 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using NSubstitute;
+using Shared.Common;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Windows;
@@ -59,7 +60,7 @@ internal class FavoritesWindowTests
 		// Assert
 		secondaryWindowLauncher
 			.Received(1)
-			.ShowNotepadWindow(sut);
+			.ShowNotepadWindow();
 	}
 
 	/// <summary>
@@ -67,13 +68,20 @@ internal class FavoritesWindowTests
 	/// double click switches to the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public void DoubleClick_On_The_Fix_Switch_Keeps_The_Window_Open()
+	public void DoubleClick_On_The_Fix_Switch_Leaves_The_Editor_Alone()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 
@@ -88,10 +96,57 @@ internal class FavoritesWindowTests
 
 		Click(sut, point);
 
+		sut.Close();
+
 		// Assert
-		sut.IsVisible
-			.Should()
-			.BeTrue();
+		mainWindowLauncher
+			.DidNotReceiveWithAnyArgs()
+			.SwitchToEditor();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowEditorCommand" />: a double click on the header switches to the editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_On_The_Header_Switches_To_The_Editor()
+	{
+		// Arrange
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		TextBlock title = sut
+			.GetLogicalDescendants()
+			.OfType<TextBlock>()
+			.First(x => x.Text == AppInfo.AppDisplayName);
+
+		Point point = Center(sut, title);
+
+		// Act
+		Click(sut, point);
+
+		Click(sut, point);
+
+		sut.Close();
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.SwitchToEditor(default);
 	}
 
 	/// <summary>
@@ -130,7 +185,7 @@ internal class FavoritesWindowTests
 		// Assert
 		secondaryWindowLauncher
 			.Received(1)
-			.CenterNotepadWindow(sut);
+			.CenterNotepadWindow();
 	}
 
 	/// <summary>
@@ -138,13 +193,20 @@ internal class FavoritesWindowTests
 	/// whose double click switches to the editor.
 	/// </summary>
 	[AvaloniaTest]
-	public void DoubleClick_On_The_Notepad_Button_Keeps_The_Window_Open()
+	public void DoubleClick_On_The_Notepad_Button_Leaves_The_Editor_Alone()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		FavoritesWindow sut = new(mock.Create<FavoritesViewModel>());
 
@@ -159,10 +221,12 @@ internal class FavoritesWindowTests
 
 		Click(sut, point);
 
+		sut.Close();
+
 		// Assert
-		sut.IsVisible
-			.Should()
-			.BeTrue();
+		mainWindowLauncher
+			.DidNotReceiveWithAnyArgs()
+			.SwitchToEditor();
 	}
 
 	/// <summary>

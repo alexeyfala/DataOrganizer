@@ -191,6 +191,7 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
+		services.AddTransient<IMainWindowActivator, ViewLauncher>();
 		services.AddTransient<IMainWindowLauncher, ViewLauncher>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();

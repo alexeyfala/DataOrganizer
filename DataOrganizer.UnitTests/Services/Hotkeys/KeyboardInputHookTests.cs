@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
@@ -14,6 +15,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
@@ -31,6 +33,7 @@ using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -105,15 +108,27 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(keyStrokes.ToHotkeyDtos());
 
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		List<string> steps = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowFavoritesMessage>(this, (_, _) => steps.Add("favorites"));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
+
+			mainWindowActivator
+				.When(x => x.ActivateMainWindow())
+				.Do(_ => steps.Add("activate"));
+
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(mainWindowLauncher);
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder.RegisterInstance(messenger);
 
 			builder
 				.RegisterType<HotkeyContentCopier>()
@@ -132,12 +147,9 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(mask, code);
 
 		// Assert
-		Received.InOrder(() =>
-		{
-			mainWindowLauncher.ActivateMainWindow();
-
-			mainWindowLauncher.ShowFavorites();
-		});
+		steps
+			.Should()
+			.Equal("activate", "favorites");
 	}
 
 	/// <summary>
@@ -1018,7 +1030,7 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(keyStrokes.ToHotkeyDtos());
 
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1026,7 +1038,7 @@ internal class KeyboardInputHookTests
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
-			builder.RegisterInstance(mainWindowLauncher);
+			builder.RegisterInstance(mainWindowActivator);
 
 			builder
 				.RegisterType<HotkeyContentCopier>()
@@ -1045,7 +1057,7 @@ internal class KeyboardInputHookTests
 		await sut.HandleKeyReleasedAsync(mask, code);
 
 		// Assert
-		mainWindowLauncher
+		mainWindowActivator
 			.DidNotReceive()
 			.ActivateMainWindow();
 	}

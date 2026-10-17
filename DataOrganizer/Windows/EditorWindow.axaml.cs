@@ -5,9 +5,12 @@ using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class EditorWindow : Window
+public sealed partial class EditorWindow : Window, IMainWindow
 {
 	#region Properties
+	/// <inheritdoc />
+	public bool IsClosingToSwitch { get; set; }
+
 	/// <inheritdoc cref="WindowPlacementTracker" />
 	internal WindowPlacementTracker Placement { get; }
 

@@ -5,7 +5,7 @@ using Avalonia.LogicalTree;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.ViewModels;
+using DataOrganizer.Windows;
 using DialogHostAvalonia;
 using System;
 using System.Collections.Generic;
@@ -65,7 +65,7 @@ public sealed class DesktopAccessor : IAppShutdown, IDialogHostFinder, IWindowCl
 	}
 
 	/// <inheritdoc />
-	public Window? FindMainWindow() => FindWindow<Window>(x => x.DataContext is ViewModelBase);
+	public Window? FindMainWindow() => FindWindow<Window>(static x => x is IMainWindow);
 
 	/// <inheritdoc />
 	public T? FindWindow<T>(Predicate<T>? condition = null) where T : Window

@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -18,11 +17,10 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Messages.Updates;
-using DataOrganizer.Windows;
 using Serilog;
 using Shared.Extensions;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +33,9 @@ public sealed partial class FavoritesViewModel :
 	ViewModelBase,
 	IRecipient<CloseEditingFileMessage>,
 	IRecipient<ConfirmUpdateMessage>,
-	IRecipient<SessionAutoLockedMessage>
+	IRecipient<SessionAutoLockedMessage>,
+	IRecipient<ShowFavoritesMessage>,
+	IRecipient<ShowInEditorMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
@@ -199,15 +199,7 @@ public sealed partial class FavoritesViewModel :
 	/// Displays the "Editor" window.
 	/// </summary>
 	[RelayCommand]
-	private Task ShowEditor(FavoritesWindow? window)
-	{
-		if (window is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		return ShowInEditorAsync(default, window);
-	}
+	private void ShowEditor() => _mainWindowLauncher.SwitchToEditor();
 	#endregion
 
 	#region Data
@@ -289,6 +281,11 @@ public sealed partial class FavoritesViewModel :
 
 	/// <inheritdoc />
 	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
+	/// <inheritdoc />
+	public void Receive(ShowFavoritesMessage message) => ShowFavorites();
+
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message) => _mainWindowLauncher.SwitchToEditor(message.Id);
 
 	/// <summary>
 	/// Restores the popup size and the favorites from the stored settings.
@@ -335,23 +332,6 @@ public sealed partial class FavoritesViewModel :
 		}
 
 		SaveFavorites();
-	}
-
-	/// <inheritdoc />
-	public override Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken _ = default)
-	{
-		IsSwitchingWindow = true;
-
-		window.Close();
-
-		_mainWindowLauncher
-			.CreateEditorWindow(id)
-			.Show();
-
-		return Task.CompletedTask;
 	}
 
 	/// <summary>

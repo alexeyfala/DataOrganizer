@@ -9,7 +9,6 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
@@ -30,7 +29,7 @@ internal class CopyHistoryViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMainWindowLauncher, IMessenger, ISessionHierarchy, ITaskExceptionHandler)" />:
+	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMessenger, ISessionHierarchy, ITaskExceptionHandler)" />:
 	/// the list shows the files of the copy history that the tree holds, in the order of the history, with the chosen one
 	/// selected.
 	/// </summary>
