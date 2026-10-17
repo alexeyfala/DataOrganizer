@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Extensions;
@@ -95,22 +94,14 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	private readonly ISessionEditorTabs _sessionEditorTabs;
-
-	/// <inheritdoc cref="IViewCache" />
-	private readonly IViewCache _viewCache;
 	#endregion
 
 	#region Constructors
-	public EditingFilesViewModel(
-		ILogger logger,
-		ISessionEditorTabs sessionEditorTabs,
-		IViewCache viewCache)
+	public EditingFilesViewModel(ILogger logger, ISessionEditorTabs sessionEditorTabs)
 	{
 		_logger = logger;
 
 		_sessionEditorTabs = sessionEditorTabs;
-
-		_viewCache = viewCache;
 	}
 	#endregion
 
@@ -118,12 +109,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Closes editor associated with the object.
 	/// </summary>
-	public void CloseEditor(FileDto dto)
-	{
-		Items.Remove(dto);
-
-		_viewCache.Remove(dto);
-	}
+	public void CloseEditor(FileDto dto) => Items.Remove(dto);
 
 	/// <summary>
 	/// Opens a file in built-in the editor.

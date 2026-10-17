@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
+using DataOrganizer.Interfaces;
 using Material.Icons;
 using NSubstitute;
 using System;
@@ -846,6 +847,50 @@ internal class DocumentTabControlTests
 	}
 
 	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: a tab that a drag moved along the row gives up its view when it closes
+	/// later.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_Lets_A_Moved_Tab_Forget_Its_View_When_It_Closes()
+	{
+		// Arrange
+		ObservableCollection<string> items = ["first", "second"];
+
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(true);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = template,
+			ItemsSource = items
+		};
+
+		Window window = Show(sut);
+
+		Point from = Center(window, GetHeaderText(sut, "first"));
+
+		Point to = Center(window, GetHeaderText(sut, "second"));
+
+		// The neighbour moves across the dragged tab.
+		Drag(window, from, to);
+
+		// Act
+		items.Remove("second");
+
+		// Assert
+		((IViewCache)template)
+			.Received(1)
+			.Remove("second");
+	}
+
+	/// <summary>
 	/// <see cref="ItemsControl.ItemsSource" />: a tab dragged onto another one takes its place among the items.
 	/// </summary>
 	[AvaloniaTest]
@@ -876,6 +921,115 @@ internal class DocumentTabControlTests
 		items
 			.Should()
 			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabControl.ForgetViews" />: the views of all tabs leave the cache of the template that builds them.
+	/// </summary>
+	[AvaloniaTest]
+	public void ForgetViews_Takes_The_Views_Of_All_Tabs_Out_Of_The_Cache()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(true);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = template,
+			ItemsSource = new ObservableCollection<string>(["first", "second"])
+		};
+
+		// Act
+		sut.ForgetViews();
+
+		// Assert
+		((IViewCache)template)
+			.Received(1)
+			.Remove("first");
+
+		((IViewCache)template)
+			.Received(1)
+			.Remove("second");
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: an item removed from a list the tabs no longer show keeps its view, after
+	/// the tabs were left with no items.
+	/// </summary>
+	[AvaloniaTest]
+	public void ItemsSource_Cleared_Leaves_The_Views_Of_The_Old_Items()
+	{
+		// Arrange
+		ObservableCollection<string> oldItems = ["first", "second"];
+
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(true);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = template,
+			ItemsSource = oldItems
+		};
+
+		sut.ItemsSource = null;
+
+		// Act
+		oldItems.Remove("first");
+
+		// Assert
+		((IViewCache)template)
+			.DidNotReceiveWithAnyArgs()
+			.Remove(default!);
+	}
+
+	/// <summary>
+	/// <see cref="ItemsControl.ItemsSource" />: an item removed from a list the tabs no longer show keeps its view.
+	/// </summary>
+	[AvaloniaTest]
+	public void ItemsSource_Replaced_Leaves_The_Views_Of_The_Old_Items()
+	{
+		// Arrange
+		ObservableCollection<string> oldItems = ["first", "second"];
+
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(true);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		DocumentTabControl sut = new()
+		{
+			ContentTemplate = template,
+			ItemsSource = oldItems
+		};
+
+		sut.ItemsSource = new ObservableCollection<string>(["third"]);
+
+		// Act
+		oldItems.Remove("first");
+
+		// Assert
+		((IViewCache)template)
+			.DidNotReceiveWithAnyArgs()
+			.Remove(default!);
 	}
 
 	/// <summary>

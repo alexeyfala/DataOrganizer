@@ -12,6 +12,6 @@ public interface IViewCache
 	/// Removes the cached control associated with the specified key and disposes the control and its data context,
 	/// where they are <see cref="IDisposable" />.
 	/// </summary>
-	void Remove<T>(T key) where T : notnull;
+	void Remove(object key);
 	#endregion
 }

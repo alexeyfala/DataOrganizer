@@ -250,9 +250,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private readonly HashSet<int> _unreadNumbers = [];
 
-	/// <inheritdoc cref="IViewCache" />
-	private readonly IViewCache _viewCache;
-
 	/// <summary>
 	/// <c>True</c> once the tabs have been read from the disk and until the notepad closes: meanwhile the tabs and their
 	/// texts are written back, and a closed tab takes its text away.
@@ -272,7 +269,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler,
 		ITextInputPrompt textInputPrompt,
-		IViewCache viewCache,
 		TimeProvider timeProvider)
 	{
 		_confirmationPrompt = confirmationPrompt;
@@ -294,8 +290,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_textInputPrompt = textInputPrompt;
 
 		_exceptionHandler = exceptionHandler;
-
-		_viewCache = viewCache;
 
 		_timeProvider = timeProvider;
 
@@ -399,12 +393,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		// The window may still change the selected tab as it goes, after the last write.
 		_isKeepingTabs = false;
-
-		// The editors are cached for the whole application, which would keep them after the window.
-		foreach (NotepadTabViewModel tab in Tabs)
-		{
-			_viewCache.Remove(tab);
-		}
 
 		base.AfterDispose();
 	}
@@ -558,8 +546,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	private void RemoveTab(NotepadTabViewModel tab)
 	{
 		Tabs.Remove(tab);
-
-		_viewCache.Remove(tab);
 
 		EraseText(tab);
 

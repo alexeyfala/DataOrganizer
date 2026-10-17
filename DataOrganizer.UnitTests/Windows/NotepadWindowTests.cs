@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -243,6 +244,61 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: the view of a closed tab leaves the cache once another tab has
+	/// taken its place.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Close_Button_Forgets_The_View_Once_Another_Tab_Is_Selected()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		NotepadTabViewModel closed = sut.ViewModel.Tabs[1];
+
+		object? selected = null;
+
+		((IViewCache)template)
+			.When(x => x.Remove(closed))
+			.Do(_ => selected = sut.Tabs.SelectedItem);
+
+		Point point = Center(sut, GetCloseButton(sut.Tabs, 1));
+
+		// Act
+		Click(sut, point, MouseButton.Left);
+
+		// Assert
+		selected
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[0]);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.ActivateMainWindowCommand" />: a click on the home button of the title bar activates
 	/// the main window.
 	/// </summary>
@@ -320,6 +376,52 @@ internal class NotepadWindowTests
 		sut.ViewModel.Tabs.Select(x => x.Name)
 			.Should()
 			.Equal("Notes", null);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadWindow" />: the views of the tabs leave the cache when the window closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void Close_Forgets_The_Views_Of_The_Tabs()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		// Act
+		sut.Close();
+
+		// Assert
+		((IViewCache)template)
+			.Received(1)
+			.Remove(sut.ViewModel.Tabs[0]);
+
+		((IViewCache)template)
+			.Received(1)
+			.Remove(sut.ViewModel.Tabs[1]);
 	}
 
 	/// <summary>
@@ -485,6 +587,60 @@ internal class NotepadWindowTests
 		mainWindowActivator
 			.Received(1)
 			.CenterMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.Tabs" />: a tab dragged past its neighbour keeps the views of both tabs.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_Of_A_Tab_Keeps_The_Views_Of_The_Tabs()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		NotepadTabViewModel[] tabs = [.. sut.ViewModel.Tabs];
+
+		Point from = Center(sut, GetHeaderText(sut.Tabs, tabs[0].Header));
+
+		Point to = Center(sut, GetHeaderText(sut.Tabs, tabs[1].Header));
+
+		// Act
+		Drag(sut, from, to);
+
+		// Assert
+		sut.ViewModel.Tabs
+			.Should()
+			.Equal(tabs[1], tabs[0]);
+
+		((IViewCache)template)
+			.DidNotReceiveWithAnyArgs()
+			.Remove(tabs[0]);
 	}
 
 	/// <summary>
@@ -835,6 +991,18 @@ internal class NotepadWindowTests
 		window.MouseDown(point, button);
 
 		window.MouseUp(point, button);
+	}
+
+	/// <summary>
+	/// Presses the left button of the mouse at one point of a window, moves the mouse to another and releases it there.
+	/// </summary>
+	private static void Drag(Window window, Point from, Point to)
+	{
+		window.MouseDown(from, MouseButton.Left);
+
+		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+
+		window.MouseUp(to, MouseButton.Left);
 	}
 
 	/// <summary>

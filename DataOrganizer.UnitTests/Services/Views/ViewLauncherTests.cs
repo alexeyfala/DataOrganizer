@@ -90,7 +90,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -165,7 +164,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -228,7 +226,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -282,7 +279,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System))
 		{
 			Height = 300.0,
@@ -348,7 +344,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System))
 		{
 			Position = position,
@@ -516,7 +511,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		notepad.Closed += (_, _) => isClosed = true;
@@ -3619,7 +3613,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -3713,7 +3706,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		Window owner = new();
@@ -3779,8 +3771,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the view model of the window is disposed when the window closes, so
-	/// the editors of its tabs go with it.
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the view model of the window is disposed when the window closes.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowNotepadWindow_Disposes_The_View_Model_When_The_Window_Closes()
@@ -3797,7 +3788,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -3854,7 +3844,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -3915,7 +3904,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		Window owner = new();
@@ -4028,7 +4016,6 @@ internal class ViewLauncherTests
 				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<ITextInputPrompt>(),
-				Substitute.For<IViewCache>(),
 				TimeProvider.System);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -4101,7 +4088,6 @@ internal class ViewLauncherTests
 				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<ITextInputPrompt>(),
-				Substitute.For<IViewCache>(),
 				TimeProvider.System);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -4157,7 +4143,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System))
 		{
 			WindowState = WindowState.Minimized
@@ -4228,7 +4213,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -4311,7 +4295,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -4400,7 +4383,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -4466,7 +4448,6 @@ internal class ViewLauncherTests
 			Substitute.For<ISyntaxRegistry>(),
 			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<ITextInputPrompt>(),
-			Substitute.For<IViewCache>(),
 			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>

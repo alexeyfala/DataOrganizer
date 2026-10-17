@@ -48,7 +48,6 @@ public sealed partial class EditorWindow : Window, IMainWindow
 			ReportShown();
 		}
 	}
-
 	#endregion
 
 	#region Helpers

@@ -74,7 +74,7 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 	public bool Match(object? data) => data is FileDto or NotepadTabViewModel;
 
 	/// <inheritdoc />
-	public void Remove<T>(T key) where T : notnull
+	public void Remove(object key)
 	{
 		_cache.Remove(key, out Control? control);
 

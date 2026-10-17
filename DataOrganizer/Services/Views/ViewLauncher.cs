@@ -446,6 +446,7 @@ public class ViewLauncher : IMainWindowActivator, IMainWindowLauncher, INoticeLa
 
 		window.Close();
 	}
+
 	/// <summary>
 	/// Configures <see cref="NotepadWindow" />.
 	/// </summary>

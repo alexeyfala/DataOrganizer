@@ -535,37 +535,6 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel.CloseTabCommand" />: the editor of a closed tab leaves the cache and gives up what it
-	/// holds.
-	/// </summary>
-	[Test]
-	public void CloseTabCommand_Removes_The_Editor_Of_The_Tab()
-	{
-		// Arrange
-		IViewCache viewCache = Substitute.For<IViewCache>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewCache));
-
-		NotepadViewModel sut = mock.Create<NotepadViewModel>();
-
-		sut
-			.AddTabCommand
-			.Execute(null);
-
-		NotepadTabViewModel tab = sut.Tabs[0];
-
-		// Act
-		sut
-			.CloseTabCommand
-			.Execute(tab);
-
-		// Assert
-		viewCache
-			.Received(1)
-			.Remove(tab);
-	}
-
-	/// <summary>
 	/// <see cref="NotepadViewModel.CloseTabCommand" />: the last tab gives way to a new selected tab with the first number.
 	/// </summary>
 	[Test]
@@ -917,7 +886,7 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDispatcherAccessor, IDocumentEncodingSwitcher, IMainWindowActivator, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt, IViewCache, TimeProvider)" />:
+	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDispatcherAccessor, IDocumentEncodingSwitcher, IMainWindowActivator, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt, TimeProvider)" />:
 	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]
@@ -937,37 +906,6 @@ internal class NotepadViewModelTests
 		sut.SelectedTab
 			.Should()
 			.BeSameAs(sut.Tabs[0]);
-	}
-
-	/// <summary>
-	/// <see cref="ObservableDisposableBase.Dispose" />: the editors of all tabs leave the cache, which the application
-	/// keeps after the window.
-	/// </summary>
-	[Test]
-	public void Dispose_Removes_The_Editors_Of_The_Tabs()
-	{
-		// Arrange
-		IViewCache viewCache = Substitute.For<IViewCache>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewCache));
-
-		NotepadViewModel sut = mock.Create<NotepadViewModel>();
-
-		sut
-			.AddTabCommand
-			.Execute(null);
-
-		// Act
-		sut.Dispose();
-
-		// Assert
-		viewCache
-			.Received(1)
-			.Remove(sut.Tabs[0]);
-
-		viewCache
-			.Received(1)
-			.Remove(sut.Tabs[1]);
 	}
 
 	/// <summary>

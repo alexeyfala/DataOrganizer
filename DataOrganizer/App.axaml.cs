@@ -228,7 +228,6 @@ public sealed class App : Application
 
 		#region View Locator
 		services.AddSingleton<DocumentTabTemplate>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<DocumentTabTemplate>());
 		#endregion
 
 		#region Singletons
