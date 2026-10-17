@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
@@ -217,6 +218,12 @@ public sealed class App : Application
 		#endregion
 
 		#region Singletons
+		services.AddKeyedSingleton<IMessagePresenter<SnackbarContent>>(
+			SnackbarHostIdentifiers.Main,
+			static (x, key) => x.GetRequiredKeyedService<ISnackbarPresenter>(key));
+		services.AddKeyedSingleton<IMessagePresenter<SnackbarContent>>(
+			SnackbarHostIdentifiers.Notepad,
+			static (x, key) => x.GetRequiredKeyedService<ISnackbarPresenter>(key));
 		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Main);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Notepad);

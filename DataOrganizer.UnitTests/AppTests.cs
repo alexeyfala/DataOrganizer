@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
@@ -300,7 +302,36 @@ internal class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the notifications post to the presenter that the snackbar host of the window
+	/// is handed to.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(SnackbarHostIdentifiers.Main)]
+	[TestCase(SnackbarHostIdentifiers.Notepad)]
+	public void RegisterServices_Shares_One_Snackbar_Presenter_Per_Host(string hostIdentifier)
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		ISnackbarPresenter attached = provider.GetRequiredKeyedService<ISnackbarPresenter>(hostIdentifier);
+
+		IMessagePresenter<SnackbarContent> posted = provider.GetRequiredKeyedService<IMessagePresenter<SnackbarContent>>(
+			hostIdentifier);
+
+		// Assert
+		posted
+			.Should()
+			.BeSameAs(attached);
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the splits of the editors have one store for the whole application, so a file
+
 	/// opened again gets its split back.
 	/// </summary>
 	[AvaloniaTest]

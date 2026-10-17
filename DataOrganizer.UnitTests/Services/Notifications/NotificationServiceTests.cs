@@ -37,7 +37,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Drops_A_Message_When_Too_Many_Are_Waiting()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -84,7 +84,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Gives_A_Repeat_More_Time()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -135,7 +135,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Holds_A_Message_While_Another_One_Is_Shown()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -174,9 +174,9 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Posts_In_The_Main_Window_By_Default()
 	{
 		// Arrange
-		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> mainPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
-		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> notepadPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -226,9 +226,9 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Posts_In_The_Window_It_Names()
 	{
 		// Arrange
-		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> mainPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
-		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> notepadPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -278,7 +278,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Posts_The_First_Message_At_Once()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -316,11 +316,11 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Shows_The_Messages_Of_Two_Windows_At_Once()
 	{
 		// Arrange
-		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> notepadPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+			IMessagePresenter<SnackbarContent> mainPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 			// The main window shows the first message, behind which a shared queue would hold the second one.
 			mainPresenter
@@ -367,7 +367,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Shows_The_Waiting_Message_On_Its_Own()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -414,7 +414,7 @@ internal class NotificationServiceTests
 	public void ShowSnackbar_Skips_A_Message_When_There_Is_No_Host()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -457,7 +457,7 @@ internal class NotificationServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+			IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 			presenter
 				.CanShow
@@ -510,7 +510,7 @@ internal class NotificationServiceTests
 	public void Tick_Drops_Waiting_Messages_When_The_Host_Is_Gone()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -561,7 +561,7 @@ internal class NotificationServiceTests
 	public void Tick_Holds_The_Message_Under_The_Pointer()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -616,7 +616,7 @@ internal class NotificationServiceTests
 	public void Tick_Keeps_The_Order()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -666,7 +666,7 @@ internal class NotificationServiceTests
 	public void Tick_Leaves_A_Message_Waiting_Until_Its_Turn()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -711,7 +711,7 @@ internal class NotificationServiceTests
 	public void Tick_Posts_The_Waiting_Message()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -752,7 +752,7 @@ internal class NotificationServiceTests
 	public void Tick_Removes_The_Shown_Message()
 	{
 		// Arrange
-		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -798,9 +798,9 @@ internal class NotificationServiceTests
 	public void Tick_Removes_The_Shown_Message_Of_Each_Window()
 	{
 		// Arrange
-		ISnackbarPresenter mainPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> mainPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
-		ISnackbarPresenter notepadPresenter = Substitute.For<ISnackbarPresenter>();
+		IMessagePresenter<SnackbarContent> notepadPresenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 		FakeTimeProvider time = new();
 
@@ -859,7 +859,7 @@ internal class NotificationServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
+			IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
 			presenter
 				.CanShow

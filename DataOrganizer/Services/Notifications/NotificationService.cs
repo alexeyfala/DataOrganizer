@@ -44,8 +44,8 @@ public sealed class NotificationService : INotificationService
 	public NotificationService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		[FromKeyedServices(SnackbarHostIdentifiers.Main)] ISnackbarPresenter mainSnackbarPresenter,
-		[FromKeyedServices(SnackbarHostIdentifiers.Notepad)] ISnackbarPresenter notepadSnackbarPresenter,
+		[FromKeyedServices(SnackbarHostIdentifiers.Main)] IMessagePresenter<SnackbarContent> mainSnackbarPresenter,
+		[FromKeyedServices(SnackbarHostIdentifiers.Notepad)] IMessagePresenter<SnackbarContent> notepadSnackbarPresenter,
 		IToastPresenter toastPresenter,
 		IUiTimer uiTimer,
 		TimeProvider timeProvider)
