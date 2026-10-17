@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,8 +9,14 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
@@ -20,6 +27,8 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
+using Repository.Interfaces.Database;
+using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -62,6 +71,56 @@ internal class FavoritesViewModelTests
 		sut.IsPopupOpen
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, IDbAccess, IDialogService, IDispatcherAccessor, IExecutingFiles, IFileTextCopier, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewLauncher)" />:
+	/// a new favorites window leaves the running hotkey tracking alone.
+	/// </summary>
+	[Test]
+	public void Constructor_Leaves_The_Hotkey_Tracking_Alone()
+	{
+		// Arrange
+		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			hook
+				.IsRunning
+				.Returns(true);
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
+
+			// The hook is a lazy singleton that an earlier window has already used.
+			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
+
+			_ = lazyHook.Value;
+
+			builder.RegisterInstance(lazyHook);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		// Act
+		_ = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		hook
+			.DidNotReceiveWithAnyArgs()
+			.StopTrackingAsync();
+
+		hook
+			.DidNotReceiveWithAnyArgs()
+			.StartTrackingAsync();
 	}
 
 	/// <summary>

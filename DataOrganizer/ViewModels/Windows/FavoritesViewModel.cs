@@ -17,7 +17,6 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
@@ -233,8 +232,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -249,8 +247,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewLauncher,
-			keyboardInputHook)
+			viewLauncher)
 	{
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
 

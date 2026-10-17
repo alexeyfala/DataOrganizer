@@ -931,7 +931,7 @@ public sealed partial class EditorViewModel :
 	/// Starts the auto-lock countdown over from the delay currently in the settings.
 	/// </summary>
 	[RelayCommand]
-	private void RestartAutoLock() => _autoLock.Arm();
+	private void RestartAutoLock() => _backgroundServiceControl.RestartAutoLock();
 
 	/// <summary>
 	/// Adds entries made up for trying the clipboard history to it.
@@ -1023,13 +1023,9 @@ public sealed partial class EditorViewModel :
 
 		_logger.LogInformation("Show hotkeys editor");
 
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
+		await _backgroundServiceControl
+			.PauseHotkeyTrackingAsync()
+			.ConfigureAwait(true);
 
 		EditingHotkeysResult result = await _dialogService
 			.EditHotkeysAsync(dto.Hotkeys.ToKeyStrokes())
@@ -1042,14 +1038,7 @@ public sealed partial class EditorViewModel :
 				.ConfigureAwait(false);
 		}
 
-		if (!_settingsStore
-			.Settings
-			.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync());
+		_backgroundServiceControl.ResumeHotkeyTracking();
 	}
 
 	/// <inheritdoc cref="ShowObject" />
@@ -1094,11 +1083,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
-
-	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
-	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+	/// <inheritdoc cref="IBackgroundServiceControl" />
+	private readonly IBackgroundServiceControl _backgroundServiceControl;
 
 	/// <inheritdoc cref="IClipboardLogSeeder" />
 	private readonly IClipboardLogSeeder _clipboardLogSeeder;
@@ -1166,8 +1152,7 @@ public sealed partial class EditorViewModel :
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
 		IAutoLockService autoLock,
-		IClipboardLogService clipboardLog,
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IBackgroundServiceControl backgroundServiceControl,
 		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
 		IContentVisibility contentVisibility,
@@ -1194,8 +1179,7 @@ public sealed partial class EditorViewModel :
 		ISessionHierarchy sessionHierarchy,
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -1210,16 +1194,13 @@ public sealed partial class EditorViewModel :
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewLauncher,
-			keyboardInputHook)
+			viewLauncher)
 	{
 		_autoLock = autoLock;
 
+		_backgroundServiceControl = backgroundServiceControl;
+
 		_folderProtection = folderProtection;
-
-		_clipboardLog = clipboardLog;
-
-		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_clipboardLogSeeder = clipboardLogSeeder;
 
@@ -1464,35 +1445,15 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		// A changed delay takes effect at once: the countdown restarts from it, and no auto-lock stops it.
-		if (settings.AutoLockMinutes != previousAutoLockMinutes)
-		{
-			NotifyDecryptedContentsChanged();
-		}
+		IsClipboardHistoryEnabled = settings.TrackClipboardHistory;
 
-		await ApplyClipboardHistorySettingAsync(
-			settings.TrackClipboardHistory,
-			token).ConfigureAwait(false);
-
-		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
-		{
-			_clipboardLogPersistence.DisablePersistence();
-		}
-
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync(token)
-				.ConfigureAwait(false);
-		}
-
-		if (!settings.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(token));
+		await _backgroundServiceControl
+			.ApplySettingsAsync(
+				settings,
+				wasPersistingClipboard,
+				previousAutoLockMinutes,
+				token)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -1503,14 +1464,7 @@ public sealed partial class EditorViewModel :
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
-		if (CanHideAllFileContents())
-		{
-			_autoLock.Arm();
-		}
-		else
-		{
-			_autoLock.Stop();
-		}
+		_backgroundServiceControl.RefreshAutoLock();
 	}
 
 	/// <inheritdoc />
@@ -1580,34 +1534,6 @@ public sealed partial class EditorViewModel :
 		Hierarchy.AddRange(hierarchy);
 
 		UpdateHierarchySummary();
-	}
-
-	/// <summary>
-	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
-	/// dropping the in-memory history when disabled.
-	/// </summary>
-	private async Task ApplyClipboardHistorySettingAsync(bool isEnabled, CancellationToken token)
-	{
-		IsClipboardHistoryEnabled = isEnabled;
-
-		if (isEnabled)
-		{
-			if (!_clipboardLog.IsRunning)
-			{
-				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
-			}
-
-			return;
-		}
-
-		if (_clipboardLog.IsRunning)
-		{
-			_clipboardLog.Stop();
-		}
-
-		await _clipboardLog
-			.ClearEntriesAsync()
-			.ConfigureAwait(false);
 	}
 
 	/// <summary>

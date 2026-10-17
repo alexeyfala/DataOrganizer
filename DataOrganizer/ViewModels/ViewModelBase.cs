@@ -13,7 +13,6 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
@@ -148,9 +147,6 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IExecutingFiles" />
 	protected readonly IExecutingFiles _executingFiles;
 
-	/// <inheritdoc cref="IKeyboardInputHook" />
-	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
-
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	protected readonly ISessionEditorTabs _sessionEditorTabs;
 
@@ -183,8 +179,7 @@ public abstract partial class ViewModelBase :
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			dbAccess,
 			dialogService,
@@ -200,8 +195,6 @@ public abstract partial class ViewModelBase :
 
 		_executingFiles = executingFiles;
 
-		_keyboardInputHook = keyboardInputHook;
-
 		_sessionEditorTabs = sessionEditorTabs;
 
 		_sessionHierarchy = sessionHierarchy;
@@ -213,18 +206,6 @@ public abstract partial class ViewModelBase :
 		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 
 		messenger.RegisterAll(this);
-
-		if (keyboardInputHook.IsValueCreated && keyboardInputHook.Value.IsRunning)
-		{
-			_exceptionHandler.Watch(keyboardInputHook.Value.StopTrackingAsync());
-		}
-
-		if (settingsStore.Settings.IsDefault() || !settingsStore.Settings.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(keyboardInputHook.Value.StartTrackingAsync());
 	}
 	#endregion
 

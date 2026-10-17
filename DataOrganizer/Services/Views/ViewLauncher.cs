@@ -13,9 +13,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
@@ -47,11 +45,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppUptime" />
 	private readonly IAppUptime _appUptime;
 
-	/// <inheritdoc cref="IAutoLockService" />
-	private readonly IAutoLockService _autoLock;
-
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IBackgroundServices" />
+	private readonly IBackgroundServices _backgroundServices;
 
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
@@ -61,9 +56,6 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
-
-	/// <inheritdoc cref="IKeyboardInputHook" />
-	private readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -95,9 +87,8 @@ public class ViewLauncher : IViewLauncher
 		Application app,
 		IAppEnvironment appEnvironment,
 		IAppUptime appUptime,
-		IAutoLockService autoLock,
+		IBackgroundServices backgroundServices,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
-		IClipboardLogService clipboardLog,
 		IExecutionEngine executionEngine,
 		IExecutionSandbox sandbox,
 		ILogger logger,
@@ -107,8 +98,7 @@ public class ViewLauncher : IViewLauncher
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
-		IWindowSettingsStore windowSettings,
-		Lazy<IKeyboardInputHook> keyboardInputHook)
+		IWindowSettingsStore windowSettings)
 	{
 		_app = app;
 
@@ -116,17 +106,13 @@ public class ViewLauncher : IViewLauncher
 
 		_appUptime = appUptime;
 
-		_autoLock = autoLock;
-
-		_clipboardLog = clipboardLog;
+		_backgroundServices = backgroundServices;
 
 		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_exceptionHandler = exceptionHandler;
 
 		_executionEngine = executionEngine;
-
-		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
 
@@ -711,20 +697,9 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task ShutdownAppAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		_autoLock.Stop();
-
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
-
-		if (_clipboardLog.IsRunning)
-		{
-			_clipboardLog.Stop();
-		}
+		await _backgroundServices
+			.StopAsync()
+			.ConfigureAwait(true);
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
 		{

@@ -2,6 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Runtime;
@@ -190,6 +192,65 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the clipboard history stays off when the settings do not track it, while
+	/// its saving is started.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Leaves_The_Clipboard_History_Off_When_It_Is_Not_Tracked()
+	{
+		// Arrange
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			dbConnector
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(DbConnectionStatus.Connected);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(clipboardLogPersistence);
+
+			builder.RegisterInstance(dbConnector);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		clipboardLogPersistence
+			.Received(1)
+			.Start();
+
+		await clipboardLog
+			.DidNotReceiveWithAnyArgs()
+			.StartAsync();
+	}
+
+	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities into the work session and
 	/// configures the main window.
 	/// </summary>
@@ -314,6 +375,68 @@ internal class AppControllerTests
 		viewLauncher
 			.Received(1)
 			.CreateMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the clipboard history and its saving start when the settings track it.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Starts_The_Clipboard_History_When_It_Is_Tracked()
+	{
+		// Arrange
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+
+			AppSettings settings = SettingsFactory.CreateSettings();
+
+			settings.TrackClipboardHistory = true;
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			dbConnector
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(DbConnectionStatus.Connected);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(clipboardLogPersistence);
+
+			builder.RegisterInstance(dbConnector);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		clipboardLogPersistence
+			.Received(1)
+			.Start();
+
+		await clipboardLog
+			.Received(1)
+			.StartAsync(Arg.Any<CancellationToken>());
 	}
 	#endregion
 }

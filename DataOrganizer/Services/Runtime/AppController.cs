@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -33,11 +32,8 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
-
-	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
-	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+	/// <inheritdoc cref="IBackgroundServices" />
+	private readonly IBackgroundServices _backgroundServices;
 
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
@@ -84,8 +80,7 @@ public sealed class AppController : IAppController
 		IAppEnvironment appEnvironment,
 		IAppSettingsStore settingsStore,
 		IAvaloniaLogForwarder avaloniaLogForwarder,
-		IClipboardLogService clipboardLog,
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IBackgroundServices backgroundServices,
 		ICommandLineOptions options,
 		IDbConnector dbConnector,
 		IEntityLoader entityLoader,
@@ -102,9 +97,7 @@ public sealed class AppController : IAppController
 	{
 		_appEnvironment = appEnvironment;
 
-		_clipboardLog = clipboardLog;
-
-		_clipboardLogPersistence = clipboardLogPersistence;
+		_backgroundServices = backgroundServices;
 
 		_consoleWindowHost = consoleWindowHost;
 
@@ -222,14 +215,7 @@ public sealed class AppController : IAppController
 
 			// TODO: Close splash screen here.
 
-			_clipboardLogPersistence.Start();
-
-			if (_settingsStore
-				.Settings
-				.TrackClipboardHistory)
-			{
-				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
-			}
+			_backgroundServices.Start(token);
 
 			_sessionHierarchy.Hierarchy.AddRange(hierarchy ?? []);
 

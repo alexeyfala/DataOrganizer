@@ -21,8 +21,10 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
@@ -3494,6 +3496,80 @@ internal class ViewLauncherTests
 			Arg.Is<EditorWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown stops the auto-lock countdown, the hotkey tracking
+	/// and the clipboard history.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Stops_The_Background_Services_On_Shutdown()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			clipboardLog
+				.IsRunning
+				.Returns(true);
+
+			hook
+				.IsRunning
+				.Returns(true);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(autoLock);
+
+			builder.RegisterInstance(clipboardLog);
+
+			// The hook is a lazy singleton that an earlier window has already used.
+			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
+
+			_ = lazyHook.Value;
+
+			builder.RegisterInstance(lazyHook);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		// Act
+		await sut.SaveEditorSettingsAsync(window);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
+
+		await hook
+			.Received(1)
+			.StopTrackingAsync(Arg.Any<CancellationToken>());
+
+		clipboardLog
+			.Received(1)
+			.Stop();
 	}
 
 	/// <summary>
