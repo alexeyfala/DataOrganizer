@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Dialogs;
@@ -8,6 +9,7 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
@@ -22,6 +24,7 @@ using Repository.Services;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +38,31 @@ namespace DataOrganizer.UnitTests.Services.Encryption;
 internal class FolderProtectionTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="FolderProtection.ChangePasswordAsync" />: a folder that keeps no password is left alone, and no password
+	/// is asked for.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Asks_Nothing_For_A_Folder_That_Is_No_Keeper()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		await unlocker
+			.DidNotReceiveWithAnyArgs()
+			.RequestDekAsync(default!, default!);
+	}
+
 	/// <summary>
 	/// <see cref="FolderProtection.ChangePasswordAsync" />: the old password goes to the unlocker,
 	/// while the new one is asked for with a confirmation.
@@ -149,6 +177,57 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.ChangePasswordAsync" />: a cancelled new password keeps the key as it is.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Keeps_The_Key_When_The_New_Password_Is_Cancelled()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		IFolderCipher folderCipher = Substitute.For<IFolderCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
+
+			// A cancelled prompt returns an empty password.
+			passwordPrompt
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
+
+			builder.RegisterInstance(folderCipher);
+
+			builder.RegisterInstance(passwordPrompt);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		await folderCipher
+			.DidNotReceiveWithAnyArgs()
+			.ChangePasswordAsync(default!, default!, default!);
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.ChangePasswordAsync" />: rewraps the DEK with the new password.
 	/// </summary>
 	[Test]
@@ -211,6 +290,14 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderRepository>()
 				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		IDbAccess dbAccess = mock.Create<IDbAccess>();
@@ -239,13 +326,48 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: a keeper with a child that is not encrypted is left alone, and
+	/// no password is asked for.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Asks_Nothing_For_A_Keeper_With_A_Shown_Child()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FileDto shown = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		shown.Parent = folder;
+
+		folder
+			.Children
+			.Add(shown);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, [shown]);
+
+		// Assert
+		await unlocker
+			.DidNotReceiveWithAnyArgs()
+			.RequestDekAsync(default!, default!);
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: the notes of a conversion reach the writer.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolderAsync_Delivers_The_Converted_Notes()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -300,6 +422,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -322,7 +448,7 @@ internal class FolderProtectionTests
 		// Arrange
 		IFolderContentsConverter converter = Substitute.For<IFolderContentsConverter>();
 
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -366,7 +492,7 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Drops_The_Key_Of_A_Converted_Folder([Values] bool isWriteSaved)
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -419,6 +545,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -440,7 +570,7 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Keeps_The_Notes_Of_A_Done_Conversion()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -493,6 +623,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -516,7 +650,7 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -554,6 +688,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -578,7 +716,7 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Saves_The_Decrypted_Contents()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -629,6 +767,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -655,6 +797,71 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: the progress bar shows while the files are decrypted, which keeps
+	/// the other commands waiting, and hides after.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Shows_The_Progress_While_It_Decrypts()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		List<bool> progress = [];
+
+		bool[] whileDecrypting = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowProgressBarMessage>(this, (_, message) => progress.Add(message.IsVisible));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFolderCipher folderCipher = Substitute.For<IFolderCipher>();
+
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			folderCipher
+				.When(x => x.DecryptFolderAsync(
+					folder,
+					Arg.Any<FileDto[]>(),
+					Arg.Any<PinnedBuffer>(),
+					Arg.Any<CancellationToken>()))
+				.Do(_ => whileDecrypting = [.. progress]);
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
+
+			builder.RegisterInstance(folderCipher);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, []);
+
+		// Assert
+		whileDecrypting
+			.Should()
+			.Equal(true);
+
+		progress
+			.Should()
+			.Equal(true, false);
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: a conversion that cannot be saved leaves
 	/// neither the decrypted contents nor the decrypted notes readable in memory.
 	/// </summary>
@@ -662,7 +869,7 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Wipes_The_Plain_Text_When_The_Write_Fails()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
@@ -725,6 +932,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -781,6 +992,37 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: a folder inside a
+	/// keeper is left alone, and no password is asked for.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Asks_Nothing_For_A_Folder_Inside_A_Keeper()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		folder.Parent = keeper;
+
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(passwordPrompt));
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, [ItemDtoFactory.CreateFileDto()]);
+
+		// Assert
+		await passwordPrompt
+			.DidNotReceiveWithAnyArgs()
+			.RequestPasswordAsync(default!);
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: nothing is persisted when a note cannot be encrypted.
 	/// </summary>
 	[Test]
@@ -827,6 +1069,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -918,6 +1164,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -929,6 +1179,39 @@ internal class FolderProtectionTests
 		fileSystem
 			.Received(1)
 			.EraseAndDeleteFile(backup.FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], PinnedSecret, CancellationToken)" />: a folder
+	/// inside a keeper is left alone, though the password is given.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Leaves_A_Folder_Inside_A_Keeper_With_The_Password_Given()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		folder.Parent = keeper;
+
+		using PinnedSecret password = SecretFactory.CreateRandomSecret();
+
+		IFolderCipher folderCipher = Substitute.For<IFolderCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(folderCipher));
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, [ItemDtoFactory.CreateFileDto()], password);
+
+		// Assert
+		await folderCipher
+			.DidNotReceiveWithAnyArgs()
+			.EncryptFolderAsync(default!, default!, default!);
 	}
 
 	/// <summary>
@@ -994,6 +1277,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -1016,6 +1303,58 @@ internal class FolderProtectionTests
 				x.NewStatus == EncryptionStatus.Encrypted
 				&& x.Contents.Length == files.Length),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], PinnedSecret, CancellationToken)" />: the
+	/// progress bar shows while the files are encrypted, which keeps the other commands waiting, and hides after.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Shows_The_Progress_While_It_Encrypts()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		List<bool> progress = [];
+
+		bool[] whileEncrypting = [];
+
+		using PinnedSecret password = SecretFactory.CreateRandomSecret();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowProgressBarMessage>(this, (_, message) => progress.Add(message.IsVisible));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFolderCipher folderCipher = Substitute.For<IFolderCipher>();
+
+			folderCipher
+				.When(x => x.EncryptFolderAsync(
+					folder,
+					Arg.Any<FileDto[]>(),
+					password,
+					Arg.Any<CancellationToken>()))
+				.Do(_ => whileEncrypting = [.. progress]);
+
+			builder.RegisterInstance(folderCipher);
+
+			builder.RegisterInstance(messenger);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, [], password);
+
+		// Assert
+		whileEncrypting
+			.Should()
+			.Equal(true);
+
+		progress
+			.Should()
+			.Equal(true, false);
 	}
 
 	/// <summary>
@@ -1086,6 +1425,10 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(dbBackupService);
+
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();

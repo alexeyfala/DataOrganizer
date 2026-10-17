@@ -204,6 +204,10 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -259,6 +263,10 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -444,6 +452,10 @@ internal class KeeperUnlockerTests
 			builder
 				.RegisterType<FolderRepository>()
 				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		IDbAccess dbAccess = mock.Create<IDbAccess>();

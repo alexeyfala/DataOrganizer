@@ -27,6 +27,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
@@ -125,6 +126,39 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ChangePasswordCommand" /> CanExecute: only the password of a password keeper changes, and
+	/// not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(true, false, ExpectedResult = true)]
+	[TestCase(false, false, ExpectedResult = false)]
+	[TestCase(true, true, ExpectedResult = false)]
+	public bool ChangePasswordCommand_CanExecute_Allows_Only_A_Password_Keeper(bool isKeeper, bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.ChangePasswordCommand
+			.CanExecute(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
 	/// </summary>
 	[Test]
@@ -166,6 +200,19 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<ExecutingFiles>()
 				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
 				.SingleInstance();
 
 			builder
@@ -634,6 +681,51 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DecryptFolderCommand" /> CanExecute: only an encrypted password keeper whose children are
+	/// all encrypted is decrypted, and not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(true, EncryptionStatus.Encrypted, false, ExpectedResult = true)]
+	[TestCase(true, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
+	[TestCase(false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
+	[TestCase(true, EncryptionStatus.Encrypted, true, ExpectedResult = false)]
+	public bool DecryptFolderCommand_CanExecute_Allows_Only_A_Keeper_With_Encrypted_Children(
+		bool isKeeper,
+		EncryptionStatus childStatus,
+		bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
+
+		child.Parent = folder;
+
+		folder
+			.Children
+			.Add(child);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.DecryptFolderCommand
+			.CanExecute(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DecryptFolder" />: open files are closed and the folder is decrypted.
 	/// </summary>
 	[Test]
@@ -678,6 +770,19 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -697,34 +802,48 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
+		// Every file of the folder is decrypted, the closed ones too.
 		await folderProtection
 			.Received(1)
-			.DecryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
+			.DecryptFolderAsync(folder, Arg.Is<FileDto[]>(x => x.ToHashSet().SetEquals(editingFiles.Concat(executingFiles))));
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DecryptFolder" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.DecryptFolder" />: a folder without files is not decrypted.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(folderProtection);
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.DecryptFolder(ItemDtoFactory.CreateFolderDto());
 
 		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
+		await folderProtection
+			.DidNotReceiveWithAnyArgs()
+			.DecryptFolderAsync(default!, default!);
 	}
 
 	/// <summary>
@@ -1442,6 +1561,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.EncryptFolderCommand" /> CanExecute: only a folder that belongs to no keeper, itself
+	/// included, and holds no protected contents is encrypted, and not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(false, false, EncryptionStatus.None, false, ExpectedResult = true)]
+	[TestCase(true, false, EncryptionStatus.None, false, ExpectedResult = false)]
+	[TestCase(false, true, EncryptionStatus.None, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.None, true, ExpectedResult = false)]
+	public bool EncryptFolderCommand_CanExecute_Allows_Only_A_Folder_Without_Protection(
+		bool isInsideKeeper,
+		bool isKeeper,
+		EncryptionStatus childStatus,
+		bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
+
+		child.Parent = folder;
+
+		folder
+			.Children
+			.Add(child);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		if (isInsideKeeper)
+		{
+			FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+			keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+			folder.Parent = keeper;
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.EncryptFolderCommand
+			.CanExecute(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.EncryptFolder" />: open files are closed and the folder is encrypted.
 	/// </summary>
 	[Test]
@@ -1486,6 +1662,19 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -1511,28 +1700,41 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.EncryptFolder" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.EncryptFolder" />: a folder without files is not encrypted.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolder_Does_Nothing_If_Missing_Files()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(folderProtection);
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.EncryptFolder(ItemDtoFactory.CreateFolderDto());
 
 		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
+		await folderProtection
+			.DidNotReceiveWithAnyArgs()
+			.EncryptFolderAsync(default!, default!);
 	}
 
 	/// <summary>
@@ -2102,6 +2304,19 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2153,6 +2368,14 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
 			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
@@ -2160,6 +2383,14 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2184,6 +2415,139 @@ internal class EditorViewModelTests
 		contentVisibility
 			.DidNotReceive()
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideAllFileContents" />: a file open with contents that are not protected stays open, and
+	/// nobody is asked to close it.
+	/// </summary>
+	[Test]
+	public async Task HideAllFileContents_Leaves_An_Open_Plain_File_Open()
+	{
+		// Arrange
+		FileDto plain = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(plain);
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		plain.IsEditing
+			.Should()
+			.BeTrue();
+
+		await dialogService
+			.DidNotReceive()
+			.RequestCloseFilesAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideAllFileContents" />: hidden contents refresh the command that hides everything.
+	/// </summary>
+	[Test]
+	public async Task HideAllFileContents_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IProtectionScenarios protectionScenarios = Substitute.For<IProtectionScenarios>();
+
+			protectionScenarios
+				.HideAllContentsAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(protectionScenarios);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideAllFileContents" />: hidden contents leave the auto-lock nothing to wait for.
+	/// </summary>
+	[Test]
+	public async Task HideAllFileContents_Tells_The_Auto_Lock()
+	{
+		// Arrange
+		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(backgroundServiceControl);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		backgroundServiceControl
+			.Received(1)
+			.RefreshAutoLock();
 	}
 
 	/// <summary>
@@ -2218,6 +2582,19 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<ExecutingFiles>()
 				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
 				.SingleInstance();
 
 			builder
@@ -2278,6 +2655,14 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2345,6 +2730,19 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2396,6 +2794,14 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
 			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
@@ -2403,6 +2809,14 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2709,6 +3123,10 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dataExchange);
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2745,6 +3163,10 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dataExchange);
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2761,6 +3183,53 @@ internal class EditorViewModelTests
 		sut.Hierarchy
 			.Should()
 			.Equal(imported);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: the open files are closed before the import starts.
+	/// </summary>
+	[Test]
+	public async Task Import_Closes_The_Open_Files_First()
+	{
+		// Arrange
+		FileDto opened = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(opened);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		opened.IsEditing
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -2783,6 +3252,10 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dataExchange);
 
 			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2821,6 +3294,10 @@ internal class EditorViewModelTests
 				.Returns(new ImportDataResult([imported], ImportMode.Append));
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2946,6 +3423,10 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -3232,6 +3713,37 @@ internal class EditorViewModelTests
 		autoLock
 			.DidNotReceive()
 			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(CloseEditingFileMessage)" />: a file the editor is asked to close loses its tab.
+	/// </summary>
+	[Test]
+	public void Receive_CloseEditingFile_Closes_The_Tab()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.EditingFiles.OpenInEditor(file);
+
+		// Act
+		sut.Receive(new CloseEditingFileMessage(file));
+
+		// Assert
+		sut.EditingFiles.Items
+			.Should()
+			.BeEmpty();
+
+		file.IsEditing
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -4147,6 +4659,53 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowFileContentsCommand" />: the auto-lock hears of the shown contents, and only when they
+	/// show.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsCommand_Tells_The_Auto_Lock_Only_When_The_Contents_Show([Values] bool isShown)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+			contentVisibility
+				.ShowFileContentsAsync(file, Arg.Any<CancellationToken>())
+				.Returns(isShown);
+
+			builder.RegisterInstance(backgroundServiceControl);
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.ShowFileContentsCommand
+			.ExecuteAsync(file);
+
+		// Assert
+		backgroundServiceControl
+			.Received(isShown ? 1 : 0)
+			.RefreshAutoLock();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowFolderContents" />: open files are closed and the folder's contents are shown.
 	/// </summary>
 	[Test]
@@ -4191,6 +4750,19 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -4216,28 +4788,41 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ShowFolderContents" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.ShowFolderContents" />: a folder without files shows nothing.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(contentVisibility);
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.ShowFolderContents(ItemDtoFactory.CreateFolderDto());
 
 		// Assert
-		await dialogService
-			.DidNotReceive()
-			.RequestCloseFilesAsync();
+		await contentVisibility
+			.DidNotReceiveWithAnyArgs()
+			.ShowFolderContentsAsync(default!);
 	}
 
 	/// <summary>

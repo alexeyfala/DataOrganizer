@@ -1,7 +1,6 @@
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -14,14 +13,14 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class KeeperUnlocker : IKeeperUnlocker
 {
 	#region Data
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
 	private readonly IEncryptionFailureReporter _failureReporter;
+
+	/// <inheritdoc cref="IKeeperDekWriter" />
+	private readonly IKeeperDekWriter _keeperDekWriter;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -32,17 +31,17 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 	#region Constructors
 	public KeeperUnlocker(
-		IDbAccess dbAccess,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
+		IKeeperDekWriter keeperDekWriter,
 		ILogger logger,
 		IPasswordPrompt passwordPrompt)
 	{
-		_dbAccess = dbAccess;
-
 		_encryption = encryption;
 
 		_failureReporter = failureReporter;
+
+		_keeperDekWriter = keeperDekWriter;
 
 		_logger = logger;
 
@@ -125,14 +124,9 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 				return;
 			}
 
-			if (!await _dbAccess
-				.UpdateEncryptedDekAsync(keeper.Id, rewrapped, token)
-				.ConfigureAwait(false))
-			{
-				return;
-			}
-
-			keeper.EncryptedDek = rewrapped;
+			await _keeperDekWriter
+				.WriteAsync(keeper, rewrapped, token)
+				.ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{

@@ -15,6 +15,7 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Execution;
+using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -55,6 +56,7 @@ namespace DataOrganizer.ViewModels.Windows;
 /// </summary>
 public sealed partial class EditorViewModel :
 	ViewModelBase,
+	IRecipient<CloseEditingFileMessage>,
 	IRecipient<ShowInEditorMessage>,
 	IRecipient<ShowProgressBarMessage>,
 	IUpdatePrompt
@@ -231,63 +233,28 @@ public sealed partial class EditorViewModel :
 	/// Changes the password of a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanChangePassword))]
-	internal async Task ChangePassword(FolderDto? dto)
+	internal Task ChangePassword(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] openedFiles = [.. dto
-			.Children
-			.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Change password of the folder");
-
-		await _folderProtection
-			.ChangePasswordAsync(dto)
-			.ConfigureAwait(false);
+		return _protectionScenarios.ChangePasswordAsync(dto);
 	}
 
 	/// <summary>
 	/// Decrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
-	internal async Task DecryptFolder(FolderDto? dto)
+	internal Task DecryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Decrypt files in a folder");
-
-		await _folderProtection
-			.DecryptFolderAsync(dto, files)
-			.ConfigureAwait(false);
+		return _protectionScenarios.DecryptFolderAsync(dto);
 	}
 
 	/// <summary>
@@ -323,36 +290,14 @@ public sealed partial class EditorViewModel :
 	/// Encrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanEncryptFolder))]
-	internal async Task EncryptFolder(FolderDto? dto)
+	internal Task EncryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Encrypt files in a folder");
-
-		await _folderProtection
-			.EncryptFolderAsync(dto, files)
-			.ConfigureAwait(false);
+		return _protectionScenarios.EncryptFolderAsync(dto);
 	}
 
 	/// <summary>
@@ -483,22 +428,14 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideAllFileContents))]
 	internal async Task HideAllFileContents()
 	{
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.		
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
+		if (!await _protectionScenarios
+			.HideAllContentsAsync()
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_contentVisibility.HideAllContents(Hierarchy);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -507,65 +444,28 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideFileContents))]
 	internal async Task HideFileContents(FileDto? dto)
 	{
-		if (dto is null)
+		if (dto is null || !await _protectionScenarios
+			.HideFileContentsAsync(dto)
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
-		{
-			return;
-		}
-
-		if (dto.IsOpened())
-		{
-			if (!await _dialogService
-				.RequestCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFile(dto);
-		}
-
-		_logger.LogInformation("Hide file contents");
-
-		_contentVisibility.HideFileContents(dto);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
-	/// <inheritdoc cref="IContentVisibility.HideFolderContents" />
+	/// <inheritdoc cref="IProtectionScenarios.HideFolderContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
 	internal async Task HideFolderContents(FolderDto? dto)
 	{
-		if (dto is null)
+		if (dto is null || !await _protectionScenarios
+			.HideFolderContentsAsync(dto)
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
-		{
-			return;
-		}
-
-		FileDto[] openedFiles = [.. dto
-			.Children
-			.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide files in a folder");
-
-		_contentVisibility.HideFolderContents(dto);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -574,9 +474,9 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanImport))]
 	internal async Task Import()
 	{
-		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
+		if (!await _openFilesCloser
+			.TryCloseAsync([.. Hierarchy.GetFilesBy(IsOpened)])
+			.ConfigureAwait(true))
 		{
 			return;
 		}
@@ -690,36 +590,14 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanShowFolderContents))]
 	internal async Task ShowFolderContents(FolderDto? dto)
 	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show file contents in a folder");
-
-		await _contentVisibility
+		if (dto is null || !await _protectionScenarios
 			.ShowFolderContentsAsync(dto)
-			.ConfigureAwait(true);
+			.ConfigureAwait(true))
+		{
+			return;
+		}
 
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -1005,7 +883,7 @@ public sealed partial class EditorViewModel :
 		SwitchRightSideSheetContent(RightSideSheetContentKind.ExecutingFiles);
 	}
 
-	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanShowFileContents))]
 	private Task ShowFileContents(FileDto? dto)
 	{
@@ -1119,9 +997,6 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
 
-	/// <inheritdoc cref="IFolderProtection" />
-	private readonly IFolderProtection _folderProtection;
-
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
@@ -1139,11 +1014,17 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="INoteReader" />
 	private readonly INoteReader _noteReader;
 
+	/// <inheritdoc cref="IOpenFilesCloser" />
+	private readonly IOpenFilesCloser _openFilesCloser;
+
 	/// <inheritdoc cref="IProcessManager" />
 	private readonly IProcessManager _processManager;
 
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
+
+	/// <inheritdoc cref="IProtectionScenarios" />
+	private readonly IProtectionScenarios _protectionScenarios;
 
 	/// <inheritdoc cref="ISampleSeeder" />
 	private readonly ISampleSeeder _sampleSeeder;
@@ -1183,14 +1064,15 @@ public sealed partial class EditorViewModel :
 		IExecutingFiles executingFiles,
 		IFileContentsReader fileContentsReader,
 		IFileHotkeyEditor fileHotkeyEditor,
-		IFolderProtection folderProtection,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
 		IMessenger messenger,
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		INotificationService notification,
+		IOpenFilesCloser openFilesCloser,
 		IProcessManager processManager,
+		IProtectionScenarios protectionScenarios,
 		ISampleSeeder sampleSeeder,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
@@ -1221,8 +1103,6 @@ public sealed partial class EditorViewModel :
 
 		_backgroundServiceControl = backgroundServiceControl;
 
-		_folderProtection = folderProtection;
-
 		_clipboardLogSeeder = clipboardLogSeeder;
 
 		_clipboardWriter = clipboardWriter;
@@ -1243,7 +1123,11 @@ public sealed partial class EditorViewModel :
 
 		_noteReader = noteReader;
 
+		_openFilesCloser = openFilesCloser;
+
 		_processManager = processManager;
+
+		_protectionScenarios = protectionScenarios;
 
 		_propertyWriter = propertyWriter;
 
@@ -1292,6 +1176,9 @@ public sealed partial class EditorViewModel :
 
 		IsInitialized = true;
 	}
+
+	/// <inheritdoc />
+	public void Receive(CloseEditingFileMessage message) => CloseEditingFile(message.File);
 
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message) => ShowObject(message.Id);
@@ -1504,7 +1391,8 @@ public sealed partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& dto?.IsPasswordKeeper() == true;
+			&& dto is not null
+			&& FolderProtectionRules.CanChangePassword(dto);
 	}
 
 	/// <summary>
@@ -1519,9 +1407,8 @@ public sealed partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& dto?.IsPasswordKeeper() == true
-			&& dto.EncryptionStatus == EncryptionStatus.Encrypted
-			&& dto.Children.AllBy(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+			&& dto is not null
+			&& FolderProtectionRules.CanDecrypt(dto);
 	}
 
 	/// <summary>
@@ -1550,12 +1437,10 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	private bool CanEncryptFolder(FolderDto? dto)
 	{
-		// A folder can be encrypted only while it belongs to no keeper, itself included.
 		return !IsReadOnly
 			&& !IsActionInProgress
 			&& dto is not null
-			&& dto.FindPasswordKeeper() is null
-			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
+			&& FolderProtectionRules.CanEncrypt(dto);
 	}
 
 	/// <summary>
@@ -1692,19 +1577,17 @@ public sealed partial class EditorViewModel :
 		}
 	}
 
-	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileDto dto)
 	{
-		_logger.LogInformation("Show file contents");
-
-		if (!await _contentVisibility
+		if (!await _protectionScenarios
 			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true))
 		{
 			return false;
 		}
 
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		return true;
 	}
@@ -1749,48 +1632,6 @@ public sealed partial class EditorViewModel :
 		RightSideSheetContent = content;
 
 		IsRightSideSheetOpened = true;
-	}
-
-	/// <summary>
-	/// Tries to close editing or executing files if any.
-	/// </summary>
-	private async Task<bool> TryCloseOpenedFilesAsync(
-		FileDto[] openedFiles,
-		CancellationToken token = default)
-	{
-		if (openedFiles.IsNotEmpty())
-		{
-			if (!await _dialogService
-				.RequestCloseFilesAsync(token)
-				.ConfigureAwait(true))
-			{
-				return false;
-			}
-
-			CloseFiles(
-				openedFiles.Where(x => x.IsEditing),
-				openedFiles.Where(x => x.IsExecuting));
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Persists the pending changes of the open editors before the key is dropped;
-	/// <c>False</c> reports the failure to the user and keeps the caller from hiding anything.
-	/// </summary>
-	private async Task<bool> TryFlushEditorsAsync(CancellationToken token = default)
-	{
-		if (await FlushEditorsAsync(token).ConfigureAwait(true))
-		{
-			return true;
-		}
-
-		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
-
-		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-		return false;
 	}
 
 	/// <summary>

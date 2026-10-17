@@ -16,7 +16,6 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using Serilog;
 using Shared.Extensions;
@@ -316,22 +315,6 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Asks every open editor to persist its pending changes and awaits all of them.
-	/// </summary>
-	protected async Task<bool> FlushEditorsAsync(CancellationToken token = default)
-	{
-		FlushEditorsMessage request = new();
-
-		_messenger.Send(request);
-
-		IReadOnlyCollection<bool> responses = await request
-			.GetResponsesAsync(token)
-			.ConfigureAwait(true);
-
-		return responses.All(x => x);
-	}
-
-	/// <summary>
 	/// Creates the list of the copy history that the window starts to show, read afresh from the history.
 	/// </summary>
 	protected void OpenCopyHistoryList() => CopyHistoryList = _viewFactory.CreateViewModel<CopyHistoryViewModel>();
@@ -346,7 +329,7 @@ public abstract partial class ViewModelBase :
 		_logger.LogInformation("Auto-lock: hiding the decrypted contents");
 
 		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
-		await FlushEditorsAsync().ConfigureAwait(true);
+		await _messenger.FlushEditorsAsync().ConfigureAwait(true);
 
 		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
 
