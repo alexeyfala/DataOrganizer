@@ -387,7 +387,7 @@ internal class FavoritesViewModelTests
 			editorWindow = windowMock.Create<EditorWindow>();
 
 			viewLauncher
-				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateEditorWindow()
 				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -413,7 +413,7 @@ internal class FavoritesViewModelTests
 
 		viewLauncher
 			.Received(1)
-			.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>());
+			.CreateEditorWindow();
 	}
 
 	/// <summary>

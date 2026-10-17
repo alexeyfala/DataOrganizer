@@ -31,9 +31,9 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -162,6 +162,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -190,7 +195,7 @@ internal class EditorViewModelTests
 	/// <see cref="ViewModelBase.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
 	/// </summary>
 	[Test]
-	public void CloseExecutingFile_Closes_File()
+	public async Task CloseExecutingFile_Closes_File()
 	{
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto();
@@ -201,11 +206,20 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -215,9 +229,14 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.ExecutingFiles
-			.Add(dto);
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new ExecuteFileParameters
+			{
+				Contents = [],
+				File = dto,
+				IsReadOnly = false
+			});
 
 		// Act
 		sut.CloseExecutingFile(dto);
@@ -231,7 +250,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		engine
+		await engine
 			.Received(1)
 			.CloseAsync(Arg.Any<Guid>());
 	}
@@ -256,6 +275,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -378,6 +402,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -440,6 +469,12 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			hierarchyEditor
 				.DeleteAsync(
 					Arg.Any<ExplorerItemDtoBase>(),
@@ -453,6 +488,13 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(hierarchyEditor);
 
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
 			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
@@ -461,9 +503,14 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.ExecutingFiles
-			.Add(file);
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new ExecuteFileParameters
+			{
+				Contents = [],
+				File = file,
+				IsReadOnly = false
+			});
 
 		// Act
 		bool result = await sut.DeleteAsync(file);
@@ -519,6 +566,10 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			executionEngine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
 			hierarchyEditor
@@ -537,6 +588,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(executionEngine);
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -544,9 +600,14 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.ExecutingFiles
-			.Add(executingFile);
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new ExecuteFileParameters
+			{
+				Contents = [],
+				File = executingFile,
+				IsReadOnly = false
+			});
 
 		// Act
 		bool result = await sut.DeleteAsync(folder);
@@ -637,6 +698,12 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
 			hierarchyEditor
@@ -648,6 +715,13 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(hierarchyEditor);
 
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
 			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
@@ -656,9 +730,14 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut
-			.ExecutingFiles
-			.Add(file);
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new ExecuteFileParameters
+			{
+				Contents = [],
+				File = file,
+				IsReadOnly = false
+			});
 
 		// Act
 		bool result = await sut.DeleteAsync(file);
@@ -1134,6 +1213,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -1207,6 +1291,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1426,6 +1515,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(engine);
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -1518,6 +1612,11 @@ internal class EditorViewModelTests
 				.As<IContentCipher>();
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -1581,6 +1680,11 @@ internal class EditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1896,6 +2000,11 @@ internal class EditorViewModelTests
 				.As<IDispatcherAccessor>();
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2008,6 +2117,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2127,6 +2241,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2996,73 +3115,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.Receive(CloseExecutingFileMessage)" />: only the executing file the message names is removed
-	/// from executing files, unmarked, and closed in the engine.
-	/// </summary>
-	[Test]
-	public void Receive_CloseExecutingFile_Closes_Only_The_Named_File()
-	{
-		// Arrange
-		FileDto dto = ItemDtoFactory.CreateFileDto();
-
-		dto.IsExecuting = true;
-
-		FileDto other = ItemDtoFactory.CreateFileDto();
-
-		other.IsExecuting = true;
-
-		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(engine);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut
-			.ExecutingFiles
-			.Add(other);
-
-		sut
-			.ExecutingFiles
-			.Add(dto);
-
-		// Act
-		sut.Receive(new CloseExecutingFileMessage(dto.Id));
-
-		// Assert
-		sut.ExecutingFiles
-			.Should()
-			.Equal(other);
-
-		dto.IsExecuting
-			.Should()
-			.BeFalse();
-
-		other.IsExecuting
-			.Should()
-			.BeTrue();
-
-		engine
-			.Received(1)
-			.CloseAsync(dto.Id);
-
-		engine
-			.DidNotReceive()
-			.CloseAsync(other.Id);
-	}
-
-	/// <summary>
 	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
 	/// </summary>
 	[Test]
@@ -3102,6 +3154,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterInstance(session)
@@ -3809,7 +3866,7 @@ internal class EditorViewModelTests
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
 			viewLauncher
-				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -3878,7 +3935,7 @@ internal class EditorViewModelTests
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
 			viewLauncher
-				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -3904,7 +3961,7 @@ internal class EditorViewModelTests
 
 		viewLauncher
 			.Received(1)
-			.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>());
+			.CreateFavoritesWindow();
 	}
 
 	/// <summary>
@@ -3945,6 +4002,11 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<WorkSession>()

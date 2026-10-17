@@ -190,6 +190,29 @@ internal class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the executing files have one owner for the whole application, so every main
+	/// window lists the same files.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Shares_One_Owner_Of_The_Executing_Files()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.ContainSingle(x => x.ServiceType == typeof(IExecutingFiles))
+			.Which
+			.Lifetime
+			.Should()
+			.Be(ServiceLifetime.Singleton);
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the splits of the editors have one store for the whole application, so a file
 	/// opened again gets its split back.
 	/// </summary>

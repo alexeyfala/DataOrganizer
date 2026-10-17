@@ -1,12 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Views;
@@ -47,14 +45,12 @@ public interface IViewLauncher
 	/// <summary>
 	/// Configures <see cref="EditorWindow" />.
 	/// </summary>
-	EditorWindow CreateEditorWindow(
-		IEnumerable<FileDto> executingFiles,
-		in Guid showObjectId = default);
+	EditorWindow CreateEditorWindow(in Guid showObjectId = default);
 
 	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
-	FavoritesWindow CreateFavoritesWindow(IEnumerable<FileDto> executingFiles);
+	FavoritesWindow CreateFavoritesWindow();
 
 	/// <summary>
 	/// Configures the main application window, which shows the tree of the work session.

@@ -225,7 +225,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IExecutionEngine executionEngine,
+		IExecutingFiles executingFiles,
 		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
@@ -241,7 +241,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			dbAccess,
 			dialogService,
 			dispatcher,
-			executionEngine,
+			executingFiles,
 			fileTextCopier,
 			logger,
 			messenger,
@@ -363,7 +363,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		window.Close();
 
 		_viewLauncher
-			.CreateEditorWindow(ExecutingFiles, id)
+			.CreateEditorWindow(id)
 			.Show();
 
 		return Task.CompletedTask;

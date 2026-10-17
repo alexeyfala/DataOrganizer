@@ -227,6 +227,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEditorSplitStore, EditorSplitStore>();
+		services.AddSingleton<IExecutingFiles, ExecutingFiles>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook());

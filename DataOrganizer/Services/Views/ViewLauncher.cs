@@ -297,9 +297,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public EditorWindow CreateEditorWindow(
-		IEnumerable<FileDto> executingFiles,
-		in Guid showObjectId = default)
+	public EditorWindow CreateEditorWindow(in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
 
@@ -308,10 +306,6 @@ public class ViewLauncher : IViewLauncher
 		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
-
-		viewModel
-			.ExecutingFiles
-			.AddRange(executingFiles);
 
 		viewModel.NotifyDecryptedContentsChanged();
 
@@ -358,17 +352,13 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public FavoritesWindow CreateFavoritesWindow(IEnumerable<FileDto> executingFiles)
+	public FavoritesWindow CreateFavoritesWindow()
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
 		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
 
 		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
-
-		viewModel
-			.ExecutingFiles
-			.AddRange(executingFiles);
 
 		if (_windowSettings.Read<FavoritesWindowSettings>() is { } windowSettings)
 		{
@@ -400,13 +390,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				WindowKind.Editor => CreateEditorWindow([]),
-				WindowKind.Favorites => CreateFavoritesWindow([]),
+				WindowKind.Editor => CreateEditorWindow(),
+				WindowKind.Favorites => CreateFavoritesWindow(),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return CreateEditorWindow([]);
+		return CreateEditorWindow();
 	}
 
 	/// <inheritdoc />

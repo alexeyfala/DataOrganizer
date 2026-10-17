@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
@@ -20,6 +21,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
@@ -28,6 +30,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
@@ -724,7 +727,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.WindowStartupLocation
@@ -766,7 +769,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.Width
@@ -844,7 +847,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.Width
@@ -919,7 +922,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -985,7 +988,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		sut.CreateEditorWindow([]);
+		sut.CreateEditorWindow();
 
 		// Assert
 		received
@@ -1050,7 +1053,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.WindowState
@@ -1118,7 +1121,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.Position
@@ -1205,7 +1208,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.Position
@@ -1233,7 +1236,7 @@ internal class ViewLauncherTests
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 			viewLauncher
-				.CreateFavoritesWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -1285,7 +1288,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -1383,7 +1386,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -1496,7 +1499,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		window = sut.CreateEditorWindow([], shown.Id);
+		window = sut.CreateEditorWindow(shown.Id);
 
 		window.Show();
 
@@ -1574,7 +1577,7 @@ internal class ViewLauncherTests
 
 		// Act
 		// An object the tree does not hold, so that the show ends at once.
-		EditorWindow window = sut.CreateEditorWindow([], Guid.NewGuid());
+		EditorWindow window = sut.CreateEditorWindow(Guid.NewGuid());
 
 		// Assert
 		window.ViewModel.SelectedObject
@@ -1634,7 +1637,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.ViewModel.SelectedObject
@@ -1644,6 +1647,76 @@ internal class ViewLauncherTests
 		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
 			Arg.Any<ExplorerItemDtoBase>(),
 			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor lists the files the operating system runs.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Shows_The_Executing_Files()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+			{
+				IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+				engine
+					.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+					.Returns(true);
+
+				windowBuilder.RegisterInstance(engine);
+
+				windowBuilder
+					.RegisterType<ExecutingFiles>()
+					.As<IExecutingFiles>()
+					.SingleInstance();
+
+				windowBuilder
+					.RegisterType<WorkSession>()
+					.AsImplementedInterfaces()
+					.SingleInstance();
+			});
+
+			// The file runs before the editor opens, as it does when the favorites switch back to the editor.
+			_ = windowMock
+				.Create<IExecutingFiles>()
+				.ExecuteAsync(new ExecuteFileParameters
+				{
+					Contents = [],
+					File = file,
+					IsReadOnly = false
+				});
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// Assert
+		window.ViewModel.ExecutingFiles
+			.Should()
+			.Equal(file);
 	}
 
 	/// <summary>
@@ -1703,7 +1776,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.CreateEditorWindow([]);
+		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
 		window.ViewModel.IsReadOnly
@@ -1766,7 +1839,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
 		window.WindowStartupLocation
@@ -1808,7 +1881,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
 		window.WindowStartupLocation
@@ -1888,7 +1961,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -1952,7 +2025,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
 		window.Position
@@ -2020,7 +2093,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
 		window.Position
@@ -2053,7 +2126,7 @@ internal class ViewLauncherTests
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 			viewLauncher
-				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateEditorWindow()
 				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -2108,7 +2181,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
 
@@ -2213,7 +2286,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
 
@@ -2270,7 +2343,7 @@ internal class ViewLauncherTests
 			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
 			viewLauncher
-				.CreateEditorWindow(Arg.Any<IEnumerable<FileDto>>())
+				.CreateEditorWindow()
 				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewLauncher);
@@ -2322,7 +2395,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		FavoritesWindow window = sut.CreateFavoritesWindow([]);
+		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		CopyHistoryViewModel copyHistory = windowMock.Create<CopyHistoryViewModel>();
 
@@ -3193,6 +3266,53 @@ internal class ViewLauncherTests
 			Arg.Any<ClipboardLogWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown closes the files the operating system runs.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SaveEditorSettingsAsync_Closes_The_Executing_Files_On_Shutdown()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isExecuting: true);
+
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = mock.Create<EditorWindow>();
+
+		window
+			.ViewModel
+			.Hierarchy
+			.Add(file);
+
+		// Act
+		await sut.SaveEditorSettingsAsync(window);
+
+		// Assert
+		await engine
+			.Received(1)
+			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

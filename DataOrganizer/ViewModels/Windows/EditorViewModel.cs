@@ -339,7 +339,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		if (_executionEngine.IsExecuting(dto.Id))
+		if (_executingFiles.IsExecuting(dto.Id))
 		{
 			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
 				true,
@@ -434,16 +434,9 @@ public sealed partial class EditorViewModel :
 			KeeperId = keeperId,
 		};
 
-		if (!await _executionEngine
+		await _executingFiles
 			.ExecuteAsync(parameters)
-			.ConfigureAwait(true))
-		{
-			return;
-		}
-
-		dto.IsExecuting = true;
-
-		ExecutingFiles.Add(dto);
+			.ConfigureAwait(true);
 	}
 
 	/// <summary>
@@ -658,7 +651,7 @@ public sealed partial class EditorViewModel :
 		_sessionEditorTabs.EditorTabs = _editingFiles?.State;
 
 		_viewLauncher
-			.CreateFavoritesWindow(ExecutingFiles)
+			.CreateFavoritesWindow()
 			.Show();
 
 		if (_editingFiles is null)
@@ -1184,7 +1177,7 @@ public sealed partial class EditorViewModel :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
-		IExecutionEngine executionEngine,
+		IExecutingFiles executingFiles,
 		IFileContentsReader fileContentsReader,
 		IFileHotkeyEditor fileHotkeyEditor,
 		IFileTextCopier fileTextCopier,
@@ -1209,7 +1202,7 @@ public sealed partial class EditorViewModel :
 			dbAccess,
 			dialogService,
 			dispatcher,
-			executionEngine,
+			executingFiles,
 			fileTextCopier,
 			logger,
 			messenger,

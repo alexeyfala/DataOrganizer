@@ -20,7 +20,6 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Execution;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -39,17 +38,14 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public abstract partial class ViewModelBase :
 	CopyContentViewModelBase,
-	IRecipient<CloseExecutingFileMessage>,
 	IRecipient<SessionAutoLockedMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewSettings" />
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
 
-	/// <summary>
-	/// Executed in operating system files.
-	/// </summary>
-	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
+	/// <inheritdoc cref="IExecutingFiles.Files" />
+	public ReadOnlyObservableCollection<FileDto> ExecutingFiles => _executingFiles.Files;
 
 	/// <inheritdoc cref="ISessionHierarchy.Hierarchy" />
 	public ObservableCollection<ExplorerItemDtoBase> Hierarchy => _sessionHierarchy.Hierarchy;
@@ -83,20 +79,7 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name),
-			nameof(FileDto.Kind))}");
-
-		_dispatcher.Post(() =>
-		{
-			ExecutingFiles.Remove(dto);
-
-			dto.IsExecuting = false;
-		});
-
-		_exceptionHandler.Watch(_executionEngine.CloseAsync(dto.Id));
+		_executingFiles.Close(dto);
 	}
 
 	/// <summary>
@@ -162,8 +145,8 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	protected readonly IDispatcherAccessor _dispatcher;
 
-	/// <inheritdoc cref="IExecutionEngine" />
-	protected readonly IExecutionEngine _executionEngine;
+	/// <inheritdoc cref="IExecutingFiles" />
+	protected readonly IExecutingFiles _executingFiles;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
@@ -192,7 +175,7 @@ public abstract partial class ViewModelBase :
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IExecutionEngine executionEngine,
+		IExecutingFiles executingFiles,
 		IFileTextCopier fileTextCopier,
 		ILogger logger,
 		IMessenger messenger,
@@ -215,7 +198,7 @@ public abstract partial class ViewModelBase :
 
 		_dispatcher = dispatcher;
 
-		_executionEngine = executionEngine;
+		_executingFiles = executingFiles;
 
 		_keyboardInputHook = keyboardInputHook;
 
@@ -270,13 +253,6 @@ public abstract partial class ViewModelBase :
 		}
 
 		_copyHistory?.InsertOrMoveToTop(file);
-	}
-
-	/// <inheritdoc />
-	public void Receive(CloseExecutingFileMessage message)
-	{
-		// The executing files change on the UI thread, so they are searched there.
-		_dispatcher.Post(() => CloseExecutingFile(ExecutingFiles.FirstOrDefault(x => x.Id == message.FileId)));
 	}
 
 	/// <inheritdoc />
