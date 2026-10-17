@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -52,7 +51,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsRepeater" />.
+	/// Reads the records and the stored view state once.
 	/// </summary>
 	[RelayCommand]
 	internal async Task ContainerLoaded()

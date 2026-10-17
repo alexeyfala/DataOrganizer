@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
@@ -35,7 +34,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	public FileDto? SelectedFile => Items.ElementAtOrDefault(SelectedIndex);
 
 	/// <summary>
-	/// Index of selected element in <see cref="TabControl" />.
+	/// Index of the selected tab.
 	/// </summary>
 	[ObservableProperty]
 	public partial int SelectedIndex { get; set; }
@@ -54,7 +53,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Closes a the tab in <see cref="TabControl" />.
+	/// Closes the tab of a file.
 	/// </summary>
 	[RelayCommand]
 	internal void CloseTab(FileDto dto)

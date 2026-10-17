@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -50,7 +49,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of the editor.
+	/// Reads the contents, the split and the stored editor state once.
 	/// </summary>
 	[RelayCommand]
 	internal async Task EditorLoaded()

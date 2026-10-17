@@ -36,7 +36,6 @@ using DataOrganizer.Windows;
 using DynamicData.Binding;
 using Entities.Enums;
 using Entities.Models;
-using Material.Styles.Controls;
 using Repository.Dto;
 using Serilog;
 using Shared.Extensions;
@@ -88,7 +87,7 @@ public sealed partial class EditorViewModel :
 	public partial bool IsActionInProgress { get; set; }
 
 	/// <summary>
-	/// Controls the display of the <see cref="NavigationDrawer" />.
+	/// <c>True</c> when the left drawer should be opened.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsLeftDrawerOpened { get; set; }
@@ -136,7 +135,7 @@ public sealed partial class EditorViewModel :
 	public partial RightSideSheetContentKind RightSideSheetContent { get; set; }
 
 	/// <summary>
-	/// The selected object in <see cref="TreeView" /> from <see cref="ViewModelBase.Hierarchy" />.
+	/// The selected object of <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
