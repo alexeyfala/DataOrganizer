@@ -31,7 +31,6 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Windows;
 using DynamicData.Binding;
@@ -413,17 +412,6 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Exits the application.
-	/// </summary>
-	[RelayCommand]
-	internal void Exit(Window? window)
-	{
-		window?.Close();
-
-		_messenger.Send(new ExitAppMessage());
-	}
-
-	/// <summary>
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanHideAllFileContents))]
@@ -527,7 +515,8 @@ public sealed partial class EditorViewModel :
 	[RelayCommand]
 	internal void RestartApplication(Window? window)
 	{
-		Exit(window);
+		// The closing of the main window asks for the exit of the application.
+		window?.Close();
 
 		if (Environment.ProcessPath is null)
 		{
@@ -568,6 +557,8 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
 	internal void ShowFavorites(EditorWindow? window)
 	{
+		IsSwitchingWindow = true;
+
 		window?.Close();
 
 		CloseCopyHistoryList();

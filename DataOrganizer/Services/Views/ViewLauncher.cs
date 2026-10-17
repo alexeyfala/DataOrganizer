@@ -145,7 +145,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		SaveEditorSettings(window);
 
-		ExitOnUserClose(e);
+		ExitUnlessSwitching(window.ViewModel);
 	}
 
 	/// <summary>
@@ -170,7 +170,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 
 		SaveFavoritesSettings(window);
 
-		ExitOnUserClose(e);
+		ExitUnlessSwitching(window.ViewModel);
 	}
 
 	/// <summary>
@@ -543,12 +543,11 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <summary>
-	/// Asks for the exit of the application when the user closes a main window, or the application or the system
-	/// shuts down; a window closed by code is a switch to the other main window.
+	/// Asks for the exit of the application when a main window closes for any reason but a switch to the other one.
 	/// </summary>
-	private void ExitOnUserClose(WindowClosingEventArgs e)
+	private void ExitUnlessSwitching(ViewModelBase viewModel)
 	{
-		if (e.IsProgrammatic && e.CloseReason is not (WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown))
+		if (viewModel.IsSwitchingWindow)
 		{
 			return;
 		}

@@ -4,8 +4,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactions.Core;
+using Avalonia.Xaml.Interactions.Custom;
+using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
@@ -43,6 +48,7 @@ using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Material.Styles.Controls;
 using NSubstitute;
 using Serilog;
 using Shared.Extensions;
@@ -467,6 +473,75 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the exit item of the menu, which closes the window, asks for the exit
+	/// of the application once.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Asks_For_The_Exit_Once_When_The_Exit_Menu_Item_Is_Clicked()
+	{
+		// Arrange
+		int sentCount = 0;
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ExitAppMessage>(this, (_, _) => sentCount++);
+
+		// The editor lives as long as the test, as the window saves it when it closes. It shares the messenger, so a
+		// request sent by the view model is counted too.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.Show();
+
+		// The menu is in the side drawer, which the user opens first.
+		window.ViewModel.IsLeftDrawerOpened = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		MenuItem exitItem = FindExitMenuItem(window);
+
+		// Act
+		exitItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+		// Assert
+		sentCount
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window that the shutting down application closes asks for the exit
 	/// of the application.
 	/// </summary>
@@ -524,6 +599,74 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the close button of the window, which closes it by code, asks for the
+	/// exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Asks_For_The_Exit_When_The_Close_Button_Is_Clicked()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.Closed += (_, _) => isClosed = true;
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Button closeButton = FindCloseButton(window);
+
+		// Act
+		closeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+
+		sent
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window the user closes asks for the exit of the application.
 	/// </summary>
 	[AvaloniaTest]
@@ -567,7 +710,7 @@ internal class ViewLauncherTests
 
 		EditorWindow window = sut.CreateEditorWindow();
 
-		// The headless platform has no close button; the window is closed the way the system closes it for the user.
+		// The window is closed the way the system closes it for the user, on Alt+F4 or from the taskbar.
 		Func<WindowCloseReason, bool> closeByUser = (Func<WindowCloseReason, bool>)typeof(IWindowImpl)
 			.GetProperty("Closing")!
 			.GetValue(window.PlatformImpl)!;
@@ -1574,62 +1717,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: a maximized window is saved as maximized when it closes.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateEditorWindow_Saves_The_State_Of_A_Maximized_Window_When_It_Closes()
-	{
-		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = sut.CreateEditorWindow();
-
-		window.WindowState = WindowState.Maximized;
-
-		// Act
-		window.Close();
-
-		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
-			Arg.Is<EditorWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the read-only mode for the next editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -1681,6 +1768,62 @@ internal class ViewLauncherTests
 		// Assert
 		fileSystem.Received(1).SerializeToJsonFile(
 			Arg.Is<EditorWindowSettings>(x => x.IsReadOnly),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a maximized window is saved as maximized when it closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_The_State_Of_A_Maximized_Window_When_It_Closes()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.WindowState = WindowState.Maximized;
+
+		// Act
+		window.Close();
+
+		// Assert
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Is<EditorWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 	}
@@ -1939,6 +2082,81 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the close button of the window, which closes it by code, asks
+	/// for the exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Asks_For_The_Exit_When_The_Close_Button_Is_Clicked()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		window.Closed += (_, _) => isClosed = true;
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Button closeButton = FindCloseButton(window);
+
+		// Act
+		closeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+
+		sent
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a window the user closes asks for the exit of the application.
 	/// </summary>
 	[AvaloniaTest]
@@ -1989,7 +2207,7 @@ internal class ViewLauncherTests
 
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
-		// The headless platform has no close button; the window is closed the way the system closes it for the user.
+		// The window is closed the way the system closes it for the user, on Alt+F4 or from the taskbar.
 		Func<WindowCloseReason, bool> closeByUser = (Func<WindowCloseReason, bool>)typeof(IWindowImpl)
 			.GetProperty("Closing")!
 			.GetValue(window.PlatformImpl)!;
@@ -2186,6 +2404,78 @@ internal class ViewLauncherTests
 		window.ViewModel.IsInitialized
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a switch to the editor closes the favorites without asking for the
+	/// exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CreateFavoritesWindow_Keeps_The_Application_Running_After_A_Switch_To_The_Editor()
+	{
+		// Arrange
+		EditorWindow editorWindow = new();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+			mainWindowLauncher
+				.CreateEditorWindow()
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		// Act
+		await window
+			.ViewModel
+			.ShowInEditorAsync(default, window);
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		sent
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -3092,84 +3382,35 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the view model of the window is disposed when the window closes, so
-	/// the editors of its tabs go with it.
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved without a size keeps the size its markup
+	/// gives it.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowNotepadWindow_Disposes_The_View_Model_When_The_Window_Closes()
+	public async Task ShowClipboardLogWindowAsync_Keeps_Its_Own_Size_Without_A_Saved_One()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IDialogService>(),
-			Substitute.For<IDispatcherAccessor>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotificationService>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IViewCache>(),
-			TimeProvider.System));
+		ClipboardLogWindow markup = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
 
-			viewFactory
-				.CreateViewModel<NotepadViewModel>()
-				.Returns(window.ViewModel);
+			clipboardLogService
+				.Entries
+				.Returns([]);
 
-			viewFactory
-				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
-				.Returns(window);
-
-			builder.RegisterInstance(viewFactory);
+			builder.RegisterInstance(clipboardLogService);
 		});
 
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		sut.ShowNotepadWindow(new Window());
-
-		// Act
-		window.Close();
-
-		// Assert
-		window.ViewModel.IsDisposed
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowNotepadWindow" />: a window saved off every screen opens in the center of the screen of
-	/// the owner.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowNotepadWindow_Centers_A_Window_Saved_Off_The_Screens()
-	{
-		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IDialogService>(),
-			Substitute.For<IDispatcherAccessor>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotificationService>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IViewCache>(),
-			TimeProvider.System));
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			NotepadWindowSettings settings = new()
+			ClipboardLogWindowSettings settings = new()
 			{
-				IsTopmost = false,
-				Size = new(500, 400),
-				WindowState = WindowShowState.Normal,
-				X = -20000,
-				Y = -20000
+				Size = new(0, 0),
+				X = 10,
+				Y = 10
 			};
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -3177,15 +3418,146 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
-				.CreateViewModel<NotepadViewModel>()
+				.CreateViewModel<ClipboardLogViewModel>()
 				.Returns(window.ViewModel);
 
 			viewFactory
-				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(markup.Width);
+
+		window.Height
+			.Should()
+			.Be(markup.Height);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: without saved settings the window opens in the lower right
+	/// corner of the screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Opens_In_The_Corner_For_The_First_Launch()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		Window owner = new();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(owner);
+
+		// Assert
+		Screen screen = owner.Screens!.Primary!;
+
+		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
+
+		screen.WorkingArea.Contains(bounds)
+			.Should()
+			.BeTrue();
+
+		bounds.Center.X
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.X);
+
+		bounds.Center.Y
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.Y);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved off every screen opens in the lower right
+	/// corner of the screen of the owner.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Places_A_Window_Saved_Off_The_Screens_In_The_Corner()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ClipboardLogWindowSettings settings = new()
+			{
+				Size = new(400, 300),
+				X = 50000,
+				Y = 50000
+			};
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
 			builder.RegisterInstance(viewFactory);
@@ -3202,17 +3574,278 @@ internal class ViewLauncherTests
 		Window owner = new();
 
 		// Act
-		sut.ShowNotepadWindow(owner);
+		await sut.ShowClipboardLogWindowAsync(owner);
 
-		PixelRect bounds = new(window.Position, new PixelSize(500, 400));
+		// Assert
+		Screen screen = owner.Screens!.Primary!;
 
-		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
+
+		screen.WorkingArea.Contains(bounds)
+			.Should()
+			.BeTrue();
+
+		bounds.Center.X
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.X);
+
+		bounds.Center.Y
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.Y);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window serializes its settings to a JSON file.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Saves_Settings_When_The_Window_Closes()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Act
 		window.Close();
 
 		// Assert
-		bounds.Center
+		fileSystem.Received(1).SerializeToJsonFile(
+			Arg.Any<ClipboardLogWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window saves its keep-open flag.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Saves_The_Keep_Open_Flag_When_The_Window_Closes()
+	{
+		// Arrange
+		ClipboardLogWindowSettings? captured = null;
+
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<ClipboardLogWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		window.ViewModel.KeepOpen = true;
+
+		// Act
+		window.Close();
+
+		// Assert
+		captured
 			.Should()
-			.Be(owner.Screens!.Primary!.WorkingArea.Center);
+			.NotBeNull();
+
+		captured.KeepOpen
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window saves its type filter.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Saves_The_Type_Filter_When_The_Window_Closes()
+	{
+		// Arrange
+		ClipboardLogWindowSettings? captured = null;
+
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<ClipboardLogWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
+
+		// Act
+		window.Close();
+
+		// Assert
+		captured
+			.Should()
+			.NotBeNull();
+
+		captured.ActiveFilter
+			.Should()
+			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowFavorites" />: the favorites window that is the main window opens its favorites in the
+	/// popup.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Opens_The_Favorites_Of_The_Favorites_Window()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesWindow window = windowMock.Create<FavoritesWindow>(TypedParameter.From(windowMock.Create<FavoritesViewModel>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([window]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		window.Show();
+
+		// Act
+		sut.ShowFavorites();
+
+		FavoritesPopupContentKind popupContent = window.ViewModel.PopupContent;
+
+		// Closed before the assertion: its dialog host would stay in the list every headless test shares.
+		window.Close();
+
+		// Assert
+		popupContent
+			.Should()
+			.Be(FavoritesPopupContentKind.Favorites);
 	}
 
 	/// <summary>
@@ -3288,61 +3921,6 @@ internal class ViewLauncherTests
 		isEditorShown
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowFavorites" />: the favorites window that is the main window opens its favorites in the
-	/// popup.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowFavorites_Opens_The_Favorites_Of_The_Favorites_Window()
-	{
-		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		FavoritesWindow window = windowMock.Create<FavoritesWindow>(TypedParameter.From(windowMock.Create<FavoritesViewModel>()));
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([window]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		window.Show();
-
-		// Act
-		sut.ShowFavorites();
-
-		FavoritesPopupContentKind popupContent = window.ViewModel.PopupContent;
-
-		// Closed before the assertion: its dialog host would stay in the list every headless test shares.
-		window.Close();
-
-		// Assert
-		popupContent
-			.Should()
-			.Be(FavoritesPopupContentKind.Favorites);
 	}
 
 	/// <summary>
@@ -3430,232 +4008,35 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window saves its type filter.
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: a window saved off every screen opens in the center of the screen of
+	/// the owner.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Saves_The_Type_Filter_When_The_Window_Closes()
+	public void ShowNotepadWindow_Centers_A_Window_Saved_Off_The_Screens()
 	{
 		// Arrange
-		ClipboardLogWindowSettings? captured = null;
-
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<IDialogService>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IViewCache>(),
+			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<ClipboardLogWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
-
-			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
-				.Returns(window.ViewModel);
-
-			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
-				.Returns(window);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		await sut.ShowClipboardLogWindowAsync(new Window());
-
-		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
-
-		// Act
-		window.Close();
-
-		// Assert
-		captured
-			.Should()
-			.NotBeNull();
-
-		captured.ActiveFilter
-			.Should()
-			.Be(ClipboardLogEntryFilter.Image);
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window saves its keep-open flag.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Saves_The_Keep_Open_Flag_When_The_Window_Closes()
-	{
-		// Arrange
-		ClipboardLogWindowSettings? captured = null;
-
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
-					Arg.Any<ClipboardLogWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
-
-			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
-				.Returns(window.ViewModel);
-
-			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
-				.Returns(window);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		await sut.ShowClipboardLogWindowAsync(new Window());
-
-		window.ViewModel.KeepOpen = true;
-
-		// Act
-		window.Close();
-
-		// Assert
-		captured
-			.Should()
-			.NotBeNull();
-
-		captured.KeepOpen
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: closing the window serializes its settings to a JSON file.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Saves_Settings_When_The_Window_Closes()
-	{
-		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
-				.Returns(window.ViewModel);
-
-			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
-				.Returns(window);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		await sut.ShowClipboardLogWindowAsync(new Window());
-
-		// Act
-		window.Close();
-
-		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
-			Arg.Any<ClipboardLogWindowSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved off every screen opens in the lower right
-	/// corner of the screen of the owner.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Places_A_Window_Saved_Off_The_Screens_In_The_Corner()
-	{
-		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			ClipboardLogWindowSettings settings = new()
+			NotepadWindowSettings settings = new()
 			{
-				Size = new(400, 300),
-				X = 50000,
-				Y = 50000
+				IsTopmost = false,
+				Size = new(500, 400),
+				WindowState = WindowShowState.Normal,
+				X = -20000,
+				Y = -20000
 			};
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -3663,15 +4044,15 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
+				.CreateViewModel<NotepadViewModel>()
 				.Returns(window.ViewModel);
 
 			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
 			builder.RegisterInstance(viewFactory);
@@ -3688,57 +4069,50 @@ internal class ViewLauncherTests
 		Window owner = new();
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(owner);
+		sut.ShowNotepadWindow(owner);
+
+		PixelRect bounds = new(window.Position, new PixelSize(500, 400));
+
+		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		window.Close();
 
 		// Assert
-		Screen screen = owner.Screens!.Primary!;
-
-		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
-
-		screen.WorkingArea.Contains(bounds)
+		bounds.Center
 			.Should()
-			.BeTrue();
-
-		bounds.Center.X
-			.Should()
-			.BeGreaterThan(screen.WorkingArea.Center.X);
-
-		bounds.Center.Y
-			.Should()
-			.BeGreaterThan(screen.WorkingArea.Center.Y);
+			.Be(owner.Screens!.Primary!.WorkingArea.Center);
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: without saved settings the window opens in the lower right
-	/// corner of the screen of the owner.
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the view model of the window is disposed when the window closes, so
+	/// the editors of its tabs go with it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Opens_In_The_Corner_For_The_First_Launch()
+	public void ShowNotepadWindow_Disposes_The_View_Model_When_The_Window_Closes()
 	{
 		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<IDialogService>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IViewCache>(),
+			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
+				.CreateViewModel<NotepadViewModel>()
 				.Returns(window.ViewModel);
 
 			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
 				.Returns(window);
 
 			builder.RegisterInstance(viewFactory);
@@ -3746,99 +4120,15 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
+		sut.ShowNotepadWindow(new Window());
 
 		// Act
-		await sut.ShowClipboardLogWindowAsync(owner);
+		window.Close();
 
 		// Assert
-		Screen screen = owner.Screens!.Primary!;
-
-		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
-
-		screen.WorkingArea.Contains(bounds)
+		window.ViewModel.IsDisposed
 			.Should()
 			.BeTrue();
-
-		bounds.Center.X
-			.Should()
-			.BeGreaterThan(screen.WorkingArea.Center.X);
-
-		bounds.Center.Y
-			.Should()
-			.BeGreaterThan(screen.WorkingArea.Center.Y);
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved without a size keeps the size its markup
-	/// gives it.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Keeps_Its_Own_Size_Without_A_Saved_One()
-	{
-		// Arrange
-		ClipboardLogWindow markup = new();
-
-		using AutoMock windowMock = AutoMock.GetLoose(builder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			builder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			ClipboardLogWindowSettings settings = new()
-			{
-				Size = new(0, 0),
-				X = 10,
-				Y = 10
-			};
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
-				.Returns(settings);
-
-			viewFactory
-				.CreateViewModel<ClipboardLogViewModel>()
-				.Returns(window.ViewModel);
-
-			viewFactory
-				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
-				.Returns(window);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		await sut.ShowClipboardLogWindowAsync(new Window());
-
-		// Assert
-		window.Width
-			.Should()
-			.Be(markup.Width);
-
-		window.Height
-			.Should()
-			.Be(markup.Height);
 	}
 
 	/// <summary>
@@ -3893,62 +4183,67 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the tabs of the window get their texts from the disk.
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: without saved settings the window takes the default size and opens
+	/// in the center of the screen of the owner.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowNotepadWindow_Reads_The_Texts_Of_The_Tabs()
+	public void ShowNotepadWindow_Opens_Centered_With_The_Default_Size_For_The_First_Launch()
 	{
 		// Arrange
-		NotepadWindow? window = null;
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<IDialogService>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			Substitute.For<IMainWindowLauncher>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IViewCache>(),
+			TimeProvider.System));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			INotepadStore store = Substitute.For<INotepadStore>();
-
-			store
-				.Read(1)
-				.Returns(Encoding.UTF8.GetBytes("Text"));
-
-			NotepadViewModel viewModel = new(
-				Substitute.For<IDialogService>(),
-				Substitute.For<IDispatcherAccessor>(),
-				Substitute.For<IDocumentEncodingSwitcher>(),
-				Substitute.For<IMainWindowLauncher>(),
-				Substitute.For<INotepadSessionState>(),
-				store,
-				Substitute.For<INotificationService>(),
-				Substitute.For<ISyntaxRegistry>(),
-				Substitute.For<ITaskExceptionHandler>(),
-				Substitute.For<IViewCache>(),
-				TimeProvider.System);
-
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateViewModel<NotepadViewModel>()
-				.Returns(viewModel);
+				.Returns(window.ViewModel);
 
 			viewFactory
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
-				.Returns(_ => window = new NotepadWindow(viewModel));
+				.Returns(window);
 
 			builder.RegisterInstance(viewFactory);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
+		Window owner = new();
+
 		// Act
-		sut.ShowNotepadWindow(new Window());
+		sut.ShowNotepadWindow(owner);
 
-		string text = window!.ViewModel.Tabs[0].Editor.Document.Text;
+		PixelRect bounds = new(
+			window.Position,
+			new PixelSize(WindowPlacementHelper.DefaultWindowSize.Width, WindowPlacementHelper.DefaultWindowSize.Height));
 
-		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
+		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
 		window.Close();
 
 		// Assert
-		text
+		window.Width
 			.Should()
-			.Be("Text");
+			.Be(WindowPlacementHelper.DefaultWindowSize.Width);
+
+		window.Height
+			.Should()
+			.Be(WindowPlacementHelper.DefaultWindowSize.Height);
+
+		bounds.Center
+			.Should()
+			.Be(owner.Screens!.Primary!.WorkingArea.Center);
 	}
 
 	/// <summary>
@@ -4045,67 +4340,62 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowNotepadWindow" />: without saved settings the window takes the default size and opens
-	/// in the center of the screen of the owner.
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: the tabs of the window get their texts from the disk.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowNotepadWindow_Opens_Centered_With_The_Default_Size_For_The_First_Launch()
+	public void ShowNotepadWindow_Reads_The_Texts_Of_The_Tabs()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IDialogService>(),
-			Substitute.For<IDispatcherAccessor>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<IMainWindowLauncher>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotificationService>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IViewCache>(),
-			TimeProvider.System));
+		NotepadWindow? window = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			store
+				.Read(1)
+				.Returns(Encoding.UTF8.GetBytes("Text"));
+
+			NotepadViewModel viewModel = new(
+				Substitute.For<IDialogService>(),
+				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
+				Substitute.For<IMainWindowLauncher>(),
+				Substitute.For<INotepadSessionState>(),
+				store,
+				Substitute.For<INotificationService>(),
+				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
+				Substitute.For<IViewCache>(),
+				TimeProvider.System);
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateViewModel<NotepadViewModel>()
-				.Returns(window.ViewModel);
+				.Returns(viewModel);
 
 			viewFactory
 				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
-				.Returns(window);
+				.Returns(_ => window = new NotepadWindow(viewModel));
 
 			builder.RegisterInstance(viewFactory);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		Window owner = new();
-
 		// Act
-		sut.ShowNotepadWindow(owner);
+		sut.ShowNotepadWindow(new Window());
 
-		PixelRect bounds = new(
-			window.Position,
-			new PixelSize(WindowPlacementHelper.DefaultWindowSize.Width, WindowPlacementHelper.DefaultWindowSize.Height));
+		string text = window!.ViewModel.Tabs[0].Editor.Document.Text;
 
-		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
+		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
 		window.Close();
 
 		// Assert
-		window.Width
+		text
 			.Should()
-			.Be(WindowPlacementHelper.DefaultWindowSize.Width);
-
-		window.Height
-			.Should()
-			.Be(WindowPlacementHelper.DefaultWindowSize.Height);
-
-		bounds.Center
-			.Should()
-			.Be(owner.Screens!.Primary!.WorkingArea.Center);
+			.Be("Text");
 	}
 
 	/// <summary>
@@ -4498,6 +4788,41 @@ internal class ViewLauncherTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the button of a window that closes the window when clicked.
+	/// </summary>
+	private static Button FindCloseButton(Window window)
+	{
+		return window
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => Interaction
+				.GetBehaviors(x)
+				.OfType<EventTriggerBehavior>()
+				.Any(y => y.Actions is { } actions && actions.OfType<CloseWindowAction>().Any()));
+	}
+
+	/// <summary>
+	/// Returns the item of the side menu of an editor window that closes the window when clicked.
+	/// </summary>
+	private static MenuItem FindExitMenuItem(EditorWindow window)
+	{
+		NavigationDrawer drawer = window
+			.GetLogicalDescendants()
+			.OfType<NavigationDrawer>()
+			.Single();
+
+		return ((Panel)drawer.LeftDrawerContent!).Children
+			.OfType<Menu>()
+			.Single()
+			.Items
+			.OfType<MenuItem>()
+			.Single(x => Interaction
+				.GetBehaviors(x)
+				.OfType<EventTriggerBehavior>()
+				.Any(y => y.Actions is { } actions && actions.OfType<CloseWindowAction>().Any()));
+	}
+
 	/// <summary>
 	/// Lets the UI thread run until <paramref name="condition" /> holds, a few seconds at most.
 	/// </summary>

@@ -148,7 +148,7 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem Command="{Binding ExitCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem>
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="LocationExit" />
@@ -156,6 +156,12 @@
 											<TextBlock Text="{x:Static prop:Strings.Exit}" />
 										</StackPanel>
 									</MenuItem.Header>
+
+									<Interaction.Behaviors>
+										<EventTriggerBehavior EventName="Click">
+											<CloseWindowAction />
+										</EventTriggerBehavior>
+									</Interaction.Behaviors>
 								</MenuItem>
 
 								<Separator

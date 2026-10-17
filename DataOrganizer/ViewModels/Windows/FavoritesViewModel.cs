@@ -327,6 +327,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		Window window,
 		CancellationToken _ = default)
 	{
+		IsSwitchingWindow = true;
+
 		window.Close();
 
 		_mainWindowLauncher

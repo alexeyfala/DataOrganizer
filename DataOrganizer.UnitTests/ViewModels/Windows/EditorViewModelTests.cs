@@ -32,7 +32,6 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
@@ -128,39 +127,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ChangePasswordCommand" /> CanExecute: only the password of a password keeper changes, and
-	/// not in read-only mode.
-	/// </summary>
-	[Test]
-	[TestCase(true, false, ExpectedResult = true)]
-	[TestCase(false, false, ExpectedResult = false)]
-	[TestCase(true, true, ExpectedResult = false)]
-	public bool ChangePasswordCommand_CanExecute_Allows_Only_A_Password_Keeper(bool isKeeper, bool isReadOnly)
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		if (isKeeper)
-		{
-			folder.EncryptedDek = RandomValues.CreateBytes(10);
-		}
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsReadOnly = isReadOnly;
-
-		// Act
-		return sut
-			.ChangePasswordCommand
-			.CanExecute(folder);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
 	/// </summary>
 	[Test]
@@ -240,6 +206,39 @@ internal class EditorViewModelTests
 		await folderProtection
 			.Received(1)
 			.ChangePasswordAsync(Arg.Any<FolderDto>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ChangePasswordCommand" /> CanExecute: only the password of a password keeper changes, and
+	/// not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(true, false, ExpectedResult = true)]
+	[TestCase(false, false, ExpectedResult = false)]
+	[TestCase(true, true, ExpectedResult = false)]
+	public bool ChangePasswordCommand_CanExecute_Allows_Only_A_Password_Keeper(bool isKeeper, bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.ChangePasswordCommand
+			.CanExecute(folder);
 	}
 
 	/// <summary>
@@ -683,51 +682,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DecryptFolderCommand" /> CanExecute: only an encrypted password keeper whose children are
-	/// all encrypted is decrypted, and not in read-only mode.
-	/// </summary>
-	[Test]
-	[TestCase(true, EncryptionStatus.Encrypted, false, ExpectedResult = true)]
-	[TestCase(true, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
-	[TestCase(false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
-	[TestCase(true, EncryptionStatus.Encrypted, true, ExpectedResult = false)]
-	public bool DecryptFolderCommand_CanExecute_Allows_Only_A_Keeper_With_Encrypted_Children(
-		bool isKeeper,
-		EncryptionStatus childStatus,
-		bool isReadOnly)
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
-
-		child.Parent = folder;
-
-		folder
-			.Children
-			.Add(child);
-
-		if (isKeeper)
-		{
-			folder.EncryptedDek = RandomValues.CreateBytes(10);
-		}
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsReadOnly = isReadOnly;
-
-		// Act
-		return sut
-			.DecryptFolderCommand
-			.CanExecute(folder);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.DecryptFolder" />: open files are closed and the folder is decrypted.
 	/// </summary>
 	[Test]
@@ -846,6 +800,51 @@ internal class EditorViewModelTests
 		await folderProtection
 			.DidNotReceiveWithAnyArgs()
 			.DecryptFolderAsync(default!, default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DecryptFolderCommand" /> CanExecute: only an encrypted password keeper whose children are
+	/// all encrypted is decrypted, and not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(true, EncryptionStatus.Encrypted, false, ExpectedResult = true)]
+	[TestCase(true, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
+	[TestCase(false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
+	[TestCase(true, EncryptionStatus.Encrypted, true, ExpectedResult = false)]
+	public bool DecryptFolderCommand_CanExecute_Allows_Only_A_Keeper_With_Encrypted_Children(
+		bool isKeeper,
+		EncryptionStatus childStatus,
+		bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
+
+		child.Parent = folder;
+
+		folder
+			.Children
+			.Add(child);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.DecryptFolderCommand
+			.CanExecute(folder);
 	}
 
 	/// <summary>
@@ -1563,63 +1562,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.EncryptFolderCommand" /> CanExecute: only a folder that belongs to no keeper, itself
-	/// included, and holds no protected contents is encrypted, and not in read-only mode.
-	/// </summary>
-	[Test]
-	[TestCase(false, false, EncryptionStatus.None, false, ExpectedResult = true)]
-	[TestCase(true, false, EncryptionStatus.None, false, ExpectedResult = false)]
-	[TestCase(false, true, EncryptionStatus.None, false, ExpectedResult = false)]
-	[TestCase(false, false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
-	[TestCase(false, false, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
-	[TestCase(false, false, EncryptionStatus.None, true, ExpectedResult = false)]
-	public bool EncryptFolderCommand_CanExecute_Allows_Only_A_Folder_Without_Protection(
-		bool isInsideKeeper,
-		bool isKeeper,
-		EncryptionStatus childStatus,
-		bool isReadOnly)
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
-
-		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
-
-		child.Parent = folder;
-
-		folder
-			.Children
-			.Add(child);
-
-		if (isKeeper)
-		{
-			folder.EncryptedDek = RandomValues.CreateBytes(10);
-		}
-
-		if (isInsideKeeper)
-		{
-			FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-			keeper.EncryptedDek = RandomValues.CreateBytes(10);
-
-			folder.Parent = keeper;
-		}
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsReadOnly = isReadOnly;
-
-		// Act
-		return sut
-			.EncryptFolderCommand
-			.CanExecute(folder);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.EncryptFolder" />: open files are closed and the folder is encrypted.
 	/// </summary>
 	[Test]
@@ -1737,6 +1679,63 @@ internal class EditorViewModelTests
 		await folderProtection
 			.DidNotReceiveWithAnyArgs()
 			.EncryptFolderAsync(default!, default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EncryptFolderCommand" /> CanExecute: only a folder that belongs to no keeper, itself
+	/// included, and holds no protected contents is encrypted, and not in read-only mode.
+	/// </summary>
+	[Test]
+	[TestCase(false, false, EncryptionStatus.None, false, ExpectedResult = true)]
+	[TestCase(true, false, EncryptionStatus.None, false, ExpectedResult = false)]
+	[TestCase(false, true, EncryptionStatus.None, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.Encrypted, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.Decrypted, false, ExpectedResult = false)]
+	[TestCase(false, false, EncryptionStatus.None, true, ExpectedResult = false)]
+	public bool EncryptFolderCommand_CanExecute_Allows_Only_A_Folder_Without_Protection(
+		bool isInsideKeeper,
+		bool isKeeper,
+		EncryptionStatus childStatus,
+		bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
+
+		child.Parent = folder;
+
+		folder
+			.Children
+			.Add(child);
+
+		if (isKeeper)
+		{
+			folder.EncryptedDek = RandomValues.CreateBytes(10);
+		}
+
+		if (isInsideKeeper)
+		{
+			FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+			keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+			folder.Parent = keeper;
+		}
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		return sut
+			.EncryptFolderCommand
+			.CanExecute(folder);
 	}
 
 	/// <summary>
@@ -2177,40 +2176,6 @@ internal class EditorViewModelTests
 		parameters.KeeperId
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Exit" />: the exit of the application is asked for.
-	/// </summary>
-	[Test]
-	public void Exit_Asks_For_The_Exit_Of_The_Application()
-	{
-		// Arrange
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		ExitAppMessage? sent = null;
-
-		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(messenger);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.Exit(null);
-
-		// Assert
-		sent
-			.Should()
-			.NotBeNull();
 	}
 
 	/// <summary>
@@ -3955,6 +3920,47 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Receive(ShowInEditorMessage)" />: the folders that hold the object are expanded.
+	/// </summary>
+	[Test]
+	public void Receive_ShowInEditor_Expands_The_Folders_Of_The_Object()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(outer);
+
+		// Act
+		sut.Receive(new ShowInEditorMessage(file.Id));
+
+		// Assert
+		FolderDto[] folders = [outer, inner];
+
+		folders
+			.Should()
+			.OnlyContain(x => x.IsExpanded);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ResetSelectedObject" />: SelectedObject is cleared and the object's IsSelected is reset.
 	/// </summary>
 	[Test]
@@ -4035,39 +4041,37 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.RestartApplication" />: the application is shut down and a new process is started.
+	/// <see cref="EditorViewModel.RestartApplication" />: the window is closed, which shuts the application down, and a new
+	/// process is started.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public void RestartApplication_Restarts_The_Application()
 	{
 		// Arrange
+		bool isClosed = false;
+
+		Window window = new();
+
+		window.Closed += (_, _) => isClosed = true;
+
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		ExitAppMessage? sent = null;
-
-		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(messenger);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processManager));
 
+		window.Show();
+
 		// Act
-		sut.RestartApplication(null);
+		sut.RestartApplication(window);
 
 		// Assert
-		sent
+		isClosed
 			.Should()
-			.NotBeNull();
+			.BeTrue();
 
 		processManager
 			.Received(1)
@@ -4108,47 +4112,6 @@ internal class EditorViewModelTests
 		autoLock
 			.Received(1)
 			.Arm();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Receive(ShowInEditorMessage)" />: the folders that hold the object are expanded.
-	/// </summary>
-	[Test]
-	public void Receive_ShowInEditor_Expands_The_Folders_Of_The_Object()
-	{
-		// Arrange
-		FolderDto outer = ItemDtoFactory.CreateFolderDto();
-
-		FolderDto inner = ItemDtoFactory.CreateFolderDto();
-
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		inner.Parent = outer;
-
-		outer.Children.Add(inner);
-
-		file.Parent = inner;
-
-		inner.Children.Add(file);
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.Hierarchy.Add(outer);
-
-		// Act
-		sut.Receive(new ShowInEditorMessage(file.Id));
-
-		// Assert
-		FolderDto[] folders = [outer, inner];
-
-		folders
-			.Should()
-			.OnlyContain(x => x.IsExpanded);
 	}
 
 	/// <summary>

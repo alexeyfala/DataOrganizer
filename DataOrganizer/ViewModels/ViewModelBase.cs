@@ -62,6 +62,11 @@ public abstract partial class ViewModelBase :
 	/// <c>True</c> when initialization has completed.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
+
+	/// <summary>
+	/// <c>True</c> when the window closes to switch to the other main window.
+	/// </summary>
+	public bool IsSwitchingWindow { get; protected set; }
 	#endregion
 
 	#region Auto-Generated Commands
