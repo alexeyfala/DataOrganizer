@@ -114,6 +114,10 @@ internal class KeyboardInputHookTests
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -183,6 +187,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -281,6 +289,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -351,6 +363,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -427,6 +443,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -503,6 +523,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -587,6 +611,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -659,6 +687,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -723,6 +755,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -796,6 +832,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -860,6 +900,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -983,6 +1027,10 @@ internal class KeyboardInputHookTests
 				.As<IDispatcherAccessor>();
 
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -1042,6 +1090,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -1113,6 +1165,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -1173,6 +1229,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
@@ -1240,6 +1300,10 @@ internal class KeyboardInputHookTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<HotkeyContentCopier>()
+				.As<IHotkeyContentCopier>();
 		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();

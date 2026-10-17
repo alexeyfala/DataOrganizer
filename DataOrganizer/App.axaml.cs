@@ -183,6 +183,7 @@ public sealed class App : Application
 		services.AddTransient<IFolderContentsConverter, FolderContentsConverter>();
 		services.AddTransient<IFolderProtection, FolderProtection>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
+		services.AddTransient<IHotkeyContentCopier, HotkeyContentCopier>();
 		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();

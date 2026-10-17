@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Services.Clipboard;
 
 /// <inheritdoc cref="IContentCopier" />
-public sealed class ContentCopier : IContentCopier
+public sealed class ContentCopier : ContentCopierBase, IContentCopier
 {
 	#region Data
 	/// <inheritdoc cref="ICopyHistoryRecorder" />
@@ -21,9 +20,6 @@ public sealed class ContentCopier : IContentCopier
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IFileTextCopier" />
-	private readonly IFileTextCopier _fileTextCopier;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -38,13 +34,11 @@ public sealed class ContentCopier : IContentCopier
 		IDbAccess dbAccess,
 		IFileTextCopier fileTextCopier,
 		ILogger logger,
-		INotificationService notification)
+		INotificationService notification) : base(fileTextCopier)
 	{
 		_copyHistory = copyHistory;
 
 		_dbAccess = dbAccess;
-
-		_fileTextCopier = fileTextCopier;
 
 		_logger = logger;
 
@@ -70,27 +64,9 @@ public sealed class ContentCopier : IContentCopier
 				return false;
 			}
 
-			switch (await _fileTextCopier
-				.CopyAsync(file, Strings.CopyContent, token)
-				.ConfigureAwait(true))
+			if (!await CopyTextAsync(file, Strings.CopyContent, token).ConfigureAwait(true))
 			{
-				case FileTextStatus.Damaged:
-					_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
-
-					return false;
-
-				case FileTextStatus.NotText:
-					_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
-
-					return false;
-
-				case FileTextStatus.Empty:
-					_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-					return false;
-
-				case FileTextStatus.Closed:
-					return false;
+				return false;
 			}
 
 			_copyHistory.Add(file, showAtOnce);
@@ -111,5 +87,24 @@ public sealed class ContentCopier : IContentCopier
 			return false;
 		}
 	}
+
+	/// <inheritdoc />
+	protected override void ReportDamaged(FileDto file)
+	{
+		_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+	}
+
+	/// <inheritdoc />
+	protected override void ReportEmpty(FileDto file)
+	{
+		_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+	}
+
+	/// <inheritdoc />
+	protected override void ReportNotText(FileDto file)
+	{
+		_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+	}
 	#endregion
+
 }

@@ -1,24 +1,18 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Hotkeys;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
 using Repository.Dto;
 using Serilog;
 using Shared.Extensions;
-using Shared.Properties;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,32 +43,23 @@ public sealed class KeyboardInputHook :
 	/// </summary>
 	private static readonly TimeSpan StrokeTimeout = TimeSpan.FromSeconds(3);
 
-	/// <inheritdoc cref="ICopyHistoryRecorder" />
-	private readonly ICopyHistoryRecorder _copyHistory;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IFileTextCopier" />
-	private readonly IFileTextCopier _fileTextCopier;
-
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
+
+	/// <inheritdoc cref="IHotkeyContentCopier" />
+	private readonly IHotkeyContentCopier _hotkeyContentCopier;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMainWindowLauncher" />
-	private readonly IMainWindowLauncher _mainWindowLauncher;
-
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
-
-	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notification;
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -98,35 +83,26 @@ public sealed class KeyboardInputHook :
 
 	#region Constructors
 	public KeyboardInputHook(
-		ICopyHistoryRecorder copyHistory,
 		IDispatcherAccessor dispatcher,
-		IFileTextCopier fileTextCopier,
 		IGlobalHookRunner hookRunner,
+		IHotkeyContentCopier hotkeyContentCopier,
 		ILogger logger,
-		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
-		INotificationService notification,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
-		_copyHistory = copyHistory;
-
 		_dispatcher = dispatcher;
 
 		_exceptionHandler = exceptionHandler;
 
-		_fileTextCopier = fileTextCopier;
-
 		_hookRunner = hookRunner;
+
+		_hotkeyContentCopier = hotkeyContentCopier;
 
 		_logger = logger;
 
-		_mainWindowLauncher = mainWindowLauncher;
-
 		_messenger = messenger;
-
-		_notification = notification;
 
 		_sessionHierarchy = sessionHierarchy;
 
@@ -301,7 +277,7 @@ public sealed class KeyboardInputHook :
 
 			// The tree is read on the UI thread that changes it, so it cannot change during the search.
 			if (await _dispatcher
-				.PostAsync(() => FindFileByHotkey(hierarchy, typed))
+				.PostAsync(() => HotkeyMatcher.FindFile(hierarchy, typed))
 				.ConfigureAwait(false) is not { } file)
 			{
 				return;
@@ -310,41 +286,8 @@ public sealed class KeyboardInputHook :
 			// The keys of a hotkey that fired do not start the next one.
 			InputStack.Clear();
 
-			// The password of a locked keeper is asked for over the main window.
-			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-			{
-				await ActivateWindowAsync().ConfigureAwait(false);
-			}
-
-			switch (await _fileTextCopier
-				.CopyAsync(file, $"{Strings.CopyContent}: {file.Name}", token)
-				.ConfigureAwait(false))
-			{
-				case FileTextStatus.Damaged:
-					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-					return;
-
-				case FileTextStatus.NotText:
-					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
-
-					_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
-
-					return;
-
-				case FileTextStatus.Empty:
-					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-					return;
-
-				case FileTextStatus.Closed:
-					return;
-			}
-
-			_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-
-			await _dispatcher
-				.PostAsync(() => _copyHistory.Add(file, showAtOnce: true))
+			await _hotkeyContentCopier
+				.CopyAsync(file, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -363,48 +306,5 @@ public sealed class KeyboardInputHook :
 			}
 		}
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Returns the file whose hotkey the typed keys end with, or <c>null</c> if there is none.
-	/// </summary>
-	private static FileDto? FindFileByHotkey(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		KeyStroke[] typed)
-	{
-		foreach (FileDto file in hierarchy.GetFilesBy(static x => x.Hotkeys.Count > 0))
-		{
-			KeyStroke[] hotkeys = ReadHotkey(file);
-
-			if (hotkeys.SequenceEqual(typed.TakeLast(hotkeys.Length)))
-			{
-				return file;
-			}
-		}
-
-		return null;
-	}
-
-	/// <summary>
-	/// Returns the keys of the hotkey of a file with only the modifiers in their masks, as the typed keys have them.
-	/// </summary>
-	private static KeyStroke[] ReadHotkey(FileDto file) => [.. file
-		.Hotkeys
-		.ToKeyStrokes()
-		.Select(static x => x with
-		{
-			Mask = x.Mask.ToModifiers()
-		})];
-
-	/// <summary>
-	/// Activates the main window and opens its favorites.
-	/// </summary>
-	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
-	{
-		_mainWindowLauncher.ActivateMainWindow();
-
-		_mainWindowLauncher.ShowFavorites();
-	});
 	#endregion
 }
