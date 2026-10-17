@@ -16,7 +16,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
-public sealed class ClipboardLogService : IClipboardLogService
+/// <summary>
+/// Log of the system clipboard, tracked in the background, that the user works with and that stored entries merge into.
+/// </summary>
+public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger, IClipboardLogRunner, IClipboardLogService
 {
 	#region Properties
 	/// <inheritdoc />

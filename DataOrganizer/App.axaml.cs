@@ -231,7 +231,9 @@ public sealed class App : Application
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardHistory, ClipboardHistory>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
-		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
+		services.AddSingleton<IClipboardLogMerger>(static x => x.GetRequiredService<ClipboardLogService>());
+		services.AddSingleton<IClipboardLogRunner>(static x => x.GetRequiredService<ClipboardLogService>());
+		services.AddSingleton<IClipboardLogService>(static x => x.GetRequiredService<ClipboardLogService>());
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<ICopyHistory>(static x => x.GetRequiredService<CopyHistory>());
@@ -261,6 +263,7 @@ public sealed class App : Application
 		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
+		services.AddSingleton<ClipboardLogService>();
 		services.AddSingleton<CopyHistory>();
 		services.AddSingleton<SettingsSession>();
 		services.AddSingleton<WorkSession>();

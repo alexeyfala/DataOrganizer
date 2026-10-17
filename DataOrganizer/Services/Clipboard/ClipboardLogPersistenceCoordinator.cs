@@ -28,8 +28,8 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	private static readonly TimeSpan DefaultSaveDebounce = TimeSpan.FromMilliseconds(1500.0);
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogMerger" />
+	private readonly IClipboardLogMerger _clipboardLog;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -71,7 +71,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	#region Constructors
 	public ClipboardLogPersistenceCoordinator(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService clipboardLog,
+		IClipboardLogMerger clipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -95,7 +95,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	internal ClipboardLogPersistenceCoordinator(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService clipboardLog,
+		IClipboardLogMerger clipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,

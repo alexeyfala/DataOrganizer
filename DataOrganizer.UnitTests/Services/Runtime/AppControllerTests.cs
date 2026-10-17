@@ -318,7 +318,7 @@ internal class AppControllerTests
 	public async Task LaunchAppAsync_Leaves_The_Clipboard_History_Off_When_It_Is_Not_Tracked()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
 
@@ -625,7 +625,7 @@ internal class AppControllerTests
 	public async Task LaunchAppAsync_Starts_The_Clipboard_History_When_It_Is_Tracked()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
 

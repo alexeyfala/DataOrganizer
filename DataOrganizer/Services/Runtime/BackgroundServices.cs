@@ -24,8 +24,8 @@ public sealed class BackgroundServices : IBackgroundServiceControl, IBackgroundS
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogRunner" />
+	private readonly IClipboardLogRunner _clipboardLog;
 
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
@@ -48,7 +48,7 @@ public sealed class BackgroundServices : IBackgroundServiceControl, IBackgroundS
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
-		IClipboardLogService clipboardLog,
+		IClipboardLogRunner clipboardLog,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		Lazy<IKeyboardInputHook> keyboardInputHook)

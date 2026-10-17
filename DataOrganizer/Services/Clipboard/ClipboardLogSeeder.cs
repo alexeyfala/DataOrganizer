@@ -16,8 +16,8 @@ namespace DataOrganizer.Services.Clipboard;
 public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 {
 	#region Data
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogMerger" />
+	private readonly IClipboardLogMerger _clipboardLog;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -28,7 +28,7 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 
 	#region Constructors
 	public ClipboardLogSeeder(
-		IClipboardLogService clipboardLog,
+		IClipboardLogMerger clipboardLog,
 		IDispatcherAccessor dispatcher,
 		IMessenger messenger)
 	{

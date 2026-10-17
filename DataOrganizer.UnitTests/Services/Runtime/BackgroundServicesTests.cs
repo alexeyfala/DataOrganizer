@@ -28,7 +28,7 @@ internal class BackgroundServicesTests
 
 		settings.TrackClipboardHistory = true;
 
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -217,7 +217,7 @@ internal class BackgroundServicesTests
 	public async Task StopAsync_Leaves_A_Clipboard_History_That_Does_Not_Run_Alone()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboardLog));
 
@@ -231,5 +231,35 @@ internal class BackgroundServicesTests
 			.DidNotReceive()
 			.Stop();
 	}
+
+	/// <summary>
+	/// <see cref="BackgroundServices.StopAsync" />: a running clipboard history is stopped.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Stops_A_Running_Clipboard_History()
+	{
+		// Arrange
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			clipboardLog
+				.IsRunning
+				.Returns(true);
+
+			builder.RegisterInstance(clipboardLog);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		await sut.StopAsync();
+
+		// Assert
+		clipboardLog
+			.Received(1)
+			.Stop();
+	}
 	#endregion
+
 }

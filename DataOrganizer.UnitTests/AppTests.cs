@@ -188,7 +188,37 @@ internal class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the clipboard log is one for the whole application, so the entries the user
+	/// works with are the ones the background tracking captures and the stored log merges into.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task RegisterServices_Shares_One_Clipboard_Log()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		await using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		object[] roles =
+		[
+			provider.GetRequiredService<IClipboardLogMerger>(),
+			provider.GetRequiredService<IClipboardLogRunner>(),
+			provider.GetRequiredService<IClipboardLogService>(),
+			provider.GetRequiredService<IClipboardLogMerger>()
+		];
+
+		// Assert
+		roles
+			.Should()
+			.AllSatisfy(x => x.Should().BeSameAs(roles[0]));
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the copy history is one for the whole application, so every window and the
+
 	/// hotkeys add to the same list, and the list read and stored is that one.
 	/// </summary>
 	[AvaloniaTest]

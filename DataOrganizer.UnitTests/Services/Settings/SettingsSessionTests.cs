@@ -258,7 +258,7 @@ internal class SettingsSessionTests
 	public async Task EndAsync_Starts_The_Clipboard_History_Turned_On()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -348,7 +348,7 @@ internal class SettingsSessionTests
 	public async Task EndAsync_Stops_The_Clipboard_History_Turned_Off()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
