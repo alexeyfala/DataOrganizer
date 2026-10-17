@@ -280,13 +280,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 		{
 			Guid[] identifiers = [.. categories.Select(x => x.Id)];
 
-			for (int i = 0; i < orderedCategoryIds.Count; i++)
-			{
-				if (!identifiers.Contains(orderedCategoryIds[i]))
-				{
-					orderedCategoryIds.RemoveAt(i);
-				}
-			}
+			orderedCategoryIds.RemoveAll(x => !identifiers.Contains(x));
 
 			if (orderedCategoryIds.Count > 0)
 			{

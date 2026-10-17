@@ -163,6 +163,39 @@ internal class SelectedFavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.Initialize" />: the stored order drops the ids of the categories that are gone,
+	/// also when two of them stand in a row.
+	/// </summary>
+	[Test]
+	public void Initialize_Drops_The_Ids_Of_Categories_That_Are_Gone()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		// Initialize puts the categories themselves in the stored order.
+		Guid[] kept = [categories[1].Id, categories[0].Id];
+
+		// Act
+		sut.Initialize(
+			navigationColumnWidth: RandomValues.CreateDouble(100.0, 300.0),
+			selectedCategoryId: categories[0].Id,
+			categories: categories,
+			orderedCategoryIds: [kept[0], Guid.NewGuid(), Guid.NewGuid(), kept[1]],
+			selectedPairs: []);
+
+		// Assert
+		sut.OrderedCategoryIds
+			.Should()
+			.Equal(kept);
+	}
+
+	/// <summary>
 	/// <see cref="SelectedFavoritesViewModel.Initialize" />: it populates the collections and selection properties from the supplied data.
 	/// </summary>
 	[Test]
