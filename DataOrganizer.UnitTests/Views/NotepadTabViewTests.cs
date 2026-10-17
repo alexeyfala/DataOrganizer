@@ -19,7 +19,7 @@ internal class NotepadTabViewTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.DefaultEncoding" />: the encoding found in the bytes of the text reaches the editor,
+	/// <see cref="DocumentEditorViewModel.DefaultEncoding" />: the encoding found in the bytes of the text reaches the editor,
 	/// apart from the one chosen for the text.
 	/// </summary>
 	[AvaloniaTest]
@@ -32,9 +32,9 @@ internal class NotepadTabViewTests
 		};
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
-		viewModel.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
+		viewModel.Editor.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
 
-		viewModel.RefreshEncoding();
+		viewModel.Editor.RefreshEncoding();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);
@@ -68,7 +68,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Document" />: the text of the tab reaches the editor.
+	/// <see cref="DocumentEditorViewModel.Document" />: the text of the tab reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void Document_Reaches_The_Editor()
@@ -85,11 +85,11 @@ internal class NotepadTabViewTests
 		// Assert
 		sut.Editor.Document
 			.Should()
-			.BeSameAs(viewModel.Document);
+			.BeSameAs(viewModel.Editor.Document);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding chosen in the editor comes back to the view model.
+	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding chosen in the editor comes back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void Encoding_Follows_The_Editor()
@@ -108,13 +108,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.EncodingProperty, "cp866");
 
 		// Assert
-		viewModel.Encoding
+		viewModel.Editor.Encoding
 			.Should()
 			.Be("cp866");
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: the encoding of the text reaches the editor.
+	/// <see cref="DocumentEditorViewModel.Encoding" />: the encoding of the text reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void Encoding_Reaches_The_Editor()
@@ -122,7 +122,10 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Encoding = "cp866",
+			Editor =
+			{
+				Encoding = "cp866"
+			},
 			Number = 1
 		};
 
@@ -136,7 +139,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.EncodingName" />: the name of the encoding of the text reaches the editor.
+	/// <see cref="DocumentEditorViewModel.EncodingName" />: the name of the encoding of the text reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void EncodingName_Reaches_The_Editor()
@@ -147,7 +150,7 @@ internal class NotepadTabViewTests
 			Number = 1
 		};
 
-		viewModel.RefreshEncoding();
+		viewModel.Editor.RefreshEncoding();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);
@@ -159,7 +162,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.FindUnreadableEncodingsCommand" />: the editor finds the encodings that cannot read
+	/// <see cref="DocumentEditorViewModel.FindUnreadableEncodingsCommand" />: the editor finds the encodings that cannot read
 	/// the text through the command of the tab.
 	/// </summary>
 	[AvaloniaTest]
@@ -177,11 +180,11 @@ internal class NotepadTabViewTests
 		// Assert
 		sut.Editor.FindUnreadableEncodingsCommand
 			.Should()
-			.BeSameAs(viewModel.FindUnreadableEncodingsCommand);
+			.BeSameAs(viewModel.Editor.FindUnreadableEncodingsCommand);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.FontSize" />: a font size changed in the editor comes back to the view model.
+	/// <see cref="DocumentEditorViewModel.FontSize" />: a font size changed in the editor comes back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void FontSize_Follows_The_Editor()
@@ -200,13 +203,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.DocumentFontSizeProperty, 20.0);
 
 		// Assert
-		viewModel.FontSize
+		viewModel.Editor.FontSize
 			.Should()
 			.Be(20.0);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.FontSize" />: the font size of the tab reaches the editor.
+	/// <see cref="DocumentEditorViewModel.FontSize" />: the font size of the tab reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void FontSize_Reaches_The_Editor()
@@ -214,7 +217,10 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			FontSize = 20.0,
+			Editor =
+			{
+				FontSize = 20.0
+			},
 			Number = 1
 		};
 
@@ -250,7 +256,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.IsSplit" />: a split made in the editor comes back to the view model.
+	/// <see cref="DocumentEditorViewModel.IsSplit" />: a split made in the editor comes back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void IsSplit_Follows_The_Editor()
@@ -269,13 +275,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.IsSplitProperty, true);
 
 		// Assert
-		viewModel.IsSplit
+		viewModel.Editor.IsSplit
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.IsSplit" />: the split of the tab reaches the editor.
+	/// <see cref="DocumentEditorViewModel.IsSplit" />: the split of the tab reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void IsSplit_Reaches_The_Editor()
@@ -283,7 +289,10 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			IsSplit = true,
+			Editor =
+			{
+				IsSplit = true
+			},
 			Number = 1
 		};
 
@@ -297,7 +306,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowEndOfLine" />: line endings shown in the editor come back to the view model.
+	/// <see cref="DocumentEditorViewModel.ShowEndOfLine" />: line endings shown in the editor come back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowEndOfLine_Follows_The_Editor()
@@ -316,13 +325,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.ShowEndOfLineProperty, true);
 
 		// Assert
-		viewModel.ShowEndOfLine
+		viewModel.Editor.ShowEndOfLine
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowEndOfLine" />: the line endings of the tab are shown in the editor.
+	/// <see cref="DocumentEditorViewModel.ShowEndOfLine" />: the line endings of the tab are shown in the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowEndOfLine_Reaches_The_Editor()
@@ -330,8 +339,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			ShowEndOfLine = true
+			Editor =
+			{
+				ShowEndOfLine = true
+			},
+			Number = 1
 		};
 
 		// Act
@@ -344,7 +356,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowSpaces" />: spaces shown in the editor come back to the view model.
+	/// <see cref="DocumentEditorViewModel.ShowSpaces" />: spaces shown in the editor come back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowSpaces_Follows_The_Editor()
@@ -363,13 +375,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.ShowSpacesProperty, true);
 
 		// Assert
-		viewModel.ShowSpaces
+		viewModel.Editor.ShowSpaces
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowSpaces" />: the spaces of the tab are shown in the editor.
+	/// <see cref="DocumentEditorViewModel.ShowSpaces" />: the spaces of the tab are shown in the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowSpaces_Reaches_The_Editor()
@@ -377,8 +389,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			ShowSpaces = true
+			Editor =
+			{
+				ShowSpaces = true
+			},
+			Number = 1
 		};
 
 		// Act
@@ -391,7 +406,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowTabs" />: tabs shown in the editor come back to the view model.
+	/// <see cref="DocumentEditorViewModel.ShowTabs" />: tabs shown in the editor come back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowTabs_Follows_The_Editor()
@@ -410,13 +425,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.ShowTabsProperty, true);
 
 		// Assert
-		viewModel.ShowTabs
+		viewModel.Editor.ShowTabs
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ShowTabs" />: the tabs of the text are shown in the editor.
+	/// <see cref="DocumentEditorViewModel.ShowTabs" />: the tabs of the text are shown in the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowTabs_Reaches_The_Editor()
@@ -424,8 +439,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			ShowTabs = true
+			Editor =
+			{
+				ShowTabs = true
+			},
+			Number = 1
 		};
 
 		// Act
@@ -438,7 +456,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.SplitShare" />: a share of the upper half changed in the editor comes back to the view
+	/// <see cref="DocumentEditorViewModel.SplitShare" />: a share of the upper half changed in the editor comes back to the view
 	/// model.
 	/// </summary>
 	[AvaloniaTest]
@@ -458,13 +476,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.SplitShareProperty, 0.3);
 
 		// Assert
-		viewModel.SplitShare
+		viewModel.Editor.SplitShare
 			.Should()
 			.Be(0.3);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.SplitShare" />: the share of the upper half of the tab reaches the editor.
+	/// <see cref="DocumentEditorViewModel.SplitShare" />: the share of the upper half of the tab reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void SplitShare_Reaches_The_Editor()
@@ -472,8 +490,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			SplitShare = 0.3
+			Editor =
+			{
+				SplitShare = 0.3
+			},
+			Number = 1
 		};
 
 		// Act
@@ -486,7 +507,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.SyntaxLanguage" />: a language chosen in the editor comes back to the view model.
+	/// <see cref="DocumentEditorViewModel.SyntaxLanguage" />: a language chosen in the editor comes back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void SyntaxLanguage_Follows_The_Editor()
@@ -505,13 +526,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.SyntaxLanguageProperty, PowerShellLanguage);
 
 		// Assert
-		viewModel.SyntaxLanguage
+		viewModel.Editor.SyntaxLanguage
 			.Should()
 			.Be(PowerShellLanguage);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.SyntaxLanguage" />: the language of the tab reaches the editor.
+	/// <see cref="DocumentEditorViewModel.SyntaxLanguage" />: the language of the tab reaches the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void SyntaxLanguage_Reaches_The_Editor()
@@ -519,8 +540,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			SyntaxLanguage = PowerShellLanguage
+			Editor =
+			{
+				SyntaxLanguage = PowerShellLanguage
+			},
+			Number = 1
 		};
 
 		// Act
@@ -533,7 +557,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.UnreadableEncodings" />: the encodings that cannot read the text reach the editor,
+	/// <see cref="DocumentEditorViewModel.UnreadableEncodings" />: the encodings that cannot read the text reach the editor,
 	/// here UTF-16 for an odd number of bytes.
 	/// </summary>
 	[AvaloniaTest]
@@ -545,9 +569,9 @@ internal class NotepadTabViewTests
 			Number = 1
 		};
 
-		viewModel.Document.Text = "Hi!";
+		viewModel.Editor.Document.Text = "Hi!";
 
-		viewModel.FindUnreadableEncodings();
+		viewModel.Editor.FindUnreadableEncodings();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);
@@ -559,7 +583,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ViewState" />: the caret, the selection and the scroll position reported by the editor
+	/// <see cref="DocumentEditorViewModel.ViewState" />: the caret, the selection and the scroll position reported by the editor
 	/// come back to the view model.
 	/// </summary>
 	[AvaloniaTest]
@@ -587,13 +611,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.ViewStateProperty, state);
 
 		// Assert
-		viewModel.ViewState
+		viewModel.Editor.ViewState
 			.Should()
 			.Be(state);
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.ViewState" />: the caret, the selection and the scroll position of the tab reach the
+	/// <see cref="DocumentEditorViewModel.ViewState" />: the caret, the selection and the scroll position of the tab reach the
 	/// editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -610,8 +634,11 @@ internal class NotepadTabViewTests
 
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			ViewState = state
+			Editor =
+			{
+				ViewState = state
+			},
+			Number = 1
 		};
 
 		// Act
@@ -624,7 +651,7 @@ internal class NotepadTabViewTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.WordWrap" />: long lines wrapped in the editor come back to the view model.
+	/// <see cref="DocumentEditorViewModel.WordWrap" />: long lines wrapped in the editor come back to the view model.
 	/// </summary>
 	[AvaloniaTest]
 	public void WordWrap_Follows_The_Editor()
@@ -643,13 +670,13 @@ internal class NotepadTabViewTests
 			.SetCurrentValue(DocumentEditorView.WordWrapProperty, true);
 
 		// Assert
-		viewModel.WordWrap
+		viewModel.Editor.WordWrap
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.WordWrap" />: the long lines of the tab are wrapped in the editor.
+	/// <see cref="DocumentEditorViewModel.WordWrap" />: the long lines of the tab are wrapped in the editor.
 	/// </summary>
 	[AvaloniaTest]
 	public void WordWrap_Reaches_The_Editor()
@@ -657,8 +684,11 @@ internal class NotepadTabViewTests
 		// Arrange
 		NotepadTabViewModel viewModel = new()
 		{
-			Number = 1,
-			WordWrap = true
+			Editor =
+			{
+				WordWrap = true
+			},
+			Number = 1
 		};
 
 		// Act

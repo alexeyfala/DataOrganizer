@@ -255,9 +255,9 @@ internal class DocumentTabTemplateTests
 
 		await first.EditorLoaded();
 
-		first.SplitShare = 0.25;
+		first.Editor.SplitShare = 0.25;
 
-		first.IsSplit = true;
+		first.Editor.IsSplit = true;
 
 		sut.Remove(file);
 
@@ -267,11 +267,11 @@ internal class DocumentTabTemplateTests
 		await second.EditorLoaded();
 
 		// Assert
-		second.IsSplit
+		second.Editor.IsSplit
 			.Should()
 			.BeTrue();
 
-		second.SplitShare
+		second.Editor.SplitShare
 			.Should()
 			.Be(0.25);
 	}
@@ -497,11 +497,14 @@ internal class DocumentTabTemplateTests
 		// Arrange
 		NotepadTabViewModel tab = new()
 		{
-			Number = 1,
-			SyntaxLanguage = PowerShellLanguage
+			Editor =
+			{
+				SyntaxLanguage = PowerShellLanguage
+			},
+			Number = 1
 		};
 
-		tab.Document.Text = PowerShellText;
+		tab.Editor.Document.Text = PowerShellText;
 
 		using NotepadTabView view = new(tab);
 

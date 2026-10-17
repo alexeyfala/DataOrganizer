@@ -16,9 +16,11 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
@@ -150,9 +152,9 @@ internal class NotepadWindowTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.ViewModel.Tabs[0].Document.Text = "First";
+		sut.ViewModel.Tabs[0].Editor.Document.Text = "First";
 
-		sut.ViewModel.Tabs[1].Document.Text = "Second";
+		sut.ViewModel.Tabs[1].Editor.Document.Text = "Second";
 
 		sut.Show();
 
@@ -486,7 +488,7 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding chosen in the status bar reads the text of the tab again
+	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding chosen in the status bar reads the text of the tab again
 	/// from the same bytes.
 	/// </summary>
 	[AvaloniaTest]
@@ -517,6 +519,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<DispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<DocumentEncodingSwitcher>()
+				.As<IDocumentEncodingSwitcher>();
 
 			// The text read again waits for a pause in typing to be written, which does not come here.
 			builder
@@ -550,13 +556,13 @@ internal class NotepadWindowTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		tab.Document.Text
+		tab.Editor.Document.Text
 			.Should()
 			.Be(Encoding.Unicode.GetString(Encoding.UTF8.GetBytes("Text")));
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding that cannot read the text gives way in the status bar to
+	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding that cannot read the text gives way in the status bar to
 	/// the one the text is in.
 	/// </summary>
 	[AvaloniaTest]
@@ -588,6 +594,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<DispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<DocumentEncodingSwitcher>()
+				.As<IDocumentEncodingSwitcher>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();

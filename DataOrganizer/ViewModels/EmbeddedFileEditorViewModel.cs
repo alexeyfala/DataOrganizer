@@ -1,27 +1,26 @@
 using Avalonia;
 using Avalonia.Controls;
 using AvaloniaEdit.Document;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
+using DynamicData.Binding;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
@@ -34,94 +33,19 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>EmbeddedFileEditorView</c>.
 /// </summary>
-public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase, IEditorStateValues
+public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
 	/// <summary>
-	/// Web name of the encoding that the contents of the file are found to be in; <c>null</c> when they are not found to be
-	/// text.
+	/// The text of the file with its encoding and the switches of the editor; the language that the extension of the file
+	/// gives is its default one.
 	/// </summary>
-	[ObservableProperty]
-	public partial string? DefaultEncoding { get; private set; }
-
-	/// <summary>
-	/// Language that the extension of the file gives its text; <c>null</c> for plain text.
-	/// </summary>
-	[ObservableProperty]
-	public partial string? DefaultSyntaxLanguage { get; private set; }
-
-	/// <summary>
-	/// The file contents as an editable document.
-	/// </summary>
-	[ObservableProperty]
-	public partial TextDocument Document { get; private set; } = new();
-
-	/// <summary>
-	/// Web name of the encoding the text is read in and saved in; another one reads the text again from the same bytes.
-	/// </summary>
-	[ObservableProperty]
-	public partial string? Encoding { get; set; }
-
-	/// <summary>
-	/// Name of the encoding the file is stored in.
-	/// </summary>
-	[ObservableProperty]
-	public partial string? EncodingName { get; private set; }
+	public DocumentEditorViewModel Editor { get; } = new();
 
 	/// <summary>
 	/// Name of the file, whose extension gives the language of its text.
 	/// </summary>
 	public string? FileName { get; set; }
-
-	/// <inheritdoc cref="FileEditorState.FontSize" />
-	[ObservableProperty]
-	public partial double FontSize { get; set; } = 14.0;
-
-	/// <summary>
-	/// <c>True</c> when the document is shown in two halves, one above the other.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsSplit { get; set; }
-
-	/// <inheritdoc cref="FileEditorState.ShowEndOfLine" />
-	[ObservableProperty]
-	public partial bool ShowEndOfLine { get; set; }
-
-	/// <inheritdoc cref="FileEditorState.ShowSpaces" />
-	[ObservableProperty]
-	public partial bool ShowSpaces { get; set; }
-
-	/// <inheritdoc cref="FileEditorState.ShowTabs" />
-	[ObservableProperty]
-	public partial bool ShowTabs { get; set; }
-
-	/// <summary>
-	/// Share of the height that the upper half takes while the document is split.
-	/// </summary>
-	[ObservableProperty]
-	public partial double SplitShare { get; set; } = 0.5;
-
-	/// <summary>
-	/// Language of the text for the syntax highlighting; <c>null</c> for plain text.
-	/// </summary>
-	[ObservableProperty]
-	public partial string? SyntaxLanguage { get; set; }
-
-	/// <summary>
-	/// Web names of the encodings that cannot read the text as the file stores it; <c>null</c> when they are not known.
-	/// </summary>
-	[ObservableProperty]
-	public partial IReadOnlyCollection<string>? UnreadableEncodings { get; private set; }
-
-	/// <summary>
-	/// Caret, selection, scroll position, bookmarks and folded blocks of <see cref="Document" />.
-	/// </summary>
-	[ObservableProperty]
-	public partial DocumentViewState? ViewState { get; set; }
-
-	/// <inheritdoc cref="FileEditorState.WordWrap" />
-	[ObservableProperty]
-	public partial bool WordWrap { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -139,9 +63,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		// The file keeps the split for the session only, apart from the editor state in the database.
 		if (_editorSplits.Find(FileId) is { } split)
 		{
-			SplitShare = split;
+			Editor.SplitShare = split;
 
-			IsSplit = true;
+			Editor.IsSplit = true;
 		}
 
 		try
@@ -198,7 +122,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				FileEditorState? state = await ReadEditorStateAsync().ConfigureAwait(true);
 
 				// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
-				if (_codec.Read(output, state?.Encoding) is not { } text)
+				if (Editor.Codec.Read(output, state?.Encoding) is not { } text)
 				{
 					IsContentUnavailable = true;
 
@@ -209,19 +133,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					return;
 				}
 
-				// A new document starts with an empty undo stack, so the loaded text cannot be undone.
-				SetDocument(new(text));
+				Editor.ReplaceText(text);
 
-				DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
+				// The pauses in typing are followed from the loaded text on, so the load itself saves nothing.
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => Editor.Document.TextChanged += x,
+					x => Editor.Document.TextChanged -= x)
+					.SetDelay(TimeSpan.FromSeconds(0.5))
+					.Subscribe(Document_TextChanged)
+					.DisposeWith(_disposables);
+
+				Editor.DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
 
 				// The language comes after the text, so the highlighting starts on the document it colors.
-				SyntaxLanguage = DefaultSyntaxLanguage;
+				Editor.SyntaxLanguage = Editor.DefaultSyntaxLanguage;
 
-				DefaultEncoding = _codec.DefaultEncoding;
-
-				Encoding = _codec.Encoding;
-
-				EncodingName = _codec.EncodingName;
+				Editor.RefreshEncoding();
 
 				_lastSavedContentHash = SHA256.HashData(output);
 
@@ -249,30 +176,17 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			IsInitialized = true;
 		}
 	}
-
-	/// <summary>
-	/// Finds <see cref="UnreadableEncodings" /> for the text as it is now.
-	/// </summary>
-	[RelayCommand]
-	internal void FindUnreadableEncodings() => UnreadableEncodings = _codec.FindUnreadableEncodings(Document.Text);
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Encoding of the file, which its text is read in and saved in.
-	/// </summary>
-	private readonly DocumentCodec _codec = new();
-
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <summary>
-	/// Subscription to the pauses in the typing of <see cref="Document" />, which a new document replaces.
-	/// </summary>
-	private readonly SerialDisposable _documentChanges = new();
-
 	/// <inheritdoc cref="IEditorSplitStore" />
 	private readonly IEditorSplitStore _editorSplits;
+
+	/// <inheritdoc cref="IDocumentEncodingSwitcher" />
+	private readonly IDocumentEncodingSwitcher _encodingSwitcher;
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
@@ -310,6 +224,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public EmbeddedFileEditorViewModel(
 		Application app,
 		IDbFailureReporter dbFailureReporter,
+		IDocumentEncodingSwitcher encodingSwitcher,
 		IEditorSplitStore editorSplits,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
@@ -332,11 +247,37 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		_dbFailureReporter = dbFailureReporter;
 
+		_encodingSwitcher = encodingSwitcher;
+
 		_editorSplits = editorSplits;
 
 		_syntaxRegistry = syntaxRegistry;
 
-		_documentChanges.DisposeWith(_disposables);
+		// A change of a value that the editor state keeps saves the state.
+		Editor
+			.WhenAnyPropertyChanged(
+				nameof(DocumentEditorViewModel.FontSize),
+				nameof(DocumentEditorViewModel.ShowEndOfLine),
+				nameof(DocumentEditorViewModel.ShowSpaces),
+				nameof(DocumentEditorViewModel.ShowTabs),
+				nameof(DocumentEditorViewModel.SyntaxLanguage),
+				nameof(DocumentEditorViewModel.ViewState),
+				nameof(DocumentEditorViewModel.WordWrap))
+			.Subscribe(_ => TrySavePersistentEditorState())
+			.DisposeWith(_disposables);
+
+		Editor
+			.WhenAnyPropertyChanged(
+				nameof(DocumentEditorViewModel.IsSplit),
+				nameof(DocumentEditorViewModel.SplitShare))
+			.Subscribe(_ => StoreEditorSplit())
+			.DisposeWith(_disposables);
+
+		// A choice of another encoding reads the text again.
+		Editor
+			.WhenValueChanged(x => x.Encoding, notifyOnInitialValue: false)
+			.Subscribe(x => _exceptionHandler.Watch(ChangeEncodingAsync(x)))
+			.DisposeWith(_disposables);
 	}
 	#endregion
 
@@ -355,69 +296,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		EnqueueSave(document);
 	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="Encoding" /> changes.
-	/// </summary>
-	partial void OnEncodingChanged(string? value)
-	{
-		// The encoding of the file comes back here when it loads and when a choice is refused.
-		if (_codec.Encoding is not { } current
-			|| value is null
-			|| value == current)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(ChangeEncodingAsync(value));
-	}
-
-	/// <summary>
-	/// Called when <see cref="FontSize" /> changes.
-	/// </summary>
-	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="IsSplit" /> changes.
-	/// </summary>
-	partial void OnIsSplitChanged(bool value) => StoreEditorSplit();
-
-	/// <summary>
-	/// Called when <see cref="ShowEndOfLine" /> changes.
-	/// </summary>
-	partial void OnShowEndOfLineChanged(bool value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="ShowSpaces" /> changes.
-	/// </summary>
-	partial void OnShowSpacesChanged(bool value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="ShowTabs" /> changes.
-	/// </summary>
-	partial void OnShowTabsChanged(bool value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="SplitShare" /> changes.
-	/// </summary>
-	partial void OnSplitShareChanged(double value) => StoreEditorSplit();
-
-	/// <summary>
-	/// Called when <see cref="SyntaxLanguage" /> changes.
-	/// </summary>
-	partial void OnSyntaxLanguageChanged(string? value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="ViewState" /> changes.
-	/// </summary>
-	partial void OnViewStateChanged(DocumentViewState? value) => TrySavePersistentEditorState();
-
-	/// <summary>
-	/// Called when <see cref="WordWrap" /> changes.
-	/// </summary>
-	partial void OnWordWrapChanged(bool value) => TrySavePersistentEditorState();
 	#endregion
 
 	#region Methods
@@ -454,7 +332,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		// as it turned on and saves no change made after.
 		if (!IsReadOnly)
 		{
-			EnqueueSave(Document);
+			EnqueueSave(Editor.Document);
 		}
 
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
@@ -462,7 +340,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		// A text that the encoding of the file cannot hold stays unsaved as well.
 		return await isDrained
 			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
-			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !_codec.IsTextOutsideEncoding;
+			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !Editor.Codec.IsTextOutsideEncoding;
 	}
 
 	/// <inheritdoc />
@@ -474,7 +352,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		EnqueueSave(Document);
+		EnqueueSave(Editor.Document);
 	}
 	#endregion
 
@@ -489,46 +367,28 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		EditorStateMapper.Apply(this, value, _syntaxRegistry);
+		EditorStateMapper.Apply(Editor, value, _syntaxRegistry);
 
 		_logger.LogDebug(
 			$@"Editor state of ""{FileId}"" is initialized:{value.GetPropertyValues(true)}");
 	}
 
 	/// <summary>
-	/// Reads the text again from the same bytes in another encoding; an encoding that cannot read them leaves the text as
-	/// it was.
+	/// Reads the text again from the same bytes in the encoding chosen for it and keeps the choice in the editor state; an
+	/// encoding that cannot read them leaves the text as it was.
 	/// </summary>
-	private async Task ChangeEncodingAsync(string name)
+	private async Task ChangeEncodingAsync(string? encoding)
 	{
-		// The text is read again from its saved bytes, which an edit that is not saved would not match.
-		if (!await FlushAsync().ConfigureAwait(true) || _codec.Reread(Document.Text, name) is not { } change)
+		if (!await _encodingSwitcher
+			.SwitchAsync(
+				Editor,
+				encoding,
+				SnackbarHostIdentifiers.Main,
+				$@"file ""{FileId}""")
+			.ConfigureAwait(true))
 		{
-			Encoding = _codec.Encoding;
-
-			_notification.ShowWarningSnackbar(Strings.EncodingNotChanged);
-
 			return;
 		}
-
-		if (change.Text is not { } text)
-		{
-			Encoding = _codec.Encoding;
-
-			_notification.ShowWarningSnackbar(string.Format(
-				CultureInfo.CurrentCulture,
-				Strings.ContentsUnreadableInEncodingFormat,
-				change.Name));
-
-			_logger.LogWarning($@"The contents of file ""{FileId}"" cannot be read in {name}");
-
-			return;
-		}
-
-		// The text read in another encoding is not an edit, so a new document starts with an empty undo stack.
-		SetDocument(new(text));
-
-		EncodingName = change.Name;
 
 		TrySavePersistentEditorState();
 	}
@@ -536,7 +396,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Creates <see cref="FileEditorState" /> from the view model.
 	/// </summary>
-	private FileEditorState CreateEditorState() => EditorStateMapper.Create(this, _codec.StoredEncoding, IsEncrypted);
+	private FileEditorState CreateEditorState()
+	{
+		return EditorStateMapper.Create(
+			Editor,
+			Editor.Codec.StoredEncoding,
+			IsEncrypted);
+	}
 
 	/// <summary>
 	/// Queues the current text of the document for saving in the encoding of the file; a text with a character that the
@@ -544,10 +410,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void EnqueueSave(TextDocument document)
 	{
-		bool wasTextOutsideEncoding = _codec.IsTextOutsideEncoding;
+		bool wasTextOutsideEncoding = Editor.Codec.IsTextOutsideEncoding;
 
 		// The byte order mark taken off the text on load goes back in front of it.
-		if (_codec.Encode(document.Text, out string? missingCharacter) is not { } contents)
+		if (Editor.Codec.Encode(document.Text, out string? missingCharacter) is not { } contents)
 		{
 			// The warning comes once, not after every pause in typing, until the text fits again.
 			if (missingCharacter is not null && !wasTextOutsideEncoding)
@@ -556,9 +422,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					CultureInfo.CurrentCulture,
 					Strings.CharacterNotInEncodingFormat,
 					missingCharacter,
-					_codec.EncodingName));
+					Editor.Codec.EncodingName));
 
-				_logger.LogWarning($@"The text of file ""{FileId}"" does not fit {_codec.EncodingName} and is not saved");
+				_logger.LogWarning(
+					$@"The text of file ""{FileId}"" does not fit {Editor.Codec.EncodingName} and is not saved");
 			}
 
 			return;
@@ -691,23 +558,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Makes a document the one being edited, whose text is saved after each pause in typing.
-	/// </summary>
-	private void SetDocument(TextDocument document)
-	{
-		Document = document;
-
-		_documentChanges.Disposable = Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => document.TextChanged += x,
-			x => document.TextChanged -= x)
-			.SetDelay(TimeSpan.FromSeconds(0.5))
-			.Subscribe(Document_TextChanged);
-	}
-
-	/// <summary>
 	/// Keeps the split of the document for the file while the application runs.
 	/// </summary>
-	private void StoreEditorSplit() => _editorSplits.Set(FileId, IsSplit ? SplitShare : null);
+	private void StoreEditorSplit() => _editorSplits.Set(FileId, Editor.IsSplit ? Editor.SplitShare : null);
 
 	/// <summary>
 	/// Tries to save the editor state.

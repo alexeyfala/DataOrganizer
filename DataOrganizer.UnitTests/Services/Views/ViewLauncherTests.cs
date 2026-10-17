@@ -18,7 +18,9 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
@@ -69,10 +71,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -140,10 +144,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -235,10 +241,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -294,10 +302,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -1887,10 +1897,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -1967,10 +1979,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2028,10 +2042,12 @@ internal class ViewLauncherTests
 		NotepadViewModel viewModel = new(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System);
@@ -2081,10 +2097,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2176,10 +2194,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2238,10 +2258,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2265,7 +2287,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = sut.CreateNotepadWindow(new Window());
 
 		// Assert
-		window.ViewModel.Tabs[0].Document.Text
+		window.ViewModel.Tabs[0].Editor.Document.Text
 			.Should()
 			.Be("Text");
 	}
@@ -2293,10 +2315,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2353,10 +2377,12 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IDialogService>(),
 				Substitute.For<IDispatcherAccessor>(),
+				Substitute.For<IDocumentEncodingSwitcher>(),
 				Substitute.For<INotepadSessionState>(),
 				Substitute.For<INotepadStore>(),
 				Substitute.For<INotificationService>(),
 				Substitute.For<ISyntaxRegistry>(),
+				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<IViewCache>(),
 				Substitute.For<IViewLauncher>(),
 				TimeProvider.System);
@@ -2556,10 +2582,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -2762,10 +2790,12 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -2815,10 +2845,12 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))
@@ -2973,10 +3005,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System));
@@ -3022,10 +3056,12 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IDialogService>(),
 			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
 			Substitute.For<IViewCache>(),
 			Substitute.For<IViewLauncher>(),
 			TimeProvider.System))

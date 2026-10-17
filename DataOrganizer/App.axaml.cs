@@ -151,6 +151,7 @@ public sealed class App : Application
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
+		services.AddTransient<IDocumentEncodingSwitcher, DocumentEncodingSwitcher>();
 		services.AddTransient<IEditorStateStore, EditorStateStore>();
 		services.AddTransient<IEmbeddedEditorFactory, EmbeddedEditorFactory>();
 		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();

@@ -8,7 +8,9 @@ using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
@@ -23,6 +25,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,9 +102,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			return;
 		}
 
-		tab.RefreshEncoding();
+		tab.Editor.RefreshEncoding();
 
-		tab.Document.TextChanged += Document_TextChanged;
+		tab.Editor.Document.TextChanged += Document_TextChanged;
 	}
 
 	/// <summary>
@@ -214,6 +217,12 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
+	/// <inheritdoc cref="IDocumentEncodingSwitcher" />
+	private readonly IDocumentEncodingSwitcher _encodingSwitcher;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <summary>
 	/// Tabs whose last write failed, so that a failure is told once rather than after every pause in typing.
 	/// </summary>
@@ -261,10 +270,12 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	public NotepadViewModel(
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
+		IDocumentEncodingSwitcher encodingSwitcher,
 		INotepadSessionState sessionState,
 		INotepadStore store,
 		INotificationService notification,
 		ISyntaxRegistry syntaxRegistry,
+		ITaskExceptionHandler exceptionHandler,
 		IViewCache viewCache,
 		IViewLauncher viewLauncher,
 		TimeProvider timeProvider)
@@ -272,6 +283,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_dialogService = dialogService;
 
 		_dispatcher = dispatcher;
+
+		_encodingSwitcher = encodingSwitcher;
 
 		_sessionState = sessionState;
 
@@ -281,25 +294,29 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		_syntaxRegistry = syntaxRegistry;
 
+		_exceptionHandler = exceptionHandler;
+
 		_viewCache = viewCache;
 
 		_viewLauncher = viewLauncher;
 
 		_timeProvider = timeProvider;
 
-		// A tab opened, closed or moved, or a change of any of its properties, writes the tabs.
+		// A tab opened, closed or moved, or a change of any property of a tab or of its editor, writes the tabs.
 		Tabs
 			.ToObservableChangeSet()
 			.AutoRefresh()
+			.AutoRefreshOnObservable(x => x.Editor.WhenAnyPropertyChanged())
 			.Subscribe(_ => WriteSettings())
 			.DisposeWith(_disposables);
 
-		// A choice of another encoding reads the text of its tab again. It is posted, as it comes from a binding still writing
-		// it, which would not pass a refusal written back at once on to the status bar.
+		// A choice of another encoding reads the text of its tab again.
 		Tabs
 			.ToObservableChangeSet()
-			.WhenPropertyChanged(x => x.Encoding, notifyOnInitialValue: false)
-			.Subscribe(x => _dispatcher.Post(() => ChangeEncoding(x.Sender, x.Value)))
+			.MergeMany(x => x.Editor
+				.WhenValueChanged(y => y.Encoding, notifyOnInitialValue: false)
+				.Select(y => (Tab: x, Encoding: y)))
+			.Subscribe(x => _exceptionHandler.Watch(ChangeEncodingAsync(x.Tab, x.Encoding)))
 			.DisposeWith(_disposables);
 
 		AddTab();
@@ -312,7 +329,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private void Document_TextChanged(object? sender, EventArgs e)
 	{
-		if (Tabs.FirstOrDefault(x => ReferenceEquals(x.Document, sender)) is not { } tab)
+		if (Tabs.FirstOrDefault(x => ReferenceEquals(x.Editor.Document, sender)) is not { } tab)
 		{
 			return;
 		}
@@ -403,65 +420,33 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private static NotepadTabSettings CreateTabSettings(NotepadTabViewModel tab)
 	{
+		DocumentEditorViewModel editor = tab.Editor;
+
 		return new()
 		{
-			EditorState = EditorStateMapper.Create(tab, tab.Codec.Encoding, isEncrypted: false),
+			EditorState = EditorStateMapper.Create(editor, editor.Codec.Encoding, isEncrypted: false),
 			Name = tab.Name,
 			Number = tab.Number,
-			Split = tab.IsSplit ? tab.SplitShare : null
+			Split = editor.IsSplit ? editor.SplitShare : null
 		};
 	}
 
 	/// <summary>
 	/// <c>True</c> when the text of the tab has more than white space.
 	/// </summary>
-	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Document.Text);
+	private static bool HasText(NotepadTabViewModel tab) => !string.IsNullOrWhiteSpace(tab.Editor.Document.Text);
 
 	/// <summary>
-	/// Reads the text of a tab again from the same bytes in the encoding chosen for it; an encoding that cannot read them
-	/// leaves the text as it was.
+	/// Reads the text of a tab again from the same bytes in the encoding chosen for it; a change of the encoding writes the
+	/// settings, so they name it before any text is written in it.
 	/// </summary>
-	private void ChangeEncoding(NotepadTabViewModel tab, string? name)
+	private Task ChangeEncodingAsync(NotepadTabViewModel tab, string? encoding)
 	{
-		// The encoding of the text comes back here when it is shown and when a choice is refused.
-		if (name is null || name == tab.Codec.Encoding)
-		{
-			return;
-		}
-
-		if (tab.Codec.Reread(tab.Document.Text, name) is not { } change)
-		{
-			tab.RefreshEncoding();
-
-			_notification.ShowWarningSnackbar(Strings.EncodingNotChanged, SnackbarHostIdentifiers.Notepad);
-
-			return;
-		}
-
-		if (change.Text is not { } text)
-		{
-			tab.RefreshEncoding();
-
-			_notification.ShowWarningSnackbar(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					Strings.ContentsUnreadableInEncodingFormat,
-					change.Name),
-				SnackbarHostIdentifiers.Notepad);
-
-			return;
-		}
-
-		tab.Document.Text = text;
-
-		// The text read in another encoding is not an edit, so undo starts from it.
-		tab
-			.Document
-			.UndoStack
-			.ClearAll();
-
-		// A change of the tab writes the settings, so they name the encoding before any text is written in it.
-		tab.RefreshEncoding();
+		return _encodingSwitcher.SwitchAsync(
+			tab.Editor,
+			encoding,
+			SnackbarHostIdentifiers.Notepad,
+			$"notepad tab {tab.Number}");
 	}
 
 	/// <summary>
@@ -482,16 +467,18 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private byte[] EncodeText(NotepadTabViewModel tab)
 	{
-		string text = tab.Document.Text;
+		DocumentEditorViewModel editor = tab.Editor;
 
-		if (tab.Codec.Encode(text, out string? missingCharacter) is { } contents)
+		string text = editor.Document.Text;
+
+		if (editor.Codec.Encode(text, out string? missingCharacter) is { } contents)
 		{
 			return contents;
 		}
 
 		byte[] utf8 = Encoding.UTF8.GetBytes(text);
 
-		if (tab.Codec.Encoding == Encoding.UTF8.WebName)
+		if (editor.Codec.Encoding == Encoding.UTF8.WebName)
 		{
 			return utf8;
 		}
@@ -501,14 +488,14 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 				CultureInfo.CurrentCulture,
 				Strings.CharacterNotInEncodingSavedInUtf8Format,
 				missingCharacter,
-				tab.Codec.EncodingName),
+				editor.Codec.EncodingName),
 			SnackbarHostIdentifiers.Notepad);
 
 		// The text takes UTF-8 as it is read back from its bytes.
-		tab.Codec.Read(utf8, Encoding.UTF8.WebName);
+		editor.Codec.Read(utf8, Encoding.UTF8.WebName);
 
-		// A change of the tab writes the settings, so they name UTF-8 before the text is written in it.
-		tab.RefreshEncoding();
+		// A change of the editor writes the settings, so they name UTF-8 before the text is written in it.
+		editor.RefreshEncoding();
 
 		return utf8;
 	}
@@ -518,7 +505,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private void EraseText(NotepadTabViewModel tab)
 	{
-		tab.Document.TextChanged -= Document_TextChanged;
+		tab.Editor.Document.TextChanged -= Document_TextChanged;
 
 		if (_pendingWrites.Remove(tab, out ITimer? timer))
 		{
@@ -541,9 +528,11 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private void LoadText(NotepadTabViewModel tab)
 	{
+		DocumentEditorViewModel editor = tab.Editor;
+
 		// The text is read in the encoding of the tab, UTF-8 unless the settings keep another one.
 		if (_store.Read(tab.Number) is not { } contents
-			|| tab.Codec.Read(contents, tab.Codec.Encoding) is not { } text)
+			|| editor.Codec.Read(contents, editor.Codec.Encoding) is not { } text)
 		{
 			tab.IsReadOnly = true;
 
@@ -559,17 +548,11 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			return;
 		}
 
-		tab.Document.Text = text;
+		editor.ReplaceText(text);
 
-		// Undo starts from the text as it was read, not from an empty tab.
-		tab
-			.Document
-			.UndoStack
-			.ClearAll();
+		editor.RefreshEncoding();
 
-		tab.RefreshEncoding();
-
-		tab.Document.TextChanged += Document_TextChanged;
+		editor.Document.TextChanged += Document_TextChanged;
 	}
 
 	/// <summary>
@@ -611,9 +594,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		if (settings.Split is { } split)
 		{
-			tab.SplitShare = split;
+			tab.Editor.SplitShare = split;
 
-			tab.IsSplit = true;
+			tab.Editor.IsSplit = true;
 		}
 
 		if (settings.EditorState is not { } state)
@@ -621,10 +604,13 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			return tab;
 		}
 
-		EditorStateMapper.Apply(tab, state, _syntaxRegistry);
+		EditorStateMapper.Apply(tab.Editor, state, _syntaxRegistry);
 
 		// Reading no bytes gives the tab the kept encoding, which its text is read in later.
-		tab.Codec.Read([], state.Encoding);
+		tab
+			.Editor
+			.Codec
+			.Read([], state.Encoding);
 
 		return tab;
 	}
