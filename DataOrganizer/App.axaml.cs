@@ -147,6 +147,7 @@ public sealed class App : Application
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
+		services.AddTransient<IDialogCloser, DialogCloser>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
@@ -168,6 +169,7 @@ public sealed class App : Application
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
+		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFileTextCopier, FileTextCopier>();

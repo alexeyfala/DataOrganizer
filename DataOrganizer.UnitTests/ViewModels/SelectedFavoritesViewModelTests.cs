@@ -2,6 +2,7 @@ using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
 using AwesomeAssertions;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -17,6 +18,30 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="FileListViewModelBase.CopyContentCommand" />: the copied file becomes the selected favorite.
+	/// </summary>
+	[Test]
+	public void CopyContentCommand_Selects_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.CopyContentCommand
+			.Execute(file);
+
+		// Assert
+		sut.SelectedFavorite
+			.Should()
+			.BeSameAs(file);
+	}
+
 	/// <summary>
 	/// <see cref="ObservableDisposableBase.Dispose" />: it clears all collections and selection properties.
 	/// </summary>

@@ -1,11 +1,7 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
@@ -15,7 +11,7 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
-using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +19,13 @@ namespace DataOrganizer.ViewModels;
 
 public abstract class CopyContentViewModelBase : ObservableDisposableBase
 {
+	#region Properties
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	public IObservable<ExplorerItemDtoBase> HighlightSignal => _highlightSignal;
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
@@ -47,6 +50,11 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 	/// <inheritdoc cref="INotificationService" />
 	protected readonly INotificationService _notification;
+
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
 	#endregion
 
 	#region Constructors
@@ -87,29 +95,10 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	}
 
 	/// <summary>
-	/// Finds the last container.
-	/// </summary>
-	protected static ItemsControl? FindLastContainer<T>(ItemsControl container, T[] parents) where T : class
-	{
-		if (parents.IsEmpty() || container.ContainerFromItem(parents[0]) is not ItemsControl item)
-		{
-			return container;
-		}
-
-		if (FindLastContainer(item, [.. parents.Skip(1)]) is ItemsControl subContainer)
-		{
-			return subContainer;
-		}
-
-		return container;
-	}
-
-	/// <summary>
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
 	protected async Task CopyContentAsync(
 		FileDto file,
-		ItemsControl container,
 		bool updateView,
 		CancellationToken token = default)
 	{
@@ -149,12 +138,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			InsertIntoCopyHistory(file, updateView);
 
-			FolderDto[] parents = [.. file.GetAllParents().Reverse()];
-
-			if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
-			{
-				_exceptionHandler.Watch(BrushAnimations.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
-			}
+			Highlight(file);
 		}
 		catch (OperationCanceledException)
 		{
@@ -167,5 +151,10 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
 		}
 	}
+
+	/// <summary>
+	/// Asks the view to highlight an object where it shows it.
+	/// </summary>
+	protected void Highlight(ExplorerItemDtoBase dto) => _highlightSignal.OnNext(dto);
 	#endregion
 }

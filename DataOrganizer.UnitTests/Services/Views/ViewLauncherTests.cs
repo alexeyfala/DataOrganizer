@@ -658,6 +658,68 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window saved off every screen opens in the center of the screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Centers_A_Window_Saved_Off_The_Screens()
+	{
+		// Arrange
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = 200.0,
+			Size = new(700, 500),
+			WindowState = WindowShowState.Normal,
+			X = 50000,
+			Y = 50000
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
+
+		// Assert
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: default size, centered location and navigation column width are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
@@ -706,6 +768,77 @@ internal class ViewLauncherTests
 		window.ViewModel.NavigationColumnWidth.Value
 			.Should()
 			.Be(window.Width / 3.0);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window saved without a size takes the default one, and its
+	/// navigation column a third of it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Gives_The_Default_Size_Without_A_Saved_One()
+	{
+		// Arrange
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = 0.0,
+			Size = new(0, 0),
+			WindowState = WindowShowState.Normal,
+			X = 100,
+			Y = 100
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Width);
+
+		window.Height
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Height);
+
+		window.ViewModel.NavigationColumnWidth.Value
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Width / 3.0);
 	}
 
 	/// <summary>
@@ -829,6 +962,68 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window closed minimized opens in the normal state.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Opens_A_Window_Saved_Minimized_In_The_Normal_State()
+	{
+		// Arrange
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = 200.0,
+			Size = new(700, 500),
+			WindowState = WindowShowState.Minimized,
+			X = 100,
+			Y = 100
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
+
+		// Assert
+		window.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor gets the tabs to open.
 	/// </summary>
 	[AvaloniaTest]
@@ -874,6 +1069,155 @@ internal class ViewLauncherTests
 		window.ViewModel.EditorTabs
 			.Should()
 			.BeSameAs(tabs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the window takes the position, the size, the state and the topmost
+	/// switch saved for it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Places_The_Window_From_Saved_Settings()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = false,
+			IsTopmost = true,
+			NavigationColumnWidth = positiveValue - 20,
+			Size = new(positiveValue, positiveValue),
+			WindowState = WindowShowState.Normal,
+			X = positiveValue,
+			Y = positiveValue
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(settings.X, settings.Y));
+
+		window.Width
+			.Should()
+			.Be(settings.Size.Width);
+
+		window.Height
+			.Should()
+			.Be(settings.Size.Height);
+
+		window.WindowState
+			.Should()
+			.Be(WindowState.Normal);
+
+		window.Topmost
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window saved at zero or negative coordinates, as at the edge of
+	/// the screen or on a screen left of the main one, comes back there.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0, 0)]
+	[TestCase(-50, 100)]
+	public void CreateEditorWindow_Restores_A_Window_Saved_At_Zero_Or_Negative_Coordinates(int x, int y)
+	{
+		// Arrange
+		EditorWindowSettings settings = new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = 200.0,
+			Size = new(700, 500),
+			WindowState = WindowShowState.Normal,
+			X = x,
+			Y = y
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			// The window stands elsewhere, so only the restore brings it to the stored position.
+			editorWindow.Position = new PixelPoint(200, 150);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow([], null, []);
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(x, y));
 	}
 
 	/// <summary>
@@ -1263,6 +1607,66 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a window saved off every screen opens in the center of the
+	/// screen.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Centers_A_Window_Saved_Off_The_Screens()
+	{
+		// Arrange
+		FavoritesWindowSettings settings = new()
+		{
+			PopupHeight = 250.0,
+			PopupWidth = 500.0,
+			X = 50000,
+			Y = 50000
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+
+		// Assert
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
@@ -1424,6 +1828,132 @@ internal class ViewLauncherTests
 		window.ViewModel.EditorTabs
 			.Should()
 			.BeSameAs(tabs);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the window takes the position saved for it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Places_The_Window_From_Saved_Settings()
+	{
+		// Arrange
+		int positiveValue = RandomValues.CreateInt(100, 300);
+
+		FavoritesWindowSettings settings = new()
+		{
+			PopupHeight = positiveValue,
+			PopupWidth = positiveValue,
+			X = positiveValue,
+			Y = positiveValue
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(settings.X, settings.Y));
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a window saved at zero or negative coordinates, as at the edge
+	/// of the screen or on a screen left of the main one, comes back there.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(0, 0)]
+	[TestCase(-50, 100)]
+	public void CreateFavoritesWindow_Restores_A_Window_Saved_At_Zero_Or_Negative_Coordinates(int x, int y)
+	{
+		// Arrange
+		FavoritesWindowSettings settings = new()
+		{
+			PopupHeight = 250.0,
+			PopupWidth = 500.0,
+			X = x,
+			Y = y
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			// The window stands elsewhere, so only the restore brings it to the stored position.
+			favoritesWindow.Position = new PixelPoint(200, 150);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		FavoritesWindow window = sut.CreateFavoritesWindow([], null, []);
+
+		// Assert
+		window.Position
+			.Should()
+			.Be(new PixelPoint(x, y));
 	}
 
 	/// <summary>

@@ -43,7 +43,6 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ShowInListCommand}"
-				CommandParameter="{Binding $parent[Window]}"
 				Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ShowInList}" />

@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:CopyHistoryViewModel"
@@ -18,6 +19,10 @@
 			Grid.Row="1"
 			ItemTemplate="{StaticResource FileInListTemplate}"
 			ItemsSource="{Binding Items, Mode=OneTime}"
-			SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
+			SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+			<Interaction.Behaviors>
+				<hierarchy:ExplorerItemSignalsBehavior HighlightSignal="{Binding HighlightSignal, Mode=OneWay}" />
+			</Interaction.Behaviors>
+		</ListBox>
 	</Grid>
 </UserControl>

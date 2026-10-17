@@ -3,12 +3,16 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.ViewModels;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -156,6 +160,32 @@ internal class AppTests
 		services.Where(static x => x.ServiceType == typeof(IExchangeFormat)).Select(static x => x.ImplementationType)
 			.Should()
 			.Equal(typeof(JsonExchangeFormat), typeof(XmlExchangeFormat), typeof(SqliteExchangeFormat));
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the services the markup resolves are registered, though no constructor names
+	/// them.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(typeof(CopyHistoryViewModel))]
+	[TestCase(typeof(EditingFilesViewModel))]
+	[TestCase(typeof(IClipboardTextWriter))]
+	[TestCase(typeof(IFilePreviewReader))]
+	[TestCase(typeof(INoteReader))]
+	[TestCase(typeof(ISnackbarPresenter))]
+	[TestCase(typeof(SelectedFavoritesViewModel))]
+	public void RegisterServices_Registers_The_Services_The_Markup_Resolves(Type serviceType)
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.Contain(x => x.ServiceType == serviceType);
 	}
 
 	/// <summary>

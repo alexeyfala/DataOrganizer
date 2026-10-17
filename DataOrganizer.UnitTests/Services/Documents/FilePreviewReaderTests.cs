@@ -1,8 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
@@ -11,8 +8,6 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.ViewModels;
-using Material.Icons.Avalonia;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
@@ -22,35 +17,24 @@ using Shared.Services;
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.Services.Documents;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileListViewModelBase)}"" type")]
-internal class FileListViewModelBaseTests
+[TestFixture(Description = $@"Tests of ""{nameof(FilePreviewReader)}"" type")]
+internal class FilePreviewReaderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: a file without text shows no tip.
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: a file without text gives no preview.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_For_An_Empty_File()
+	[Test]
+	public async Task ReadPreviewAsync_Gives_No_Preview_For_An_Empty_File()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -73,42 +57,27 @@ internal class FileListViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents that are not text show no tip.
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: contents that are not text give no preview.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_For_Contents_That_Are_Not_Text()
+	[Test]
+	public async Task ReadPreviewAsync_Gives_No_Preview_For_Contents_That_Are_Not_Text()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -132,42 +101,27 @@ internal class FileListViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents that fail their check show no tip.
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: contents that fail their check give no preview.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_For_Damaged_Contents()
+	[Test]
+	public async Task ReadPreviewAsync_Gives_No_Preview_For_Damaged_Contents()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -190,43 +144,28 @@ internal class FileListViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: contents the session key cannot open show no tip.
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: contents the session key cannot open give no preview.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	[TestCaseSource(nameof(SessionCipherFailures))]
-	public async Task PreviewPointerEnteredCommand_Shows_No_Tip_When_The_Decryption_Fails(Exception failure)
+	public async Task ReadPreviewAsync_Gives_No_Preview_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -257,43 +196,59 @@ internal class FileListViewModelBaseTests
 				.As<IFileTextReader>();
 
 			builder.RegisterInstance(contentCipher);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the tip of a file under an unlocked keeper shows its
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: a read that fails gives no preview.
+	/// </summary>
+	[Test]
+	public async Task ReadPreviewAsync_Gives_No_Preview_When_The_Read_Fails()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileTextReader fileTextReader = Substitute.For<IFileTextReader>();
+
+			fileTextReader
+				.ReadUnlockedAsync(file, Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(fileTextReader);
+		});
+
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
+
+		// Act
+		string? preview = await sut.ReadPreviewAsync(file);
+
+		// Assert
+		preview
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: the preview of a file under an unlocked keeper is its
 	/// decrypted text.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Shows_The_Decrypted_Text()
+	[Test]
+	public async Task ReadPreviewAsync_Reads_The_Decrypted_Text()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -326,45 +281,74 @@ internal class FileListViewModelBaseTests
 				.As<IFileTextReader>();
 
 			builder.RegisterInstance(contentCipher);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.Be("Hi");
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the tip shows the text in the encoding of the file,
-	/// without its byte order mark.
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: the preview of a long text is its start with a mark
+	/// of the cut.
 	/// </summary>
-	[AvaloniaTest]
-	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x48, 0x69 })]
-	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
-	public async Task PreviewPointerEnteredCommand_Shows_The_Text_In_Its_Encoding(byte[] contents)
+	[Test]
+	public async Task ReadPreviewAsync_Reads_The_Start_Of_A_Long_Text()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		MaterialIcon icon = new()
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			DataContext = file
-		};
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		Window window = new()
-		{
-			Content = icon
-		};
+			dbAccess
+				.GetFileContentsAsync(file.Id)
+				.Returns(new ValidatedContents
+				{
+					Contents = Encoding.UTF8.GetBytes(new string('a', 300)),
+					IsValid = true
+				});
 
-		window.Show();
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileTextReader>()
+				.As<IFileTextReader>();
+		});
+
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
+
+		// Act
+		string? preview = await sut.ReadPreviewAsync(file);
+
+		// Assert
+		preview
+			.Should()
+			.Be($"{new string('a', 200)}...");
+	}
+
+	/// <summary>
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: the preview is the text in the encoding of the file,
+	/// without its byte order mark.
+	/// </summary>
+	[Test]
+	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x48, 0x69 })]
+	[TestCase(new byte[] { 0xFF, 0xFE, 0x48, 0x00, 0x69, 0x00 })]
+	public async Task ReadPreviewAsync_Reads_The_Text_In_Its_Encoding(byte[] contents)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -387,28 +371,25 @@ internal class FileListViewModelBaseTests
 			builder
 				.RegisterType<FileTextReader>()
 				.As<IFileTextReader>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.Be("Hi");
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the tip shows the text in the encoding chosen for
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: the preview is the text in the encoding chosen for
 	/// the file rather than in the one found from its contents.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Shows_The_Text_In_The_Chosen_Encoding()
+	[Test]
+	public async Task ReadPreviewAsync_Reads_The_Text_In_The_Chosen_Encoding()
 	{
 		// Arrange
 		const string text = "Привет, мир";
@@ -417,18 +398,6 @@ internal class FileListViewModelBaseTests
 		{
 			Encoding = "cp866"
 		}));
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -455,43 +424,28 @@ internal class FileListViewModelBaseTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
-		ToolTip.GetTip(icon)
+		preview
 			.Should()
 			.Be(text);
 	}
 
 	/// <summary>
-	/// <see cref="FileListViewModelBase.PreviewPointerEnteredCommand" />: the decrypted contents are wiped once their text
+	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: the decrypted contents are wiped once their text
 	/// is read.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task PreviewPointerEnteredCommand_Zeroes_The_Decrypted_Contents()
+	[Test]
+	public async Task ReadPreviewAsync_Zeroes_The_Decrypted_Contents()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		MaterialIcon icon = new()
-		{
-			DataContext = file
-		};
-
-		Window window = new()
-		{
-			Content = icon
-		};
-
-		window.Show();
 
 		byte[] decrypted = Encoding.UTF8.GetBytes("Hi");
 
@@ -524,21 +478,19 @@ internal class FileListViewModelBaseTests
 				.As<IFileTextReader>();
 
 			builder.RegisterInstance(contentCipher);
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
-		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+		FilePreviewReader sut = mock.Create<FilePreviewReader>();
 
 		// Act
-		await sut.PreviewPointerEnteredCommand.ExecuteAsync(icon);
+		string? preview = await sut.ReadPreviewAsync(file);
 
 		// Assert
 		decrypted
 			.Should()
 			.OnlyContain(static x => x == 0);
 	}
+
 	#endregion
 
 	#region Helpers

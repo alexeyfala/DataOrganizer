@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
+	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:SelectedFavoritesViewModel"
@@ -80,6 +81,10 @@
 			Grid.Column="2"
 			ItemTemplate="{StaticResource FileInListTemplate}"
 			ItemsSource="{Binding Favorites, Mode=OneTime}"
-			SelectedItem="{Binding SelectedFavorite, Mode=TwoWay}" />
+			SelectedItem="{Binding SelectedFavorite, Mode=TwoWay}">
+			<Interaction.Behaviors>
+				<hierarchy:ExplorerItemSignalsBehavior HighlightSignal="{Binding HighlightSignal, Mode=OneWay}" />
+			</Interaction.Behaviors>
+		</ListBox>
 	</Grid>
 </UserControl>

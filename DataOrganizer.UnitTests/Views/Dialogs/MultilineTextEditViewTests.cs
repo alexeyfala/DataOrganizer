@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
@@ -6,6 +5,7 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
 using NSubstitute;
@@ -25,7 +25,7 @@ internal class MultilineTextEditViewTests
 	{
 		// Arrange
 		MultilineTextEditViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>())
 		{
 			IsSensitive = isSensitive

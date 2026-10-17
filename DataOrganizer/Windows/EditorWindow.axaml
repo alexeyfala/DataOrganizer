@@ -12,6 +12,7 @@
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -396,6 +397,11 @@
 
 								<Interaction.Behaviors>
 									<input:DisableRightClickSelectionBehavior />
+
+									<hierarchy:ExplorerItemSignalsBehavior
+										HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
+										SelectCommand="{Binding SelectObjectCommand, Mode=OneWay}"
+										ShowSignal="{Binding ShowSignal, Mode=OneWay}" />
 								</Interaction.Behaviors>
 
 								<TreeView.DataTemplates>

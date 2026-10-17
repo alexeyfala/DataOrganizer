@@ -1,5 +1,5 @@
-using Avalonia;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +12,8 @@ public class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 {
 	#region Constructors
 	public BooleanAsyncResultViewModel(
-		Application app,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 	}
 	#endregion

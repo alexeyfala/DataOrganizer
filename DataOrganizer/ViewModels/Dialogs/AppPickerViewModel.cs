@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -99,10 +98,10 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 
 	#region Constructors
 	public AppPickerViewModel(
-		Application app,
 		IAppPickerService appPicker,
+		IDialogCloser dialogCloser,
 		IFileSystemPicker fileSystemPicker,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 		_appPicker = appPicker;
 

@@ -4,6 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
@@ -3714,6 +3715,36 @@ internal class EmbeddedFileEditorViewModelTests
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
 			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.ShowInListCommand" />: the editor asks to show its file in the tree.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowInListCommand_Asks_To_Show_The_File_In_The_Tree()
+	{
+		// Arrange
+		Guid fileId = Guid.NewGuid();
+
+		StrongReferenceMessenger messenger = new();
+
+		ShowInEditorMessage? sent = null;
+
+		messenger.Register<ShowInEditorMessage>(this, (_, message) => sent = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IMessenger>(messenger));
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		sut.FileId = fileId;
+
+		// Act
+		sut.ShowInListCommand.Execute(null);
+
+		// Assert
+		sent!.Id
+			.Should()
+			.Be(fileId);
 	}
 
 	/// <summary>

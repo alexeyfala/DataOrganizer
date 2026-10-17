@@ -1,14 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
-using Avalonia.Media;
-using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
@@ -50,6 +44,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -115,6 +110,11 @@ public sealed partial class EditorViewModel :
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
 	public partial ExplorerItemDtoBase? SelectedObject { get; set; }
+
+	/// <summary>
+	/// Objects for the tree to bring into view, select and highlight.
+	/// </summary>
+	public IObservable<ExplorerItemDtoBase> ShowSignal => _showSignal;
 
 	/// <summary>
 	/// The current width of the window.
@@ -782,16 +782,13 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
 	private Task CopyContentByContextMenu(FileDto? dto)
 	{
-		if (dto is null
-			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
+		if (dto is null)
 		{
 			return Task.CompletedTask;
 		}
 
 		return CopyContentAsync(
 			file: dto,
-			container: container,
 			updateView: true);
 	}
 
@@ -803,25 +800,14 @@ public sealed partial class EditorViewModel :
 	{
 		try
 		{
-			if (dto is null
-				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
+			if (dto is null)
 			{
 				return;
 			}
 
 			_exceptionHandler.Watch(_clipboardWriter.WriteTextAsync(dto.Name, isSensitive: false));
 
-			FolderDto[] parents = [.. dto
-				.GetAllParents()
-				.Reverse()];
-
-			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
-			{
-				return;
-			}
-
-			_exceptionHandler.Watch(BrushAnimations.ApplyHighlightAnimationAsync(() => item.Background as Brush));
+			Highlight(dto);
 		}
 		catch (Exception ex)
 		{
@@ -908,44 +894,6 @@ public sealed partial class EditorViewModel :
 	private Task Export() => _dataExchange.ExportDataAsync();
 
 	/// <summary>
-	/// Opens a file context menu.
-	/// </summary>
-	[RelayCommand]
-	private void OpenFileContextMenu(Control? container)
-	{
-		if (container is null)
-		{
-			return;
-		}
-
-		if (Interaction
-			.GetBehaviors(container)
-			.OfType<LazyContextFlyoutBehavior>()
-			.FirstOrDefault() is { } behavior)
-		{
-			behavior.Show();
-		}
-		else if (container.ContextFlyout is { } flyout)
-		{
-			flyout.ShowAt(container);
-		}
-		else
-		{
-			return;
-		}
-
-		if (SelectedObject is null)
-		{
-			return;
-		}
-
-		_logger.LogDebug($"Open a file context menu:{SelectedObject.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name))}");
-	}
-
-	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanRename))]
@@ -1020,6 +968,20 @@ public sealed partial class EditorViewModel :
 	private Task SeedSamples() => SeedAsync("Seed samples", _sampleSeeder.SeedAsync);
 
 	/// <summary>
+	/// Selects an object of the tree.
+	/// </summary>
+	[RelayCommand]
+	private void SelectObject(ExplorerItemDtoBase? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		SetSelectedObject(dto);
+	}
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -1090,17 +1052,9 @@ public sealed partial class EditorViewModel :
 		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 
-	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
+	/// <inheritdoc cref="ShowObject" />
 	[RelayCommand]
-	private void ShowInList(Guid id)
-	{
-		if (_app.FindWindow<EditorWindow>() is not { } window)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(ShowInEditorAsync(id, window));
-	}
+	private void ShowInList(Guid id) => ShowObject(id);
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1187,6 +1141,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="ISampleSeeder" />
 	private readonly ISampleSeeder _sampleSeeder;
+
+	/// <inheritdoc cref="ShowSignal" />
+	private readonly Subject<ExplorerItemDtoBase> _showSignal = new();
 
 	/// <inheritdoc cref="IAppThemeService" />
 	private readonly IAppThemeService _themeService;
@@ -1313,25 +1270,16 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Restores the window placement and the copy history from the stored settings.
+	/// Restores the navigation column, the read-only mode and the copy history from the stored settings.
 	/// </summary>
 	public void Initialize(
-		Window window,
 		EditorWindowSettings windowSettings,
 		CopyHistoryViewSettings copyHistorySettings)
 	{
-		// The stored size, when there is one, replaces the default.
-		IViewLauncher.SetDefaultSize(window);
-
-		WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
-
+		// A width that was never stored keeps the default one.
 		if (windowSettings.NavigationColumnWidth > default(double))
 		{
 			NavigationColumnWidth = new GridLength(windowSettings.NavigationColumnWidth);
-		}
-		else
-		{
-			IViewLauncher.SetDefaultNavigationColumnWidth(window, this);
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
@@ -1347,10 +1295,7 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <inheritdoc />
-	public void Receive(ShowInEditorMessage message)
-	{
-		_exceptionHandler.Watch(ShowInEditorAsync(message.Id, message.Window));
-	}
+	public void Receive(ShowInEditorMessage message) => ShowObject(message.Id);
 
 	/// <inheritdoc />
 	public void Receive(ShowProgressBarMessage message)
@@ -1388,63 +1333,17 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <inheritdoc />
-	public override async Task ShowInEditorAsync(
+	/// <remarks>
+	/// The editor shows the object in its own tree, whichever window asks.
+	/// </remarks>
+	public override Task ShowInEditorAsync(
 		Guid id,
 		Window window,
 		CancellationToken token = default)
 	{
-		if (Hierarchy.FindById(id) is not { } found)
-		{
-			return;
-		}
+		ShowObject(id);
 
-		FolderDto[] parents = [.. found
-			.GetAllParents()
-			.ForEach(x => x.IsExpanded = true)
-			.Reverse()];
-
-		TreeView? treeView = null;
-
-		Func<bool> condition = () =>
-		{
-			treeView = window.FindDescendantOfType<TreeView>();
-
-			// A selection made before the window has loaded would not be saved.
-			return treeView is not null && window.IsLoaded;
-		};
-
-		const int delay = 200;
-
-		if (!await condition
-			.WaitAsync(delay, 10, token)
-			.ConfigureAwait(true) || treeView is null)
-		{
-			return;
-		}
-
-		treeView.ScrollIntoView(found);
-
-		if (treeView.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
-		{
-			scrollViewer.Offset = new(
-				int.MaxValue,
-				scrollViewer.Offset.Y);
-		}
-
-		SetSelectedObject(found);
-
-		if (FindLastContainer(treeView, parents)?.ContainerFromItem(found) is not TemplatedControl item)
-		{
-			return;
-		}
-
-		await Task
-			.Delay(delay, token)
-			.ConfigureAwait(true);
-
-		await BrushAnimations.ApplyHighlightAnimationAsync(
-			() => item.Background as Brush,
-			token).ConfigureAwait(false);
+		return Task.CompletedTask;
 	}
 
 	/// <summary>
@@ -1939,6 +1838,24 @@ public sealed partial class EditorViewModel :
 		NotifyDecryptedContentsChanged();
 
 		return true;
+	}
+
+	/// <summary>
+	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
+	/// </summary>
+	private void ShowObject(Guid id)
+	{
+		if (Hierarchy.FindById(id) is not { } found)
+		{
+			return;
+		}
+
+		foreach (FolderDto parent in found.GetAllParents())
+		{
+			parent.IsExpanded = true;
+		}
+
+		_showSignal.OnNext(found);
 	}
 
 	/// <summary>

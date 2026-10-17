@@ -12,7 +12,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -202,7 +201,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IFileTextCopier fileTextCopier,
-		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -211,7 +209,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 			dbAccess,
 			dialogService,
 			fileTextCopier,
-			fileTextReader,
 			logger,
 			messenger,
 			notification,
@@ -342,6 +339,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 
 		SelectedPairs.Clear();
 	}
+
+	/// <inheritdoc />
+	protected override void SelectFile(FileDto file) => SelectedFavorite = file;
 	#endregion
 
 	#region Helpers

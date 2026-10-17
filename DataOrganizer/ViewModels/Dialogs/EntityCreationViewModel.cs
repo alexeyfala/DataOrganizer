@@ -1,8 +1,8 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Runtime;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -79,11 +79,11 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 	#region Constructors
 	public EntityCreationViewModel(
-		Application app,
 		IAppEnvironment appEnvironment,
+		IDialogCloser dialogCloser,
 		IFileSystem fileSystem,
 		IJsonSerializer jsonSerializer,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 		_appEnvironment = appEnvironment;
 

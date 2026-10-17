@@ -8,7 +8,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -78,7 +77,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IFileTextCopier fileTextCopier,
-		IFileTextReader fileTextReader,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -87,7 +85,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			dbAccess,
 			dialogService,
 			fileTextCopier,
-			fileTextReader,
 			logger,
 			messenger,
 			notification,
@@ -186,5 +183,8 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 		SelectedItem = null;
 	}
+
+	/// <inheritdoc />
+	protected override void SelectFile(FileDto file) => SelectedItem = file;
 	#endregion
 }

@@ -1,8 +1,8 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Dialogs;
@@ -91,8 +91,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 
 	#region Constructors
 	public KeyValueInputViewModel(
-		Application app,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 	}
 	#endregion

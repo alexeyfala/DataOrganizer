@@ -8,8 +8,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
-	xmlns:views="using:DataOrganizer.Views"
-	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
+	xmlns:views="using:DataOrganizer.Views">
 
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
@@ -67,13 +66,7 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Interaction.Behaviors>
-				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
-
-				<EventTriggerBehavior EventName="DoubleTapped">
-					<InvokeCommandAction
-						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
-						CommandParameter="{Binding $parent[Grid]}" />
-				</EventTriggerBehavior>
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" ShowOnDoubleTap="True" />
 			</Interaction.Behaviors>
 
 			<Grid.Styles>

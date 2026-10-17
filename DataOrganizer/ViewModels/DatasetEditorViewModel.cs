@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -442,21 +441,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private Task ExpandCollapse(bool expand) => ExpandCollapseAsync(null, expand);
 
 	/// <summary>
-	/// Handles the <see cref="Expander.Expanded" />, <see cref="Expander.Collapsed" /> events by user.
+	/// Saves the records as a change of the view once the user has expanded or collapsed a group.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
-	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
-	{
-		if (e?.Source is not Expander expander || !expander.IsPointerOver)
-		{
-			return Task.CompletedTask;
-		}
-
-		// If this event is not handled, it may fire multiple times, especially in highly nested groups.
-		e.Handled = true;
-
-		return SaveContentsAsync(FileContentsChange.View);
-	}
+	private Task GroupExpandedCollapsedByUser() => SaveContentsAsync(FileContentsChange.View);
 
 	/// <summary>
 	/// Sets <see cref="ValueRecordBase.IsHidden" /> value to <c>True</c> to all records in <see cref="RecordsGroup" />.

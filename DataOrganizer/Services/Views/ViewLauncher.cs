@@ -336,8 +336,17 @@ public class ViewLauncher : IViewLauncher
 
 		if (_windowSettings.Read<EditorWindowSettings>() is { } windowSettings)
 		{
+			// The stored size, when there is one, replaces the default.
+			IViewLauncher.SetDefaultSize(window);
+
+			WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
+
+			if (windowSettings.NavigationColumnWidth <= default(double))
+			{
+				IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
+			}
+
 			viewModel.Initialize(
-				window,
 				windowSettings,
 				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());
 		}
@@ -377,8 +386,9 @@ public class ViewLauncher : IViewLauncher
 
 		if (_windowSettings.Read<FavoritesWindowSettings>() is { } windowSettings)
 		{
+			WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
+
 			viewModel.Initialize(
-				window,
 				windowSettings,
 				_windowSettings.Read<FavoritesViewSettings>() ?? new(),
 				_windowSettings.Read<CopyHistoryViewSettings>() ?? new());

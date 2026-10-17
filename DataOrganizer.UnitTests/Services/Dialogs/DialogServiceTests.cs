@@ -208,7 +208,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		KeyValueInputViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -291,7 +291,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		MultilineTextEditViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -428,7 +428,7 @@ internal class DialogServiceTests
 		app.ApplicationLifetime = lifetime;
 
 		YesNoCancelBoxViewModel viewModel = new(
-			app,
+			new DialogCloser(app),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -483,7 +483,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		YesNoCancelBoxViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -562,7 +562,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		YesNoCancelBoxViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>

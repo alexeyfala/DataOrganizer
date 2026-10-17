@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
@@ -13,11 +12,13 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
@@ -273,6 +274,61 @@ internal class EditorViewModelTests
 		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.CopyContentByContextMenuCommand" />: the copied file shows at once in the open copy
+	/// history.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CopyContentByContextMenuCommand_Shows_The_File_In_The_Open_Copy_History()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			fileTextCopier
+				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
+
+		sut.Hierarchy.Add(file);
+
+		// The view of the side sheet hands its view model over once loaded.
+		sut
+			.CopyHistoryDisplayedCommand
+			.Execute(copyHistory);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await sut
+			.CopyContentByContextMenuCommand
+			.ExecuteAsync(file);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		copyHistory.Items
+			.Should()
+			.Equal(file);
 	}
 
 	/// <summary>
@@ -2377,88 +2433,8 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: a window saved off every screen opens in the center of the screen.
-	/// </summary>
-	[AvaloniaTest]
-	public void Initialize_Centers_A_Window_Saved_Off_The_Screens()
-	{
-		// Arrange
-		EditorWindowSettings windowSettings = new()
-		{
-			IsReadOnly = false,
-			IsTopmost = false,
-			NavigationColumnWidth = 200.0,
-			Size = new(700, 500),
-			WindowState = WindowShowState.Normal,
-			X = 50000,
-			Y = 50000
-		};
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		Window window = new();
-
-		// Act
-		sut.Initialize(
-			window,
-			windowSettings,
-			new CopyHistoryViewSettings());
-
-		// Assert
-		window.WindowStartupLocation
-			.Should()
-			.Be(WindowStartupLocation.CenterScreen);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: a window saved without a size takes the default one, and its navigation
-	/// column a third of it.
-	/// </summary>
-	[AvaloniaTest]
-	public void Initialize_Gives_The_Default_Size_Without_A_Saved_One()
-	{
-		// Arrange
-		EditorWindowSettings windowSettings = new()
-		{
-			IsReadOnly = false,
-			IsTopmost = false,
-			NavigationColumnWidth = 0.0,
-			Size = new(0, 0),
-			WindowState = WindowShowState.Normal,
-			X = 100,
-			Y = 100
-		};
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		Window window = new();
-
-		// Act
-		sut.Initialize(
-			window,
-			windowSettings,
-			new CopyHistoryViewSettings());
-
-		// Assert
-		window.Width
-			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Width);
-
-		window.Height
-			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Height);
-
-		sut.NavigationColumnWidth.Value
-			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Width / 3.0);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: window position/size/state and view-model properties are set from the supplied settings.
+	/// <see cref="EditorViewModel.Initialize" />: the navigation column, the read-only mode and the copy history come from the
+	/// supplied settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void Initialize_Initializes_Properties()
@@ -2491,35 +2467,12 @@ internal class EditorViewModelTests
 
 		sut.AddHierarchy(historyFiles);
 
-		Window window = new();
-
 		// Act
 		sut.Initialize(
-			window,
 			windowSettings,
 			copyHistorySettings);
 
 		// Assert
-		window.Position
-			.Should()
-			.Be(new PixelPoint(windowSettings.X, windowSettings.Y));
-
-		window.Width
-			.Should()
-			.Be(windowSettings.Size.Width);
-
-		window.Height
-			.Should()
-			.Be(windowSettings.Size.Height);
-
-		window.WindowState
-			.Should()
-			.Be(WindowState.Normal);
-
-		window.Topmost
-			.Should()
-			.Be(windowSettings.IsTopmost);
-
 		sut.NavigationColumnWidth.Value
 			.Should()
 			.Be(windowSettings.NavigationColumnWidth);
@@ -2531,85 +2484,6 @@ internal class EditorViewModelTests
 		sut.CopyHistorySettings
 			.Should()
 			.BeEquivalentTo(copyHistorySettings);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: a window closed minimized opens in the normal state.
-	/// </summary>
-	[AvaloniaTest]
-	public void Initialize_Opens_A_Window_Saved_Minimized_In_The_Normal_State()
-	{
-		// Arrange
-		EditorWindowSettings windowSettings = new()
-		{
-			IsReadOnly = false,
-			IsTopmost = false,
-			NavigationColumnWidth = 200.0,
-			Size = new(700, 500),
-			WindowState = WindowShowState.Minimized,
-			X = 100,
-			Y = 100
-		};
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		Window window = new();
-
-		// Act
-		sut.Initialize(
-			window,
-			windowSettings,
-			new CopyHistoryViewSettings());
-
-		// Assert
-		window.WindowState
-			.Should()
-			.Be(WindowState.Normal);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Initialize" />: a window saved at zero or negative coordinates, as at the edge of the screen
-	/// or on a screen left of the main one, comes back there.
-	/// </summary>
-	[AvaloniaTest]
-	[TestCase(0, 0)]
-	[TestCase(-50, 100)]
-	public void Initialize_Restores_A_Window_Saved_At_Zero_Or_Negative_Coordinates(int x, int y)
-	{
-		// Arrange
-		EditorWindowSettings windowSettings = new()
-		{
-			IsReadOnly = false,
-			IsTopmost = false,
-			NavigationColumnWidth = 200.0,
-			Size = new(700, 500),
-			WindowState = WindowShowState.Normal,
-			X = x,
-			Y = y
-		};
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// The window stands elsewhere, so only the restore brings it to the stored position.
-		Window window = new()
-		{
-			Position = new PixelPoint(200, 150)
-		};
-
-		// Act
-		sut.Initialize(
-			window,
-			windowSettings,
-			new CopyHistoryViewSettings());
-
-		// Assert
-		window.Position
-			.Should()
-			.Be(new PixelPoint(x, y));
 	}
 
 	/// <summary>
@@ -3055,6 +2929,44 @@ internal class EditorViewModelTests
 		autoLock
 			.Received(1)
 			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(ShowInEditorMessage)" />: the folders that hold the object are expanded.
+	/// </summary>
+	[Test]
+	public void Receive_ShowInEditor_Expands_The_Folders_Of_The_Object()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(outer);
+
+		// Act
+		sut.Receive(new ShowInEditorMessage(file.Id));
+
+		// Assert
+		FolderDto[] folders = [outer, inner];
+
+		folders
+			.Should()
+			.OnlyContain(x => x.IsExpanded);
 	}
 
 	/// <summary>

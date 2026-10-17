@@ -25,12 +25,25 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 		get => GetValue(ContentTemplateProperty);
 		set => SetValue(ContentTemplateProperty, value);
 	}
+
+	/// <summary>
+	/// <c>True</c> when a double tap on <see cref="Behavior{T}.AssociatedObject" /> opens the flyout as well.
+	/// </summary>
+	public bool ShowOnDoubleTap
+	{
+		get => GetValue(ShowOnDoubleTapProperty);
+		set => SetValue(ShowOnDoubleTapProperty, value);
+	}
 	#endregion
 
 	#region Styled Properties
 	/// <inheritdoc cref="ContentTemplate" />
 	public static readonly StyledProperty<IDataTemplate?> ContentTemplateProperty = AvaloniaProperty
 		.Register<LazyContextFlyoutBehavior, IDataTemplate?>(nameof(ContentTemplate));
+
+	/// <inheritdoc cref="ShowOnDoubleTap" />
+	public static readonly StyledProperty<bool> ShowOnDoubleTapProperty = AvaloniaProperty
+		.Register<LazyContextFlyoutBehavior, bool>(nameof(ShowOnDoubleTap));
 	#endregion
 
 	#region Data
@@ -70,6 +83,21 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
+	/// <see cref="InputElement.DoubleTappedEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
+	/// </summary>
+	private void AssociatedObject_DoubleTapped(
+		object? sender,
+		TappedEventArgs e)
+	{
+		if (!ShowOnDoubleTap)
+		{
+			return;
+		}
+
+		Show();
+	}
+
+	/// <summary>
 	/// <see cref="StyledElement.DataContextChanged" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// Clears the cached flyout when the container is recycled by virtualization
 	/// to a different item — otherwise the flyout's bindings keep targeting the
@@ -95,9 +123,8 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 
 	#region Methods
 	/// <summary>
-	/// Builds the flyout (if not yet built) and shows it at <see cref="Behavior{T}.AssociatedObject" />.
-	/// Useful for programmatic triggers, e.g. opening the menu by a double-tap
-	/// command rather than by a real <see cref="InputElement.ContextRequestedEvent" />.
+	/// Builds the flyout (if not yet built) and shows it at <see cref="Behavior{T}.AssociatedObject" />, apart from a
+	/// real <see cref="InputElement.ContextRequestedEvent" />.
 	/// </summary>
 	public void Show(bool showAtPointer = false)
 	{
@@ -124,6 +151,8 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 			AssociatedObject_ContextRequested);
 
 		AssociatedObject.DataContextChanged += AssociatedObject_DataContextChanged;
+
+		AssociatedObject.DoubleTapped += AssociatedObject_DoubleTapped;
 	}
 
 	/// <inheritdoc />
@@ -143,6 +172,8 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 			AssociatedObject_ContextRequested);
 
 		AssociatedObject.DataContextChanged -= AssociatedObject_DataContextChanged;
+
+		AssociatedObject.DoubleTapped -= AssociatedObject_DoubleTapped;
 
 		if (ReferenceEquals(AssociatedObject.ContextFlyout, _flyout))
 		{

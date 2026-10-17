@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -93,15 +92,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// Displays object in the list.
 	/// </summary>
 	[RelayCommand]
-	private void ShowInList(Window? window)
-	{
-		if (window is null)
-		{
-			return;
-		}
-
-		_messenger.Send(new ShowInEditorMessage(FileId, window));
-	}
+	private void ShowInList() => _messenger.Send(new ShowInEditorMessage(FileId));
 	#endregion
 
 	#region Data

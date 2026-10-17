@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -89,7 +88,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		await clipboard
@@ -150,7 +149,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		await clipboard
@@ -213,7 +212,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		await clipboard
@@ -278,7 +277,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		await clipboard
@@ -350,7 +349,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		await clipboard
@@ -416,7 +415,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		if (isEncrypted)
@@ -475,7 +474,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		sut.CopyHistory
@@ -519,7 +518,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		sut.CopyHistory
@@ -576,7 +575,7 @@ internal class CopyContentViewModelBaseTests
 		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
-		await sut.InvokeCopyContentAsync(file, new ItemsControl());
+		await sut.InvokeCopyContentAsync(file);
 
 		// Assert
 		decrypted
@@ -624,10 +623,7 @@ internal class CopyContentViewModelBaseTests
 		/// <inheritdoc />
 		public override void InsertIntoCopyHistory(FileDto file, bool updateView) => CopyHistory.Add(file);
 
-		public Task InvokeCopyContentAsync(FileDto file, ItemsControl container)
-		{
-			return CopyContentAsync(file, container, updateView: false);
-		}
+		public Task InvokeCopyContentAsync(FileDto file) => CopyContentAsync(file, updateView: false);
 		#endregion
 	}
 	#endregion

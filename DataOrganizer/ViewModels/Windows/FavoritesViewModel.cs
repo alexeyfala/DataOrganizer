@@ -289,16 +289,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	}
 
 	/// <summary>
-	/// Restores the window placement, the favorites and the copy history from the stored settings.
+	/// Restores the popup size, the favorites and the copy history from the stored settings.
 	/// </summary>
 	public void Initialize(
-		Window window,
 		FavoritesWindowSettings windowSettings,
 		FavoritesViewSettings favoritesSettings,
 		CopyHistoryViewSettings copyHistorySettings)
 	{
-		WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
-
 		if (windowSettings.PopupWidth > 0.0 && windowSettings.PopupHeight > 0.0)
 		{
 			PopupWidth = windowSettings.PopupWidth;

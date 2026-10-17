@@ -1,8 +1,8 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -62,8 +62,8 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 
 	#region Constructors
 	public ImportListSelectorViewModel(
-		Application app,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 	}
 	#endregion

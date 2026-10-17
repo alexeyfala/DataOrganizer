@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers;
-using DialogHostAvalonia;
+using DataOrganizer.Interfaces.Dialogs;
 using Repository.Dto;
 using System.Collections.ObjectModel;
 
@@ -23,6 +22,15 @@ internal sealed partial class PropertiesViewModel
 	/// Closes the dialog.
 	/// </summary>
 	[RelayCommand]
-	private static void Close() => DialogHost.Close(DialogHostIdentifiers.Main);
+	private void Close() => _dialogHostCloser.Close();
+	#endregion
+
+	#region Data
+	/// <inheritdoc cref="IDialogHostCloser" />
+	private readonly IDialogHostCloser _dialogHostCloser;
+	#endregion
+
+	#region Constructors
+	public PropertiesViewModel(IDialogHostCloser dialogHostCloser) => _dialogHostCloser = dialogHostCloser;
 	#endregion
 }

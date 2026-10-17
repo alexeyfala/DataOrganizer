@@ -211,17 +211,7 @@
 
 					<styling:ExpanderToggleCursorBehavior />
 
-					<EventTriggerBehavior EventName="Expanded">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
-							PassEventArgsToCommand="True" />
-					</EventTriggerBehavior>
-
-					<EventTriggerBehavior EventName="Collapsed">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
-							PassEventArgsToCommand="True" />
-					</EventTriggerBehavior>
+					<input:ExpanderToggledByUserBehavior Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}" />
 				</Interaction.Behaviors>
 			</Expander>
 		</Border>

@@ -2,15 +2,19 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dataset;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
@@ -153,6 +157,181 @@ internal class DatasetEditorViewTests
 		recordsScroller.Offset.Y
 			.Should()
 			.BeApproximately(edge(), 0.5);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorView" />: a group expanded or collapsed by a click on its chevron saves the records as a
+	/// change of the view.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_The_Chevron_Of_A_Group_Saves_A_View_Change()
+	{
+		// Arrange
+		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			DatasetRecordBase[] records =
+			[
+				new RecordsGroup
+				{
+					Children = [.. DatasetRecordFactory.CreateValueRecords(2)],
+					Name = "Group"
+				}
+			];
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(records),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		DatasetEditorView sut = new(viewModel);
+
+		Show(sut);
+
+		await RunJobsUntilAsync(() => viewModel.IsInitialized && FindGroupExpander(sut, "Group") is not null);
+
+		ToggleButton chevron = FindChevron(FindGroupExpander(sut, "Group")!);
+
+		// Act
+		Click(chevron);
+
+		await RunJobsAsync(repeats: 10);
+
+		// Assert
+		await fileContentsWriter
+			.Received(1)
+			.WriteAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<Guid?>(),
+				Arg.Any<byte[]>(),
+				FileContentsChange.View,
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorView" />: a click on the chevron of a group inside another one saves the records once, not
+	/// once more for the outer group.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_The_Chevron_Of_A_Nested_Group_Saves_Once()
+	{
+		// Arrange
+		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			DatasetRecordBase[] records =
+			[
+				new RecordsGroup
+				{
+					Children =
+					[
+						new RecordsGroup
+						{
+							Children = [.. DatasetRecordFactory.CreateValueRecords(2)],
+							Name = "Inner"
+						}
+					],
+					Name = "Outer"
+				}
+			];
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(records),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		DatasetEditorView sut = new(viewModel);
+
+		Show(sut);
+
+		await RunJobsUntilAsync(() => viewModel.IsInitialized && FindGroupExpander(sut, "Inner") is not null);
+
+		ToggleButton chevron = FindChevron(FindGroupExpander(sut, "Inner")!);
+
+		// Act
+		Click(chevron);
+
+		await RunJobsAsync(repeats: 10);
+
+		// Assert
+		await fileContentsWriter
+			.Received(1)
+			.WriteAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<Guid?>(),
+				Arg.Any<byte[]>(),
+				FileContentsChange.View,
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -324,6 +503,88 @@ internal class DatasetEditorViewTests
 		isEditingEnabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="RecordsGroup.IsExpanded" />: a group expanded or collapsed by code, with the pointer elsewhere, saves
+	/// nothing through its expander.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsExpanded_Changed_By_Code_Saves_Nothing()
+	{
+		// Arrange
+		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			DatasetRecordBase[] records =
+			[
+				new RecordsGroup
+				{
+					Children = [.. DatasetRecordFactory.CreateValueRecords(2)],
+					Name = "Group"
+				}
+			];
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(records),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		DatasetEditorView sut = new(viewModel);
+
+		Window window = Show(sut);
+
+		await RunJobsUntilAsync(() => viewModel.IsInitialized && FindGroupExpander(sut, "Group") is not null);
+
+		// The pointer rests in a corner of the window, away from the group.
+		window.MouseMove(new Point(window.Width - 1.0, window.Height - 1.0));
+
+		RecordsGroup group = (RecordsGroup)viewModel.Records[0];
+
+		// Act
+		group.IsExpanded = false;
+
+		await RunJobsAsync(repeats: 10);
+
+		// Assert
+		await fileContentsWriter
+			.DidNotReceiveWithAnyArgs()
+			.WriteAsync(default, default, default!, default, default);
 	}
 
 	/// <summary>
@@ -1556,6 +1817,28 @@ internal class DatasetEditorViewTests
 		topLevel.MouseDown(center, MouseButton.Left);
 
 		topLevel.MouseUp(center, MouseButton.Left);
+	}
+
+	/// <summary>
+	/// Returns the chevron in the header of the expander of a group, which expands and collapses the group.
+	/// </summary>
+	private static ToggleButton FindChevron(Expander expander)
+	{
+		return expander
+			.GetVisualDescendants()
+			.OfType<ToggleButton>()
+			.First(static x => x.Content is MaterialIcon);
+	}
+
+	/// <summary>
+	/// Returns the expander of the group with a name; <c>null</c> while the view does not show it.
+	/// </summary>
+	private static Expander? FindGroupExpander(DatasetEditorView view, string name)
+	{
+		return view
+			.GetVisualDescendants()
+			.OfType<Expander>()
+			.FirstOrDefault(x => x.DataContext is RecordsGroup group && group.Name == name);
 	}
 
 	/// <summary>

@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:documents="using:DataOrganizer.Interfaces.Documents"
 	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -31,20 +32,12 @@
 				Grid.Column="0"
 				Classes="primary"
 				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).CopyContentCommand}"
+				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
 				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
-				<Button.CommandParameter>
-					<MultiBinding>
-						<Binding />
-
-						<Binding Path="$parent[SelectingItemsControl]" />
-					</MultiBinding>
-				</Button.CommandParameter>
-			</Button>
+				ToolTip.Tip="{x:Static prop:Strings.CopyContent}" />
 
 			<materialIcons:MaterialIcon
-				x:Name="PreviewIcon"
 				Grid.Column="1"
 				Margin="2.0,0.0,8.0,0.0"
 				Background="Transparent"
@@ -74,15 +67,7 @@
 				</materialIcons:MaterialIcon.Styles>
 
 				<Interaction.Behaviors>
-					<input:PointerHoverCommandBehavior
-						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
-						CommandParameter="{Binding #PreviewIcon}" />
-
-					<EventTriggerBehavior EventName="PointerExited">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
-							CommandParameter="{Binding #PreviewIcon}" />
-					</EventTriggerBehavior>
+					<input:FilePreviewToolTipBehavior Reader="{markup:Resolve {x:Type documents:IFilePreviewReader}}" />
 				</Interaction.Behaviors>
 			</materialIcons:MaterialIcon>
 
