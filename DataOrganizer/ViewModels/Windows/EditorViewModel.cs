@@ -574,7 +574,7 @@ public sealed partial class EditorViewModel :
 
 		_sessionEditorTabs.EditorTabs = EditingFiles.State;
 
-		_viewLauncher
+		_mainWindowLauncher
 			.CreateFavoritesWindow()
 			.Show();
 
@@ -1004,6 +1004,9 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
 
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
@@ -1065,6 +1068,7 @@ public sealed partial class EditorViewModel :
 		IFileHotkeyEditor fileHotkeyEditor,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		INoteEditor noteEditor,
 		INoteReader noteReader,
@@ -1073,13 +1077,13 @@ public sealed partial class EditorViewModel :
 		IProcessManager processManager,
 		IProtectionScenarios protectionScenarios,
 		ISampleSeeder sampleSeeder,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewFactory viewFactory) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -1090,11 +1094,11 @@ public sealed partial class EditorViewModel :
 			logger,
 			messenger,
 			notification,
+			secondaryWindowLauncher,
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewFactory,
-			viewLauncher)
+			viewFactory)
 	{
 		EditingFiles = editingFiles;
 
@@ -1117,6 +1121,8 @@ public sealed partial class EditorViewModel :
 		_fileHotkeyEditor = fileHotkeyEditor;
 
 		_hierarchyEditor = hierarchyEditor;
+
+		_mainWindowLauncher = mainWindowLauncher;
 
 		_noteEditor = noteEditor;
 
@@ -1294,6 +1300,14 @@ public sealed partial class EditorViewModel :
 		}
 
 		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="NavigationColumnWidth" /> for a window <paramref name="windowWidth" /> wide.
+	/// </summary>
+	internal void SetDefaultNavigationColumnWidth(double windowWidth)
+	{
+		NavigationColumnWidth = new GridLength(windowWidth / 3.0);
 	}
 
 	/// <summary>

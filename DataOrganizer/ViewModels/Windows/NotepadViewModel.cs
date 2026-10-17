@@ -73,7 +73,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// Brings the main window back from the minimized state and activates it.
 	/// </summary>
 	[RelayCommand]
-	private void ActivateMainWindow() => _viewLauncher.ActivateMainWindow();
+	private void ActivateMainWindow() => _mainWindowLauncher.ActivateMainWindow();
 
 	/// <summary>
 	/// Adds a tab with the smallest free number at the end and selects it.
@@ -118,7 +118,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			return;
 		}
 
-		_viewLauncher.CenterMainWindow(owner);
+		_mainWindowLauncher.CenterMainWindow(owner);
 	}
 
 	/// <summary>
@@ -228,6 +228,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	private readonly HashSet<NotepadTabViewModel> _failedWrites = [];
 
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
+
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
@@ -256,9 +259,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IViewCache" />
 	private readonly IViewCache _viewCache;
 
-	/// <inheritdoc cref="IViewLauncher" />
-	private readonly IViewLauncher _viewLauncher;
-
 	/// <summary>
 	/// <c>True</c> once the tabs have been read from the disk and until the notepad closes: meanwhile the tabs and their
 	/// texts are written back, and a closed tab takes its text away.
@@ -271,13 +271,13 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IDocumentEncodingSwitcher encodingSwitcher,
+		IMainWindowLauncher mainWindowLauncher,
 		INotepadSessionState sessionState,
 		INotepadStore store,
 		INotificationService notification,
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler,
 		IViewCache viewCache,
-		IViewLauncher viewLauncher,
 		TimeProvider timeProvider)
 	{
 		_dialogService = dialogService;
@@ -285,6 +285,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_dispatcher = dispatcher;
 
 		_encodingSwitcher = encodingSwitcher;
+
+		_mainWindowLauncher = mainWindowLauncher;
 
 		_sessionState = sessionState;
 
@@ -297,8 +299,6 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_exceptionHandler = exceptionHandler;
 
 		_viewCache = viewCache;
-
-		_viewLauncher = viewLauncher;
 
 		_timeProvider = timeProvider;
 

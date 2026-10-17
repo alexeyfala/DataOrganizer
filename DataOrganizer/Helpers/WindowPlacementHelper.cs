@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
@@ -19,6 +20,11 @@ internal static class WindowPlacementHelper
 	/// Default gap between a corner placed window and the edges of the working area, in pixels.
 	/// </summary>
 	public const int CornerMargin = 10;
+
+	/// <summary>
+	/// The default size of a window.
+	/// </summary>
+	public static readonly System.Drawing.Size DefaultWindowSize = new(900, 600);
 
 	/// <summary>
 	/// Size of the area at the top left of a window that has to stay on a screen, so that the window can be dragged back.
@@ -92,6 +98,24 @@ internal static class WindowPlacementHelper
 		window.WindowState = placement.WindowState == WindowShowState.Minimized
 			? WindowState.Normal
 			: (WindowState)placement.WindowState;
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="Window.WindowStartupLocation" /> to the window.
+	/// </summary>
+	public static void SetDefaultLocation(Window window)
+	{
+		window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="Layoutable.Width" /> and <see cref="Layoutable.Height" /> to the window.
+	/// </summary>
+	public static void SetDefaultSize(Window window)
+	{
+		window.Width = DefaultWindowSize.Width;
+
+		window.Height = DefaultWindowSize.Height;
 	}
 	#endregion
 }

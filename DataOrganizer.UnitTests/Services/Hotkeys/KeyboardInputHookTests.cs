@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
@@ -78,6 +79,61 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the hotkey of an encrypted file brings the main window
+	/// back with its favorites, so that the password is asked for over it.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Brings_Back_The_Main_Window_With_The_Favorites_For_An_Encrypted_File()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
+		{
+			Code = code,
+			Mask = mask
+		}, 5)];
+
+		dto
+			.Hotkeys
+			.AddRange(keyStrokes.ToHotkeyDtos());
+
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(mainWindowLauncher);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		sut
+			.InputStack
+			.AddRange(keyStrokes);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		Received.InOrder(() =>
+		{
+			mainWindowLauncher.ActivateMainWindow();
+
+			mainWindowLauncher.ShowFavorites();
+		});
 	}
 
 	/// <summary>
@@ -892,6 +948,58 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.HaveCount(keyCount);
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the hotkey of a file that is not encrypted leaves the main
+	/// window where it is.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Leaves_The_Main_Window_Alone_For_A_File_That_Is_Not_Encrypted()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
+		{
+			Code = code,
+			Mask = mask
+		}, 5)];
+
+		dto
+			.Hotkeys
+			.AddRange(keyStrokes.ToHotkeyDtos());
+
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(mainWindowLauncher);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [dto];
+
+		sut
+			.InputStack
+			.AddRange(keyStrokes);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		mainWindowLauncher
+			.DidNotReceive()
+			.ActivateMainWindow();
 	}
 
 	/// <summary>

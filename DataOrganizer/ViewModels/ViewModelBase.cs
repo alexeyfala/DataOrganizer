@@ -90,7 +90,7 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_viewLauncher.CenterNotepadWindow(owner);
+		_secondaryWindowLauncher.CenterNotepadWindow(owner);
 	}
 
 	/// <summary>
@@ -104,7 +104,7 @@ public abstract partial class ViewModelBase :
 			return Task.CompletedTask;
 		}
 
-		return _viewLauncher.ShowClipboardLogWindowAsync(owner);
+		return _secondaryWindowLauncher.ShowClipboardLogWindowAsync(owner);
 	}
 
 	/// <summary>
@@ -118,7 +118,7 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_viewLauncher.ShowNotepadWindow(owner);
+		_secondaryWindowLauncher.ShowNotepadWindow(owner);
 	}
 	#endregion
 
@@ -153,6 +153,9 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="INotificationService" />
 	protected readonly INotificationService _notification;
 
+	/// <inheritdoc cref="ISecondaryWindowLauncher" />
+	private readonly ISecondaryWindowLauncher _secondaryWindowLauncher;
+
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	protected readonly ISessionEditorTabs _sessionEditorTabs;
 
@@ -164,9 +167,6 @@ public abstract partial class ViewModelBase :
 
 	/// <inheritdoc cref="IViewFactory" />
 	protected readonly IViewFactory _viewFactory;
-
-	/// <inheritdoc cref="IViewLauncher" />
-	protected readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
@@ -181,11 +181,11 @@ public abstract partial class ViewModelBase :
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher)
+		IViewFactory viewFactory)
 	{
 		_app = app;
 
@@ -207,6 +207,8 @@ public abstract partial class ViewModelBase :
 
 		_notification = notification;
 
+		_secondaryWindowLauncher = secondaryWindowLauncher;
+
 		_sessionEditorTabs = sessionEditorTabs;
 
 		_sessionHierarchy = sessionHierarchy;
@@ -214,8 +216,6 @@ public abstract partial class ViewModelBase :
 		_settingsStore = settingsStore;
 
 		_viewFactory = viewFactory;
-
-		_viewLauncher = viewLauncher;
 
 		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,6 +9,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Views;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -192,11 +192,11 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 
 	#region Constructors
 	public SelectedFavoritesViewModel(
-		Application app,
 		IContentCopier contentCopier,
+		IMainWindowLauncher mainWindowLauncher,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
 			contentCopier,
+			mainWindowLauncher,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(

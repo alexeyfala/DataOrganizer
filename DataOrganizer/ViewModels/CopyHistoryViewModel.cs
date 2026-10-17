@@ -1,4 +1,3 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
@@ -7,6 +6,7 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using System;
 using System.Collections.ObjectModel;
@@ -87,14 +87,14 @@ public sealed partial class CopyHistoryViewModel :
 
 	#region Constructors
 	public CopyHistoryViewModel(
-		Application app,
 		IContentCopier contentCopier,
 		ICopyHistory copyHistory,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
 			contentCopier,
+			mainWindowLauncher,
 			exceptionHandler)
 	{
 		_copyHistory = copyHistory;

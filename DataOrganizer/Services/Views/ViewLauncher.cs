@@ -17,6 +17,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Runtime;
+using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Serilog;
@@ -28,8 +29,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Views;
 
-/// <inheritdoc cref="IViewLauncher" />
-public class ViewLauncher : IViewLauncher
+/// <summary>
+/// Creates, shows and closes the windows of the application and saves their settings.
+/// </summary>
+public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWindowLauncher
 {
 	#region Data
 	/// <inheritdoc cref="Application" />
@@ -249,33 +252,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public ClipboardLogWindow CreateClipboardLogWindow(Window owner)
-	{
-		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
-
-		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
-
-		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
-
-		if (_windowSettings.Read<ClipboardLogWindowSettings>() is { } settings)
-		{
-			viewModel.ActiveFilter = settings.ActiveFilter;
-
-			viewModel.KeepOpen = settings.KeepOpen;
-
-			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenBottomRight(x, owner));
-		}
-		else
-		{
-			PositionAtScreenBottomRight(window, owner);
-		}
-
-		window.Closing += ClipboardLogWindow_Closing;
-
-		return window;
-	}
-
-	/// <inheritdoc />
 	public EditorWindow CreateEditorWindow(in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
@@ -303,24 +279,24 @@ public class ViewLauncher : IViewLauncher
 		if (_windowSettings.Read<EditorWindowSettings>() is { } windowSettings)
 		{
 			// The stored size, when there is one, replaces the default.
-			IViewLauncher.SetDefaultSize(window);
+			WindowPlacementHelper.SetDefaultSize(window);
 
-			WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
+			WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
 
 			if (windowSettings.NavigationColumnWidth <= default(double))
 			{
-				IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
+				viewModel.SetDefaultNavigationColumnWidth(window.Width);
 			}
 
 			viewModel.Initialize(windowSettings);
 		}
 		else
 		{
-			IViewLauncher.SetDefaultSize(window);
+			WindowPlacementHelper.SetDefaultSize(window);
 
-			IViewLauncher.SetDefaultLocation(window);
+			WindowPlacementHelper.SetDefaultLocation(window);
 
-			IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
+			viewModel.SetDefaultNavigationColumnWidth(window.Width);
 		}
 
 		window.Closing += EditorWindow_Closing;
@@ -339,17 +315,17 @@ public class ViewLauncher : IViewLauncher
 
 		if (_windowSettings.Read<FavoritesWindowSettings>() is { } windowSettings)
 		{
-			WindowPlacementHelper.Restore(window, windowSettings, IViewLauncher.SetDefaultLocation);
+			WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
 
 			viewModel.Initialize(windowSettings, _windowSettings.Read<FavoritesViewSettings>() ?? new());
 		}
 		else
 		{
-			IViewLauncher.SetDefaultLocation(window);
+			WindowPlacementHelper.SetDefaultLocation(window);
 
-			IViewLauncher.SetDefaultPopupSize(viewModel);
+			viewModel.SetDefaultPopupSize();
 
-			IViewLauncher.SetDefaultNavigationColumnWidth(viewModel);
+			viewModel.SetDefaultNavigationColumnWidth();
 		}
 
 		window.Closing += FavoritesWindow_Closing;
@@ -374,147 +350,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public NotepadWindow CreateNotepadWindow(Window owner)
-	{
-		_logger.LogInformation($@"Opening ""{nameof(NotepadWindow)}""");
-
-		NotepadViewModel viewModel = _viewFactory.CreateViewModel<NotepadViewModel>();
-
-		viewModel.LoadTabs();
-
-		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
-
-		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";
-
-		// The stored size, when there is one, replaces the default.
-		IViewLauncher.SetDefaultSize(window);
-
-		if (_windowSettings.Read<NotepadWindowSettings>() is { } settings)
-		{
-			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenCenter(x, owner));
-		}
-		else
-		{
-			PositionAtScreenCenter(window, owner);
-		}
-
-		window.Closing += NotepadWindow_Closing;
-
-		return window;
-	}
-
-	/// <inheritdoc />
-	public void SaveClipboardLogSettings(ClipboardLogWindow window)
-	{
-		try
-		{
-			ClipboardLogWindowSettings settings = new()
-			{
-				ActiveFilter = window.ViewModel.ActiveFilter,
-				KeepOpen = window.ViewModel.KeepOpen,
-				Size = window.Placement.Size,
-				X = window.Placement.Position.X,
-				Y = window.Placement.Position.Y,
-			};
-
-			_windowSettings.Write(settings);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-	}
-
-	/// <inheritdoc />
-	public void SaveEditorSettings(EditorWindow window)
-	{
-		try
-		{
-			EditorWindowSettings settings = new()
-			{
-				IsReadOnly = window.ViewModel.IsReadOnly,
-				IsTopmost = window.Topmost,
-				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
-				Size = window.Placement.Size,
-				WindowState = window.Placement.ShowState,
-				X = window.Placement.Position.X,
-				Y = window.Placement.Position.Y
-			};
-
-			_windowSettings.Write(settings);
-
-			_copyHistory.Save();
-
-			_windowSettings.Write(WindowKind.Editor);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			window
-				.ViewModel
-				.Dispose();
-		}
-	}
-
-	/// <inheritdoc />
-	public void SaveFavoritesSettings(FavoritesWindow window)
-	{
-		try
-		{
-			FavoritesWindowSettings settings = new()
-			{
-				PopupHeight = window.ViewModel.PopupHeight,
-				PopupWidth = window.ViewModel.PopupWidth,
-				X = window.Placement.Position.X,
-				Y = window.Placement.Position.Y
-			};
-
-			_windowSettings.Write(settings);
-
-			_windowSettings.Write(window.ViewModel.FavoritesSettings);
-
-			_copyHistory.Save();
-
-			_windowSettings.Write(WindowKind.Favorites);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			window
-				.ViewModel
-				.Dispose();
-		}
-	}
-
-	/// <inheritdoc />
-	public void SaveNotepadSettings(NotepadWindow window)
-	{
-		try
-		{
-			NotepadWindowSettings settings = new()
-			{
-				IsTopmost = window.Topmost,
-				Size = window.Placement.Size,
-				WindowState = window.Placement.ShowState,
-				X = window.Placement.Position.X,
-				Y = window.Placement.Position.Y
-			};
-
-			_windowSettings.Write(settings);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync(Window owner)
 	{
 		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
@@ -532,6 +367,28 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public void ShowFavorites()
+	{
+		if (_app.FindDataContext<FavoritesViewModel>() is not { } favorites)
+		{
+			return;
+		}
+
+		favorites.ShowFavorites();
+	}
+
+	/// <inheritdoc />
+	public void ShowInEditor(Guid id)
+	{
+		if (_app.FindDataContext<ViewModelBase>(out Window? window) is not { } viewModel || window is null)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(viewModel.ShowInEditorAsync(id, window));
+	}
+
+	/// <inheritdoc />
 	public void ShowNotepadWindow(Window owner)
 	{
 		if (_app.FindWindow<NotepadWindow>() is { } existing)
@@ -542,32 +399,6 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		CreateNotepadWindow(owner).Show();
-	}
-
-	/// <inheritdoc />
-	public Task ShowNoticeAsync(NoticeParameters parameters)
-	{
-		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
-
-		viewModel.ActionCaption = parameters.ActionCaption;
-
-		viewModel.FilePath = parameters.FilePath;
-
-		viewModel.IsTopmost = parameters.IsTopmost;
-
-		viewModel.Message = parameters.Message;
-
-		viewModel.Title = parameters.Title;
-
-		NoticeWindow window = _viewFactory.CreateWindow<NoticeWindow>(viewModel);
-
-		TaskCompletionSource closed = new();
-
-		window.Closed += (_, _) => closed.TrySetResult();
-
-		window.Show();
-
-		return closed.Task;
 	}
 
 	/// <inheritdoc />
@@ -651,6 +482,67 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
+	/// Configures <see cref="ClipboardLogWindow" />.
+	/// </summary>
+	private ClipboardLogWindow CreateClipboardLogWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
+
+		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
+
+		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
+
+		if (_windowSettings.Read<ClipboardLogWindowSettings>() is { } settings)
+		{
+			viewModel.ActiveFilter = settings.ActiveFilter;
+
+			viewModel.KeepOpen = settings.KeepOpen;
+
+			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenBottomRight(x, owner));
+		}
+		else
+		{
+			PositionAtScreenBottomRight(window, owner);
+		}
+
+		window.Closing += ClipboardLogWindow_Closing;
+
+		return window;
+	}
+
+	/// <summary>
+	/// Configures <see cref="NotepadWindow" />.
+	/// </summary>
+	private NotepadWindow CreateNotepadWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(NotepadWindow)}""");
+
+		NotepadViewModel viewModel = _viewFactory.CreateViewModel<NotepadViewModel>();
+
+		viewModel.LoadTabs();
+
+		NotepadWindow window = _viewFactory.CreateWindow<NotepadWindow>(viewModel);
+
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Notepad}";
+
+		// The stored size, when there is one, replaces the default.
+		WindowPlacementHelper.SetDefaultSize(window);
+
+		if (_windowSettings.Read<NotepadWindowSettings>() is { } settings)
+		{
+			WindowPlacementHelper.Restore(window, settings, x => PositionAtScreenCenter(x, owner));
+		}
+		else
+		{
+			PositionAtScreenCenter(window, owner);
+		}
+
+		window.Closing += NotepadWindow_Closing;
+
+		return window;
+	}
+
+	/// <summary>
 	/// Asks for the exit of the application when the user closes a main window, or the application or the system
 	/// shuts down; a window closed by code is a switch to the other main window.
 	/// </summary>
@@ -662,6 +554,153 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		_messenger.Send(new ExitAppMessage());
+	}
+
+	/// <summary>
+	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
+	/// </summary>
+	private void SaveClipboardLogSettings(ClipboardLogWindow window)
+	{
+		try
+		{
+			ClipboardLogWindowSettings settings = new()
+			{
+				ActiveFilter = window.ViewModel.ActiveFilter,
+				KeepOpen = window.ViewModel.KeepOpen,
+				Size = window.Placement.Size,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y,
+			};
+
+			_windowSettings.Write(settings);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Saves <see cref="EditorWindow" /> settings to the file.
+	/// </summary>
+	private void SaveEditorSettings(EditorWindow window)
+	{
+		try
+		{
+			EditorWindowSettings settings = new()
+			{
+				IsReadOnly = window.ViewModel.IsReadOnly,
+				IsTopmost = window.Topmost,
+				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
+				Size = window.Placement.Size,
+				WindowState = window.Placement.ShowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_windowSettings.Write(settings);
+
+			_copyHistory.Save();
+
+			_windowSettings.Write(WindowKind.Editor);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Saves <see cref="FavoritesWindow" /> settings to the file.
+	/// </summary>
+	private void SaveFavoritesSettings(FavoritesWindow window)
+	{
+		try
+		{
+			FavoritesWindowSettings settings = new()
+			{
+				PopupHeight = window.ViewModel.PopupHeight,
+				PopupWidth = window.ViewModel.PopupWidth,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_windowSettings.Write(settings);
+
+			_windowSettings.Write(window.ViewModel.FavoritesSettings);
+
+			_copyHistory.Save();
+
+			_windowSettings.Write(WindowKind.Favorites);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Saves <see cref="NotepadWindow" /> settings to the file.
+	/// </summary>
+	private void SaveNotepadSettings(NotepadWindow window)
+	{
+		try
+		{
+			NotepadWindowSettings settings = new()
+			{
+				IsTopmost = window.Topmost,
+				Size = window.Placement.Size,
+				WindowState = window.Placement.ShowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
+			};
+
+			_windowSettings.Write(settings);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Shows a notice in a window of its own and waits until it is closed; needs no other window.
+	/// </summary>
+	private Task ShowNoticeAsync(NoticeParameters parameters)
+	{
+		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
+
+		viewModel.ActionCaption = parameters.ActionCaption;
+
+		viewModel.FilePath = parameters.FilePath;
+
+		viewModel.IsTopmost = parameters.IsTopmost;
+
+		viewModel.Message = parameters.Message;
+
+		viewModel.Title = parameters.Title;
+
+		NoticeWindow window = _viewFactory.CreateWindow<NoticeWindow>(viewModel);
+
+		TaskCompletionSource closed = new();
+
+		window.Closed += (_, _) => closed.TrySetResult();
+
+		window.Show();
+
+		return closed.Task;
 	}
 
 	/// <summary>

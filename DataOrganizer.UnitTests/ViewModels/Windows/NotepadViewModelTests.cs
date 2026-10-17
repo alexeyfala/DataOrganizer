@@ -917,7 +917,7 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IDialogService, IDispatcherAccessor, IDocumentEncodingSwitcher, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, ITaskExceptionHandler, IViewCache, IViewLauncher, TimeProvider)" />:
+	/// <see cref="NotepadViewModel(IDialogService, IDispatcherAccessor, IDocumentEncodingSwitcher, IMainWindowLauncher, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, ITaskExceptionHandler, IViewCache, TimeProvider)" />:
 	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]

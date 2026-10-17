@@ -184,16 +184,19 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
+		services.AddTransient<IMainWindowLauncher, ViewLauncher>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INotepadStore, NotepadStore>();
 		services.AddTransient<INoteReader, NoteReader>();
+		services.AddTransient<INoticeLauncher, ViewLauncher>();
 		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();
 		services.AddTransient<IPasswordPrompt, DialogService>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<IProtectionScenarios, ProtectionScenarios>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
+		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IUiTimer, UiTimer>();
@@ -201,7 +204,6 @@ public sealed class App : Application
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IUpdatePrompt, UpdatePromptRelay>();
 		services.AddTransient<IViewFactory, ViewFactory>();
-		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IWindowSettingsStore, WindowSettingsStore>();
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion

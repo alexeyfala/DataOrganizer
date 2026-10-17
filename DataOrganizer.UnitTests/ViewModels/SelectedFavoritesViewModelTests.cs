@@ -7,6 +7,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -237,6 +238,32 @@ internal class SelectedFavoritesViewModelTests
 		sut.SelectedPairs
 			.Should()
 			.NotBeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.ShowInEditorCommand" />: the object is shown in the editor of the main window.
+	/// </summary>
+	[Test]
+	public void ShowInEditorCommand_Shows_The_Object_In_The_Editor()
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowLauncher));
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.ShowInEditorCommand
+			.Execute(id);
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.ShowInEditor(id);
 	}
 
 	/// <summary>

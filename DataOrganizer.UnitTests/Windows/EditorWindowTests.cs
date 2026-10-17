@@ -48,11 +48,11 @@ internal class EditorWindowTests
 	public void Click_On_The_Notepad_Button_Shows_The_Notepad()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(secondaryWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -72,7 +72,7 @@ internal class EditorWindowTests
 		Click(sut, point);
 
 		// Assert
-		viewLauncher
+		secondaryWindowLauncher
 			.Received(1)
 			.ShowNotepadWindow(sut);
 	}
@@ -306,11 +306,11 @@ internal class EditorWindowTests
 	public void DoubleClick_On_The_Notepad_Button_Centers_The_Notepad()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(secondaryWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -332,7 +332,7 @@ internal class EditorWindowTests
 		Click(sut, point);
 
 		// Assert
-		viewLauncher
+		secondaryWindowLauncher
 			.Received(1)
 			.CenterNotepadWindow(sut);
 	}

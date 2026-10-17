@@ -217,6 +217,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
+
 	/// <summary>
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
@@ -233,13 +236,14 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		IDispatcherAccessor dispatcher,
 		IExecutingFiles executingFiles,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		INotificationService notification,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewFactory viewFactory) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -250,12 +254,14 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 			logger,
 			messenger,
 			notification,
+			secondaryWindowLauncher,
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewFactory,
-			viewLauncher)
+			viewFactory)
 	{
+		_mainWindowLauncher = mainWindowLauncher;
+
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
 
 		FavoritesSettings
@@ -281,7 +287,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		}
 		else
 		{
-			IViewLauncher.SetDefaultPopupSize(this);
+			SetDefaultPopupSize();
 		}
 
 		if (favoritesSettings.NavigationColumnWidth > default(double))
@@ -290,7 +296,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		}
 		else
 		{
-			IViewLauncher.SetDefaultNavigationColumnWidth(this);
+			SetDefaultNavigationColumnWidth();
 		}
 
 		FavoritesSettings.SelectedCategoryId = favoritesSettings.SelectedCategoryId;
@@ -323,11 +329,29 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 	{
 		window.Close();
 
-		_viewLauncher
+		_mainWindowLauncher
 			.CreateEditorWindow(id)
 			.Show();
 
 		return Task.CompletedTask;
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="FavoritesViewSettings.NavigationColumnWidth" />.
+	/// </summary>
+	internal void SetDefaultNavigationColumnWidth()
+	{
+		FavoritesSettings.NavigationColumnWidth = PopupWidth / 2.0;
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="PopupHeight" /> and <see cref="PopupWidth" />.
+	/// </summary>
+	internal void SetDefaultPopupSize()
+	{
+		PopupHeight = 250.0;
+
+		PopupWidth = PopupHeight * 2.0;
 	}
 
 	/// <inheritdoc />

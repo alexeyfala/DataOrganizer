@@ -6,6 +6,7 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
@@ -273,11 +274,11 @@ internal class ConsoleWindowHostTests
 		// Assert
 		consoleWindow.Width
 			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Width);
+			.Be(WindowPlacementHelper.DefaultWindowSize.Width);
 
 		consoleWindow.Height
 			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Height);
+			.Be(WindowPlacementHelper.DefaultWindowSize.Height);
 
 		consoleWindow.WindowStartupLocation
 			.Should()
@@ -353,7 +354,7 @@ internal class ConsoleWindowHostTests
 			{
 				FontSize = 18.0,
 				IsTopmost = true,
-				Size = new(IViewLauncher.DefaultWindowSize.Width, IViewLauncher.DefaultWindowSize.Height),
+				Size = new(WindowPlacementHelper.DefaultWindowSize.Width, WindowPlacementHelper.DefaultWindowSize.Height),
 				WindowState = WindowShowState.Normal,
 				WordWrap = true,
 				X = position.X,

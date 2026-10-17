@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
@@ -78,7 +79,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewFactory, IViewLauncher)" />:
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, INotificationService, ISecondaryWindowLauncher, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewFactory)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -284,6 +285,46 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings.Categories.SelectMany(static x => x.Children)
 			.Should()
 			.Equal(favorite);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.Initialize" />: without a saved popup size and navigation width the popup takes the
+	/// default size and half of its width goes to the navigation.
+	/// </summary>
+	[AvaloniaTest]
+	public void Initialize_Gives_The_Default_Popup_Size_And_Navigation_Width_Without_Saved_Ones()
+	{
+		// Arrange
+		FavoritesWindowSettings windowSettings = new()
+		{
+			PopupHeight = 0.0,
+			PopupWidth = 0.0,
+			X = 10,
+			Y = 10
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		sut.Initialize(windowSettings, new FavoritesViewSettings());
+
+		// Assert
+		sut.PopupHeight
+			.Should()
+			.Be(250.0);
+
+		sut.PopupWidth
+			.Should()
+			.Be(sut.PopupHeight * 2.0);
+
+		sut.FavoritesSettings.NavigationColumnWidth
+			.Should()
+			.Be(sut.PopupWidth / 2.0);
 	}
 
 	/// <summary>
@@ -645,6 +686,40 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewModelBase.ShowCustomClipboardCommand" />: the clipboard history opens for the window.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowCustomClipboardCommand_Shows_The_Clipboard_History_For_The_Window()
+	{
+		// Arrange
+		Window owner = new();
+
+		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(secondaryWindowLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		await sut
+			.ShowCustomClipboardCommand
+			.ExecuteAsync(owner);
+
+		// Assert
+		await secondaryWindowLauncher
+			.Received(1)
+			.ShowClipboardLogWindowAsync(owner);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.ShowFavorites" />: the switch of the popup to the favorites disposes the list of the
 	/// copy history it showed.
 	/// </summary>
@@ -742,7 +817,7 @@ internal class FavoritesViewModelTests
 	public async Task ShowInEditorAsync_Shows_Editor_Window()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		EditorWindow? editorWindow = null;
 
@@ -755,11 +830,11 @@ internal class FavoritesViewModelTests
 
 			editorWindow = windowMock.Create<EditorWindow>();
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateEditorWindow()
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -776,7 +851,7 @@ internal class FavoritesViewModelTests
 		editorWindow?.Close();
 
 		// Assert
-		viewLauncher
+		mainWindowLauncher
 			.Received(1)
 			.CreateEditorWindow();
 	}

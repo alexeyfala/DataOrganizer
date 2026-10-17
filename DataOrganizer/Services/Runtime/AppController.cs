@@ -77,6 +77,12 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
+
+	/// <inheritdoc cref="INoticeLauncher" />
+	private readonly INoticeLauncher _noticeLauncher;
+
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
@@ -88,6 +94,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
+
+	/// <inheritdoc cref="ISecondaryWindowLauncher" />
+	private readonly ISecondaryWindowLauncher _secondaryWindowLauncher;
 
 	/// <inheritdoc cref="IServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
@@ -103,9 +112,6 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 	/// <inheritdoc cref="IUpdatePrompt" />
 	private readonly IUpdatePrompt _updatePrompt;
-
-	/// <inheritdoc cref="IViewLauncher" />
-	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
@@ -125,15 +131,17 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
+		INoticeLauncher noticeLauncher,
 		INotificationService notification,
 		IProcessTerminator processTerminator,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IUpdatePrompt updatePrompt,
-		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_app = app;
@@ -164,6 +172,10 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 		_logger = logger;
 
+		_mainWindowLauncher = mainWindowLauncher;
+
+		_noticeLauncher = noticeLauncher;
+
 		_notification = notification;
 
 		_options = options;
@@ -171,6 +183,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		_processTerminator = processTerminator;
 
 		_sandbox = sandbox;
+
+		_secondaryWindowLauncher = secondaryWindowLauncher;
 
 		_serviceProvider = serviceProvider;
 
@@ -181,8 +195,6 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		_updateNotifier = updateNotifier;
 
 		_updatePrompt = updatePrompt;
-
-		_viewLauncher = viewLauncher;
 
 		messenger.RegisterAll(this);
 	}
@@ -225,7 +237,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 				// The data is intact, and an empty hierarchy would read as a loss worth undoing.
 				_logger.LogError($"The schema of the database is {status}, the launch ends.", breakInDebugger: false);
 
-				await _viewLauncher
+				await _noticeLauncher
 					.ShowStartupErrorAsync(_dbConnector.GetDbFilePath())
 					.ConfigureAwait(true);
 
@@ -285,7 +297,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 			_copyHistory.Load(_sessionHierarchy.Hierarchy);
 
-			Window? mainWindow = _viewLauncher.CreateMainWindow();
+			Window? mainWindow = _mainWindowLauncher.CreateMainWindow();
 
 			if (mainWindow is null)
 			{
@@ -414,7 +426,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 			.StopAsync()
 			.ConfigureAwait(true);
 
-		await _viewLauncher
+		await _secondaryWindowLauncher
 			.CloseSecondaryWindowsAsync()
 			.ConfigureAwait(true);
 

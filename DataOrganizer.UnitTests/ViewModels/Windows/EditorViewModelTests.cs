@@ -4507,15 +4507,15 @@ internal class EditorViewModelTests
 				.AsImplementedInterfaces()
 				.SingleInstance());
 
-			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -4558,15 +4558,15 @@ internal class EditorViewModelTests
 				.AsImplementedInterfaces()
 				.SingleInstance());
 
-			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<CopyHistory>()
@@ -4624,15 +4624,15 @@ internal class EditorViewModelTests
 				.AsImplementedInterfaces()
 				.SingleInstance());
 
-			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterInstance(session)
@@ -4680,7 +4680,7 @@ internal class EditorViewModelTests
 	public void ShowFavorites_Shows_Favorites_Window()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		FavoritesWindow? favoritesWindow = null;
 
@@ -4693,11 +4693,11 @@ internal class EditorViewModelTests
 
 			favoritesWindow = windowMock.Create<FavoritesWindow>();
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateFavoritesWindow()
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -4714,7 +4714,7 @@ internal class EditorViewModelTests
 		favoritesWindow?.Close();
 
 		// Assert
-		viewLauncher
+		mainWindowLauncher
 			.Received(1)
 			.CreateFavoritesWindow();
 	}

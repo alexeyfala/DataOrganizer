@@ -54,7 +54,7 @@ internal class AppControllerTests
 
 			IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
-			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
@@ -64,7 +64,7 @@ internal class AppControllerTests
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateMainWindow()
 				.Returns(mainWindow);
 
@@ -76,7 +76,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(updatePrompt);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -110,7 +110,9 @@ internal class AppControllerTests
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		INoticeLauncher noticeLauncher = Substitute.For<INoticeLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -136,7 +138,9 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(noticeLauncher);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -145,7 +149,7 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		await viewLauncher
+		await noticeLauncher
 			.Received(1)
 			.ShowStartupErrorAsync(databaseFilePath);
 
@@ -153,7 +157,7 @@ internal class AppControllerTests
 			.DidNotReceive()
 			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
 
-		viewLauncher
+		mainWindowLauncher
 			.DidNotReceive()
 			.CreateMainWindow();
 	}
@@ -214,7 +218,7 @@ internal class AppControllerTests
 
 		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -238,7 +242,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -253,7 +257,7 @@ internal class AppControllerTests
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			viewLauncher.CreateMainWindow();
+			mainWindowLauncher.CreateMainWindow();
 		});
 	}
 
@@ -264,7 +268,7 @@ internal class AppControllerTests
 	public async Task LaunchAppAsync_Goes_On_When_Data_Cannot_Be_Read()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -292,7 +296,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -301,7 +305,7 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		viewLauncher
+		mainWindowLauncher
 			.Received(1)
 			.CreateMainWindow();
 	}
@@ -381,7 +385,7 @@ internal class AppControllerTests
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -394,7 +398,7 @@ internal class AppControllerTests
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
 			// The tree the window finds in the session when it opens.
-			viewLauncher
+			mainWindowLauncher
 				.When(x => x.CreateMainWindow())
 				.Do(_ => shown = [.. session.Hierarchy]);
 
@@ -408,7 +412,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			dbConnector
 				.ConnectAsync(Arg.Any<CancellationToken>())
@@ -438,7 +442,7 @@ internal class AppControllerTests
 			.Should()
 			.Equal(hierarchy);
 
-		viewLauncher
+		mainWindowLauncher
 			.Received(1)
 			.CreateMainWindow();
 	}
@@ -457,7 +461,7 @@ internal class AppControllerTests
 
 		ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -491,7 +495,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -513,7 +517,7 @@ internal class AppControllerTests
 		{
 			copyHistory.Load(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 
-			viewLauncher.CreateMainWindow();
+			mainWindowLauncher.CreateMainWindow();
 		});
 	}
 
@@ -530,19 +534,19 @@ internal class AppControllerTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 			settingsStore
 				.Settings
 				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
-			viewLauncher
+			mainWindowLauncher
 				.CreateMainWindow()
 				.Returns(mainWindow);
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -574,7 +578,7 @@ internal class AppControllerTests
 		// Arrange
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -596,7 +600,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(mainWindowLauncher);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -609,7 +613,7 @@ internal class AppControllerTests
 			.DidNotReceive()
 			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
 
-		viewLauncher
+		mainWindowLauncher
 			.Received(1)
 			.CreateMainWindow();
 	}
@@ -836,7 +840,7 @@ internal class AppControllerTests
 
 		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -852,7 +856,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(sandbox);
 
-			builder.RegisterInstance(viewLauncher);
+			builder.RegisterInstance(secondaryWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -870,7 +874,7 @@ internal class AppControllerTests
 		{
 			backgroundServices.StopAsync();
 
-			viewLauncher.CloseSecondaryWindowsAsync();
+			secondaryWindowLauncher.CloseSecondaryWindowsAsync();
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 

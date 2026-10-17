@@ -62,7 +62,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppInfo.AppVersion}";
 
 		// The stored size, when there is one, replaces the default.
-		IViewLauncher.SetDefaultSize(window);
+		WindowPlacementHelper.SetDefaultSize(window);
 
 		if (_windowSettings.Read<ConsoleWindowSettings>() is { } settings)
 		{
@@ -70,11 +70,11 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 			_viewModel.WordWrap = settings.WordWrap;
 
-			WindowPlacementHelper.Restore(window, settings, IViewLauncher.SetDefaultLocation);
+			WindowPlacementHelper.Restore(window, settings, WindowPlacementHelper.SetDefaultLocation);
 		}
 		else
 		{
-			IViewLauncher.SetDefaultLocation(window);
+			WindowPlacementHelper.SetDefaultLocation(window);
 		}
 
 		window.Closing += delegate

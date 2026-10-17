@@ -1,4 +1,3 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
@@ -10,8 +9,8 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
 using Serilog;
 using Shared.Extensions;
@@ -50,9 +49,6 @@ public sealed class KeyboardInputHook :
 	/// </summary>
 	private static readonly TimeSpan StrokeTimeout = TimeSpan.FromSeconds(3);
 
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="ICopyHistory" />
 	private readonly ICopyHistory _copyHistory;
 
@@ -70,6 +66,9 @@ public sealed class KeyboardInputHook :
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
@@ -99,20 +98,18 @@ public sealed class KeyboardInputHook :
 
 	#region Constructors
 	public KeyboardInputHook(
-		Application app,
 		ICopyHistory copyHistory,
 		IDispatcherAccessor dispatcher,
 		IFileTextCopier fileTextCopier,
 		IGlobalHookRunner hookRunner,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		INotificationService notification,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
-		_app = app;
-
 		_copyHistory = copyHistory;
 
 		_dispatcher = dispatcher;
@@ -124,6 +121,8 @@ public sealed class KeyboardInputHook :
 		_hookRunner = hookRunner;
 
 		_logger = logger;
+
+		_mainWindowLauncher = mainWindowLauncher;
 
 		_messenger = messenger;
 
@@ -399,23 +398,13 @@ public sealed class KeyboardInputHook :
 		})];
 
 	/// <summary>
-	/// Activates the main window.
+	/// Activates the main window and opens its favorites.
 	/// </summary>
 	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
 	{
-		if (_app.FindMainWindow() is not { } window)
-		{
-			return;
-		}
+		_mainWindowLauncher.ActivateMainWindow();
 
-		window.RestoreAndActivate();
-
-		if (_app.FindDataContext<FavoritesViewModel>() is not { } faforites)
-		{
-			return;
-		}
-
-		faforites.ShowFavorites();
+		_mainWindowLauncher.ShowFavorites();
 	});
 	#endregion
 }
