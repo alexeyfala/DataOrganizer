@@ -31,11 +31,6 @@ public interface IMainWindowLauncher
 	FavoritesWindow CreateFavoritesWindow();
 
 	/// <summary>
-	/// Configures the main application window, which shows the tree of the work session.
-	/// </summary>
-	Window CreateMainWindow();
-
-	/// <summary>
 	/// Opens the favorites in the popup of the main window when the main window is the favorites window.
 	/// </summary>
 	void ShowFavorites();
@@ -45,5 +40,10 @@ public interface IMainWindowLauncher
 	/// window.
 	/// </summary>
 	void ShowInEditor(Guid id);
+
+	/// <summary>
+	/// Configures and shows the main application window, which shows the tree of the work session.
+	/// </summary>
+	void ShowMainWindow();
 	#endregion
 }

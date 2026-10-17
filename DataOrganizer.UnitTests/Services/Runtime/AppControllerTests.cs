@@ -1,27 +1,22 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Runtime;
+using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
-using Repository.Enums;
-using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -37,41 +32,15 @@ internal class AppControllerTests
 	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: once the main window shows, the application checks for an update.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task LaunchAppAsync_Checks_For_An_Update()
 	{
 		// Arrange
 		IUpdateNotifier updateNotifier = Substitute.For<IUpdateNotifier>();
 
-		Window mainWindow = new();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			mainWindowLauncher
-				.CreateMainWindow()
-				.Returns(mainWindow);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(settingsStore);
-
 			builder.RegisterInstance(updateNotifier);
-
-			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -84,59 +53,41 @@ internal class AppControllerTests
 		// Act
 		await sut.LaunchAppAsync();
 
-		mainWindow.Close();
-
 		// Assert
 		await updateNotifier
 			.Received(1)
 			.NotifyIfUpdateAvailableAsync(Arg.Any<CancellationToken>());
-
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: a schema that does not match reports itself and ends the
-	/// launch, instead of showing intact data as an empty hierarchy.
+	/// <see cref="AppController.LaunchAppAsync" />: data that cannot be used ends the application before the background
+	/// services and the main window start.
 	/// </summary>
 	[Test]
-	public async Task LaunchAppAsync_Ends_On_A_Schema_That_Does_Not_Match(
-		[Values(DbConnectionStatus.SchemaTooOld, DbConnectionStatus.SchemaTooNew)] DbConnectionStatus status)
+	public async Task LaunchAppAsync_Ends_When_The_Data_Cannot_Be_Used()
 	{
 		// Arrange
-		const string databaseFilePath = @"C:\Database\DataOrganizer.sqlite";
+		IAppShutdown appShutdown = Substitute.For<IAppShutdown>();
 
-		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+		IBackgroundServices backgroundServices = Substitute.For<IBackgroundServices>();
 
 		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
-		INoticeLauncher noticeLauncher = Substitute.For<INoticeLauncher>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
 
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns((ExplorerItemDtoBase[]?)null);
 
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+			builder.RegisterInstance(appShutdown);
 
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(status);
-
-			dbConnector
-				.GetDbFilePath()
-				.Returns(databaseFilePath);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(settingsStore);
+			builder.RegisterInstance(backgroundServices);
 
 			builder.RegisterInstance(mainWindowLauncher);
 
-			builder.RegisterInstance(noticeLauncher);
+			builder.RegisterInstance(startupData);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -145,59 +96,17 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		await noticeLauncher
+		appShutdown
 			.Received(1)
-			.ShowStartupErrorAsync(databaseFilePath);
+			.Shutdown();
 
-		await entityLoader
+		backgroundServices
 			.DidNotReceive()
-			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
+			.Start(Arg.Any<CancellationToken>());
 
 		mainWindowLauncher
 			.DidNotReceive()
-			.CreateMainWindow();
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: with no desktop lifetime to shut down, the process is ended once the
-	/// startup error is reported.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Ends_The_Process_After_The_Startup_Error_Without_A_Desktop_Lifetime()
-	{
-		// Arrange
-		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.SchemaTooNew);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(processTerminator);
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		processTerminator
-			.Received(1)
-			.Terminate(Arg.Any<int>());
+			.ShowMainWindow();
 	}
 
 	/// <summary>
@@ -220,23 +129,15 @@ internal class AppControllerTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
 			appEnvironment
 				.AppDataDirectoryPath
 				.Returns(appDataFolder);
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
 			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(sandbox);
-
-			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance(mainWindowLauncher);
 		});
@@ -253,57 +154,8 @@ internal class AppControllerTests
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			mainWindowLauncher.CreateMainWindow();
+			mainWindowLauncher.ShowMainWindow();
 		});
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: the launch goes on with an empty hierarchy when the data cannot be read.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Goes_On_When_Data_Cannot_Be_Read()
-	{
-		// Arrange
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerItemDtoBase[]?)null);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(mainWindowLauncher);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		mainWindowLauncher
-			.Received(1)
-			.CreateMainWindow();
 	}
 
 	/// <summary>
@@ -322,21 +174,13 @@ internal class AppControllerTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
 			settingsStore
 				.Settings
 				.Returns(SettingsFactory.CreateSettings());
 
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
 			builder.RegisterInstance(clipboardLog);
 
 			builder.RegisterInstance(clipboardLogPersistence);
-
-			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(settingsStore);
 
@@ -366,84 +210,6 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities into the work session and
-	/// configures the main window.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
-	{
-		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
-
-		ExplorerItemDtoBase[]? shown = null;
-
-		IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			WorkSession session = new();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			// The tree the window finds in the session when it opens.
-			mainWindowLauncher
-				.When(x => x.CreateMainWindow())
-				.Do(_ => shown = [.. session.Hierarchy]);
-
-			builder
-				.RegisterInstance(session)
-				.AsImplementedInterfaces();
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns(hierarchy);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		await dbConnector
-			.Received(1)
-			.ConnectAsync();
-
-		await entityLoader
-			.Received()
-			.LoadHierarchyAsync();
-
-		// What was read from the database is in the session before the window opens.
-		shown
-			.Should()
-			.Equal(hierarchy);
-
-		mainWindowLauncher
-			.Received(1)
-			.CreateMainWindow();
-	}
-
-	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: the copy history is read for the tree of the work session before the
 	/// main window opens.
 	/// </summary>
@@ -461,37 +227,21 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
 
 			copyHistory
 				.When(x => x.Load(Arg.Any<IEnumerable<ExplorerItemDtoBase>>()))
 				.Do(call => loaded = [.. call.Arg<IEnumerable<ExplorerItemDtoBase>>()]);
 
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
 				.Returns(hierarchy);
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
 			builder.RegisterInstance(copyHistory);
 
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(settingsStore);
-
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(startupData);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -513,90 +263,46 @@ internal class AppControllerTests
 		{
 			copyHistory.Load(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 
-			mainWindowLauncher.CreateMainWindow();
+			mainWindowLauncher.ShowMainWindow();
 		});
 	}
 
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: the main window is shown.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task LaunchAppAsync_Shows_The_Main_Window()
-	{
-		// Arrange
-		Window mainWindow = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
-
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
-
-			mainWindowLauncher
-				.CreateMainWindow()
-				.Returns(mainWindow);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder.RegisterInstance(mainWindowLauncher);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		bool isVisible = mainWindow.IsVisible;
-
-		mainWindow.Close();
-
-		// Assert
-		isVisible
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: an unavailable database leaves the data unread, and the launch goes on.
+	/// <see cref="AppController.LaunchAppAsync" />: the tree read at launch is in the work session before the main window
+	/// shows.
 	/// </summary>
 	[Test]
-	public async Task LaunchAppAsync_Skips_Loading_When_The_Database_Is_Unavailable()
+	public async Task LaunchAppAsync_Puts_The_Tree_Into_The_Session_Before_The_Main_Window()
 	{
 		// Arrange
-		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
+
+		ExplorerItemDtoBase[]? shown = null;
 
 		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
 
-			settingsStore
-				.Settings
-				.Returns(IAppSettingsStore.CreateDefaultSettings());
+			WorkSession session = new();
 
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+			// The tree the window finds in the session when it opens.
+			mainWindowLauncher
+				.When(x => x.ShowMainWindow())
+				.Do(_ => shown = [.. session.Hierarchy]);
 
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.FileUnreadable);
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(settingsStore);
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(hierarchy);
 
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(startupData);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -605,13 +311,13 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		await entityLoader
-			.DidNotReceive()
-			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
+		shown
+			.Should()
+			.Equal(hierarchy);
 
 		mainWindowLauncher
 			.Received(1)
-			.CreateMainWindow();
+			.ShowMainWindow();
 	}
 
 	/// <summary>
@@ -629,8 +335,6 @@ internal class AppControllerTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
 			AppSettings settings = SettingsFactory.CreateSettings();
 
 			settings.TrackClipboardHistory = true;
@@ -639,15 +343,9 @@ internal class AppControllerTests
 				.Settings
 				.Returns(settings);
 
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
 			builder.RegisterInstance(clipboardLog);
 
 			builder.RegisterInstance(clipboardLogPersistence);
-
-			builder.RegisterInstance(dbConnector);
 
 			builder.RegisterInstance(settingsStore);
 
@@ -711,13 +409,82 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the startup facts go to the log without the console too.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Writes_The_Startup_Info()
+	{
+		// Arrange
+		IStartupInfoLogger startupInfo = Substitute.For<IStartupInfoLogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(startupInfo));
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		startupInfo
+			.Received(1)
+			.Log();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the startup facts go to the log once the console shows, and before the
+	/// data is read.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Writes_The_Startup_Info_After_The_Console_Shows()
+	{
+		// Arrange
+		IConsoleWindowHost consoleWindowHost = Substitute.For<IConsoleWindowHost>();
+
+		IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+		IStartupInfoLogger startupInfo = Substitute.For<IStartupInfoLogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
+
+			options
+				.ShowConsole
+				.Returns(true);
+
+			builder.RegisterInstance(consoleWindowHost);
+
+			builder.RegisterInstance(options);
+
+			builder.RegisterInstance(startupData);
+
+			builder.RegisterInstance(startupInfo);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		Received.InOrder(() =>
+		{
+			consoleWindowHost.ConfigureAndShowAsync();
+
+			startupInfo.Log();
+
+			startupData.LoadAsync(Arg.Any<CancellationToken>());
+		});
+	}
+
+	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit closes the files the operating system runs.
 	/// </summary>
 	[Test]
-	public void Receive_ExitApp_Closes_The_Executing_Files()
+	public async Task Receive_ExitApp_Closes_The_Executing_Files()
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(isExecuting: true);
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
@@ -725,20 +492,28 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			builder.RegisterInstance(engine);
 
 			builder.RegisterInstance(messenger);
 
 			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
 				.SingleInstance();
 		});
 
-		mock
-			.Create<ISessionHierarchy>()
-			.Hierarchy
-			.Add(file);
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new()
+			{
+				Contents = [],
+				File = file,
+				IsReadOnly = false
+			});
 
 		_ = mock.Create<AppController>();
 
@@ -746,7 +521,7 @@ internal class AppControllerTests
 		messenger.Send(new ExitAppMessage());
 
 		// Assert
-		engine
+		await engine
 			.Received(1)
 			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
 	}
@@ -767,11 +542,6 @@ internal class AppControllerTests
 			builder.RegisterInstance(messenger);
 
 			builder.RegisterInstance(serviceProvider);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
 		});
 
 		_ = mock.Create<AppController>();
@@ -786,51 +556,18 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.Receive(ExitAppMessage)" />: with no desktop lifetime to shut down, the exit ends the
-	/// process.
-	/// </summary>
-	[Test]
-	public void Receive_ExitApp_Ends_The_Process_Without_A_Desktop_Lifetime()
-	{
-		// Arrange
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(processTerminator);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		_ = mock.Create<AppController>();
-
-		// Act
-		messenger.Send(new ExitAppMessage());
-
-		// Assert
-		processTerminator
-			.Received(1)
-			.Terminate(Arg.Any<int>());
-	}
-
-	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit stops the background services, closes the secondary
-	/// windows and erases the sandbox before the desktop application shuts down.
+	/// windows and the executing files and erases the sandbox before the application ends.
 	/// </summary>
 	[Test]
-	public void Receive_ExitApp_Stops_The_Session_Before_The_Desktop_Shuts_Down()
+	public void Receive_ExitApp_Stops_The_Session_Before_The_Application_Ends()
 	{
 		// Arrange
+		IAppShutdown appShutdown = Substitute.For<IAppShutdown>();
+
 		IBackgroundServices backgroundServices = Substitute.For<IBackgroundServices>();
 
-		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+		IExecutingFiles executingFiles = Substitute.For<IExecutingFiles>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
@@ -840,24 +577,17 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			Application app = Substitute.For<Application>();
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
+			builder.RegisterInstance(appShutdown);
 
 			builder.RegisterInstance(backgroundServices);
+
+			builder.RegisterInstance(executingFiles);
 
 			builder.RegisterInstance(messenger);
 
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(secondaryWindowLauncher);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
 		});
 
 		_ = mock.Create<AppController>();
@@ -866,15 +596,21 @@ internal class AppControllerTests
 		messenger.Send(new ExitAppMessage());
 
 		// Assert
+		appShutdown
+			.Received(1)
+			.Shutdown();
+
 		Received.InOrder(() =>
 		{
 			backgroundServices.StopAsync();
 
 			secondaryWindowLauncher.CloseSecondaryWindowsAsync();
 
+			executingFiles.CloseAllAsync();
+
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			lifetime.Shutdown(Arg.Any<int>());
+			appShutdown.Shutdown();
 		});
 	}
 	#endregion

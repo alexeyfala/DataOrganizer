@@ -138,6 +138,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IAppPickerPrompt, DialogService>();
+		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
@@ -204,9 +205,12 @@ public sealed class App : Application
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
 		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
 		services.AddTransient<ISessionDekWrapper, EncryptionService>();
+		services.AddTransient<IStartupDataLoader, StartupDataLoader>();
+		services.AddTransient<IStartupInfoLogger, StartupInfoLogger>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IUiTimer, UiTimer>();
+		services.AddTransient<IUnreadableHotkeysFinder, UnreadableHotkeysFinder>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IUpdatePrompt, UpdatePromptRelay>();

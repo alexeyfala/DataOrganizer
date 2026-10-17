@@ -317,22 +317,6 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	}
 
 	/// <inheritdoc />
-	public Window CreateMainWindow()
-	{
-		if (_windowSettings.Read<WindowKind>() is { } settings)
-		{
-			return settings switch
-			{
-				WindowKind.Editor => CreateEditorWindow(),
-				WindowKind.Favorites => CreateFavoritesWindow(),
-				_ => throw new NotImplementedException()
-			};
-		}
-
-		return CreateEditorWindow();
-	}
-
-	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync(Window owner)
 	{
 		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
@@ -371,6 +355,19 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		}
 
 		_exceptionHandler.Watch(viewModel.ShowInEditorAsync(id, window));
+	}
+
+	/// <inheritdoc />
+	public void ShowMainWindow()
+	{
+		Window window = _windowSettings.Read<WindowKind>() switch
+		{
+			WindowKind.Editor => CreateEditorWindow(),
+			WindowKind.Favorites => CreateFavoritesWindow(),
+			_ => throw new NotImplementedException()
+		};
+
+		window.Show();
 	}
 
 	/// <inheritdoc />

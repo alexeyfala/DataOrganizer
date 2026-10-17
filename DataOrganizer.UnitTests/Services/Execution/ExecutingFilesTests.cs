@@ -67,6 +67,56 @@ internal class ExecutingFilesTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutingFiles.CloseAllAsync" />: every executing file is closed in the engine, and the list and the
+	/// marks stay as they are.
+	/// </summary>
+	[Test]
+	public async Task CloseAllAsync_Closes_Every_Executing_File_In_The_Engine()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FileDto other = ItemDtoFactory.CreateFileDto();
+
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(engine);
+		});
+
+		ExecutingFiles sut = mock.Create<ExecutingFiles>();
+
+		await sut.ExecuteAsync(CreateParameters(file));
+
+		await sut.ExecuteAsync(CreateParameters(other));
+
+		// Act
+		await sut.CloseAllAsync();
+
+		// Assert
+		await engine
+			.Received(1)
+			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
+
+		await engine
+			.Received(1)
+			.CloseAsync(other.Id, Arg.Any<CancellationToken>());
+
+		sut.Files
+			.Should()
+			.Equal(file, other);
+
+		file.IsExecuting
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ExecutingFiles.ExecuteAsync" />: a file the engine does not run stays out of the list and unmarked.
 	/// </summary>
 	[Test]

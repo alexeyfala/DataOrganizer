@@ -85,6 +85,11 @@ public sealed class ExecutingFiles : IExecutingFiles, IRecipient<CloseExecutingF
 	}
 
 	/// <inheritdoc />
+	public Task CloseAllAsync() => _files
+		.ToArray()
+		.ForEachAsync(x => _executionEngine.CloseAsync(x.Id));
+
+	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
 		if (!await _executionEngine

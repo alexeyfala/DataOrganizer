@@ -8,8 +8,10 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Exchange;
+using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
@@ -1024,6 +1026,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<UnreadableHotkeysFinder>()
+				.As<IUnreadableHotkeysFinder>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();

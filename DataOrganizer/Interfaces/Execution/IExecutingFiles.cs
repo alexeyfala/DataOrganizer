@@ -26,6 +26,11 @@ public interface IExecutingFiles
 	void Close(FileDto file);
 
 	/// <summary>
+	/// Closes every file the operating system runs and waits for it, leaving the list and the marks as they are.
+	/// </summary>
+	Task CloseAllAsync();
+
+	/// <summary>
 	/// Runs a file in the operating system; <c>false</c> when it does not run.
 	/// </summary>
 	Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default);

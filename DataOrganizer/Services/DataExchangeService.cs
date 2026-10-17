@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
@@ -67,6 +68,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
+
+	/// <inheritdoc cref="IUnreadableHotkeysFinder" />
+	private readonly IUnreadableHotkeysFinder _unreadableHotkeys;
 	#endregion
 
 	#region Constructors
@@ -82,6 +86,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		IUnreadableHotkeysFinder unreadableHotkeys,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
@@ -107,6 +112,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_picker = picker;
 
 		_timeProvider = timeProvider;
+
+		_unreadableHotkeys = unreadableHotkeys;
 	}
 	#endregion
 
@@ -213,17 +220,10 @@ public sealed class DataExchangeService : IDataExchangeService
 				return null;
 			}
 
-			FileDto[] unreadable = [.. imported.GetFilesWithUnreadableHotkeys()];
+			FileDto[] unreadable = _unreadableHotkeys.Find(imported);
 
 			if (unreadable.IsNotEmpty())
 			{
-				unreadable.ForEach(x =>
-				{
-					_logger.LogError(
-						$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
-						breakInDebugger: false);
-				});
-
 				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
 
 				_notification.ShowErrorSnackbar(

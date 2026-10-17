@@ -3087,144 +3087,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created as the main window.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateMainWindow_Configures_Editor()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		Window window = sut.CreateMainWindow();
-
-		// Assert
-		window
-			.Should()
-			.BeOfType<EditorWindow>();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created when no saved window setting exists.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateMainWindow_Configures_Editor_If_No_Settings()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		Window window = sut.CreateMainWindow();
-
-		// Assert
-		window
-			.Should()
-			.BeOfType<EditorWindow>();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateMainWindow" />: a favorites window is created when the saved window setting is Favorites.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateMainWindow_Configures_Favorites()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance());
-
-			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
-
-			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
-				.Returns(WindowKind.Favorites);
-
-			viewFactory
-				.CreateViewModel<FavoritesViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
-				.Returns(favoritesWindow);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		Window window = sut.CreateMainWindow();
-
-		// Assert
-		window
-			.Should()
-			.BeOfType<FavoritesWindow>();
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
@@ -3962,6 +3824,177 @@ internal class ViewLauncherTests
 			.BeTrue();
 
 		isEditorShown
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowMainWindow" />: the editor window is shown when no main window was saved.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowMainWindow_Shows_The_Editor_Without_Settings()
+	{
+		// Arrange
+		EditorWindow? editorWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		sut.ShowMainWindow();
+
+		bool isShown = editorWindow!.IsVisible;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		isShown
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowMainWindow" />: the editor window is shown when it is the saved main window.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowMainWindow_Shows_The_Saved_Editor()
+	{
+		// Arrange
+		EditorWindow? editorWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
+				.Returns(WindowKind.Editor);
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		sut.ShowMainWindow();
+
+		bool isShown = editorWindow!.IsVisible;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		editorWindow.Close();
+
+		// Assert
+		isShown
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowMainWindow" />: the favorites window is shown when it is the saved main window.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowMainWindow_Shows_The_Saved_Favorites()
+	{
+		// Arrange
+		FavoritesWindow? favoritesWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
+				.Returns(WindowKind.Favorites);
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		sut.ShowMainWindow();
+
+		bool isShown = favoritesWindow!.IsVisible;
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		favoritesWindow.Close();
+
+		// Assert
+		isShown
 			.Should()
 			.BeTrue();
 	}
