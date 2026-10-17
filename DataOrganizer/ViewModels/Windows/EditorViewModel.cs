@@ -29,9 +29,10 @@ using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Runtime;
+using DataOrganizer.Messages.Updates;
 using DataOrganizer.Windows;
 using DynamicData.Binding;
 using Entities.Enums;
@@ -57,9 +58,9 @@ namespace DataOrganizer.ViewModels.Windows;
 public sealed partial class EditorViewModel :
 	ViewModelBase,
 	IRecipient<CloseEditingFileMessage>,
+	IRecipient<ConfirmUpdateMessage>,
 	IRecipient<ShowInEditorMessage>,
-	IRecipient<ShowProgressBarMessage>,
-	IUpdatePrompt
+	IRecipient<ShowProgressBarMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="IAutoLockService" />
@@ -417,9 +418,9 @@ public sealed partial class EditorViewModel :
 	[RelayCommand]
 	internal void Exit(Window? window)
 	{
-		IsShutdown = true;
-
 		window?.Close();
+
+		_messenger.Send(new ExitAppMessage());
 	}
 
 	/// <summary>
@@ -567,8 +568,6 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
 	internal void ShowFavorites(EditorWindow? window)
 	{
-		IsShutdown = false;
-
 		window?.Close();
 
 		CloseCopyHistoryList();
@@ -1153,14 +1152,6 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public Task<bool> ConfirmUpdateAsync(
-		string text,
-		CancellationToken token = default)
-	{
-		return _dialogService.RequestYesNoAsync(text, token: token);
-	}
-
 	/// <summary>
 	/// Restores the navigation column and the read-only mode from the stored settings.
 	/// </summary>
@@ -1179,6 +1170,12 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc />
 	public void Receive(CloseEditingFileMessage message) => CloseEditingFile(message.File);
+
+	/// <inheritdoc />
+	public void Receive(ConfirmUpdateMessage message)
+	{
+		message.Reply(_dialogService.RequestYesNoAsync(message.Text, token: message.Token));
+	}
 
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message) => ShowObject(message.Id);

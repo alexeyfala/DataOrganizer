@@ -38,6 +38,11 @@ public interface IViewLauncher
 	void CenterNotepadWindow(Window owner);
 
 	/// <summary>
+	/// Closes the console and the notepad, and waits for a console that is still saving its log.
+	/// </summary>
+	Task CloseSecondaryWindowsAsync();
+
+	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	ClipboardLogWindow CreateClipboardLogWindow(Window owner);
@@ -70,12 +75,12 @@ public interface IViewLauncher
 	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
-	Task SaveEditorSettingsAsync(EditorWindow window);
+	void SaveEditorSettings(EditorWindow window);
 
 	/// <summary>
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
-	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
+	void SaveFavoritesSettings(FavoritesWindow window);
 
 	/// <summary>
 	/// Saves <see cref="NotepadWindow" /> settings to the file.
@@ -99,7 +104,7 @@ public interface IViewLauncher
 	Task ShowNoticeAsync(NoticeParameters parameters);
 
 	/// <summary>
-	/// Reports a database that cannot be worked with and ends the launch once the report is closed.
+	/// Reports a database that cannot be worked with and waits until the report is closed.
 	/// </summary>
 	Task ShowStartupErrorAsync(string databaseFilePath);
 

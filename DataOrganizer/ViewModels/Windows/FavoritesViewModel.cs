@@ -20,8 +20,8 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Updates;
 using DataOrganizer.Windows;
 using Serilog;
 using Shared.Extensions;
@@ -36,7 +36,7 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>FavoritesWindow</c>.
 /// </summary>
-public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
+public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<ConfirmUpdateMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
@@ -266,29 +266,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<bool> ConfirmUpdateAsync(string text, CancellationToken token = default)
-	{
-		bool wasPopupOpen = IsPopupOpen;
-
-		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
-
-		return _dispatcher.PostAsync(async () =>
-		{
-			try
-			{
-				return await _dialogService
-					.RequestYesNoAsync(text, token: token)
-					.ConfigureAwait(true);
-			}
-			finally
-			{
-				if (!wasPopupOpen)
-				{
-					IsPopupOpen = false;
-				}
-			}
-		}, UiPriority.Background);
-	}
+	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
 
 	/// <summary>
 	/// Restores the popup size and the favorites from the stored settings.
@@ -343,8 +321,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		Window window,
 		CancellationToken _ = default)
 	{
-		IsShutdown = false;
-
 		window.Close();
 
 		_viewLauncher
@@ -404,6 +380,33 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		SelectedFavorites?.Dispose();
 
 		SelectedFavorites = null;
+	}
+
+	/// <summary>
+	/// Asks whether to open the page of a newer application version, over the favorites shown in the popup.
+	/// </summary>
+	private Task<bool> ConfirmUpdateAsync(string text, CancellationToken token)
+	{
+		bool wasPopupOpen = IsPopupOpen;
+
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
+
+		return _dispatcher.PostAsync(async () =>
+		{
+			try
+			{
+				return await _dialogService
+					.RequestYesNoAsync(text, token: token)
+					.ConfigureAwait(true);
+			}
+			finally
+			{
+				if (!wasPopupOpen)
+				{
+					IsPopupOpen = false;
+				}
+			}
+		}, UiPriority.Background);
 	}
 
 	/// <summary>

@@ -22,6 +22,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
@@ -35,6 +36,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
@@ -455,6 +457,71 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.Receive(ConfirmUpdateMessage)" />: the question is asked over the favorites shown in
+	/// the popup, which closes again with the answer.
+	/// </summary>
+	[Test]
+	public async Task Receive_ConfirmUpdate_Asks_Over_The_Favorites_And_Closes_The_Popup_Again()
+	{
+		// Arrange
+		const string text = "Version 0.2.0 is available.";
+
+		FavoritesPopupContentKind askedOver = FavoritesPopupContentKind.None;
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// The popup content is read while the question is open: closing the popup clears it.
+		dialogService
+			.RequestYesNoAsync(text, Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(_ =>
+			{
+				askedOver = sut.PopupContent;
+
+				return true;
+			});
+
+		// Act
+		bool answer = await messenger.Send(new ConfirmUpdateMessage(text, CancellationToken.None));
+
+		// Assert
+		answer
+			.Should()
+			.BeTrue();
+
+		askedOver
+			.Should()
+			.Be(FavoritesPopupContentKind.Favorites);
+
+		sut.IsPopupOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the favorites window hides the contents as well.
 	/// </summary>
 	[Test]
@@ -709,10 +776,6 @@ internal class FavoritesViewModelTests
 		editorWindow?.Close();
 
 		// Assert
-		sut.IsShutdown
-			.Should()
-			.BeFalse();
-
 		viewLauncher
 			.Received(1)
 			.CreateEditorWindow();

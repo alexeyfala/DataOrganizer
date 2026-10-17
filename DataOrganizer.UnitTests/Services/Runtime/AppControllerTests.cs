@@ -1,20 +1,29 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Shared.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +34,69 @@ namespace DataOrganizer.UnitTests.Services.Runtime;
 internal class AppControllerTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: once the main window shows, the update check asks through the update
+	/// prompt.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task LaunchAppAsync_Checks_For_An_Update_With_The_Update_Prompt()
+	{
+		// Arrange
+		IUpdatePrompt updatePrompt = Substitute.For<IUpdatePrompt>();
+
+		IUpdateNotifier updateNotifier = Substitute.For<IUpdateNotifier>();
+
+		Window mainWindow = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			dbConnector
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(DbConnectionStatus.Connected);
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			viewLauncher
+				.CreateMainWindow()
+				.Returns(mainWindow);
+
+			builder.RegisterInstance(dbConnector);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(updateNotifier);
+
+			builder.RegisterInstance(updatePrompt);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		mainWindow.Close();
+
+		// Assert
+		await updateNotifier
+			.Received(1)
+			.NotifyIfUpdateAvailableAsync(updatePrompt, Arg.Any<CancellationToken>());
+	}
+
 	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: a schema that does not match reports itself and ends the
 	/// launch, instead of showing intact data as an empty hierarchy.
@@ -84,6 +156,48 @@ internal class AppControllerTests
 		viewLauncher
 			.DidNotReceive()
 			.CreateMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: with no desktop lifetime to shut down, the process is ended once the
+	/// startup error is reported.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Ends_The_Process_After_The_Startup_Error_Without_A_Desktop_Lifetime()
+	{
+		// Arrange
+		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IDbConnector dbConnector = Substitute.For<IDbConnector>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			dbConnector
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(DbConnectionStatus.SchemaTooNew);
+
+			builder.RegisterInstance(dbConnector);
+
+			builder.RegisterInstance(processTerminator);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		processTerminator
+			.Received(1)
+			.Terminate(Arg.Any<int>());
 	}
 
 	/// <summary>
@@ -404,6 +518,54 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the main window is shown.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task LaunchAppAsync_Shows_The_Main_Window()
+	{
+		// Arrange
+		Window mainWindow = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			viewLauncher
+				.CreateMainWindow()
+				.Returns(mainWindow);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		bool isVisible = mainWindow.IsVisible;
+
+		mainWindow.Close();
+
+		// Assert
+		isVisible
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: an unavailable database leaves the data unread, and the launch goes on.
 	/// </summary>
 	[Test]
@@ -512,6 +674,208 @@ internal class AppControllerTests
 		await clipboardLog
 			.Received(1)
 			.StartAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the launch starts watching the unhandled exceptions and forwarding the
+	/// log of Avalonia.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Starts_The_Exception_Monitoring_And_The_Log_Forwarding()
+	{
+		// Arrange
+		IAvaloniaLogForwarder avaloniaLogForwarder = Substitute.For<IAvaloniaLogForwarder>();
+
+		IGlobalExceptionHandler globalExceptionHandler = Substitute.For<IGlobalExceptionHandler>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(avaloniaLogForwarder);
+
+			builder.RegisterInstance(globalExceptionHandler);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		globalExceptionHandler
+			.Received(1)
+			.StartMonitoring();
+
+		avaloniaLogForwarder
+			.Received(1)
+			.StartForwarding();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit closes the files the operating system runs.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Closes_The_Executing_Files()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isExecuting: true);
+
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(engine);
+
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		mock
+			.Create<ISessionHierarchy>()
+			.Hierarchy
+			.Add(file);
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		engine
+			.Received(1)
+			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit disposes the services.
+	/// </summary>
+	[Test]
+	public async Task Receive_ExitApp_Disposes_The_Services()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IServiceProvider serviceProvider = Substitute.For<IServiceProvider, IAsyncDisposable>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(serviceProvider);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		await ((IAsyncDisposable)serviceProvider)
+			.Received(1)
+			.DisposeAsync();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: with no desktop lifetime to shut down, the exit ends the
+	/// process.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Ends_The_Process_Without_A_Desktop_Lifetime()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(processTerminator);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		processTerminator
+			.Received(1)
+			.Terminate(Arg.Any<int>());
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit stops the background services, closes the secondary
+	/// windows and erases the sandbox before the desktop application shuts down.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Stops_The_Session_Before_The_Desktop_Shuts_Down()
+	{
+		// Arrange
+		IBackgroundServices backgroundServices = Substitute.For<IBackgroundServices>();
+
+		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			Application app = Substitute.For<Application>();
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(backgroundServices);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		Received.InOrder(() =>
+		{
+			backgroundServices.StopAsync();
+
+			viewLauncher.CloseSecondaryWindowsAsync();
+
+			sandbox.EraseAsync(Arg.Any<CancellationToken>());
+
+			lifetime.Shutdown(Arg.Any<int>());
+		});
 	}
 	#endregion
 }

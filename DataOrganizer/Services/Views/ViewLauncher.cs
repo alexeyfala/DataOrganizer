@@ -1,8 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
@@ -13,21 +12,18 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Runtime;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Views;
@@ -42,12 +38,6 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IAppUptime" />
-	private readonly IAppUptime _appUptime;
-
-	/// <inheritdoc cref="IBackgroundServices" />
-	private readonly IBackgroundServices _backgroundServices;
-
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
@@ -57,26 +47,17 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IExecutionEngine" />
-	private readonly IExecutionEngine _executionEngine;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
 	/// <inheritdoc cref="IPasswordPrompt" />
 	private readonly IPasswordPrompt _passwordPrompt;
-
-	/// <inheritdoc cref="IProcessTerminator" />
-	private readonly IProcessTerminator _processTerminator;
-
-	/// <inheritdoc cref="IExecutionSandbox" />
-	private readonly IExecutionSandbox _sandbox;
-
-	/// <inheritdoc cref="ServiceProvider" />
-	private readonly IServiceProvider _serviceProvider;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -89,17 +70,12 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IAppUptime appUptime,
-		IBackgroundServices backgroundServices,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICopyHistory copyHistory,
-		IExecutionEngine executionEngine,
-		IExecutionSandbox sandbox,
 		ILogger logger,
+		IMessenger messenger,
 		INotificationService notification,
 		IPasswordPrompt passwordPrompt,
-		IProcessTerminator processTerminator,
-		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		IWindowSettingsStore windowSettings)
@@ -108,29 +84,19 @@ public class ViewLauncher : IViewLauncher
 
 		_appEnvironment = appEnvironment;
 
-		_appUptime = appUptime;
-
-		_backgroundServices = backgroundServices;
-
 		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_copyHistory = copyHistory;
 
 		_exceptionHandler = exceptionHandler;
 
-		_executionEngine = executionEngine;
-
 		_logger = logger;
+
+		_messenger = messenger;
 
 		_notification = notification;
 
 		_passwordPrompt = passwordPrompt;
-
-		_processTerminator = processTerminator;
-
-		_sandbox = sandbox;
-
-		_serviceProvider = serviceProvider;
 
 		_viewFactory = viewFactory;
 
@@ -174,7 +140,9 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
-		_exceptionHandler.Watch(SaveEditorSettingsAsync(window));
+		SaveEditorSettings(window);
+
+		ExitOnUserClose(e);
 	}
 
 	/// <summary>
@@ -197,7 +165,9 @@ public class ViewLauncher : IViewLauncher
 			.ViewModel
 			.SaveContent();
 
-		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
+		SaveFavoritesSettings(window);
+
+		ExitOnUserClose(e);
 	}
 
 	/// <summary>
@@ -254,6 +224,28 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		BringToScreenCenter(window, owner);
+	}
+
+	/// <inheritdoc />
+	public async Task CloseSecondaryWindowsAsync()
+	{
+		if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
+		{
+			console.Close();
+
+			while (_app.HasWindow<ConsoleWindow>())
+			{
+				await Task
+					.Delay(300)
+					.ConfigureAwait(true);
+			}
+		}
+
+		// Closed here, so that it saves its settings while the services are still alive.
+		if (_app.FindWindow<NotepadWindow>() is { } notepad)
+		{
+			notepad.Close();
+		}
 	}
 
 	/// <inheritdoc />
@@ -434,7 +426,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveEditorSettingsAsync(EditorWindow window)
+	public void SaveEditorSettings(EditorWindow window)
 	{
 		try
 		{
@@ -454,15 +446,6 @@ public class ViewLauncher : IViewLauncher
 			_copyHistory.Save();
 
 			_windowSettings.Write(WindowKind.Editor);
-
-			if (!window
-				.ViewModel
-				.IsShutdown)
-			{
-				return;
-			}
-
-			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -477,7 +460,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window)
+	public void SaveFavoritesSettings(FavoritesWindow window)
 	{
 		try
 		{
@@ -496,15 +479,6 @@ public class ViewLauncher : IViewLauncher
 			_copyHistory.Save();
 
 			_windowSettings.Write(WindowKind.Favorites);
-
-			if (!window
-				.ViewModel
-				.IsShutdown)
-			{
-				return;
-			}
-
-			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -613,18 +587,6 @@ public class ViewLauncher : IViewLauncher
 		{
 			_logger.LogException(ex);
 		}
-		finally
-		{
-			// There is no window left to keep the application alive, and nothing to save.
-			if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
-			{
-				desktop.Shutdown();
-			}
-			else
-			{
-				_processTerminator.Terminate();
-			}
-		}
 	}
 	#endregion
 
@@ -689,74 +651,17 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
-	/// Shutdowns the application.
+	/// Asks for the exit of the application when the user closes a main window, or the application or the system
+	/// shuts down; a window closed by code is a switch to the other main window.
 	/// </summary>
-	private async Task ShutdownAppAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	private void ExitOnUserClose(WindowClosingEventArgs e)
 	{
-		await _backgroundServices
-			.StopAsync()
-			.ConfigureAwait(true);
-
-		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		if (e.IsProgrammatic && e.CloseReason is not (WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown))
 		{
-			await ShutdownAsync(hierarchy);
-
-			desktop.Shutdown();
-		}
-		else
-		{
-			await ShutdownAsync(hierarchy);
-
-			_processTerminator.Terminate();
+			return;
 		}
 
-		async Task ShutdownAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
-		{
-			if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
-			{
-				console.Close();
-
-				while (_app.HasWindow<ConsoleWindow>())
-				{
-					await Task
-						.Delay(300)
-						.ConfigureAwait(true);
-				}
-			}
-
-			// Closed here, so that it saves its settings while the services are still alive.
-			if (_app.FindWindow<NotepadWindow>() is { } notepad)
-			{
-				notepad.Close();
-			}
-
-			Guid[] executingFiles = [.. hierarchy
-				.GetFilesBy(x => x.IsExecuting)
-				.Select(x => x.Id)];
-
-			if (executingFiles.IsNotEmpty())
-			{
-				await executingFiles
-					.ForEachAsync(x => _executionEngine.CloseAsync(x))
-					.ConfigureAwait(false);
-			}
-
-			await _sandbox
-				.EraseAsync()
-				.ConfigureAwait(false);
-
-			_logger.LogInformationWithTemplate(
-				$@"App life time is: {_appUptime.Elapsed:hh\:mm\:ss\.fff}{Environment.NewLine}{Environment.NewLine}");
-
-			if (_serviceProvider is not IAsyncDisposable asyncDisposable)
-			{
-				return;
-			}
-
-			await asyncDisposable
-				.DisposeAsync()
-				.ConfigureAwait(false);
-		}
+		_messenger.Send(new ExitAppMessage());
 	}
 
 	/// <summary>

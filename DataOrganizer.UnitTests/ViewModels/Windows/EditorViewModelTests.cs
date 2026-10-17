@@ -32,6 +32,8 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Runtime;
+using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
@@ -2178,16 +2180,27 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.Exit" />: the application is shut down.
+	/// <see cref="EditorViewModel.Exit" />: the exit of the application is asked for.
 	/// </summary>
 	[Test]
-	public void Exit_Shutdowns_The_Application()
+	public void Exit_Asks_For_The_Exit_Of_The_Application()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -2195,9 +2208,9 @@ internal class EditorViewModelTests
 		sut.Exit(null);
 
 		// Assert
-		sut.IsShutdown
+		sent
 			.Should()
-			.BeTrue();
+			.NotBeNull();
 	}
 
 	/// <summary>
@@ -3747,6 +3760,47 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Receive(ConfirmUpdateMessage)" />: the question goes to the dialog, and its answer is
+	/// the reply.
+	/// </summary>
+	[Test]
+	public async Task Receive_ConfirmUpdate_Replies_With_The_Answer_Of_The_Dialog()
+	{
+		// Arrange
+		const string text = "Version 0.2.0 is available.";
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestYesNoAsync(text, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		_ = mock.Create<EditorViewModel>();
+
+		// Act
+		bool answer = await messenger.Send(new ConfirmUpdateMessage(text, CancellationToken.None));
+
+		// Assert
+		answer
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
 	/// </summary>
 	[Test]
@@ -3989,10 +4043,21 @@ internal class EditorViewModelTests
 		// Arrange
 		IProcessManager processManager = Substitute.For<IProcessManager>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processManager));
 
@@ -4000,9 +4065,9 @@ internal class EditorViewModelTests
 		sut.RestartApplication(null);
 
 		// Assert
-		sut.IsShutdown
+		sent
 			.Should()
-			.BeTrue();
+			.NotBeNull();
 
 		processManager
 			.Received(1)
@@ -4649,10 +4714,6 @@ internal class EditorViewModelTests
 		favoritesWindow?.Close();
 
 		// Assert
-		sut.IsShutdown
-			.Should()
-			.BeFalse();
-
 		viewLauncher
 			.Received(1)
 			.CreateFavoritesWindow();

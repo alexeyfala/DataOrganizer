@@ -136,7 +136,6 @@ public sealed class App : Application
 		RegisterPlatformServices(services);
 
 		#region Transients
-		services.AddTransient<IAppController, AppController>();
 		services.AddTransient<IAppPickerPrompt, DialogService>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
@@ -200,6 +199,7 @@ public sealed class App : Application
 		services.AddTransient<IUiTimer, UiTimer>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
+		services.AddTransient<IUpdatePrompt, UpdatePromptRelay>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IWindowSettingsStore, WindowSettingsStore>();
@@ -219,6 +219,7 @@ public sealed class App : Application
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<Application>(this);
+		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
 		services.AddSingleton<IAppUptime, AppUptime>();

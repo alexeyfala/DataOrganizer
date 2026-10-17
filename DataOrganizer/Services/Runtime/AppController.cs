@@ -1,4 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
@@ -11,6 +14,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Runtime;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -19,6 +23,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -27,11 +32,20 @@ using OSVersion = OSVersionExtension.OSVersion;
 
 namespace DataOrganizer.Services.Runtime;
 
-public sealed class AppController : IAppController
+public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 {
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IAppUptime" />
+	private readonly IAppUptime _appUptime;
+
+	/// <inheritdoc cref="IAvaloniaLogForwarder" />
+	private readonly IAvaloniaLogForwarder _avaloniaLogForwarder;
 
 	/// <inheritdoc cref="IBackgroundServices" />
 	private readonly IBackgroundServices _backgroundServices;
@@ -51,8 +65,14 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
+	/// <inheritdoc cref="IExecutionEngine" />
+	private readonly IExecutionEngine _executionEngine;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="IGlobalExceptionHandler" />
+	private readonly IGlobalExceptionHandler _globalExceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -63,8 +83,14 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IProcessTerminator" />
+	private readonly IProcessTerminator _processTerminator;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
+
+	/// <inheritdoc cref="IServiceProvider" />
+	private readonly IServiceProvider _serviceProvider;
 
 	/// <inheritdoc cref="ISessionHierarchy" />
 	private readonly ISessionHierarchy _sessionHierarchy;
@@ -75,32 +101,48 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IUpdateNotifier" />
 	private readonly IUpdateNotifier _updateNotifier;
 
+	/// <inheritdoc cref="IUpdatePrompt" />
+	private readonly IUpdatePrompt _updatePrompt;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
 	public AppController(
+		Application app,
 		IAppEnvironment appEnvironment,
 		IAppSettingsStore settingsStore,
+		IAppUptime appUptime,
 		IAvaloniaLogForwarder avaloniaLogForwarder,
 		IBackgroundServices backgroundServices,
 		ICommandLineOptions options,
 		ICopyHistory copyHistory,
 		IDbConnector dbConnector,
 		IEntityLoader entityLoader,
+		IExecutionEngine executionEngine,
 		IExecutionSandbox sandbox,
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
+		IMessenger messenger,
 		INotificationService notification,
+		IProcessTerminator processTerminator,
+		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
+		IUpdatePrompt updatePrompt,
 		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
+		_app = app;
+
 		_appEnvironment = appEnvironment;
+
+		_appUptime = appUptime;
+
+		_avaloniaLogForwarder = avaloniaLogForwarder;
 
 		_backgroundServices = backgroundServices;
 
@@ -114,7 +156,11 @@ public sealed class AppController : IAppController
 
 		_fileSystem = fileSystem;
 
+		_globalExceptionHandler = globalExceptionHandler;
+
 		_exceptionHandler = exceptionHandler;
+
+		_executionEngine = executionEngine;
 
 		_logger = logger;
 
@@ -122,7 +168,11 @@ public sealed class AppController : IAppController
 
 		_options = options;
 
+		_processTerminator = processTerminator;
+
 		_sandbox = sandbox;
+
+		_serviceProvider = serviceProvider;
 
 		_sessionHierarchy = sessionHierarchy;
 
@@ -130,11 +180,11 @@ public sealed class AppController : IAppController
 
 		_updateNotifier = updateNotifier;
 
+		_updatePrompt = updatePrompt;
+
 		_viewLauncher = viewLauncher;
 
-		globalExceptionHandler.StartMonitoring();
-
-		avaloniaLogForwarder.StartForwarding();
+		messenger.RegisterAll(this);
 	}
 	#endregion
 
@@ -144,6 +194,10 @@ public sealed class AppController : IAppController
 	{
 		try
 		{
+			_globalExceptionHandler.StartMonitoring();
+
+			_avaloniaLogForwarder.StartForwarding();
+
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			await _sandbox
@@ -174,6 +228,9 @@ public sealed class AppController : IAppController
 				await _viewLauncher
 					.ShowStartupErrorAsync(_dbConnector.GetDbFilePath())
 					.ConfigureAwait(true);
+
+				// There is no window left to keep the application alive, and nothing to save.
+				EndApplication();
 
 				return;
 			}
@@ -230,23 +287,41 @@ public sealed class AppController : IAppController
 
 			Window? mainWindow = _viewLauncher.CreateMainWindow();
 
-			mainWindow?.Show();
-
-			if (mainWindow?.DataContext is not IUpdatePrompt updatePrompt)
+			if (mainWindow is null)
 			{
 				return;
 			}
 
-			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(updatePrompt, token));
+			mainWindow.Show();
+
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(_updatePrompt, token));
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 		}
 	}
+
+	/// <inheritdoc />
+	public void Receive(ExitAppMessage message) => _exceptionHandler.Watch(StopAppAsync());
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Ends the desktop application, or the process where there is no desktop.
+	/// </summary>
+	private void EndApplication()
+	{
+		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		{
+			desktop.Shutdown();
+
+			return;
+		}
+
+		_processTerminator.Terminate();
+	}
+
 	/// <summary>
 	/// Writes initial data to log.
 	/// </summary>
@@ -296,6 +371,57 @@ public sealed class AppController : IAppController
 		_logger.LogInformationWithTemplate($"Application settings:{_settingsStore
 			.Settings
 			.GetPropertyValues(true)}");
+	}
+
+	/// <summary>
+	/// Closes the executed files, erases the sandbox and disposes the services.
+	/// </summary>
+	private async Task ReleaseSessionAsync()
+	{
+		Guid[] executingFiles = [.. _sessionHierarchy
+			.Hierarchy
+			.GetFilesBy(x => x.IsExecuting)
+			.Select(x => x.Id)];
+
+		if (executingFiles.IsNotEmpty())
+		{
+			await executingFiles
+				.ForEachAsync(x => _executionEngine.CloseAsync(x))
+				.ConfigureAwait(false);
+		}
+
+		await _sandbox
+			.EraseAsync()
+			.ConfigureAwait(false);
+
+		_logger.LogInformationWithTemplate(
+			$@"App life time is: {_appUptime.Elapsed:hh\:mm\:ss\.fff}{Environment.NewLine}{Environment.NewLine}");
+
+		if (_serviceProvider is IAsyncDisposable asyncDisposable)
+		{
+			await asyncDisposable
+				.DisposeAsync()
+				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Stops the background services, closes the secondary windows, releases the session and ends the application.
+	/// </summary>
+	private async Task StopAppAsync()
+	{
+		await _backgroundServices
+			.StopAsync()
+			.ConfigureAwait(true);
+
+		await _viewLauncher
+			.CloseSecondaryWindowsAsync()
+			.ConfigureAwait(true);
+
+		// The application ends on the UI thread.
+		await ReleaseSessionAsync().ConfigureAwait(true);
+
+		EndApplication();
 	}
 	#endregion
 }

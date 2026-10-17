@@ -62,11 +62,6 @@ public abstract partial class ViewModelBase :
 	/// <c>True</c> when initialization has completed.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
-
-	/// <summary>
-	/// <c>True</c> when shutdown is requested.
-	/// </summary>
-	public bool IsShutdown { get; protected set; } = true;
 	#endregion
 
 	#region Auto-Generated Commands

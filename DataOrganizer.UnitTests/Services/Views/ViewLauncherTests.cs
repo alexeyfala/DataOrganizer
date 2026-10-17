@@ -21,17 +21,17 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
@@ -49,6 +49,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -367,6 +368,103 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: a console whose log is not saved yet is closed, so that it
+	/// saves the log.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CloseSecondaryWindowsAsync_Closes_A_Console_With_An_Unsaved_Log()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		ConsoleWindow console = new(new ConsoleViewModel(
+			Substitute.For<IAppEnvironment>(),
+			Substitute.For<IDirectoryAccessor>(),
+			new InlineDispatcherAccessor()));
+
+		console.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns(_ => isClosed ? [] : [console]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		console.Show();
+
+		// Act
+		await sut.CloseSecondaryWindowsAsync();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: the notepad is closed, so that it saves its settings.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CloseSecondaryWindowsAsync_Closes_The_Notepad()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		NotepadWindow notepad = new(new NotepadViewModel(
+			Substitute.For<IDialogService>(),
+			Substitute.For<IDispatcherAccessor>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotificationService>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IViewCache>(),
+			Substitute.For<IViewLauncher>(),
+			TimeProvider.System));
+
+		notepad.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		notepad.Show();
+
+		// Act
+		await sut.CloseSecondaryWindowsAsync();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
@@ -675,6 +773,121 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window that the shutting down application closes asks for the exit
+	/// of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Asks_For_The_Exit_When_The_Application_Shuts_Down()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// The desktop lifetime closes its windows by code, with the reason of the shutdown.
+		MethodInfo closeCore = typeof(Window).GetMethod("CloseCore", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+		// Act
+		closeCore.Invoke(window, [WindowCloseReason.ApplicationShutdown, true, false]);
+
+		// Assert
+		sent
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window the user closes asks for the exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Asks_For_The_Exit_When_The_User_Closes_The_Window()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// The headless platform has no close button; the window is closed the way the system closes it for the user.
+		Func<WindowCloseReason, bool> closeByUser = (Func<WindowCloseReason, bool>)typeof(IWindowImpl)
+			.GetProperty("Closing")!
+			.GetValue(window.PlatformImpl)!;
+
+		// Act
+		closeByUser(WindowCloseReason.WindowClosing);
+
+		// Assert
+		sent
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window saved off every screen opens in the center of the screen.
 	/// </summary>
 	[AvaloniaTest]
@@ -932,6 +1145,78 @@ internal class ViewLauncherTests
 		window.ViewModel.IsInitialized
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a switch to the favorites closes the editor without asking for the
+	/// exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Keeps_The_Application_Running_After_A_Switch_To_The_Favorites()
+	{
+		// Arrange
+		FavoritesWindow favoritesWindow = new();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			viewLauncher
+				.CreateFavoritesWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// Act
+		window
+			.ViewModel
+			.ShowFavorites(window);
+
+		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
+		favoritesWindow.Close();
+
+		// Assert
+		sent
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -1783,6 +2068,71 @@ internal class ViewLauncherTests
 		window.ViewModel.IsReadOnly
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a window the user closes asks for the exit of the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Asks_For_The_Exit_When_The_User_Closes_The_Window()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		ExitAppMessage? sent = null;
+
+		messenger.Register<ExitAppMessage>(this, (_, message) => sent = message);
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		// The headless platform has no close button; the window is closed the way the system closes it for the user.
+		Func<WindowCloseReason, bool> closeByUser = (Func<WindowCloseReason, bool>)typeof(IWindowImpl)
+			.GetProperty("Closing")!
+			.GetValue(window.PlatformImpl)!;
+
+		// Act
+		closeByUser(WindowCloseReason.WindowClosing);
+
+		// Assert
+		sent
+			.Should()
+			.NotBeNull();
 	}
 
 	/// <summary>
@@ -3263,116 +3613,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown closes the files the operating system runs.
+	/// <see cref="ViewLauncher.SaveEditorSettings" />: editor settings and the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Closes_The_Executing_Files_On_Shutdown()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(isExecuting: true);
-
-		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-
-			builder.RegisterInstance(engine);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = mock.Create<EditorWindow>();
-
-		window
-			.ViewModel
-			.Hierarchy
-			.Add(file);
-
-		// Act
-		await sut.SaveEditorSettingsAsync(window);
-
-		// Assert
-		await engine
-			.Received(1)
-			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown closes the notepad, so that it saves its settings.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Closes_The_Notepad_On_Shutdown()
-	{
-		// Arrange
-		bool isClosed = false;
-
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IDialogService>(),
-			Substitute.For<IDispatcherAccessor>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotificationService>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IViewCache>(),
-			Substitute.For<IViewLauncher>(),
-			TimeProvider.System));
-
-		notepad.Closed += (_, _) => isClosed = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([notepad]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = mock.Create<EditorWindow>();
-
-		notepad.Show();
-
-		// Act
-		await sut.SaveEditorSettingsAsync(window);
-
-		// Assert
-		isClosed
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: editor settings and the current window kind are serialized to JSON files.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Saves_Settings()
+	public void SaveEditorSettings_Saves_Settings()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -3398,7 +3642,7 @@ internal class ViewLauncherTests
 		window.Topmost = true;
 
 		// Act
-		await sut.SaveEditorSettingsAsync(window);
+		sut.SaveEditorSettings(window);
 
 		// Assert
 		fileSystem.Received(1).SerializeToJsonFile(
@@ -3413,10 +3657,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the read-only mode is saved for the next editor.
+	/// <see cref="ViewLauncher.SaveEditorSettings" />: the read-only mode is saved for the next editor.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Saves_The_Read_Only_Mode()
+	public void SaveEditorSettings_Saves_The_Read_Only_Mode()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -3442,7 +3686,7 @@ internal class ViewLauncherTests
 		window.ViewModel.IsReadOnly = true;
 
 		// Act
-		await sut.SaveEditorSettingsAsync(window);
+		sut.SaveEditorSettings(window);
 
 		// Assert
 		fileSystem.Received(1).SerializeToJsonFile(
@@ -3452,10 +3696,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: a maximized window is saved as maximized.
+	/// <see cref="ViewLauncher.SaveEditorSettings" />: a maximized window is saved as maximized.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Saves_The_State_Of_A_Maximized_Window()
+	public void SaveEditorSettings_Saves_The_State_Of_A_Maximized_Window()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -3481,7 +3725,7 @@ internal class ViewLauncherTests
 		window.WindowState = WindowState.Maximized;
 
 		// Act
-		await sut.SaveEditorSettingsAsync(window);
+		sut.SaveEditorSettings(window);
 
 		// Assert
 		fileSystem.Received(1).SerializeToJsonFile(
@@ -3491,84 +3735,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: the shutdown stops the auto-lock countdown, the hotkey tracking
-	/// and the clipboard history.
+	/// <see cref="ViewLauncher.SaveFavoritesSettings" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SaveEditorSettingsAsync_Stops_The_Background_Services_On_Shutdown()
-	{
-		// Arrange
-		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
-
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
-
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			clipboardLog
-				.IsRunning
-				.Returns(true);
-
-			hook
-				.IsRunning
-				.Returns(true);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder.RegisterInstance(app).As<Application>();
-
-			builder.RegisterInstance(autoLock);
-
-			builder.RegisterInstance(clipboardLog);
-
-			// The hook is a lazy singleton that an earlier window has already used.
-			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
-
-			_ = lazyHook.Value;
-
-			builder.RegisterInstance(lazyHook);
-
-			builder
-				.RegisterType<BackgroundServices>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = mock.Create<EditorWindow>();
-
-		// Act
-		await sut.SaveEditorSettingsAsync(window);
-
-		// Assert
-		autoLock
-			.Received(1)
-			.Stop();
-
-		await hook
-			.Received(1)
-			.StopTrackingAsync(Arg.Any<CancellationToken>());
-
-		clipboardLog
-			.Received(1)
-			.Stop();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.SaveFavoritesSettingsAsync" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task SaveFavoritesSettingsAsync_Saves_Settings()
+	public void SaveFavoritesSettings_Saves_Settings()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -3604,7 +3774,7 @@ internal class ViewLauncherTests
 			.AddRange(FavoriteFactory.CreateFavoriteSelections(5));
 
 		// Act
-		await sut.SaveFavoritesSettingsAsync(window);
+		sut.SaveFavoritesSettings(window);
 
 		// Assert
 		window.ViewModel.FavoritesSettings.Categories
@@ -3980,40 +4150,6 @@ internal class ViewLauncherTests
 		viewFactory
 			.DidNotReceive()
 			.CreateWindow<NotepadWindow>(Arg.Any<object[]>());
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowStartupErrorAsync" />: with no desktop lifetime to shut down, the process
-	/// is ended even when the notice itself could not be shown.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowStartupErrorAsync_Ends_The_Process_Without_A_Desktop_Lifetime()
-	{
-		// Arrange
-		IProcessTerminator processTerminator = Substitute.For<IProcessTerminator>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<NoticeViewModel>()
-				.Returns(_ => throw new InvalidOperationException());
-
-			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(processTerminator);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		await sut.ShowStartupErrorAsync(@"C:\Database\DataOrganizer.sqlite");
-
-		// Assert
-		processTerminator
-			.Received(1)
-			.Terminate(Arg.Any<int>());
 	}
 	#endregion
 
