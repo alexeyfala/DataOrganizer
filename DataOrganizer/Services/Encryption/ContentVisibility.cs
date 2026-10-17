@@ -16,7 +16,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Encryption;
 
-public sealed class ContentVisibility : IContentVisibility
+/// <summary>
+/// Shows and hides the protected contents of explorer objects and drops the session keys that open them.
+/// </summary>
+public sealed class ContentVisibility : IContentKeys, IContentVisibility
 {
 	#region Data
 	/// <inheritdoc cref="IEncryptionFailureReporter" />

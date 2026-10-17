@@ -147,6 +147,7 @@ public sealed class App : Application
 		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentCopier, ContentCopier>();
+		services.AddTransient<IContentKeys, ContentVisibility>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDekCipher, EncryptionService>();

@@ -1041,7 +1041,7 @@ internal class EditorViewModelTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1060,7 +1060,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(hierarchyEditor);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1078,7 +1078,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		contentVisibility
+		contentKeys
 			.Received(1)
 			.DiscardKeys(folder);
 	}
@@ -1163,7 +1163,7 @@ internal class EditorViewModelTests
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1178,7 +1178,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(hierarchyEditor);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1196,7 +1196,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		contentVisibility
+		contentKeys
 			.DidNotReceiveWithAnyArgs()
 			.DiscardKeys(default!);
 	}
@@ -1210,7 +1210,7 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1229,7 +1229,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(hierarchyEditor);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1247,7 +1247,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		contentVisibility
+		contentKeys
 			.DidNotReceiveWithAnyArgs()
 			.DiscardKeys(default!);
 	}
@@ -3224,7 +3224,7 @@ internal class EditorViewModelTests
 	public async Task Import_Drops_The_Keys_On_Replacement()
 	{
 		// Arrange
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -3236,7 +3236,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dataExchange);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -3254,7 +3254,7 @@ internal class EditorViewModelTests
 		await sut.Import();
 
 		// Assert
-		contentVisibility
+		contentKeys
 			.Received(1)
 			.DiscardAllKeys();
 	}
@@ -3349,7 +3349,7 @@ internal class EditorViewModelTests
 	public async Task Import_Keeps_The_Keys_On_Appending()
 	{
 		// Arrange
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -3361,7 +3361,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dataExchange);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -3375,7 +3375,7 @@ internal class EditorViewModelTests
 		await sut.Import();
 
 		// Assert
-		contentVisibility
+		contentKeys
 			.DidNotReceive()
 			.DiscardAllKeys();
 	}

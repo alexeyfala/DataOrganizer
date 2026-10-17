@@ -498,7 +498,7 @@ internal class FolderProtectionTests
 
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -540,7 +540,7 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(unlocker);
 
-			builder.RegisterInstance(contentVisibility);
+			builder.RegisterInstance(contentKeys);
 
 			builder.RegisterInstance(converter);
 
@@ -557,7 +557,7 @@ internal class FolderProtectionTests
 		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
-		contentVisibility
+		contentKeys
 			.Received(isWriteSaved ? 1 : 0)
 			.DiscardKeys(folder);
 	}

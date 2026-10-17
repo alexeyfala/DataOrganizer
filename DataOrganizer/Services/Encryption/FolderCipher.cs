@@ -22,8 +22,8 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class FolderCipher : IFolderCipher
 {
 	#region Data
-	/// <inheritdoc cref="IContentVisibility" />
-	private readonly IContentVisibility _contentVisibility;
+	/// <inheritdoc cref="IContentKeys" />
+	private readonly IContentKeys _contentKeys;
 
 	/// <inheritdoc cref="IEncryptedContentWriter" />
 	private readonly IEncryptedContentWriter _contentWriter;
@@ -52,7 +52,7 @@ public sealed class FolderCipher : IFolderCipher
 
 	#region Constructors
 	public FolderCipher(
-		IContentVisibility contentVisibility,
+		IContentKeys contentKeys,
 		IEncryptedContentWriter contentWriter,
 		IFolderContentsConverter converter,
 		IDbBackupService dbBackupService,
@@ -62,7 +62,7 @@ public sealed class FolderCipher : IFolderCipher
 		IKeeperDekWriter keeperDekWriter,
 		INotificationService notification)
 	{
-		_contentVisibility = contentVisibility;
+		_contentKeys = contentKeys;
 
 		_contentWriter = contentWriter;
 
@@ -176,7 +176,7 @@ public sealed class FolderCipher : IFolderCipher
 				return;
 			}
 
-			_contentVisibility.DiscardKeys(folder);
+			_contentKeys.DiscardKeys(folder);
 
 			areNotesHandedOver = true;
 		}

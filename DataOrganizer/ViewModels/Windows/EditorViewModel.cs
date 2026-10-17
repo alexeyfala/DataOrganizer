@@ -484,7 +484,7 @@ public sealed partial class EditorViewModel :
 
 			IsRightSideSheetOpened = false;
 
-			_contentVisibility.DiscardAllKeys();
+			_contentKeys.DiscardAllKeys();
 		}
 
 		AddHierarchy(result.ImportedItems);
@@ -974,6 +974,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IContentCopier" />
 	private readonly IContentCopier _contentCopier;
 
+	/// <inheritdoc cref="IContentKeys" />
+	private readonly IContentKeys _contentKeys;
+
 	/// <inheritdoc cref="ICopyHistoryRecorder" />
 	private readonly ICopyHistoryRecorder _copyHistoryRecorder;
 
@@ -1049,6 +1052,7 @@ public sealed partial class EditorViewModel :
 		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
 		IContentCopier contentCopier,
+		IContentKeys contentKeys,
 		IContentVisibility contentVisibility,
 		ICopyHistory copyHistory,
 		ICopyHistoryRecorder copyHistoryRecorder,
@@ -1105,6 +1109,8 @@ public sealed partial class EditorViewModel :
 		_clipboardWriter = clipboardWriter;
 
 		_contentCopier = contentCopier;
+
+		_contentKeys = contentKeys;
 
 		_copyHistoryRecorder = copyHistoryRecorder;
 
@@ -1270,7 +1276,7 @@ public sealed partial class EditorViewModel :
 
 		if (dto is FolderDto deletedFolder)
 		{
-			_contentVisibility.DiscardKeys(deletedFolder);
+			_contentKeys.DiscardKeys(deletedFolder);
 		}
 
 		UpdateHierarchySummary();
