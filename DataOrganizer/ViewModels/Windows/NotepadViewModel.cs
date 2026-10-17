@@ -132,7 +132,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			return;
 		}
 
-		if (HasText(tab) && !await _dialogService
+		if (HasText(tab) && !await _confirmationPrompt
 			.RequestYesNoAsync(
 				$@"{Strings.Close} ""{tab.Header}""?",
 				DialogHostIdentifiers.Notepad)
@@ -160,7 +160,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			.OfType<NotepadTabViewModel>()
 			.OrderBy(x => x == SelectedTab)];
 
-		if (tabs.Any(HasText) && !await _dialogService
+		if (tabs.Any(HasText) && !await _confirmationPrompt
 			.RequestYesNoAsync(
 				Strings.CloseTabsTextWillBeDeleted,
 				DialogHostIdentifiers.Notepad)
@@ -194,7 +194,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			KeyHint = Strings.Name
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(true) is not { } result)
 		{
@@ -211,8 +211,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// </summary>
 	internal static readonly TimeSpan WriteDelay = TimeSpan.FromSeconds(0.5);
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -248,6 +248,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="ISyntaxRegistry" />
 	private readonly ISyntaxRegistry _syntaxRegistry;
 
+	/// <inheritdoc cref="ITextInputPrompt" />
+	private readonly ITextInputPrompt _textInputPrompt;
+
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
 
@@ -268,7 +271,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 	#region Constructors
 	public NotepadViewModel(
-		IDialogService dialogService,
+		IConfirmationPrompt confirmationPrompt,
 		IDispatcherAccessor dispatcher,
 		IDocumentEncodingSwitcher encodingSwitcher,
 		IMainWindowLauncher mainWindowLauncher,
@@ -277,10 +280,11 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		INotificationService notification,
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler,
+		ITextInputPrompt textInputPrompt,
 		IViewCache viewCache,
 		TimeProvider timeProvider)
 	{
-		_dialogService = dialogService;
+		_confirmationPrompt = confirmationPrompt;
 
 		_dispatcher = dispatcher;
 
@@ -295,6 +299,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_notification = notification;
 
 		_syntaxRegistry = syntaxRegistry;
+
+		_textInputPrompt = textInputPrompt;
 
 		_exceptionHandler = exceptionHandler;
 

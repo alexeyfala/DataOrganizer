@@ -141,9 +141,9 @@ internal class NotepadWindowTests
 	public async Task Click_On_Close_All_Tabs_Asks_Once_For_The_Tabs_With_Text()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -175,7 +175,7 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		await dialogService.Received(1).RequestYesNoAsync(
+		await confirmationPrompt.Received(1).RequestYesNoAsync(
 			Arg.Any<string>(),
 			Arg.Is(DialogHostIdentifiers.Notepad),
 			Arg.Any<CancellationToken>());
@@ -280,15 +280,15 @@ internal class NotepadWindowTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-			dialogService
+			textInputPrompt
 				.RequestKeyValueInputAsync(
 					Arg.Any<KeyValueInputParameters>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new KeyValueInput("Notes"));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());

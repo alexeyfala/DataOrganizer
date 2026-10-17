@@ -15,10 +15,11 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Windows;
 using Serilog;
@@ -32,7 +33,11 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>FavoritesWindow</c>.
 /// </summary>
-public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<ConfirmUpdateMessage>
+public sealed partial class FavoritesViewModel :
+	ViewModelBase,
+	IRecipient<CloseEditingFileMessage>,
+	IRecipient<ConfirmUpdateMessage>,
+	IRecipient<SessionAutoLockedMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
@@ -213,6 +218,15 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
+
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
+
 	/// <inheritdoc cref="IMainWindowLauncher" />
 	private readonly IMainWindowLauncher _mainWindowLauncher;
 
@@ -220,43 +234,46 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
 	private FavoritesPopupContentKind _previousPopupContent;
+
+	/// <inheritdoc cref="IProtectionScenarios" />
+	private readonly IProtectionScenarios _protectionScenarios;
 	#endregion
 
 	#region Constructors
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsStore settingsStore,
-		IContentVisibility contentVisibility,
+		IConfirmationPrompt confirmationPrompt,
 		ICopyHistory copyHistory,
-		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IExecutingFiles executingFiles,
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
-		INotificationService notification,
+		IProtectionScenarios protectionScenarios,
 		ISecondaryWindowLauncher secondaryWindowLauncher,
-		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IViewModelFactory viewModelFactory) : base(
-			app,
 			settingsStore,
-			contentVisibility,
 			copyHistory,
-			dialogService,
-			dispatcher,
 			executingFiles,
 			logger,
 			messenger,
-			notification,
 			secondaryWindowLauncher,
-			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
 			viewModelFactory)
 	{
+		_app = app;
+
+		_confirmationPrompt = confirmationPrompt;
+
+		_dispatcher = dispatcher;
+
 		_mainWindowLauncher = mainWindowLauncher;
+
+		_protectionScenarios = protectionScenarios;
 
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
 
@@ -268,7 +285,17 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 
 	#region Methods
 	/// <inheritdoc />
+	public void Receive(CloseEditingFileMessage message)
+	{
+		// The editor tabs wait in the work session while this window shows, so their files are only unmarked.
+		message.File.IsEditing = false;
+	}
+
+	/// <inheritdoc />
 	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
+
+	/// <inheritdoc />
+	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
 
 	/// <summary>
 	/// Restores the popup size and the favorites from the stored settings.
@@ -417,7 +444,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		{
 			try
 			{
-				return await _dialogService
+				return await _confirmationPrompt
 					.RequestYesNoAsync(text, token: token)
 					.ConfigureAwait(true);
 			}

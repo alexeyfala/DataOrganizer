@@ -3,6 +3,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages.Editor;
+using Shared.Properties;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,8 +15,8 @@ namespace DataOrganizer.Services.Execution;
 public sealed class OpenFilesCloser : IOpenFilesCloser
 {
 	#region Data
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
 
 	/// <inheritdoc cref="IExecutingFiles" />
 	private readonly IExecutingFiles _executingFiles;
@@ -26,11 +27,11 @@ public sealed class OpenFilesCloser : IOpenFilesCloser
 
 	#region Constructors
 	public OpenFilesCloser(
-		IDialogService dialogService,
+		IConfirmationPrompt confirmationPrompt,
 		IExecutingFiles executingFiles,
 		IMessenger messenger)
 	{
-		_dialogService = dialogService;
+		_confirmationPrompt = confirmationPrompt;
 
 		_executingFiles = executingFiles;
 
@@ -40,20 +41,8 @@ public sealed class OpenFilesCloser : IOpenFilesCloser
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<bool> TryCloseAsync(IReadOnlyCollection<FileDto> openedFiles, CancellationToken token = default)
+	public void Close(IReadOnlyCollection<FileDto> openedFiles)
 	{
-		if (openedFiles.Count == 0)
-		{
-			return true;
-		}
-
-		if (!await _dialogService
-			.RequestCloseFilesAsync(token)
-			.ConfigureAwait(true))
-		{
-			return false;
-		}
-
 		foreach (FileDto file in openedFiles.Where(static x => x.IsEditing))
 		{
 			_messenger.Send(new CloseEditingFileMessage(file));
@@ -63,6 +52,24 @@ public sealed class OpenFilesCloser : IOpenFilesCloser
 		{
 			_executingFiles.Close(file);
 		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> TryCloseAsync(IReadOnlyCollection<FileDto> openedFiles, CancellationToken token = default)
+	{
+		if (openedFiles.Count == 0)
+		{
+			return true;
+		}
+
+		if (!await _confirmationPrompt
+			.RequestYesCancelAsync($"{Strings.CloseFilesBeingEdited}?", token)
+			.ConfigureAwait(true))
+		{
+			return false;
+		}
+
+		Close(openedFiles);
 
 		return true;
 	}

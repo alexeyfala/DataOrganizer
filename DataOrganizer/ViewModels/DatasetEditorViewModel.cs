@@ -196,7 +196,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			KeyHint = Strings.Name
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -221,7 +221,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			ValueHint = Strings.Value
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -248,7 +248,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			MaskKeyInput = IsEncrypted
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -351,7 +351,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			ValueHint = Strings.Value
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -383,7 +383,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => null
 		};
 
-		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _textInputPrompt.RequestMultilineTextAsync(
 			record.Note,
 			header,
 			isSensitive: IsEncrypted)
@@ -417,7 +417,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			MaskKeyInput = record.IsHidden
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -469,7 +469,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			KeyHint = Strings.Rename
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } result)
 		{
@@ -497,7 +497,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortAscending(RecordsGroup? group)
 	{
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync(Strings.SortAscending + "?")
 			.ConfigureAwait(false))
 		{
@@ -520,7 +520,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync(text)
 			.ConfigureAwait(false))
 		{
@@ -536,7 +536,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortDescending(RecordsGroup? group)
 	{
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync(Strings.SortDescending + "?")
 			.ConfigureAwait(false))
 		{
@@ -551,14 +551,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
 
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
+
+	/// <inheritdoc cref="ITextInputPrompt" />
+	private readonly ITextInputPrompt _textInputPrompt;
 
 	/// <summary>
 	/// Change of the records whose save failed; <c>null</c> while every change is saved.
@@ -569,8 +572,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		IClipboardTextWriter clipboardWriter,
+		IConfirmationPrompt confirmationPrompt,
 		IDbFailureReporter dbFailureReporter,
-		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
@@ -580,7 +583,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IMessenger messenger,
 		INotificationService notification,
 		ISessionReadOnlyMode sessionReadOnlyMode,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		ITextInputPrompt textInputPrompt) : base(
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -593,11 +597,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		_clipboardWriter = clipboardWriter;
 
+		_confirmationPrompt = confirmationPrompt;
+
 		_dbFailureReporter = dbFailureReporter;
 
-		_dialogService = dialogService;
-
 		_dispatcher = dispatcher;
+
+		_textInputPrompt = textInputPrompt;
 	}
 	#endregion
 
@@ -886,7 +892,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string? questionText,
 		CancellationToken token = default)
 	{
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token: token)
 			.ConfigureAwait(false))
 		{

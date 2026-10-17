@@ -31,6 +31,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Windows;
 using DynamicData.Binding;
@@ -57,6 +58,7 @@ public sealed partial class EditorViewModel :
 	ViewModelBase,
 	IRecipient<CloseEditingFileMessage>,
 	IRecipient<ConfirmUpdateMessage>,
+	IRecipient<SessionAutoLockedMessage>,
 	IRecipient<ShowInEditorMessage>,
 	IRecipient<ShowProgressBarMessage>
 {
@@ -269,7 +271,7 @@ public sealed partial class EditorViewModel :
 
 		_logger.LogInformation("Editing a note of an object using dialog");
 
-		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _textInputPrompt.RequestMultilineTextAsync(
 			_noteReader.ReadNote(dto),
 			dto.Name,
 			isSensitive: dto.EncryptionStatus != EncryptionStatus.None)
@@ -329,7 +331,7 @@ public sealed partial class EditorViewModel :
 				Environment.NewLine +
 				$"{Strings.OpenTheExecutableFile}?";
 
-			if (!await _dialogService
+			if (!await _confirmationPrompt
 				.RequestYesCancelAsync(text)
 				.ConfigureAwait(true))
 			{
@@ -623,7 +625,7 @@ public sealed partial class EditorViewModel :
 
 		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
-			if (_copyHistory.ItemIds.Count == 0 || !await _dialogService
+			if (_copyHistory.ItemIds.Count == 0 || !await _confirmationPrompt
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
@@ -634,7 +636,7 @@ public sealed partial class EditorViewModel :
 		}
 		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
-			if (ExecutingFiles.Count == 0 || !await _dialogService
+			if (ExecutingFiles.Count == 0 || !await _confirmationPrompt
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
@@ -647,7 +649,9 @@ public sealed partial class EditorViewModel :
 		}
 	}
 
-	/// <inheritdoc cref="ViewModelBase.CloseFile" />
+	/// <summary>
+	/// Closes a file that is being edited or executed.
+	/// </summary>
 	[RelayCommand]
 	private void CloseOpenedFile(FileDto? dto)
 	{
@@ -656,7 +660,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		CloseFile(dto);
+		_openFilesCloser.Close([dto]);
 	}
 
 	/// <summary>
@@ -729,7 +733,7 @@ public sealed partial class EditorViewModel :
 			_ => Strings.Delete
 		};
 
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync($@"{action} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
@@ -791,7 +795,7 @@ public sealed partial class EditorViewModel :
 			KeyHint = Strings.Name
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } pair)
 		{
@@ -959,6 +963,9 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
@@ -970,6 +977,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
+
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
 
 	/// <inheritdoc cref="IContentCopier" />
 	private readonly IContentCopier _contentCopier;
@@ -985,6 +995,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
+
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
 
 	/// <inheritdoc cref="IFileContentsReader" />
 	private readonly IFileContentsReader _fileContentsReader;
@@ -1012,6 +1025,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="INoteReader" />
 	private readonly INoteReader _noteReader;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IOpenFilesCloser" />
 	private readonly IOpenFilesCloser _openFilesCloser;
 
@@ -1027,6 +1043,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISampleSeeder" />
 	private readonly ISampleSeeder _sampleSeeder;
 
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	private readonly ISessionEditorTabs _sessionEditorTabs;
+
 	/// <inheritdoc cref="ISessionReadOnlyMode" />
 	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
 
@@ -1035,6 +1054,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="ISettingsCommit" />
 	private readonly ISettingsCommit _settingsCommit;
+
+	/// <inheritdoc cref="ITextInputPrompt" />
+	private readonly ITextInputPrompt _textInputPrompt;
 
 	/// <summary>
 	/// Number of operations showing the progress bar.
@@ -1051,15 +1073,14 @@ public sealed partial class EditorViewModel :
 		IBackgroundServiceControl backgroundServiceControl,
 		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
+		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
 		IContentKeys contentKeys,
-		IContentVisibility contentVisibility,
 		ICopyHistory copyHistory,
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
 		IDbFailureReporter dbFailureReporter,
 		IDialogService dialogService,
-		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
 		IExecutingFiles executingFiles,
 		IFileContentsReader fileContentsReader,
@@ -1081,24 +1102,21 @@ public sealed partial class EditorViewModel :
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
+		ITextInputPrompt textInputPrompt,
 		IViewModelFactory viewModelFactory) : base(
-			app,
 			settingsStore,
-			contentVisibility,
 			copyHistory,
-			dialogService,
-			dispatcher,
 			executingFiles,
 			logger,
 			messenger,
-			notification,
 			secondaryWindowLauncher,
-			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
 			viewModelFactory)
 	{
 		EditingFiles = editingFiles;
+
+		_app = app;
 
 		_autoLock = autoLock;
 
@@ -1107,6 +1125,8 @@ public sealed partial class EditorViewModel :
 		_clipboardLogSeeder = clipboardLogSeeder;
 
 		_clipboardWriter = clipboardWriter;
+
+		_confirmationPrompt = confirmationPrompt;
 
 		_contentCopier = contentCopier;
 
@@ -1117,6 +1137,8 @@ public sealed partial class EditorViewModel :
 		_dataExchange = dataExchange;
 
 		_dbFailureReporter = dbFailureReporter;
+
+		_dialogService = dialogService;
 
 		_fileContentsReader = fileContentsReader;
 
@@ -1130,6 +1152,8 @@ public sealed partial class EditorViewModel :
 
 		_noteReader = noteReader;
 
+		_notification = notification;
+
 		_openFilesCloser = openFilesCloser;
 
 		_processManager = processManager;
@@ -1140,9 +1164,13 @@ public sealed partial class EditorViewModel :
 
 		_sampleSeeder = sampleSeeder;
 
+		_sessionEditorTabs = sessionEditorTabs;
+
 		_sessionReadOnlyMode = sessionReadOnlyMode;
 
 		_settingsCommit = settingsCommit;
+
+		_textInputPrompt = textInputPrompt;
 
 		// The expanded folders and the selected object of the tree are kept for the next start.
 		Hierarchy
@@ -1177,13 +1205,16 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <inheritdoc />
-	public void Receive(CloseEditingFileMessage message) => CloseEditingFile(message.File);
+	public void Receive(CloseEditingFileMessage message) => EditingFiles.CloseTab(message.File);
 
 	/// <inheritdoc />
 	public void Receive(ConfirmUpdateMessage message)
 	{
-		message.Reply(_dialogService.RequestYesNoAsync(message.Text, token: message.Token));
+		message.Reply(_confirmationPrompt.RequestYesNoAsync(message.Text, token: message.Token));
 	}
+
+	/// <inheritdoc />
+	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(LockAsync());
 
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message) => ShowObject(message.Id);
@@ -1269,7 +1300,7 @@ public sealed partial class EditorViewModel :
 
 		foreach (FileDto deletedFile in deletedFiles)
 		{
-			CloseFile(deletedFile);
+			_openFilesCloser.Close([deletedFile]);
 
 			_copyHistoryRecorder.Remove(deletedFile);
 		}
@@ -1316,15 +1347,12 @@ public sealed partial class EditorViewModel :
 	/// Refreshes the command that hides everything and keeps the auto-lock countdown
 	/// in step with the decrypted contents.
 	/// </summary>
-	protected internal override void NotifyDecryptedContentsChanged()
+	internal void NotifyDecryptedContentsChanged()
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		_backgroundServiceControl.RefreshAutoLock();
 	}
-
-	/// <inheritdoc />
-	protected override void CloseEditingFile(FileDto file) => EditingFiles.CloseTab(file);
 	#endregion
 
 	#region Helpers
@@ -1537,6 +1565,18 @@ public sealed partial class EditorViewModel :
 	/// Asks the view to highlight an object where it shows it.
 	/// </summary>
 	private void Highlight(ExplorerItemDtoBase dto) => _highlightSignal.OnNext(dto);
+
+	/// <summary>
+	/// Hides the decrypted contents once the auto-lock expires and refreshes the command that hides them all.
+	/// </summary>
+	private async Task LockAsync()
+	{
+		await _protectionScenarios
+			.LockAsync()
+			.ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
 
 	/// <summary>
 	/// Saves a folder of the tree expanded or collapsed, unless the editor is read-only or busy with an action.

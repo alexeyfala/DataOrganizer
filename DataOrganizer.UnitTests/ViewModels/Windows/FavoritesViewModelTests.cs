@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
@@ -18,13 +19,14 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -79,7 +81,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, INotificationService, ISecondaryWindowLauncher, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -126,6 +128,43 @@ internal class FavoritesViewModelTests
 		hook
 			.DidNotReceiveWithAnyArgs()
 			.StartTrackingAsync();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
+	/// the clipboard history is on as the settings track it.
+	/// </summary>
+	[Test]
+	public void Constructor_Takes_The_Clipboard_History_From_The_Settings([Values] bool isTracked)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			AppSettings settings = SettingsFactory.CreateSettings();
+
+			settings.TrackClipboardHistory = isTracked;
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		// Act
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		sut.IsClipboardHistoryEnabled
+			.Should()
+			.Be(isTracked);
 	}
 
 	/// <summary>
@@ -547,13 +586,13 @@ internal class FavoritesViewModelTests
 
 		FavoritesPopupContentKind askedOver = FavoritesPopupContentKind.None;
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(messenger);
 
@@ -574,7 +613,7 @@ internal class FavoritesViewModelTests
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
 		// The popup content is read while the question is open: closing the popup clears it.
-		dialogService
+		confirmationPrompt
 			.RequestYesNoAsync(text, Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(_ =>
 			{
@@ -601,7 +640,8 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the favorites window hides the contents as well.
+	/// <see cref="FavoritesViewModel.Receive(SessionAutoLockedMessage)" />: the favorites window closes the open files and hides
+	/// the contents as well.
 	/// </summary>
 	[Test]
 	public async Task Receive_SessionAutoLocked_Hides_Contents()
@@ -610,6 +650,8 @@ internal class FavoritesViewModelTests
 		FileDto file = ItemDtoFactory.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileDto executingFile = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
@@ -621,7 +663,13 @@ internal class FavoritesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
+				.Returns(true);
 
 			exceptionHandler
 				.When(static x => x.Watch(Arg.Any<Task>()))
@@ -637,6 +685,21 @@ internal class FavoritesViewModelTests
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
@@ -646,7 +709,16 @@ internal class FavoritesViewModelTests
 
 		sut
 			.Hierarchy
-			.AddRange([file]);
+			.AddRange([file, executingFile]);
+
+		await mock
+			.Create<IExecutingFiles>()
+			.ExecuteAsync(new()
+			{
+				Contents = [],
+				File = executingFile,
+				IsReadOnly = false
+			});
 
 		session.EditorTabs = new()
 		{
@@ -662,6 +734,10 @@ internal class FavoritesViewModelTests
 
 		// Assert
 		file.IsEditing
+			.Should()
+			.BeFalse();
+
+		executingFile.IsExecuting
 			.Should()
 			.BeFalse();
 

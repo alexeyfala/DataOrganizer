@@ -148,6 +148,7 @@ public sealed class App : Application
 		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
 		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
+		services.AddTransient<IConfirmationPrompt, DialogService>();
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentCopier, ContentCopier>();
 		services.AddTransient<IContentKeys, ContentVisibility>();
@@ -209,6 +210,7 @@ public sealed class App : Application
 		services.AddTransient<IStartupInfoLogger, StartupInfoLogger>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
+		services.AddTransient<ITextInputPrompt, DialogService>();
 		services.AddTransient<IUiTimer, UiTimer>();
 		services.AddTransient<IUnreadableHotkeysFinder, UnreadableHotkeysFinder>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();

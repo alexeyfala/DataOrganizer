@@ -430,9 +430,9 @@ internal class DatasetEditorViewModelTests
 	public async Task AddKeyValueCommand_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -444,7 +444,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x.IsSensitive == isEncrypted),
 			Arg.Any<CancellationToken>());
 	}
@@ -456,9 +456,9 @@ internal class DatasetEditorViewModelTests
 	public async Task AddKeyValueCommand_Masks_Value_Input_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -470,7 +470,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
 			Arg.Any<CancellationToken>());
 	}
@@ -604,9 +604,9 @@ internal class DatasetEditorViewModelTests
 	public async Task AddValueCommand_Masks_Input_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -618,7 +618,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
 			Arg.Any<CancellationToken>());
 	}
@@ -1604,9 +1604,9 @@ internal class DatasetEditorViewModelTests
 	public async Task EditKeyValueCommand_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -1624,7 +1624,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x!.IsSensitive == isEncrypted),
 			Arg.Any<CancellationToken>());
 	}
@@ -1636,9 +1636,9 @@ internal class DatasetEditorViewModelTests
 	public async Task EditKeyValueCommand_Masks_Value_Input_When_Hidden([Values] bool isHidden)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -1655,7 +1655,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
 			Arg.Any<CancellationToken>());
 	}
@@ -1717,11 +1717,11 @@ internal class DatasetEditorViewModelTests
 	public async Task EditNoteCommand_Declares_The_Note_Of_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1729,7 +1729,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1748,7 +1748,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			isEncrypted,
@@ -1762,11 +1762,11 @@ internal class DatasetEditorViewModelTests
 	public async Task EditNoteCommand_Heads_The_Dialog_Of_A_Group_With_Its_Name()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1774,7 +1774,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1791,7 +1791,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			record.Name,
 			Arg.Any<bool>(),
@@ -1805,11 +1805,11 @@ internal class DatasetEditorViewModelTests
 	public async Task EditNoteCommand_Heads_The_Dialog_Of_A_Key_Value_Record_With_Its_Key()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1817,7 +1817,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1835,7 +1835,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			record.Key,
 			Arg.Any<bool>(),
@@ -1850,11 +1850,11 @@ internal class DatasetEditorViewModelTests
 	public async Task EditNoteCommand_Leaves_A_Value_Record_Without_A_Header()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1862,7 +1862,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1879,7 +1879,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			null,
 			Arg.Any<bool>(),
@@ -1948,9 +1948,9 @@ internal class DatasetEditorViewModelTests
 	public async Task EditValueCommand_Masks_Input_When_Hidden([Values] bool isHidden)
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -1966,7 +1966,7 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService.Received(1).RequestKeyValueInputAsync(
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
 			Arg.Any<CancellationToken>());
 	}

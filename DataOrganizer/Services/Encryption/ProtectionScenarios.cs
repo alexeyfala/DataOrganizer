@@ -40,6 +40,9 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 	/// <inheritdoc cref="IOpenFilesCloser" />
 	private readonly IOpenFilesCloser _openFilesCloser;
 
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	private readonly ISessionEditorTabs _sessionEditorTabs;
+
 	/// <inheritdoc cref="ISessionHierarchy" />
 	private readonly ISessionHierarchy _sessionHierarchy;
 	#endregion
@@ -53,6 +56,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 		IMessenger messenger,
 		INotificationService notification,
 		IOpenFilesCloser openFilesCloser,
+		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy)
 	{
 		_backgroundServiceControl = backgroundServiceControl;
@@ -68,6 +72,8 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 		_notification = notification;
 
 		_openFilesCloser = openFilesCloser;
+
+		_sessionEditorTabs = sessionEditorTabs;
 
 		_sessionHierarchy = sessionHierarchy;
 	}
@@ -193,6 +199,29 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 		_backgroundServiceControl.RefreshAutoLock();
 
 		return true;
+	}
+
+	/// <inheritdoc />
+	public async Task LockAsync(CancellationToken token = default)
+	{
+		_logger.LogInformation("Auto-lock: hiding the decrypted contents");
+
+		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
+		await _messenger
+			.FlushEditorsAsync(token)
+			.ConfigureAwait(true);
+
+		_openFilesCloser.Close([.. _sessionHierarchy
+			.Hierarchy
+			.GetFilesBy(static x => x.IsOpened())]);
+
+		_sessionEditorTabs.EditorTabs = null;
+
+		_contentVisibility.HideAllContents(_sessionHierarchy.Hierarchy);
+
+		_backgroundServiceControl.RefreshAutoLock();
+
+		_notification.ShowInformationSnackbar(Strings.ContentsHiddenByAutoLock);
 	}
 
 	/// <inheritdoc />

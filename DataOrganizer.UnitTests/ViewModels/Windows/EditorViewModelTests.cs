@@ -151,13 +151,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(folderProtection);
 
@@ -248,11 +248,11 @@ internal class EditorViewModelTests
 	public async Task ClearRightSideSheetCommand_Asks_Nothing_For_An_Empty_Copy_History()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder
 				.RegisterType<CopyHistory>()
@@ -278,7 +278,7 @@ internal class EditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService
+		await confirmationPrompt
 			.DidNotReceive()
 			.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
@@ -295,13 +295,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
+			confirmationPrompt
 				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(isConfirmed);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder
 				.RegisterType<CopyHistory>()
@@ -426,53 +426,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.CloseFiles" />: both editing and executing files are unmarked.
-	/// </summary>
-	[Test]
-	public void CloseFiles_Closes_Editing_And_Executing_Files()
-	{
-		// Arrange
-		FileDto[] editingFiles = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		FileDto[] executingFiles = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		editingFiles.ForEach(x => x.IsEditing = true);
-
-		executingFiles.ForEach(x => x.IsExecuting = true);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<ExecutingFiles>()
-				.As<IExecutingFiles>()
-				.SingleInstance();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.CloseFiles(editingFiles, executingFiles);
-
-		// Assert
-		editingFiles
-			.Should()
-			.OnlyContain(x => !x.IsEditing);
-
-		executingFiles
-			.Should()
-			.OnlyContain(x => !x.IsExecuting);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.CloseOpenedFileCommand" />: closing a file open in the editor closes its tab.
 	/// </summary>
 	[Test]
@@ -481,10 +434,21 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new WeakReferenceMessenger())
+				.As<IMessenger>();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -711,13 +675,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(folderProtection);
 
@@ -892,6 +856,10 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -984,9 +952,17 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(executionEngine);
 
 			builder
+				.RegisterInstance(new WeakReferenceMessenger())
+				.As<IMessenger>();
+
+			builder
 				.RegisterType<ExecutingFiles>()
 				.As<IExecutingFiles>()
 				.SingleInstance();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1373,11 +1349,11 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: encryptionStatus);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1385,7 +1361,7 @@ internal class EditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1399,7 +1375,7 @@ internal class EditorViewModelTests
 		await sut.EditNote(file);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			encryptionStatus != EncryptionStatus.None,
@@ -1419,13 +1395,13 @@ internal class EditorViewModelTests
 
 		string editedNote = RandomString.Create(20);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
 		INoteEditor noteEditor = Substitute.For<INoteEditor>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1439,7 +1415,7 @@ internal class EditorViewModelTests
 				.ReadNote(file)
 				.Returns(storedNote);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 
 			builder.RegisterInstance(noteEditor);
 
@@ -1457,7 +1433,7 @@ internal class EditorViewModelTests
 		await sut.EditNote(file);
 
 		// Assert
-		await dialogService.Received(1).RequestMultilineTextAsync(
+		await textInputPrompt.Received(1).RequestMultilineTextAsync(
 			storedNote,
 			file.Name,
 			Arg.Any<bool>(),
@@ -1482,9 +1458,9 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-			dialogService
+			textInputPrompt
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
@@ -1492,7 +1468,7 @@ internal class EditorViewModelTests
 					Arg.Any<CancellationToken>())
 				.Returns(new TextInputResult());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
 
 			builder.RegisterInstance(noteEditor);
 
@@ -1593,13 +1569,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(folderProtection);
 
@@ -2269,13 +2245,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -2353,13 +2329,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -2412,11 +2388,11 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto plain = ItemDtoFactory.CreateFileDto(isEditing: true);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -2449,9 +2425,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		await dialogService
+		await confirmationPrompt
 			.DidNotReceive()
-			.RequestCloseFilesAsync(Arg.Any<CancellationToken>());
+			.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -2550,13 +2526,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -2619,7 +2595,7 @@ internal class EditorViewModelTests
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
@@ -2631,7 +2607,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -2661,9 +2637,9 @@ internal class EditorViewModelTests
 		await sut.HideFileContents(file);
 
 		// Assert
-		await dialogService
+		await confirmationPrompt
 			.DidNotReceive()
-			.RequestCloseFilesAsync();
+			.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
 		contentVisibility
 			.DidNotReceive()
@@ -2695,13 +2671,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -2779,13 +2755,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -3181,13 +3157,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -3399,13 +3375,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(dataExchange);
 
@@ -3746,13 +3722,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
+			confirmationPrompt
 				.RequestYesNoAsync(text, Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(messenger);
 
@@ -3774,7 +3750,64 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
+	/// <see cref="EditorViewModel.Receive(SessionAutoLockedMessage)" />: the expiry closes every open file, the plain ones
+	/// too.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Closes_Every_Open_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.Hierarchy
+			.AddRange([file]);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
 	/// </summary>
 	[Test]
 	public async Task Receive_SessionAutoLocked_Closes_Files_And_Hides_Contents()
@@ -3820,6 +3853,14 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
 		});
@@ -3861,7 +3902,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: an editor that cannot persist its changes
+	/// <see cref="EditorViewModel.Receive(SessionAutoLockedMessage)" />: an editor that cannot persist its changes
 	/// does not keep the contents decrypted.
 	/// </summary>
 	[Test]
@@ -3901,6 +3942,14 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(exceptionHandler);
 
 			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -3925,6 +3974,132 @@ internal class EditorViewModelTests
 		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(SessionAutoLockedMessage)" />: once the contents are hidden, the command that hides
+	/// them all is asked again whether it can run.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(SessionAutoLockedMessage)" />: the countdown is stopped once, after the contents are
+	/// hidden.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Stops_The_Countdown()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(autoLock);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<BackgroundServices>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ContentVisibility>()
+				.As<IContentVisibility>();
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
+
+		autoLock
+			.DidNotReceive()
+			.Arm();
 	}
 
 	/// <summary>
@@ -4763,13 +4938,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-			dialogService
-				.RequestCloseFilesAsync()
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(confirmationPrompt);
 
 			builder.RegisterInstance(contentVisibility);
 

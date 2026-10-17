@@ -26,7 +26,13 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Dialogs;
 
-public sealed class DialogService : IDialogService
+public sealed class DialogService :
+	IAppPickerPrompt,
+	IConfirmationPrompt,
+	IDialogService,
+	IImportModePrompt,
+	IPasswordPrompt,
+	ITextInputPrompt
 {
 	#region Data
 	/// <inheritdoc cref="IDispatcherAccessor" />
@@ -108,24 +114,6 @@ public sealed class DialogService : IDialogService
 		return await viewModel
 			.GetResultAsync(dialogClosed, token)
 			.ConfigureAwait(false);
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
-	{
-		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
-
-		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
-			DialogHostIdentifiers.Main);
-
-		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelAnswer.Yes;
 	}
 
 	/// <inheritdoc />

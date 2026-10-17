@@ -42,6 +42,12 @@ public interface IProtectionScenarios
 	Task<bool> HideFolderContentsAsync(FolderDto folder, CancellationToken token = default);
 
 	/// <summary>
+	/// Hides every decrypted contents once the auto-lock expires: the open files close without a question and the editor
+	/// tabs of the work session are dropped.
+	/// </summary>
+	Task LockAsync(CancellationToken token = default);
+
+	/// <summary>
 	/// Decrypts the contents of a file for the session; <c>true</c> when they are shown.
 	/// </summary>
 	Task<bool> ShowFileContentsAsync(FileDto file, CancellationToken token = default);
