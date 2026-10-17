@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
@@ -32,6 +31,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
@@ -4227,41 +4227,37 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.RestartApplication" />: the window is closed, which shuts the application down, and a new
-	/// process is started.
+	/// <see cref="EditorViewModel.RestartApplication" />: the application is asked to start again once it stops.
 	/// </summary>
-	[AvaloniaTest]
-	public void RestartApplication_Restarts_The_Application()
+	[Test]
+	public void RestartApplication_Asks_For_A_Restart()
 	{
 		// Arrange
-		bool isClosed = false;
+		List<RestartAppMessage> sent = [];
 
-		Window window = new();
+		IMessenger messenger = new StrongReferenceMessenger();
 
-		window.Closed += (_, _) => isClosed = true;
+		messenger.Register<RestartAppMessage>(this, (_, message) => sent.Add(message));
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processManager));
-
-		window.Show();
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.RestartApplication(window);
+		sut.RestartApplication();
 
 		// Assert
-		isClosed
+		sent
 			.Should()
-			.BeTrue();
-
-		processManager
-			.Received(1)
-			.StartProcess(Arg.Any<string>());
+			.ContainSingle();
 	}
 
 	/// <summary>

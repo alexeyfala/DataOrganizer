@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Runtime;
 
-public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
+public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, IRecipient<RestartAppMessage>
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
@@ -60,6 +60,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processManager;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -80,6 +83,11 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 	/// <inheritdoc cref="IUpdateNotifier" />
 	private readonly IUpdateNotifier _updateNotifier;
+
+	/// <summary>
+	/// <c>True</c> once a restart is asked for: the application starts again after it stops.
+	/// </summary>
+	private bool _isRestartAsked;
 	#endregion
 
 	#region Constructors
@@ -98,6 +106,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
+		IProcessManager processManager,
 		ISecondaryWindowLauncher secondaryWindowLauncher,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
@@ -134,6 +143,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		_mainWindowLauncher = mainWindowLauncher;
 
 		_options = options;
+
+		_processManager = processManager;
 
 		_sandbox = sandbox;
 
@@ -211,6 +222,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 	/// <inheritdoc />
 	public void Receive(ExitAppMessage message) => _exceptionHandler.Watch(StopAppAsync());
+
+	/// <inheritdoc />
+	public void Receive(RestartAppMessage message) => _isRestartAsked = true;
 	#endregion
 
 	#region Helpers
@@ -239,7 +253,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 	}
 
 	/// <summary>
-	/// Stops the background services, closes the secondary windows, releases the session and ends the application.
+	/// Stops the background services, closes the secondary windows, releases the session, starts the application again when
+	/// asked and ends it.
 	/// </summary>
 	private async Task StopAppAsync()
 	{
@@ -253,6 +268,12 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 		// The application ends on the UI thread.
 		await ReleaseSessionAsync().ConfigureAwait(true);
+
+		// The new instance starts once this one has released its session.
+		if (_isRestartAsked && Environment.ProcessPath is { } path)
+		{
+			_processManager.StartProcess(path);
+		}
 
 		_appShutdown.Shutdown();
 	}

@@ -556,6 +556,84 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: once a restart is asked for, the exit starts the application
+	/// again after the session is released, and only then ends this one.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Starts_The_Application_Again_After_The_Session_When_Asked()
+	{
+		// Arrange
+		IAppShutdown appShutdown = Substitute.For<IAppShutdown>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		IServiceProvider serviceProvider = Substitute.For<IServiceProvider, IAsyncDisposable>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(appShutdown);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(serviceProvider);
+		});
+
+		_ = mock.Create<AppController>();
+
+		messenger.Send(new RestartAppMessage());
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		processManager
+			.Received(1)
+			.StartProcess(Arg.Any<string>());
+
+		Received.InOrder(() =>
+		{
+			((IAsyncDisposable)serviceProvider).DisposeAsync();
+
+			processManager.StartProcess(Arg.Any<string>());
+
+			appShutdown.Shutdown();
+		});
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: without a restart asked for, the exit starts nothing.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Starts_Nothing_Without_A_Restart()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		processManager
+			.DidNotReceive()
+			.StartProcess(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit stops the background services, closes the secondary
 	/// windows and the executing files and erases the sandbox before the application ends.
 	/// </summary>

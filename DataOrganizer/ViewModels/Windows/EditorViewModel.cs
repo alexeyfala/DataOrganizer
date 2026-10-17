@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -31,6 +30,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
 using DynamicData.Binding;
 using Entities.Enums;
@@ -514,21 +514,10 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Restarts the application.
+	/// Asks the application to start again once it stops.
 	/// </summary>
 	[RelayCommand]
-	internal void RestartApplication(Window? window)
-	{
-		// The closing of the main window asks for the exit of the application.
-		window?.Close();
-
-		if (Environment.ProcessPath is null)
-		{
-			return;
-		}
-
-		_processManager.StartProcess(Environment.ProcessPath);
-	}
+	internal void RestartApplication() => _messenger.Send(new RestartAppMessage());
 
 	/// <summary>
 	/// Sets <see cref="FileDto.IsFavorite" /> value.
@@ -1025,9 +1014,6 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IOpenFilesCloser" />
 	private readonly IOpenFilesCloser _openFilesCloser;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
-
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
 
@@ -1086,7 +1072,6 @@ public sealed partial class EditorViewModel :
 		INoteReader noteReader,
 		INotificationService notification,
 		IOpenFilesCloser openFilesCloser,
-		IProcessManager processManager,
 		IProtectionScenarios protectionScenarios,
 		ISampleSeeder sampleSeeder,
 		ISecondaryWindowLauncher secondaryWindowLauncher,
@@ -1146,8 +1131,6 @@ public sealed partial class EditorViewModel :
 		_notification = notification;
 
 		_openFilesCloser = openFilesCloser;
-
-		_processManager = processManager;
 
 		_protectionScenarios = protectionScenarios;
 

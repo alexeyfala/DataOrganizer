@@ -611,7 +611,7 @@ internal class ViewLauncherTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		MenuItem exitItem = FindExitMenuItem(window);
+		MenuItem exitItem = FindMenuItemThatClosesTheWindow(window, asksFirst: false);
 
 		// Act
 		exitItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -803,6 +803,77 @@ internal class ViewLauncherTests
 		sent
 			.Should()
 			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the restart item of the menu asks for the restart, then closes the
+	/// window, which asks for the exit of the application once.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Asks_For_The_Restart_Before_The_Exit_When_The_Restart_Menu_Item_Is_Clicked()
+	{
+		// Arrange
+		List<string> sent = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<RestartAppMessage>(this, (_, _) => sent.Add("restart"));
+
+		messenger.Register<ExitAppMessage>(this, (_, _) => sent.Add("exit"));
+
+		// The editor lives as long as the test, as the window saves it when it closes. It shares the messenger, so a
+		// request sent by the view model is counted too.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.Show();
+
+		// The menu is in the side drawer, which the user opens first.
+		window.ViewModel.IsLeftDrawerOpened = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		MenuItem restartItem = FindMenuItemThatClosesTheWindow(window, asksFirst: true);
+
+		// Act
+		restartItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+		// Assert
+		sent
+			.Should()
+			.Equal("restart", "exit");
 	}
 
 	/// <summary>
@@ -5238,9 +5309,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Returns the item of the side menu of an editor window that closes the window when clicked.
+	/// Returns the item of the side menu of an editor window that closes the window when clicked; <paramref name="asksFirst" />
+	/// picks the one that runs a command before.
 	/// </summary>
-	private static MenuItem FindExitMenuItem(EditorWindow window)
+	private static MenuItem FindMenuItemThatClosesTheWindow(EditorWindow window, bool asksFirst)
 	{
 		NavigationDrawer drawer = window
 			.GetLogicalDescendants()
@@ -5255,7 +5327,9 @@ internal class ViewLauncherTests
 			.Single(x => Interaction
 				.GetBehaviors(x)
 				.OfType<EventTriggerBehavior>()
-				.Any(y => y.Actions is { } actions && actions.OfType<CloseWindowAction>().Any()));
+				.Any(y => y.Actions is { } actions
+					&& actions.OfType<CloseWindowAction>().Any()
+					&& actions.OfType<InvokeCommandAction>().Any() == asksFirst));
 	}
 
 	/// <summary>

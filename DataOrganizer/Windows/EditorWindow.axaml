@@ -139,7 +139,7 @@
 
 								<Separator Margin="16.0,0.0" />
 
-								<MenuItem Command="{Binding RestartApplicationCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem>
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="Restart" />
@@ -147,6 +147,14 @@
 											<TextBlock Text="{x:Static prop:Strings.Restart}" />
 										</StackPanel>
 									</MenuItem.Header>
+
+									<Interaction.Behaviors>
+										<EventTriggerBehavior EventName="Click">
+											<InvokeCommandAction Command="{Binding RestartApplicationCommand}" />
+
+											<CloseWindowAction />
+										</EventTriggerBehavior>
+									</Interaction.Behaviors>
 								</MenuItem>
 
 								<MenuItem>
