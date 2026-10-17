@@ -175,7 +175,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.AddGroupAsync(RandomString.Create(10), null);
@@ -231,7 +231,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.KeeperId = keeperId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: keeperId));
 
 		// Act
 		await sut.AddGroupAsync(RandomString.Create(10), null);
@@ -288,7 +288,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		// Act
 		await sut.AddGroupAsync(RandomString.Create(10), null);
@@ -405,10 +405,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		await sut.AddKeyValueAsync(text, text, group: null);
@@ -439,10 +436,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		await sut
@@ -468,10 +462,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		await sut
@@ -588,10 +579,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		await sut.AddValueAsync(text, group: null);
@@ -622,10 +610,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		await sut
@@ -746,7 +731,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.KeeperId = keeperId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: keeperId));
 
 		// Act
 		await sut.ContainerLoaded();
@@ -845,7 +830,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		// Act
 		await sut.ContainerLoaded();
@@ -1029,7 +1014,7 @@ internal class DatasetEditorViewModelTests
 
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		// Act
 		await sut.ContainerLoaded();
@@ -1364,7 +1349,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(state);
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(initialEditorState: new SystemTextJsonSerializer().Serialize(state)));
 
 		// Act
 		await sut.ContainerLoaded();
@@ -1399,10 +1384,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		KeyValueRecord record = new()
 		{
@@ -1628,10 +1610,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		KeyValueRecord record = new()
 		{
@@ -1755,10 +1734,7 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		if (isEncrypted)
-		{
-			sut.KeeperId = Guid.NewGuid();
-		}
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		RecordsGroup record = new()
 		{
@@ -2041,7 +2017,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// The new group starts expanded.
 		await sut.AddGroupAsync(RandomString.Create(10), null);
@@ -2106,7 +2082,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.ExpandCollapseAsync(null, true);
@@ -2204,7 +2180,7 @@ internal class DatasetEditorViewModelTests
 			.BeFalse();
 
 		// Act
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		// Assert
 		sut.IsEncrypted
@@ -2252,7 +2228,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.IsHiddenChanged();
@@ -2722,7 +2698,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		DatasetRecordMove move = new()
 		{
@@ -2842,7 +2818,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		await sut.IsHiddenChanged();
 
@@ -3077,7 +3053,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.ShowHideAsync(null, true);
@@ -3304,7 +3280,7 @@ internal class DatasetEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.SortAsync(null, ListSortDirection.Ascending);
@@ -3497,7 +3473,7 @@ internal class DatasetEditorViewModelTests
 
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.ContainerLoaded();
 
@@ -3547,7 +3523,7 @@ internal class DatasetEditorViewModelTests
 
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		// Act
 		sut.ViewState = new DatasetEditorState
@@ -3601,7 +3577,7 @@ internal class DatasetEditorViewModelTests
 
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.ContainerLoaded();
 
@@ -3669,7 +3645,7 @@ internal class DatasetEditorViewModelTests
 
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.ContainerLoaded();
 
@@ -3736,11 +3712,11 @@ internal class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.FileId = Guid.NewGuid();
-
 		string? reported = null;
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
 
 		await sut.ContainerLoaded();
 

@@ -1,5 +1,5 @@
 using Avalonia;
-using Avalonia.Threading;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DialogHostAvalonia;
 using System;
@@ -20,10 +20,18 @@ public sealed class ShownDialog : IShownDialog
 	/// Popup of the host that shows the dialog.
 	/// </summary>
 	private readonly DialogOverlayPopupHost _host;
+
+	/// <inheritdoc cref="IUiTimer" />
+	private readonly IUiTimer _uiTimer;
 	#endregion
 
 	#region Constructors
-	public ShownDialog(DialogOverlayPopupHost host) => _host = host;
+	public ShownDialog(DialogOverlayPopupHost host, IUiTimer uiTimer)
+	{
+		_host = host;
+
+		_uiTimer = uiTimer;
+	}
 	#endregion
 
 	#region Methods
@@ -43,7 +51,14 @@ public sealed class ShownDialog : IShownDialog
 			});
 
 		// The animation runs on the render clock, so a stalled one must not hold the answer back.
-		using IDisposable timeout = DispatcherTimer.RunOnce(() => hidden.TrySetResult(), HideTimeout);
+		_uiTimer.Run(
+			() =>
+			{
+				hidden.TrySetResult();
+
+				return false;
+			},
+			HideTimeout);
 
 		await hidden.Task.ConfigureAwait(true);
 	}

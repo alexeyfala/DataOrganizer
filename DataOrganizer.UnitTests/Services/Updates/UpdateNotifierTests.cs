@@ -51,12 +51,14 @@ internal class UpdateNotifierTests
 			builder.RegisterInstance(updateCheckService);
 
 			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(prompt);
 		});
 
 		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await sut.NotifyIfUpdateAvailableAsync(prompt);
+		await sut.NotifyIfUpdateAvailableAsync();
 
 		// Assert
 		await prompt
@@ -90,12 +92,14 @@ internal class UpdateNotifierTests
 			builder.RegisterInstance(updateCheckService);
 
 			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(prompt);
 		});
 
 		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await sut.NotifyIfUpdateAvailableAsync(prompt);
+		await sut.NotifyIfUpdateAvailableAsync();
 
 		// Assert
 		await prompt
@@ -136,12 +140,14 @@ internal class UpdateNotifierTests
 			builder.RegisterInstance(updateCheckService);
 
 			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(prompt);
 		});
 
 		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await sut.NotifyIfUpdateAvailableAsync(prompt);
+		await sut.NotifyIfUpdateAvailableAsync();
 
 		// Assert
 		await prompt
@@ -186,12 +192,14 @@ internal class UpdateNotifierTests
 			builder.RegisterInstance(updateCheckService);
 
 			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(prompt);
 		});
 
 		UpdateNotifier sut = mock.Create<UpdateNotifier>();
 
 		// Act
-		await sut.NotifyIfUpdateAvailableAsync(prompt);
+		await sut.NotifyIfUpdateAvailableAsync();
 
 		// Assert
 		await prompt

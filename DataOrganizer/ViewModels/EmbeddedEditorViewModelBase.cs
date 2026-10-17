@@ -29,12 +29,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// The identifier of the file being edited.
 	/// </summary>
-	public Guid FileId { get; set; }
+	public Guid FileId { get; private set; }
 
 	/// <summary>
 	/// Editor state to start from.
 	/// </summary>
-	public string? InitialEditorState { get; set; }
+	public string? InitialEditorState { get; private set; }
 
 	/// <summary>
 	/// <c>True</c> when the contents could not be read, which closes the editor for changes
@@ -72,17 +72,17 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// Identifier of the password keeper holding the key of the file.
 	/// </summary>
-	public Guid? KeeperId { get; set; }
+	public Guid? KeeperId { get; private set; }
 
 	/// <summary>
 	/// Callback that reports the editor state.
 	/// </summary>
-	public Action<string>? SetEditorStateCallback { get; set; }
+	public Action<string>? SetEditorStateCallback { get; private set; }
 
 	/// <summary>
 	/// Callback that reports the date of change written with an edit of the contents.
 	/// </summary>
-	public Action<DateTime>? SetUpdatedAtCallback { get; set; }
+	public Action<DateTime>? SetUpdatedAtCallback { get; private set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -180,9 +180,22 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 	#region Methods
 	/// <summary>
-	/// Takes the read-only mode over from the work session.
+	/// Takes the file to edit and the read-only mode of the work session.
 	/// </summary>
-	public void Initialize() => IsReadOnly = _sessionReadOnlyMode.IsReadOnly;
+	public virtual void Initialize(EmbeddedEditorSetup setup)
+	{
+		FileId = setup.FileId;
+
+		InitialEditorState = setup.InitialEditorState;
+
+		KeeperId = setup.KeeperId;
+
+		SetEditorStateCallback = setup.SetEditorStateCallback;
+
+		SetUpdatedAtCallback = setup.SetUpdatedAtCallback;
+
+		IsReadOnly = _sessionReadOnlyMode.IsReadOnly;
+	}
 
 	/// <inheritdoc />
 	public void Receive(EditorReadOnlyModeChangedMessage message)

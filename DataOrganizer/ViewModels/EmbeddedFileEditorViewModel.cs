@@ -44,7 +44,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Name of the file, whose extension gives the language of its text.
 	/// </summary>
-	public string? FileName { get; set; }
+	public string? FileName { get; private set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -298,6 +298,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public override void Initialize(EmbeddedEditorSetup setup)
+	{
+		base.Initialize(setup);
+
+		FileName = setup.FileName;
+	}
+
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{

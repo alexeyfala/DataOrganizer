@@ -20,20 +20,28 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
-	public DirectoryAccessor(IExplorerManager explorerManager, IFileSystem fileSystem)
+	public DirectoryAccessor(
+		IExplorerManager explorerManager,
+		IFileSystem fileSystem,
+		ILogger logger)
 	{
 		_explorerManager = explorerManager;
 
 		_fileSystem = fileSystem;
+
+		_logger = logger;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public void OpenAppDirectory(ILogger? logger = null)
+	public void OpenAppDirectory()
 	{
 		try
 		{
@@ -47,21 +55,21 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 			if (!string.IsNullOrEmpty(appTarget))
 			{
-				RevealFile(appTarget, logger);
+				RevealFile(appTarget);
 			}
 			else
 			{
-				OpenDirectory(AppContext.BaseDirectory, logger);
+				OpenDirectory(AppContext.BaseDirectory);
 			}
 		}
 		catch (Exception ex)
 		{
-			logger?.LogException(ex);
+			_logger.LogException(ex);
 		}
 	}
 
 	/// <inheritdoc />
-	public void OpenDirectory(string directoryPath, ILogger? logger = null)
+	public void OpenDirectory(string directoryPath)
 	{
 		try
 		{
@@ -74,7 +82,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			}
 			catch (Exception ex)
 			{
-				logger?.LogException(ex);
+				_logger.LogException(ex);
 			}
 
 			Process.Start(
@@ -83,12 +91,12 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		}
 		catch (Exception ex)
 		{
-			logger?.LogException(ex);
+			_logger.LogException(ex);
 		}
 	}
 
 	/// <inheritdoc />
-	public void RevealFile(string filePath, ILogger? logger = null)
+	public void RevealFile(string filePath)
 	{
 		try
 		{
@@ -98,7 +106,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			{
 				if (Path.GetDirectoryName(filePath) is { Length: > 0 } fallbackDirectory)
 				{
-					OpenDirectory(fallbackDirectory, logger);
+					OpenDirectory(fallbackDirectory);
 				}
 
 				return;
@@ -118,11 +126,11 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 				return;
 			}
 
-			OpenDirectory(directory, logger);
+			OpenDirectory(directory);
 		}
 		catch (Exception ex)
 		{
-			logger?.LogException(ex);
+			_logger.LogException(ex);
 		}
 	}
 	#endregion

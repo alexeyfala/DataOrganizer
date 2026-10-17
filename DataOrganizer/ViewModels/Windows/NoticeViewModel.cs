@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces.Storage;
-using Serilog;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -54,26 +53,16 @@ internal sealed partial class NoticeViewModel : ObservableObject
 			return;
 		}
 
-		_directoryAccessor.RevealFile(filePath, _logger);
+		_directoryAccessor.RevealFile(filePath);
 	}
 	#endregion
 
 	#region Data
 	/// <inheritdoc cref="IDirectoryAccessor" />
 	private readonly IDirectoryAccessor _directoryAccessor;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
-	public NoticeViewModel(
-		IDirectoryAccessor directoryAccessor,
-		ILogger logger)
-	{
-		_directoryAccessor = directoryAccessor;
-
-		_logger = logger;
-	}
+	public NoticeViewModel(IDirectoryAccessor directoryAccessor) => _directoryAccessor = directoryAccessor;
 	#endregion
 }

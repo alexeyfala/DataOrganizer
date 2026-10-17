@@ -109,9 +109,6 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 	/// <inheritdoc cref="IUpdateNotifier" />
 	private readonly IUpdateNotifier _updateNotifier;
-
-	/// <inheritdoc cref="IUpdatePrompt" />
-	private readonly IUpdatePrompt _updatePrompt;
 	#endregion
 
 	#region Constructors
@@ -141,7 +138,6 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
-		IUpdatePrompt updatePrompt,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_app = app;
@@ -193,8 +189,6 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 		_settingsStore = settingsStore;
 
 		_updateNotifier = updateNotifier;
-
-		_updatePrompt = updatePrompt;
 
 		messenger.RegisterAll(this);
 	}
@@ -306,7 +300,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>
 
 			mainWindow.Show();
 
-			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(_updatePrompt, token));
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(token));
 		}
 		catch (Exception ex)
 		{

@@ -10,7 +10,6 @@ using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -151,7 +150,7 @@ internal class ConsoleViewModelTests
 		// Assert
 		directoryAccessor
 			.Received(1)
-			.OpenDirectory(directoryPath, Arg.Any<ILogger?>());
+			.OpenDirectory(directoryPath);
 	}
 
 	/// <summary>
@@ -173,7 +172,7 @@ internal class ConsoleViewModelTests
 		// Assert
 		directoryAccessor
 			.Received(1)
-			.OpenAppDirectory(Arg.Any<ILogger?>());
+			.OpenAppDirectory();
 	}
 
 	/// <summary>

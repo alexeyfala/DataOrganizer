@@ -9,6 +9,7 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Serilog;
@@ -153,7 +154,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		await sut.InvokeSaveContentsAsync(RandomValues.CreateBytes(10), FileContentsChange.View);
@@ -193,13 +194,12 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		TestEditor sut = mock.Create<TestEditor>();
 
-		sut.FileId = Guid.NewGuid();
-
-		sut.KeeperId = Guid.NewGuid();
-
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			keeperId: Guid.NewGuid(),
+			setUpdatedAtCallback: x => reported = x));
 
 		// Act
 		FileContentsWriteStatus status = await sut.InvokeSaveContentsAsync(contents, FileContentsChange.Edit);

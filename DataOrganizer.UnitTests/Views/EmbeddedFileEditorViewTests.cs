@@ -15,6 +15,7 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
@@ -145,7 +146,7 @@ internal class EmbeddedFileEditorViewTests
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.FileName = PowerShellFileName;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: PowerShellFileName));
 
 		await viewModel.EditorLoaded();
 
@@ -213,7 +214,7 @@ internal class EmbeddedFileEditorViewTests
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.FileName = PowerShellFileName;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: PowerShellFileName));
 
 		await viewModel.EditorLoaded();
 
@@ -748,7 +749,7 @@ internal class EmbeddedFileEditorViewTests
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.KeeperId = isEncrypted ? Guid.NewGuid() : null;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
 
 		// Act
 		EmbeddedFileEditorView sut = new(viewModel);
@@ -1025,7 +1026,7 @@ internal class EmbeddedFileEditorViewTests
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.FileName = PowerShellFileName;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: PowerShellFileName));
 
 		await viewModel.EditorLoaded();
 
@@ -1078,7 +1079,7 @@ internal class EmbeddedFileEditorViewTests
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
-		viewModel.FileName = PowerShellFileName;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: PowerShellFileName));
 
 		await viewModel.EditorLoaded();
 

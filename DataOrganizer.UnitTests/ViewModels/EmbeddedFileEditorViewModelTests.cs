@@ -17,6 +17,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -162,7 +163,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -409,7 +410,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		// Act
 		await sut.EditorLoaded();
@@ -669,7 +670,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = keeperId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: keeperId));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1209,7 +1210,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileName = "script.ps1";
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: "script.ps1"));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1413,7 +1414,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = fileId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1559,7 +1560,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -1622,10 +1623,11 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.InitialEditorState = new SystemTextJsonSerializer().Serialize(new FileEditorState
-		{
-			WordWrap = true
-		});
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			initialEditorState: new SystemTextJsonSerializer().Serialize(new FileEditorState
+			{
+				WordWrap = true
+			})));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1719,7 +1721,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileName = fileName;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: fileName));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1828,7 +1830,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileName = fileName;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileName: fileName));
 
 		// Act
 		await sut.EditorLoaded();
@@ -1905,7 +1907,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -2103,7 +2105,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -2184,7 +2186,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -2248,7 +2250,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -2361,7 +2363,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -2431,7 +2433,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -2482,7 +2484,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = fileId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		sut.Editor.IsSplit = true;
 
@@ -2510,7 +2512,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = fileId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		sut.Editor.SplitShare = 0.25;
 
@@ -2583,7 +2585,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3069,7 +3071,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -3147,7 +3149,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3244,7 +3246,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3401,7 +3403,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3484,7 +3486,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3638,7 +3640,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: Guid.NewGuid()));
 
 		await sut.EditorLoaded();
 
@@ -3736,7 +3738,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = fileId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		// Act
 		sut.ShowInListCommand.Execute(null);
@@ -3762,7 +3764,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = fileId;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		sut.Editor.IsSplit = true;
 
@@ -3817,9 +3819,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileName = fileName;
-
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileName: fileName,
+			setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -3880,9 +3882,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileName = fileName;
-
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileName: fileName,
+			setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -3943,9 +3945,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.KeeperId = Guid.NewGuid();
-
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			keeperId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -4075,7 +4077,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -4152,9 +4154,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.FileId = file.Id;
-
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: file.Id,
+			setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -4242,7 +4244,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		sut.SetEditorStateCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 
@@ -4322,7 +4324,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		DateTime? reported = null;
 
-		sut.SetUpdatedAtCallback = x => reported = x;
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		await sut.EditorLoaded();
 

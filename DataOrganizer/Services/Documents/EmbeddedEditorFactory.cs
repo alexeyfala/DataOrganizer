@@ -24,7 +24,7 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 		EmbeddedEditorViewModelBase? viewModel = file.Kind switch
 		{
 			EntityKind.Dataset => _viewModelFactory.CreateViewModel<DatasetEditorViewModel>(),
-			EntityKind.File => CreateFileEditor(file),
+			EntityKind.File => _viewModelFactory.CreateViewModel<EmbeddedFileEditorViewModel>(),
 			_ => null
 		};
 
@@ -33,31 +33,15 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 			return null;
 		}
 
-		viewModel.FileId = file.Id;
-
-		viewModel.InitialEditorState = file.EditorState;
-
-		viewModel.KeeperId = file.FindUnlockedKeeper()?.Id;
-
-		viewModel.SetEditorStateCallback = state => file.EditorState = state;
-
-		viewModel.SetUpdatedAtCallback = updatedAt => file.UpdatedAt = updatedAt;
-
-		viewModel.Initialize();
-
-		return viewModel;
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates the editor of the text of a file, which takes the language of the text from the name of the file.
-	/// </summary>
-	private EmbeddedFileEditorViewModel CreateFileEditor(FileDto file)
-	{
-		EmbeddedFileEditorViewModel viewModel = _viewModelFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
-
-		viewModel.FileName = file.Name;
+		viewModel.Initialize(new()
+		{
+			FileId = file.Id,
+			FileName = file.Name,
+			InitialEditorState = file.EditorState,
+			KeeperId = file.FindUnlockedKeeper()?.Id,
+			SetEditorStateCallback = state => file.EditorState = state,
+			SetUpdatedAtCallback = updatedAt => file.UpdatedAt = updatedAt
+		});
 
 		return viewModel;
 	}

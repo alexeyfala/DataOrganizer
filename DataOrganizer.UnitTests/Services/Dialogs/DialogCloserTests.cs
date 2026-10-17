@@ -7,9 +7,13 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Services;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Extensions;
 using System;
@@ -145,7 +149,97 @@ internal class DialogCloserTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogCloser.FindShownDialog" />: the wait of a dialog whose fade never ends runs out by itself after
+	/// the fallback time, not earlier.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindShownDialog_Ends_The_Wait_When_The_Fade_Stalls()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		Window window = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([window]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<UiTimer>()
+				.As<IUiTimer>();
+		});
+
+		DialogCloser sut = mock.Create<DialogCloser>();
+
+		window.Show();
+
+		_ = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
+
+		Dispatcher.UIThread.RunJobs();
+
+		IShownDialog shown = sut.FindShownDialog(DialogHostIdentifiers.Main)!;
+
+		// Act
+		// The dialog stays open, as a fade that never ends would leave it.
+		Task hiding = shown.WaitUntilHiddenAsync();
+
+		time.Advance(TimeSpan.FromSeconds(2.9));
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isHiddenEarly = hiding.IsCompleted;
+
+		time.Advance(TimeSpan.FromSeconds(0.1));
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Taken before the close, which would end the wait by itself.
+		bool isHidden = hiding.IsCompleted;
+
+		DialogHost.Close(DialogHostIdentifiers.Main);
+
+		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
+		window.Close();
+
+		// Assert
+		isHiddenEarly
+			.Should()
+			.BeFalse();
+
+		isHidden
+			.Should()
+			.BeTrue();
+
+	}
+
+	/// <summary>
 	/// <see cref="DialogCloser.FindShownDialog" />: a host that shows no dialog has none to find.
+
+
 	/// </summary>
 	[AvaloniaTest]
 	public void FindShownDialog_Finds_None_While_The_Host_Shows_None()

@@ -35,15 +35,12 @@ internal class AppControllerTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: once the main window shows, the update check asks through the update
-	/// prompt.
+	/// <see cref="AppController.LaunchAppAsync" />: once the main window shows, the application checks for an update.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task LaunchAppAsync_Checks_For_An_Update_With_The_Update_Prompt()
+	public async Task LaunchAppAsync_Checks_For_An_Update()
 	{
 		// Arrange
-		IUpdatePrompt updatePrompt = Substitute.For<IUpdatePrompt>();
-
 		IUpdateNotifier updateNotifier = Substitute.For<IUpdateNotifier>();
 
 		Window mainWindow = new();
@@ -74,8 +71,6 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(updateNotifier);
 
-			builder.RegisterInstance(updatePrompt);
-
 			builder.RegisterInstance(mainWindowLauncher);
 
 			builder
@@ -94,7 +89,8 @@ internal class AppControllerTests
 		// Assert
 		await updateNotifier
 			.Received(1)
-			.NotifyIfUpdateAvailableAsync(updatePrompt, Arg.Any<CancellationToken>());
+			.NotifyIfUpdateAvailableAsync(Arg.Any<CancellationToken>());
+
 	}
 
 	/// <summary>

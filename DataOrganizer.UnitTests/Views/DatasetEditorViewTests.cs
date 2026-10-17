@@ -641,7 +641,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -812,11 +812,12 @@ internal class DatasetEditorViewTests
 
 		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
 
-		viewModel.InitialEditorState = new SystemTextJsonSerializer().Serialize(new DatasetEditorState
-		{
-			TopRecordIndex = StoredRecordIndex,
-			WithinRecordOffset = WithinRecordOffset
-		});
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			initialEditorState: new SystemTextJsonSerializer().Serialize(new DatasetEditorState
+			{
+				TopRecordIndex = StoredRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			})));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -971,7 +972,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1184,7 +1185,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1260,7 +1261,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1341,7 +1342,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1421,11 +1422,12 @@ internal class DatasetEditorViewTests
 
 		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
 
-		viewModel.IsReadOnly = true;
-
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
+
+		viewModel.IsReadOnly = true;
+
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1504,11 +1506,11 @@ internal class DatasetEditorViewTests
 
 		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
 
-		viewModel.FileId = Guid.NewGuid();
-
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1591,11 +1593,11 @@ internal class DatasetEditorViewTests
 
 		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
 
-		viewModel.FileId = Guid.NewGuid();
-
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1680,11 +1682,11 @@ internal class DatasetEditorViewTests
 
 		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
 
-		viewModel.FileId = Guid.NewGuid();
-
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 
@@ -1769,7 +1771,7 @@ internal class DatasetEditorViewTests
 
 		string? reported = null;
 
-		viewModel.SetEditorStateCallback = x => reported = x;
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setEditorStateCallback: x => reported = x));
 
 		DatasetEditorView sut = new(viewModel);
 

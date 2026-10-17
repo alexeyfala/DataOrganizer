@@ -1,5 +1,3 @@
-using Serilog;
-
 namespace DataOrganizer.Interfaces.Storage;
 
 /// <summary>
@@ -11,16 +9,16 @@ public interface IDirectoryAccessor
 	/// <summary>
 	/// Opens the directory containing the application and selects it.
 	/// </summary>
-	void OpenAppDirectory(ILogger? logger = null);
+	void OpenAppDirectory();
 
 	/// <summary>
 	/// Opens the specified directory.
 	/// </summary>
-	void OpenDirectory(string directoryPath, ILogger? logger = null);
+	void OpenDirectory(string directoryPath);
 
 	/// <summary>
 	/// Opens the directory containing the specified file (or bundle) and selects it.
 	/// </summary>
-	void RevealFile(string filePath, ILogger? logger = null);
+	void RevealFile(string filePath);
 	#endregion
 }

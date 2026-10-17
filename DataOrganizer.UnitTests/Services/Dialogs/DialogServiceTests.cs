@@ -430,7 +430,7 @@ internal class DialogServiceTests
 		app.ApplicationLifetime = lifetime;
 
 		YesNoCancelBoxViewModel viewModel = new(
-			new DialogCloser(app),
+			new DialogCloser(app, Substitute.For<IUiTimer>()),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>

@@ -50,7 +50,6 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Material.Styles.Controls;
 using NSubstitute;
-using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -4745,7 +4744,7 @@ internal class ViewLauncherTests
 		// Arrange
 		const string databaseFilePath = @"C:\Database\DataOrganizer.sqlite";
 
-		NoticeViewModel viewModel = new(Substitute.For<IDirectoryAccessor>(), Substitute.For<ILogger>());
+		NoticeViewModel viewModel = new(Substitute.For<IDirectoryAccessor>());
 
 		NoticeWindow window = new(viewModel);
 
