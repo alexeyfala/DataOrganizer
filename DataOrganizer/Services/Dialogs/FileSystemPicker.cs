@@ -1,8 +1,7 @@
-using Avalonia;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Views;
 using Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +12,12 @@ namespace DataOrganizer.Services.Dialogs;
 public sealed class FileSystemPicker : IFileSystemPicker
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
 	#endregion
 
 	#region Constructors
-	public FileSystemPicker(Application app) => _app = app;
+	public FileSystemPicker(IWindowFinder windowFinder) => _windowFinder = windowFinder;
 	#endregion
 
 	#region Methods
@@ -73,7 +72,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	/// </summary>
 	private IStorageProvider? FindStorageProvider()
 	{
-		return _app
+		return _windowFinder
 			.FindMainWindow()?
 			.StorageProvider;
 	}

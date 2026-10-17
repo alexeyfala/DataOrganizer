@@ -19,6 +19,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Settings;
+using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
@@ -430,7 +431,7 @@ internal class DialogServiceTests
 		app.ApplicationLifetime = lifetime;
 
 		YesNoCancelBoxViewModel viewModel = new(
-			new DialogCloser(app, Substitute.For<IUiTimer>()),
+			new DialogCloser(new DesktopAccessor(app, Substitute.For<IProcessTerminator>()), Substitute.For<IUiTimer>()),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>

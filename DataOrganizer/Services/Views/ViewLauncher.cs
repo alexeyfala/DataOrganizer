@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
@@ -30,9 +29,6 @@ namespace DataOrganizer.Services.Views;
 public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWindowLauncher
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
@@ -54,13 +50,15 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
+
 	/// <inheritdoc cref="IWindowSettingsStore" />
 	private readonly IWindowSettingsStore _windowSettings;
 	#endregion
 
 	#region Constructors
 	public ViewLauncher(
-		Application app,
 		IAppEnvironment appEnvironment,
 		IClipboardHistoryUnlocker clipboardHistoryUnlocker,
 		ICopyHistoryStore copyHistory,
@@ -68,10 +66,9 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
+		IWindowFinder windowFinder,
 		IWindowSettingsStore windowSettings)
 	{
-		_app = app;
-
 		_appEnvironment = appEnvironment;
 
 		_clipboardHistoryUnlocker = clipboardHistoryUnlocker;
@@ -85,6 +82,8 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		_messenger = messenger;
 
 		_viewFactory = viewFactory;
+
+		_windowFinder = windowFinder;
 
 		_windowSettings = windowSettings;
 	}
@@ -182,7 +181,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void ActivateMainWindow()
 	{
-		if (_app.FindMainWindow() is not { } window)
+		if (_windowFinder.FindMainWindow() is not { } window)
 		{
 			return;
 		}
@@ -193,7 +192,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void CenterMainWindow(Window owner)
 	{
-		if (_app.FindMainWindow() is not { } window)
+		if (_windowFinder.FindMainWindow() is not { } window)
 		{
 			return;
 		}
@@ -204,7 +203,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void CenterNotepadWindow(Window owner)
 	{
-		if (_app.FindWindow<NotepadWindow>() is not { } window)
+		if (_windowFinder.FindWindow<NotepadWindow>() is not { } window)
 		{
 			return;
 		}
@@ -215,11 +214,11 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public async Task CloseSecondaryWindowsAsync()
 	{
-		if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
+		if (_windowFinder.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
 		{
 			console.Close();
 
-			while (_app.HasWindow<ConsoleWindow>())
+			while (_windowFinder.FindWindow<ConsoleWindow>() is not null)
 			{
 				await Task
 					.Delay(300)
@@ -228,7 +227,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 		}
 
 		// Closed here, so that it saves its settings while the services are still alive.
-		if (_app.FindWindow<NotepadWindow>() is { } notepad)
+		if (_windowFinder.FindWindow<NotepadWindow>() is { } notepad)
 		{
 			notepad.Close();
 		}
@@ -319,7 +318,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync(Window owner)
 	{
-		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
+		if (_windowFinder.FindWindow<ClipboardLogWindow>() is { } existing)
 		{
 			WindowPlacementHelper.PositionAtScreenBottomRight(existing, owner);
 
@@ -338,7 +337,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void ShowFavorites()
 	{
-		if (_app.FindDataContext<FavoritesViewModel>() is not { } favorites)
+		if (_windowFinder.FindMainWindow()?.DataContext is not FavoritesViewModel favorites)
 		{
 			return;
 		}
@@ -349,7 +348,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void ShowInEditor(Guid id)
 	{
-		if (_app.FindDataContext<ViewModelBase>(out Window? window) is not { } viewModel || window is null)
+		if (_windowFinder.FindMainWindow() is not { DataContext: ViewModelBase viewModel } window)
 		{
 			return;
 		}
@@ -373,7 +372,7 @@ public class ViewLauncher : IMainWindowLauncher, INoticeLauncher, ISecondaryWind
 	/// <inheritdoc />
 	public void ShowNotepadWindow(Window owner)
 	{
-		if (_app.FindWindow<NotepadWindow>() is { } existing)
+		if (_windowFinder.FindWindow<NotepadWindow>() is { } existing)
 		{
 			existing.RestoreAndActivate();
 

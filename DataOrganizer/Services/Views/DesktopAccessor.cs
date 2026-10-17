@@ -1,14 +1,22 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using DataOrganizer.Extensions;
+using Avalonia.LogicalTree;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.ViewModels;
+using DialogHostAvalonia;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.Services.Views;
 
 /// <summary>
-/// The desktop the application runs on.
+/// The desktop the application runs on: its open windows and its end.
 /// </summary>
-public sealed class DesktopAccessor : IAppShutdown
+public sealed class DesktopAccessor : IAppShutdown, IDialogHostFinder, IWindowCloser, IWindowFinder
 {
 	#region Data
 	/// <inheritdoc cref="Application" />
@@ -27,11 +35,50 @@ public sealed class DesktopAccessor : IAppShutdown
 	}
 	#endregion
 
+	#region Properties
+	/// <summary>
+	/// The desktop lifetime of the application; <c>null</c> where there is no desktop.
+	/// </summary>
+	private IClassicDesktopStyleApplicationLifetime? Desktop => _app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+
+	/// <summary>
+	/// The open windows, the first opened first.
+	/// </summary>
+	private IReadOnlyList<Window> Windows => Desktop?.Windows ?? [];
+	#endregion
+
 	#region Methods
+	/// <inheritdoc />
+	public void CloseAllWindows()
+	{
+		Windows
+			.ToList()
+			.ForEach(x => x.Close());
+	}
+
+	/// <inheritdoc />
+	public DialogHost? FindDialogHost(string identifier)
+	{
+		return Windows
+			.SelectMany(x => x.GetLogicalDescendants().OfType<DialogHost>())
+			.FirstOrDefault(x => x.Identifier == identifier);
+	}
+
+	/// <inheritdoc />
+	public Window? FindMainWindow() => FindWindow<Window>(x => x.DataContext is ViewModelBase);
+
+	/// <inheritdoc />
+	public T? FindWindow<T>(Predicate<T>? condition = null) where T : Window
+	{
+		return Windows
+			.OfType<T>()
+			.FirstOrDefault(x => condition?.Invoke(x) != false);
+	}
+
 	/// <inheritdoc />
 	public void Shutdown()
 	{
-		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		if (Desktop is { } desktop)
 		{
 			desktop.Shutdown();
 

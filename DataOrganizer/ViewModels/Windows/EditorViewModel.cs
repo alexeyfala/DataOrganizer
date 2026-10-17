@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -125,6 +124,11 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsRightSideSheetOpened { get; set; }
+
+	/// <summary>
+	/// <c>True</c> while the window of the editor is loaded and visible.
+	/// </summary>
+	public bool IsWindowShown { get; set; }
 
 	/// <summary>
 	/// Width of the navigation column.
@@ -963,9 +967,6 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
@@ -1066,7 +1067,6 @@ public sealed partial class EditorViewModel :
 
 	#region Constructors
 	public EditorViewModel(
-		Application app,
 		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
@@ -1115,8 +1115,6 @@ public sealed partial class EditorViewModel :
 			viewModelFactory)
 	{
 		EditingFiles = editingFiles;
-
-		_app = app;
 
 		_autoLock = autoLock;
 
@@ -1598,7 +1596,7 @@ public sealed partial class EditorViewModel :
 	{
 		if (IsReadOnly
 			|| IsActionInProgress
-			|| _app.HasWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
+			|| !IsWindowShown)
 		{
 			return;
 		}

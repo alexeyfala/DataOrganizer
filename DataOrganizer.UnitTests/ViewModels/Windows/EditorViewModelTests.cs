@@ -4207,6 +4207,9 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
+
 		sut.Hierarchy.Add(selected);
 
 		sut.SelectedObject = selected;
@@ -4331,6 +4334,9 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
+
 		sut.Hierarchy.AddRange([left, chosen]);
 
 		sut.SelectedObject = left;
@@ -4374,6 +4380,9 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
+
 		sut.Hierarchy.Add(chosen);
 
 		sut.IsReadOnly = true;
@@ -4414,6 +4423,9 @@ internal class EditorViewModelTests
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
 
 		sut.Hierarchy.Add(removed);
 
@@ -4465,6 +4477,9 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
+
 		sut.Hierarchy.AddRange([left, chosen]);
 
 		sut.SelectedObject = left;
@@ -4508,6 +4523,9 @@ internal class EditorViewModelTests
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
 
 		sut.Hierarchy.Add(chosen);
 
@@ -4590,6 +4608,9 @@ internal class EditorViewModelTests
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// The window of the editor is shown, as in the application.
+		sut.IsWindowShown = true;
 
 		sut.Hierarchy.AddRange([left, chosen]);
 

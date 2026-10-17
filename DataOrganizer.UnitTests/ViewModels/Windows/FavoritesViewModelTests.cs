@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
@@ -12,6 +13,7 @@ using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -25,14 +27,17 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using DialogHostAvalonia;
 using NSubstitute;
 using Serilog;
 using Shared.Extensions;
@@ -81,7 +86,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
+	/// <see cref="FavoritesViewModel(IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDialogCloser, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -131,7 +136,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
+	/// <see cref="FavoritesViewModel(IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDialogCloser, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
 	/// the clipboard history is on as the settings track it.
 	/// </summary>
 	[Test]
@@ -416,6 +421,73 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings
 			.Should()
 			.BeEquivalentTo(favoritesSettings, static options => options.Excluding(x => x.Categories));
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.IsPopupOpen" />: closing the popup closes the dialog of the main dialog host.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsPopupOpen_Closes_The_Dialog_Of_The_Main_Host_When_The_Popup_Closes()
+	{
+		// Arrange
+		Window window = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([window]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<DialogCloser>()
+				.As<IDialogCloser>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		window.Show();
+
+		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.IsPopupOpen = true;
+
+		// Act
+		sut.IsPopupOpen = false;
+
+		bool isClosed = dialogClosed.IsCompleted;
+
+		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
+		window.Close();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

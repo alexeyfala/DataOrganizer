@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
@@ -171,6 +172,73 @@ internal class ConsoleWindowHostTests
 		consoleWindow.WindowStartupLocation
 			.Should()
 			.Be(WindowStartupLocation.CenterScreen);
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleWindowHost.ConfigureAndShowAsync" />: closing the console closes the other windows too, so the
+	/// application ends.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConfigureAndShowAsync_Closes_Every_Window_When_The_Console_Closes()
+	{
+		// Arrange
+		bool isMainWindowClosed = false;
+
+		ConsoleViewModel viewModel = new(
+			Substitute.For<IAppEnvironment>(),
+			Substitute.For<IDirectoryAccessor>(),
+			new InlineDispatcherAccessor());
+
+		ConsoleWindow consoleWindow = new(viewModel);
+
+		Window mainWindow = new();
+
+		mainWindow.Closed += (_, _) => isMainWindowClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			lifetime
+				.Windows
+				.Returns([consoleWindow, mainWindow]);
+
+			app.ApplicationLifetime = lifetime;
+
+			viewFactory
+				.CreateViewModel<ConsoleViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
+				.Returns(consoleWindow);
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+		});
+
+		ConsoleWindowHost sut = mock.Create<ConsoleWindowHost>();
+
+		_ = sut.ConfigureAndShowAsync();
+
+		mainWindow.Show();
+
+		// Act
+		consoleWindow.Close();
+
+		// Assert
+		isMainWindowClosed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

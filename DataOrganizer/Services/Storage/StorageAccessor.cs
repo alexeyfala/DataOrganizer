@@ -1,7 +1,7 @@
-using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Interfaces.Views;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Storage;
@@ -9,19 +9,19 @@ namespace DataOrganizer.Services.Storage;
 public sealed class StorageAccessor : IStorageAccessor
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
 	#endregion
 
 	#region Constructors
-	public StorageAccessor(Application app) => _app = app;
+	public StorageAccessor(IWindowFinder windowFinder) => _windowFinder = windowFinder;
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
 	public Task<IStorageFile?> TryGetFileFromPathAsync(string filePath)
 	{
-		if (_app.FindStorageProvider() is not { } provider)
+		if (FindStorageProvider() is not { } provider)
 		{
 			return Task.FromResult(default(IStorageFile));
 		}
@@ -32,12 +32,19 @@ public sealed class StorageAccessor : IStorageAccessor
 	/// <inheritdoc />
 	public Task<IStorageFolder?> TryGetFolderFromPathAsync(string folderPath)
 	{
-		if (_app.FindStorageProvider() is not { } provider)
+		if (FindStorageProvider() is not { } provider)
 		{
 			return Task.FromResult(default(IStorageFolder));
 		}
 
 		return provider.TryGetFolderFromPathAsync(folderPath);
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Finds the storage of the first open window.
+	/// </summary>
+	private IStorageProvider? FindStorageProvider() => _windowFinder.FindWindow<Window>()?.StorageProvider;
 	#endregion
 }

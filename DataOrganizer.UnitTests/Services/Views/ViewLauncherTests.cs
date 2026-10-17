@@ -112,6 +112,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -189,6 +193,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -240,6 +248,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -294,6 +306,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -356,6 +372,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -406,6 +426,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -417,6 +441,61 @@ internal class ViewLauncherTests
 
 		// Assert
 		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: a console that has saved its log is left to its own closing.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CloseSecondaryWindowsAsync_Leaves_A_Console_That_Saved_Its_Log()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		ConsoleWindow console = new(new ConsoleViewModel(
+			Substitute.For<IAppEnvironment>(),
+			Substitute.For<IDirectoryAccessor>(),
+			new InlineDispatcherAccessor())
+		{
+			IsSaved = true
+		});
+
+		console.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns(_ => isClosed ? [] : [console]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		console.Show();
+
+		// Act
+		await sut.CloseSecondaryWindowsAsync();
+
+		bool isLeftOpen = !isClosed;
+
+		console.Close();
+
+		// Assert
+		isLeftOpen
 			.Should()
 			.BeTrue();
 	}
@@ -459,6 +538,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -3216,6 +3299,10 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(app).As<Application>();
 
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+
 			builder.RegisterInstance(viewFactory);
 		});
 
@@ -3738,6 +3825,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -3809,6 +3900,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -4525,6 +4620,10 @@ internal class ViewLauncherTests
 			app.ApplicationLifetime = lifetime;
 
 			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 
 			builder.RegisterInstance(viewFactory);
 		});

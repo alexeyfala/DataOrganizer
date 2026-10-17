@@ -99,7 +99,7 @@ public sealed class App : Application
 	{
 		base.OnFrameworkInitializationCompleted();
 
-		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop)
+		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop
 			|| Services is not { } serviceProvider)
 		{
 			return;
@@ -156,6 +156,7 @@ public sealed class App : Application
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDekCipher, EncryptionService>();
 		services.AddTransient<IDialogCloser, DialogCloser>();
+		services.AddTransient<IDialogHostFinder, DesktopAccessor>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
@@ -218,6 +219,8 @@ public sealed class App : Application
 		services.AddTransient<IUpdatePrompt, UpdatePromptRelay>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewModelFactory, ViewFactory>();
+		services.AddTransient<IWindowCloser, DesktopAccessor>();
+		services.AddTransient<IWindowFinder, DesktopAccessor>();
 		services.AddTransient<IWindowSettingsStore, WindowSettingsStore>();
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
@@ -495,7 +498,7 @@ public sealed class App : Application
 	/// </remarks>
 	private void Bootstrap()
 	{
-		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
 		{
 			return;
 		}

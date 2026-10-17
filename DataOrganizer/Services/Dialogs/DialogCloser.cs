@@ -1,5 +1,3 @@
-using Avalonia;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DialogHostAvalonia;
@@ -11,17 +9,17 @@ namespace DataOrganizer.Services.Dialogs;
 public sealed class DialogCloser : IDialogCloser
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
+	/// <inheritdoc cref="IDialogHostFinder" />
+	private readonly IDialogHostFinder _dialogHostFinder;
 
 	/// <inheritdoc cref="IUiTimer" />
 	private readonly IUiTimer _uiTimer;
 	#endregion
 
 	#region Constructors
-	public DialogCloser(Application app, IUiTimer uiTimer)
+	public DialogCloser(IDialogHostFinder dialogHostFinder, IUiTimer uiTimer)
 	{
-		_app = app;
+		_dialogHostFinder = dialogHostFinder;
 
 		_uiTimer = uiTimer;
 	}
@@ -31,7 +29,7 @@ public sealed class DialogCloser : IDialogCloser
 	/// <inheritdoc />
 	public Task CloseAsync(string dialogHostIdentifier)
 	{
-		if (!_app.IsDialogHostOpened(dialogHostIdentifier))
+		if (!IsOpened(dialogHostIdentifier))
 		{
 			return Task.CompletedTask;
 		}
@@ -46,13 +44,23 @@ public sealed class DialogCloser : IDialogCloser
 	/// <inheritdoc />
 	public IShownDialog? FindShownDialog(string dialogHostIdentifier)
 	{
-		if (!_app.IsDialogHostOpened(dialogHostIdentifier)
+		if (!IsOpened(dialogHostIdentifier)
 			|| DialogHost.GetDialogSession(dialogHostIdentifier)?.Host is not { } host)
 		{
 			return null;
 		}
 
 		return new ShownDialog(host, _uiTimer);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> when the dialog host with <paramref name="dialogHostIdentifier" /> shows a dialog.
+	/// </summary>
+	private bool IsOpened(string dialogHostIdentifier)
+	{
+		return _dialogHostFinder.FindDialogHost(dialogHostIdentifier) is { IsOpen: true };
 	}
 	#endregion
 }

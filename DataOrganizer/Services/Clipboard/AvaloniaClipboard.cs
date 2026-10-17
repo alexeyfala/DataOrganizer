@@ -1,11 +1,11 @@
-using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Views;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,21 +14,21 @@ namespace DataOrganizer.Services.Clipboard;
 public sealed class AvaloniaClipboard : IAvaloniaClipboard
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
+
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
 	#endregion
 
 	#region Constructors
 	public AvaloniaClipboard(
-		Application app,
-		IDispatcherAccessor dispatcher)
+		IDispatcherAccessor dispatcher,
+		IWindowFinder windowFinder)
 	{
-		_app = app;
-
 		_dispatcher = dispatcher;
+
+		_windowFinder = windowFinder;
 	}
 	#endregion
 
@@ -36,7 +36,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task ClearAsync()
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.CompletedTask;
 		}
@@ -47,7 +47,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task<IReadOnlyList<DataFormat>> GetDataFormatsAsync()
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.FromResult<IReadOnlyList<DataFormat>>([]);
 		}
@@ -58,7 +58,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task SetBitmapAsync(Bitmap bitmap)
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.CompletedTask;
 		}
@@ -69,7 +69,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task SetDataAsync(DataTransfer transfer)
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.CompletedTask;
 		}
@@ -80,7 +80,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task<Bitmap?> TryGetBitmapAsync()
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.FromResult(default(Bitmap));
 		}
@@ -91,7 +91,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task<IStorageItem[]?> TryGetFilesAsync()
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.FromResult(default(IStorageItem[]));
 		}
@@ -102,7 +102,7 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task<string?> TryGetTextAsync()
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.FromResult(default(string));
 		}
@@ -113,12 +113,19 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	/// <inheritdoc />
 	public Task<T?> TryGetValueAsync<T>(DataFormat<T> format) where T : class
 	{
-		if (_app.FindClipboard() is not { } clipboard)
+		if (FindClipboard() is not { } clipboard)
 		{
 			return Task.FromResult(default(T));
 		}
 
 		return _dispatcher.PostAsync(() => clipboard.TryGetValueAsync(format));
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Finds the clipboard of the first open window.
+	/// </summary>
+	private IClipboard? FindClipboard() => _windowFinder.FindWindow<Window>()?.Clipboard;
 	#endregion
 }

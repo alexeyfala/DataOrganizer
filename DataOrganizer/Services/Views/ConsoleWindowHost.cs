@@ -1,6 +1,4 @@
-using Avalonia;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
@@ -18,9 +16,6 @@ namespace DataOrganizer.Services.Views;
 internal sealed class ConsoleWindowHost : IConsoleWindowHost
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
@@ -30,24 +25,27 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	/// <inheritdoc cref="ConsoleViewModel" />
 	private readonly ConsoleViewModel _viewModel;
 
+	/// <inheritdoc cref="IWindowCloser" />
+	private readonly IWindowCloser _windowCloser;
+
 	/// <inheritdoc cref="IWindowSettingsStore" />
 	private readonly IWindowSettingsStore _windowSettings;
 	#endregion
 
 	#region Constructors
 	public ConsoleWindowHost(
-		Application app,
 		IAppEnvironment appEnvironment,
 		IViewFactory viewFactory,
+		IWindowCloser windowCloser,
 		IWindowSettingsStore windowSettings)
 	{
-		_app = app;
-
 		_appEnvironment = appEnvironment;
 
 		_viewFactory = viewFactory;
 
 		_viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
+
+		_windowCloser = windowCloser;
 
 		_windowSettings = windowSettings;
 	}
@@ -101,7 +99,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 				_viewModel.IsSaved = true;
 
-				_app.CloseAllWindows();
+				_windowCloser.CloseAllWindows();
 			}
 			catch (Exception ex)
 			{

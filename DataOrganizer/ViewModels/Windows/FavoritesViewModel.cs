@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,7 +5,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Interfaces;
@@ -121,12 +119,7 @@ public sealed partial class FavoritesViewModel :
 
 		UpdateCommands();
 
-		if (_app.FindDialogHost(DialogHostIdentifiers.Main) is not { } dialogHost || !dialogHost.IsOpen)
-		{
-			return;
-		}
-
-		dialogHost.IsOpen = false;
+		_exceptionHandler.Watch(_dialogCloser.CloseAsync(DialogHostIdentifiers.Main));
 	}
 
 	/// <summary>
@@ -218,11 +211,11 @@ public sealed partial class FavoritesViewModel :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IConfirmationPrompt" />
 	private readonly IConfirmationPrompt _confirmationPrompt;
+
+	/// <inheritdoc cref="IDialogCloser" />
+	private readonly IDialogCloser _dialogCloser;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -241,10 +234,10 @@ public sealed partial class FavoritesViewModel :
 
 	#region Constructors
 	public FavoritesViewModel(
-		Application app,
 		IAppSettingsStore settingsStore,
 		IConfirmationPrompt confirmationPrompt,
 		ICopyHistory copyHistory,
+		IDialogCloser dialogCloser,
 		IDispatcherAccessor dispatcher,
 		IExecutingFiles executingFiles,
 		ILogger logger,
@@ -265,9 +258,9 @@ public sealed partial class FavoritesViewModel :
 			exceptionHandler,
 			viewModelFactory)
 	{
-		_app = app;
-
 		_confirmationPrompt = confirmationPrompt;
+
+		_dialogCloser = dialogCloser;
 
 		_dispatcher = dispatcher;
 

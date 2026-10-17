@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;
 using Microsoft.Extensions.Time.Testing;
@@ -64,6 +65,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		DialogCloser sut = mock.Create<DialogCloser>();
@@ -88,6 +93,62 @@ internal class DialogCloserTests
 
 		// Assert
 		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DialogCloser.CloseAsync" />: a host that shows no dialog is left as it is, and the closing ends at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void CloseAsync_Leaves_A_Host_That_Shows_No_Dialog()
+	{
+		// Arrange
+		Window window = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([window]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+		});
+
+		DialogCloser sut = mock.Create<DialogCloser>();
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Task closing = sut.CloseAsync(DialogHostIdentifiers.Main);
+
+		bool isCompleted = closing.IsCompleted;
+
+		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
+		window.Close();
+
+		// Assert
+		isCompleted
 			.Should()
 			.BeTrue();
 	}
@@ -122,6 +183,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		DialogCloser sut = mock.Create<DialogCloser>();
@@ -181,6 +246,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 
 			builder.RegisterInstance<TimeProvider>(time);
 
@@ -268,6 +337,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		DialogCloser sut = mock.Create<DialogCloser>();
@@ -317,6 +390,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		DialogCloser sut = mock.Create<DialogCloser>();
@@ -367,6 +444,10 @@ internal class DialogCloserTests
 			builder
 				.RegisterInstance(app)
 				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
 		});
 
 		DialogCloser sut = mock.Create<DialogCloser>();

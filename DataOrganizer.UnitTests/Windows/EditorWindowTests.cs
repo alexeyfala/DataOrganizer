@@ -16,6 +16,7 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Clipboard;
@@ -384,6 +385,140 @@ internal class EditorWindowTests
 		viewModel.EditingFiles.Items
 			.Should()
 			.Equal(files);
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree made in a shown window that has not loaded yet is
+	/// not saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsSelected_Is_Not_Saved_Before_The_Window_Loads()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow window = new(viewModel);
+
+		// Shown, but not loaded until the dispatcher runs.
+		window.Show();
+
+		// Act
+		file.IsSelected = true;
+
+		window.Close();
+
+		// Assert
+		await propertyWriter
+			.DidNotReceive()
+			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree made while the window is hidden is not saved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsSelected_Is_Not_Saved_While_The_Window_Is_Hidden()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow window = new(viewModel);
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		window.Hide();
+
+		// Act
+		file.IsSelected = true;
+
+		window.Close();
+
+		// Assert
+		await propertyWriter
+			.DidNotReceive()
+			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree is saved once the window is loaded and visible.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsSelected_Is_Saved_Once_The_Window_Is_Shown()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow window = new(viewModel);
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		file.IsSelected = true;
+
+		window.Close();
+
+		// Assert
+		await propertyWriter
+			.Received(1)
+			.UpdateIsSelectedAsync(file, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
