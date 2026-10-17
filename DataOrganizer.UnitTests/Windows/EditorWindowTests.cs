@@ -437,7 +437,7 @@ internal class EditorWindowTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -490,7 +490,7 @@ internal class EditorWindowTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()

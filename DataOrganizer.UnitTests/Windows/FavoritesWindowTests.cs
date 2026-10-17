@@ -183,7 +183,7 @@ internal class FavoritesWindowTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -242,7 +242,7 @@ internal class FavoritesWindowTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()

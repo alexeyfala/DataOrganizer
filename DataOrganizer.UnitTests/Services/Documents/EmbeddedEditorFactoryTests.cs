@@ -35,7 +35,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<DatasetEditorViewModel>()
@@ -70,7 +70,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -99,7 +99,7 @@ internal class EmbeddedEditorFactoryTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(kind: EntityKind.Folder);
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
 
@@ -138,7 +138,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -173,7 +173,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -213,7 +213,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -249,7 +249,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -286,7 +286,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -325,7 +325,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -365,7 +365,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()
@@ -409,7 +409,7 @@ internal class EmbeddedEditorFactoryTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			IViewModelFactory viewFactory = Substitute.For<IViewModelFactory>();
 
 			viewFactory
 				.CreateViewModel<EmbeddedFileEditorViewModel>()

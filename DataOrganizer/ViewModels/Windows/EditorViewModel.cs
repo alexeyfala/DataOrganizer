@@ -1081,7 +1081,7 @@ public sealed partial class EditorViewModel :
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory) : base(
+		IViewModelFactory viewModelFactory) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -1096,7 +1096,7 @@ public sealed partial class EditorViewModel :
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewFactory)
+			viewModelFactory)
 	{
 		EditingFiles = editingFiles;
 

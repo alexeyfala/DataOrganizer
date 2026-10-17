@@ -9,12 +9,12 @@ namespace DataOrganizer.Services.Documents;
 public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 {
 	#region Data
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
+	/// <inheritdoc cref="IViewModelFactory" />
+	private readonly IViewModelFactory _viewModelFactory;
 	#endregion
 
 	#region Constructors
-	public EmbeddedEditorFactory(IViewFactory viewFactory) => _viewFactory = viewFactory;
+	public EmbeddedEditorFactory(IViewModelFactory viewModelFactory) => _viewModelFactory = viewModelFactory;
 	#endregion
 
 	#region Methods
@@ -23,7 +23,7 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 	{
 		EmbeddedEditorViewModelBase? viewModel = file.Kind switch
 		{
-			EntityKind.Dataset => _viewFactory.CreateViewModel<DatasetEditorViewModel>(),
+			EntityKind.Dataset => _viewModelFactory.CreateViewModel<DatasetEditorViewModel>(),
 			EntityKind.File => CreateFileEditor(file),
 			_ => null
 		};
@@ -55,7 +55,7 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 	/// </summary>
 	private EmbeddedFileEditorViewModel CreateFileEditor(FileDto file)
 	{
-		EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
+		EmbeddedFileEditorViewModel viewModel = _viewModelFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
 
 		viewModel.FileName = file.Name;
 

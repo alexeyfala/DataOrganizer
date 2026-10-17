@@ -316,7 +316,7 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -617,7 +617,7 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -1339,7 +1339,7 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -3559,7 +3559,7 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -4547,7 +4547,7 @@ internal class EditorViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()

@@ -2104,7 +2104,7 @@ internal class ViewLauncherTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2176,7 +2176,7 @@ internal class ViewLauncherTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2627,7 +2627,7 @@ internal class ViewLauncherTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2735,7 +2735,7 @@ internal class ViewLauncherTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -2849,7 +2849,7 @@ internal class ViewLauncherTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -3808,7 +3808,7 @@ internal class ViewLauncherTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -3877,7 +3877,7 @@ internal class ViewLauncherTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()

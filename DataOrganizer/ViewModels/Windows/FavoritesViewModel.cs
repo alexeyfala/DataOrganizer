@@ -243,7 +243,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory) : base(
+		IViewModelFactory viewModelFactory) : base(
 			app,
 			settingsStore,
 			contentVisibility,
@@ -258,7 +258,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
-			viewFactory)
+			viewModelFactory)
 	{
 		_mainWindowLauncher = mainWindowLauncher;
 
@@ -472,7 +472,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 	/// </summary>
 	private void OpenSelectedFavorites()
 	{
-		SelectedFavoritesViewModel favorites = _viewFactory.CreateViewModel<SelectedFavoritesViewModel>();
+		SelectedFavoritesViewModel favorites = _viewModelFactory.CreateViewModel<SelectedFavoritesViewModel>();
 
 		favorites.Initialize(
 			FavoritesSettings.NavigationColumnWidth,

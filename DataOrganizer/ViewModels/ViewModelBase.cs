@@ -170,8 +170,8 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IAppSettingsStore" />
 	protected readonly IAppSettingsStore _settingsStore;
 
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
+	/// <inheritdoc cref="IViewModelFactory" />
+	protected readonly IViewModelFactory _viewModelFactory;
 	#endregion
 
 	#region Constructors
@@ -190,7 +190,7 @@ public abstract partial class ViewModelBase :
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewFactory viewFactory)
+		IViewModelFactory viewModelFactory)
 	{
 		_app = app;
 
@@ -220,7 +220,7 @@ public abstract partial class ViewModelBase :
 
 		_settingsStore = settingsStore;
 
-		_viewFactory = viewFactory;
+		_viewModelFactory = viewModelFactory;
 
 		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 
@@ -317,7 +317,7 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Creates the list of the copy history that the window starts to show, read afresh from the history.
 	/// </summary>
-	protected void OpenCopyHistoryList() => CopyHistoryList = _viewFactory.CreateViewModel<CopyHistoryViewModel>();
+	protected void OpenCopyHistoryList() => CopyHistoryList = _viewModelFactory.CreateViewModel<CopyHistoryViewModel>();
 	#endregion
 
 	#region Helpers

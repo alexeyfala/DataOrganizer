@@ -79,7 +79,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, INotificationService, ISecondaryWindowLauncher, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewFactory)" />:
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, INotificationService, ISecondaryWindowLauncher, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -195,7 +195,7 @@ internal class FavoritesViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -231,7 +231,7 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -389,7 +389,7 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -429,7 +429,7 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -526,7 +526,7 @@ internal class FavoritesViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -651,7 +651,7 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -738,7 +738,7 @@ internal class FavoritesViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -777,7 +777,7 @@ internal class FavoritesViewModelTests
 		{
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()
@@ -874,7 +874,7 @@ internal class FavoritesViewModelTests
 
 			builder
 				.RegisterType<ScopeViewFactory>()
-				.As<IViewFactory>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<WorkSession>()

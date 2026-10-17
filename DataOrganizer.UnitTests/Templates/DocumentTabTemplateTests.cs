@@ -73,7 +73,9 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<DatasetEditorView>(Arg.Any<object[]>())
 				.Returns(x => new DatasetEditorView((DatasetEditorViewModel)x.Arg<object[]>()[0]));
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
 
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
@@ -120,7 +122,9 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(x => new EmbeddedFileEditorView((EmbeddedFileEditorViewModel)x.Arg<object[]>()[0]));
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
 
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
@@ -242,7 +246,9 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(firstView, secondView);
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
 
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
@@ -328,7 +334,9 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(view);
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
 
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
@@ -462,7 +470,9 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(view);
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
 
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
