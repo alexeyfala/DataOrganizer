@@ -59,8 +59,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private readonly string _directoryPath;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IPasswordDekWrapper" />
+	private readonly IPasswordDekWrapper _encryption;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -85,16 +85,16 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	#region Constructors
 	public ClipboardLogStore(
 		IAppEnvironment appEnvironment,
-		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
+		IPasswordDekWrapper encryption,
 		[FromKeyedServices(SessionKeyStoreKey)] ISessionKeyStore sessionKeyStore)
 	{
-		_encryption = encryption;
-
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_encryption = encryption;
 
 		_sessionKeyStore = sessionKeyStore;
 

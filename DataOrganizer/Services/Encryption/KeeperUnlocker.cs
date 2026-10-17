@@ -13,8 +13,8 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class KeeperUnlocker : IKeeperUnlocker
 {
 	#region Data
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IPasswordDekWrapper" />
+	private readonly IPasswordDekWrapper _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
 	private readonly IEncryptionFailureReporter _failureReporter;
@@ -31,19 +31,19 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 	#region Constructors
 	public KeeperUnlocker(
-		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperDekWriter keeperDekWriter,
 		ILogger logger,
+		IPasswordDekWrapper encryption,
 		IPasswordPrompt passwordPrompt)
 	{
-		_encryption = encryption;
-
 		_failureReporter = failureReporter;
 
 		_keeperDekWriter = keeperDekWriter;
 
 		_logger = logger;
+
+		_encryption = encryption;
 
 		_passwordPrompt = passwordPrompt;
 	}

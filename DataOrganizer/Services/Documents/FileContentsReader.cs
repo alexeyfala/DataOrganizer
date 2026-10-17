@@ -24,8 +24,8 @@ public sealed class FileContentsReader : IFileContentsReader
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IDekCipher" />
+	private readonly IDekCipher _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
 	private readonly IEncryptionFailureReporter _failureReporter;
@@ -41,7 +41,7 @@ public sealed class FileContentsReader : IFileContentsReader
 	public FileContentsReader(
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
-		IEncryptionService encryption,
+		IDekCipher encryption,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		ILogger logger)

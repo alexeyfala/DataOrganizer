@@ -37,8 +37,8 @@ public sealed class FolderCipher : IFolderCipher
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IPasswordDekWrapper" />
+	private readonly IPasswordDekWrapper _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
 	private readonly IEncryptionFailureReporter _encryptionFailureReporter;
@@ -57,7 +57,7 @@ public sealed class FolderCipher : IFolderCipher
 		IFolderContentsConverter converter,
 		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
-		IEncryptionService encryption,
+		IPasswordDekWrapper encryption,
 		IEncryptionFailureReporter encryptionFailureReporter,
 		IKeeperDekWriter keeperDekWriter,
 		INotificationService notification)

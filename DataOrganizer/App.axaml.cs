@@ -149,6 +149,7 @@ public sealed class App : Application
 		services.AddTransient<IContentCopier, ContentCopier>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
+		services.AddTransient<IDekCipher, EncryptionService>();
 		services.AddTransient<IDialogCloser, DialogCloser>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
@@ -159,7 +160,6 @@ public sealed class App : Application
 		services.AddTransient<IEmbeddedEditorFactory, EmbeddedEditorFactory>();
 		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
 		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
-		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		// The file picker lists the exchange formats in this order.
@@ -191,12 +191,14 @@ public sealed class App : Application
 		services.AddTransient<INoteReader, NoteReader>();
 		services.AddTransient<INoticeLauncher, ViewLauncher>();
 		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();
+		services.AddTransient<IPasswordDekWrapper, EncryptionService>();
 		services.AddTransient<IPasswordPrompt, DialogService>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<IProtectionScenarios, ProtectionScenarios>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
 		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
+		services.AddTransient<ISessionDekWrapper, EncryptionService>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IUiTimer, UiTimer>();

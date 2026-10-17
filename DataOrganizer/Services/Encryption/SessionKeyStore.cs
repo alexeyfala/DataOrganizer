@@ -15,11 +15,14 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	/// </summary>
 	private const int SessionIdSize = 32;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IDekCipher" />
+	private readonly IDekCipher _dekCipher;
 
 	/// <inheritdoc cref="System.Threading.Lock" />
 	private readonly Lock _mutex = new();
+
+	/// <inheritdoc cref="ISessionDekWrapper" />
+	private readonly ISessionDekWrapper _sessionDekWrapper;
 
 	/// <summary>
 	/// Session wrapped data encryption key per password keeper. The value is ciphertext: it opens
@@ -34,7 +37,12 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	#endregion
 
 	#region Constructors
-	public SessionKeyStore(IEncryptionService encryption) => _encryption = encryption;
+	public SessionKeyStore(IDekCipher dekCipher, ISessionDekWrapper sessionDekWrapper)
+	{
+		_dekCipher = dekCipher;
+
+		_sessionDekWrapper = sessionDekWrapper;
+	}
 	#endregion
 
 	#region Methods
@@ -48,7 +56,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 		{
 			using PinnedBuffer dek = Unwrap(keeperId);
 
-			return _encryption.DecryptWithDek(
+			return _dekCipher.DecryptWithDek(
 				encryptedContents,
 				dek,
 				identity);
@@ -65,7 +73,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 		{
 			using PinnedBuffer dek = Unwrap(keeperId);
 
-			return _encryption.EncryptWithDek(
+			return _dekCipher.EncryptWithDek(
 				contents,
 				dek,
 				identity);
@@ -124,7 +132,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 
 			try
 			{
-				wrappedDek = _encryption.EncryptWithSessionId(
+				wrappedDek = _sessionDekWrapper.EncryptWithSessionId(
 					dek,
 					sessionId,
 					ContentIdentity.Dek);
@@ -193,7 +201,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 			throw new InvalidOperationException($@"The keeper ""{keeperId}"" is locked.");
 		}
 
-		return _encryption.DecryptWithSessionId(
+		return _sessionDekWrapper.DecryptWithSessionId(
 			wrappedDek,
 			sessionId,
 			ContentIdentity.Dek);

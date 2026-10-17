@@ -79,7 +79,7 @@ internal class FileContentsReaderTests
 					Arg.Any<string>())
 				.Returns(SecretFactory.CreateRandomKey(10));
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptWithDek(stored, Arg.Any<PinnedBuffer>(), ContentIdentity.Contents)
@@ -261,7 +261,7 @@ internal class FileContentsReaderTests
 
 		file.Parent = folder;
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		IDekCipher encryption = Substitute.For<IDekCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -352,7 +352,7 @@ internal class FileContentsReaderTests
 					Arg.Any<string>())
 				.Returns(SecretFactory.CreateRandomKey(10));
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), ContentIdentity.Contents)

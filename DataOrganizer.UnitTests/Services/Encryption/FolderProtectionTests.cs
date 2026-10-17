@@ -265,7 +265,7 @@ internal class FolderProtectionTests
 					Arg.Any<string>())
 				.Returns(SecretFactory.CreateRandomKey(10));
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
@@ -1047,7 +1047,7 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
@@ -1132,7 +1132,7 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
@@ -1243,7 +1243,7 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.CreateRandomDek()
@@ -1393,7 +1393,7 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())

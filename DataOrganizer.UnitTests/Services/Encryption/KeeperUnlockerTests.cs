@@ -82,7 +82,7 @@ internal class KeeperUnlockerTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
@@ -124,7 +124,7 @@ internal class KeeperUnlockerTests
 		{
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
@@ -181,7 +181,7 @@ internal class KeeperUnlockerTests
 		{
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
@@ -243,7 +243,7 @@ internal class KeeperUnlockerTests
 		{
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
@@ -289,7 +289,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Refuses_A_Cancelled_Prompt()
 	{
 		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -373,7 +373,7 @@ internal class KeeperUnlockerTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
@@ -418,7 +418,7 @@ internal class KeeperUnlockerTests
 		{
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
