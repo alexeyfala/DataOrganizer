@@ -256,6 +256,7 @@ internal class FavoritesViewModelTests
 
 	/// <summary>
 	/// <see cref="FavoritesViewModel.FavoritesSettings" />: a new favorites window gathers the favorite files of the tree of
+
 	/// the work session into categories.
 	/// </summary>
 	[Test]

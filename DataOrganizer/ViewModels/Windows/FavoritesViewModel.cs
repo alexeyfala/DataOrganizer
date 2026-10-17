@@ -3,14 +3,12 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -26,8 +24,6 @@ using DataOrganizer.Windows;
 using Serilog;
 using Shared.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -266,7 +262,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 
 		FavoritesSettings
 			.Categories
-			.AddRange(GetCategories(Hierarchy));
+			.AddRange(FavoriteCategories.Gather(Hierarchy));
 	}
 	#endregion
 
@@ -433,38 +429,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IRecipient<Confi
 				}
 			}
 		}, UiPriority.Background);
-	}
-
-	/// <summary>
-	/// Returns a flat sequence of <see cref="FavoriteCategory" />.
-	/// </summary>
-	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		List<FileDto> files = [.. hierarchy
-			.OfType<FileDto>()
-			.Where(x => x.IsFavorite)];
-
-		if (files.Count > 0)
-		{
-			FolderDto? parent = files[0].Parent;
-
-			yield return new()
-			{
-				Children = files,
-				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
-				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
-				Index = FavoritesSettings.Categories.Count,
-				Name = parent?.Name ?? "Root"
-			};
-		}
-
-		foreach (FolderDto folder in hierarchy.OfType<FolderDto>())
-		{
-			foreach (FavoriteCategory category in GetCategories(folder.Children))
-			{
-				yield return category;
-			}
-		}
 	}
 
 	/// <summary>
