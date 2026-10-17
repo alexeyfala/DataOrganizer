@@ -4,11 +4,13 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
 using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Reactive;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -48,11 +50,6 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
 	public partial bool WordWrap { get; set; }
-
-	/// <summary>
-	/// A reference to a method for writing a line of text.
-	/// </summary>
-	public Action<string> WriteCallback => Write;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -84,7 +81,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 			return;
 		}
 
-		ReadFromBuffer();
+		ReadFromLog();
 	}
 	#endregion
 
@@ -97,32 +94,39 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IConsoleLog" />
+	private readonly IConsoleLog _consoleLog;
+
 	/// <inheritdoc cref="IDirectoryAccessor" />
 	private readonly IDirectoryAccessor _directoryAccessor;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
-
-	/// <inheritdoc cref="Lock" />
-	private readonly Lock _mutex = new();
-
-	/// <summary>
-	/// Log records waiting to be written into <see cref="Document" />.
-	/// </summary>
-	private readonly List<string> _recordsBuffer = [];
 	#endregion
 
 	#region Constructors
 	public ConsoleViewModel(
 		IAppEnvironment appEnvironment,
+		IConsoleLog consoleLog,
 		IDirectoryAccessor directoryAccessor,
 		IDispatcherAccessor dispatcher)
 	{
 		_appEnvironment = appEnvironment;
 
+		_consoleLog = consoleLog;
+
 		_directoryAccessor = directoryAccessor;
 
 		_dispatcher = dispatcher;
+
+		// The records written before the console existed come with the first read. The pause is checked on the UI
+		// thread, which owns the document and sets the pause, so a record posted just before a pause waits with the
+		// ones written after it.
+		_consoleLog
+			.Written
+			.StartWith(Unit.Default)
+			.Subscribe(_ => _dispatcher.Post(ReadFromLog, UiPriority.Background))
+			.DisposeWith(_disposables);
 	}
 	#endregion
 
@@ -155,36 +159,19 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	}
 
 	/// <summary>
-	/// Moves the records from the buffer into the log unless recording is paused.
+	/// Moves the records of the console log into <see cref="Document" /> unless recording is paused.
 	/// </summary>
-	private void ReadFromBuffer()
+	private void ReadFromLog()
 	{
 		if (IsPaused)
 		{
 			return;
 		}
 
-		lock (_mutex)
+		foreach (string record in _consoleLog.TakeAll())
 		{
-			_recordsBuffer.ForEach(Append);
-
-			_recordsBuffer.Clear();
+			Append(record);
 		}
-	}
-
-	/// <summary>
-	/// Writes a line of text.
-	/// </summary>
-	private void Write(string value)
-	{
-		lock (_mutex)
-		{
-			_recordsBuffer.Add(value);
-		}
-
-		// The pause is checked on the UI thread, which owns the document and sets the pause,
-		// so a record posted just before a pause waits with the ones written after it.
-		_dispatcher.Post(ReadFromBuffer, UiPriority.Background);
 	}
 	#endregion
 }

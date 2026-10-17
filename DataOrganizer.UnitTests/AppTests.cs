@@ -16,10 +16,13 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.Services.Runtime;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using Repository.Services.Database;
+using Serilog;
 using Shared.Services;
 using System;
 using System.Collections.Generic;
@@ -46,6 +49,32 @@ internal class AppTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the logger that also writes into the console is built, though the console and
+	/// the services it uses log through that logger.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Builds_The_Logger_That_Writes_Into_The_Console()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, [CommandLineOptions.ConsoleArg]);
+
+		// The environment of the test keeps the folders of the application untouched.
+		services.AddSingleton(Substitute.For<IAppEnvironment>());
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		Task<ILogger> task = Task.Run(() => provider.GetRequiredService<ILogger>());
+
+		// Assert
+		task.Wait(TimeSpan.FromSeconds(10))
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: the mapper of the application knows the entity rules,
 	/// whichever service resolves it first.

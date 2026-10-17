@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Fakes;
@@ -36,6 +37,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -120,6 +122,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -186,6 +189,7 @@ internal class ConsoleWindowHostTests
 
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -250,6 +254,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -314,6 +319,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -363,6 +369,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -439,6 +446,7 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		ConsoleViewModel viewModel = new(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor());
 
@@ -481,40 +489,6 @@ internal class ConsoleWindowHostTests
 			Arg.Is<ConsoleWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleWindowHost.Write" />: the text reaches the log of the console before its window opens.
-	/// </summary>
-	[AvaloniaTest]
-	public void Write_Appends_The_Text_To_The_Console_Log()
-	{
-		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<ConsoleViewModel>()
-				.Returns(viewModel);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ConsoleWindowHost sut = mock.Create<ConsoleWindowHost>();
-
-		// Act
-		sut.Write("record");
-
-		// Assert
-		viewModel.Document.Text
-			.Should()
-			.Be("record");
 	}
 	#endregion
 }

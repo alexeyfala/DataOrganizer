@@ -259,6 +259,7 @@ public sealed class App : Application
 		services.AddSingleton<IClipboardLogService>(static x => x.GetRequiredService<ClipboardLogService>());
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
+		services.AddSingleton<IConsoleLog, ConsoleLog>();
 		services.AddSingleton<ICopyHistory>(static x => x.GetRequiredService<CopyHistory>());
 		services.AddSingleton<ICopyHistoryRecorder>(static x => x.GetRequiredService<CopyHistory>());
 		services.AddSingleton<ICopyHistoryStore>(static x => x.GetRequiredService<CopyHistory>());
@@ -561,7 +562,7 @@ public sealed class App : Application
 			LogCallbackSink sink = new()
 			{
 				LogCallback = provider
-					.GetRequiredService<IConsoleWindowHost>()
+					.GetRequiredService<IConsoleLog>()
 					.Write
 			};
 

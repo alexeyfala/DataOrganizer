@@ -118,8 +118,5 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		return source.Task;
 	}
-
-	/// <inheritdoc />
-	public void Write(string text) => _viewModel.WriteCallback(text);
 	#endregion
 }

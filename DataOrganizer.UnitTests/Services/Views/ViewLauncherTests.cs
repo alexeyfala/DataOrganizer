@@ -37,6 +37,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
@@ -399,6 +400,7 @@ internal class ViewLauncherTests
 
 		ConsoleWindow console = new(new ConsoleViewModel(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor()));
 
@@ -447,6 +449,7 @@ internal class ViewLauncherTests
 
 		ConsoleWindow console = new(new ConsoleViewModel(
 			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
 			new InlineDispatcherAccessor())
 		{

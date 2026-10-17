@@ -5,8 +5,10 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
@@ -27,13 +29,22 @@ internal class ConsoleViewModelTests
 	public void ClearCommand_Empties_The_Document()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
+		ConsoleLog consoleLog = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
-		sut.WriteCallback("record");
+		consoleLog.Write("record");
 
 		// Act
 		sut.ClearCommand.Execute(null);
@@ -45,22 +56,127 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ConsoleViewModel.Document" />: the log keeps no undo history of its records.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Keeps_No_Undo_History()
+	{
+		// Arrange
+		ConsoleLog consoleLog = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		// Act
+		consoleLog.Write("record");
+
+		// Assert
+		sut.Document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.Document" />: the records of the console log reach the log in the order they are
+	/// written.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Takes_The_Records_In_The_Order_Written()
+	{
+		// Arrange
+		ConsoleLog consoleLog = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		// Act
+		consoleLog.Write("first ");
+
+		consoleLog.Write("second ");
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be("first second ");
+	}
+
+	/// <summary>
+	/// <see cref="ConsoleViewModel.Document" />: the records written before the console opened reach the log too.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Takes_The_Records_Written_Before_The_Console()
+	{
+		// Arrange
+		ConsoleLog consoleLog = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		consoleLog.Write("before");
+
+		// Act
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+
+		// Assert
+		sut.Document.Text
+			.Should()
+			.Be("before");
+	}
+
+	/// <summary>
 	/// <see cref="ConsoleViewModel.IsPaused" />: a record written while paused waits for the pause to end.
 	/// </summary>
 	[AvaloniaTest]
 	public void IsPaused_Holds_A_Record_Until_It_Is_Resumed()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
+		ConsoleLog consoleLog = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		sut.IsPaused = true;
 
 		// Act
-		sut.WriteCallback("while paused");
+		consoleLog.Write("while paused");
 
 		// Assert
 		sut.Document.Text
@@ -84,6 +200,8 @@ internal class ConsoleViewModelTests
 		// Arrange
 		List<Action> posted = [];
 
+		ConsoleLog consoleLog = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
@@ -92,16 +210,20 @@ internal class ConsoleViewModelTests
 				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<UiPriority>()))
 				.Do(x => posted.Add(x.Arg<Action>()));
 
+			builder
+				.RegisterInstance(consoleLog)
+				.As<IConsoleLog>();
+
 			builder.RegisterInstance(dispatcher);
 		});
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
-		sut.WriteCallback("before ");
+		consoleLog.Write("before ");
 
 		sut.IsPaused = true;
 
-		sut.WriteCallback("while paused");
+		consoleLog.Write("while paused");
 
 		// Act
 		posted.ForEach(static x => x());
@@ -139,6 +261,10 @@ internal class ConsoleViewModelTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
 			builder.RegisterInstance(directoryAccessor);
 		});
 
@@ -162,7 +288,14 @@ internal class ConsoleViewModelTests
 		// Arrange
 		IDirectoryAccessor directoryAccessor = Substitute.For<IDirectoryAccessor>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(directoryAccessor));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder.RegisterInstance(directoryAccessor);
+		});
 
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
@@ -211,52 +344,6 @@ internal class ConsoleViewModelTests
 		document.Text
 			.Should()
 			.Be(text);
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.WriteCallback" />: the records reach the log in the order they are written.
-	/// </summary>
-	[AvaloniaTest]
-	public void WriteCallback_Appends_The_Records_In_Order()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
-		// Act
-		sut.WriteCallback("first ");
-
-		sut.WriteCallback("second ");
-
-		// Assert
-		sut.Document.Text
-			.Should()
-			.Be("first second ");
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.WriteCallback" />: the log keeps no undo history of its records.
-	/// </summary>
-	[AvaloniaTest]
-	public void WriteCallback_Leaves_Nothing_To_Undo()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
-		// Act
-		sut.WriteCallback("record");
-
-		// Assert
-		sut.Document.UndoStack.CanUndo
-			.Should()
-			.BeFalse();
 	}
 	#endregion
 
