@@ -122,16 +122,6 @@
 
 	<!-- CopyHistoryTemplate -->
 	<DataTemplate x:Key="CopyHistoryTemplate">
-		<views:CopyHistoryView
-			x:Name="View"
-			DataContext="{markup:Resolve {x:Type vm:CopyHistoryViewModel}}">
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="Loaded">
-					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
-						CommandParameter="{Binding #View.DataContext}" />
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-		</views:CopyHistoryView>
+		<views:CopyHistoryView DataContext="{Binding $parent[Window].((vm:ViewModelBase)DataContext).CopyHistoryList, Mode=OneWay}" />
 	</DataTemplate>
 </ResourceDictionary>

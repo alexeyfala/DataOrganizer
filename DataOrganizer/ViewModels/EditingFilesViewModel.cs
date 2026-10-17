@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.ObjectModel;
@@ -73,20 +74,42 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		CloseEditor(dto);
 	}
+
+	/// <summary>
+	/// Opens the tabs that the work session keeps for the editor.
+	/// </summary>
+	[RelayCommand]
+	private void RestoreTabs()
+	{
+		if (_sessionEditorTabs.EditorTabs is not { } tabs)
+		{
+			return;
+		}
+
+		Restore(tabs);
+	}
 	#endregion
 
 	#region Data
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	private readonly ISessionEditorTabs _sessionEditorTabs;
+
 	/// <inheritdoc cref="IViewCache" />
 	private readonly IViewCache _viewCache;
 	#endregion
 
 	#region Constructors
-	public EditingFilesViewModel(ILogger logger, IViewCache viewCache)
+	public EditingFilesViewModel(
+		ILogger logger,
+		ISessionEditorTabs sessionEditorTabs,
+		IViewCache viewCache)
 	{
 		_logger = logger;
+
+		_sessionEditorTabs = sessionEditorTabs;
 
 		_viewCache = viewCache;
 	}
@@ -135,11 +158,13 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		SelectedIndex = Items.Count - 1;
 	}
+	#endregion
 
+	#region Helpers
 	/// <summary>
 	/// Opens the files of the tabs, selects the tab of the selected file and gives Ctrl+Tab its way back.
 	/// </summary>
-	public void Restore(EditorTabsState state)
+	private void Restore(EditorTabsState state)
 	{
 		Items.AddRange(state.Files);
 

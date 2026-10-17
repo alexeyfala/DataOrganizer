@@ -420,6 +420,7 @@
 							<ContentControl
 								Grid.Row="0"
 								Grid.Column="2"
+								Content="{Binding EditingFiles, Mode=OneWay}"
 								ContentTemplate="{StaticResource EditingFilesTemplate}" />
 
 							<materialControls:SideSheet

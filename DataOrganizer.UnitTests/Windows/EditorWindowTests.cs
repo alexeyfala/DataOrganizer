@@ -19,9 +19,12 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using Entities.Enums;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
@@ -335,6 +338,50 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.EditingFiles" />: the tabs view of a loaded window opens the tabs the work session keeps.
+	/// </summary>
+	[AvaloniaTest]
+	public void EditingFiles_Restores_The_Tabs_Of_The_Session_When_The_Window_Loads()
+	{
+		// Arrange
+		// A kind with no editor keeps the content of the tab light.
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 2, kind: EntityKind.Folder)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				EditorTabs = new()
+				{
+					Files = files,
+					PreviousFile = files[0],
+					SelectedFile = files[1]
+				}
+			};
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		// Act
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.Close();
+
+		// Assert
+		viewModel.EditingFiles.Items
+			.Should()
+			.Equal(files);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Receive(ShowInEditorMessage)" />: a request of an embedded editor to show its file selects
 	/// the file in the tree.
 	/// </summary>
@@ -370,6 +417,64 @@ internal class EditorWindowTests
 		viewModel.SelectedObject
 			.Should()
 			.BeSameAs(file);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowCopyHistoryCommand" />: the side sheet shows the list of the copy history that the
+	/// window made.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowCopyHistoryCommand_Shows_The_List_Of_The_Window()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		object? shown = sut
+			.GetVisualDescendants()
+			.OfType<CopyHistoryView>()
+			.Single()
+			.DataContext;
+
+		CopyHistoryViewModel? list = viewModel.CopyHistoryList;
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.NotBeNull()
+			.And
+			.BeSameAs(list);
 	}
 
 	/// <summary>

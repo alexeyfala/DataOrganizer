@@ -88,16 +88,6 @@
 
 	<!-- SelectedFavoritesViewTemplate -->
 	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
-		<views:SelectedFavoritesView
-			x:Name="View"
-			DataContext="{markup:Resolve {x:Type vm:SelectedFavoritesViewModel}}">
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="Loaded">
-					<InvokeCommandAction
-						Command="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
-						CommandParameter="{Binding #View.DataContext}" />
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-		</views:SelectedFavoritesView>
+		<views:SelectedFavoritesView DataContext="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).SelectedFavorites, Mode=OneWay}" />
 	</DataTemplate>
 </ResourceDictionary>

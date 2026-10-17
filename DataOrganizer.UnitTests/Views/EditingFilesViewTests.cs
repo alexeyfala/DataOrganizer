@@ -1,3 +1,4 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
@@ -9,6 +10,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -90,7 +92,22 @@ internal class EditingFilesViewTests
 		// A kind with no editor keeps the content of the tab light.
 		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3, kind: EntityKind.Folder)];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				EditorTabs = new()
+				{
+					Files = files,
+					PreviousFile = files[1],
+					SelectedFile = files[2]
+				}
+			};
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
 
 		EditingFilesViewModel viewModel = mock.Create<EditingFilesViewModel>();
 
@@ -107,12 +124,9 @@ internal class EditingFilesViewTests
 		window.Show();
 
 		// The tabs come back to the shown view, as when the editor window loads it.
-		viewModel.Restore(new()
-		{
-			Files = files,
-			PreviousFile = files[1],
-			SelectedFile = files[2]
-		});
+		viewModel
+			.RestoreTabsCommand
+			.Execute(null);
 
 		Dispatcher.UIThread.RunJobs();
 

@@ -178,21 +178,18 @@ internal class SelectedFavoritesViewModelTests
 
 		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
 
-		// Initialize puts the categories themselves in the stored order.
-		Guid[] kept = [categories[1].Id, categories[0].Id];
-
 		// Act
 		sut.Initialize(
 			navigationColumnWidth: RandomValues.CreateDouble(100.0, 300.0),
 			selectedCategoryId: categories[0].Id,
 			categories: categories,
-			orderedCategoryIds: [kept[0], Guid.NewGuid(), Guid.NewGuid(), kept[1]],
+			orderedCategoryIds: [categories[1].Id, Guid.NewGuid(), Guid.NewGuid(), categories[0].Id],
 			selectedPairs: []);
 
 		// Assert
 		sut.OrderedCategoryIds
 			.Should()
-			.Equal(kept);
+			.Equal(categories[1].Id, categories[0].Id);
 	}
 
 	/// <summary>

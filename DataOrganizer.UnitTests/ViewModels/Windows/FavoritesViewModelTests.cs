@@ -2,9 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
@@ -74,7 +76,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewLauncher)" />:
+	/// <see cref="FavoritesViewModel(Application, IAppSettingsStore, IContentVisibility, ICopyHistory, IDialogService, IDispatcherAccessor, IExecutingFiles, ILogger, IMessenger, INotificationService, ISessionEditorTabs, ISessionHierarchy, ITaskExceptionHandler, IViewFactory, IViewLauncher)" />:
 	/// a new favorites window leaves the running hotkey tracking alone.
 	/// </summary>
 	[Test]
@@ -188,6 +190,10 @@ internal class FavoritesViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -195,18 +201,51 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
-
-		// The view of the popup hands its view model over once loaded.
 		sut
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistoryList);
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
 		// Act
 		sut.Dispose();
 
 		// Assert
 		copyHistoryList.IsDisposed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: the window disposes the favorites its popup shows.
+	/// </summary>
+	[Test]
+	public void Dispose_Disposes_The_Shown_Favorites()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowFavorites();
+
+		SelectedFavoritesViewModel favorites = sut.SelectedFavorites!;
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		favorites.IsDisposed
 			.Should()
 			.BeTrue();
 	}
@@ -293,6 +332,90 @@ internal class FavoritesViewModelTests
 		sut.FavoritesSettings
 			.Should()
 			.BeEquivalentTo(favoritesSettings, static options => options.Excluding(x => x.Categories));
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.IsPopupOpen" />: closing the popup disposes the favorites it showed.
+	/// </summary>
+	[Test]
+	public void IsPopupOpen_Disposes_The_Favorites_When_The_Popup_Closes()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowFavorites();
+
+		SelectedFavoritesViewModel favorites = sut.SelectedFavorites!;
+
+		// Act
+		sut.IsPopupOpen = false;
+
+		// Assert
+		favorites.IsDisposed
+			.Should()
+			.BeTrue();
+
+		sut.SelectedFavorites
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.IsPopupOpen" />: closing the popup saves the category chosen in the favorites it shows.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsPopupOpen_Saves_The_Chosen_Category_When_The_Popup_Closes()
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		sut.ShowFavorites();
+
+		SelectedFavoritesViewModel favorites = sut.SelectedFavorites!;
+
+		// The stored selection comes back through the dispatcher before the choice.
+		Dispatcher.UIThread.RunJobs();
+
+		favorites.SelectedCategory = categories[1];
+
+		// Act
+		sut.IsPopupOpen = false;
+
+		// Assert
+		sut.FavoritesSettings.SelectedCategoryId
+			.Should()
+			.Be(categories[1].Id);
 	}
 
 	/// <summary>
@@ -406,6 +529,146 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.SaveContent" />: a second save keeps the stored order of the categories, since the
+	/// favorites stay alive while the popup shows them.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveContent_Twice_Keeps_The_Stored_Order()
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		sut
+			.FavoritesSettings
+			.OrderedCategoryIds
+			.AddRange([categories[1].Id, categories[0].Id]);
+
+		sut.ShowFavorites();
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.SaveContent();
+
+		// Act
+		sut.SaveContent();
+
+		// Assert
+		sut.FavoritesSettings.OrderedCategoryIds
+			.Should()
+			.Equal(categories[1].Id, categories[0].Id);
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowFavorites" />: the switch of the popup to the favorites disposes the list of the
+	/// copy history it showed.
+	/// </summary>
+	[Test]
+	public void ShowFavorites_Disposes_The_Shown_Copy_History_List()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
+
+		// Act
+		sut.ShowFavorites();
+
+		// Assert
+		copyHistoryList.IsDisposed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowFavorites" />: the favorites show the categories in the stored order and leave the
+	/// categories of the settings as they are.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Leaves_The_Order_Of_The_Settings_Categories()
+	{
+		// Arrange
+		FavoriteCategory[] categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.FavoritesSettings
+			.Categories
+			.AddRange(categories);
+
+		sut
+			.FavoritesSettings
+			.OrderedCategoryIds
+			.AddRange([categories[1].Id, categories[0].Id]);
+
+		// Act
+		sut.ShowFavorites();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectedFavorites!.Categories
+			.Should()
+			.Equal(categories[1], categories[0]);
+
+		sut.FavoritesSettings.Categories
+			.Should()
+			.Equal(categories);
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: configures and shows the editor window.
 	/// </summary>
 	[AvaloniaTest]
@@ -468,6 +731,10 @@ internal class FavoritesViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
 
 			builder
 				.RegisterType<WorkSession>()

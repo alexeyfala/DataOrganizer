@@ -74,6 +74,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
 	public partial double PopupWidth { get; set; }
+
+	/// <summary>
+	/// The favorites while the popup shows them.
+	/// </summary>
+	[ObservableProperty]
+	public partial SelectedFavoritesViewModel? SelectedFavorites { get; private set; }
 	#endregion
 
 	#region Partial
@@ -127,7 +133,28 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	/// </summary>
 	partial void OnPopupContentChanged(
 		FavoritesPopupContentKind oldValue,
-		FavoritesPopupContentKind newValue) => _previousPopupContent = oldValue;
+		FavoritesPopupContentKind newValue)
+	{
+		_previousPopupContent = oldValue;
+
+		if (oldValue == FavoritesPopupContentKind.CopyHistory)
+		{
+			CloseCopyHistoryList();
+		}
+		else if (oldValue == FavoritesPopupContentKind.Favorites)
+		{
+			CloseSelectedFavorites();
+		}
+
+		if (newValue == FavoritesPopupContentKind.CopyHistory)
+		{
+			OpenCopyHistoryList();
+		}
+		else if (newValue == FavoritesPopupContentKind.Favorites)
+		{
+			OpenSelectedFavorites();
+		}
+	}
 	#endregion
 
 	#region Auto-Generated Commands
@@ -162,22 +189,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, UiPriority.Background);
 
 	/// <summary>
-	/// Handles the display of the favorites.
-	/// </summary>
-	[RelayCommand]
-	private void FavoritesDisplayed(SelectedFavoritesViewModel? viewModel)
-	{
-		_favorites = viewModel;
-
-		viewModel?.Initialize(
-			FavoritesSettings.NavigationColumnWidth,
-			FavoritesSettings.SelectedCategoryId,
-			FavoritesSettings.Categories,
-			FavoritesSettings.OrderedCategoryIds,
-			FavoritesSettings.SelectedPairs);
-	}
-
-	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowCopyHistory))]
@@ -206,9 +217,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="SelectedFavoritesViewModel" />
-	private SelectedFavoritesViewModel? _favorites;
-
 	/// <summary>
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
@@ -230,6 +238,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
+		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(
 			app,
 			settingsStore,
@@ -244,6 +253,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
+			viewFactory,
 			viewLauncher)
 	{
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
@@ -365,11 +375,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 			.SelectedPairs
 			.Clear();
 
+		// Leaving the content disposes its view model.
 		PopupContent = FavoritesPopupContentKind.None;
-
-		_copyHistoryViewModel?.Dispose();
-
-		_favorites?.Dispose();
 	}
 	#endregion
 
@@ -388,6 +395,16 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	/// Validates <see cref="ShowPopupOnHoverCommand" />.
 	/// </summary>
 	private bool CanShowPopupOnHover() => IsShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
+
+	/// <summary>
+	/// Disposes the favorites that the popup no longer shows.
+	/// </summary>
+	private void CloseSelectedFavorites()
+	{
+		SelectedFavorites?.Dispose();
+
+		SelectedFavorites = null;
+	}
 
 	/// <summary>
 	/// Returns a flat sequence of <see cref="FavoriteCategory" />.
@@ -422,6 +439,23 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	}
 
 	/// <summary>
+	/// Creates the favorites that the popup starts to show, from the stored settings.
+	/// </summary>
+	private void OpenSelectedFavorites()
+	{
+		SelectedFavoritesViewModel favorites = _viewFactory.CreateViewModel<SelectedFavoritesViewModel>();
+
+		favorites.Initialize(
+			FavoritesSettings.NavigationColumnWidth,
+			FavoritesSettings.SelectedCategoryId,
+			FavoritesSettings.Categories,
+			FavoritesSettings.OrderedCategoryIds,
+			FavoritesSettings.SelectedPairs);
+
+		SelectedFavorites = favorites;
+	}
+
+	/// <summary>
 	/// Restores the content for popup.
 	/// </summary>
 	private void RestorePopupContent()
@@ -450,31 +484,29 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IUpdatePrompt
 	/// </summary>
 	private void SaveFavorites()
 	{
-		if (_favorites is null)
+		if (SelectedFavorites is not { } favorites)
 		{
 			return;
 		}
 
 		_logger.LogInformation("Save favorites");
 
-		FavoritesSettings.NavigationColumnWidth = _favorites
+		FavoritesSettings.NavigationColumnWidth = favorites
 			.NavigationColumnWidth
 			.Value;
 
-		if (_favorites.SelectedCategory is { } category)
+		if (favorites.SelectedCategory is { } category)
 		{
 			FavoritesSettings.SelectedCategoryId = category.Id;
 		}
 
 		FavoritesSettings
 			.SelectedPairs
-			.ClearAddRange(_favorites.SelectedPairs);
+			.ClearAddRange(favorites.SelectedPairs);
 
 		FavoritesSettings
 			.OrderedCategoryIds
-			.ClearAddRange(_favorites.OrderedCategoryIds);
-
-		_favorites.Dispose();
+			.ClearAddRange(favorites.OrderedCategoryIds);
 	}
 
 	/// <summary>

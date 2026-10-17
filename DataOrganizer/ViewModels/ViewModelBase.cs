@@ -41,6 +41,12 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="ICopyHistory.ItemIds" />
 	public ReadOnlyObservableCollection<Guid> CopyHistoryItemIds => _copyHistory.ItemIds;
 
+	/// <summary>
+	/// The list of the copy history while the window shows it.
+	/// </summary>
+	[ObservableProperty]
+	public partial CopyHistoryViewModel? CopyHistoryList { get; private set; }
+
 	/// <inheritdoc cref="IExecutingFiles.Files" />
 	public ReadOnlyObservableCollection<FileDto> ExecutingFiles => _executingFiles.Files;
 
@@ -92,12 +98,6 @@ public abstract partial class ViewModelBase :
 
 		_viewLauncher.CenterNotepadWindow(owner);
 	}
-
-	/// <summary>
-	/// Keeps the view model of the shown copy history.
-	/// </summary>
-	[RelayCommand]
-	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel) => _copyHistoryViewModel = viewModel;
 
 	/// <summary>
 	/// Opens the custom clipboard history overlay.
@@ -168,11 +168,11 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IAppSettingsStore" />
 	protected readonly IAppSettingsStore _settingsStore;
 
+	/// <inheritdoc cref="IViewFactory" />
+	protected readonly IViewFactory _viewFactory;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
-
-	/// <inheritdoc cref="CopyHistoryViewModel" />
-	protected CopyHistoryViewModel? _copyHistoryViewModel;
 	#endregion
 
 	#region Constructors
@@ -190,6 +190,7 @@ public abstract partial class ViewModelBase :
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
+		IViewFactory viewFactory,
 		IViewLauncher viewLauncher)
 	{
 		_app = app;
@@ -217,6 +218,8 @@ public abstract partial class ViewModelBase :
 		_sessionHierarchy = sessionHierarchy;
 
 		_settingsStore = settingsStore;
+
+		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 
@@ -277,6 +280,18 @@ public abstract partial class ViewModelBase :
 		}
 
 		_messenger.UnregisterAll(this);
+
+		CloseCopyHistoryList();
+	}
+
+	/// <summary>
+	/// Disposes the list of the copy history that the window no longer shows.
+	/// </summary>
+	protected void CloseCopyHistoryList()
+	{
+		CopyHistoryList?.Dispose();
+
+		CopyHistoryList = null;
 	}
 
 	/// <summary>
@@ -315,6 +330,11 @@ public abstract partial class ViewModelBase :
 
 		return responses.All(x => x);
 	}
+
+	/// <summary>
+	/// Creates the list of the copy history that the window starts to show, read afresh from the history.
+	/// </summary>
+	protected void OpenCopyHistoryList() => CopyHistoryList = _viewFactory.CreateViewModel<CopyHistoryViewModel>();
 	#endregion
 
 	#region Helpers

@@ -265,6 +265,10 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -282,16 +286,11 @@ internal class EditorViewModelTests
 
 		copyHistory.Add(files[0], showAtOnce: false);
 
-		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
-
 		sut
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		// The view of the side sheet hands its view model over once loaded.
-		sut
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistoryList);
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -424,6 +423,39 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.CloseOpenedFileCommand" />: closing a file open in the editor closes its tab.
+	/// </summary>
+	[Test]
+	public void CloseOpenedFileCommand_Closes_The_Tab_Of_An_Edited_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.EditingFiles.OpenInEditor(file);
+
+		// Act
+		sut
+			.CloseOpenedFileCommand
+			.Execute(file);
+
+		// Assert
+		sut.EditingFiles.Items
+			.Should()
+			.BeEmpty();
+
+		file.IsEditing
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.CopyContentByContextMenuCommand" />: a file copied again moves to the top of the copy
 	/// history without a second entry.
 	/// </summary>
@@ -532,6 +564,10 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -539,14 +575,13 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		CopyHistoryViewModel copyHistory = mock.Create<CopyHistoryViewModel>();
-
 		sut.Hierarchy.Add(file);
 
-		// The view of the side sheet hands its view model over once loaded.
 		sut
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistory);
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		CopyHistoryViewModel copyHistory = sut.CopyHistoryList!;
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1161,49 +1196,45 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.EditingFilesViewLoadedCommand" />: the tabs of the editor open with the selected one
-	/// and the previous one.
+	/// <see cref="ObservableDisposableBase.Dispose" />: the editor disposes the list of the copy history its side sheet
+	/// shows.
 	/// </summary>
 	[Test]
-	public void EditingFilesViewLoadedCommand_Restores_The_Editor_Tabs()
+	public void Dispose_Disposes_The_Shown_Copy_History_List()
 	{
 		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
 
-		WorkSession session = new();
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterInstance(session)
-			.AsImplementedInterfaces());
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		session.EditorTabs = new()
-		{
-			Files = files,
-			PreviousFile = files[2],
-			SelectedFile = files[1]
-		};
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
 
-		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
 		// Act
-		sut
-			.EditingFilesViewLoadedCommand
-			.Execute(editingFiles);
+		sut.Dispose();
 
 		// Assert
-		editingFiles.Items
+		copyHistoryList.IsDisposed
 			.Should()
-			.Equal(files);
-
-		editingFiles.SelectedIndex
-			.Should()
-			.Be(1);
-
-		editingFiles.PreviousFile
-			.Should()
-			.BeSameAs(files[2]);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -3045,6 +3076,52 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.IsRightSideSheetOpened" />: closing the right side sheet disposes the list of the copy
+	/// history it showed.
+	/// </summary>
+	[Test]
+	public void IsRightSideSheetOpened_Disposes_The_Copy_History_List_When_The_Sheet_Closes()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.As<ICopyHistory>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
+
+		// Act
+		sut.IsRightSideSheetOpened = false;
+
+		// Assert
+		copyHistoryList.IsDisposed
+			.Should()
+			.BeTrue();
+
+		sut.CopyHistoryList
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width is clamped to less than the view width when the view shrinks.
 	/// </summary>
 	[Test]
@@ -3836,6 +3913,58 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowFavorites" />: the switch to the favorites closes the editors of the open tabs.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Closes_The_Editors()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FavoritesWindow? favoritesWindow = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose(windowBuilder => windowBuilder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance());
+
+			IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+			favoritesWindow = windowMock.Create<FavoritesWindow>();
+
+			viewLauncher
+				.CreateFavoritesWindow()
+				.Returns(favoritesWindow);
+
+			builder.RegisterInstance(viewLauncher);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(file);
+
+		sut.EditingFiles.OpenInEditor(file);
+
+		// Act
+		sut.ShowFavorites(null);
+
+		// Closed here, otherwise its dialog host stays in the list every headless test shares.
+		favoritesWindow?.Close();
+
+		// Assert
+		sut.EditingFiles.Items
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowFavorites" />: the switch to the favorites disposes the list of the shown copy
 	/// history.
 	/// </summary>
@@ -3868,6 +3997,10 @@ internal class EditorViewModelTests
 				.SingleInstance();
 
 			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -3875,12 +4008,11 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		CopyHistoryViewModel copyHistoryList = mock.Create<CopyHistoryViewModel>();
-
-		// The view of the side sheet hands its view model over once loaded.
 		sut
-			.CopyHistoryDisplayedCommand
-			.Execute(copyHistoryList);
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
 		// Act
 		sut.ShowFavorites(null);
@@ -3932,7 +4064,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		EditingFilesViewModel editingFiles = mock.Create<EditingFilesViewModel>();
+		EditingFilesViewModel editingFiles = sut.EditingFiles;
 
 		editingFiles
 			.Items
@@ -3941,10 +4073,6 @@ internal class EditorViewModelTests
 		editingFiles.SelectedIndex = 1;
 
 		editingFiles.PreviousFile = files[2];
-
-		sut
-			.EditingFilesViewLoadedCommand
-			.Execute(editingFiles);
 
 		// Act
 		sut.ShowFavorites(null);

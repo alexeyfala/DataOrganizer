@@ -64,6 +64,11 @@ public sealed partial class EditorViewModel :
 	public IAutoLockService AutoLock => _autoLock;
 
 	/// <summary>
+	/// The tabs of the files open in the editor.
+	/// </summary>
+	public EditingFilesViewModel EditingFiles { get; }
+
+	/// <summary>
 	/// Information in the lower left corner.
 	/// </summary>
 	[ObservableProperty]
@@ -174,6 +179,26 @@ public sealed partial class EditorViewModel :
 		}
 
 		RightSideSheetContent = RightSideSheetContentKind.None;
+	}
+
+	/// <summary>
+	/// Called when <see cref="RightSideSheetContent" /> changes.
+	/// </summary>
+	partial void OnRightSideSheetContentChanged(
+		RightSideSheetContentKind oldValue,
+		RightSideSheetContentKind newValue)
+	{
+		if (oldValue == RightSideSheetContentKind.CopyHistory)
+		{
+			CloseCopyHistoryList();
+		}
+
+		if (newValue != RightSideSheetContentKind.CopyHistory)
+		{
+			return;
+		}
+
+		OpenCopyHistoryList();
 	}
 
 	/// <summary>
@@ -646,22 +671,17 @@ public sealed partial class EditorViewModel :
 
 		window?.Close();
 
-		_copyHistoryViewModel?.Dispose();
+		CloseCopyHistoryList();
 
-		_sessionEditorTabs.EditorTabs = _editingFiles?.State;
+		_sessionEditorTabs.EditorTabs = EditingFiles.State;
 
 		_viewLauncher
 			.CreateFavoritesWindow()
 			.Show();
 
-		if (_editingFiles is null)
-		{
-			return;
-		}
-
 		Hierarchy
 			.GetFilesBy(x => x.IsEditing)
-			.ForEach(_editingFiles.CloseEditor);
+			.ForEach(EditingFiles.CloseEditor);
 	}
 
 	/// <summary>
@@ -867,23 +887,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		_editingFiles?.OpenInEditor(dto);
-	}
-
-	/// <summary>
-	/// Handles loading event for rendering the file editor: opens the tabs of <see cref="ISessionEditorTabs.EditorTabs" />.
-	/// </summary>
-	[RelayCommand]
-	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
-	{
-		_editingFiles = viewModel;
-
-		if (viewModel is null || _sessionEditorTabs.EditorTabs is not { } tabs)
-		{
-			return;
-		}
-
-		viewModel.Restore(tabs);
+		EditingFiles.OpenInEditor(dto);
 	}
 
 	/// <summary>
@@ -1157,14 +1161,12 @@ public sealed partial class EditorViewModel :
 	/// Number of operations showing the progress bar.
 	/// </summary>
 	private int _actionsInProgress;
-
-	/// <inheritdoc cref="EditingFilesViewModel" />
-	private EditingFilesViewModel? _editingFiles;
 	#endregion
 
 	#region Constructors
 	public EditorViewModel(
 		Application app,
+		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
 		IBackgroundServiceControl backgroundServiceControl,
@@ -1195,6 +1197,7 @@ public sealed partial class EditorViewModel :
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
+		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(
 			app,
 			settingsStore,
@@ -1209,8 +1212,11 @@ public sealed partial class EditorViewModel :
 			sessionEditorTabs,
 			sessionHierarchy,
 			exceptionHandler,
+			viewFactory,
 			viewLauncher)
 	{
+		EditingFiles = editingFiles;
+
 		_autoLock = autoLock;
 
 		_backgroundServiceControl = backgroundServiceControl;
@@ -1418,17 +1424,7 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <inheritdoc />
-	protected override void CloseEditingFile(FileDto file)
-	{
-		if (_editingFiles is not null)
-		{
-			_editingFiles.CloseTab(file);
-		}
-		else
-		{
-			file.IsEditing = false;
-		}
-	}
+	protected override void CloseEditingFile(FileDto file) => EditingFiles.CloseTab(file);
 	#endregion
 
 	#region Helpers

@@ -14,7 +14,6 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.ViewModels;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -170,13 +169,10 @@ internal class AppTests
 	/// them.
 	/// </summary>
 	[AvaloniaTest]
-	[TestCase(typeof(CopyHistoryViewModel))]
-	[TestCase(typeof(EditingFilesViewModel))]
 	[TestCase(typeof(IClipboardTextWriter))]
 	[TestCase(typeof(IFilePreviewReader))]
 	[TestCase(typeof(INoteReader))]
 	[TestCase(typeof(ISnackbarPresenter))]
-	[TestCase(typeof(SelectedFavoritesViewModel))]
 	public void RegisterServices_Registers_The_Services_The_Markup_Resolves(Type serviceType)
 	{
 		// Arrange

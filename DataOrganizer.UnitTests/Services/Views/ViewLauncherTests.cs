@@ -38,6 +38,7 @@ using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -2132,6 +2133,10 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(viewLauncher);
 
 			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
@@ -2183,8 +2188,6 @@ internal class ViewLauncherTests
 
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
-		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
-
 		window
 			.ViewModel
 			.FavoritesSettings
@@ -2203,13 +2206,9 @@ internal class ViewLauncherTests
 			.ViewModel
 			.ShowFavorites();
 
-		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
-		// dispatcher before the choice.
-		window
-			.ViewModel
-			.FavoritesDisplayedCommand
-			.Execute(favorites);
+		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
 
+		// The stored selection comes back through the dispatcher before the choice.
 		Dispatcher.UIThread.RunJobs();
 
 		favorites.SelectedCategory = categories[1];
@@ -2245,10 +2244,17 @@ internal class ViewLauncherTests
 		Guid savedCategoryId = default;
 
 		// The favorites live as long as the test, as the window saves them when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -2288,8 +2294,6 @@ internal class ViewLauncherTests
 
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
-		SelectedFavoritesViewModel favorites = windowMock.Create<SelectedFavoritesViewModel>();
-
 		window
 			.ViewModel
 			.FavoritesSettings
@@ -2302,13 +2306,9 @@ internal class ViewLauncherTests
 			.ViewModel
 			.ShowFavorites();
 
-		// The view of the popup hands its view model over once loaded, and the stored selection comes back through the
-		// dispatcher before the choice.
-		window
-			.ViewModel
-			.FavoritesDisplayedCommand
-			.Execute(favorites);
+		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
 
+		// The stored selection comes back through the dispatcher before the choice.
 		Dispatcher.UIThread.RunJobs();
 
 		favorites.SelectedCategory = categories[1];

@@ -270,31 +270,26 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	public void Initialize(
 		double navigationColumnWidth,
 		Guid selectedCategoryId,
-		List<FavoriteCategory> categories,
-		List<Guid> orderedCategoryIds,
-		List<FavoriteSelection> selectedPairs)
+		IReadOnlyCollection<FavoriteCategory> categories,
+		IReadOnlyCollection<Guid> orderedCategoryIds,
+		IReadOnlyCollection<FavoriteSelection> selectedPairs)
 	{
 		NavigationColumnWidth = new(navigationColumnWidth);
 
-		if (orderedCategoryIds.Count > 0)
-		{
-			Guid[] identifiers = [.. categories.Select(x => x.Id)];
+		Guid[] identifiers = [.. categories.Select(x => x.Id)];
 
-			orderedCategoryIds.RemoveAll(x => !identifiers.Contains(x));
+		// The ids of the categories that are gone stay out of the stored order.
+		Guid[] kept = [.. orderedCategoryIds.Where(identifiers.Contains)];
 
-			if (orderedCategoryIds.Count > 0)
-			{
-				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategoryIds, x => x.Id)]);
+		FavoriteCategory[] ordered = [.. categories.OrderBySequenceKeepSource(kept, x => x.Id)];
 
-				OrderedCategoryIds.AddRange(orderedCategoryIds);
-			}
-		}
+		OrderedCategoryIds.AddRange(kept);
 
-		_categoriesFilter.AddRange(categories);
+		_categoriesFilter.AddRange(ordered);
 
 		SelectedPairs.AddRange(selectedPairs);
 
-		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
+		_categoriesFilter.PostToUi(() => SelectedCategory = ordered.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
 
 	/// <inheritdoc />

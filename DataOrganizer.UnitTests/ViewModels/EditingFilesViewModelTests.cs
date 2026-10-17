@@ -1,7 +1,9 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Shared.Extensions;
@@ -95,26 +97,63 @@ internal class EditingFilesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditingFilesViewModel.Restore" />: the files open in their order with the tab of the selected file
-	/// selected and the previous file kept for Ctrl+Tab.
+	/// <see cref="EditingFilesViewModel.RestoreTabsCommand" />: without tabs in the work session the editor opens none.
 	/// </summary>
 	[Test]
-	public void Restore_Opens_The_Tabs()
+	public void RestoreTabsCommand_Opens_Nothing_Without_Tabs_In_The_Session()
 	{
 		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
-
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
 		// Act
-		sut.Restore(new()
+		sut
+			.RestoreTabsCommand
+			.Execute(null);
+
+		// Assert
+		sut.Items
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EditingFilesViewModel.RestoreTabsCommand" />: the files the work session keeps open in their order, with
+	/// the tab of the selected file selected and the previous file kept for Ctrl+Tab.
+	/// </summary>
+	[Test]
+	public void RestoreTabsCommand_Opens_The_Tabs_Of_The_Session()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(count: 3)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			Files = files,
-			PreviousFile = files[2],
-			SelectedFile = files[1]
+			WorkSession session = new()
+			{
+				EditorTabs = new()
+				{
+					Files = files,
+					PreviousFile = files[2],
+					SelectedFile = files[1]
+				}
+			};
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
+
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
+
+		// Act
+		sut
+			.RestoreTabsCommand
+			.Execute(null);
 
 		// Assert
 		sut.Items

@@ -5,14 +5,18 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
+using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using NSubstitute;
+using System.Linq;
 
 namespace DataOrganizer.UnitTests.Windows;
 
@@ -158,6 +162,56 @@ internal class FavoritesWindowTests
 		sut.IsVisible
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowFavorites" />: the popup shows the favorites that the window made.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Shows_The_Favorites_Of_The_Window()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.As<IViewFactory>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		FavoritesViewModel viewModel = mock.Create<FavoritesViewModel>();
+
+		FavoritesWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowFavorites();
+
+		Dispatcher.UIThread.RunJobs();
+
+		object? shown = sut
+			.GetLogicalDescendants()
+			.OfType<SelectedFavoritesView>()
+			.Single()
+			.DataContext;
+
+		SelectedFavoritesViewModel? favorites = viewModel.SelectedFavorites;
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.NotBeNull()
+			.And
+			.BeSameAs(favorites);
 	}
 	#endregion
 
