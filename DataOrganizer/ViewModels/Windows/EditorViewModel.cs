@@ -22,6 +22,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Seeding;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
@@ -37,6 +38,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
@@ -703,35 +705,24 @@ public sealed partial class EditorViewModel :
 	/// Adds entries made up for trying the clipboard history to it.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedClipboardHistory))]
-	private async Task SeedClipboardHistory()
+	private Task SeedClipboardHistory()
 	{
 		IsLeftDrawerOpened = false;
 
-		_logger.LogInformation("Seed clipboard history");
-
-		try
-		{
-			await _clipboardLogSeeder
-				.SeedAsync()
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException("The sample clipboard entries could not be added.", ex);
-		}
+		return _seeding.SeedClipboardHistoryAsync();
 	}
 
 	/// <summary>
 	/// Adds a run of many sample objects with large contents to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
-	private Task SeedLargeSamples() => SeedAsync("Seed large samples", _sampleSeeder.SeedLargeAsync);
+	private Task SeedLargeSamples() => SeedAsync(_seeding.SeedLargeSamplesAsync);
 
 	/// <summary>
 	/// Adds a run of sample objects to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
-	private Task SeedSamples() => SeedAsync("Seed samples", _sampleSeeder.SeedAsync);
+	private Task SeedSamples() => SeedAsync(_seeding.SeedSamplesAsync);
 
 	/// <summary>
 	/// Selects an object of the tree.
@@ -838,9 +829,6 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IBackgroundServiceControl" />
 	private readonly IBackgroundServiceControl _backgroundServiceControl;
 
-	/// <inheritdoc cref="IClipboardLogSeeder" />
-	private readonly IClipboardLogSeeder _clipboardLogSeeder;
-
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
 
@@ -906,8 +894,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IProtectionScenarios" />
 	private readonly IProtectionScenarios _protectionScenarios;
 
-	/// <inheritdoc cref="ISampleSeeder" />
-	private readonly ISampleSeeder _sampleSeeder;
+	/// <inheritdoc cref="ISeedingScenarios" />
+	private readonly ISeedingScenarios _seeding;
 
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	private readonly ISessionEditorTabs _sessionEditorTabs;
@@ -936,7 +924,6 @@ public sealed partial class EditorViewModel :
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
 		IBackgroundServiceControl backgroundServiceControl,
-		IClipboardLogSeeder clipboardLogSeeder,
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
@@ -960,8 +947,8 @@ public sealed partial class EditorViewModel :
 		INotificationService notification,
 		IOpenFilesCloser openFilesCloser,
 		IProtectionScenarios protectionScenarios,
-		ISampleSeeder sampleSeeder,
 		ISecondaryWindowLauncher secondaryWindowLauncher,
+		ISeedingScenarios seeding,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ISessionReadOnlyMode sessionReadOnlyMode,
@@ -984,8 +971,6 @@ public sealed partial class EditorViewModel :
 		_autoLock = autoLock;
 
 		_backgroundServiceControl = backgroundServiceControl;
-
-		_clipboardLogSeeder = clipboardLogSeeder;
 
 		_clipboardWriter = clipboardWriter;
 
@@ -1025,7 +1010,7 @@ public sealed partial class EditorViewModel :
 
 		_propertyWriter = propertyWriter;
 
-		_sampleSeeder = sampleSeeder;
+		_seeding = seeding;
 
 		_sessionEditorTabs = sessionEditorTabs;
 
@@ -1454,27 +1439,16 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Adds to the tree the run of samples that <paramref name="seed" /> writes to the database, with the menu closed and the
-	/// progress bar on.
+	/// Adds to the tree the run of samples that <paramref name="seed" /> makes, with the menu closed, and counts the objects
+	/// again.
 	/// </summary>
-	private async Task SeedAsync(string logMessage, Func<CancellationToken, Task<FolderDto>> seed)
+	private async Task SeedAsync(Func<Collection<ExplorerItemDtoBase>, Task> seed)
 	{
 		IsLeftDrawerOpened = false;
 
-		_logger.LogInformation(logMessage);
+		await seed(Hierarchy).ConfigureAwait(true);
 
-		try
-		{
-			using ProgressScope _ = _messenger.ShowProgress();
-
-			FolderDto run = await seed(CancellationToken.None).ConfigureAwait(true);
-
-			AddHierarchy([run]);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException("The sample objects could not be added.", ex);
-		}
+		UpdateHierarchySummary();
 	}
 
 	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />
