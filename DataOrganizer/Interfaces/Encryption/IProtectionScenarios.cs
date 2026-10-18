@@ -43,7 +43,7 @@ public interface IProtectionScenarios
 
 	/// <summary>
 	/// Hides every decrypted contents once the auto-lock expires: the open files close without a question and the editor
-	/// tabs of the work session are dropped.
+	/// tabs of the work session are dropped with the marks of their files.
 	/// </summary>
 	Task LockAsync(CancellationToken token = default);
 

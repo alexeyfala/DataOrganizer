@@ -31,7 +31,6 @@ namespace DataOrganizer.ViewModels.Windows;
 /// </summary>
 public sealed partial class FavoritesViewModel :
 	ViewModelBase,
-	IRecipient<CloseEditingFileMessage>,
 	IRecipient<ConfirmUpdateMessage>,
 	IRecipient<SessionAutoLockedMessage>,
 	IRecipient<ShowFavoritesMessage>,
@@ -270,17 +269,11 @@ public sealed partial class FavoritesViewModel :
 
 	#region Methods
 	/// <inheritdoc />
-	public void Receive(CloseEditingFileMessage message)
-	{
-		// The editor tabs wait in the work session while this window shows, so their files are only unmarked.
-		message.File.IsEditing = false;
-	}
-
-	/// <inheritdoc />
 	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
 
 	/// <inheritdoc />
 	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
+
 	/// <inheritdoc />
 	public void Receive(ShowFavoritesMessage message) => ShowFavorites();
 

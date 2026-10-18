@@ -215,6 +215,12 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 			.Hierarchy
 			.GetFilesBy(static x => x.IsOpened())]);
 
+		// No editor shows the tabs that wait in the work session, so their files are unmarked here.
+		_sessionEditorTabs
+			.EditorTabs?
+			.Files
+			.ForEach(static x => x.IsEditing = false);
+
 		_sessionEditorTabs.EditorTabs = null;
 
 		_contentVisibility.HideAllContents(_sessionHierarchy.Hierarchy);

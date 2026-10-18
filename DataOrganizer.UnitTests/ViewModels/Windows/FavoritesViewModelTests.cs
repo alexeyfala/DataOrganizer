@@ -824,6 +824,78 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="FavoritesViewModel.Receive(SessionAutoLockedMessage)" />: the files of the editor tabs that wait in the work
+	/// session are no longer marked as edited.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Unmarks_The_Files_Of_The_Waiting_Tabs()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		FileDto second = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			WorkSession session = new()
+			{
+				EditorTabs = new()
+				{
+					Files = [first, second],
+					PreviousFile = first,
+					SelectedFile = second
+				}
+			};
+
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<ProtectionScenarios>()
+				.As<IProtectionScenarios>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.Hierarchy
+			.AddRange([first, second]);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		first.IsEditing
+			.Should()
+			.BeFalse();
+
+		second.IsEditing
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FavoritesViewModel.Receive(ShowFavoritesMessage)" />: the favorites open in the popup.
 	/// </summary>
 	[AvaloniaTest]
