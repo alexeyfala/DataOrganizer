@@ -59,9 +59,9 @@
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconBrush}}"
+			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconBrush}}"
 			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
-			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconKind}}"
-			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconDescription}}" />
+			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconKind}}"
+			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconDescription}}" />
 	</StackPanel>
 </UserControl>

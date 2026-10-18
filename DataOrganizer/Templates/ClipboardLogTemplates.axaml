@@ -47,7 +47,7 @@
 			MaxWidth="{StaticResource ImageEntryMaxWidth}"
 			MaxHeight="{StaticResource ImageEntryMaxHeight}"
 			HorizontalAlignment="Left"
-			Source="{Binding OriginalPng, Mode=OneTime, Converter={x:Static converters:AppConverters.PngToPreview}, ConverterParameter={StaticResource ImageEntryMaxWidth}}"
+			Source="{Binding OriginalPng, Mode=OneTime, Converter={x:Static converters:ClipboardLogConverters.PngToPreview}, ConverterParameter={StaticResource ImageEntryMaxWidth}}"
 			Stretch="Uniform" />
 	</DataTemplate>
 

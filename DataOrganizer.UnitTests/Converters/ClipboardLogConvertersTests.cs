@@ -1,4 +1,6 @@
 using Avalonia.Data.Converters;
+using Avalonia.Headless.NUnit;
+using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
 using DataOrganizer.Helpers.Views;
@@ -397,6 +399,37 @@ internal class ClipboardLogConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogConverters.PngToPreview" />: the image is decoded at the width given as the parameter, whatever its own
+	/// size.
+	/// </summary>
+	[AvaloniaTest]
+	public void PngToPreview_Decodes_The_Png_At_The_Width_Given()
+	{
+		// Act
+		Bitmap? result = (Bitmap?)Convert(ClipboardLogConverters.PngToPreview, ImageFactory.CreatePng(), 48.0);
+
+		// Assert
+		result!.PixelSize.Width
+			.Should()
+			.Be(48);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.PngToPreview" />: empty bytes give no image.
+	/// </summary>
+	[Test]
+	public void PngToPreview_Without_A_Png_Is_Empty()
+	{
+		// Act
+		object? result = Convert(ClipboardLogConverters.PngToPreview, [], 48.0);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogConverters.TypeGlyph" />: the badge marks a list of files.
 	/// </summary>
 	[Test]
@@ -612,6 +645,18 @@ internal class ClipboardLogConvertersTests
 			files,
 			typeof(object),
 			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the bytes of a PNG with the width given as the parameter.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<byte[]?, double, Bitmap?> converter, byte[]? png, double width)
+	{
+		return converter.Convert(
+			png,
+			typeof(object),
+			width,
 			CultureInfo.CurrentCulture);
 	}
 

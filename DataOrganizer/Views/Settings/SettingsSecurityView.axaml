@@ -20,7 +20,7 @@
 				SelectedItem="{Binding AutoLockMinutes, Mode=TwoWay}">
 				<ComboBox.ItemTemplate>
 					<DataTemplate>
-						<TextBlock Text="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockDelay}}" />
+						<TextBlock Text="{Binding Mode=OneWay, Converter={x:Static converters:SecurityConverters.AutoLockDelay}}" />
 					</DataTemplate>
 				</ComboBox.ItemTemplate>
 			</ComboBox>

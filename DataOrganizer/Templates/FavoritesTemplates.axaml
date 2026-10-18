@@ -71,8 +71,8 @@
 			<views:IconsBlock
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}"
-				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryHasNote}}"
-				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryToFolder}}"
+				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:FavoritesConverters.FavoriteCategoryHasNote}}"
+				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:FavoritesConverters.FavoriteCategoryToFolder}}"
 				NoteName="{Binding Name, Mode=OneTime}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 

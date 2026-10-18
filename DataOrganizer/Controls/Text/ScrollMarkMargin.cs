@@ -406,7 +406,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 				// The same caption as in the status bar.
 				new TextBlock
 				{
-					Text = AppConverters.NumberCaption.Convert(
+					Text = DocumentConverters.NumberCaption.Convert(
 						line,
 						typeof(string),
 						Strings.LineFormat,

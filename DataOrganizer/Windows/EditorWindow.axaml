@@ -484,7 +484,7 @@
 									</StackPanel>
 
 									<Grid
-										Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
+										Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:SecurityConverters.AutoLockIsExpiring}}"
 										ColumnDefinitions="Auto,Auto"
 										Cursor="Hand"
 										IsVisible="{Binding AutoLock.IsArmed, Mode=OneWay}"
@@ -515,7 +515,7 @@
 										<TextBlock
 											Grid.Column="1"
 											Margin="0.0,0.0,2.0,0.0"
-											Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
+											Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:SecurityConverters.AutoLockRemaining}}" />
 
 										<Interaction.Behaviors>
 											<EventTriggerBehavior EventName="Tapped">

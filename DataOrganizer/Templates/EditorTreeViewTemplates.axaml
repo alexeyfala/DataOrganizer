@@ -79,7 +79,7 @@
 				Width="{StaticResource EntityKindIconSize}"
 				Height="{StaticResource EntityKindIconSize}"
 				Foreground="{StaticResource FileBrush}"
-				Kind="{Binding Kind, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityKindToIconKind}}" />
+				Kind="{Binding Kind, Mode=OneWay, Converter={x:Static converters:ExplorerConverters.EntityKindToIconKind}}" />
 
 			<TextBlock
 				Grid.Column="1"
@@ -102,7 +102,7 @@
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}">
 				<views:IconsBlock.HotkeysToolTip>
 					<MultiBinding
-						Converter="{x:Static converters:AppConverters.HotkeysToToolTip}"
+						Converter="{x:Static converters:ExplorerConverters.HotkeysToToolTip}"
 						Mode="OneWay">
 						<Binding
 							Mode="OneWay"

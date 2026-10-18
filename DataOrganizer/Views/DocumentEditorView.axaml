@@ -390,7 +390,7 @@
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="LineEndingBlock"
-						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:DocumentConverters.LineEndingToCaption}}"
 						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
 						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
 						FlyoutPlacement="TopEdgeAlignedRight"
@@ -419,9 +419,9 @@
 						Margin="8.0,4.0"
 						HorizontalSpacing="{StaticResource ElementSpacing}"
 						LastChildFill="False">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
 					</DockPanel>
 				</Border>
 
@@ -433,11 +433,11 @@
 						Margin="8.0,4.0"
 						HorizontalSpacing="{StaticResource ElementSpacing}"
 						LastChildFill="False">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SelectionOrPosition}}" />
 					</DockPanel>
 				</Border>
 
@@ -446,7 +446,7 @@
 				<Border ClipToBounds="True" DockPanel.Dock="Left">
 					<views:ChoiceSelector
 						x:Name="LanguageBlock"
-						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SyntaxLanguageToName}}"
 						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
 						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
 						DefaultMark="{Binding #View.DefaultSyntaxLanguageMark, Mode=OneWay}"
