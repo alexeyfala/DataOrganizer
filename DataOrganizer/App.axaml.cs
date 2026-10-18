@@ -215,6 +215,7 @@ public sealed class App : Application
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<IProtectionScenarios, ProtectionScenarios>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
+		services.AddTransient<ISecondaryWindowCloser, ViewLauncher>();
 		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
 		services.AddTransient<ISeedingScenarios, SeedingScenarios>();
 		services.AddTransient<ISessionDekWrapper, EncryptionService>();

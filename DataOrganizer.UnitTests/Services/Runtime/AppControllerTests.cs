@@ -747,7 +747,7 @@ internal class AppControllerTests
 
 		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-		ISecondaryWindowLauncher secondaryWindowLauncher = Substitute.For<ISecondaryWindowLauncher>();
+		ISecondaryWindowCloser secondaryWindowCloser = Substitute.For<ISecondaryWindowCloser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -761,7 +761,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(sandbox);
 
-			builder.RegisterInstance(secondaryWindowLauncher);
+			builder.RegisterInstance(secondaryWindowCloser);
 		});
 
 		_ = mock.Create<AppController>();
@@ -778,7 +778,7 @@ internal class AppControllerTests
 		{
 			backgroundServices.StopAsync();
 
-			secondaryWindowLauncher.CloseSecondaryWindowsAsync();
+			secondaryWindowCloser.CloseSecondaryWindowsAsync();
 
 			executingFiles.CloseAllAsync();
 

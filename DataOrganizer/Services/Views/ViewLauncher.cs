@@ -24,7 +24,12 @@ namespace DataOrganizer.Services.Views;
 /// <summary>
 /// Creates, shows and closes the windows of the application and saves their settings.
 /// </summary>
-public class ViewLauncher : IMainWindowActivator, IMainWindowLauncher, INoticeLauncher, ISecondaryWindowLauncher
+public class ViewLauncher :
+	IMainWindowActivator,
+	IMainWindowLauncher,
+	INoticeLauncher,
+	ISecondaryWindowCloser,
+	ISecondaryWindowLauncher
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />

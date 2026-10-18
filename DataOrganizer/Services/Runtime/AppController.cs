@@ -66,8 +66,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
-	/// <inheritdoc cref="ISecondaryWindowLauncher" />
-	private readonly ISecondaryWindowLauncher _secondaryWindowLauncher;
+	/// <inheritdoc cref="ISecondaryWindowCloser" />
+	private readonly ISecondaryWindowCloser _secondaryWindowCloser;
 
 	/// <inheritdoc cref="IServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
@@ -110,7 +110,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		IProcessManager processManager,
-		ISecondaryWindowLauncher secondaryWindowLauncher,
+		ISecondaryWindowCloser secondaryWindowCloser,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
 		ISessionTreeState sessionTreeState,
@@ -152,7 +152,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 		_sandbox = sandbox;
 
-		_secondaryWindowLauncher = secondaryWindowLauncher;
+		_secondaryWindowCloser = secondaryWindowCloser;
 
 		_serviceProvider = serviceProvider;
 
@@ -270,7 +270,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 			.StopAsync()
 			.ConfigureAwait(true);
 
-		await _secondaryWindowLauncher
+		await _secondaryWindowCloser
 			.CloseSecondaryWindowsAsync()
 			.ConfigureAwait(true);
 
