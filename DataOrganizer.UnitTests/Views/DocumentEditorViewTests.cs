@@ -21,7 +21,7 @@ using DataOrganizer.Behaviors.Text;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;

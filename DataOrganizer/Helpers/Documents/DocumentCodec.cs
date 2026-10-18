@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Text;
 using System;
 using System.Collections.Generic;

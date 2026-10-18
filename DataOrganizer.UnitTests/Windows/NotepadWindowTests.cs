@@ -14,7 +14,7 @@ using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;

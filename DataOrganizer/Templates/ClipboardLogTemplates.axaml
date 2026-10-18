@@ -3,7 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"

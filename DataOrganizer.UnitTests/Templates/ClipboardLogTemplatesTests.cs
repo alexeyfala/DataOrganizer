@@ -7,7 +7,7 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Text;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using System;

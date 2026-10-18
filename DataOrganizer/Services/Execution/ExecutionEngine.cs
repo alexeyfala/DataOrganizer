@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;

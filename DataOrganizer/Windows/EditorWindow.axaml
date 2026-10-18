@@ -12,7 +12,7 @@
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:enums="using:DataOrganizer.Enums.Views"
 
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"

@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Models;
 using MapsterMapper;

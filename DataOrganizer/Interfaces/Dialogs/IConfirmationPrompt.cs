@@ -1,5 +1,5 @@
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using System.Threading;
 using System.Threading.Tasks;
 

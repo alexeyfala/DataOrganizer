@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 
 namespace DataOrganizer.Windows;
 

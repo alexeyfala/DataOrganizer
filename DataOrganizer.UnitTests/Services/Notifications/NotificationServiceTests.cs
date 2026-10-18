@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services;

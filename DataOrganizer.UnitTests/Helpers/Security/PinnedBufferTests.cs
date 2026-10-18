@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;

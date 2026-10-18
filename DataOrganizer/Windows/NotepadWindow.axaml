@@ -6,7 +6,7 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"

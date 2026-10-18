@@ -1,8 +1,8 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
+using DataOrganizer.Helpers.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Styling;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Settings;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using Material.Styles.Themes;

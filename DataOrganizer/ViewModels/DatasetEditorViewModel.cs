@@ -5,7 +5,7 @@ using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;

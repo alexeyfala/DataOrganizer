@@ -6,7 +6,7 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Views;
 using DataOrganizer.Messages.Documents;
 using System;
 using System.Reactive;

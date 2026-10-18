@@ -22,7 +22,7 @@ using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using Shared.Extensions;
 using System;

@@ -7,7 +7,7 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;

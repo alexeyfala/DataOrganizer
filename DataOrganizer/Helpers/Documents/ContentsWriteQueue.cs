@@ -1,4 +1,4 @@
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using Shared.Extensions;
 using System;
 using System.Security.Cryptography;

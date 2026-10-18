@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Text;
 using System;
 using System.Collections.Generic;

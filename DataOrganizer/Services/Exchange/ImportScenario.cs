@@ -1,7 +1,7 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;

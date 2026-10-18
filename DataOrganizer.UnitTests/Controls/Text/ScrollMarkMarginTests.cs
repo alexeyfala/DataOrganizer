@@ -16,7 +16,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;

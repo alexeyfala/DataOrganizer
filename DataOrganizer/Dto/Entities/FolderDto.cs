@@ -1,4 +1,4 @@
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Encryption;
 using Entities.Models;
 using Shared.Extensions;

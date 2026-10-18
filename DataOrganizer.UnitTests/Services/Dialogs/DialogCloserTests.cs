@@ -6,7 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Services;

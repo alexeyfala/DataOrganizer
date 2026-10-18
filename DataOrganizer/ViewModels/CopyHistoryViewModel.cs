@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Collections;
+using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Helpers.Collections;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;

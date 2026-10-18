@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;

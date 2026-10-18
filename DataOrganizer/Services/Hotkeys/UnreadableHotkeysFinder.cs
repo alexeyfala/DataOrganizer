@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Hotkeys;
 using Serilog;
 using Shared.Extensions;

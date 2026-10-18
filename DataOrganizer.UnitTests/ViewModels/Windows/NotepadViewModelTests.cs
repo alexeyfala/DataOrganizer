@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;

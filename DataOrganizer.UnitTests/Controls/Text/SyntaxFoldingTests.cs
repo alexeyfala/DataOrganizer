@@ -5,7 +5,7 @@ using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Services.Text;
 using System.Linq;
 

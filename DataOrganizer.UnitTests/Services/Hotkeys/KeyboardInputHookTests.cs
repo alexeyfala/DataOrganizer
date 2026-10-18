@@ -7,7 +7,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;

@@ -1,7 +1,8 @@
 using Comparation;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;

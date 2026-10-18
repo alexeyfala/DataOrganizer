@@ -6,7 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using Shared.Extensions;

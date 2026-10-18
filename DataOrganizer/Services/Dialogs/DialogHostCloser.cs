@@ -1,4 +1,4 @@
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
 using DialogHostAvalonia;
 

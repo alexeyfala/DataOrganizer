@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using System;
 
 namespace DataOrganizer.Behaviors.Input;

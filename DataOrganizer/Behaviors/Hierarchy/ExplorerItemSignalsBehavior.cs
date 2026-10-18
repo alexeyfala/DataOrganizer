@@ -4,7 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using Shared.Extensions;
 using System;
 using System.Linq;

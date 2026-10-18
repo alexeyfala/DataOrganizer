@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;

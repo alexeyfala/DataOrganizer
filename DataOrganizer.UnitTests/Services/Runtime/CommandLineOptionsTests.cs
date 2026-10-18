@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Runtime;
 using DataOrganizer.Services.Runtime;
 using Serilog.Events;
 using System;

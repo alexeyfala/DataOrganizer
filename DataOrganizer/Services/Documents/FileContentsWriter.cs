@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;

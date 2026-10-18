@@ -1,5 +1,5 @@
 using Avalonia.Data.Converters;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Models.Clipboard;
 using Shared.Properties;
 using System;

@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;

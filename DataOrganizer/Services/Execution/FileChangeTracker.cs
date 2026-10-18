@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;

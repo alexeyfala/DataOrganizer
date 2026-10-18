@@ -4,7 +4,7 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dataset;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Views;
 using Shared.Extensions;
 using System;
 using System.Reactive;

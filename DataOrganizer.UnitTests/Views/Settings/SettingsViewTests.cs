@@ -6,7 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Runtime;

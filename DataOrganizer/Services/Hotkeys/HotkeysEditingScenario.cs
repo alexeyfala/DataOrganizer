@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;

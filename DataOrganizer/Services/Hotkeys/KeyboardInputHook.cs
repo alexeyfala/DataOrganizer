@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Hotkeys;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;

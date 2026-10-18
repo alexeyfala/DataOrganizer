@@ -5,7 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Fakes;

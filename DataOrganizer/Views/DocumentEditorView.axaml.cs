@@ -8,7 +8,7 @@ using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Documents;
 using DataOrganizer.Services.Text;
 using Shared.Properties;
 using System;

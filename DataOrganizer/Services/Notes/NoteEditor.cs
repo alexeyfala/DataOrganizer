@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;

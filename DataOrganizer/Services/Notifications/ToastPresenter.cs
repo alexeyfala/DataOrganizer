@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Platform;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;

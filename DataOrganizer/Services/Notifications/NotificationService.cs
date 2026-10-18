@@ -1,6 +1,6 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
 using Microsoft.Extensions.DependencyInjection;

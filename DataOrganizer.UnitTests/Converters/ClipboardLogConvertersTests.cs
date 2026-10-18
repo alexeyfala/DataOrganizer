@@ -1,7 +1,7 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using System;

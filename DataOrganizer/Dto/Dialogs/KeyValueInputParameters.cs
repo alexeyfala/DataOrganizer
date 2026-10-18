@@ -1,4 +1,4 @@
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 
 namespace DataOrganizer.Dto.Dialogs;
 

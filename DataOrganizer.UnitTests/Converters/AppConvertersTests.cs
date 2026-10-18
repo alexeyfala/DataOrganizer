@@ -10,7 +10,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Settings;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Globalization;

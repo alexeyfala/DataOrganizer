@@ -19,7 +19,7 @@ using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;

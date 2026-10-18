@@ -1,5 +1,5 @@
 using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
