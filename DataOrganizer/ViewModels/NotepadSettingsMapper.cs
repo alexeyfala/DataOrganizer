@@ -2,11 +2,10 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
-using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Notepad;
+namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// Carries the notepad tabs between their settings and the tabs themselves.
