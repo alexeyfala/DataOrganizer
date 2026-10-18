@@ -2,23 +2,18 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
-using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -315,103 +310,20 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		if (_executingFiles.IsExecuting(dto.Id))
+		if (!await _fileExecution
+			.ConfirmAsync(dto)
+			.ConfigureAwait(true))
 		{
-			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Name),
-				nameof(FileDto.Kind))}");
-
 			return;
 		}
-
-		if (ExecutableFileDetector.IsExecutable(dto.Name))
-		{
-			string text =
-				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, dto.Name, Environment.NewLine)}" +
-				Environment.NewLine +
-				Environment.NewLine +
-				$"{Strings.OpenTheExecutableFile}?";
-
-			if (!await _confirmationPrompt
-				.RequestYesCancelAsync(text)
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-		}
-
-		_logger.LogInformation($"The file needs to be executed in the operating system:{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name),
-			nameof(FileDto.Kind))}");
 
 		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The key that opens the contents also encrypts the changes made to them while the file runs.
-		Guid? keeperId = dto.FindUnlockedKeeper()?.Id;
-
-		FileContentsReading reading;
-
-		try
-		{
-			reading = await _fileContentsReader
-				.ReadUnlockedAsync(dto.Id, keeperId)
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{dto.Name}""");
-
-			return;
-		}
-
-		if (reading.Status == FileContentsStatus.Damaged)
-		{
-			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
-
-			_notification.ShowErrorSnackbar(errorText);
-
-			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Kind))}");
-
-			return;
-		}
-
-		if (reading.Status == FileContentsStatus.Closed)
-		{
-			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-			return;
-		}
-
-		_logger.LogInformation(
-			$"Contents of the {reading.Contents.Length}-byte file loaded from the database:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Name),
-				nameof(FileDto.Kind),
-				nameof(FileDto.UpdatedAt))}");
-
-		ExecuteFileParameters parameters = new()
-		{
-			Contents = reading.Contents,
-			File = dto,
-			IsReadOnly = IsReadOnly,
-			KeeperId = keeperId,
-		};
-
-		await _executingFiles
-			.ExecuteAsync(parameters)
+		await _fileExecution
+			.ExecuteAsync(dto, IsReadOnly)
 			.ConfigureAwait(true);
 	}
 
@@ -982,8 +894,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
-	/// <inheritdoc cref="IFileContentsReader" />
-	private readonly IFileContentsReader _fileContentsReader;
+	/// <inheritdoc cref="IFileExecutionScenario" />
+	private readonly IFileExecutionScenario _fileExecution;
 
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
@@ -1062,7 +974,7 @@ public sealed partial class EditorViewModel :
 		IDialogService dialogService,
 		IEntityPropertyWriter propertyWriter,
 		IExecutingFiles executingFiles,
-		IFileContentsReader fileContentsReader,
+		IFileExecutionScenario fileExecution,
 		IFileHotkeyEditor fileHotkeyEditor,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
@@ -1116,7 +1028,7 @@ public sealed partial class EditorViewModel :
 
 		_dialogService = dialogService;
 
-		_fileContentsReader = fileContentsReader;
+		_fileExecution = fileExecution;
 
 		_fileHotkeyEditor = fileHotkeyEditor;
 

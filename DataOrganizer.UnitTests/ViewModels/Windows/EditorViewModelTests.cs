@@ -1755,6 +1755,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1763,6 +1767,60 @@ internal class EditorViewModelTests
 		await sut.ExecuteFile(ItemDtoFactory.CreateFileDto());
 
 		// Assert
+		await dbAccess
+			.DidNotReceive()
+			.GetFileContentsAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a protected file whose contents stay hidden, as the password was not given,
+	/// is neither read nor run.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Does_Not_Run_A_Locked_File_Left_Closed()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IProtectionScenarios protectionScenarios = Substitute.For<IProtectionScenarios>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The password is not given.
+			protectionScenarios
+				.ShowFileContentsAsync(dto)
+				.Returns(false);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(protectionScenarios);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(dto);
+
+		// Assert
+		await protectionScenarios
+			.Received(1)
+			.ShowFileContentsAsync(dto);
+
 		await dbAccess
 			.DidNotReceive()
 			.GetFileContentsAsync(Arg.Any<Guid>());
@@ -1800,9 +1858,18 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(engine);
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1865,6 +1932,11 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(engine);
 
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
 			builder.RegisterInstance(sessionKeyStore);
 
 			// The real cipher, so the contents reach the session key whichever call opens them.
@@ -1876,6 +1948,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1915,9 +1991,18 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(engine);
 
 			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1977,6 +2062,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2074,6 +2163,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2144,6 +2237,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -2159,6 +2256,141 @@ internal class EditorViewModelTests
 		parameters.KeeperId
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a file that may run a program or a script runs only once the user agrees.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Runs_An_Executable_Only_When_Confirmed([Values] bool isConfirmed)
+	{
+		// Arrange
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>())
+				.Returns(isConfirmed);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			engine
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
+				.Returns(true);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(ItemDtoFactory.CreateNamedFileDto("setup.exe"));
+
+		// Assert
+		await engine
+			.Received(isConfirmed ? 1 : 0)
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: the file runs in the read-only mode of the editor, which keeps its changes
+	/// out of the database.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Runs_The_File_In_The_Read_Only_Mode([Values] bool isReadOnly)
+	{
+		// Arrange
+		ExecuteFileParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = RandomValues.CreateBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+			engine
+				.ExecuteAsync(Arg.Do<ExecuteFileParameters>(x => parameters = x))
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(engine);
+
+			builder
+				.RegisterType<ExecutingFiles>()
+				.As<IExecutingFiles>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		await sut.ExecuteFile(ItemDtoFactory.CreateFileDto());
+
+		// Assert
+		parameters!.IsReadOnly
+			.Should()
+			.Be(isReadOnly);
 	}
 
 	/// <summary>
