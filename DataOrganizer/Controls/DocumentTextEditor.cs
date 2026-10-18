@@ -135,7 +135,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Removes all bookmarks.
 	/// </summary>
-	public RelayCommand ClearBookmarksCommand { get; }
+	public RelayCommand ClearBookmarksCommand => _bookmarkNavigation.ClearBookmarksCommand;
 
 	/// <summary>
 	/// Brings every line break of the document to the given style.
@@ -155,7 +155,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Moves the caret to the next bookmarked line, going round to the first one.
 	/// </summary>
-	public RelayCommand NextBookmarkCommand { get; }
+	public RelayCommand NextBookmarkCommand => _bookmarkNavigation.NextBookmarkCommand;
 
 	/// <summary>
 	/// Pastes the text from the clipboard.
@@ -165,7 +165,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Moves the caret to the previous bookmarked line, going round to the last one.
 	/// </summary>
-	public RelayCommand PreviousBookmarkCommand { get; }
+	public RelayCommand PreviousBookmarkCommand => _bookmarkNavigation.PreviousBookmarkCommand;
 
 	/// <summary>
 	/// Redoes the last undone edit.
@@ -175,7 +175,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Sets or removes the bookmark of the caret line.
 	/// </summary>
-	public RelayCommand ToggleBookmarkCommand { get; }
+	public RelayCommand ToggleBookmarkCommand => _bookmarkNavigation.ToggleBookmarkCommand;
 
 	/// <summary>
 	/// Folds or unfolds the innermost block of the caret line.
@@ -207,7 +207,10 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Modifier of the keys of the commands: ⌘ on macOS, like the keys of the engine, and Ctrl elsewhere.
 	/// </summary>
-	private static readonly KeyModifiers CommandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+	internal static readonly KeyModifiers CommandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+
+	/// <inheritdoc cref="DocumentBookmarkNavigation" />
+	private readonly DocumentBookmarkNavigation _bookmarkNavigation;
 
 	/// <inheritdoc cref="DocumentFoldingController" />
 	private readonly DocumentFoldingController _folding;
@@ -239,23 +242,15 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	{
 		_folding = new(this);
 
-		ClearBookmarksCommand = new(ClearBookmarks, HasBookmarks);
-
 		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
 
 		CutCommand = new(CutSelection, CanCutSelection);
 
 		FoldAllCommand = new(_folding.FoldAll, () => _folding.CanFoldAll);
 
-		NextBookmarkCommand = new(GoToNextBookmark, HasBookmarks);
-
 		PasteCommand = new(PasteText, CanPasteText);
 
-		PreviousBookmarkCommand = new(GoToPreviousBookmark, HasBookmarks);
-
 		RedoCommand = new(RedoEdit, CanRedoEdit);
-
-		ToggleBookmarkCommand = new(ToggleBookmark);
 
 		ToggleFoldingCommand = new(_folding.ToggleFolding, () => _folding.CanToggleFolding);
 
@@ -280,23 +275,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			Gesture = new KeyGesture(Key.U, CommandModifier | KeyModifiers.Shift)
 		});
 
-		KeyBindings.Add(new KeyBinding
-		{
-			Command = ToggleBookmarkCommand,
-			Gesture = new KeyGesture(Key.F2, CommandModifier)
-		});
-
-		KeyBindings.Add(new KeyBinding
-		{
-			Command = NextBookmarkCommand,
-			Gesture = new KeyGesture(Key.F2)
-		});
-
-		KeyBindings.Add(new KeyBinding
-		{
-			Command = PreviousBookmarkCommand,
-			Gesture = new KeyGesture(Key.F2, KeyModifiers.Shift)
-		});
+		_bookmarkNavigation = new(this);
 
 		// The engine undoes and redoes in read-only mode too; its bindings serve both the keys and the commands.
 		foreach (RoutedCommandBinding binding in TextArea
@@ -620,11 +599,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private bool CanUndoEdit() => CanUndo;
 
 	/// <summary>
-	/// Removes all bookmarks.
-	/// </summary>
-	private void ClearBookmarks() => Bookmarks.Clear();
-
-	/// <summary>
 	/// Brings every line break of the document to a style, as one step to undo.
 	/// </summary>
 	private void ConvertLineEndings(LineEnding lineEnding)
@@ -695,38 +669,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Moves the caret to the next bookmarked line, going round to the first one.
-	/// </summary>
-	private void GoToNextBookmark() => MoveCaretToLine(Bookmarks.FindNext(TextArea.Caret.Line));
-
-	/// <summary>
-	/// Moves the caret to the previous bookmarked line, going round to the last one.
-	/// </summary>
-	private void GoToPreviousBookmark() => MoveCaretToLine(Bookmarks.FindPrevious(TextArea.Caret.Line));
-
-	/// <summary>
-	/// Validates <see cref="ClearBookmarksCommand" />, <see cref="NextBookmarkCommand" /> and
-	/// <see cref="PreviousBookmarkCommand" />.
-	/// </summary>
-	private bool HasBookmarks() => Bookmarks.GetLines().Length > 0;
-
-	/// <summary>
-	/// Puts the caret at the start of a line and brings the line into view.
-	/// </summary>
-	private void MoveCaretToLine(int? line)
-	{
-		if (line is not { } number)
-		{
-			return;
-		}
-
-		// A selection left behind would stretch over the jump.
-		Select(Document.GetLineByNumber(number).Offset, 0);
-
-		ScrollTo(number, 1);
-	}
-
-	/// <summary>
 	/// Executes <see cref="ApplicationCommands.Paste" /> on the text area.
 	/// </summary>
 	private void PasteText()
@@ -773,11 +715,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		highlighting.Dispose();
 	}
-
-	/// <summary>
-	/// Sets or removes the bookmark of the caret line.
-	/// </summary>
-	private void ToggleBookmark() => Bookmarks.Toggle(TextArea.Caret.Line);
 
 	/// <summary>
 	/// Applies a transformation to the selected text, or to the whole document where the transformation allows it.
