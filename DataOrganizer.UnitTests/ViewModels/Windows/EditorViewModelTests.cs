@@ -22,6 +22,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -36,6 +37,7 @@ using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Runtime;
@@ -3405,6 +3407,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3445,6 +3451,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3492,6 +3502,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3505,6 +3519,95 @@ internal class EditorViewModelTests
 		opened.IsEditing
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree closes the right side sheet, and one that
+	/// appends leaves it open.
+	/// </summary>
+	[Test]
+	public async Task Import_Closes_The_Right_Side_Sheet_Only_On_Replacement([Values] bool isReplacement)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([], isReplacement ? ImportMode.Replace : ImportMode.Append));
+
+			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsRightSideSheetOpened = true;
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.IsRightSideSheetOpened
+			.Should()
+			.Be(!isReplacement);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import counts the objects of the tree again.
+	/// </summary>
+	[Test]
+	public async Task Import_Counts_The_Objects_Again()
+	{
+		// Arrange
+		FileDto imported = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			dataExchange
+				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult([imported], ImportMode.Append));
+
+			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.HierarchySummary
+			.Should()
+			.Be(new ExplorerItemDtoBase[] { imported }.GetCount().AsString());
 	}
 
 	/// <summary>
@@ -3536,6 +3639,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3547,6 +3654,61 @@ internal class EditorViewModelTests
 		contentKeys
 			.Received(1)
 			.DiscardAllKeys();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: a refusal to close the open files leaves the import unstarted.
+	/// </summary>
+	[Test]
+	public async Task Import_Imports_Nothing_When_The_Open_Files_Stay_Open()
+	{
+		// Arrange
+		FileDto opened = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			// The user keeps the files open.
+			confirmationPrompt
+				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterType<OpenFilesCloser>()
+				.As<IOpenFilesCloser>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(opened);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		opened.IsEditing
+			.Should()
+			.BeTrue();
+
+		await dataExchange
+			.DidNotReceive()
+			.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -3578,6 +3740,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3617,6 +3783,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3657,6 +3827,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -3707,6 +3881,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<ImportScenario>()
+				.As<IImportScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();

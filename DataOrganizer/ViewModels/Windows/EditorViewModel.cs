@@ -15,6 +15,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -379,29 +380,16 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanImport))]
 	internal async Task Import()
 	{
-		if (!await _openFilesCloser
-			.TryCloseAsync([.. Hierarchy.GetFilesBy(IsOpened)])
-			.ConfigureAwait(true))
-		{
-			return;
-		}
-
-		if (await _dataExchange
-			.ImportDataAsync(Hierarchy)
-			.ConfigureAwait(true) is not { } result || result.Variant == ImportMode.None)
+		if (await _import
+			.ImportAsync(Hierarchy)
+			.ConfigureAwait(true) is not { } result)
 		{
 			return;
 		}
 
 		if (result.Variant == ImportMode.Replace)
 		{
-			Hierarchy.Clear();
-
-			_copyHistoryRecorder.Clear();
-
 			IsRightSideSheetOpened = false;
-
-			_contentKeys.DiscardAllKeys();
 		}
 
 		AddHierarchy(result.ImportedItems);
@@ -879,9 +867,6 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IContentCopier" />
 	private readonly IContentCopier _contentCopier;
 
-	/// <inheritdoc cref="IContentKeys" />
-	private readonly IContentKeys _contentKeys;
-
 	/// <inheritdoc cref="ICopyHistoryRecorder" />
 	private readonly ICopyHistoryRecorder _copyHistoryRecorder;
 
@@ -910,6 +895,9 @@ public sealed partial class EditorViewModel :
 	/// Objects to highlight where the view shows them.
 	/// </summary>
 	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
+
+	/// <inheritdoc cref="IImportScenario" />
+	private readonly IImportScenario _import;
 
 	/// <inheritdoc cref="IMainWindowLauncher" />
 	private readonly IMainWindowLauncher _mainWindowLauncher;
@@ -969,7 +957,6 @@ public sealed partial class EditorViewModel :
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
-		IContentKeys contentKeys,
 		ICopyHistory copyHistory,
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
@@ -981,6 +968,7 @@ public sealed partial class EditorViewModel :
 		IFileExecutionScenario fileExecution,
 		IFileHotkeyEditor fileHotkeyEditor,
 		IHierarchyEditor hierarchyEditor,
+		IImportScenario import,
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
@@ -1022,8 +1010,6 @@ public sealed partial class EditorViewModel :
 
 		_contentCopier = contentCopier;
 
-		_contentKeys = contentKeys;
-
 		_copyHistoryRecorder = copyHistoryRecorder;
 
 		_dataExchange = dataExchange;
@@ -1039,6 +1025,8 @@ public sealed partial class EditorViewModel :
 		_fileHotkeyEditor = fileHotkeyEditor;
 
 		_hierarchyEditor = hierarchyEditor;
+
+		_import = import;
 
 		_mainWindowLauncher = mainWindowLauncher;
 

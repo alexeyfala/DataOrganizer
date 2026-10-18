@@ -190,6 +190,7 @@ public sealed class App : Application
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IHotkeyContentCopier, HotkeyContentCopier>();
 		services.AddTransient<IImportModePrompt, DialogService>();
+		services.AddTransient<IImportScenario, ImportScenario>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
