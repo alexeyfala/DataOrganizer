@@ -558,6 +558,12 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
+	/// Closes the right side sheet.
+	/// </summary>
+	[RelayCommand]
+	private void CloseRightSideSheet() => IsRightSideSheetOpened = false;
+
+	/// <summary>
 	/// Collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
@@ -913,12 +919,11 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISessionTreeState" />
 	private readonly ISessionTreeState _sessionTreeState;
 
-	/// <inheritdoc cref="ShowSignal" />
-	private readonly Subject<ExplorerNodeViewModelBase> _showSignal = new();
-
 	/// <inheritdoc cref="ISettingsCommit" />
 	private readonly ISettingsCommit _settingsCommit;
 
+	/// <inheritdoc cref="ShowSignal" />
+	private readonly Subject<ExplorerNodeViewModelBase> _showSignal = new();
 	/// <inheritdoc cref="ITextInputPrompt" />
 	private readonly ITextInputPrompt _textInputPrompt;
 
@@ -1115,25 +1120,6 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
-	/// </summary>
-	internal void ShowObject(Guid id)
-	{
-		if (Hierarchy.FindById(id) is not { } found
-			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, ExplorerNodeViewModelBase node])
-		{
-			return;
-		}
-
-		foreach (ExplorerNodeViewModelBase folder in folders)
-		{
-			folder.IsExpanded = true;
-		}
-
-		_showSignal.OnNext(node);
-	}
-
-	/// <summary>
 	/// Adds <see cref="ExplorerItemBase" /> to the database and <see cref="ExplorerItemDtoBase" /> to the <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	internal async Task<ExplorerItemDtoBase?> AddAsync(
@@ -1207,14 +1193,6 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Sets the default <see cref="NavigationColumnWidth" /> for a window <paramref name="windowWidth" /> wide.
-	/// </summary>
-	internal void SetDefaultNavigationColumnWidth(double windowWidth)
-	{
-		NavigationColumnWidth = windowWidth / 3.0;
-	}
-
-	/// <summary>
 	/// Refreshes the command that hides everything and keeps the auto-lock countdown
 	/// in step with the decrypted contents.
 	/// </summary>
@@ -1223,6 +1201,33 @@ public sealed partial class EditorViewModel :
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		_backgroundServiceControl.RefreshAutoLock();
+	}
+
+	/// <summary>
+	/// Sets the default <see cref="NavigationColumnWidth" /> for a window <paramref name="windowWidth" /> wide.
+	/// </summary>
+	internal void SetDefaultNavigationColumnWidth(double windowWidth)
+	{
+		NavigationColumnWidth = windowWidth / 3.0;
+	}
+
+	/// <summary>
+	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
+	/// </summary>
+	internal void ShowObject(Guid id)
+	{
+		if (Hierarchy.FindById(id) is not { } found
+			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, ExplorerNodeViewModelBase node])
+		{
+			return;
+		}
+
+		foreach (ExplorerNodeViewModelBase folder in folders)
+		{
+			folder.IsExpanded = true;
+		}
+
+		_showSignal.OnNext(node);
 	}
 	#endregion
 

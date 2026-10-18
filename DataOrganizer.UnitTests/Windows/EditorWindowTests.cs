@@ -128,6 +128,140 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorWindow" />: a click on the copy history button opens the side sheet with the focus inside it, so that
+	/// Escape reaches the sheet at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Copy_History_Button_Moves_The_Focus_Into_The_Side_Sheet()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Button button = sut
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
+
+		// Act
+		Click(sut, Center(sut, button));
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isOpened = viewModel.IsRightSideSheetOpened;
+
+		bool isFocusInside = sut
+			.GetVisualDescendants()
+			.OfType<SideSheet>()
+			.Single()
+			.IsKeyboardFocusWithin;
+
+		sut.Close();
+
+		// Assert
+		isOpened
+			.Should()
+			.BeTrue();
+
+		isFocusInside
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: a click on the executing files button while the side sheet shows the copy history moves
+	/// the focus into the sheet again, so that Escape reaches it at once.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Executing_Files_Button_Moves_The_Focus_Into_The_Open_Side_Sheet()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Button button = sut
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => ReferenceEquals(x.Command, viewModel.ShowExecutingFilesCommand));
+
+		// Act
+		Click(sut, Center(sut, button));
+
+		Dispatcher.UIThread.RunJobs();
+
+		RightSideSheetContentKind content = viewModel.RightSideSheetContent;
+
+		bool isFocusInside = sut
+			.GetVisualDescendants()
+			.OfType<SideSheet>()
+			.Single()
+			.IsKeyboardFocusWithin;
+
+		sut.Close();
+
+		// Assert
+		content
+			.Should()
+			.Be(RightSideSheetContentKind.ExecutingFiles);
+
+		isFocusInside
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowFavoritesCommand" />: the item of the side menu switches to the favorites.
 	/// </summary>
 	[AvaloniaTest]
@@ -822,34 +956,32 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.ExpandAllFoldersCommand" />: every folder of the tree is shown expanded, nested ones too.
+	/// <see cref="EditorWindow" />: Escape right after a click on the copy history button closes the side sheet the click
+	/// opened.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ExpandAllFoldersCommand_Expands_Every_Folder_Of_The_Tree()
+	public void Escape_After_A_Click_On_The_Copy_History_Button_Closes_The_Side_Sheet()
 	{
 		// Arrange
-		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 
-		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
 
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		inner.Parent = outer;
-
-		outer.Children.Add(inner);
-
-		file.Parent = inner;
-
-		inner.Children.Add(file);
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
-
-		viewModel.Hierarchy.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
@@ -857,29 +989,273 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		// Act
-		await viewModel
-			.ExpandAllFoldersCommand
-			.ExecuteAsync(null);
+		Button button = sut
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
+
+		Click(sut, Center(sut, button));
 
 		Dispatcher.UIThread.RunJobs();
 
-		bool[] states =
-		[
-			sut.FindTreeItem(outer) is { IsExpanded: true },
-			sut.FindTreeItem(inner) is { IsExpanded: true }
-		];
+		bool wasOpened = viewModel.IsRightSideSheetOpened;
 
-		bool isFileShown = sut.FindTreeItem(file) is { IsEffectivelyVisible: true };
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isOpened = viewModel.IsRightSideSheetOpened;
 
 		sut.Close();
 
 		// Assert
-		states
+		wasOpened
 			.Should()
-			.OnlyContain(static x => x);
+			.BeTrue();
 
-		isFileShown
+		isOpened
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: Escape with the focus inside the side sheet closes the sheet.
+	/// </summary>
+	[AvaloniaTest]
+	public void Escape_Inside_The_Side_Sheet_Closes_It([Values] bool isSearchBoxFocused)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Visual[] list =
+		[
+			.. sut
+				.GetVisualDescendants()
+				.OfType<CopyHistoryView>()
+				.Single()
+				.GetVisualDescendants()
+		];
+
+		InputElement target = isSearchBoxFocused
+			? list.OfType<TextBox>().First()
+			: list.OfType<Button>().First(static x => x.DataContext is FileDto);
+
+		target.Focus();
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool wasFocusInside = sut
+			.GetVisualDescendants()
+			.OfType<SideSheet>()
+			.Single()
+			.IsKeyboardFocusWithin;
+
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isOpened = viewModel.IsRightSideSheetOpened;
+
+		sut.Close();
+
+		// Assert
+		wasFocusInside
+			.Should()
+			.BeTrue();
+
+		isOpened
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: Escape with the focus outside the side sheet leaves the sheet open.
+	/// </summary>
+	[AvaloniaTest]
+	public void Escape_Outside_The_Side_Sheet_Leaves_It_Open()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<CopyHistory>()
+				.AsSelf()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.NotepadButton.Focus();
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool wasButtonFocused = sut.NotepadButton.IsKeyboardFocusWithin;
+
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isOpened = viewModel.IsRightSideSheetOpened;
+
+		sut.Close();
+
+		// Assert
+		wasButtonFocused
+			.Should()
+			.BeTrue();
+
+		isOpened
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: Escape that a part of the side sheet takes for itself, as the open menu of a row does,
+	/// leaves the sheet open.
+	/// </summary>
+	[AvaloniaTest]
+	public void Escape_Taken_Inside_The_Side_Sheet_Leaves_It_Open()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Button button = sut
+			.GetVisualDescendants()
+			.OfType<CopyHistoryView>()
+			.Single()
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.First(static x => x.DataContext is FileDto);
+
+		// The row takes the key, as the presenter of its open menu does.
+		button.KeyDown += static (_, e) => e.Handled |= e.Key == Key.Escape;
+
+		button.Focus();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isOpened = viewModel.IsRightSideSheetOpened;
+
+		sut.Close();
+
+		// Assert
+		isOpened
 			.Should()
 			.BeTrue();
 	}
@@ -993,6 +1369,69 @@ internal class EditorWindowTests
 		await propertyWriter
 			.Received(1)
 			.UpdateIsExpandedAsync(folder.Id, true, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExpandAllFoldersCommand" />: every folder of the tree is shown expanded, nested ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ExpandAllFoldersCommand_Expands_Every_Folder_Of_The_Tree()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await viewModel
+			.ExpandAllFoldersCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool[] states =
+		[
+			sut.FindTreeItem(outer) is { IsExpanded: true },
+			sut.FindTreeItem(inner) is { IsExpanded: true }
+		];
+
+		bool isFileShown = sut.FindTreeItem(file) is { IsEffectivelyVisible: true };
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+
+		isFileShown
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1849,6 +2288,44 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowInListCommand" />: a file chosen in the list of the executing files is selected in the
+	/// tree.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowInListCommand_Selects_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowInListCommand.Execute(file.Id);
+
+		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+
+		sut.Close();
+
+		// Assert
+		viewModel.SelectedNode!.Model
+			.Should()
+			.BeSameAs(file);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowObject" />: an object far down the tree is brought into view.
 	/// </summary>
 	[AvaloniaTest]
@@ -2074,64 +2551,9 @@ internal class EditorWindowTests
 			.Should()
 			.NotBeSameAs(background);
 	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.ShowInListCommand" />: a file chosen in the list of the executing files is selected in the
-	/// tree.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowInListCommand_Selects_The_File()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		EditorViewModel viewModel = mock.Create<EditorViewModel>();
-
-		viewModel.Hierarchy.Add(file);
-
-		EditorWindow sut = new(viewModel);
-
-		sut.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		// Act
-		viewModel.ShowInListCommand.Execute(file.Id);
-
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
-
-		sut.Close();
-
-		// Assert
-		viewModel.SelectedNode!.Model
-			.Should()
-			.BeSameAs(file);
-	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the settings of an editor window with a navigation column of a width.
-	/// </summary>
-	private static EditorWindowSettings CreateWindowSettings(double navigationColumnWidth)
-	{
-		return new()
-		{
-			IsReadOnly = false,
-			IsTopmost = false,
-			NavigationColumnWidth = navigationColumnWidth,
-			Size = new(1000, 600),
-			WindowState = WindowShowState.Normal,
-			X = 0,
-			Y = 0
-		};
-	}
-
 	/// <summary>
 	/// Returns the point in the middle of the control.
 	/// </summary>
@@ -2152,6 +2574,23 @@ internal class EditorWindowTests
 		window.MouseDown(point, MouseButton.Left);
 
 		window.MouseUp(point, MouseButton.Left);
+	}
+
+	/// <summary>
+	/// Returns the settings of an editor window with a navigation column of a width.
+	/// </summary>
+	private static EditorWindowSettings CreateWindowSettings(double navigationColumnWidth)
+	{
+		return new()
+		{
+			IsReadOnly = false,
+			IsTopmost = false,
+			NavigationColumnWidth = navigationColumnWidth,
+			Size = new(1000, 600),
+			WindowState = WindowShowState.Normal,
+			X = 0,
+			Y = 0
+		};
 	}
 
 	/// <summary>

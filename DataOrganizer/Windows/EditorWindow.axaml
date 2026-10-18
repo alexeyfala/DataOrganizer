@@ -447,12 +447,32 @@
 							<materialControls:SideSheet
 								Grid.Row="0"
 								Grid.Column="3"
+								Focusable="True"
 								SideSheetCanClose="False"
 								SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
 								SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 								SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
 								SideSheetPadding="4.0"
 								Theme="{StaticResource ScrollableSideSheetTheme}">
+								<Interaction.Behaviors>
+									<!--
+										The sheet takes the focus whenever its button shows new content, so Escape reaches it at once.
+									-->
+									<DataTriggerBehavior
+										Binding="{Binding RightSideSheetContent, Mode=OneWay}"
+										ComparisonCondition="NotEqual"
+										Value="{x:Static enums:RightSideSheetContentKind.None}">
+										<FocusControlAction />
+									</DataTriggerBehavior>
+
+									<!--
+										An Escape that nothing inside the sheet took, such as the open menu of a row, closes it.
+									-->
+									<KeyDownTrigger Key="Escape" EventRoutingStrategy="Bubble">
+										<InvokeCommandAction Command="{Binding CloseRightSideSheetCommand}" />
+									</KeyDownTrigger>
+								</Interaction.Behaviors>
+
 								<materialControls:SideSheet.SideSheetContentTemplate>
 									<selectors:ContentKindTemplateSelector>
 										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
