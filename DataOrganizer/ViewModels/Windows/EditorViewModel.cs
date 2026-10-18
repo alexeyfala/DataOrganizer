@@ -778,31 +778,14 @@ public sealed partial class EditorViewModel :
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowHotkeysEditor))]
-	private async Task ShowHotkeysEditor(FileDto? dto)
+	private Task ShowHotkeysEditor(FileDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Show hotkeys editor");
-
-		await _backgroundServiceControl
-			.PauseHotkeyTrackingAsync()
-			.ConfigureAwait(true);
-
-		EditingHotkeysResult result = await _dialogService
-			.EditHotkeysAsync(dto.Hotkeys.ToKeyStrokes())
-			.ConfigureAwait(false);
-
-		if (result.IsSaved)
-		{
-			await _fileHotkeyEditor
-				.OverwriteAsync(dto, result.NewHotkeys, Hierarchy)
-				.ConfigureAwait(false);
-		}
-
-		_backgroundServiceControl.ResumeHotkeyTracking();
+		return _hotkeysEditing.EditAsync(dto, Hierarchy);
 	}
 
 	/// <inheritdoc cref="ShowObject" />
@@ -885,9 +868,6 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IFileExecutionScenario" />
 	private readonly IFileExecutionScenario _fileExecution;
 
-	/// <inheritdoc cref="IFileHotkeyEditor" />
-	private readonly IFileHotkeyEditor _fileHotkeyEditor;
-
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
@@ -895,6 +875,9 @@ public sealed partial class EditorViewModel :
 	/// Objects to highlight where the view shows them.
 	/// </summary>
 	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
+
+	/// <inheritdoc cref="IHotkeysEditingScenario" />
+	private readonly IHotkeysEditingScenario _hotkeysEditing;
 
 	/// <inheritdoc cref="IImportScenario" />
 	private readonly IImportScenario _import;
@@ -966,8 +949,8 @@ public sealed partial class EditorViewModel :
 		IEntityPropertyWriter propertyWriter,
 		IExecutingFiles executingFiles,
 		IFileExecutionScenario fileExecution,
-		IFileHotkeyEditor fileHotkeyEditor,
 		IHierarchyEditor hierarchyEditor,
+		IHotkeysEditingScenario hotkeysEditing,
 		IImportScenario import,
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
@@ -1022,9 +1005,9 @@ public sealed partial class EditorViewModel :
 
 		_fileExecution = fileExecution;
 
-		_fileHotkeyEditor = fileHotkeyEditor;
-
 		_hierarchyEditor = hierarchyEditor;
+
+		_hotkeysEditing = hotkeysEditing;
 
 		_import = import;
 

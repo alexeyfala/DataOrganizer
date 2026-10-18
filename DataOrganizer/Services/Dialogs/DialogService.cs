@@ -30,6 +30,7 @@ public sealed class DialogService :
 	IAppPickerPrompt,
 	IConfirmationPrompt,
 	IDialogService,
+	IHotkeysPrompt,
 	IImportModePrompt,
 	IPasswordPrompt,
 	ITextInputPrompt

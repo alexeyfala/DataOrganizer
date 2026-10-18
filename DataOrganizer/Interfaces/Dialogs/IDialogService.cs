@@ -7,16 +7,11 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Dialogs;
 
 /// <summary>
-/// Shows the dialogs of the hotkeys, of a new object, of the properties and of the application settings.
+/// Shows the dialogs of a new object, of the properties and of the application settings.
 /// </summary>
 public interface IDialogService
 {
 	#region Methods
-	/// <summary>
-	/// Displays the hotkey editor.
-	/// </summary>
-	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<KeyStroke> initialHotkeys);
-
 	/// <summary>
 	/// Displays the entity creation dialog.
 	/// </summary>

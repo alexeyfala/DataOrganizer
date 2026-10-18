@@ -189,6 +189,8 @@ public sealed class App : Application
 		services.AddTransient<IFolderProtection, FolderProtection>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IHotkeyContentCopier, HotkeyContentCopier>();
+		services.AddTransient<IHotkeysEditingScenario, HotkeysEditingScenario>();
+		services.AddTransient<IHotkeysPrompt, DialogService>();
 		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IImportScenario, ImportScenario>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();

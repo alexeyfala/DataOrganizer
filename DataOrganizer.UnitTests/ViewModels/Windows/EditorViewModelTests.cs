@@ -40,6 +40,7 @@ using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Hierarchy;
+using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
@@ -5474,7 +5475,7 @@ internal class EditorViewModelTests
 	public async Task ShowHotkeysEditorCommand_Pauses_The_Hotkey_Tracking_While_The_Editor_Is_Open()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IHotkeysPrompt hotkeysPrompt = Substitute.For<IHotkeysPrompt>();
 
 		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
 
@@ -5482,7 +5483,7 @@ internal class EditorViewModelTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			dialogService
+			hotkeysPrompt
 				.EditHotkeysAsync(Arg.Any<IEnumerable<KeyStroke>>())
 				.Returns(new EditingHotkeysResult(IsSaved: false, NewHotkeys: []));
 
@@ -5494,7 +5495,7 @@ internal class EditorViewModelTests
 				.Settings
 				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(hotkeysPrompt);
 
 			// The hook is a lazy singleton that an earlier window has already used.
 			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
@@ -5513,6 +5514,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<HotkeysEditingScenario>()
+				.As<IHotkeysEditingScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -5527,10 +5532,69 @@ internal class EditorViewModelTests
 		{
 			hook.StopTrackingAsync(Arg.Any<CancellationToken>());
 
-			dialogService.EditHotkeysAsync(Arg.Any<IEnumerable<KeyStroke>>());
+			hotkeysPrompt.EditHotkeysAsync(Arg.Any<IEnumerable<KeyStroke>>());
 
 			hook.StartTrackingAsync(Arg.Any<CancellationToken>());
 		});
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowHotkeysEditorCommand" />: the hotkey editor starts from the hotkeys of the file, and
+	/// only the hotkeys it saves are written.
+	/// </summary>
+	[Test]
+	public async Task ShowHotkeysEditorCommand_Writes_The_Saved_Hotkeys([Values] bool isSaved)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto.Hotkeys.AddRange(HotkeyFactory.CreateHotkeyDtos(2));
+
+		KeyStroke[] current = [.. dto.Hotkeys.ToKeyStrokes()];
+
+		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateHotkeyDtos(1).ToKeyStrokes()];
+
+		IHotkeysPrompt hotkeysPrompt = Substitute.For<IHotkeysPrompt>();
+
+		IFileHotkeyEditor fileHotkeyEditor = Substitute.For<IFileHotkeyEditor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			hotkeysPrompt
+				.EditHotkeysAsync(Arg.Any<IEnumerable<KeyStroke>>())
+				.Returns(new EditingHotkeysResult(isSaved, newHotkeys));
+
+			builder.RegisterInstance(hotkeysPrompt);
+
+			builder.RegisterInstance(fileHotkeyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<HotkeysEditingScenario>()
+				.As<IHotkeysEditingScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.ShowHotkeysEditorCommand
+			.ExecuteAsync(dto);
+
+		// Assert
+		await hotkeysPrompt
+			.Received(1)
+			.EditHotkeysAsync(Arg.Is<IEnumerable<KeyStroke>>(x => x.SequenceEqual(current)));
+
+		await fileHotkeyEditor.Received(isSaved ? 1 : 0).OverwriteAsync(
+			dto,
+			newHotkeys,
+			sut.Hierarchy,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
