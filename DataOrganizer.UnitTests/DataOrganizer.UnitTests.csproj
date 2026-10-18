@@ -7,6 +7,8 @@
 		<IsPackable>false</IsPackable>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
+		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
