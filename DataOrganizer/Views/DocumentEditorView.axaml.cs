@@ -4,22 +4,15 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using AvaloniaEdit;
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Controls;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Messages.Documents;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Windows.Input;
 
 namespace DataOrganizer.Views;
@@ -29,9 +22,7 @@ namespace DataOrganizer.Views;
 /// </summary>
 internal sealed partial class DocumentEditorView :
 	UserControl,
-	IDisposable,
-	IRecipient<BookmarksChangedMessage>,
-	IRecipient<FoldingChangedMessage>
+	IDisposable
 {
 	#region Properties
 	/// <summary>
@@ -379,16 +370,6 @@ internal sealed partial class DocumentEditorView :
 	/// <c>True</c> once the control has been loaded.
 	/// </summary>
 	private bool _hasBeenLoaded;
-
-	/// <summary>
-	/// <c>True</c> while the control writes <see cref="ViewState" /> itself, so the change is not restored back.
-	/// </summary>
-	private bool _isCapturing;
-
-	/// <summary>
-	/// View state set from outside and not restored yet.
-	/// </summary>
-	private DocumentViewState? _pendingViewState;
 	#endregion
 
 	#region Constructors
@@ -398,53 +379,6 @@ internal sealed partial class DocumentEditorView :
 		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
 
 		InitializeComponent();
-
-		// The state is that of the active half, so only its changes count.
-		Editor
-			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
-			.Select(BuildChangeTrigger)
-			.Switch()
-			.SetDelay(TimeSpan.FromSeconds(0.5))
-			.Subscribe(_ => CaptureViewState());
-
-		this
-			.GetObservable(ViewStateProperty)
-			.Subscribe(ViewStateProperty_Changed);
-
-		Editor
-			.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
-			.Subscribe(ActiveEditorProperty_Changed);
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="SplitDocumentEditor.ActiveEditorProperty" /> changed handler of <see cref="Editor" />.
-	/// </summary>
-	private void ActiveEditorProperty_Changed(DocumentTextEditor value)
-	{
-		// The state is that of the active half, which a move of the focus changes without a move of the caret or the view.
-		CaptureViewState();
-	}
-
-	/// <summary>
-	/// <see cref="ViewStateProperty" /> changed handler.
-	/// </summary>
-	private void ViewStateProperty_Changed(DocumentViewState? value)
-	{
-		if (_isCapturing || value is not { } state)
-		{
-			return;
-		}
-
-		_pendingViewState = state;
-
-		if (!IsLoaded)
-		{
-			return;
-		}
-
-		ScheduleRestore();
 	}
 	#endregion
 
@@ -454,113 +388,10 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public void Dispose() => Editor.Dispose();
 
-	/// <summary>
-	/// Reports the view state again when the bookmarks of the document change.
-	/// </summary>
-	public void Receive(BookmarksChangedMessage message)
-	{
-		// Every open document has bookmarks of its own, which both halves share.
-		if (message.Bookmarks != Editor.ActiveEditor.Bookmarks)
-		{
-			return;
-		}
-
-		CaptureViewState();
-	}
-
-	/// <summary>
-	/// Reports the view state again when blocks of the active half fold or unfold.
-	/// </summary>
-	public void Receive(FoldingChangedMessage message)
-	{
-		// Each half folds on its own, and the state is that of the active one.
-		if (message.Editor != Editor.ActiveEditor)
-		{
-			return;
-		}
-
-		CaptureViewState();
-	}
-
-	/// <summary>
-	/// Reports the caret, selection, scroll position, bookmarks and folded blocks through <see cref="ViewState" />.
-	/// </summary>
-	internal void CaptureViewState()
-	{
-		DocumentTextEditor editor = Editor.ActiveEditor;
-
-		// A capture before the restore would overwrite the state that is still to be shown.
-		if (_pendingViewState is not null
-			|| editor.ScrollViewer is not { } scrollViewer
-			|| editor.Document is null)
-		{
-			return;
-		}
-
-		int[] foldedBlocks = editor.GetBlockStarts(isFolded: true);
-
-		int[] unfoldedBlocks = editor.GetBlockStarts(isFolded: false);
-
-		// The shorter list is kept, so a text with every block folded costs as little as one with none.
-		bool isMostlyFolded = unfoldedBlocks.Length < foldedBlocks.Length;
-
-		DocumentViewState state = new()
-		{
-			Bookmarks = editor.Bookmarks.GetLines(),
-			CaretPosition = ToCaretPosition(editor.TextArea.Caret.Position),
-			FoldedBlocks = isMostlyFolded ? null : foldedBlocks,
-			ScrollOffset = new()
-			{
-				X = scrollViewer.Offset.X,
-				Y = scrollViewer.Offset.Y
-			},
-			SelectionLength = editor.SelectionLength,
-			SelectionStart = editor.SelectionStart,
-			UnfoldedBlocks = isMostlyFolded ? unfoldedBlocks : null
-		};
-
-		_isCapturing = true;
-
-		try
-		{
-			SetCurrentValue(ViewStateProperty, state);
-		}
-		finally
-		{
-			_isCapturing = false;
-		}
-	}
-
-	/// <inheritdoc />
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnAttachedToVisualTree(e);
-
-		// Bookmarks and folds change while neither the caret nor the view moves, whose moves the state follows otherwise.
-		WeakReferenceMessenger
-			.Default
-			.RegisterAll(this);
-	}
-
-	/// <inheritdoc />
-	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		WeakReferenceMessenger
-			.Default
-			.UnregisterAll(this);
-
-		base.OnDetachedFromVisualTree(e);
-	}
-
 	/// <inheritdoc />
 	protected override void OnLoaded(RoutedEventArgs e)
 	{
 		base.OnLoaded(e);
-
-		if (_pendingViewState is not null)
-		{
-			ScheduleRestore();
-		}
 
 		// Shown again, as by a switch of tabs; posted, so it comes after the tabs move the focus to their header.
 		if (_hasBeenLoaded)
@@ -580,25 +411,6 @@ internal sealed partial class DocumentEditorView :
 
 	#region Helpers
 	/// <summary>
-	/// Emits when the caret or the view of an editor moves, or when the view builds its lines anew, as a click that
-	/// folds a block makes it do.
-	/// </summary>
-	private static IObservable<EventPattern<EventArgs>> BuildChangeTrigger(TextEditor editor)
-	{
-		TextArea area = editor.TextArea;
-
-		return Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => area.Caret.PositionChanged += x,
-			x => area.Caret.PositionChanged -= x)
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => area.TextView.ScrollOffsetChanged += x,
-				x => area.TextView.ScrollOffsetChanged -= x))
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => area.TextView.VisualLinesChanged += x,
-				x => area.TextView.VisualLinesChanged -= x));
-	}
-
-	/// <summary>
 	/// Returns the choice of a line break style, named as the status bar names it.
 	/// </summary>
 	private static SelectorChoice CreateLineEndingChoice(LineEnding lineEnding)
@@ -608,34 +420,6 @@ internal sealed partial class DocumentEditorView :
 			Id = lineEnding.ToString(),
 			Name = lineEnding.ToCaption()!,
 			SearchTerms = []
-		};
-	}
-
-	/// <summary>
-	/// Returns the caret of the view state for the one of the editor.
-	/// </summary>
-	private static CaretPosition ToCaretPosition(TextViewPosition position)
-	{
-		return new()
-		{
-			Column = position.Column,
-			IsAtEndOfLine = position.IsAtEndOfLine,
-			Line = position.Line,
-			VisualColumn = position.VisualColumn
-		};
-	}
-
-	/// <summary>
-	/// Returns the caret of the editor for the one of the view state.
-	/// </summary>
-	private static TextViewPosition ToTextViewPosition(CaretPosition position)
-	{
-		return new(
-			line: position.Line,
-			column: position.Column,
-			visualColumn: position.VisualColumn)
-		{
-			IsAtEndOfLine = position.IsAtEndOfLine
 		};
 	}
 
@@ -686,67 +470,5 @@ internal sealed partial class DocumentEditorView :
 			.TextArea
 			.Focus();
 	}
-
-	/// <summary>
-	/// Applies the pending view state to the laid out document.
-	/// </summary>
-	private void RestoreViewState()
-	{
-		// The upper half takes the state, and a lower half, when there is one, follows it.
-		DocumentTextEditor editor = Editor.PrimaryEditor;
-
-		if (_pendingViewState is not { } state
-			|| editor.ScrollViewer is not { } scrollViewer
-			|| editor.Document is not { } document)
-		{
-			return;
-		}
-
-		_pendingViewState = null;
-
-		int start = Math.Clamp(
-			state.SelectionStart,
-			0,
-			document.TextLength);
-
-		int length = Math.Clamp(
-			state.SelectionLength,
-			0,
-			document.TextLength - start);
-
-		editor.Select(start, length);
-
-		editor
-			.TextArea
-			.Caret
-			.Position = ToTextViewPosition(state.CaretPosition);
-
-		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
-		// folded text.
-		if (state.UnfoldedBlocks is { } unfoldedBlocks)
-		{
-			editor.SetBlocksFolded(unfoldedBlocks, isFolded: false);
-		}
-		else
-		{
-			editor.SetBlocksFolded(state.FoldedBlocks ?? [], isFolded: true);
-		}
-
-		// The offset, not the caret line, brings the view back the way it was left.
-		scrollViewer.Offset = new(state.ScrollOffset.X, state.ScrollOffset.Y);
-
-		editor
-			.Bookmarks
-			.SetLines(state.Bookmarks ?? []);
-
-		// A split that came before the document opens the lower half at the restored place only now.
-		Editor.CopyViewToSecondaryEditor();
-	}
-
-	/// <summary>
-	/// Restores the pending view state after the layout pass, so that a document set along with it
-	/// is already in place and does not reset the caret and the scroll position afterwards.
-	/// </summary>
-	private void ScheduleRestore() => Dispatcher.UIThread.Post(RestoreViewState, DispatcherPriority.Loaded);
 	#endregion
 }

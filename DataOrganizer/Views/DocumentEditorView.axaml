@@ -11,6 +11,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Helpers.Text"
+	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -132,6 +133,10 @@
 			SplitShare="{Binding SplitShare, Mode=TwoWay}"
 			SyntaxLanguage="{Binding SyntaxLanguage, Mode=OneWay}"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
+
+			<Interaction.Behaviors>
+				<textBehaviors:DocumentViewStateBehavior ViewState="{Binding ViewState, Mode=TwoWay}" />
+			</Interaction.Behaviors>
 
 			<controls:SplitDocumentEditor.Styles>
 				<Style Selector="FlyoutPresenter">
