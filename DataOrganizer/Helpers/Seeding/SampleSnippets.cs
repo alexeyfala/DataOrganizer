@@ -1,7 +1,7 @@
 using Bogus;
 using System;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Short texts made up for copying with a hotkey: contact and bank details, and the secrets of a household.

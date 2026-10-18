@@ -11,6 +11,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Views;
 using System.Linq;
 using System.Text;

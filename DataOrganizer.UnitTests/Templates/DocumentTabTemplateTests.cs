@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;

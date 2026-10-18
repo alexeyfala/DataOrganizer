@@ -24,6 +24,7 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Views;
 using Shared.Extensions;
 using System;

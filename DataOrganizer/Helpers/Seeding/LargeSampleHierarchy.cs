@@ -1,4 +1,3 @@
-using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Dataset;
 using Entities.Enums;
@@ -12,7 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace DataOrganizer.Helpers.Hierarchy;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Objects of the virtual file system made up for trying the application on large data: deep nesting, thousands of

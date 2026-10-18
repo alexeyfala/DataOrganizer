@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,6 @@
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Text;
 using System;
 using System.Collections.Concurrent;
@@ -10,7 +12,7 @@ using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
 using TextMateSharp.Themes;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Services.Text;
 
 /// <summary>
 /// Grammars and color themes of the syntax highlighting, read once and shared by all editors.

@@ -1,6 +1,5 @@
 using Bogus;
 using DataOrganizer.Dto.Hierarchy;
-using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Text;
@@ -17,7 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 
-namespace DataOrganizer.Helpers.Hierarchy;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Objects of the virtual file system made up for trying the application: files of known types sorted into folders and a

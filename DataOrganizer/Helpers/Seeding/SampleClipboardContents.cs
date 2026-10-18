@@ -1,11 +1,10 @@
 using Bogus;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Clipboard;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Clipboard;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Contents of the clipboard made up for trying the clipboard history: texts of every kind it tells apart, links, images

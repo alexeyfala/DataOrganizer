@@ -49,6 +49,7 @@ using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Seeding;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Storage;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Services.Updates;
 using DataOrganizer.Services.Views;
 using DataOrganizer.Templates;

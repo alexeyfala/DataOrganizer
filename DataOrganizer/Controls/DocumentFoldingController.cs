@@ -8,6 +8,7 @@ using AvaloniaEdit.Rendering;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.ViewModels;

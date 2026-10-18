@@ -1,10 +1,11 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Helpers.Text;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Helpers.Documents;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentCodec)}"" type")]
 internal class DocumentCodecTests

@@ -3,7 +3,7 @@ using DataOrganizer.Models.Dataset;
 using Shared.Extensions;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Helpers.Dataset;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Records of a dataset made up for trying the application, with values that repeat from run to run.

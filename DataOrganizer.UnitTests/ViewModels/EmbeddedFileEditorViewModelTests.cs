@@ -18,6 +18,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;

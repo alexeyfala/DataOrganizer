@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Notes of the objects made up for trying the application: fixed ones that explain a few folders and made-up ones of

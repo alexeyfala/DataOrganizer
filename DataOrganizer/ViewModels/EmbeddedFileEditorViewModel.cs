@@ -5,7 +5,6 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Documents;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;

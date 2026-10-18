@@ -12,7 +12,7 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using Entities.Enums;
 using Material.Icons;
 using Repository.Dto;

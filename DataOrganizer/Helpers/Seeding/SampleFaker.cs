@@ -1,6 +1,6 @@
 using Bogus;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Source of the made-up values of the samples, the same from run to run.

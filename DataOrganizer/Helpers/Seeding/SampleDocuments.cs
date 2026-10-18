@@ -11,7 +11,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Texts of data and document formats made up for trying the application, with values from a generator.

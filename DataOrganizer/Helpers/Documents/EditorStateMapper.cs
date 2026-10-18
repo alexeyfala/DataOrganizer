@@ -2,7 +2,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Documents;
 
 /// <summary>
 /// Carries the state of a text editor between <see cref="FileEditorState" /> and the values of the editor.

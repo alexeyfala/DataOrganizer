@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
 using System.Collections.Generic;
 

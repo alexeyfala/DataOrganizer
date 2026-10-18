@@ -12,6 +12,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

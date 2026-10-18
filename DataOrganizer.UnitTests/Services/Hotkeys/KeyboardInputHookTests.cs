@@ -8,6 +8,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;

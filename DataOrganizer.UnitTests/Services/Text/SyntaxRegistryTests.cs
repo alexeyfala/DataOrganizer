@@ -1,13 +1,13 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Themes;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Services.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SyntaxRegistry)}"" type")]
 internal class SyntaxRegistryTests

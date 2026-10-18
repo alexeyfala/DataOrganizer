@@ -1,10 +1,11 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Services.Text;
 using NSubstitute;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Helpers.Documents;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorStateMapper)}"" type")]
 internal class EditorStateMapperTests

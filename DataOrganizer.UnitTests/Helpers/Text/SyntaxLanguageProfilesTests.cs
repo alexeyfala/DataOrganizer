@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
 

@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Text;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Helpers.Text;

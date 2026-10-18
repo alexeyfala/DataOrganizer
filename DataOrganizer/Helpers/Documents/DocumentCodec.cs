@@ -1,9 +1,10 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Documents;
 
 /// <summary>
 /// Encoding that the text of a document is stored in: reads the text from its bytes and gives the bytes of the text.

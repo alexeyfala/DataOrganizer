@@ -1,4 +1,4 @@
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Helpers.Seeding;
 
 /// <summary>
 /// Placeholder texts used to fill objects created for demonstration: source files of several languages and a paragraph.
