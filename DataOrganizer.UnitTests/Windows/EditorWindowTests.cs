@@ -996,6 +996,56 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewModelBase.IsClipboardHistoryEnabled" />: the clipboard history seeding item of the open menu is
+	/// unavailable while the history is off, and only then has a tip that tells why.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsClipboardHistoryEnabled_Gives_The_Seeding_Item_A_Tip_Only_While_Off([Values] bool isEnabled)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.IsClipboardHistoryEnabled = isEnabled;
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.IsLeftDrawerOpened = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isItemEnabled = sut.ClipboardHistorySeeding.IsEffectivelyEnabled;
+
+		bool hasTip = ToolTip.GetTip(sut.ClipboardHistorySeeding) is not null;
+
+		bool showsTipWhileDisabled = ToolTip.GetShowOnDisabled(sut.ClipboardHistorySeeding);
+
+		sut.Close();
+
+		// Assert
+		isItemEnabled
+			.Should()
+			.Be(isEnabled);
+
+		hasTip
+			.Should()
+			.Be(!isEnabled);
+
+		showsTipWhileDisabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ExplorerNodeViewModelBase.IsSelected" />: a choice in the tree made in a shown window that has not loaded
 	/// yet is not saved.
 	/// </summary>

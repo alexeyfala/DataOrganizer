@@ -11,7 +11,6 @@
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:enums="using:DataOrganizer.Enums.Views"
-
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -66,7 +65,7 @@
 					chrome:WindowDecorationProperties.ElementRole="User"
 					Classes="CaptionButtonStyle primary"
 					Command="{Binding ShowNotepadCommand}"
-										Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,
+					Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,
 					                                        IconSize={StaticResource CaptionIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.Notepad}">
 					<Interaction.Behaviors>
@@ -207,7 +206,15 @@
 								<MenuItem
 									x:Name="ClipboardHistorySeeding"
 									Command="{Binding SeedClipboardHistoryCommand}"
-									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									IsVisible="{x:Static common:AppInfo.IsDebug}"
+									ToolTip.ShowOnDisabled="True">
+									<MenuItem.Styles>
+										<!--  The tip tells why the item is unavailable, so it is there only then.  -->
+										<Style Selector="MenuItem:disabled">
+											<Setter Property="ToolTip.Tip" Value="Needs clipboard history tracking to be enabled in the settings" />
+										</Style>
+									</MenuItem.Styles>
+
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="ClipboardPlusOutline" />
@@ -300,7 +307,7 @@
 								<Button
 									Classes="primary"
 									Command="{Binding ShowCustomClipboardCommand}"
-																		IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
+									IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
 									Theme="{StaticResource CustomClipboardButtonTheme}" />
 
 								<Panel Classes="VerticalSeparatorPanelStyle" IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}" />
