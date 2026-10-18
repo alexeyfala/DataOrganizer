@@ -12,8 +12,9 @@ public interface IImportScenario
 {
 	#region Methods
 	/// <summary>
-	/// Closes the open files after a question and imports the objects the user picks; an import that replaces the
-	/// hierarchy also empties it and the copy history and forgets every key. <c>null</c> when nothing is imported.
+	/// Closes the open files after a question and imports the objects the user picks with their stored tree state; an
+	/// import that replaces the hierarchy also empties it, the copy history and the tree state and forgets every key.
+	/// <c>null</c> when nothing is imported.
 	/// </summary>
 	Task<ImportDataResult?> ImportAsync(Collection<ExplorerItemDtoBase> hierarchy);
 	#endregion

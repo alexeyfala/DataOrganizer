@@ -7,7 +7,9 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Views;
 using Shared.Extensions;
 using System.Linq;
@@ -38,9 +40,11 @@ internal class EditorTreeViewTemplatesTests
 			.Hotkeys
 			.AddRange(HotkeyFactory.CreateHotkeyDtos(2));
 
+		using FileNodeViewModel row = new(file, new WorkSession());
+
 		ContentControl host = new()
 		{
-			Content = file,
+			Content = row,
 			ContentTemplate = (IDataTemplate)Application.Current!.FindResource(FileTemplateKey)!
 		};
 
@@ -84,9 +88,11 @@ internal class EditorTreeViewTemplatesTests
 
 		HotkeyDto[] newHotkeys = [.. HotkeyFactory.CreateHotkeyDtos(2)];
 
+		using FileNodeViewModel row = new(file, new WorkSession());
+
 		ContentControl host = new()
 		{
-			Content = file,
+			Content = row,
 			ContentTemplate = (IDataTemplate)Application.Current!.FindResource(FileTemplateKey)!
 		};
 

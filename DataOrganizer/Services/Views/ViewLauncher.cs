@@ -242,10 +242,7 @@ public class ViewLauncher : IMainWindowActivator, IMainWindowLauncher, INoticeLa
 
 		// The selection of the last session comes back first: selecting it again saves nothing, and an object shown then
 		// takes its place as any other choice does.
-		if (viewModel.Hierarchy.FindBy(x => x.IsSelected) is { } selected)
-		{
-			viewModel.SetSelectedObject(selected);
-		}
+		viewModel.RestoreSelection();
 
 		if (showObjectId.IsNotDefault())
 		{

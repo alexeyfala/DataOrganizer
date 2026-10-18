@@ -6,6 +6,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Logging;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -18,24 +19,31 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Entities.Enums;
+using Entities.Models;
+using MapsterMapper;
 using Material.Styles.Controls;
 using NSubstitute;
+using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,6 +54,79 @@ namespace DataOrganizer.UnitTests.Windows;
 internal class EditorWindowTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EditorViewModel.AddAsync" />: the folder an object is added to is shown expanded and saved so.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task AddAsync_Expands_The_Folder_Of_The_Object_Added()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IMapper mapper = Substitute.For<IMapper>();
+
+			dbAccess
+				.AddEntityAsync(Arg.Any<AddEntityParameters>(), Arg.Any<CancellationToken>())
+				.Returns(Substitute.For<ExplorerItemBase>());
+
+			mapper
+				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
+				.Returns(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(mapper);
+
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<HierarchyEditor>()
+				.As<IHierarchyEditor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(folder);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await viewModel.AddAsync(
+			RandomString.Create(10),
+			EntityKind.File,
+			folder);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isExpanded = sut.FindTreeItem(folder) is { IsExpanded: true };
+
+		sut.Close();
+
+		// Assert
+		isExpanded
+			.Should()
+			.BeTrue();
+
+		await propertyWriter
+			.Received(1)
+			.UpdateIsExpandedAsync(folder.Id, true, Arg.Any<CancellationToken>());
+	}
+
 	/// <summary>
 	/// <see cref="EditorViewModel.ShowFavoritesCommand" />: the item of the side menu switches to the favorites.
 	/// </summary>
@@ -143,6 +224,94 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.CollapseAllFoldersCommand" />: every folder of the tree is shown collapsed, nested ones too,
+	/// and nothing stays selected.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CollapseAllFoldersCommand_Collapses_Every_Folder_And_Clears_The_Selection()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		TreeViewItem outerItem = sut.FindTreeItem(outer)!;
+
+		outerItem.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
+
+		Dispatcher.UIThread.RunJobs();
+
+		TreeViewItem innerItem = sut.FindTreeItem(inner)!;
+
+		innerItem.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.FindTreeItem(file)!.SetCurrentValue(TreeViewItem.IsSelectedProperty, true);
+
+		Dispatcher.UIThread.RunJobs();
+
+		TreeView tree = sut
+			.GetVisualDescendants()
+			.OfType<TreeView>()
+			.Single();
+
+		// The tree shows the folders expanded and the file selected first, so the collapse has something to undo.
+		bool wasShown = outerItem.IsExpanded && innerItem.IsExpanded && tree.SelectedItem is not null;
+
+		// Act
+		await viewModel
+			.CollapseAllFoldersCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool[] states = [outerItem.IsExpanded, innerItem.IsExpanded];
+
+		object? selected = tree.SelectedItem;
+
+		sut.Close();
+
+		// Assert
+		wasShown
+			.Should()
+			.BeTrue();
+
+		states
+			.Should()
+			.OnlyContain(static x => !x);
+
+		selected
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EditorWindow()" />: the separator and the seeding items at the end of the menu are shown only in a debug
 	/// build.
 	/// </summary>
@@ -165,6 +334,65 @@ internal class EditorWindowTests
 		items.Where(x => x.IsVisible != AppInfo.IsDebug).Select(x => x.Name)
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: the context menu of an object in the tree hands the object to its commands.
+	/// </summary>
+	[AvaloniaTest]
+	public void ContextMenu_Of_An_Object_In_The_Tree_Passes_The_Object_To_Its_Commands([Values] bool isFolder)
+	{
+		// Arrange
+		ExplorerItemDtoBase dto = isFolder ? ItemDtoFactory.CreateFolderDto() : ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel.Hierarchy.Add(dto);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Grid row = sut.FindTreeRow(dto)!;
+
+		// Act
+		Interaction
+			.GetBehaviors(row)
+			.OfType<LazyContextFlyoutBehavior>()
+			.Single()
+			.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		object?[] parameters =
+		[
+			.. ((Control)((Flyout)row.ContextFlyout!).Content!)
+				.GetLogicalDescendants()
+				.OfType<Button>()
+				.Where(static x => x.Command is not null)
+				.Select(static x => x.CommandParameter)
+		];
+
+		row.ContextFlyout.Hide();
+
+		sut.Close();
+
+		// Assert
+		parameters
+			.Should()
+			.NotBeEmpty()
+			.And
+			.OnlyContain(x => ReferenceEquals(x, dto));
 	}
 
 	/// <summary>
@@ -215,7 +443,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		TreeViewItem item = FindTreeItem(sut, file);
+		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
@@ -256,7 +484,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		TreeViewItem item = FindTreeItem(sut, file);
+		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
@@ -316,6 +544,67 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: the command of the toolbar deletes the object the user selects in the
+	/// tree.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DeleteCommand_Deletes_The_Object_Selected_In_The_Tree()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel.Hierarchy.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Click(sut, Center(sut, sut.FindTreeRow(file)!));
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await viewModel
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		sut.Close();
+
+		// Assert
+		await deletion.Received(1).DeleteAsync(
+			file,
+			Arg.Any<Collection<ExplorerItemDtoBase>>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorWindow" />: a double click on a file in the tree opens the context menu of the file.
 	/// </summary>
 	[AvaloniaTest]
@@ -342,10 +631,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Grid item = sut
-			.GetVisualDescendants()
-			.OfType<Grid>()
-			.First(x => x.DataContext == file && Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any());
+		Grid item = sut.FindTreeRow(file)!;
 
 		Point point = Center(sut, item);
 
@@ -450,8 +736,182 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree made in a shown window that has not loaded yet is
-	/// not saved.
+	/// <see cref="EditorViewModel.ExpandAllFoldersCommand" />: every folder of the tree is shown expanded, nested ones too.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ExpandAllFoldersCommand_Expands_Every_Folder_Of_The_Tree()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		await viewModel
+			.ExpandAllFoldersCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool[] states =
+		[
+			sut.FindTreeItem(outer) is { IsExpanded: true },
+			sut.FindTreeItem(inner) is { IsExpanded: true }
+		];
+
+		bool isFileShown = sut.FindTreeItem(file) is { IsEffectivelyVisible: true };
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+
+		isFileShown
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: a folder the user expands in the tree is shown expanded again when the editor opens the
+	/// next time, also in the read-only mode that does not save it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Expand_Of_A_Folder_In_The_Tree_Lasts_Until_The_Editor_Opens_Again([Values] bool isReadOnly)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.Parent = folder;
+
+		folder.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel first = mock.Create<EditorViewModel>();
+
+		first.IsReadOnly = isReadOnly;
+
+		first.Hierarchy.Add(folder);
+
+		EditorWindow firstWindow = new(first);
+
+		firstWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		firstWindow.FindTreeItem(folder)!.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// The switch to the favorites closes the window and drops its view model.
+		firstWindow.Close();
+
+		first.Dispose();
+
+		using ILifetimeScope scope = mock.Container.BeginLifetimeScope();
+
+		EditorWindow sut = new(scope.Resolve<EditorViewModel>());
+
+		// Act
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isExpanded = sut.FindTreeItem(folder) is { IsExpanded: true };
+
+		sut.Close();
+
+		// Assert
+		isExpanded
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: a folder the user expands in the tree is saved expanded.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Expand_Of_A_Folder_In_The_Tree_Saves_It_Expanded()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.Parent = folder;
+
+		folder.Children.Add(file);
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(folder);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		TreeViewItem item = sut.FindTreeItem(folder)!;
+
+		// Act
+		item.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
+
+		sut.Close();
+
+		// Assert
+		await propertyWriter
+			.Received(1)
+			.UpdateIsExpandedAsync(folder.Id, true, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerNodeViewModelBase.IsSelected" />: a choice in the tree made in a shown window that has not loaded
+	/// yet is not saved.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task IsSelected_Is_Not_Saved_Before_The_Window_Loads()
@@ -483,18 +943,19 @@ internal class EditorWindowTests
 		window.Show();
 
 		// Act
-		file.IsSelected = true;
+		viewModel.Nodes.Single().IsSelected = true;
 
 		window.Close();
 
 		// Assert
 		await propertyWriter
 			.DidNotReceive()
-			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<CancellationToken>());
+			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree made while the window is hidden is not saved.
+	/// <see cref="ExplorerNodeViewModelBase.IsSelected" />: a choice in the tree made while the window is hidden is not
+	/// saved.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task IsSelected_Is_Not_Saved_While_The_Window_Is_Hidden()
@@ -529,18 +990,19 @@ internal class EditorWindowTests
 		window.Hide();
 
 		// Act
-		file.IsSelected = true;
+		viewModel.Nodes.Single().IsSelected = true;
 
 		window.Close();
 
 		// Assert
 		await propertyWriter
 			.DidNotReceive()
-			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<CancellationToken>());
+			.UpdateIsSelectedAsync(Arg.Any<ExplorerItemDtoBase>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.IsSelected" />: a choice in the tree is saved once the window is loaded and visible.
+	/// <see cref="ExplorerNodeViewModelBase.IsSelected" />: a choice in the tree is saved once the window is loaded and
+	/// visible.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task IsSelected_Is_Saved_Once_The_Window_Is_Shown()
@@ -573,14 +1035,14 @@ internal class EditorWindowTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		file.IsSelected = true;
+		viewModel.Nodes.Single().IsSelected = true;
 
 		window.Close();
 
 		// Assert
 		await propertyWriter
 			.Received(1)
-			.UpdateIsSelectedAsync(file, Arg.Any<CancellationToken>());
+			.UpdateIsSelectedAsync(file, true, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -684,14 +1146,186 @@ internal class EditorWindowTests
 		// Act
 		viewModel.Receive(new ShowInEditorMessage(file.Id));
 
-		await RunJobsUntilAsync(() => viewModel.SelectedObject == file);
+		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
 		// Assert
-		viewModel.SelectedObject
+		viewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(file);
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: the rows of folders and files bind without an error, also while the tree expands them and
+	/// takes them back as it scrolls.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Scroll_Of_A_Long_Tree_Binds_Every_Row_Without_An_Error()
+	{
+		// Arrange
+		ExplorerItemDtoBase[] hierarchy =
+		[
+			.. Enumerable
+				.Range(0, 50)
+				.SelectMany(static _ =>
+				{
+					FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+					foreach (FileDto child in ItemDtoFactory.CreateFileDtos(2))
+					{
+						child.Parent = folder;
+
+						folder.Children.Add(child);
+					}
+
+					return new ExplorerItemDtoBase[] { folder, ItemDtoFactory.CreateFileDto() };
+				})
+		];
+
+		RecordingBindingLogSink log = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.AddRange(hierarchy);
+
+		EditorWindow sut = new(viewModel);
+
+		ILogSink? previous = Logger.Sink;
+
+		Logger.Sink = log;
+
+		try
+		{
+			// Act
+			sut.Show();
+
+			Dispatcher.UIThread.RunJobs();
+
+			await viewModel
+				.ExpandAllFoldersCommand
+				.ExecuteAsync(null);
+
+			Dispatcher.UIThread.RunJobs();
+
+			ScrollViewer scroller = sut
+				.GetVisualDescendants()
+				.OfType<TreeView>()
+				.Single()
+				.FindDescendantOfType<ScrollViewer>()!;
+
+			foreach (double share in (double[])[1.0, 0.5, 0.0])
+			{
+				scroller.Offset = new(0.0, scroller.Extent.Height * share);
+
+				Dispatcher.UIThread.RunJobs();
+			}
+
+			sut.Close();
+		}
+		finally
+		{
+			Logger.Sink = previous;
+		}
+
+		// Assert
+		log.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EditorWindow" />: the rows the tree takes back while it scrolls show the folders with their objects and
+	/// the files with none.
+	/// </summary>
+	[AvaloniaTest]
+	public void Scroll_Of_A_Long_Tree_Keeps_The_Objects_Of_Every_Folder()
+	{
+		// Arrange
+		ExplorerItemDtoBase[] hierarchy =
+		[
+			.. Enumerable
+				.Range(0, 50)
+				.SelectMany(static _ =>
+				{
+					FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+					foreach (FileDto child in ItemDtoFactory.CreateFileDtos(2))
+					{
+						child.Parent = folder;
+
+						folder.Children.Add(child);
+					}
+
+					return new ExplorerItemDtoBase[] { folder, ItemDtoFactory.CreateFileDto() };
+				})
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.AddRange(hierarchy);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		ScrollViewer scroller = sut
+			.GetVisualDescendants()
+			.OfType<TreeView>()
+			.Single()
+			.FindDescendantOfType<ScrollViewer>()!;
+
+		// Act
+		foreach (double share in (double[])[1.0, 0.5, 0.0])
+		{
+			scroller.Offset = new(0.0, scroller.Extent.Height * share);
+
+			Dispatcher.UIThread.RunJobs();
+		}
+
+		(ExplorerItemDtoBase Dto, int Count)[] shown =
+		[
+			.. sut
+				.GetVisualDescendants()
+				.OfType<Grid>()
+				.Where(static x => x.IsEffectivelyVisible
+					&& x.DataContext is ExplorerItemDtoBase
+					&& Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any())
+				.Select(static x => ((ExplorerItemDtoBase)x.DataContext!, x.FindAncestorOfType<TreeViewItem>()!.ItemCount))
+		];
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.Contain(static x => x.Dto is FolderDto)
+			.And
+			.Contain(static x => x.Dto is FileDto)
+			.And
+			.OnlyContain(static x => x.Count == (x.Dto is FolderDto ? ((FolderDto)x.Dto).Children.Count : 0));
 	}
 
 	/// <summary>
@@ -841,14 +1475,11 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(shown.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedObject == shown);
+		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
 
 		Dispatcher.UIThread.RunJobs();
 
-		bool isShown = sut
-			.GetVisualDescendants()
-			.OfType<TreeViewItem>()
-			.Any(x => x.DataContext == shown && x.IsEffectivelyVisible);
+		bool isShown = sut.FindTreeItem(shown) is { IsEffectivelyVisible: true };
 
 		sut.Close();
 
@@ -856,6 +1487,77 @@ internal class EditorWindowTests
 		isShown
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: the collapsed folders of an object are shown expanded and saved so.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowObject_Expands_The_Collapsed_Folders_Of_The_Object()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(propertyWriter);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowObject(file.Id);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool[] states =
+		[
+			sut.FindTreeItem(outer) is { IsExpanded: true },
+			sut.FindTreeItem(inner) is { IsExpanded: true },
+			sut.FindTreeItem(file) is { IsEffectivelyVisible: true }
+		];
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+
+		await propertyWriter
+			.Received(1)
+			.UpdateIsExpandedAsync(outer.Id, true, Arg.Any<CancellationToken>());
+
+		await propertyWriter
+			.Received(1)
+			.UpdateIsExpandedAsync(inner.Id, true, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -880,15 +1582,19 @@ internal class EditorWindowTests
 
 		inner.Children.Add(file);
 
-		// Expanded before the tree shows them, so the item of the file is there to compare.
-		outer.IsExpanded = true;
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
 
-		inner.IsExpanded = true;
+			// Expanded before the tree shows them, so the item of the file is there to compare.
+			session.SetExpanded(outer.Id, true);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+			session.SetExpanded(inner.Id, true);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
@@ -900,7 +1606,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		TreeViewItem item = FindTreeItem(sut, file);
+		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
@@ -943,7 +1649,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		TreeViewItem item = FindTreeItem(sut, file);
+		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
@@ -990,12 +1696,12 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowInListCommand.Execute(file.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedObject == file);
+		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
 		// Assert
-		viewModel.SelectedObject
+		viewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(file);
 	}
@@ -1042,17 +1748,6 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// Returns the item of the tree of a window that shows an object.
-	/// </summary>
-	private static TreeViewItem FindTreeItem(EditorWindow window, ExplorerItemDtoBase dto)
-	{
-		return window
-			.GetVisualDescendants()
-			.OfType<TreeViewItem>()
-			.First(x => x.DataContext == dto);
-	}
-
-	/// <summary>
 	/// Returns the column of the tree in a window.
 	/// </summary>
 	private static ColumnDefinition FindNavigationColumn(EditorWindow window)
@@ -1068,7 +1763,6 @@ internal class EditorWindowTests
 	/// <summary>
 	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
 	/// </summary>
-
 	private static async Task RunJobsUntilAsync(Func<bool> condition)
 	{
 		Func<bool> isMet = () =>

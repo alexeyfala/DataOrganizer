@@ -47,7 +47,7 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerItemDtoBase[]?> LoadHierarchyAsync(CancellationToken token = default)
+	public async Task<LoadedHierarchy?> LoadHierarchyAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -80,7 +80,7 @@ public sealed class EntityLoader : IEntityLoader
 	}
 
 	/// <inheritdoc />
-	public ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> folders, IEnumerable<FileEntity> files)
+	public LoadedHierarchy Map(IReadOnlyCollection<FolderEntity> folders, IReadOnlyCollection<FileEntity> files)
 	{
 		FileDto[] fileDtos = _mapper.Map<IEnumerable<FileEntity>, FileDto[]>(files);
 
@@ -123,7 +123,17 @@ public sealed class EntityLoader : IEntityLoader
 					.ForEach(x => x.EncryptionStatus = status);
 			});
 
-		return hierarchy;
+		return new()
+		{
+			ExpandedIds = [.. folders
+				.Where(static x => x.IsExpanded)
+				.Select(static x => x.Id)],
+			Items = hierarchy,
+			SelectedIds = [.. folders
+				.Concat<ExplorerItemBase>(files)
+				.Where(static x => x.IsSelected)
+				.Select(static x => x.Id)]
+		};
 	}
 	#endregion
 }

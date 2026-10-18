@@ -207,7 +207,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			IExchangeFormat format = GetFormat(filePath);
 
-			ExplorerItemDtoBase[]? imported = variant == ImportMode.Replace && format.IsDatabaseCopy
+			LoadedHierarchy? imported = variant == ImportMode.Replace && format.IsDatabaseCopy
 				? await ReplaceDatabaseAsync(filePath, token).ConfigureAwait(false)
 				: await AddObjectsAsync(format, filePath, variant, hierarchy, token).ConfigureAwait(false);
 
@@ -220,7 +220,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				return null;
 			}
 
-			FileDto[] unreadable = _unreadableHotkeys.Find(imported);
+			FileDto[] unreadable = _unreadableHotkeys.Find(imported.Items);
 
 			if (unreadable.IsNotEmpty())
 			{
@@ -263,7 +263,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// Adds the folders and files of the file to the database, cleared first for a replacing import; <c>null</c> when the
 	/// file holds none that can be read.
 	/// </summary>
-	private async Task<ExplorerItemDtoBase[]?> AddObjectsAsync(
+	private async Task<LoadedHierarchy?> AddObjectsAsync(
 		IExchangeFormat format,
 		string filePath,
 		ImportMode variant,
@@ -371,7 +371,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// Puts a copy of the database in its place and reads the objects back; <c>null</c> when the copy is not a database
 	/// or cannot be read.
 	/// </summary>
-	private async Task<ExplorerItemDtoBase[]?> ReplaceDatabaseAsync(string filePath, CancellationToken token)
+	private async Task<LoadedHierarchy?> ReplaceDatabaseAsync(string filePath, CancellationToken token)
 	{
 		if (!_dbImporter.IsValidSqliteDatabase(filePath))
 		{

@@ -124,11 +124,6 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			GetCollectionToAdd(parent, hierarchy).Add(dto);
 
-			if (parent?.IsExpanded == false)
-			{
-				parent.IsExpanded = true;
-			}
-
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
 			_notification.ShowInformationSnackbar(successText);

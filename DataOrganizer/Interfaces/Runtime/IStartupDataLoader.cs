@@ -11,8 +11,9 @@ public interface IStartupDataLoader
 {
 	#region Methods
 	/// <summary>
-	/// Reads the tree, empty when the database is unavailable or unreadable; <c>null</c> when the launch must end.
+	/// Reads the tree with its stored state, empty when the database is unavailable or unreadable; <c>null</c> when the
+	/// launch must end.
 	/// </summary>
-	Task<ExplorerItemDtoBase[]?> LoadAsync(CancellationToken token = default);
+	Task<LoadedHierarchy?> LoadAsync(CancellationToken token = default);
 	#endregion
 }

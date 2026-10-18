@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Encryption;
 using Entities.Models;
@@ -11,7 +10,7 @@ using System.Linq;
 namespace DataOrganizer.Dto.Entities;
 
 /// <inheritdoc cref="FolderEntity" />
-public sealed partial class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
+public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 {
 	#region Properties
 	/// <inheritdoc cref="FolderEntity.Children" />
@@ -19,10 +18,6 @@ public sealed partial class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 
 	/// <inheritdoc />
 	public byte[]? EncryptedDek { get; set; }
-
-	/// <inheritdoc cref="FolderEntity.IsExpanded" />
-	[ObservableProperty]
-	public override partial bool IsExpanded { get; set; }
 	#endregion
 
 	#region Methods

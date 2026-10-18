@@ -292,6 +292,7 @@ public sealed class App : Application
 		services.AddSingleton<ISessionHierarchy>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISessionReadOnlyMode>(static x => x.GetRequiredService<WorkSession>());
+		services.AddSingleton<ISessionTreeState>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISettingsCloseGuard>(static x => x.GetRequiredService<SettingsSession>());
 		services.AddSingleton<ISettingsCommit>(static x => x.GetRequiredService<SettingsSession>());
 		services.AddSingleton<ISettingsDraft>(static x => x.GetRequiredService<SettingsSession>());

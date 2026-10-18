@@ -139,8 +139,6 @@ internal class EntityPropertyWriterTests
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: file.Id, kind: kind);
 
-		dto.IsSelected = isSelected;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(database.Context);
@@ -165,7 +163,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsSelectedAsync(dto);
+		await sut.UpdateIsSelectedAsync(dto, isSelected);
 
 		// Assert
 		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
@@ -193,8 +191,6 @@ internal class EntityPropertyWriterTests
 
 		FolderDto dto = ItemDtoFactory.CreateFolderDto(id: folder.Id);
 
-		dto.IsSelected = isSelected;
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(database.Context);
@@ -219,7 +215,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsSelectedAsync(dto);
+		await sut.UpdateIsSelectedAsync(dto, isSelected);
 
 		// Assert
 		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();

@@ -76,7 +76,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
+		LoadedHierarchy? hierarchy = await sut.LoadHierarchyAsync();
 
 		// Assert
 		hierarchy
@@ -125,12 +125,45 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
+		LoadedHierarchy? hierarchy = await sut.LoadHierarchyAsync();
 
 		// Assert
-		hierarchy
+		hierarchy!.Items
 			.Should()
 			.HaveCount(folderCount + fileCount);
+	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.Map" />: the folders stored expanded and the objects stored selected come apart from the
+	/// objects.
+	/// </summary>
+	[Test]
+	public void Map_Gives_The_Objects_Stored_Expanded_And_Selected()
+	{
+		// Arrange
+		FolderEntity expanded = EntityFactory.CreateFolder(isExpanded: true);
+
+		FolderEntity selectedFolder = EntityFactory.CreateFolder(isSelected: true);
+
+		FileEntity selectedFile = EntityFactory.CreateFile(isSelected: true);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		LoadedHierarchy loaded = sut.Map(
+			[expanded, selectedFolder, EntityFactory.CreateFolder()],
+			[selectedFile, EntityFactory.CreateFile()]);
+
+		// Assert
+		loaded.ExpandedIds
+			.Should()
+			.Equal(expanded.Id);
+
+		loaded.SelectedIds
+			.Should()
+			.BeEquivalentTo([selectedFolder.Id, selectedFile.Id]);
 	}
 
 	/// <summary>

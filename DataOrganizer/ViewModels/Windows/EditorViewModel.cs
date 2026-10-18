@@ -29,6 +29,8 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
+using DataOrganizer.ViewModels.Hierarchy;
+using DynamicData;
 using DynamicData.Binding;
 using Entities.Enums;
 using Entities.Models;
@@ -74,9 +76,9 @@ public sealed partial class EditorViewModel :
 	public partial string? HierarchySummary { get; set; }
 
 	/// <summary>
-	/// Objects to highlight where the view shows them.
+	/// Rows to highlight where the view shows them.
 	/// </summary>
-	public IObservable<ExplorerItemDtoBase> HighlightSignal => _highlightSignal;
+	public IObservable<ExplorerNodeViewModelBase> HighlightSignal => _highlightSignal;
 
 	/// <summary>
 	/// Controls the progress bar for an action.
@@ -133,22 +135,27 @@ public sealed partial class EditorViewModel :
 	[ObservableProperty]
 	public partial double NavigationColumnWidth { get; set; }
 
+	/// <summary>
+	/// Rows of the tree that show the objects of <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	public ReadOnlyObservableCollection<ExplorerNodeViewModelBase> Nodes => _nodes;
+
 	/// <inheritdoc cref="RightSideSheetContentKind" />
 	[ObservableProperty]
 	public partial RightSideSheetContentKind RightSideSheetContent { get; set; }
 
 	/// <summary>
-	/// The selected object of <see cref="ViewModelBase.Hierarchy" />.
+	/// The row selected in <see cref="Nodes" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
-	public partial ExplorerItemDtoBase? SelectedObject { get; set; }
+	public partial ExplorerNodeViewModelBase? SelectedNode { get; set; }
 
 	/// <summary>
-	/// Objects for the tree to bring into view, select and highlight.
+	/// Rows for the tree to bring into view, select and highlight.
 	/// </summary>
-	public IObservable<ExplorerItemDtoBase> ShowSignal => _showSignal;
+	public IObservable<ExplorerNodeViewModelBase> ShowSignal => _showSignal;
 
 	/// <summary>
 	/// The current width of the window.
@@ -206,11 +213,11 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Called when <see cref="SelectedObject" /> changes.
+	/// Called when <see cref="SelectedNode" /> changes.
 	/// </summary>
-	partial void OnSelectedObjectChanging(
-		ExplorerItemDtoBase? oldValue,
-		ExplorerItemDtoBase? newValue)
+	partial void OnSelectedNodeChanging(
+		ExplorerNodeViewModelBase? oldValue,
+		ExplorerNodeViewModelBase? newValue)
 	{
 		// The tree clears only the rows it has shown, while one object at most stays selected.
 		oldValue?.IsSelected = false;
@@ -394,25 +401,25 @@ public sealed partial class EditorViewModel :
 			IsRightSideSheetOpened = false;
 		}
 
-		AddHierarchy(result.ImportedItems);
+		AddHierarchy(result.Imported.Items);
 
 		_notification.ShowInformationSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
-	/// Resets the <see cref="SelectedObject" />.
+	/// Resets the <see cref="SelectedNode" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanResetSelectedObject))]
 	internal void ResetSelectedObject()
 	{
-		if (SelectedObject is null)
+		if (SelectedNode is null)
 		{
 			return;
 		}
 
-		SelectedObject.IsSelected = false;
+		SelectedNode.IsSelected = false;
 
-		SelectedObject = null;
+		SelectedNode = null;
 	}
 
 	/// <summary>
@@ -605,7 +612,7 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanDelete))]
 	private async Task Delete(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedNode?.Model;
 
 		if (toBeDeleted is null)
 		{
@@ -667,7 +674,7 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanRename))]
 	private async Task Rename(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedNode?.Model;
 
 		if (toBeRenamed is null)
 		{
@@ -725,17 +732,17 @@ public sealed partial class EditorViewModel :
 	private Task SeedSamples() => SeedAsync(_seeding.SeedSamplesAsync);
 
 	/// <summary>
-	/// Selects an object of the tree.
+	/// Selects a row of the tree.
 	/// </summary>
 	[RelayCommand]
-	private void SelectObject(ExplorerItemDtoBase? dto)
+	private void SelectObject(ExplorerNodeViewModelBase? node)
 	{
-		if (dto is null)
+		if (node is null)
 		{
 			return;
 		}
 
-		SetSelectedObject(dto);
+		SelectNode(node);
 	}
 
 	/// <summary>
@@ -859,10 +866,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
-	/// <summary>
-	/// Objects to highlight where the view shows them.
-	/// </summary>
-	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
+	/// <inheritdoc cref="HighlightSignal" />
+	private readonly Subject<ExplorerNodeViewModelBase> _highlightSignal = new();
 
 	/// <inheritdoc cref="IHotkeysEditingScenario" />
 	private readonly IHotkeysEditingScenario _hotkeysEditing;
@@ -875,6 +880,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
+
+	/// <inheritdoc cref="Nodes" />
+	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _nodes;
 
 	/// <inheritdoc cref="INoteEditor" />
 	private readonly INoteEditor _noteEditor;
@@ -903,8 +911,11 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISessionReadOnlyMode" />
 	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
 
+	/// <inheritdoc cref="ISessionTreeState" />
+	private readonly ISessionTreeState _sessionTreeState;
+
 	/// <inheritdoc cref="ShowSignal" />
-	private readonly Subject<ExplorerItemDtoBase> _showSignal = new();
+	private readonly Subject<ExplorerNodeViewModelBase> _showSignal = new();
 
 	/// <inheritdoc cref="ISettingsCommit" />
 	private readonly ISettingsCommit _settingsCommit;
@@ -952,6 +963,7 @@ public sealed partial class EditorViewModel :
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
 		ISessionReadOnlyMode sessionReadOnlyMode,
+		ISessionTreeState sessionTreeState,
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
 		ITextInputPrompt textInputPrompt,
@@ -1016,19 +1028,29 @@ public sealed partial class EditorViewModel :
 
 		_sessionReadOnlyMode = sessionReadOnlyMode;
 
+		_sessionTreeState = sessionTreeState;
+
 		_settingsCommit = settingsCommit;
 
 		_textInputPrompt = textInputPrompt;
 
-		// The expanded folders and the selected object of the tree are kept for the next start.
 		Hierarchy
-			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsExpanded, notifyOnInitialValue: false))
-			.Subscribe(x => SaveIsExpanded(x.Sender.Id, x.Value))
+			.ToObservableChangeSet()
+			.Transform(x => ExplorerNodeViewModelBase.Create(x, sessionTreeState))
+			.DisposeMany()
+			.Bind(out _nodes)
+			.Subscribe()
 			.DisposeWith(_disposables);
 
-		Hierarchy
+		// The expanded folders and the selected object of the tree are kept for the next start.
+		Nodes
+			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsExpanded, notifyOnInitialValue: false))
+			.Subscribe(x => SaveIsExpanded(x.Sender.Model.Id, x.Value))
+			.DisposeWith(_disposables);
+
+		Nodes
 			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsSelected, notifyOnInitialValue: false))
-			.Subscribe(x => SaveIsSelected(x.Sender))
+			.Subscribe(x => SaveIsSelected(x.Sender.Model, x.Value))
 			.DisposeWith(_disposables);
 
 		UpdateHierarchySummary();
@@ -1080,13 +1102,17 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Sets the <see cref="ExplorerItemDtoBase.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
+	/// Selects again the row of the object the tree keeps selected; selecting it again saves nothing.
 	/// </summary>
-	public void SetSelectedObject(ExplorerItemDtoBase selected)
+	public void RestoreSelection()
 	{
-		selected.IsSelected = true;
+		if (Hierarchy.FindBy(x => _sessionTreeState.IsSelected(x.Id)) is not { } selected
+			|| Nodes.FindNode(selected) is not { } node)
+		{
+			return;
+		}
 
-		SelectedObject = selected;
+		SelectNode(node);
 	}
 
 	/// <summary>
@@ -1094,17 +1120,18 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	internal void ShowObject(Guid id)
 	{
-		if (Hierarchy.FindById(id) is not { } found)
+		if (Hierarchy.FindById(id) is not { } found
+			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, ExplorerNodeViewModelBase node])
 		{
 			return;
 		}
 
-		foreach (FolderDto parent in found.GetAllParents())
+		foreach (ExplorerNodeViewModelBase folder in folders)
 		{
-			parent.IsExpanded = true;
+			folder.IsExpanded = true;
 		}
 
-		_showSignal.OnNext(found);
+		_showSignal.OnNext(node);
 	}
 
 	/// <summary>
@@ -1122,6 +1149,12 @@ public sealed partial class EditorViewModel :
 
 		if (dto is not null)
 		{
+			// The folder opens to show what was added to it.
+			if (parent is not null && Nodes.FindNode(parent) is { } folder)
+			{
+				folder.IsExpanded = true;
+			}
+
 			UpdateHierarchySummary();
 		}
 
@@ -1157,7 +1190,14 @@ public sealed partial class EditorViewModel :
 			ResetSelectedObject();
 		}
 
-		FolderDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
+		ExplorerNodeViewModelBase[] folders =
+		[
+			.. Hierarchy
+				.GetFolders()
+				.Select(x => Nodes.FindNode(x))
+				.OfType<ExplorerNodeViewModelBase>()
+				.Where(x => x.IsExpanded != isExpanded)
+		];
 
 		if (folders.IsEmpty())
 		{
@@ -1291,7 +1331,7 @@ public sealed partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& (dto is not null || SelectedObject is not null);
+			&& (dto is not null || SelectedNode is not null);
 	}
 
 	/// <summary>
@@ -1345,7 +1385,7 @@ public sealed partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="ResetSelectedObjectCommand" />.
 	/// </summary>
-	private bool CanResetSelectedObject() => SelectedObject is not null;
+	private bool CanResetSelectedObject() => SelectedNode is not null;
 
 	/// <summary>
 	/// Validates <see cref="SeedClipboardHistoryCommand" />.
@@ -1394,9 +1434,17 @@ public sealed partial class EditorViewModel :
 	private bool CanShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
-	/// Asks the view to highlight an object where it shows it.
+	/// Asks the view to highlight the row of an object where it shows it.
 	/// </summary>
-	private void Highlight(ExplorerItemDtoBase dto) => _highlightSignal.OnNext(dto);
+	private void Highlight(ExplorerItemDtoBase dto)
+	{
+		if (Nodes.FindNode(dto) is not { } node)
+		{
+			return;
+		}
+
+		_highlightSignal.OnNext(node);
+	}
 
 	/// <summary>
 	/// Hides the decrypted contents once the auto-lock expires and refreshes the command that hides them all.
@@ -1426,7 +1474,7 @@ public sealed partial class EditorViewModel :
 	/// <summary>
 	/// Saves an object of the tree selected or cleared, unless the editor is read-only, busy with an action or not shown.
 	/// </summary>
-	private void SaveIsSelected(ExplorerItemDtoBase item)
+	private void SaveIsSelected(ExplorerItemDtoBase item, bool isSelected)
 	{
 		if (IsReadOnly
 			|| IsActionInProgress
@@ -1435,7 +1483,7 @@ public sealed partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(item));
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(item, isSelected));
 	}
 
 	/// <summary>
@@ -1449,6 +1497,16 @@ public sealed partial class EditorViewModel :
 		await seed(Hierarchy).ConfigureAwait(true);
 
 		UpdateHierarchySummary();
+	}
+
+	/// <summary>
+	/// Marks a row selected and makes it the <see cref="SelectedNode" />.
+	/// </summary>
+	private void SelectNode(ExplorerNodeViewModelBase node)
+	{
+		node.IsSelected = true;
+
+		SelectedNode = node;
 	}
 
 	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />

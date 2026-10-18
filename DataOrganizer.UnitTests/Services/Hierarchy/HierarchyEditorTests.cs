@@ -30,7 +30,7 @@ internal class HierarchyEditorTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="HierarchyEditor.AddAsync" />: a new entity is created and, when a parent is given, linked to it and the parent is expanded.
+	/// <see cref="HierarchyEditor.AddAsync" />: a new entity is created and, when a parent is given, linked to it.
 	/// </summary>
 	[Test]
 	public async Task AddAsync_Returns_Entity(
@@ -103,10 +103,6 @@ internal class HierarchyEditorTests
 		parent.Children
 			.Should()
 			.Contain(entity);
-
-		parent.IsExpanded
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

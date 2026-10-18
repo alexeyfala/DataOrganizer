@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Runtime;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
@@ -26,6 +27,9 @@ public sealed class ImportScenario : IImportScenario
 
 	/// <inheritdoc cref="IOpenFilesCloser" />
 	private readonly IOpenFilesCloser _openFilesCloser;
+
+	/// <inheritdoc cref="ISessionTreeState" />
+	private readonly ISessionTreeState _sessionTreeState;
 	#endregion
 
 	#region Constructors
@@ -33,7 +37,8 @@ public sealed class ImportScenario : IImportScenario
 		IContentKeys contentKeys,
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
-		IOpenFilesCloser openFilesCloser)
+		IOpenFilesCloser openFilesCloser,
+		ISessionTreeState sessionTreeState)
 	{
 		_contentKeys = contentKeys;
 
@@ -42,6 +47,8 @@ public sealed class ImportScenario : IImportScenario
 		_dataExchange = dataExchange;
 
 		_openFilesCloser = openFilesCloser;
+
+		_sessionTreeState = sessionTreeState;
 	}
 	#endregion
 
@@ -70,7 +77,12 @@ public sealed class ImportScenario : IImportScenario
 			_copyHistoryRecorder.Clear();
 
 			_contentKeys.DiscardAllKeys();
+
+			_sessionTreeState.Clear();
 		}
+
+		// Before the objects reach the tree, so that their rows show them as they were stored.
+		_sessionTreeState.Remember(result.Imported);
 
 		return result;
 	}

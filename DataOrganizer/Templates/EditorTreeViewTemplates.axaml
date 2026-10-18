@@ -6,16 +6,15 @@
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views">
 
-	<!-- FolderInTreeViewTemplate -->
-	<TreeDataTemplate
-		x:Key="FolderInTreeViewTemplate"
-		x:DataType="entities:FolderDto"
-		ItemsSource="{ReflectionBinding Children,
-		                                Mode=OneTime}">
+	<!-- FolderInTreeViewRowTemplate -->
+	<DataTemplate
+		x:Key="FolderInTreeViewRowTemplate"
+		x:DataType="entities:FolderDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -56,11 +55,11 @@
 				NoteName="{Binding Name, Mode=OneWay}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 		</Grid>
-	</TreeDataTemplate>
+	</DataTemplate>
 
-	<!-- FileInTreeViewTemplate -->
+	<!-- FileInTreeViewRowTemplate -->
 	<DataTemplate
-		x:Key="FileInTreeViewTemplate"
+		x:Key="FileInTreeViewRowTemplate"
 		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
@@ -117,5 +116,26 @@
 				</views:IconsBlock.HotkeysToolTip>
 			</views:IconsBlock>
 		</Grid>
+	</DataTemplate>
+
+	<!-- FolderInTreeViewTemplate -->
+	<TreeDataTemplate
+		x:Key="FolderInTreeViewTemplate"
+		x:DataType="nodes:FolderNodeViewModel"
+		ItemsSource="{Binding Children, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
+		<!-- The row shows the folder itself, so its menu works with the folder. -->
+		<ContentControl
+			Content="{Binding Model, Mode=OneWay}"
+			ContentTemplate="{StaticResource FolderInTreeViewRowTemplate}" />
+	</TreeDataTemplate>
+
+	<!-- FileInTreeViewTemplate -->
+	<DataTemplate
+		x:Key="FileInTreeViewTemplate"
+		x:DataType="nodes:FileNodeViewModel">
+		<!-- The row shows the file itself, so its menu works with the file. -->
+		<ContentControl
+			Content="{Binding Model, Mode=OneWay}"
+			ContentTemplate="{StaticResource FileInTreeViewRowTemplate}" />
 	</DataTemplate>
 </ResourceDictionary>

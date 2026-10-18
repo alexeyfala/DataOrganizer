@@ -33,18 +33,6 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
 
-	/// <inheritdoc cref="FolderEntity.IsExpanded" />
-	/// <remarks>
-	/// Stays on the base as a virtual auto-property: the TreeView's TreeViewItem style binds
-	/// IsExpanded for every container, so the property must resolve against <see cref="ExplorerItemDtoBase" />.
-	/// <see cref="FolderDto" /> overrides it with the real observable implementation.
-	/// </remarks>
-	public virtual bool IsExpanded { get; set; }
-
-	/// <inheritdoc cref="ExplorerItemBase.IsSelected" />
-	[ObservableProperty]
-	public partial bool IsSelected { get; set; }
-
 	/// <inheritdoc cref="ExplorerItemBase.Kind" />
 	public required EntityKind Kind { get; init; }
 

@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Exchange;
+using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
@@ -438,7 +439,7 @@ internal class DataExchangeServiceTests
 
 		DateTime[] updatedAt = [.. entities.Select(static x => x.UpdatedAt)];
 
-		ExplorerItemDtoBase[] mapped = [ItemDtoFactory.CreateFolderDto()];
+		LoadedHierarchy mapped = ItemDtoFactory.CreateLoadedHierarchy([ItemDtoFactory.CreateFolderDto()]);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -479,7 +480,7 @@ internal class DataExchangeServiceTests
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 			entityLoader
-				.Map(Arg.Any<IEnumerable<FolderEntity>>(), Arg.Any<IEnumerable<FileEntity>>())
+				.Map(Arg.Any<IReadOnlyCollection<FolderEntity>>(), Arg.Any<IReadOnlyCollection<FileEntity>>())
 				.Returns(mapped);
 
 			builder.RegisterInstance(dbAccess);
@@ -505,9 +506,9 @@ internal class DataExchangeServiceTests
 		ImportDataResult? result = await sut.ImportDataAsync([ItemDtoFactory.CreateFolderDto()]);
 
 		// Assert
-		result!.ImportedItems
+		result!.Imported
 			.Should()
-			.Equal(mapped);
+			.BeSameAs(mapped);
 
 		await dbAccess.Received(1).AddFoldersAsync(
 			Arg.Is<IEnumerable<FolderEntity>>(x => x.SequenceEqual(folders)),
@@ -597,6 +598,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<EntityLoader>()
+				.As<IEntityLoader>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1011,7 +1016,7 @@ internal class DataExchangeServiceTests
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns([file]);
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy([file]));
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1042,8 +1047,7 @@ internal class DataExchangeServiceTests
 			.Should()
 			.NotBeNull();
 
-		result
-			.ImportedItems
+		result.Imported.Items
 			.Should()
 			.Contain(file);
 
@@ -1105,6 +1109,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<EntityLoader>()
+				.As<IEntityLoader>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1154,6 +1162,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<EntityLoader>()
+				.As<IEntityLoader>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1219,6 +1231,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<XmlExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<EntityLoader>()
+				.As<IEntityLoader>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1383,6 +1399,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<EntityLoader>()
+				.As<IEntityLoader>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1457,7 +1477,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		string filePath = RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite);
 
-		ExplorerItemDtoBase[] loaded = [ItemDtoFactory.CreateFolderDto()];
+		LoadedHierarchy loaded = ItemDtoFactory.CreateLoadedHierarchy([ItemDtoFactory.CreateFolderDto()]);
 
 		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1504,9 +1524,9 @@ internal class DataExchangeServiceTests
 		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
-		result!.ImportedItems
+		result!.Imported
 			.Should()
-			.Equal(loaded);
+			.BeSameAs(loaded);
 
 		await dbBackupService
 			.Received(1)
@@ -1627,7 +1647,7 @@ internal class DataExchangeServiceTests
 
 		FileEntity[] files = [.. EntityFactory.CreateFiles(2)];
 
-		ExplorerItemDtoBase[] mapped = [ItemDtoFactory.CreateFolderDto()];
+		LoadedHierarchy mapped = ItemDtoFactory.CreateLoadedHierarchy([ItemDtoFactory.CreateFolderDto()]);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -1663,8 +1683,8 @@ internal class DataExchangeServiceTests
 
 			entityLoader
 				.Map(
-					Arg.Is<IEnumerable<FolderEntity>>(x => x.SequenceEqual(folders)),
-					Arg.Is<IEnumerable<FileEntity>>(x => x.SequenceEqual(files)))
+					Arg.Is<IReadOnlyCollection<FolderEntity>>(x => x.SequenceEqual(folders)),
+					Arg.Is<IReadOnlyCollection<FileEntity>>(x => x.SequenceEqual(files)))
 				.Returns(mapped);
 
 			builder.RegisterInstance(dbAccess);
@@ -1696,9 +1716,9 @@ internal class DataExchangeServiceTests
 		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
-		result!.ImportedItems
+		result!.Imported
 			.Should()
-			.Equal(mapped);
+			.BeSameAs(mapped);
 
 		Received.InOrder(() =>
 		{
@@ -1879,7 +1899,7 @@ internal class DataExchangeServiceTests
 			// The database in place cannot be read.
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerItemDtoBase[]?)null);
+				.Returns((LoadedHierarchy?)null);
 
 			builder.RegisterInstance(dbBackupService);
 

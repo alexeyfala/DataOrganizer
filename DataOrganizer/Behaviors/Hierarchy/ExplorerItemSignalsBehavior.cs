@@ -4,7 +4,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers;
 using Shared.Extensions;
 using System;
@@ -46,7 +45,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// <summary>
 	/// Objects to highlight.
 	/// </summary>
-	public IObservable<ExplorerItemDtoBase>? HighlightSignal
+	public IObservable<object>? HighlightSignal
 	{
 		get => GetValue(HighlightSignalProperty);
 		set => SetValue(HighlightSignalProperty, value);
@@ -64,7 +63,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// <summary>
 	/// Objects to bring into view, select and highlight, once the window has loaded.
 	/// </summary>
-	public IObservable<ExplorerItemDtoBase>? ShowSignal
+	public IObservable<object>? ShowSignal
 	{
 		get => GetValue(ShowSignalProperty);
 		set => SetValue(ShowSignalProperty, value);
@@ -73,16 +72,16 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 
 	#region Styled Properties
 	/// <inheritdoc cref="HighlightSignal" />
-	public static readonly StyledProperty<IObservable<ExplorerItemDtoBase>?> HighlightSignalProperty = AvaloniaProperty
-		.Register<ExplorerItemSignalsBehavior, IObservable<ExplorerItemDtoBase>?>(nameof(HighlightSignal));
+	public static readonly StyledProperty<IObservable<object>?> HighlightSignalProperty = AvaloniaProperty
+		.Register<ExplorerItemSignalsBehavior, IObservable<object>?>(nameof(HighlightSignal));
 
 	/// <inheritdoc cref="SelectCommand" />
 	public static readonly StyledProperty<ICommand?> SelectCommandProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, ICommand?>(nameof(SelectCommand));
 
 	/// <inheritdoc cref="ShowSignal" />
-	public static readonly StyledProperty<IObservable<ExplorerItemDtoBase>?> ShowSignalProperty = AvaloniaProperty
-		.Register<ExplorerItemSignalsBehavior, IObservable<ExplorerItemDtoBase>?>(nameof(ShowSignal));
+	public static readonly StyledProperty<IObservable<object>?> ShowSignalProperty = AvaloniaProperty
+		.Register<ExplorerItemSignalsBehavior, IObservable<object>?>(nameof(ShowSignal));
 	#endregion
 
 	#region Methods
@@ -93,14 +92,14 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 
 		this
 			.GetObservable(HighlightSignalProperty)
-			.Select(static x => x ?? Observable.Never<ExplorerItemDtoBase>())
+			.Select(static x => x ?? Observable.Never<object>())
 			.Switch()
 			.Subscribe(Highlight)
 			.DisposeWith(_subscriptions);
 
 		this
 			.GetObservable(ShowSignalProperty)
-			.Select(static x => x ?? Observable.Never<ExplorerItemDtoBase>())
+			.Select(static x => x ?? Observable.Never<object>())
 			.Switch()
 			.Subscribe(x => _ = ShowAsync(x, _cancellation.Token))
 			.DisposeWith(_subscriptions);
@@ -121,41 +120,24 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 
 	#region Helpers
 	/// <summary>
-	/// Finds the deepest container of the folders of an object, starting from <paramref name="container" />.
+	/// Returns the container that shows an item, at any depth of a tree; <c>null</c> while it shows none.
 	/// </summary>
-	private static ItemsControl FindLastContainer(ItemsControl container, FolderDto[] parents)
+	private TemplatedControl? FindContainer(object item)
 	{
-		if (parents.IsEmpty() || container.ContainerFromItem(parents[0]) is not ItemsControl item)
+		return AssociatedObject switch
 		{
-			return container;
-		}
-
-		return FindLastContainer(item, [.. parents.Skip(1)]);
+			TreeView tree => tree.TreeContainerFromItem(item) as TemplatedControl,
+			{ } items => items.ContainerFromItem(item) as TemplatedControl,
+			null => null
+		};
 	}
 
 	/// <summary>
-	/// Returns the container that shows an object; <c>null</c> while it shows none.
+	/// Highlights the container that shows an item.
 	/// </summary>
-	private TemplatedControl? FindContainer(ExplorerItemDtoBase dto)
+	private void Highlight(object item)
 	{
-		if (AssociatedObject is not { } items)
-		{
-			return null;
-		}
-
-		FolderDto[] parents = [.. dto
-			.GetAllParents()
-			.Reverse()];
-
-		return FindLastContainer(items, parents).ContainerFromItem(dto) as TemplatedControl;
-	}
-
-	/// <summary>
-	/// Highlights the container that shows an object.
-	/// </summary>
-	private void Highlight(ExplorerItemDtoBase dto)
-	{
-		if (FindContainer(dto) is not { } container)
+		if (FindContainer(item) is not { } container)
 		{
 			return;
 		}
@@ -164,9 +146,9 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
-	/// Brings an object into view, selects it and highlights it once the window has loaded.
+	/// Brings an item into view, selects it and highlights it once the window has loaded.
 	/// </summary>
-	private async Task ShowAsync(ExplorerItemDtoBase dto, CancellationToken token)
+	private async Task ShowAsync(object item, CancellationToken token)
 	{
 		if (AssociatedObject is not { } items)
 		{
@@ -183,7 +165,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 			return;
 		}
 
-		items.ScrollIntoView(dto);
+		items.ScrollIntoView(item);
 
 		if (items.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
 		{
@@ -192,9 +174,9 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 				scrollViewer.Offset.Y);
 		}
 
-		SelectCommand?.Execute(dto);
+		SelectCommand?.Execute(item);
 
-		if (FindContainer(dto) is not { } container)
+		if (FindContainer(item) is not { } container)
 		{
 			return;
 		}

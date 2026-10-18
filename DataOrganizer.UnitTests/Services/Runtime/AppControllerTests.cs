@@ -40,12 +40,21 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(LoadedHierarchy.Empty);
+
 			builder.RegisterInstance(updateNotifier);
 
 			builder
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder.RegisterInstance(startupData);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -79,7 +88,7 @@ internal class AppControllerTests
 
 			startupData
 				.LoadAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerItemDtoBase[]?)null);
+				.Returns((LoadedHierarchy?)null);
 
 			builder.RegisterInstance(appShutdown);
 
@@ -127,6 +136,13 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(LoadedHierarchy.Empty);
+
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
 			appEnvironment
@@ -140,6 +156,8 @@ internal class AppControllerTests
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(startupData);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -172,6 +190,13 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(LoadedHierarchy.Empty);
+
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
 			settingsStore
@@ -192,6 +217,8 @@ internal class AppControllerTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder.RegisterInstance(startupData);
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -235,7 +262,7 @@ internal class AppControllerTests
 
 			startupData
 				.LoadAsync(Arg.Any<CancellationToken>())
-				.Returns(hierarchy);
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy(hierarchy));
 
 			builder.RegisterInstance(copyHistory);
 
@@ -268,6 +295,66 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: the folders stored expanded and the object stored selected are in the
+	/// work session before the main window shows.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Puts_The_Stored_Tree_State_Into_The_Session_Before_The_Main_Window()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		bool[]? shown = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			WorkSession session = new();
+
+			// The state the tree finds in the session when the window opens.
+			mainWindowLauncher
+				.When(x => x.ShowMainWindow())
+				.Do(_ => shown =
+				[
+					session.IsExpanded(folder.Id),
+					session.IsSelected(file.Id),
+					session.IsExpanded(file.Id),
+					session.IsSelected(folder.Id)
+				]);
+
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy(
+					[folder, file],
+					expandedIds: [folder.Id],
+					selectedIds: [file.Id]));
+
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(startupData);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		shown
+			.Should()
+			.Equal(true, true, false, false);
+	}
+
+	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: the tree read at launch is in the work session before the main window
 	/// shows.
 	/// </summary>
@@ -294,7 +381,7 @@ internal class AppControllerTests
 
 			startupData
 				.LoadAsync(Arg.Any<CancellationToken>())
-				.Returns(hierarchy);
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy(hierarchy));
 
 			builder.RegisterInstance(mainWindowLauncher);
 
@@ -333,6 +420,13 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(LoadedHierarchy.Empty);
+
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
 			AppSettings settings = SettingsFactory.CreateSettings();
@@ -357,6 +451,8 @@ internal class AppControllerTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder.RegisterInstance(startupData);
 		});
 
 		AppController sut = mock.Create<AppController>();

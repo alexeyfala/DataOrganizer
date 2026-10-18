@@ -75,6 +75,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 	/// <inheritdoc cref="ISessionHierarchy" />
 	private readonly ISessionHierarchy _sessionHierarchy;
 
+	/// <inheritdoc cref="ISessionTreeState" />
+	private readonly ISessionTreeState _sessionTreeState;
+
 	/// <inheritdoc cref="IStartupDataLoader" />
 	private readonly IStartupDataLoader _startupData;
 
@@ -110,6 +113,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		ISecondaryWindowLauncher secondaryWindowLauncher,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
+		ISessionTreeState sessionTreeState,
 		IStartupDataLoader startupData,
 		IStartupInfoLogger startupInfo,
 		ITaskExceptionHandler exceptionHandler,
@@ -154,6 +158,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 		_sessionHierarchy = sessionHierarchy;
 
+		_sessionTreeState = sessionTreeState;
+
 		_startupData = startupData;
 
 		_startupInfo = startupInfo;
@@ -194,7 +200,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 			if (await _startupData
 				.LoadAsync(token)
-				.ConfigureAwait(true) is not { } hierarchy)
+				.ConfigureAwait(true) is not { } loaded)
 			{
 				// There is no window left to keep the application alive, and nothing to save.
 				_appShutdown.Shutdown();
@@ -206,7 +212,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 			_backgroundServices.Start(token);
 
-			_sessionHierarchy.Hierarchy.AddRange(hierarchy);
+			_sessionTreeState.Remember(loaded);
+
+			_sessionHierarchy.Hierarchy.AddRange(loaded.Items);
 
 			_copyHistory.Load(_sessionHierarchy.Hierarchy);
 

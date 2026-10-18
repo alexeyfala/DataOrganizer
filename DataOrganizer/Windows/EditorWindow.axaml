@@ -10,7 +10,6 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
-	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:enums="using:DataOrganizer.Enums.Views"
 
 	xmlns:helpers="using:DataOrganizer.Helpers"
@@ -20,6 +19,7 @@
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
@@ -398,12 +398,12 @@
 								Grid.Column="0"
 								AutoScrollToSelectedItem="True"
 								Classes="VirtualizedTreeViewStyle"
-								ItemsSource="{Binding Hierarchy, Mode=OneTime}"
+								ItemsSource="{Binding Nodes, Mode=OneTime}"
 								ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-								SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
+								SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
 
 								<TreeView.Styles>
-									<Style x:DataType="entities:ExplorerItemDtoBase" Selector="TreeViewItem">
+									<Style x:DataType="nodes:ExplorerNodeViewModelBase" Selector="TreeViewItem">
 										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									</Style>

@@ -59,7 +59,7 @@ internal class StartupDataLoaderTests
 		StartupDataLoader sut = mock.Create<StartupDataLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? result = await sut.LoadAsync();
+		LoadedHierarchy? result = await sut.LoadAsync();
 
 		// Assert
 		result
@@ -110,7 +110,7 @@ internal class StartupDataLoaderTests
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns([file]);
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy([file]));
 
 			builder.RegisterInstance(dbConnector);
 
@@ -124,10 +124,10 @@ internal class StartupDataLoaderTests
 		StartupDataLoader sut = mock.Create<StartupDataLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? result = await sut.LoadAsync();
+		LoadedHierarchy? result = await sut.LoadAsync();
 
 		// Assert
-		result
+		result!.Items
 			.Should()
 			.Equal(file);
 
@@ -162,10 +162,10 @@ internal class StartupDataLoaderTests
 		StartupDataLoader sut = mock.Create<StartupDataLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? result = await sut.LoadAsync();
+		LoadedHierarchy? result = await sut.LoadAsync();
 
 		// Assert
-		result
+		result!.Items
 			.Should()
 			.BeEmpty();
 
@@ -193,7 +193,7 @@ internal class StartupDataLoaderTests
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerItemDtoBase[]?)null);
+				.Returns((LoadedHierarchy?)null);
 
 			builder.RegisterInstance(dbConnector);
 
@@ -203,10 +203,10 @@ internal class StartupDataLoaderTests
 		StartupDataLoader sut = mock.Create<StartupDataLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? result = await sut.LoadAsync();
+		LoadedHierarchy? result = await sut.LoadAsync();
 
 		// Assert
-		result
+		result!.Items
 			.Should()
 			.BeEmpty();
 	}
@@ -218,7 +218,7 @@ internal class StartupDataLoaderTests
 	public async Task LoadAsync_Returns_The_Tree_Read_From_The_Database()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
+		LoadedHierarchy loaded = ItemDtoFactory.CreateLoadedHierarchy([.. ItemDtoFactory.CreateFolderDtos(3)]);
 
 		IDbConnector dbConnector = Substitute.For<IDbConnector>();
 
@@ -232,7 +232,7 @@ internal class StartupDataLoaderTests
 
 			entityLoader
 				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns(hierarchy);
+				.Returns(loaded);
 
 			builder.RegisterInstance(dbConnector);
 
@@ -242,12 +242,12 @@ internal class StartupDataLoaderTests
 		StartupDataLoader sut = mock.Create<StartupDataLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? result = await sut.LoadAsync();
+		LoadedHierarchy? result = await sut.LoadAsync();
 
 		// Assert
 		result
 			.Should()
-			.Equal(hierarchy);
+			.BeSameAs(loaded);
 
 		await dbConnector
 			.Received(1)

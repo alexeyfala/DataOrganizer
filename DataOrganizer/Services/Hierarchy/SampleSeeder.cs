@@ -204,6 +204,7 @@ public sealed class SampleSeeder : ISampleSeeder
 		// The folder of the run is the only root of the samples.
 		return _entityLoader
 			.Map(folders, files)
+			.Items
 			.OfType<FolderDto>()
 			.Single();
 	}

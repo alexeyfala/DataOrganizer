@@ -1143,8 +1143,6 @@ internal class ViewLauncherTests
 
 		FileDto selected = ItemDtoFactory.CreateFileDto();
 
-		selected.IsSelected = true;
-
 		// The editor lives as long as the test, as it follows its tree while it does.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
@@ -1168,6 +1166,10 @@ internal class ViewLauncherTests
 				.Create<ISessionHierarchy>()
 				.Hierarchy
 				.Add(selected);
+
+			windowMock
+				.Create<ISessionTreeState>()
+				.SetSelected(selected.Id, true);
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1592,7 +1594,9 @@ internal class ViewLauncherTests
 
 		FileDto shown = ItemDtoFactory.CreateFileDto();
 
-		selected.IsSelected = true;
+		WorkSession session = new();
+
+		session.SetSelected(selected.Id, true);
 
 		List<ExplorerItemDtoBase> hierarchy = [folder, shown];
 
@@ -1613,16 +1617,21 @@ internal class ViewLauncherTests
 		{
 			IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-			propertyWriter.UpdateIsSelectedAsync(
-				Arg.Do<ExplorerItemDtoBase>(x => saved.Add((x.Id, x.IsSelected, window?.IsLoaded ?? false))),
-				Arg.Any<CancellationToken>());
+			propertyWriter
+				.When(x => x.UpdateIsSelectedAsync(
+					Arg.Any<ExplorerItemDtoBase>(),
+					Arg.Any<bool>(),
+					Arg.Any<CancellationToken>()))
+				.Do(call => saved.Add((
+					call.ArgAt<ExplorerItemDtoBase>(0).Id,
+					call.ArgAt<bool>(1),
+					window?.IsLoaded ?? false)));
 
 			builder.RegisterInstance(propertyWriter);
 
 			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
 		});
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1656,16 +1665,16 @@ internal class ViewLauncherTests
 
 		window.Show();
 
-		await WaitUntilAsync(() => window.ViewModel.SelectedObject == shown);
+		await WaitUntilAsync(() => window.ViewModel.SelectedNode?.Model == shown);
 
 		window.Close();
 
 		// Assert
-		selected.IsSelected
+		session.IsSelected(selected.Id)
 			.Should()
 			.BeFalse();
 
-		shown.IsSelected
+		session.IsSelected(shown.Id)
 			.Should()
 			.BeTrue();
 
@@ -1854,6 +1863,85 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the object the user selects in the tree of an editor is selected again
+	/// when the next editor opens.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Selects_The_Object_Chosen_In_The_Previous_Editor()
+	{
+		// Arrange
+		FileDto chosen = ItemDtoFactory.CreateFileDto();
+
+		// The editors live as long as the test, as they follow their tree while they do.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using ILifetimeScope nextScope = windowMock.Container.BeginLifetimeScope();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			windowMock
+				.Create<ISessionHierarchy>()
+				.Hierarchy
+				.AddRange([ItemDtoFactory.CreateFileDto(), chosen]);
+
+			EditorViewModel first = windowMock.Create<EditorViewModel>();
+
+			EditorViewModel next = nextScope.Resolve<EditorViewModel>();
+
+			EditorWindow firstWindow = windowMock.Create<EditorWindow>(TypedParameter.From(first));
+
+			EditorWindow nextWindow = nextScope.Resolve<EditorWindow>(TypedParameter.From(next));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(first, next);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(firstWindow, nextWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow previous = sut.CreateEditorWindow();
+
+		previous.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		previous
+			.FindTreeItem(chosen)!
+			.SetCurrentValue(TreeViewItem.IsSelectedProperty, true);
+
+		Dispatcher.UIThread.RunJobs();
+
+		previous.Close();
+
+		// Act
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isSelected = window.FindTreeItem(chosen) is { IsSelected: true };
+
+		window.Close();
+
+		// Assert
+		isSelected
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: the object selected before is selected again also when another object
 	/// is to be shown, so the object shown takes its place as any other choice does.
 	/// </summary>
@@ -1862,8 +1950,6 @@ internal class ViewLauncherTests
 	{
 		// Arrange
 		FileDto selected = ItemDtoFactory.CreateFileDto();
-
-		selected.IsSelected = true;
 
 		// The editor lives as long as the test, as it follows its tree while it does.
 		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
@@ -1877,6 +1963,10 @@ internal class ViewLauncherTests
 				.Create<ISessionHierarchy>()
 				.Hierarchy
 				.Add(selected);
+
+			windowMock
+				.Create<ISessionTreeState>()
+				.SetSelected(selected.Id, true);
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1902,7 +1992,7 @@ internal class ViewLauncherTests
 		EditorWindow window = sut.CreateEditorWindow(Guid.NewGuid());
 
 		// Assert
-		window.ViewModel.SelectedObject
+		window.ViewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(selected);
 	}
@@ -1916,8 +2006,6 @@ internal class ViewLauncherTests
 	{
 		// Arrange
 		FileDto selected = ItemDtoFactory.CreateFileDto();
-
-		selected.IsSelected = true;
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
@@ -1938,6 +2026,10 @@ internal class ViewLauncherTests
 				.Create<ISessionHierarchy>()
 				.Hierarchy
 				.Add(selected);
+
+			windowMock
+				.Create<ISessionTreeState>()
+				.SetSelected(selected.Id, true);
 
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
@@ -1962,12 +2054,13 @@ internal class ViewLauncherTests
 		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
-		window.ViewModel.SelectedObject
+		window.ViewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(selected);
 
 		await propertyWriter.DidNotReceive().UpdateIsSelectedAsync(
 			Arg.Any<ExplorerItemDtoBase>(),
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -4971,6 +5064,10 @@ internal class ViewLauncherTests
 
 		bool isEditorShown = editorWindow!.IsVisible;
 
+		bool isFolderExpanded = windowMock
+			.Create<ISessionTreeState>()
+			.IsExpanded(folder.Id);
+
 		// Closed before the assertions: its dialog host would stay in the list every headless test shares.
 		editorWindow.Close();
 
@@ -4983,7 +5080,7 @@ internal class ViewLauncherTests
 			.Should()
 			.BeTrue();
 
-		folder.IsExpanded
+		isFolderExpanded
 			.Should()
 			.BeTrue();
 	}

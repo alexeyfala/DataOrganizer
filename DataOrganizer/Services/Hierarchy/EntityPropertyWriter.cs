@@ -1,5 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Hierarchy;
+using Entities.Models;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -57,11 +58,20 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 	/// <inheritdoc />
 	public Task<bool> UpdateIsSelectedAsync(
 		ExplorerItemDtoBase dto,
+		bool isSelected,
 		CancellationToken token = default)
 	{
-		const string propertyName = nameof(ExplorerItemDtoBase.IsSelected);
+		const string propertyName = nameof(ExplorerItemBase.IsSelected);
 
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
+		// The object as it is written, so the line reads like the lines of the other writes.
+		var written = new
+		{
+			dto.Kind,
+			dto.Name,
+			IsSelected = isSelected
+		};
+
+		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{written.GetPropertyValues(
 			true,
 			nameof(ExplorerItemDtoBase.Kind),
 			nameof(ExplorerItemDtoBase.Name),
@@ -70,7 +80,7 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 		return _dbAccess.UpdateIsSelectedAsync(
 			dto.Kind,
 			dto.Id,
-			dto.IsSelected,
+			isSelected,
 			token);
 	}
 	#endregion

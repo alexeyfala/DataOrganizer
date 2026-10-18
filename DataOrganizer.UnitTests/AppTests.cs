@@ -410,8 +410,8 @@ internal class AppTests
 	}
 
 	/// <summary>
-	/// <see cref="App.RegisterServices" />: the tree, the editor tabs and the read-only mode live in one work session for
-	/// the whole application, so every main window sees the same.
+	/// <see cref="App.RegisterServices" />: the tree with its expanded and selected objects, the editor tabs and the
+	/// read-only mode live in one work session for the whole application, so every main window sees the same.
 	/// </summary>
 	[AvaloniaTest]
 	public void RegisterServices_Shares_One_Work_Session()
@@ -429,7 +429,7 @@ internal class AppTests
 			provider.GetRequiredService<ISessionEditorTabs>(),
 			provider.GetRequiredService<ISessionHierarchy>(),
 			provider.GetRequiredService<ISessionReadOnlyMode>(),
-			provider.GetRequiredService<ISessionHierarchy>()
+			provider.GetRequiredService<ISessionTreeState>()
 		];
 
 		// Assert

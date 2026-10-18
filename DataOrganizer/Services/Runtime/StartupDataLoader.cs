@@ -63,7 +63,7 @@ public sealed class StartupDataLoader : IStartupDataLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerItemDtoBase[]?> LoadAsync(CancellationToken token = default)
+	public async Task<LoadedHierarchy?> LoadAsync(CancellationToken token = default)
 	{
 		DbConnectionStatus status = await _dbConnector
 			.ConnectAsync(token)
@@ -88,12 +88,12 @@ public sealed class StartupDataLoader : IStartupDataLoader
 			_notification.ShowToast(Strings.DatabaseIsUnavailable);
 
 			// Nothing is read from a database that is not there: the toast above has already said so.
-			return [];
+			return LoadedHierarchy.Empty;
 		}
 
 		if (await _entityLoader
 			.LoadHierarchyAsync(token)
-			.ConfigureAwait(true) is not { } hierarchy)
+			.ConfigureAwait(true) is not { } loaded)
 		{
 			_logger.LogError(
 				"The database could not be read, the launch continues with an empty hierarchy.",
@@ -101,17 +101,17 @@ public sealed class StartupDataLoader : IStartupDataLoader
 
 			_notification.ShowToast(Strings.FailedToReadDatabase);
 
-			return [];
+			return LoadedHierarchy.Empty;
 		}
 
-		FileDto[] unreadable = _unreadableHotkeys.Find(hierarchy);
+		FileDto[] unreadable = _unreadableHotkeys.Find(loaded.Items);
 
 		if (unreadable.IsNotEmpty())
 		{
 			_notification.ShowToast(unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
 		}
 
-		return hierarchy;
+		return loaded;
 	}
 	#endregion
 }
