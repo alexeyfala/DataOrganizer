@@ -149,6 +149,8 @@ internal abstract class TextEditorBase : TextEditor
 			.BackgroundRenderers
 			.Add(new SelectionOccurrenceRenderer(TextArea));
 
+		WhitespaceRunSelection.Attach(TextArea);
+
 		_scrollMarkMargin = new ScrollMarkMargin(this);
 
 		// The tips of the scroll marks take their styles through the logical tree.

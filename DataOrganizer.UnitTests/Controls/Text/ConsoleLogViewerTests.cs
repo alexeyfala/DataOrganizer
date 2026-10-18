@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
@@ -7,6 +10,7 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.UnitTests.Factories;
 using Serilog.Events;
 using System;
 using System.Linq;
@@ -24,6 +28,38 @@ internal class ConsoleLogViewerTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="ConsoleLogViewer" />: a double click on spaces selects the whole run of them, as in the text editor.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_On_Spaces_Selects_The_Whole_Run()
+	{
+		// Arrange
+		ConsoleLogViewer sut = new()
+		{
+			Document = new("[INF]    Message")
+		};
+
+		Window window = Show(sut);
+
+		Point point = sut.TextArea.TextView.GetColumnCenter(7);
+
+		// Act
+		for (int i = 0; i < 2; i++)
+		{
+			window.MouseDown(point, MouseButton.Left);
+
+			window.MouseUp(point, MouseButton.Left);
+		}
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectedText
+			.Should()
+			.Be("    ");
+	}
+
 	/// <summary>
 	/// <see cref="ConsoleLogViewer" />: text appended to the document brings the end of the text into view.
 	/// </summary>
@@ -89,7 +125,7 @@ internal class ConsoleLogViewerTests
 	/// <summary>
 	/// Shows the log viewer in its theme in a window of a fixed size and lets the layout settle.
 	/// </summary>
-	private static void Show(ConsoleLogViewer viewer)
+	private static Window Show(ConsoleLogViewer viewer)
 	{
 		Interaction
 			.GetBehaviors(viewer)
@@ -105,6 +141,8 @@ internal class ConsoleLogViewerTests
 		window.Show();
 
 		Dispatcher.UIThread.RunJobs();
+
+		return window;
 	}
 	#endregion
 }

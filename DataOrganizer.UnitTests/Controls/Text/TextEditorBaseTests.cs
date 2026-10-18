@@ -14,6 +14,7 @@ using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
@@ -90,6 +91,142 @@ internal class TextEditorBaseTests
 		canExecute
 			.Should()
 			.Be(isSelected);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase" />: a double click of the right button on spaces leaves them unselected, as the engine
+	/// does.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_Of_The_Right_Button_On_Spaces_Leaves_Them_Unselected()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = new("\"word1\"    \"word2\"")
+		};
+
+		Window window = Show(sut);
+
+		Point point = sut.TextArea.TextView.GetColumnCenter(8);
+
+		// Act
+		for (int i = 0; i < 2; i++)
+		{
+			window.MouseDown(point, MouseButton.Right);
+
+			window.MouseUp(point, MouseButton.Right);
+		}
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase" />: a double click on a word selects the word.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_On_A_Word_Selects_The_Word()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = new("\"word1\"    \"word2\"")
+		};
+
+		Window window = Show(sut);
+
+		Point point = sut.TextArea.TextView.GetColumnCenter(3);
+
+		// Act
+		for (int i = 0; i < 2; i++)
+		{
+			window.MouseDown(point, MouseButton.Left);
+
+			window.MouseUp(point, MouseButton.Left);
+		}
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectedText
+			.Should()
+			.Be("word1");
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase" />: a double click on a space or a tab selects the whole run of them, which ends at
+	/// the line break.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("\"word1\"    \"word2\"", 7, "    ")]
+	[TestCase("\"word1\"    \"word2\"", 10, "    ")]
+	[TestCase("a\t\tb", 2, "\t\t")]
+	[TestCase("    indent", 1, "    ")]
+	[TestCase("a  \n  b", 2, "  ")]
+	public void DoubleClick_On_Spaces_Selects_The_Whole_Run(string text, int offset, string expected)
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = new(text)
+		};
+
+		Window window = Show(sut);
+
+		Point point = sut.TextArea.TextView.GetColumnCenter(offset);
+
+		// Act
+		for (int i = 0; i < 2; i++)
+		{
+			window.MouseDown(point, MouseButton.Left);
+
+			window.MouseUp(point, MouseButton.Left);
+		}
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectedText
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase" />: a double click with Shift on spaces leaves to the engine the selection that goes on
+	/// from the caret.
+	/// </summary>
+	[AvaloniaTest]
+	public void DoubleClick_With_Shift_On_Spaces_Extends_The_Selection_From_The_Caret()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = new("\"word1\"    \"word2\"")
+		};
+
+		Window window = Show(sut);
+
+		Point point = sut.TextArea.TextView.GetColumnCenter(8);
+
+		// Act
+		for (int i = 0; i < 2; i++)
+		{
+			window.MouseDown(point, MouseButton.Left, RawInputModifiers.Shift);
+
+			window.MouseUp(point, MouseButton.Left, RawInputModifiers.Shift);
+		}
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SelectionStart
+			.Should()
+			.Be(0);
 	}
 
 	/// <summary>

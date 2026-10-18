@@ -24,6 +24,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -1449,7 +1450,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		// The tip opens at the pointer and covers it, which takes the pointer from the view.
 		window.MouseMove(point);
@@ -1497,7 +1498,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		GetTipText(textView)
@@ -1533,7 +1534,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		string[] expected = ["{", .. lines[..19], Glyphs.HorizontalEllipsis];
@@ -1574,7 +1575,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		GetTipText(textView)
@@ -1608,7 +1609,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		GetTipText(textView)
@@ -1640,7 +1641,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(0));
 
 		// Assert
 		ToolTip.GetTip(textView)
@@ -1674,7 +1675,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		ToolTip.GetTip(textView)
@@ -1705,7 +1706,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, 0));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(0));
 
 		// Assert
 		ToolTip.GetTip(textView)
@@ -1738,7 +1739,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		GetTipText(textView)
@@ -1774,7 +1775,7 @@ internal class DocumentTextEditorTests
 		TextView textView = sut.TextArea.TextView;
 
 		// Act
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Assert
 		((TextBlock)ToolTip.GetTip(textView)!).FontFamily
@@ -1805,7 +1806,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
@@ -1860,7 +1861,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		// The tip opens at the pointer and covers it, and the pointer then moves to the view beside the tip.
 		window.MouseMove(point);
@@ -1869,7 +1870,7 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		window.MouseMove(GetColumnCenter(textView, 0));
+		window.MouseMove(textView.GetColumnCenter(0));
 
 		// Act
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
@@ -1915,7 +1916,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		// The tip opens at the pointer and covers it, which takes the pointer from the view.
 		window.MouseMove(point);
@@ -1971,7 +1972,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		// The tip opens at the pointer and covers it, which takes the pointer from the view.
 		window.MouseMove(point);
@@ -2019,7 +2020,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Point point = GetColumnCenter(textView, block.StartOffset);
+		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
@@ -2064,7 +2065,7 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
 		Click(window, point, button);
@@ -2102,7 +2103,7 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
 		Click(window, point, button);
@@ -2134,7 +2135,7 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = GetColumnCenter(sut.TextArea.TextView, sut.Document.TextLength - 1);
+		Point point = sut.TextArea.TextView.GetColumnCenter(sut.Document.TextLength - 1);
 
 		// Act
 		Click(window, point, MouseButton.Left);
@@ -2167,7 +2168,7 @@ internal class DocumentTextEditorTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = GetColumnCenter(sut.TextArea.TextView, block.StartOffset);
+		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
 		Click(window, point, MouseButton.Left);
@@ -2675,7 +2676,7 @@ internal class DocumentTextEditorTests
 
 		TextView textView = sut.TextArea.TextView;
 
-		Raise(textView, TextView.PointerHoverEvent, GetColumnCenter(textView, block.StartOffset));
+		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
 		// Act
 		sut.SyntaxLanguage = null;
@@ -3826,25 +3827,6 @@ internal class DocumentTextEditorTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
-	}
-
-	/// <summary>
-	/// Returns the middle of the element that starts at an offset of the text view, in the coordinates of its window.
-	/// </summary>
-	private static Point GetColumnCenter(TextView textView, int offset)
-	{
-		VisualLine visualLine = textView.GetVisualLine(textView.Document.GetLineByOffset(offset).LineNumber)!;
-
-		int column = visualLine.GetVisualColumn(offset - visualLine.StartOffset);
-
-		Point left = visualLine.GetVisualPosition(column, VisualYPosition.LineMiddle);
-
-		Point right = visualLine.GetVisualPosition(column + 1, VisualYPosition.LineMiddle);
-
-		// The visual positions stand in the coordinates of the document, which the view scrolls.
-		Point center = new Point((left.X + right.X) / 2.0, left.Y) - textView.ScrollOffset;
-
-		return textView.TranslatePoint(center, TopLevel.GetTopLevel(textView)!) ?? default;
 	}
 
 	/// <summary>
