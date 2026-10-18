@@ -1,22 +1,17 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
-using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
-using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Messages.Documents;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -205,11 +200,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Data
 	/// <summary>
-	/// Modifier of the keys of the folding chords, the same on every system, as macOS keeps ⌘M for minimizing a window.
-	/// </summary>
-	private const KeyModifiers ChordModifier = KeyModifiers.Control;
-
-	/// <summary>
 	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
 	/// </summary>
 	private const int MaxHighlightedLength = 5 * 1024 * 1024;
@@ -219,13 +209,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// </summary>
 	private static readonly KeyModifiers CommandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
 
+	/// <inheritdoc cref="DocumentFoldingController" />
+	private readonly DocumentFoldingController _folding;
+
 	/// <inheritdoc cref="CanFold" />
 	private bool _canFold;
-
-	/// <summary>
-	/// Folding of the blocks of the text; <c>null</c> while the text is plain.
-	/// </summary>
-	private SyntaxFolding? _folding;
 
 	/// <summary>
 	/// Syntax highlighting of the text; <c>null</c> while the text is plain.
@@ -236,11 +224,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Scope name of the grammar of <see cref="_highlighting" />.
 	/// </summary>
 	private string? _highlightingScope;
-
-	/// <summary>
-	/// <c>True</c> after the first key of a chord, while its second key is awaited.
-	/// </summary>
-	private bool _isChordStarted;
 
 	/// <summary>
 	/// <c>True</c> once the editor has been disposed, after which the text stays plain.
@@ -254,13 +237,15 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	#region Constructors
 	public DocumentTextEditor()
 	{
+		_folding = new(this);
+
 		ClearBookmarksCommand = new(ClearBookmarks, HasBookmarks);
 
 		ConvertLineEndingsCommand = new(ConvertLineEndings, CanConvertLineEndings);
 
 		CutCommand = new(CutSelection, CanCutSelection);
 
-		FoldAllCommand = new(FoldAll, CanFoldAll);
+		FoldAllCommand = new(_folding.FoldAll, () => _folding.CanFoldAll);
 
 		NextBookmarkCommand = new(GoToNextBookmark, HasBookmarks);
 
@@ -272,13 +257,13 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		ToggleBookmarkCommand = new(ToggleBookmark);
 
-		ToggleFoldingCommand = new(ToggleFolding, CanToggleFolding);
+		ToggleFoldingCommand = new(_folding.ToggleFolding, () => _folding.CanToggleFolding);
 
 		TransformCommand = new(TransformText, CanTransformText);
 
 		UndoCommand = new(UndoEdit, CanUndoEdit);
 
-		UnfoldAllCommand = new(UnfoldAll, CanUnfoldAll);
+		UnfoldAllCommand = new(_folding.UnfoldAll, () => _folding.CanUnfoldAll);
 
 		// The keys of Visual Studio and Notepad++.
 		KeyBindings.Add(new KeyBinding
@@ -322,19 +307,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			binding.CanExecute += UndoRedoBinding_CanExecute;
 		}
 
-		// The chords of the folding, which key bindings cannot express, reach the editor on the tunnel before its text,
-		// and so do the keys that key bindings have taken, as those end a chord too.
-		AddHandler(
-			KeyDownEvent,
-			DocumentTextEditor_KeyDown,
-			RoutingStrategies.Tunnel,
-			handledEventsToo: true);
-
-		// A chord ends with the focus, so that a key typed on the return is not taken for its second key.
-		this
-			.GetObservable(IsKeyboardFocusWithinProperty)
-			.Subscribe(IsKeyboardFocusWithinProperty_Changed);
-
 		// The engine keeps these switches in its options, which markup cannot bind to.
 		this
 			.GetObservable(ShowEndOfLineProperty)
@@ -370,30 +342,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
 		TextArea.SelectionChanged += TextArea_SelectionChanged;
-
-		TextView textView = TextArea.TextView;
-
-		// The tip of a folded block takes the look of the application rather than the Fluent one the editor brings for itself.
-		if (Application
-			.Current?
-			.TryFindResource(typeof(ToolTip), out object? toolTipTheme) == true)
-		{
-			textView.Resources[typeof(ToolTip)] = toolTipTheme;
-		}
-
-		// The tip opens and closes with the hover over a box of the text, not with the pointer over the whole view.
-		ToolTip.SetServiceEnabled(textView, false);
-
-		textView.PointerHover += TextView_PointerHover;
-
-		textView.PointerHoverStopped += TextView_PointerHoverStopped;
-
-		// A double click on a box unfolds its block, which the tip would still cover, and the presses on a box are handled.
-		textView.AddHandler(
-			PointerPressedEvent,
-			TextView_PointerPressed,
-			RoutingStrategies.Tunnel,
-			handledEventsToo: true);
 
 		DocumentChanged += DocumentTextEditor_DocumentChanged;
 
@@ -461,66 +409,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// <see cref="InputElement.KeyDownEvent" /> handler, which folds on the chords of Visual Studio: Ctrl+M, Ctrl+M for
-	/// the block of the caret line and Ctrl+M, Ctrl+L for every block.
-	/// </summary>
-	private void DocumentTextEditor_KeyDown(object? sender, KeyEventArgs e)
-	{
-		// A modifier held through a chord repeats its key, and a modifier pressed anew comes before the second key.
-		if (IsModifierKey(e.Key))
-		{
-			return;
-		}
-
-		// Key bindings take their keys before the event is raised, and such a key ends a chord without acting in it.
-		if (e.Handled)
-		{
-			_isChordStarted = false;
-
-			return;
-		}
-
-		if (!_isChordStarted)
-		{
-			if (e.Key != Key.M || e.KeyModifiers != ChordModifier)
-			{
-				return;
-			}
-
-			_isChordStarted = true;
-
-			e.Handled = true;
-
-			return;
-		}
-
-		_isChordStarted = false;
-
-		// The second key works with the modifier of the first one or without it, and any other key acts as usual.
-		if (e.KeyModifiers != KeyModifiers.None && e.KeyModifiers != ChordModifier)
-		{
-			return;
-		}
-
-		switch (e.Key)
-		{
-			case Key.L:
-				ToggleAllFoldings();
-				break;
-
-			case Key.M:
-				ToggleFolding();
-				break;
-
-			default:
-				return;
-		}
-
-		// A chord with nothing to fold does nothing, rather than type its second key into the text.
-		e.Handled = true;
-	}
-
-	/// <summary>
 	/// <see cref="TextEditor.TextChanged" /> event handler.
 	/// </summary>
 	private void DocumentTextEditor_TextChanged(object? sender, EventArgs e)
@@ -532,29 +420,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			LineCount = LineCount,
 			TextLength = Document?.TextLength ?? 0
 		};
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerExited" /> event handler of the host of a tip that took the pointer.
-	/// </summary>
-	private void FoldingTipHost_PointerExited(object? sender, PointerEventArgs e) => CloseFoldingTip();
-
-	/// <summary>
-	/// <see cref="InputElement.PointerPressed" /> event handler of the host of a tip that took the pointer.
-	/// </summary>
-	private void FoldingTipHost_PointerPressed(object? sender, PointerPressedEventArgs e) => CloseFoldingTip();
-
-	/// <summary>
-	/// <see cref="InputElement.IsKeyboardFocusWithinProperty" /> changed handler.
-	/// </summary>
-	private void IsKeyboardFocusWithinProperty_Changed(bool value)
-	{
-		if (value)
-		{
-			return;
-		}
-
-		_isChordStarted = false;
 	}
 
 	/// <summary>
@@ -596,56 +461,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// <see cref="TextView.PointerHover" /> event handler, which shows the text that the box of a folded block under the
-	/// pointer hides.
-	/// </summary>
-	private void TextView_PointerHover(object? sender, PointerEventArgs e)
-	{
-		TextView textView = TextArea.TextView;
-
-		// The text of an encrypted file stays in the text area.
-		if (IsSensitive || _folding?.FindHiddenText(e.GetPosition(textView)) is not { } text)
-		{
-			return;
-		}
-
-		ToolTip.SetTip(textView, new TextBlock
-		{
-			FontFamily = TextArea.FontFamily,
-			Text = text
-		});
-
-		ToolTip.SetIsOpen(textView, true);
-	}
-
-	/// <summary>
-	/// <see cref="TextView.PointerHoverStopped" /> event handler, which closes the tip, unless the tip opened under the
-	/// pointer and so took the pointer from the view.
-	/// </summary>
-	private void TextView_PointerHoverStopped(object? sender, PointerEventArgs e)
-	{
-		TextView textView = TextArea.TextView;
-
-		// Closed, such a tip would leave the pointer to the view, whose hover would open it again, so it stays until the
-		// pointer leaves it or presses it, as in Visual Studio Code.
-		if (!textView.IsPointerOver && FindFoldingTipHost(e.GetPosition(textView)) is { } host)
-		{
-			host.PointerExited += FoldingTipHost_PointerExited;
-
-			host.PointerPressed += FoldingTipHost_PointerPressed;
-
-			return;
-		}
-
-		CloseFoldingTip();
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view.
-	/// </summary>
-	private void TextView_PointerPressed(object? sender, PointerPressedEventArgs e) => CloseFoldingTip();
-
-	/// <summary>
 	/// <see cref="RoutedCommandBinding.CanExecute" /> handler of undo and redo, which denies them in read-only mode.
 	/// </summary>
 	private void UndoRedoBinding_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
@@ -676,18 +491,18 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <summary>
 	/// Returns the offsets where the folded blocks start, or the unfolded ones; none while the text does not fold.
 	/// </summary>
-	public int[] GetBlockStarts(bool isFolded) => _folding?.GetBlockStarts(isFolded) ?? [];
+	public int[] GetBlockStarts(bool isFolded) => _folding.GetBlockStarts(isFolded);
 
 	/// <summary>
 	/// Folds or unfolds the blocks that start at the offsets and turns the other blocks the other way; an offset where no
 	/// block starts is skipped.
 	/// </summary>
-	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded) => _folding?.SetBlocksFolded(starts, isFolded);
+	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded) => _folding.SetBlocksFolded(starts, isFolded);
 
 	/// <summary>
 	/// Finds the blocks that fold with a pass over all lines.
 	/// </summary>
-	internal void UpdateFoldings() => _folding?.Update();
+	internal void UpdateFoldings() => _folding.UpdateBlocks();
 
 	/// <summary>
 	/// Finds the line endings of the document with a pass over all its lines.
@@ -756,21 +571,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	};
 
 	/// <summary>
-	/// <c>True</c> for the key of a modifier.
-	/// </summary>
-	private static bool IsModifierKey(Key key)
-	{
-		return key is Key.LeftCtrl
-			or Key.RightCtrl
-			or Key.LeftShift
-			or Key.RightShift
-			or Key.LeftAlt
-			or Key.RightAlt
-			or Key.LWin
-			or Key.RWin;
-	}
-
-	/// <summary>
 	/// Validates <see cref="ConvertLineEndingsCommand" />.
 	/// </summary>
 	private bool CanConvertLineEndings(LineEnding lineEnding)
@@ -791,11 +591,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Validates <see cref="FoldAllCommand" />.
-	/// </summary>
-	private bool CanFoldAll() => _folding is { HasUnfoldedBlocks: true };
-
-	/// <summary>
 	/// Validates <see cref="PasteCommand" />.
 	/// </summary>
 	private bool CanPasteText() => CanPaste;
@@ -804,11 +599,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// Validates <see cref="RedoCommand" />.
 	/// </summary>
 	private bool CanRedoEdit() => CanRedo;
-
-	/// <summary>
-	/// Validates <see cref="ToggleFoldingCommand" />.
-	/// </summary>
-	private bool CanToggleFolding() => _folding?.FindBlock(TextArea.Caret.Line) is not null;
 
 	/// <summary>
 	/// Validates <see cref="TransformCommand" />.
@@ -830,19 +620,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private bool CanUndoEdit() => CanUndo;
 
 	/// <summary>
-	/// Validates <see cref="UnfoldAllCommand" />.
-	/// </summary>
-	private bool CanUnfoldAll() => _folding is { HasFoldedBlocks: true };
-
-	/// <summary>
 	/// Removes all bookmarks.
 	/// </summary>
 	private void ClearBookmarks() => Bookmarks.Clear();
-
-	/// <summary>
-	/// Takes away the tip of a folded block with its text, which closes the tip.
-	/// </summary>
-	private void CloseFoldingTip() => ToolTip.SetTip(TextArea.TextView, null);
 
 	/// <summary>
 	/// Brings every line break of the document to a style, as one step to undo.
@@ -897,33 +677,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Returns the host of the open tip, the window or the element that shows it, when it covers a point of the view;
-	/// <c>null</c> when no open tip covers the point.
-	/// </summary>
-	private InputElement? FindFoldingTipHost(Point point)
-	{
-		TextView textView = TextArea.TextView;
-
-		// A popup shows in a window of its own, or in the overlay of the window where windows of their own are not at hand.
-		if ((ToolTip.GetTip(textView) as Visual)?
-			.GetVisualAncestors()
-			.FirstOrDefault(static x => x is PopupRoot or OverlayPopupHost) is not InputElement host)
-		{
-			return null;
-		}
-
-		// A tip at the pointer starts right where the pointer stands, which rounding to pixels may move by one pixel.
-		PixelVector rounding = new(1, 1);
-
-		// The view and the tip may stand in windows of their own, so they meet on the screen.
-		PixelRect bounds = new(
-			host.PointToScreen(default) - rounding,
-			host.PointToScreen(new Point(host.Bounds.Width, host.Bounds.Height)) + rounding);
-
-		return bounds.Contains(textView.PointToScreen(point)) ? host : null;
-	}
-
-	/// <summary>
 	/// Returns the scope name of the grammar that highlights the text; <c>null</c> when the text stays plain.
 	/// </summary>
 	private string? FindHighlightedScope()
@@ -942,23 +695,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Folds every block and moves the caret out of the folded text.
-	/// </summary>
-	private void FoldAll()
-	{
-		if (_folding is not { } folding)
-		{
-			return;
-		}
-
-		folding.FoldAll();
-
-		MoveCaretOutOfFolding();
-
-		ReportFolding();
-	}
-
-	/// <summary>
 	/// Moves the caret to the next bookmarked line, going round to the first one.
 	/// </summary>
 	private void GoToNextBookmark() => MoveCaretToLine(Bookmarks.FindNext(TextArea.Caret.Line));
@@ -973,24 +709,6 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// <see cref="PreviousBookmarkCommand" />.
 	/// </summary>
 	private bool HasBookmarks() => Bookmarks.GetLines().Length > 0;
-
-	/// <summary>
-	/// Moves the caret out of the folded block that hides it to the start of the block, which stays in view.
-	/// </summary>
-	private void MoveCaretOutOfFolding()
-	{
-		if (_folding?.FindFoldedBlock(TextArea.Caret.Offset) is not { } block)
-		{
-			return;
-		}
-
-		// A selection left behind would reach into the hidden text.
-		Select(block.StartOffset, 0);
-
-		TextArea
-			.Caret
-			.BringCaretToView();
-	}
 
 	/// <summary>
 	/// Puts the caret at the start of a line and brings the line into view.
@@ -1033,19 +751,10 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// </summary>
 	private void RemoveFolding()
 	{
-		if (_folding is not { } folding)
-		{
-			return;
-		}
-
-		_folding = null;
+		// The base constructor sets the first document before this constructor makes the folding.
+		_folding?.Remove();
 
 		CanFold = false;
-
-		// The tip shows the text of a block that goes away with the folding.
-		CloseFoldingTip();
-
-		folding.Dispose();
 	}
 
 	/// <summary>
@@ -1066,51 +775,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Tells that blocks of the editor folded or unfolded.
-	/// </summary>
-	private void ReportFolding()
-	{
-		WeakReferenceMessenger
-			.Default
-			.Send(new FoldingChangedMessage(this));
-	}
-
-	/// <summary>
-	/// Unfolds every block when a block is folded, and folds every block otherwise, as Visual Studio does.
-	/// </summary>
-	private void ToggleAllFoldings()
-	{
-		if (_folding is { HasFoldedBlocks: true })
-		{
-			UnfoldAll();
-
-			return;
-		}
-
-		FoldAll();
-	}
-
-	/// <summary>
 	/// Sets or removes the bookmark of the caret line.
 	/// </summary>
 	private void ToggleBookmark() => Bookmarks.Toggle(TextArea.Caret.Line);
-
-	/// <summary>
-	/// Folds or unfolds the innermost block of the caret line, and moves the caret out of it when it folds.
-	/// </summary>
-	private void ToggleFolding()
-	{
-		if (_folding?.FindBlock(TextArea.Caret.Line) is not { } block)
-		{
-			return;
-		}
-
-		block.IsFolded = !block.IsFolded;
-
-		MoveCaretOutOfFolding();
-
-		ReportFolding();
-	}
 
 	/// <summary>
 	/// Applies a transformation to the selected text, or to the whole document where the transformation allows it.
@@ -1139,53 +806,14 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// Unfolds every block.
-	/// </summary>
-	private void UnfoldAll()
-	{
-		if (_folding is not { } folding)
-		{
-			return;
-		}
-
-		folding.UnfoldAll();
-
-		ReportFolding();
-	}
-
-	/// <summary>
 	/// Brings the folding in line with the language, the document and the visibility of the editor.
 	/// </summary>
 	private void UpdateFolding()
 	{
 		// A text folds while it is highlighted, by the rules of its language.
-		string? language = FindHighlightedScope() is null ? null : SyntaxLanguage;
+		_folding.Update(FindHighlightedScope() is null ? null : SyntaxLanguage);
 
-		if (language == _folding?.Language && Document == _folding?.Document)
-		{
-			return;
-		}
-
-		// The folded text comes back into view with the folding, while neither the caret nor the view moves.
-		bool hadFoldedBlocks = _folding is { HasFoldedBlocks: true };
-
-		RemoveFolding();
-
-		if (hadFoldedBlocks)
-		{
-			ReportFolding();
-		}
-
-		if (language is null || SyntaxRegistry
-			.Instance
-			.FindFoldingRules(language) is not { } rules)
-		{
-			return;
-		}
-
-		_folding = new SyntaxFolding(TextArea, language, rules);
-
-		CanFold = true;
+		CanFold = _folding.CanFold;
 	}
 
 	/// <summary>

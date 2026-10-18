@@ -544,6 +544,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Dispose" />: a disposed editor no longer tells that its text folds.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Turns_The_Folding_Off()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		bool couldFold = sut.CanFold;
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		couldFold
+			.Should()
+			.BeTrue();
+
+		sut.CanFold
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: a document that comes back brings its bookmarks with it.
 	/// </summary>
 	[AvaloniaTest]
