@@ -11,6 +11,7 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
+using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
@@ -278,8 +279,17 @@ internal class DocumentEditorViewTests
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = splitEditor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 4,
+					Line = 5,
+					VisualColumn = 3
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 3,
 				SelectionStart = 40
 			});
@@ -377,8 +387,17 @@ internal class DocumentEditorViewTests
 
 		DocumentViewState state = new()
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = new(0.0, 100.0),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -436,6 +455,64 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.CaptureViewState" />: reports every field of the caret, also at the end of a wrapped
+	/// line.
+	/// </summary>
+	[AvaloniaTest]
+	public void CaptureViewState_Reports_Every_Field_Of_The_Caret()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new TextDocument(new string('a', 1000)),
+			WordWrap = true
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		VisualLine line = editor
+			.TextArea
+			.TextView
+			.GetOrConstructVisualLine(editor.Document.GetLineByNumber(1));
+
+		// The end of the first row of the wrapped line, where the caret may stand before the break
+		int column = line.TextLines[0].Length + 1;
+
+		editor
+			.TextArea
+			.Caret
+			.Position = new(line: 1, column: column)
+			{
+				IsAtEndOfLine = true
+			};
+
+		TextViewPosition caret = editor
+			.TextArea
+			.Caret
+			.Position;
+
+		// Act
+		sut.CaptureViewState();
+
+		// Assert
+		caret.IsAtEndOfLine
+			.Should()
+			.BeTrue();
+
+		sut.ViewState!.Value.CaretPosition
+			.Should()
+			.BeEquivalentTo(new
+			{
+				caret.Column,
+				caret.IsAtEndOfLine,
+				caret.Line,
+				caret.VisualColumn
+			});
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.CaptureViewState" />: reports the caret, the selection and the offset of the active half.
 	/// </summary>
 	[AvaloniaTest]
@@ -472,8 +549,17 @@ internal class DocumentEditorViewTests
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = splitEditor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 4,
+					Line = 5,
+					VisualColumn = 3
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 3,
 				SelectionStart = 40
 			});
@@ -511,8 +597,17 @@ internal class DocumentEditorViewTests
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = editor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 5,
+					Line = 3,
+					VisualColumn = 4
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
@@ -2167,8 +2262,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 500, column: 40),
-			ScrollOffset = new(0.0, 100000.0),
+			CaretPosition = new()
+			{
+				Column = 40,
+				Line = 500,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100000.0
+			},
 			SelectionLength = 50,
 			SelectionStart = 80
 		};
@@ -2211,8 +2315,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -2261,7 +2374,12 @@ internal class DocumentEditorViewTests
 		// The caret inside the first block, which folds from the end of line 1 to the end of line 4.
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 3),
+			CaretPosition = new()
+			{
+				Column = 3,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [start],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2294,7 +2412,12 @@ internal class DocumentEditorViewTests
 		sut.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2, 4],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0
@@ -2327,7 +2450,12 @@ internal class DocumentEditorViewTests
 		sut.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2, 4],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0
@@ -2339,6 +2467,59 @@ internal class DocumentEditorViewTests
 		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: restores the caret at the end of a wrapped line, before the break.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Caret_At_The_End_Of_A_Wrapped_Line()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new TextDocument(new string('a', 1000)),
+			WordWrap = true
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		VisualLine line = editor
+			.TextArea
+			.TextView
+			.GetOrConstructVisualLine(editor.Document.GetLineByNumber(1));
+
+		// The end of the first row of the wrapped line, where the caret may stand before the break
+		int column = line.TextLines[0].Length + 1;
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = column,
+				IsAtEndOfLine = true,
+				Line = 1,
+				VisualColumn = -1
+			},
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.TextArea.Caret.Position
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Column = column,
+				IsAtEndOfLine = true,
+				Line = 1
+			});
 	}
 
 	/// <summary>
@@ -2363,7 +2544,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [starts[1], starts[3]],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2401,7 +2587,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [start],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2435,8 +2626,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 900, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 900,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -2471,8 +2671,17 @@ internal class DocumentEditorViewTests
 
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 30, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 30,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -2554,7 +2763,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 4,
 			SelectionStart = 20
@@ -2600,7 +2814,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0,
@@ -2629,8 +2848,17 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000),
 			ViewState = new DocumentViewState
 			{
-				CaretPosition = new(line: 3, column: 1),
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 1,
+					Line = 3,
+					VisualColumn = -1
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 4,
 				SelectionStart = 20
 			}
@@ -2681,7 +2909,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = isMostlyFolded ? null : blocks,
 			ScrollOffset = default,
 			SelectionLength = 0,

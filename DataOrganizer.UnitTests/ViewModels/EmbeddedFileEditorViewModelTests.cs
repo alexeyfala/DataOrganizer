@@ -1122,12 +1122,19 @@ internal class EmbeddedFileEditorViewModelTests
 			.Be(new DocumentViewState
 			{
 				Bookmarks = [3, 7],
-				CaretPosition = new(line: 3, column: 5, visualColumn: 4)
+				CaretPosition = new()
 				{
-					IsAtEndOfLine = true
+					Column = 5,
+					IsAtEndOfLine = true,
+					Line = 3,
+					VisualColumn = 4
 				},
 				FoldedBlocks = [12, 40],
-				ScrollOffset = new(15.0, 480.0),
+				ScrollOffset = new()
+				{
+					X = 15.0,
+					Y = 480.0
+				},
 				SelectionLength = 4,
 				SelectionStart = 20,
 				UnfoldedBlocks = [25]
@@ -1885,8 +1892,17 @@ internal class EmbeddedFileEditorViewModelTests
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = new(line: 3, column: 2),
-				ScrollOffset = new(15.0, 480.0),
+				CaretPosition = new()
+				{
+					Column = 2,
+					Line = 3,
+					VisualColumn = -1
+				},
+				ScrollOffset = new()
+				{
+					X = 15.0,
+					Y = 480.0
+				},
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
@@ -4671,8 +4687,17 @@ internal class EmbeddedFileEditorViewModelTests
 
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 2),
-			ScrollOffset = new(15.2, 480.0),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 15.2,
+				Y = 480.0
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -4680,8 +4705,17 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 2),
-			ScrollOffset = new(15.7, 480.0),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 15.7,
+				Y = 480.0
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -4747,8 +4781,17 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 2),
-			ScrollOffset = new(15.0, 480.0),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 15.0,
+				Y = 480.0
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -4819,7 +4862,12 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.Editor.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [10, 40],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -4893,8 +4941,17 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 2),
-			ScrollOffset = new(15.0, 480.0),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 15.0,
+				Y = 480.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -4949,7 +5006,12 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.Editor.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2, 5],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0
@@ -5046,8 +5108,17 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 2),
-			ScrollOffset = new(15.0, 480.0),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 15.0,
+				Y = 480.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -5115,7 +5186,12 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [10, 40],
 			ScrollOffset = default,
 			SelectionLength = 0,

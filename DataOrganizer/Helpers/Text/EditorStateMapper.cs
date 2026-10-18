@@ -1,4 +1,3 @@
-using AvaloniaEdit;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
@@ -37,9 +36,13 @@ internal static class EditorStateMapper
 		values.ViewState = new DocumentViewState
 		{
 			Bookmarks = state.Bookmarks,
-			CaretPosition = ToTextViewPosition(state.CaretPosition),
+			CaretPosition = state.CaretPosition,
 			FoldedBlocks = state.FoldedBlocks,
-			ScrollOffset = new(state.ScrollOffset.X, state.ScrollOffset.Y),
+			ScrollOffset = new()
+			{
+				X = state.ScrollOffset.X,
+				Y = state.ScrollOffset.Y
+			},
 			SelectionLength = state.SelectionLength,
 			SelectionStart = state.SelectionStart,
 			UnfoldedBlocks = state.UnfoldedBlocks
@@ -57,7 +60,7 @@ internal static class EditorStateMapper
 		return new()
 		{
 			Bookmarks = view.Bookmarks,
-			CaretPosition = ToCaretPosition(view.CaretPosition),
+			CaretPosition = view.CaretPosition,
 			Encoding = encoding,
 			// The blocks of a protected text would give away its outline, which its ciphertext does not.
 			FoldedBlocks = isEncrypted ? null : view.FoldedBlocks,
@@ -104,34 +107,6 @@ internal static class EditorStateMapper
 
 		// Plain text is stored as a language without a grammar, and so is a language whose grammar is gone.
 		return syntaxRegistry.FindScope(stored) is null ? null : stored;
-	}
-
-	/// <summary>
-	/// Returns the caret to store for the one of the editor.
-	/// </summary>
-	private static CaretPosition ToCaretPosition(TextViewPosition position)
-	{
-		return new()
-		{
-			Column = position.Column,
-			IsAtEndOfLine = position.IsAtEndOfLine,
-			Line = position.Line,
-			VisualColumn = position.VisualColumn
-		};
-	}
-
-	/// <summary>
-	/// Returns the caret of the editor for the stored one.
-	/// </summary>
-	private static TextViewPosition ToTextViewPosition(CaretPosition position)
-	{
-		return new(
-			line: position.Line,
-			column: position.Column,
-			visualColumn: position.VisualColumn)
-		{
-			IsAtEndOfLine = position.IsAtEndOfLine
-		};
 	}
 	#endregion
 }

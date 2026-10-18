@@ -1,4 +1,3 @@
-using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
@@ -48,9 +47,18 @@ internal class EditorStateMapperTests
 		DocumentViewState expected = new()
 		{
 			Bookmarks = [3, 7],
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [12],
-			ScrollOffset = new(15.0, 480.0),
+			ScrollOffset = new()
+			{
+				X = 15.0,
+				Y = 480.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20,
 			UnfoldedBlocks = [40]
@@ -105,15 +113,18 @@ internal class EditorStateMapperTests
 		EditorStateMapper.Apply(values, state, SyntaxRegistry.Instance);
 
 		// Assert
-		TextViewPosition? caret = values
+		CaretPosition? caret = values
 			.ViewState?
 			.CaretPosition;
 
 		caret
 			.Should()
-			.Be(new TextViewPosition(line: 3, column: 5, visualColumn: 4)
+			.Be(new CaretPosition
 			{
-				IsAtEndOfLine = true
+				Column = 5,
+				IsAtEndOfLine = true,
+				Line = 3,
+				VisualColumn = 4
 			});
 	}
 
@@ -159,9 +170,12 @@ internal class EditorStateMapperTests
 
 		values.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 5, visualColumn: 4)
+			CaretPosition = new()
 			{
-				IsAtEndOfLine = true
+				Column = 5,
+				IsAtEndOfLine = true,
+				Line = 3,
+				VisualColumn = 4
 			},
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -210,9 +224,18 @@ internal class EditorStateMapperTests
 		values.ViewState = new DocumentViewState
 		{
 			Bookmarks = [3, 7],
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [12],
-			ScrollOffset = new(15.6, 480.2),
+			ScrollOffset = new()
+			{
+				X = 15.6,
+				Y = 480.2
+			},
 			SelectionLength = 4,
 			SelectionStart = 20,
 			UnfoldedBlocks = [40]
@@ -268,9 +291,18 @@ internal class EditorStateMapperTests
 		values.ViewState = new DocumentViewState
 		{
 			Bookmarks = [3, 7],
-			CaretPosition = new(line: 3, column: 2),
+			CaretPosition = new()
+			{
+				Column = 2,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [12],
-			ScrollOffset = new(15.0, 480.0),
+			ScrollOffset = new()
+			{
+				X = 15.0,
+				Y = 480.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20,
 			UnfoldedBlocks = [40]

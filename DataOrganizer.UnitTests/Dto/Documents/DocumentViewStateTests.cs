@@ -153,9 +153,18 @@ internal class DocumentViewStateTests
 		return new()
 		{
 			Bookmarks = bookmarks,
-			CaretPosition = new(line: 3, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = foldedBlocks,
-			ScrollOffset = new(0.0, 100.0),
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20,
 			UnfoldedBlocks = unfoldedBlocks

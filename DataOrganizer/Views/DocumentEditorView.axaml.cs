@@ -507,9 +507,13 @@ internal sealed partial class DocumentEditorView :
 		DocumentViewState state = new()
 		{
 			Bookmarks = editor.Bookmarks.GetLines(),
-			CaretPosition = editor.TextArea.Caret.Position,
+			CaretPosition = ToCaretPosition(editor.TextArea.Caret.Position),
 			FoldedBlocks = isMostlyFolded ? null : foldedBlocks,
-			ScrollOffset = scrollViewer.Offset,
+			ScrollOffset = new()
+			{
+				X = scrollViewer.Offset.X,
+				Y = scrollViewer.Offset.Y
+			},
 			SelectionLength = editor.SelectionLength,
 			SelectionStart = editor.SelectionStart,
 			UnfoldedBlocks = isMostlyFolded ? unfoldedBlocks : null
@@ -608,6 +612,34 @@ internal sealed partial class DocumentEditorView :
 	}
 
 	/// <summary>
+	/// Returns the caret of the view state for the one of the editor.
+	/// </summary>
+	private static CaretPosition ToCaretPosition(TextViewPosition position)
+	{
+		return new()
+		{
+			Column = position.Column,
+			IsAtEndOfLine = position.IsAtEndOfLine,
+			Line = position.Line,
+			VisualColumn = position.VisualColumn
+		};
+	}
+
+	/// <summary>
+	/// Returns the caret of the editor for the one of the view state.
+	/// </summary>
+	private static TextViewPosition ToTextViewPosition(CaretPosition position)
+	{
+		return new(
+			line: position.Line,
+			column: position.Column,
+			visualColumn: position.VisualColumn)
+		{
+			IsAtEndOfLine = position.IsAtEndOfLine
+		};
+	}
+
+	/// <summary>
 	/// Validates <see cref="ConvertLineEndingsCommand" />.
 	/// </summary>
 	private bool CanConvertLineEndings(string? id)
@@ -687,7 +719,7 @@ internal sealed partial class DocumentEditorView :
 		editor
 			.TextArea
 			.Caret
-			.Position = state.CaretPosition;
+			.Position = ToTextViewPosition(state.CaretPosition);
 
 		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
 		// folded text.
@@ -701,7 +733,7 @@ internal sealed partial class DocumentEditorView :
 		}
 
 		// The offset, not the caret line, brings the view back the way it was left.
-		scrollViewer.Offset = state.ScrollOffset;
+		scrollViewer.Offset = new(state.ScrollOffset.X, state.ScrollOffset.Y);
 
 		editor
 			.Bookmarks

@@ -1109,8 +1109,17 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		DocumentViewState state = new()
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = new(0.0, 100.0),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -1142,8 +1151,17 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		DocumentViewState state = new()
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = new(0.0, 100.0),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
