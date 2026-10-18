@@ -14,7 +14,7 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 {
 	#region Properties
 	/// <inheritdoc cref="FolderEntity.Children" />
-	public override ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
+	public ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
 
 	/// <inheritdoc />
 	public byte[]? EncryptedDek { get; set; }
