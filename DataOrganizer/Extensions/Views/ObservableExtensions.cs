@@ -1,5 +1,4 @@
 using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 
@@ -11,8 +10,8 @@ internal static class ObservableExtensions
 	/// <summary>
 	/// Tries to set a delay.
 	/// </summary>
-	public static IObservable<EventPattern<TEventArgs>> SetDelay<TEventArgs>(
-		this IObservable<EventPattern<TEventArgs>> target,
+	public static IObservable<T> SetDelay<T>(
+		this IObservable<T> target,
 		TimeSpan delay)
 	{
 		if (SynchronizationContext.Current is { } context)

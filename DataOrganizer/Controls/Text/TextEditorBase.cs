@@ -10,6 +10,7 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.Controls.Text;
 
@@ -29,6 +30,15 @@ internal abstract class TextEditorBase : TextEditor
 	}
 
 	/// <summary>
+	/// Text area whose selected text the occurrences show; <c>null</c> for the own one.
+	/// </summary>
+	public TextArea? OccurrenceSource
+	{
+		get => GetValue(OccurrenceSourceProperty);
+		set => SetValue(OccurrenceSourceProperty, value);
+	}
+
+	/// <summary>
 	/// Scroll viewer of the text; <c>null</c> until the template is applied.
 	/// </summary>
 	public ScrollViewer? ScrollViewer { get; private set; }
@@ -43,6 +53,12 @@ internal abstract class TextEditorBase : TextEditor
 	/// </summary>
 	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
 		.Register<TextEditorBase, bool>(name: nameof(IsSensitive));
+
+	/// <summary>
+	/// Identifies the <see cref="OccurrenceSource" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<TextArea?> OccurrenceSourceProperty = AvaloniaProperty
+		.Register<TextEditorBase, TextArea?>(name: nameof(OccurrenceSource));
 	#endregion
 
 	#region Commands
@@ -144,14 +160,20 @@ internal abstract class TextEditorBase : TextEditor
 			.GetObservable(FontSizeProperty)
 			.Subscribe(FontSizeProperty_Changed);
 
+		// The highlight and the scroll marks show the occurrences of the text selected in the source.
+		IObservable<TextArea> occurrenceSource = this
+			.GetObservable(OccurrenceSourceProperty)
+			.Select(x => FollowSelection(x ?? TextArea))
+			.Switch();
+
 		TextArea
 			.TextView
 			.BackgroundRenderers
-			.Add(new SelectionOccurrenceRenderer(TextArea));
+			.Add(new SelectionOccurrenceRenderer(TextArea, occurrenceSource));
 
 		WhitespaceRunSelection.Attach(TextArea);
 
-		_scrollMarkMargin = new ScrollMarkMargin(this);
+		_scrollMarkMargin = new ScrollMarkMargin(this, occurrenceSource);
 
 		// The tips of the scroll marks take their styles through the logical tree.
 		LogicalChildren.Add(_scrollMarkMargin);
@@ -272,6 +294,19 @@ internal abstract class TextEditorBase : TextEditor
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Sends the text area at once and again at each change of its selection.
+	/// </summary>
+	private static IObservable<TextArea> FollowSelection(TextArea textArea)
+	{
+		return Observable
+			.FromEventPattern<EventHandler, EventArgs>(
+				x => textArea.SelectionChanged += x,
+				x => textArea.SelectionChanged -= x)
+			.Select(_ => textArea)
+			.StartWith(textArea);
+	}
+
 	/// <summary>
 	/// Validates <see cref="CopyCommand" />.
 	/// </summary>

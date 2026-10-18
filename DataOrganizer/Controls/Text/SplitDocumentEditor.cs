@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
 using DataOrganizer.Behaviors.Styling;
 using System;
 using System.Reactive.Linq;
@@ -526,6 +527,17 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	}
 
 	/// <summary>
+	/// Returns the text area whose selected text both halves show the occurrences of, as the two views of Notepad++ do:
+	/// the active half while split; none otherwise, so that the hidden lower half keeps to its own selection,
+	/// which stays still.
+	/// </summary>
+	private static TextArea? GetOccurrenceSource(bool isSplit, DocumentTextEditor? activeEditor)
+	{
+		// The upper half binds before it becomes the active one, and until another half is active it is its own source.
+		return isSplit ? activeEditor?.TextArea : null;
+	}
+
+	/// <summary>
 	/// Divides the height between the halves by <see cref="SplitShare" />.
 	/// </summary>
 	private void ApplySplitShare()
@@ -559,6 +571,12 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 		editor.Bind(TextEditor.IsReadOnlyProperty, this.GetObservable(IsReadOnlyProperty));
 
 		editor.Bind(TextEditorBase.IsSensitiveProperty, this.GetObservable(IsSensitiveProperty));
+
+		editor.Bind(
+			TextEditorBase.OccurrenceSourceProperty,
+			this
+				.GetObservable(IsSplitProperty)
+				.CombineLatest(this.GetObservable(ActiveEditorProperty), GetOccurrenceSource));
 
 		editor.Bind(DocumentTextEditor.ShowEndOfLineProperty, this.GetObservable(ShowEndOfLineProperty));
 

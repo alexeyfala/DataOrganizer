@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
@@ -201,6 +202,47 @@ internal class SplitDocumentEditorTests
 		secondaryEditor.TextArea.IsFocused
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.ActiveEditor" />: the half that takes the focus brings the occurrences of its own
+	/// selection into both halves.
+	/// </summary>
+	[AvaloniaTest]
+	public void ActiveEditor_Shows_The_Occurrences_Of_Its_Selection_In_Both_Halves()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			Document = new("log Log end End"),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
+
+		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
+
+		primaryEditor.Select(0, 3);
+
+		secondaryEditor.Select(8, 3);
+
+		// Act
+		secondaryEditor
+			.TextArea
+			.Focus();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		FindOccurrenceOffsets(primaryEditor)
+			.Should()
+			.Equal(8, 12);
+
+		FindOccurrenceOffsets(secondaryEditor)
+			.Should()
+			.Equal(12);
 	}
 
 	/// <summary>
@@ -774,6 +816,28 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="SplitDocumentEditor.IsSplit" />: without the split the hidden lower half keeps to its own selection
+	/// rather than follow the active upper one.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Off_Leaves_The_Lower_Half_To_Its_Own_Selection()
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			IsSplit = true
+		};
+
+		// Act
+		sut.IsSplit = false;
+
+		// Assert
+		sut.SecondaryEditor!.OccurrenceSource
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="SplitDocumentEditor.IsSplit" />: without a split the upper half takes the whole height of the control.
 	/// </summary>
 	[AvaloniaTest]
@@ -962,6 +1026,45 @@ internal class SplitDocumentEditorTests
 		sut.GetVisualDescendants().OfType<GridSplitter>().Single().IsVisible
 			.Should()
 			.Be(isSplit);
+	}
+
+	/// <summary>
+	/// <see cref="SplitDocumentEditor.IsSplit" />: while split, both halves highlight the occurrences of the text selected
+	/// in the active one, and only the active one leaves out the selected piece.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSplit_Shows_The_Occurrences_Of_The_Active_Half_In_Both_Halves([Values] bool isLowerActive)
+	{
+		// Arrange
+		SplitDocumentEditor sut = new()
+		{
+			Document = new("log Log logger LOG"),
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		DocumentTextEditor activeEditor = isLowerActive ? sut.SecondaryEditor! : sut.PrimaryEditor;
+
+		DocumentTextEditor otherEditor = isLowerActive ? sut.PrimaryEditor : sut.SecondaryEditor!;
+
+		activeEditor
+			.TextArea
+			.Focus();
+
+		// Act
+		activeEditor.Select(0, 3);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		FindOccurrenceOffsets(activeEditor)
+			.Should()
+			.Equal(4, 15);
+
+		FindOccurrenceOffsets(otherEditor)
+			.Should()
+			.Equal(0, 4, 15);
 	}
 
 	/// <summary>
@@ -1311,6 +1414,23 @@ internal class SplitDocumentEditorTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
+	}
+
+	/// <summary>
+	/// Returns the offsets of the occurrences that a half highlights in its visible lines.
+	/// </summary>
+	private static int[] FindOccurrenceOffsets(TextEditor editor)
+	{
+		TextView textView = editor
+			.TextArea
+			.TextView;
+
+		return [.. textView
+			.BackgroundRenderers
+			.OfType<SelectionOccurrenceRenderer>()
+			.Single()
+			.FindOccurrences(textView)
+			.Select(static x => x.Offset)];
 	}
 
 	/// <summary>

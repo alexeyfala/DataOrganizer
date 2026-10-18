@@ -11,15 +11,20 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
+using Shared.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 
@@ -217,6 +222,52 @@ internal class ScrollMarkMarginTests
 		(tipCorner.Y - markCorner.Y)
 			.Should()
 			.BeInRange(0, 6);
+	}
+
+	/// <summary>
+	/// <see cref="ScrollMarkMargin" />: the tip highlights the occurrence of the text selected in the source,
+	/// though the own view selects nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hover_Highlights_The_Occurrence_Of_The_Text_Selected_In_The_Source()
+	{
+		// Arrange
+		TextDocument document = new(string.Join('\n', Enumerable
+			.Range(1, 1000)
+			.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")));
+
+		TestTextEditor source = new()
+		{
+			Document = document
+		};
+
+		TestTextEditor editor = new()
+		{
+			Document = document,
+			OccurrenceSource = source.TextArea
+		};
+
+		Window window = Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		source.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+
+		// Act
+		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
+
+		// Assert
+		Run[] runs = GetRuns((TextBlock)GetTip(sut).Children[1]);
+
+		runs
+			.Where(static x => x.Background == TextHighlight.Brush)
+			.Select(static x => x.Text)
+			.Should()
+			.Equal("needle");
 	}
 
 	/// <summary>
@@ -660,6 +711,46 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
+	/// <see cref="ScrollMarkMargin.Render" />: the occurrences of the text selected in the source are marked,
+	/// though the own view selects nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Render_Marks_The_Occurrences_Of_The_Text_Selected_In_The_Source()
+	{
+		// Arrange
+		TextDocument document = new(string.Join('\n', Enumerable
+			.Range(1, 1000)
+			.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")));
+
+		TestTextEditor source = new()
+		{
+			Document = document
+		};
+
+		TestTextEditor editor = new()
+		{
+			Document = document,
+			OccurrenceSource = source.TextArea
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		source.Select(0, 6);
+
+		sut.UpdateMarks();
+
+		// Act
+		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+
+		// Assert
+		rows
+			.Should()
+			.HaveCount(3);
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin.Render" />: the bookmark marks that fall on one row of pixels are drawn once.
 	/// </summary>
 	[AvaloniaTest]
@@ -793,6 +884,96 @@ internal class ScrollMarkMarginTests
 			.Should()
 			.BeSameAs(Application.Current!.FindResource(typeof(ToolTip)));
 	}
+
+	/// <summary>
+	/// <see cref="TextArea.SelectionChanged" />: a pause after each selection in the source brings its marks.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SelectionChanged_Of_The_Source_Brings_The_Marks_After_A_Pause()
+	{
+		// Arrange
+		TextDocument document = new(string.Join('\n', Enumerable
+			.Range(1, 1000)
+			.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")));
+
+		TestTextEditor source = new()
+		{
+			Document = document
+		};
+
+		TestTextEditor editor = new()
+		{
+			Document = document
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		// The source comes after the margin has followed the own selection.
+		editor.OccurrenceSource = source.TextArea;
+
+		source.Select(0, 6);
+
+		// The change of the source and the setting of the document bring a pass of their own, which the first
+		// selection may still catch.
+		bool isFirstMarked = await WaitForMarks(sut, count: 3);
+
+		// Act
+		// "Line 0002".
+		source.Select(7, 9);
+
+		// Assert
+		bool result = await WaitForMarks(sut, count: 1);
+
+		isFirstMarked
+			.Should()
+			.BeTrue();
+
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.TextChanged" />: a pause after an edit brings the marks of the occurrences it adds.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task TextChanged_Brings_The_Marks_After_A_Pause()
+	{
+		// Arrange
+		TestTextEditor editor = new()
+		{
+			Document = new(string.Join('\n', Enumerable
+				.Range(1, 1000)
+				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
+		};
+
+		Show(editor);
+
+		ScrollMarkMargin sut = GetMargin(editor);
+
+		editor.Select(0, 6);
+
+		bool isFirstMarked = await WaitForMarks(sut, count: 3);
+
+		TextDocument document = editor.Document;
+
+		// Act
+		// Far from the other occurrences, so that its mark gets a row of its own.
+		document.Insert(document.GetLineByNumber(250).Offset, "needle\n");
+
+		// Assert
+		bool result = await WaitForMarks(sut, count: 4);
+
+		isFirstMarked
+			.Should()
+			.BeTrue();
+
+		result
+			.Should()
+			.BeTrue();
+	}
 	#endregion
 
 	#region Helpers
@@ -912,6 +1093,22 @@ internal class ScrollMarkMarginTests
 		Dispatcher.UIThread.RunJobs();
 
 		return window;
+	}
+
+	/// <summary>
+	/// Waits until the margin draws a number of rows of occurrence marks.
+	/// </summary>
+	private static ValueTask<bool> WaitForMarks(ScrollMarkMargin margin, int count)
+	{
+		Func<bool> isMarked = () =>
+		{
+			// The pause ends on a timer, which posts the pass over the document to the UI thread.
+			Dispatcher.UIThread.RunJobs();
+
+			return GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count;
+		};
+
+		return isMarked.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
 	}
 	#endregion
 

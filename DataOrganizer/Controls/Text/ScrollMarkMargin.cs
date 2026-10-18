@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 
 namespace DataOrganizer.Controls.Text;
@@ -96,12 +97,20 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	/// Lines with the occurrences of the selected text, in the order of the document.
 	/// </summary>
 	private int[] _markLines = [];
+
+	/// <summary>
+	/// Text area whose selected text the marks and the tips look for.
+	/// </summary>
+	private TextArea _occurrenceSource;
 	#endregion
 
 	#region Constructors
-	public ScrollMarkMargin(TextEditorBase editor)
+	public ScrollMarkMargin(TextEditorBase editor, IObservable<TextArea> occurrenceSource)
 	{
 		_editor = editor;
+
+		// Until the source comes, the own selection is looked for.
+		_occurrenceSource = editor.TextArea;
 
 		TextView = editor.TextArea.TextView;
 
@@ -123,14 +132,16 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 			.Caret
 			.PositionChanged += Caret_PositionChanged;
 
+		occurrenceSource.Subscribe(x => _occurrenceSource = x);
+
 		// A pass over the whole document follows a run of changes rather than every step of a mouse selection.
-		Observable
-			.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextArea.SelectionChanged += x,
-				x => editor.TextArea.SelectionChanged -= x)
-			.Merge(Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextChanged += x,
-				x => editor.TextChanged -= x))
+		occurrenceSource
+			.Select(static _ => Unit.Default)
+			.Merge(Observable
+				.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextChanged += x,
+					x => editor.TextChanged -= x)
+				.Select(static _ => Unit.Default))
 			.SetDelay(MarksDelay)
 			.Subscribe(_ => UpdateMarks());
 	}
@@ -230,7 +241,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	{
 		_markLines = TextView?.Document is { } document
 			? [.. SelectionOccurrenceFinder
-				.Find(document, TextArea.Selection, 0, document.TextLength)
+				.Find(document, _occurrenceSource.Selection, 0, document.TextLength)
 				.Select(x => document.GetLineByOffset(x.Offset).LineNumber)
 				.Distinct()]
 			: [];
@@ -326,7 +337,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	{
 		SimpleSegment[] occurrences = [.. SelectionOccurrenceFinder.Find(
 			document,
-			TextArea.Selection,
+			_occurrenceSource.Selection,
 			line.Offset,
 			line.EndOffset)];
 

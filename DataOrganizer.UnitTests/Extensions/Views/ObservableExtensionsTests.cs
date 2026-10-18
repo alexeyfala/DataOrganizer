@@ -13,7 +13,7 @@ internal class ObservableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context.
+	/// <see cref="ObservableExtensions.SetDelay{T}" />: returns the source unchanged when there is no sync context.
 	/// </summary>
 	[Test]
 	public void SetDelay_Returns_Source_When_No_Sync_Context()

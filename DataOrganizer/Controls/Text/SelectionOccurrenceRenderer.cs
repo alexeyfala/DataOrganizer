@@ -9,24 +9,33 @@ using System.Linq;
 namespace DataOrganizer.Controls.Text;
 
 /// <summary>
-/// Paints the occurrences of the selected text in the visible lines of the editor.
+/// Paints in the visible lines of the editor the occurrences of the text selected in its source,
+/// its own text area or another view of the same document.
 /// </summary>
 internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 {
 	#region Data
 	/// <summary>
-	/// Text area with the selection to look for.
+	/// Text area whose visible lines are painted.
 	/// </summary>
 	private readonly TextArea _textArea;
+
+	/// <summary>
+	/// Text area whose selected text is looked for.
+	/// </summary>
+	private TextArea _source;
 	#endregion
 
 	#region Constructors
-	public SelectionOccurrenceRenderer(TextArea textArea)
+	public SelectionOccurrenceRenderer(TextArea textArea, IObservable<TextArea> source)
 	{
 		_textArea = textArea;
 
-		// The engine repaints the view only when the selection changes in or above the visible lines.
-		_textArea.SelectionChanged += TextArea_SelectionChanged;
+		// Until the source comes, the own selection is looked for.
+		_source = textArea;
+
+		// The engine repaints the view only when its own selection changes in or above the visible lines.
+		source.Subscribe(Source_SelectionChanged);
 	}
 	#endregion
 
@@ -62,7 +71,8 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	}
 
 	/// <summary>
-	/// Finds the occurrences of the selected text in the visible lines, the selection itself excluded.
+	/// Finds the occurrences of the text selected in the source in the visible lines, the piece selected in this view
+	/// excluded.
 	/// </summary>
 	internal IEnumerable<SimpleSegment> FindOccurrences(TextView textView)
 	{
@@ -79,19 +89,21 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 
 		int? selectedOffset = _textArea.Selection.SurroundingSegment?.Offset;
 
-		// The selected piece keeps the pure color of the selection.
+		// The piece selected in this view keeps the pure color of the selection.
 		return SelectionOccurrenceFinder
-			.Find(document, _textArea.Selection, start, end)
+			.Find(document, _source.Selection, start, end)
 			.Where(x => x.Offset != selectedOffset);
 	}
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="TextArea.SelectionChanged" /> handler, which repaints the occurrences.
+	/// Handler of the source and of each change of its selection, which repaints the occurrences.
 	/// </summary>
-	private void TextArea_SelectionChanged(object? sender, EventArgs e)
+	private void Source_SelectionChanged(TextArea value)
 	{
+		_source = value;
+
 		_textArea.TextView.InvalidateLayer(Layer);
 	}
 	#endregion

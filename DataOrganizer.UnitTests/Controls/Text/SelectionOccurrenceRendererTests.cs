@@ -12,6 +12,7 @@ using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 
@@ -39,7 +40,7 @@ internal class SelectionOccurrenceRendererTests
 
 		TextView textView = editor.TextArea.TextView;
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		DrawingGroup drawing = new();
 
@@ -77,6 +78,47 @@ internal class SelectionOccurrenceRendererTests
 	}
 
 	/// <summary>
+	/// <see cref="SelectionOccurrenceRenderer.FindOccurrences" />: only the piece selected in the own view is left out,
+	/// though the text selected in the source is looked for.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindOccurrences_Leaves_Out_The_Piece_Selected_In_The_Own_View()
+	{
+		// Arrange
+		TextDocument document = new("log Log logger LOG");
+
+		TextEditor source = new()
+		{
+			Document = document
+		};
+
+		TextEditor editor = new()
+		{
+			Document = document
+		};
+
+		Show(editor);
+
+		source.Select(0, 3);
+
+		editor.Select(4, 3);
+
+		Dispatcher.UIThread.RunJobs();
+
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(source.TextArea));
+
+		// Act
+		int[] offsets = [.. sut
+			.FindOccurrences(editor.TextArea.TextView)
+			.Select(static x => x.Offset)];
+
+		// Assert
+		offsets
+			.Should()
+			.Equal(0, 15);
+	}
+
+	/// <summary>
 	/// <see cref="SelectionOccurrenceRenderer.FindOccurrences" />: only the visible lines are looked through.
 	/// </summary>
 	[AvaloniaTest]
@@ -96,7 +138,7 @@ internal class SelectionOccurrenceRendererTests
 
 		TextView textView = editor.TextArea.TextView;
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		// Act
 		int[] offsets = [.. sut
@@ -109,6 +151,45 @@ internal class SelectionOccurrenceRendererTests
 			.Equal(textView.VisualLines
 				.Skip(1)
 				.Select(static x => x.FirstDocumentLine.Offset));
+	}
+
+	/// <summary>
+	/// <see cref="SelectionOccurrenceRenderer.FindOccurrences" />: the text selected in the source is looked for,
+	/// and the view without a selection of its own shows every occurrence.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindOccurrences_Looks_For_The_Text_Selected_In_The_Source()
+	{
+		// Arrange
+		TextDocument document = new("log Log logger LOG");
+
+		TextEditor source = new()
+		{
+			Document = document
+		};
+
+		TextEditor editor = new()
+		{
+			Document = document
+		};
+
+		Show(editor);
+
+		source.Select(0, 3);
+
+		Dispatcher.UIThread.RunJobs();
+
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(source.TextArea));
+
+		// Act
+		int[] offsets = [.. sut
+			.FindOccurrences(editor.TextArea.TextView)
+			.Select(static x => x.Offset)];
+
+		// Assert
+		offsets
+			.Should()
+			.Equal(0, 4, 15);
 	}
 
 	/// <summary>
@@ -136,7 +217,7 @@ internal class SelectionOccurrenceRendererTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		// Act
 		int[] offsets = [.. sut
@@ -174,7 +255,7 @@ internal class SelectionOccurrenceRendererTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		// Act
 		int[] offsets = [.. sut
@@ -209,7 +290,7 @@ internal class SelectionOccurrenceRendererTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		// Act
 		SimpleSegment[] occurrences = [.. sut.FindOccurrences(editor.TextArea.TextView)];
@@ -241,7 +322,7 @@ internal class SelectionOccurrenceRendererTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		SelectionOccurrenceRenderer sut = new(editor.TextArea);
+		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
 		// Act
 		SimpleSegment[] occurrences = [.. sut.FindOccurrences(editor.TextArea.TextView)];

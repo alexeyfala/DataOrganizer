@@ -5,6 +5,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
@@ -15,6 +16,7 @@ using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.UnitTests.Factories;
+using NSubstitute;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
@@ -347,6 +349,107 @@ internal class TextEditorBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditorBase.OccurrenceSource" />: the occurrences follow the new source, and the selection of the
+	/// former one no longer reaches them.
+	/// </summary>
+	[AvaloniaTest]
+	public void OccurrenceSource_Leaves_The_Former_Source_Behind()
+	{
+		// Arrange
+		TextDocument document = new("log Log end End");
+
+		TestTextEditor formerSource = new()
+		{
+			Document = document
+		};
+
+		TestTextEditor source = new()
+		{
+			Document = document
+		};
+
+		TestTextEditor sut = new()
+		{
+			Document = document,
+			OccurrenceSource = formerSource.TextArea
+		};
+
+		Show(sut);
+
+		// Act
+		sut.OccurrenceSource = source.TextArea;
+
+		source.Select(0, 3);
+
+		formerSource.Select(8, 3);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		TextView textView = sut.TextArea.TextView;
+
+		textView.BackgroundRenderers
+			.OfType<SelectionOccurrenceRenderer>()
+			.Single()
+			.FindOccurrences(textView)
+			.Select(static x => x.Offset)
+			.Should()
+			.Equal(0, 4);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase.OccurrenceSource" />: a selection in the source repaints the background of the editor,
+	/// where the occurrences are.
+	/// </summary>
+	[AvaloniaTest]
+	public void OccurrenceSource_Repaints_The_Occurrences_On_A_Selection()
+	{
+		// Arrange
+		TextDocument document = new("log Log");
+
+		TestTextEditor source = new()
+		{
+			Document = document
+		};
+
+		IBackgroundRenderer background = Substitute.For<IBackgroundRenderer>();
+
+		background
+			.Layer
+			.Returns(KnownLayer.Background);
+
+		TestTextEditor sut = new()
+		{
+			Document = document,
+			OccurrenceSource = source.TextArea
+		};
+
+		Show(sut);
+
+		TextView textView = sut.TextArea.TextView;
+
+		textView
+			.BackgroundRenderers
+			.Add(background);
+
+		// The background is painted once with the new renderer before the selection.
+		PaintFrame();
+
+		background.ClearReceivedCalls();
+
+		// Act
+		source.Select(0, 3);
+
+		PaintFrame();
+
+		// Assert
+		// The number of paints depends on the frames.
+		background
+			.Received()
+			.Draw(textView, Arg.Any<DrawingContext>());
+	}
+
+	/// <summary>
 	/// <see cref="ScrollMarkMargin" />: belongs to the logical tree of the editor, which gives the tips of the marks
 	/// their styles.
 	/// </summary>
@@ -627,6 +730,18 @@ internal class TextEditorBaseTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// Lets the posted work run and paints a frame of the dirty controls.
+	/// </summary>
+	private static void PaintFrame()
+	{
+		Dispatcher.UIThread.RunJobs();
+
+		AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+		Dispatcher.UIThread.RunJobs();
 	}
 
 	/// <summary>
