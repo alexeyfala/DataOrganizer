@@ -38,6 +38,7 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Diagnostics;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.Services.Runtime;
@@ -3997,7 +3998,9 @@ internal class ViewLauncherTests
 					Substitute.For<IDispatcherAccessor>(),
 					store,
 					Substitute.For<INotificationService>(),
-					TimeProvider.System),
+					new TypingPauseFactory(
+						Substitute.For<IDispatcherAccessor>(),
+						TimeProvider.System)),
 				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<ITextInputPrompt>());
@@ -4071,7 +4074,9 @@ internal class ViewLauncherTests
 					Substitute.For<IDispatcherAccessor>(),
 					store,
 					Substitute.For<INotificationService>(),
-					TimeProvider.System),
+					new TypingPauseFactory(
+						Substitute.For<IDispatcherAccessor>(),
+						TimeProvider.System)),
 				Substitute.For<ISyntaxRegistry>(),
 				Substitute.For<ITaskExceptionHandler>(),
 				Substitute.For<ITextInputPrompt>());

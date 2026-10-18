@@ -160,6 +160,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -631,6 +635,70 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: an edit made in the read-only mode stays unsaved after
+	/// the pause in typing too.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Leaves_An_Edit_Made_In_Read_Only_Mode_Unsaved()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
+
+		sut.Editor.Document.Text = RandomString.Create(10);
+
+		// Act
+		time.Advance(TypingPause.Delay);
+
+		await RunJobsAsync(repeats: 10);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: the loaded text is not an edit, so there is nothing to undo.
 	/// </summary>
 	[AvaloniaTest]
@@ -888,6 +956,94 @@ internal class EmbeddedFileEditorViewModelTests
 		sut.IsEditingEnabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: once the file is loaded, each edit puts the save off until
+	/// typing pauses, and the text saved then is the latest one.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task EditorLoaded_Puts_A_Save_Off_While_Typing_Goes_On()
+	{
+		// Arrange
+		List<string> saved = [];
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = "Hello"u8.ToArray(),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			dbAccess
+				.UpdateFileContentsAsync(default, default!, default, default)
+				.ReturnsForAnyArgs(x =>
+				{
+					saved.Add(Encoding.UTF8.GetString(x.ArgAt<byte[]>(1)));
+
+					return true;
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Editor.Document.Text = "Hello, world";
+
+		time.Advance(TypingPause.Delay / 2.0);
+
+		// Act
+		sut.Editor.Document.Text = "Hello, world!";
+
+		// The pause after the first edit is over, the pause after the second is not.
+		time.Advance(TypingPause.Delay / 2.0);
+
+		await RunJobsAsync(repeats: 10);
+
+		string[] savedWhileTyping = [.. saved];
+
+		time.Advance(TypingPause.Delay / 2.0);
+
+		await RunJobsUntilAsync(() => saved.Count > 0);
+
+		// Assert
+		savedWhileTyping
+			.Should()
+			.BeEmpty();
+
+		saved
+			.Should()
+			.Equal("Hello, world!");
 	}
 
 	/// <summary>
@@ -1746,6 +1902,8 @@ internal class EmbeddedFileEditorViewModelTests
 		// Arrange
 		byte[]? saved = null;
 
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1785,9 +1943,15 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
+			builder.RegisterInstance<TimeProvider>(time);
+
 			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -1801,15 +1965,18 @@ internal class EmbeddedFileEditorViewModelTests
 		// Act
 		sut.Editor.Document.Text = "Hello, world";
 
-		// A wait well shorter than the pause, which a save waits for.
+		time.Advance(TypingPause.Delay - TimeSpan.FromMilliseconds(1));
+
 		await RunJobsAsync(repeats: 10);
 
-		byte[]? savedAtOnce = saved;
+		byte[]? savedInPause = saved;
+
+		time.Advance(TimeSpan.FromMilliseconds(1));
 
 		await RunJobsUntilAsync(() => saved is not null);
 
 		// Assert
-		savedAtOnce
+		savedInPause
 			.Should()
 			.BeNull();
 
@@ -2124,6 +2291,8 @@ internal class EmbeddedFileEditorViewModelTests
 		// Arrange
 		byte[]? saved = null;
 
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -2171,9 +2340,11 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
+			builder.RegisterInstance<TimeProvider>(time);
+
 			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -2192,6 +2363,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 		// Act
 		sut.Editor.Encoding = "windows-1251";
+
+		time.Advance(TypingPause.Delay);
 
 		await RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
 
@@ -2243,6 +2416,9 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2374,6 +2550,9 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2454,6 +2633,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -2519,6 +2702,9 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2902,6 +3088,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(exceptionHandler);
@@ -2977,6 +3167,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3033,6 +3227,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3098,6 +3296,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3173,6 +3375,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -3389,6 +3595,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsWriter>();
 
 			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3467,6 +3677,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -3561,6 +3775,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3656,6 +3874,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -3727,6 +3949,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3813,6 +4039,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
 
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
 			builder.RegisterInstance(contentCipher);
 		});
 
@@ -3895,6 +4125,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
 		});
@@ -4044,6 +4278,9 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(fileContentsWriter);
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4117,6 +4354,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
 		});

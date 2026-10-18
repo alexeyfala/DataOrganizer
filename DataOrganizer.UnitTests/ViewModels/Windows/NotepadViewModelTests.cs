@@ -359,6 +359,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -377,7 +381,7 @@ internal class NotepadViewModelTests
 			.ExecuteAsync(sut.Tabs[1]);
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store
@@ -1111,6 +1115,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1287,6 +1295,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1336,6 +1348,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1345,7 +1361,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(
@@ -1384,6 +1400,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1395,12 +1415,12 @@ internal class NotepadViewModelTests
 		// A lone surrogate, which UTF-16 cannot hold either.
 		document.Insert(4, "\uD800");
 
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		document.Text = "Text!";
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(
@@ -1635,6 +1655,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1645,12 +1669,12 @@ internal class NotepadViewModelTests
 
 		document.Insert(0, "a");
 
-		time.Advance(NotepadTexts.WriteDelay / 2.0);
+		time.Advance(TypingPause.Delay / 2.0);
 
 		document.Insert(1, "b");
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay / 2.0);
+		time.Advance(TypingPause.Delay / 2.0);
 
 		// Assert
 		store
@@ -2136,6 +2160,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2149,7 +2177,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		sut.Tabs[0].Editor.Encoding
@@ -2214,6 +2242,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2223,7 +2255,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Document.Text = "Text";
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2263,6 +2295,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2275,7 +2311,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "!");
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2314,6 +2350,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2327,7 +2367,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2407,7 +2447,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Document.Text = "Text";
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		sut.Tabs[0].IsReadOnly
@@ -2455,7 +2495,7 @@ internal class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store
@@ -2503,6 +2543,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2516,7 +2560,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		encodingAtTextWrite
@@ -2619,6 +2663,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2632,7 +2680,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[1].Editor.Document.Text = "Text";
 
 		// Act
-		time.Advance(NotepadTexts.WriteDelay);
+		time.Advance(TypingPause.Delay);
 
 		// Assert
 		store.Received(1).Write(

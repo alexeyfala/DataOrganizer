@@ -690,6 +690,10 @@ internal class NotepadWindowTests
 				.As<TimeProvider>();
 
 			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
+			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
 		});

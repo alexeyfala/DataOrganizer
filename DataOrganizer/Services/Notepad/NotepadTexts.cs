@@ -1,6 +1,7 @@
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.ViewModels;
@@ -10,18 +11,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace DataOrganizer.Services.Notepad;
 
 public sealed class NotepadTexts : INotepadTexts
 {
 	#region Data
-	/// <summary>
-	/// Pause in typing after which a changed text is written to the disk.
-	/// </summary>
-	internal static readonly TimeSpan WriteDelay = TimeSpan.FromSeconds(0.5);
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -38,16 +33,16 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
-	/// <summary>
-	/// Timers of the tabs whose changed texts wait for a pause in typing to be written.
-	/// </summary>
-	private readonly Dictionary<NotepadTabViewModel, ITimer> _pendingWrites = [];
-
 	/// <inheritdoc cref="INotepadStore" />
 	private readonly INotepadStore _store;
 
-	/// <inheritdoc cref="TimeProvider" />
-	private readonly TimeProvider _timeProvider;
+	/// <inheritdoc cref="ITypingPauseFactory" />
+	private readonly ITypingPauseFactory _typingPauseFactory;
+
+	/// <summary>
+	/// Pauses in typing after which the changed texts of the tabs are written.
+	/// </summary>
+	private readonly Dictionary<NotepadTabViewModel, ITypingPause> _typingPauses = [];
 	#endregion
 
 	#region Constructors
@@ -55,7 +50,7 @@ public sealed class NotepadTexts : INotepadTexts
 		IDispatcherAccessor dispatcher,
 		INotepadStore store,
 		INotificationService notification,
-		TimeProvider timeProvider)
+		ITypingPauseFactory typingPauseFactory)
 	{
 		_dispatcher = dispatcher;
 
@@ -63,7 +58,7 @@ public sealed class NotepadTexts : INotepadTexts
 
 		_notification = notification;
 
-		_timeProvider = timeProvider;
+		_typingPauseFactory = typingPauseFactory;
 	}
 	#endregion
 
@@ -78,19 +73,14 @@ public sealed class NotepadTexts : INotepadTexts
 			return;
 		}
 
-		// Each change puts the write off until typing pauses.
-		if (_pendingWrites.TryGetValue(tab, out ITimer? timer))
+		if (!_typingPauses.TryGetValue(tab, out ITypingPause? typingPause))
 		{
-			timer.Change(WriteDelay, Timeout.InfiniteTimeSpan);
+			typingPause = _typingPauseFactory.Create(() => WriteText(tab));
 
-			return;
+			_typingPauses[tab] = typingPause;
 		}
 
-		_pendingWrites[tab] = _timeProvider.CreateTimer(
-			_ => _dispatcher.Post(() => WritePendingText(tab)),
-			null,
-			WriteDelay,
-			Timeout.InfiniteTimeSpan);
+		typingPause.Restart();
 	}
 	#endregion
 
@@ -121,9 +111,9 @@ public sealed class NotepadTexts : INotepadTexts
 
 		_followedTabs.Remove(tab);
 
-		if (_pendingWrites.Remove(tab, out ITimer? timer))
+		if (_typingPauses.Remove(tab, out ITypingPause? typingPause))
 		{
-			timer.Dispose();
+			typingPause.Dispose();
 		}
 
 		_failedWrites.Remove(tab);
@@ -162,9 +152,9 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <inheritdoc />
 	public void WritePending()
 	{
-		foreach (NotepadTabViewModel tab in _pendingWrites.Keys.ToArray())
+		foreach (ITypingPause typingPause in _typingPauses.Values)
 		{
-			WritePendingText(tab);
+			typingPause.Flush();
 		}
 	}
 	#endregion
@@ -217,21 +207,6 @@ public sealed class NotepadTexts : INotepadTexts
 		_followedTabs.Add(tab);
 
 		tab.Editor.Document.TextChanged += Document_TextChanged;
-	}
-
-	/// <summary>
-	/// Writes the text of a tab once typing pauses, unless the tab has been closed in the meantime.
-	/// </summary>
-	private void WritePendingText(NotepadTabViewModel tab)
-	{
-		if (!_pendingWrites.Remove(tab, out ITimer? timer))
-		{
-			return;
-		}
-
-		timer.Dispose();
-
-		WriteText(tab);
 	}
 
 	/// <summary>

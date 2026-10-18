@@ -222,6 +222,7 @@ public sealed class App : Application
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<ITextInputPrompt, DialogService>();
+		services.AddTransient<ITypingPauseFactory, TypingPauseFactory>();
 		services.AddTransient<IUiTimer, UiTimer>();
 		services.AddTransient<IUnreadableHotkeysFinder, UnreadableHotkeysFinder>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();

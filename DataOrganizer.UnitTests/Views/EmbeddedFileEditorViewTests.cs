@@ -505,6 +505,9 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();

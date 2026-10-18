@@ -20,7 +20,6 @@ using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Globalization;
-using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
@@ -83,8 +82,16 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc cref="ISyntaxRegistry" />
 	private readonly ISyntaxRegistry _syntaxRegistry;
 
+	/// <inheritdoc cref="ITypingPauseFactory" />
+	private readonly ITypingPauseFactory _typingPauseFactory;
+
 	/// <inheritdoc cref="ContentsWriteQueue" />
 	private readonly ContentsWriteQueue _writeQueue;
+
+	/// <summary>
+	/// Pause in typing after which the text is saved; made at the first edit.
+	/// </summary>
+	private ITypingPause? _typingPause;
 	#endregion
 
 	#region Constructors
@@ -101,7 +108,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		INotificationService notification,
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISyntaxRegistry syntaxRegistry,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		ITypingPauseFactory typingPauseFactory) : base(
 			dbFailureReporter,
 			editorStateStore,
 			fileContentsReader,
@@ -118,6 +126,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		_editorSplits = editorSplits;
 
 		_syntaxRegistry = syntaxRegistry;
+
+		_typingPauseFactory = typingPauseFactory;
 
 		_writeQueue = new(WriteContentsAsync);
 
@@ -153,16 +163,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// <see cref="TextDocument.TextChanged" /> event handler.
 	/// </summary>
-	private void Document_TextChanged(EventPattern<EventArgs> e)
+	private void Document_TextChanged()
 	{
-		if (IsContentUnavailable
-			|| IsReadOnly
-			|| e.Sender is not TextDocument document)
-		{
-			return;
-		}
+		_typingPause ??= _typingPauseFactory
+			.Create(SaveTypedText)
+			.DisposeWith(_disposables);
 
-		EnqueueSave(document);
+		_typingPause.Restart();
 	}
 	#endregion
 
@@ -196,7 +203,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return true;
 		}
 
-		// The text change handler is debounced, so the newest text may not be queued yet. The read-only mode queued it
+		// The text waits for a pause in typing, so the newest text may not be queued yet. The read-only mode queued it
 		// as it turned on and saves no change made after.
 		if (!IsReadOnly)
 		{
@@ -235,8 +242,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			Observable.FromEventPattern<EventHandler, EventArgs>(
 				x => Editor.Document.TextChanged += x,
 				x => Editor.Document.TextChanged -= x)
-				.SetDelay(TimeSpan.FromSeconds(0.5))
-				.Subscribe(Document_TextChanged)
+				.Subscribe(_ => Document_TextChanged())
 				.DisposeWith(_disposables);
 
 			Editor.DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
@@ -366,6 +372,20 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		_writeQueue.Enqueue(contents);
+	}
+
+	/// <summary>
+	/// Queues the typed text for saving once typing pauses; nothing is saved over contents that could not be read or in the
+	/// read-only mode.
+	/// </summary>
+	private void SaveTypedText()
+	{
+		if (IsContentUnavailable || IsReadOnly)
+		{
+			return;
+		}
+
+		EnqueueSave(Editor.Document);
 	}
 
 	/// <summary>
