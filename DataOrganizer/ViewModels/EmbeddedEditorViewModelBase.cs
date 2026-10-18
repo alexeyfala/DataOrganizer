@@ -11,8 +11,10 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
 using Entities.Models;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -83,6 +85,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// Callback that reports the date of change written with an edit of the contents.
 	/// </summary>
 	public Action<DateTime>? SetUpdatedAtCallback { get; private set; }
+
+	/// <summary>
+	/// <c>True</c> while a change of the editor state is saved: the contents are loaded and readable, and the editor is
+	/// open.
+	/// </summary>
+	protected bool CanSaveEditorState => IsInitialized && !IsContentUnavailable && !IsDisposed;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -94,14 +102,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IEditorStateStore" />
-	protected readonly IEditorStateStore _editorStateStore;
+	/// <inheritdoc cref="IDbFailureReporter" />
+	protected readonly IDbFailureReporter _dbFailureReporter;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
-
-	/// <inheritdoc cref="IFileContentsReader" />
-	protected readonly IFileContentsReader _fileContentsReader;
 
 	/// <inheritdoc cref="IJsonSerializer" />
 	protected readonly IJsonSerializer _jsonSerializer;
@@ -112,11 +117,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="INotificationService" />
 	protected readonly INotificationService _notification;
 
-	/// <summary>
-	/// The editor state last persisted to the database.
-	/// Intended to skip persistence when the state matches what is already stored.
-	/// </summary>
-	protected string? _lastSavedEditorState;
+	/// <inheritdoc cref="IEditorStateStore" />
+	private readonly IEditorStateStore _editorStateStore;
+
+	/// <inheritdoc cref="IFileContentsReader" />
+	private readonly IFileContentsReader _fileContentsReader;
 
 	/// <inheritdoc cref="IFileContentsWriter" />
 	private readonly IFileContentsWriter _fileContentsWriter;
@@ -126,10 +131,17 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 	/// <inheritdoc cref="ISessionReadOnlyMode" />
 	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
+
+	/// <summary>
+	/// The editor state last persisted to the database.
+	/// Intended to skip persistence when the state matches what is already stored.
+	/// </summary>
+	private string? _lastSavedEditorState;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
+		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
@@ -140,6 +152,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler)
 	{
+		_dbFailureReporter = dbFailureReporter;
+
 		_editorStateStore = editorStateStore;
 
 		_exceptionHandler = exceptionHandler;
@@ -226,15 +240,78 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
-	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedEditorState" />.
+	/// Reads the contents and hands the opened ones to <see cref="LoadContentsAsync" />; contents that cannot be read or
+	/// opened close the editor for changes. The loading ends either way.
 	/// </summary>
-	protected bool IsLastEditorStateEqualTo(string current)
+	protected async Task LoadAsync()
 	{
-		return string.Equals(
-			_lastSavedEditorState,
-			current,
-			StringComparison.Ordinal);
+		try
+		{
+			FileContentsReading reading;
+
+			try
+			{
+				reading = await _fileContentsReader
+					.ReadUnlockedAsync(FileId, KeeperId)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				IsContentUnavailable = true;
+
+				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
+
+				return;
+			}
+
+			if (reading.Status == FileContentsStatus.Damaged)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
+
+				LogUnopenedContents(reading.Status, $@"{Strings.MissingFileContents} of file ""{FileId}""");
+
+				return;
+			}
+
+			if (reading.Status == FileContentsStatus.Closed)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				LogUnopenedContents(reading.Status, $@"{Strings.FailedToProcessContents} of file ""{FileId}""");
+
+				return;
+			}
+
+			await LoadContentsAsync(reading.Contents).ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			IsContentUnavailable = true;
+
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+		}
+		finally
+		{
+			IsInitialized = true;
+		}
 	}
+
+	/// <summary>
+	/// Takes the opened contents into the editor, which wipes them.
+	/// </summary>
+	protected abstract Task LoadContentsAsync(byte[] contents);
+
+	/// <summary>
+	/// Writes into the log that the contents stayed unopened, under <paramref name="message" />.
+	/// </summary>
+	protected abstract void LogUnopenedContents(FileContentsStatus status, string message);
 
 	/// <summary>
 	/// Queues for saving the changes that still wait for a pause in typing.
@@ -242,6 +319,39 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual void QueuePendingChanges()
 	{
 	}
+
+	/// <summary>
+	/// Reads the stored editor state; <c>null</c> when there is none or it cannot be read.
+	/// </summary>
+	protected async Task<TState?> ReadEditorStateAsync<TState>(CancellationToken token = default) where TState : struct
+	{
+		string? value = InitialEditorState ?? await _editorStateStore
+			.ReadAsync(FileId, token)
+			.ConfigureAwait(false);
+
+		if (value is null)
+		{
+			return null;
+		}
+
+		try
+		{
+			return _jsonSerializer.Deserialize<TState>(value);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			await ReplaceUnreadableEditorStateAsync(token).ConfigureAwait(false);
+
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Replaces a stored editor state that cannot be read; by default it stays as it is.
+	/// </summary>
+	protected virtual Task ReplaceUnreadableEditorStateAsync(CancellationToken token = default) => Task.CompletedTask;
 
 	/// <summary>
 	/// Saves the contents of the file, encrypted when it is protected, and reports the date of change of an edit.
@@ -264,6 +374,25 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
+	/// Reports the editor state to the file and saves it, unless the read-only mode is on or it is the state saved last.
+	/// </summary>
+	protected void SaveEditorState<TState>(TState state) where TState : struct
+	{
+		string json = _jsonSerializer.Serialize(state, JsonDefaults.Options);
+
+		SetEditorStateCallback?.Invoke(json);
+
+		if (IsReadOnly || IsLastEditorStateEqualTo(json))
+		{
+			return;
+		}
+
+		_lastSavedEditorState = json;
+
+		_exceptionHandler.Watch(SaveEditorStateAsync(json));
+	}
+
+	/// <summary>
 	/// Saves <see cref="FileEntity.EditorState" /> in the database.
 	/// </summary>
 	protected Task SaveEditorStateAsync(
@@ -271,6 +400,19 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		CancellationToken token = default)
 	{
 		return _editorStateStore.WriteAsync(FileId, json, token);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedEditorState" />.
+	/// </summary>
+	private bool IsLastEditorStateEqualTo(string current)
+	{
+		return string.Equals(
+			_lastSavedEditorState,
+			current,
+			StringComparison.Ordinal);
 	}
 	#endregion
 }

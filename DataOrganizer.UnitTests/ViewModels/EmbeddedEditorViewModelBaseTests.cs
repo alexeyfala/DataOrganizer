@@ -234,6 +234,7 @@ internal class EmbeddedEditorViewModelBaseTests
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
 	public TestEditor(
+		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
 		IFileContentsWriter fileContentsWriter,
@@ -243,6 +244,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		INotificationService notification,
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler) : base(
+			dbFailureReporter,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -266,6 +268,14 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	}
 
 	public void MarkInitialized() => IsInitialized = true;
+
+	/// <inheritdoc />
+	protected override Task LoadContentsAsync(byte[] contents) => Task.CompletedTask;
+
+	/// <inheritdoc />
+	protected override void LogUnopenedContents(FileContentsStatus status, string message)
+	{
+	}
 
 	/// <inheritdoc />
 	protected override void QueuePendingChanges() => QueuedWhileReadOnly.Add(IsReadOnly);

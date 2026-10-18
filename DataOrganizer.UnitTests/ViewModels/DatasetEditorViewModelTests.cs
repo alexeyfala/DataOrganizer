@@ -5,6 +5,8 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -788,7 +790,7 @@ internal class DatasetEditorViewModelTests
 
 	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: contents the session key does not open close the editor for
-	/// changes before any record is read.
+	/// changes before any record is read, and the loading still ends.
 	/// </summary>
 	[Test]
 	public async Task ContainerLoaded_Closes_The_Editor_When_The_Decryption_Fails()
@@ -840,6 +842,10 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.BeTrue();
 
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+
 		jsonSerializer
 			.DidNotReceive()
 			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
@@ -866,6 +872,54 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		sut.IsContentUnavailable
+			.Should()
+			.BeTrue();
+
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: contents read but not holding records close the editor for
+	/// changes, and the loading still ends.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Closes_The_Editor_When_The_Records_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = "not records"u8.ToArray(),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1070,6 +1124,62 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read stays as it is.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Keeps_An_Unreadable_State()
+	{
+		// Arrange
+		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The stored state breaks off after its first character.
+			editorStateStore
+				.ReadAsync(Arg.Any<Guid>())
+				.Returns("{");
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(editorStateStore);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		await editorStateStore
+			.Received(1)
+			.ReadAsync(Arg.Any<Guid>());
+
+		await editorStateStore
+			.DidNotReceiveWithAnyArgs()
+			.WriteAsync(default, default!, default);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read leaves no place to come back
 	/// to, and the editor stays open.
 	/// </summary>
@@ -1124,6 +1234,55 @@ internal class DatasetEditorViewModelTests
 		sut.IsContentUnavailable
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the records are read once, however often the view loads.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Reads_The_Records_Once()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.ContainerLoaded();
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		await dbAccess
+			.Received(1)
+			.GetFileContentsAsync(Arg.Any<Guid>());
+
+		sut.Records
+			.Should()
+			.HaveCount(RecordCount);
 	}
 
 	/// <summary>
@@ -1362,6 +1521,50 @@ internal class DatasetEditorViewModelTests
 		await dbAccess
 			.DidNotReceive()
 			.GetFileEditorStateAsync(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: the contents read for the records are wiped once they are
+	/// loaded.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Wipes_The_Contents_It_Read()
+	{
+		// Arrange
+		byte[] contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			fileContentsReader
+				.ReadUnlockedAsync(Arg.Any<Guid>(), Arg.Any<Guid?>())
+				.Returns(new FileContentsReading
+				{
+					Contents = contents,
+					Status = FileContentsStatus.Opened
+				});
+
+			builder.RegisterInstance(fileContentsReader);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		sut.Records
+			.Should()
+			.HaveCount(RecordCount);
+
+		contents
+			.Should()
+			.OnlyContain(x => x == 0);
 	}
 
 	/// <summary>

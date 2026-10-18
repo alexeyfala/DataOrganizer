@@ -5,6 +5,7 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
@@ -22,9 +23,7 @@ using System.Globalization;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using System.Security.Cryptography;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -67,120 +66,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			Editor.IsSplit = true;
 		}
 
-		try
-		{
-			FileContentsReading reading;
-
-			try
-			{
-				reading = await _fileContentsReader
-					.ReadUnlockedAsync(FileId, KeeperId)
-					.ConfigureAwait(true);
-			}
-			catch (Exception ex)
-			{
-				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
-				IsContentUnavailable = true;
-
-				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
-
-				return;
-			}
-
-			if (reading.Status == FileContentsStatus.Damaged)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
-
-				_logger.LogError(
-					$@"{Strings.MissingFileContents} of file ""{FileId}""",
-					breakInDebugger: false);
-
-				return;
-			}
-
-			if (reading.Status == FileContentsStatus.Closed)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				_logger.LogError(
-					$@"{Strings.FailedToProcessContents} of file ""{FileId}""",
-					breakInDebugger: false);
-
-				return;
-			}
-
-			byte[] output = reading.Contents;
-
-			try
-			{
-				// The state comes before the text, as it holds the encoding chosen for the text.
-				FileEditorState? state = await ReadEditorStateAsync().ConfigureAwait(true);
-
-				// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
-				if (Editor.Codec.Read(output, state?.Encoding) is not { } text)
-				{
-					IsContentUnavailable = true;
-
-					_notification.ShowWarningSnackbar(Strings.NonTextFileContents);
-
-					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{FileId}""");
-
-					return;
-				}
-
-				Editor.ReplaceText(text);
-
-				// The pauses in typing are followed from the loaded text on, so the load itself saves nothing.
-				Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => Editor.Document.TextChanged += x,
-					x => Editor.Document.TextChanged -= x)
-					.SetDelay(TimeSpan.FromSeconds(0.5))
-					.Subscribe(Document_TextChanged)
-					.DisposeWith(_disposables);
-
-				Editor.DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
-
-				// The language comes after the text, so the highlighting starts on the document it colors.
-				Editor.SyntaxLanguage = Editor.DefaultSyntaxLanguage;
-
-				Editor.RefreshEncoding();
-
-				_lastSavedContentHash = SHA256.HashData(output);
-
-				ApplyEditorState(state);
-
-				_exceptionHandler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
-
-				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-			}
-			finally
-			{
-				output.ZeroMemory();
-			}
-		}
-		catch (Exception ex)
-		{
-			IsContentUnavailable = true;
-
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-		}
-		finally
-		{
-			IsInitialized = true;
-		}
+		await LoadAsync().ConfigureAwait(true);
 	}
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDbFailureReporter" />
-	private readonly IDbFailureReporter _dbFailureReporter;
-
 	/// <inheritdoc cref="IEditorSplitStore" />
 	private readonly IEditorSplitStore _editorSplits;
 
@@ -190,33 +80,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
-	/// <summary>
-	/// Channel for save operations.
-	/// </summary>
-	private readonly Channel<byte[]> _saveChannel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
-	{
-		SingleReader = true,
-		SingleWriter = true
-	});
-
 	/// <inheritdoc cref="ISyntaxRegistry" />
 	private readonly ISyntaxRegistry _syntaxRegistry;
 
-	/// <summary>
-	/// SHA-256 of the last plain text persisted to the database.
-	/// Intended to skip persistence when the text matches what is already stored.
-	/// </summary>
-	private byte[]? _lastSavedContentHash;
-
-	/// <summary>
-	/// <c>True</c> when the last processed save did not reach the database.
-	/// </summary>
-	private bool _lastSaveFailed;
-
-	/// <summary>
-	/// Number of queued contents the save channel consumer has not processed yet.
-	/// </summary>
-	private int _pendingSaves;
+	/// <inheritdoc cref="ContentsWriteQueue" />
+	private readonly ContentsWriteQueue _writeQueue;
 	#endregion
 
 	#region Constructors
@@ -234,6 +102,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISyntaxRegistry syntaxRegistry,
 		ITaskExceptionHandler exceptionHandler) : base(
+			dbFailureReporter,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -244,13 +113,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			sessionReadOnlyMode,
 			exceptionHandler)
 	{
-		_dbFailureReporter = dbFailureReporter;
-
 		_encodingSwitcher = encodingSwitcher;
 
 		_editorSplits = editorSplits;
 
 		_syntaxRegistry = syntaxRegistry;
+
+		_writeQueue = new(WriteContentsAsync);
 
 		// A change of a value that the editor state keeps saves the state.
 		Editor
@@ -312,15 +181,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		// No pause in typing comes after the close, so an edit still waiting for one is queued now.
 		QueuePendingChanges();
 
-		if (!_saveChannel
-			.Reader
-			.Completion
-			.IsCompleted)
-		{
-			_saveChannel
-				.Writer
-				.Complete();
-		}
+		_writeQueue.Complete();
 
 		base.AfterDispose();
 	}
@@ -342,12 +203,67 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			EnqueueSave(Editor.Document);
 		}
 
-		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
-
 		// A text that the encoding of the file cannot hold stays unsaved as well.
-		return await isDrained
-			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
-			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed) && !Editor.Codec.IsTextOutsideEncoding;
+		return await _writeQueue
+			.WaitUntilProcessedAsync(token)
+			.ConfigureAwait(true) && !_writeQueue.HasFailed && !Editor.Codec.IsTextOutsideEncoding;
+	}
+
+	/// <inheritdoc />
+	protected override async Task LoadContentsAsync(byte[] contents)
+	{
+		try
+		{
+			// The state comes before the text, as it holds the encoding chosen for the text.
+			FileEditorState? state = await ReadEditorStateAsync<FileEditorState>().ConfigureAwait(true);
+
+			// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
+			if (Editor.Codec.Read(contents, state?.Encoding) is not { } text)
+			{
+				IsContentUnavailable = true;
+
+				_notification.ShowWarningSnackbar(Strings.NonTextFileContents);
+
+				_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{FileId}""");
+
+				return;
+			}
+
+			Editor.ReplaceText(text);
+
+			// The pauses in typing are followed from the loaded text on, so the load itself saves nothing.
+			Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => Editor.Document.TextChanged += x,
+				x => Editor.Document.TextChanged -= x)
+				.SetDelay(TimeSpan.FromSeconds(0.5))
+				.Subscribe(Document_TextChanged)
+				.DisposeWith(_disposables);
+
+			Editor.DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
+
+			// The language comes after the text, so the highlighting starts on the document it colors.
+			Editor.SyntaxLanguage = Editor.DefaultSyntaxLanguage;
+
+			Editor.RefreshEncoding();
+
+			_writeQueue.SetStored(contents);
+
+			ApplyEditorState(state);
+
+			_exceptionHandler.Watch(Task.Run(() => _writeQueue.RunAsync()));
+
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+		}
+		finally
+		{
+			contents.ZeroMemory();
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void LogUnopenedContents(FileContentsStatus status, string message)
+	{
+		_logger.LogError(message, breakInDebugger: false);
 	}
 
 	/// <inheritdoc />
@@ -360,6 +276,17 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		EnqueueSave(Editor.Document);
+	}
+
+	/// <inheritdoc />
+	protected override Task ReplaceUnreadableEditorStateAsync(CancellationToken token = default)
+	{
+		if (IsReadOnly)
+		{
+			return Task.CompletedTask;
+		}
+
+		return SaveEditorStateAsync(_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options), token);
 	}
 	#endregion
 
@@ -438,155 +365,13 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		if (_saveChannel
-			.Writer
-			.TryWrite(contents))
-		{
-			Interlocked.Increment(ref _pendingSaves);
-
-			return;
-		}
-
-		contents.ZeroMemory();
-	}
-
-	/// <summary>
-	/// Background consumer that processes the save channel sequentially.
-	/// Drains all queued items and saves only the latest.
-	/// </summary>
-	private async Task ProcessSaveChannelAsync()
-	{
-		ChannelReader<byte[]> reader = _saveChannel.Reader;
-
-		await foreach (byte[] contents in reader
-			.ReadAllAsync()
-			.ConfigureAwait(false))
-		{
-			// Drain the channel — keep only the latest, ZeroMemory the rest.
-			byte[] latest = contents;
-
-			// Counted, not decremented yet: the batch stays pending until it has been persisted.
-			int takenCount = 1;
-
-			try
-			{
-				// Insurance in case of:
-				// - slow encryption (large file)
-				// - slow DB (disk under load)
-				// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
-				while (reader.TryRead(out byte[]? newer))
-				{
-					takenCount++;
-
-					latest.ZeroMemory();
-
-					latest = newer;
-				}
-
-				byte[] hash = SHA256.HashData(latest);
-
-				if (_lastSavedContentHash is { } previous && hash.AsSpan().SequenceEqual(previous))
-				{
-					latest.ZeroMemory();
-
-					Volatile.Write(ref _lastSaveFailed, false);
-
-					continue;
-				}
-
-				try
-				{
-					FileContentsWriteStatus status = await SaveContentsAsync(latest, FileContentsChange.Edit)
-						.ConfigureAwait(false);
-
-					if (status == FileContentsWriteStatus.Written)
-					{
-						_lastSavedContentHash = hash;
-					}
-					else if (status == FileContentsWriteStatus.Closed)
-					{
-						_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-					}
-
-					Volatile.Write(ref _lastSaveFailed, status != FileContentsWriteStatus.Written);
-				}
-				catch (Exception ex)
-				{
-					// The loop has to survive a failed save: the editor keeps the text and marks it unsaved.
-					_logger.LogException(ex, breakInDebugger: false);
-
-					Volatile.Write(ref _lastSaveFailed, true);
-				}
-				finally
-				{
-					latest.ZeroMemory();
-				}
-			}
-			finally
-			{
-				Interlocked.Add(ref _pendingSaves, -takenCount);
-			}
-		}
-	}
-
-	/// <summary>
-	/// Reads the editor state from the database; <c>null</c> when there is none or it cannot be read, in which case a new
-	/// one replaces it.
-	/// </summary>
-	private async Task<FileEditorState?> ReadEditorStateAsync(CancellationToken token = default)
-	{
-		// The restored values reach the view through bindings, so they are set on the UI thread.
-		string? value = InitialEditorState ?? await _editorStateStore
-			.ReadAsync(FileId, token)
-			.ConfigureAwait(true);
-
-		if (value is null)
-		{
-			return null;
-		}
-
-		try
-		{
-			return _jsonSerializer.Deserialize<FileEditorState>(value);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			if (!IsReadOnly)
-			{
-				await SaveEditorStateAsync(
-					_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options),
-					token);
-			}
-
-			return null;
-		}
+		_writeQueue.Enqueue(contents);
 	}
 
 	/// <summary>
 	/// Keeps the split of the document for the file while the application runs.
 	/// </summary>
 	private void StoreEditorSplit() => _editorSplits.Set(FileId, Editor.IsSplit ? Editor.SplitShare : null);
-
-	/// <summary>
-	/// Tries to save the editor state.
-	/// </summary>
-	private Task TrySaveEditorStateAsync(CancellationToken token = default)
-	{
-		string json = _jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options);
-
-		SetEditorStateCallback?.Invoke(json);
-
-		if (IsReadOnly || IsLastEditorStateEqualTo(json))
-		{
-			return Task.CompletedTask;
-		}
-
-		_lastSavedEditorState = json;
-
-		return SaveEditorStateAsync(json, token);
-	}
 
 	/// <summary>
 	/// Persists the editor state once the editor is ready.
@@ -596,14 +381,38 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		lock (_mutex)
 		{
 			// The view may still report its state for a moment after the file has been closed.
-			if (IsContentUnavailable
-				|| !IsInitialized
-				|| IsDisposed)
+			if (!CanSaveEditorState)
 			{
 				return;
 			}
 
-			_exceptionHandler.Watch(TrySaveEditorStateAsync());
+			SaveEditorState(CreateEditorState());
+		}
+	}
+
+	/// <summary>
+	/// Writes the contents of the text as an edit; <c>false</c> when they did not reach the database.
+	/// </summary>
+	private async Task<bool> WriteContentsAsync(byte[] contents)
+	{
+		try
+		{
+			FileContentsWriteStatus status = await SaveContentsAsync(contents, FileContentsChange.Edit)
+				.ConfigureAwait(false);
+
+			if (status == FileContentsWriteStatus.Closed)
+			{
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+			}
+
+			return status == FileContentsWriteStatus.Written;
+		}
+		catch (Exception ex)
+		{
+			// The queue has to survive a failed save: the editor keeps the text and marks it unsaved.
+			_logger.LogException(ex, breakInDebugger: false);
+
+			return false;
 		}
 	}
 	#endregion

@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;
@@ -17,7 +16,6 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Dataset;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -61,85 +59,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		try
-		{
-			FileContentsReading reading;
+		await LoadAsync().ConfigureAwait(true);
 
-			try
-			{
-				reading = await _fileContentsReader
-					.ReadUnlockedAsync(FileId, KeeperId)
-					.ConfigureAwait(true);
-			}
-			catch (Exception ex)
-			{
-				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
-				IsContentUnavailable = true;
-
-				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
-
-				return;
-			}
-
-			if (reading.Status == FileContentsStatus.Damaged)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
-
-				_logger.LogError($@"{Strings.MissingFileContents} of file ""{FileId}""");
-
-				return;
-			}
-
-			if (reading.Status == FileContentsStatus.Closed)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return;
-			}
-
-			if (!reading
-				.Contents
-				.IsEmpty())
-			{
-				try
-				{
-					Records.AddRange(_jsonSerializer
-						.Deserialize<DatasetRecordBase[]>(reading.Contents)
-						.AsNotNull());
-				}
-				finally
-				{
-					reading
-						.Contents
-						.ZeroMemory();
-				}
-			}
-
-			// A dataset that starts without records has no position to restore.
-			if (Records.Count > 0)
-			{
-				// The state reaches the view through a binding, so it is set on the UI thread.
-				ViewState = await ReadViewStateAsync().ConfigureAwait(true);
-			}
-		}
-		catch (Exception ex)
-		{
-			IsContentUnavailable = true;
-
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-		}
-		finally
-		{
-			IsInitialized = true;
-
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-		}
+		_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 	}
 
 	/// <summary>
@@ -554,9 +476,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IConfirmationPrompt" />
 	private readonly IConfirmationPrompt _confirmationPrompt;
 
-	/// <inheritdoc cref="IDbFailureReporter" />
-	private readonly IDbFailureReporter _dbFailureReporter;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -585,6 +504,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler,
 		ITextInputPrompt textInputPrompt) : base(
+			dbFailureReporter,
 			editorStateStore,
 			fileContentsReader,
 			fileContentsWriter,
@@ -598,8 +518,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_clipboardWriter = clipboardWriter;
 
 		_confirmationPrompt = confirmationPrompt;
-
-		_dbFailureReporter = dbFailureReporter;
 
 		_dispatcher = dispatcher;
 
@@ -615,23 +533,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		// The state read with the records is not a change, and the view may still report its state for a moment after
 		// the file has been closed.
-		if (value is not { } state || !IsInitialized || IsContentUnavailable || IsDisposed)
+		if (value is not { } state || !CanSaveEditorState)
 		{
 			return;
 		}
 
-		string json = _jsonSerializer.Serialize(state, JsonDefaults.Options);
-
-		SetEditorStateCallback?.Invoke(json);
-
-		if (IsReadOnly || IsLastEditorStateEqualTo(json))
-		{
-			return;
-		}
-
-		_lastSavedEditorState = json;
-
-		_exceptionHandler.Watch(SaveEditorStateAsync(json));
+		SaveEditorState(state);
 	}
 	#endregion
 
@@ -867,6 +774,42 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			? Task.FromResult(true)
 			: SaveContentsAsync(change, token);
 	}
+
+	/// <inheritdoc />
+	protected override async Task LoadContentsAsync(byte[] contents)
+	{
+		if (!contents.IsEmpty())
+		{
+			try
+			{
+				Records.AddRange(_jsonSerializer
+					.Deserialize<DatasetRecordBase[]>(contents)
+					.AsNotNull());
+			}
+			finally
+			{
+				contents.ZeroMemory();
+			}
+		}
+
+		// A dataset that starts without records has no position to restore.
+		if (Records.Count > 0)
+		{
+			// The state reaches the view through a binding, so it is set on the UI thread.
+			ViewState = await ReadEditorStateAsync<DatasetEditorState>().ConfigureAwait(true);
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void LogUnopenedContents(FileContentsStatus status, string message)
+	{
+		if (status != FileContentsStatus.Damaged)
+		{
+			return;
+		}
+
+		_logger.LogError(message);
+	}
 	#endregion
 
 	#region Helpers
@@ -906,32 +849,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <c>True</c> when <see cref="Records" /> has elements.
 	/// </summary>
 	private bool HasRecords() => Records.Any();
-
-	/// <summary>
-	/// Reads the stored view state; <c>null</c> when there is none or it cannot be read.
-	/// </summary>
-	private async Task<DatasetEditorState?> ReadViewStateAsync(CancellationToken token = default)
-	{
-		string? value = InitialEditorState ?? await _editorStateStore
-			.ReadAsync(FileId, token)
-			.ConfigureAwait(false);
-
-		if (value is null)
-		{
-			return null;
-		}
-
-		try
-		{
-			return _jsonSerializer.Deserialize<DatasetEditorState>(value);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, false);
-
-			return null;
-		}
-	}
 
 	/// <summary>
 	/// Saves the records, which also hold an earlier change whose save failed; <c>false</c> when they are not saved.
