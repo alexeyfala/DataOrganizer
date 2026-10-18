@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Editor;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;

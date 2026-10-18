@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Editor;
+using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Seeding;

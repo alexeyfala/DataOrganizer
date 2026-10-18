@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Editor;
+using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;

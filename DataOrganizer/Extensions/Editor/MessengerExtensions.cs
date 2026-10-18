@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Messages.Editor;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Extensions;
+namespace DataOrganizer.Extensions.Editor;
 
 /// <summary>
 /// Sends the requests and notifications of the shell: the flush of the open editors and the progress bar of the editor.

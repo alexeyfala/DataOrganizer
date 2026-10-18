@@ -3,7 +3,7 @@ using DataOrganizer.Messages.Editor;
 using System;
 using System.Threading;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Editor;
 
 /// <summary>
 /// Hides the progress bar of the editor when disposed, so the operation showing it cannot leave it on.
