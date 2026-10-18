@@ -46,8 +46,9 @@
 							Classes="NameInFlyoutTextBlockStyle"
 							Text="{Binding Name, Mode=OneTime}" />
 
+						<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
 						<controls:FlyoutButton
-							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -79,7 +80,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

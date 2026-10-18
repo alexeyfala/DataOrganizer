@@ -28,10 +28,11 @@
 				</Style>
 			</Grid.Styles>
 
+			<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
 			<Button
 				Grid.Column="0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).CopyContentCommand}"
+				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.CopyContentCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
 				Theme="{StaticResource MaterialFlatButton}"
@@ -113,7 +114,7 @@
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

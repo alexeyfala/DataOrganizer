@@ -605,6 +605,92 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: the rows of the copy history that the side sheet shows bind without
+	/// an error while the editor closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void Dispose_Binds_The_Shown_Copy_History_Without_An_Error()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		RecordingBindingLogSink log = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([first.Id, second.Id]));
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		int shownFiles = sut
+			.GetVisualDescendants()
+			.OfType<ListBoxItem>()
+			.Count(static x => x.DataContext is FileDto);
+
+		ILogSink? previous = Logger.Sink;
+
+		Logger.Sink = log;
+
+		try
+		{
+			// Act
+			viewModel.Dispose();
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		finally
+		{
+			Logger.Sink = previous;
+		}
+
+		sut.Close();
+
+		// Assert
+		shownFiles
+			.Should()
+			.BePositive();
+
+		log.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EditorWindow" />: a double click on a file in the tree opens the context menu of the file.
 	/// </summary>
 	[AvaloniaTest]
@@ -1157,6 +1243,191 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.RightSideSheetContent" />: the rows of the copy history that leaves the side sheet bind
+	/// without an error.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(RightSideSheetContentKind.ExecutingFiles)]
+	[TestCase(RightSideSheetContentKind.None)]
+	public void RightSideSheetContent_Change_Binds_The_Leaving_Copy_History_Without_An_Error(RightSideSheetContentKind next)
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		RecordingBindingLogSink log = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([first.Id, second.Id]));
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		int shownFiles = sut
+			.GetVisualDescendants()
+			.OfType<ListBoxItem>()
+			.Count(static x => x.DataContext is FileDto);
+
+		ILogSink? previous = Logger.Sink;
+
+		Logger.Sink = log;
+
+		try
+		{
+			// Act
+			viewModel.RightSideSheetContent = next;
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		finally
+		{
+			Logger.Sink = previous;
+		}
+
+		sut.Close();
+
+		// Assert
+		shownFiles
+			.Should()
+			.BePositive();
+
+		log.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.RightSideSheetContent" />: the open menu of a file of the copy history that leaves the
+	/// side sheet binds without an error.
+	/// </summary>
+	[AvaloniaTest]
+	public void RightSideSheetContent_Change_Binds_The_Open_Menu_Of_A_Leaving_File_Without_An_Error()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		RecordingBindingLogSink log = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([file.Id]));
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Grid row = sut
+			.GetVisualDescendants()
+			.OfType<CopyHistoryView>()
+			.Single()
+			.GetVisualDescendants()
+			.OfType<Grid>()
+			.First(static x => x.DataContext is FileDto && Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any());
+
+		Interaction
+			.GetBehaviors(row)
+			.OfType<LazyContextFlyoutBehavior>()
+			.Single()
+			.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isMenuOpen = row.ContextFlyout!.IsOpen;
+
+		ILogSink? previous = Logger.Sink;
+
+		Logger.Sink = log;
+
+		try
+		{
+			// Act
+			viewModel.RightSideSheetContent = RightSideSheetContentKind.None;
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		finally
+		{
+			Logger.Sink = previous;
+		}
+
+		sut.Close();
+
+		// Assert
+		isMenuOpen
+			.Should()
+			.BeTrue();
+
+		log.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EditorWindow" />: the rows of folders and files bind without an error, also while the tree expands them and
 	/// takes them back as it scrolls.
 	/// </summary>
@@ -1439,6 +1710,92 @@ internal class EditorWindowTests
 			.Which
 			.Should()
 			.BeOfType<ExecutingFilesView>();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowFavorites" />: the rows of the copy history that the side sheet shows bind without an
+	/// error while the editor switches to the favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowFavorites_Binds_The_Shown_Copy_History_Without_An_Error()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		RecordingBindingLogSink log = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([first.Id, second.Id]));
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel
+			.ShowCopyHistoryCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		int shownFiles = sut
+			.GetVisualDescendants()
+			.OfType<ListBoxItem>()
+			.Count(static x => x.DataContext is FileDto);
+
+		ILogSink? previous = Logger.Sink;
+
+		Logger.Sink = log;
+
+		try
+		{
+			// Act
+			viewModel.ShowFavorites();
+
+			Dispatcher.UIThread.RunJobs();
+		}
+		finally
+		{
+			Logger.Sink = previous;
+		}
+
+		sut.Close();
+
+		// Assert
+		shownFiles
+			.Should()
+			.BePositive();
+
+		log.Entries
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
