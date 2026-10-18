@@ -898,8 +898,8 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="SplitDocumentEditor.IsSplit" />: the lower half opens at the caret, the selection and the scroll position
-	/// of the upper one.
+	/// <see cref="SplitDocumentEditor.IsSplit" />: the lower half opens at the caret and the scroll position of the upper one,
+	/// without its selection.
 	/// </summary>
 	[AvaloniaTest]
 	public void IsSplit_Opens_The_Lower_Half_Where_The_Upper_One_Stands()
@@ -936,13 +936,9 @@ internal class SplitDocumentEditorTests
 		// Assert
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
 
-		secondaryEditor.SelectionStart
-			.Should()
-			.Be(20);
-
 		secondaryEditor.SelectionLength
 			.Should()
-			.Be(4);
+			.Be(0);
 
 		secondaryEditor.TextArea.Caret.Position
 			.Should()

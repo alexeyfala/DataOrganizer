@@ -2845,6 +2845,57 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a split that came before the document, as on a new opening of the file,
+	/// restores the selection into the upper half only, while the lower one opens at the caret without it.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Selection_Into_The_Upper_Half_Only()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		// Act
+		sut.Document = CreateDocument(lineCount: 100);
+
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = default,
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		DocumentTextEditor secondaryEditor = editor.SecondaryEditor!;
+
+		editor.PrimaryEditor.SelectionLength
+			.Should()
+			.Be(4);
+
+		secondaryEditor.SelectionLength
+			.Should()
+			.Be(0);
+
+		secondaryEditor.TextArea.Caret.Location
+			.Should()
+			.Be(new TextLocation(3, 1));
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ViewState" />: restores the unfolded blocks, and every other block folds.
 	/// </summary>
 	[AvaloniaTest]

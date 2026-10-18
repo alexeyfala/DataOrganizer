@@ -487,7 +487,7 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	}
 
 	/// <summary>
-	/// Opens the lower half at the caret, the selection, the folded blocks and the scroll position of the upper one.
+	/// Opens the lower half at the caret, the folded blocks and the scroll position of the upper one, without its selection.
 	/// </summary>
 	internal void CopyViewToSecondaryEditor()
 	{
@@ -497,6 +497,11 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 		}
 
 		CopyView(PrimaryEditor, secondaryEditor);
+
+		// The selected text shows once, while both halves show its occurrences.
+		secondaryEditor
+			.TextArea
+			.ClearSelection();
 	}
 	#endregion
 
