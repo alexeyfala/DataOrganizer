@@ -78,7 +78,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			.Range(1, Tabs.Count + _unreadNumbers.Count + 1)
 			.First(x => Tabs.All(y => y.Number != x) && !_unreadNumbers.Contains(x));
 
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(_documentTextFactory.Create())
 		{
 			Number = number
 		};
@@ -190,6 +190,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IConfirmationPrompt" />
 	private readonly IConfirmationPrompt _confirmationPrompt;
 
+	/// <inheritdoc cref="IDocumentTextFactory" />
+	private readonly IDocumentTextFactory _documentTextFactory;
+
 	/// <inheritdoc cref="IDocumentEncodingSwitcher" />
 	private readonly IDocumentEncodingSwitcher _encodingSwitcher;
 
@@ -230,6 +233,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	public NotepadViewModel(
 		IConfirmationPrompt confirmationPrompt,
 		IDocumentEncodingSwitcher encodingSwitcher,
+		IDocumentTextFactory documentTextFactory,
 		IMainWindowActivator mainWindowActivator,
 		INotepadSessionState sessionState,
 		INotepadStore store,
@@ -241,6 +245,8 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 		_confirmationPrompt = confirmationPrompt;
 
 		_encodingSwitcher = encodingSwitcher;
+
+		_documentTextFactory = documentTextFactory;
 
 		_mainWindowActivator = mainWindowActivator;
 
@@ -301,7 +307,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 			.Order()
 			.ToArray())
 		{
-			NotepadTabViewModel tab = new()
+			NotepadTabViewModel tab = new(_documentTextFactory.Create())
 			{
 				Number = number
 			};
@@ -416,7 +422,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		foreach (NotepadTabSettings tab in tabs)
 		{
-			Tabs.Add(NotepadSettingsMapper.CreateTab(tab, _syntaxRegistry));
+			Tabs.Add(NotepadSettingsMapper.CreateTab(tab, _documentTextFactory.Create(), _syntaxRegistry));
 		}
 
 		SelectedTab = Tabs.FirstOrDefault(x => x.Number == settings.SelectedTabNumber) ?? Tabs[0];

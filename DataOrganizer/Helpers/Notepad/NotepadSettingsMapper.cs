@@ -1,5 +1,6 @@
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
@@ -26,12 +27,15 @@ internal static class NotepadSettingsMapper
 	}
 
 	/// <summary>
-	/// Returns a tab with the name, the editor state and the split kept in its settings; its text is read later, in the
-	/// encoding kept with them.
+	/// Returns a tab of a text with the name, the editor state and the split kept in its settings; the text is read later,
+	/// in the encoding kept with them.
 	/// </summary>
-	public static NotepadTabViewModel CreateTab(NotepadTabSettings settings, ISyntaxRegistry syntaxRegistry)
+	public static NotepadTabViewModel CreateTab(
+		NotepadTabSettings settings,
+		IDocumentText document,
+		ISyntaxRegistry syntaxRegistry)
 	{
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(document)
 		{
 			Name = settings.Name,
 			Number = settings.Number

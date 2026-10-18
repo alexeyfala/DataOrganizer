@@ -1,6 +1,10 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using NSubstitute;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -42,7 +46,7 @@ internal class DocumentEditorViewModelTests
 
 		sut.FindUnreadableEncodings();
 
-		sut.Document.Text += "😀";
+		sut.Document.AsTextDocument().Text += "😀";
 
 		// Act
 		sut.FindUnreadableEncodings();
@@ -84,7 +88,7 @@ internal class DocumentEditorViewModelTests
 		// Arrange
 		DocumentEditorViewModel sut = DocumentEditorFactory.CreateEditor(Encoding.UTF8.GetBytes("Hello"));
 
-		sut.Document.Text = "Привет";
+		sut.Document.AsTextDocument().Text = "Привет";
 
 		// Act
 		sut.FindUnreadableEncodings();
@@ -105,7 +109,9 @@ internal class DocumentEditorViewModelTests
 	public void RefreshEncoding_Takes_The_Encodings_Of_The_Text()
 	{
 		// Arrange
-		DocumentEditorViewModel sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
 		sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
@@ -125,23 +131,25 @@ internal class DocumentEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorViewModel.ReplaceText" />: the new text is not an edit, so undo starts from it.
+	/// <see cref="DocumentEditorViewModel.ReplaceText" />: the document takes the new text as one that is not an edit.
 	/// </summary>
 	[Test]
-	public void ReplaceText_Starts_The_Undo_From_The_Text()
+	public void ReplaceText_Replaces_The_Text_Of_The_Document()
 	{
 		// Arrange
-		DocumentEditorViewModel sut = new();
+		IDocumentText document = Substitute.For<IDocumentText>();
 
-		sut.Document.Text = "Edit";
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(document));
+
+		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Act
 		sut.ReplaceText("Text");
 
 		// Assert
-		sut.Document.UndoStack.CanUndo
-			.Should()
-			.BeFalse();
+		document
+			.Received(1)
+			.Replace("Text");
 	}
 
 	/// <summary>
@@ -152,7 +160,9 @@ internal class DocumentEditorViewModelTests
 	public void ReplaceText_Takes_The_Encodings_Of_The_Text()
 	{
 		// Arrange
-		DocumentEditorViewModel sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
 		string text = sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName)!;
@@ -177,8 +187,11 @@ internal class DocumentEditorViewModelTests
 	[Test]
 	public void SplitShare_Starts_At_Half()
 	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
 		// Act
-		DocumentEditorViewModel sut = new();
+		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Assert
 		sut.SplitShare

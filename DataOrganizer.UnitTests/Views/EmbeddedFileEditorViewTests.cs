@@ -5,6 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
@@ -97,6 +98,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -142,6 +147,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -171,7 +180,12 @@ internal class EmbeddedFileEditorViewTests
 	public void DefaultSyntaxLanguageMark_Is_Set()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -210,6 +224,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -258,6 +276,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -275,6 +297,71 @@ internal class EmbeddedFileEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorViewModel.Document" />: an edit in the editor reaches the text of the file, and undo takes
+	/// it back as far as the loaded text.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Document_Shares_The_Edits_And_The_Undo_With_The_Editor()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = Encoding.UTF8.GetBytes("Hello"),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
+
+		using EmbeddedFileEditorView sut = new(viewModel);
+
+		await viewModel.EditorLoaded();
+
+		TextDocument document = sut.Editor.Document!;
+
+		// Act
+		document.Insert(5, ", world");
+
+		string edited = viewModel.Editor.Document.Text;
+
+		document.UndoStack.Undo();
+
+		// Assert
+		edited
+			.Should()
+			.Be("Hello, world");
+
+		viewModel.Editor.Document.Text
+			.Should()
+			.Be("Hello");
+
+		document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding chosen in the editor comes back to the view
 	/// model.
 	/// </summary>
@@ -282,7 +369,12 @@ internal class EmbeddedFileEditorViewTests
 	public void Encoding_Follows_A_Choice_In_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -308,7 +400,12 @@ internal class EmbeddedFileEditorViewTests
 	public void Encoding_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -364,6 +461,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -434,6 +535,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -508,13 +613,17 @@ internal class EmbeddedFileEditorViewTests
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await viewModel.EditorLoaded();
 
-		viewModel.Editor.Document.Text += "😀";
+		viewModel.Editor.Document.AsTextDocument().Text += "😀";
 
 		using EmbeddedFileEditorView sut = new(viewModel);
 
@@ -569,6 +678,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -611,6 +724,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -657,7 +774,12 @@ internal class EmbeddedFileEditorViewTests
 	public void FontSize_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -681,7 +803,12 @@ internal class EmbeddedFileEditorViewTests
 	public void FontSize_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -723,6 +850,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -748,7 +879,12 @@ internal class EmbeddedFileEditorViewTests
 	public void IsEncrypted_Reaches_The_Editor([Values] bool isEncrypted)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -774,7 +910,12 @@ internal class EmbeddedFileEditorViewTests
 	public void IsSplit_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -798,7 +939,12 @@ internal class EmbeddedFileEditorViewTests
 	public void IsSplit_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -821,7 +967,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowEndOfLine_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -845,7 +996,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowEndOfLine_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -867,7 +1023,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowSpaces_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -891,7 +1052,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowSpaces_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -913,7 +1079,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowTabs_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -937,7 +1108,12 @@ internal class EmbeddedFileEditorViewTests
 	public void ShowTabs_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -960,7 +1136,12 @@ internal class EmbeddedFileEditorViewTests
 	public void SplitShare_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -984,7 +1165,12 @@ internal class EmbeddedFileEditorViewTests
 	public void SplitShare_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -1025,6 +1211,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1078,6 +1268,10 @@ internal class EmbeddedFileEditorViewTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1124,7 +1318,12 @@ internal class EmbeddedFileEditorViewTests
 			SelectionStart = 20
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -1166,7 +1365,12 @@ internal class EmbeddedFileEditorViewTests
 			SelectionStart = 20
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -1188,7 +1392,12 @@ internal class EmbeddedFileEditorViewTests
 	public void WordWrap_Follows_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -1212,7 +1421,12 @@ internal class EmbeddedFileEditorViewTests
 	public void WordWrap_Reaches_The_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel viewModel = mock.Create<EmbeddedFileEditorViewModel>();
 

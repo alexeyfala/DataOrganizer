@@ -1,4 +1,3 @@
-using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
@@ -37,7 +36,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// The text of the file with its encoding and the switches of the editor; the language that the extension of the file
 	/// gives is its default one.
 	/// </summary>
-	public DocumentEditorViewModel Editor { get; } = new();
+	public DocumentEditorViewModel Editor { get; }
 
 	/// <summary>
 	/// Name of the file, whose extension gives the language of its text.
@@ -98,6 +97,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public EmbeddedFileEditorViewModel(
 		IDbFailureReporter dbFailureReporter,
 		IDocumentEncodingSwitcher encodingSwitcher,
+		IDocumentTextFactory documentTextFactory,
 		IEditorSplitStore editorSplits,
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,
@@ -122,6 +122,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			exceptionHandler)
 	{
 		_encodingSwitcher = encodingSwitcher;
+
+		Editor = new(documentTextFactory.Create());
 
 		_editorSplits = editorSplits;
 
@@ -161,9 +163,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="TextDocument.TextChanged" /> event handler.
+	/// <see cref="IDocumentText.Changed" /> handler.
 	/// </summary>
-	private void Document_TextChanged()
+	private void Document_Changed()
 	{
 		_typingPause ??= _typingPauseFactory
 			.Create(SaveTypedText)
@@ -207,7 +209,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		// as it turned on and saves no change made after.
 		if (!IsReadOnly)
 		{
-			EnqueueSave(Editor.Document);
+			EnqueueSave();
 		}
 
 		// A text that the encoding of the file cannot hold stays unsaved as well.
@@ -239,10 +241,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			Editor.ReplaceText(text);
 
 			// The pauses in typing are followed from the loaded text on, so the load itself saves nothing.
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => Editor.Document.TextChanged += x,
-				x => Editor.Document.TextChanged -= x)
-				.Subscribe(_ => Document_TextChanged())
+			Editor
+				.Document
+				.Changed
+				.Subscribe(_ => Document_Changed())
 				.DisposeWith(_disposables);
 
 			Editor.DefaultSyntaxLanguage = _syntaxRegistry.FindLanguage(FileName);
@@ -279,7 +281,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		EnqueueSave(Editor.Document);
+		EnqueueSave();
 	}
 
 	/// <inheritdoc />
@@ -346,12 +348,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Queues the current text of the document for saving in the encoding of the file; a text with a character that the
 	/// encoding does not have stays unsaved.
 	/// </summary>
-	private void EnqueueSave(TextDocument document)
+	private void EnqueueSave()
 	{
 		bool wasTextOutsideEncoding = Editor.Codec.IsTextOutsideEncoding;
 
 		// The byte order mark taken off the text on load goes back in front of it.
-		if (Editor.Codec.Encode(document.Text, out string? missingCharacter) is not { } contents)
+		if (Editor.Codec.Encode(Editor.Document.Text, out string? missingCharacter) is not { } contents)
 		{
 			// The warning comes once, not after every pause in typing, until the text fits again.
 			if (missingCharacter is not null && !wasTextOutsideEncoding)
@@ -383,7 +385,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		EnqueueSave(Editor.Document);
+		EnqueueSave();
 	}
 
 	/// <summary>

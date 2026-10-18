@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Views.NotepadTabView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:views="using:DataOrganizer.Views"
@@ -12,7 +13,7 @@
 	<views:DocumentEditorView
 		x:Name="Editor"
 		DefaultEncoding="{Binding Editor.DefaultEncoding, Mode=OneWay}"
-		Document="{Binding Editor.Document, Mode=OneWay}"
+		Document="{Binding Editor.Document, Mode=OneWay, Converter={x:Static converters:DocumentConverters.ToTextDocument}}"
 		DocumentFontSize="{Binding Editor.FontSize, Mode=TwoWay}"
 		Encoding="{Binding Editor.Encoding, Mode=TwoWay}"
 		EncodingName="{Binding Editor.EncodingName, Mode=OneWay}"

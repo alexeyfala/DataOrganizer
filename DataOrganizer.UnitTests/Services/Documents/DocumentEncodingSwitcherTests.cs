@@ -39,7 +39,7 @@ internal class DocumentEncodingSwitcherTests
 
 		DocumentEncodingSwitcher sut = mock.Create<DocumentEncodingSwitcher>();
 
-		DocumentEditorViewModel editor = new();
+		DocumentEditorViewModel editor = new(new AvaloniaDocumentText());
 
 		// Act
 		bool result = await sut.SwitchAsync(
@@ -165,7 +165,7 @@ internal class DocumentEncodingSwitcherTests
 			Encoding.UTF8.WebName);
 
 		// A lone surrogate, which no encoding holds.
-		editor.Document.Text = "Text\uD800";
+		editor.Document.AsTextDocument().Text = "Text\uD800";
 
 		// The choice as a binding writes it.
 		editor.Encoding = Encoding.Unicode.WebName;
@@ -343,7 +343,7 @@ internal class DocumentEncodingSwitcherTests
 			[],
 			Encoding.UTF8.WebName);
 
-		editor.Document.Text = "Text";
+		editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		await sut.SwitchAsync(
@@ -353,7 +353,7 @@ internal class DocumentEncodingSwitcherTests
 			"tab 1");
 
 		// Assert
-		editor.Document.UndoStack.CanUndo
+		editor.Document.AsTextDocument().UndoStack.CanUndo
 			.Should()
 			.BeFalse();
 	}
@@ -384,7 +384,7 @@ internal class DocumentEncodingSwitcherTests
 			Encoding.UTF8.WebName);
 
 		// A lone surrogate, which no encoding holds.
-		editor.Document.Text = "Text\uD800";
+		editor.Document.AsTextDocument().Text = "Text\uD800";
 
 		// Act
 		await sut.SwitchAsync(

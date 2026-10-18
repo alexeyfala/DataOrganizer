@@ -1,4 +1,3 @@
-using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
@@ -12,9 +11,12 @@ namespace DataOrganizer.ViewModels;
 /// View model of what <c>DocumentEditorView</c> shows and edits: one document for the whole life of the editor, the
 /// encoding of its text and the switches of the editor.
 /// </summary>
-public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorStateValues
+public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorStateValues, IEncodedDocument
 {
 	#region Properties
+	/// <inheritdoc />
+	public DocumentCodec Codec { get; } = new();
+
 	/// <summary>
 	/// Web name of the encoding that the bytes of the text are found to be in; <c>null</c> until they are read, or when they
 	/// are not found to be text.
@@ -29,7 +31,7 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	/// <summary>
 	/// The text as an editable document.
 	/// </summary>
-	public TextDocument Document { get; } = new();
+	public IDocumentText Document { get; }
 
 	/// <summary>
 	/// Web name of the encoding the text is read in and written in; another one reads the text again from the same bytes.
@@ -92,11 +94,10 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
 	public partial bool WordWrap { get; set; }
+	#endregion
 
-	/// <summary>
-	/// Encoding the text is kept in, which reads the text from its bytes and gives its bytes back.
-	/// </summary>
-	internal DocumentCodec Codec { get; } = new();
+	#region Constructors
+	public DocumentEditorViewModel(IDocumentText document) => Document = document;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -108,10 +109,8 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Takes from <see cref="Codec" /> the encoding the text is read and written in, and the one found from its bytes.
-	/// </summary>
-	internal void RefreshEncoding()
+	/// <inheritdoc />
+	public void RefreshEncoding()
 	{
 		DefaultEncoding = Codec.DefaultEncoding;
 
@@ -120,17 +119,10 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 		EncodingName = Codec.EncodingName;
 	}
 
-	/// <summary>
-	/// Replaces the text of <see cref="Document" /> with one that <see cref="Codec" /> has read, which is not an edit, so
-	/// undo starts from it, and takes the encodings of the codec.
-	/// </summary>
-	internal void ReplaceText(string text)
+	/// <inheritdoc />
+	public void ReplaceText(string text)
 	{
-		Document.Text = text;
-
-		Document
-			.UndoStack
-			.ClearAll();
+		Document.Replace(text);
 
 		RefreshEncoding();
 	}

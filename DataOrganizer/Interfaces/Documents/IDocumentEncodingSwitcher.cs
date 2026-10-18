@@ -1,4 +1,3 @@
-using DataOrganizer.ViewModels;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Documents;
@@ -18,7 +17,7 @@ public interface IDocumentEncodingSwitcher
 	/// <param name="snackbarHostIdentifier">Snackbar host of the window that shows the warnings.</param>
 	/// <param name="textName">Name of the text in the log.</param>
 	Task<bool> SwitchAsync(
-		DocumentEditorViewModel editor,
+		IEncodedDocument editor,
 		string? encoding,
 		string snackbarHostIdentifier,
 		string textName);

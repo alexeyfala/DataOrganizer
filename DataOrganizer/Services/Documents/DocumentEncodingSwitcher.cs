@@ -1,7 +1,6 @@
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.ViewModels;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -40,7 +39,7 @@ public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 	#region Methods
 	/// <inheritdoc />
 	public Task<bool> SwitchAsync(
-		DocumentEditorViewModel editor,
+		IEncodedDocument editor,
 		string? encoding,
 		string snackbarHostIdentifier,
 		string textName)
@@ -61,7 +60,7 @@ public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 	/// it was.
 	/// </summary>
 	private bool Switch(
-		DocumentEditorViewModel editor,
+		IEncodedDocument editor,
 		string? encoding,
 		string snackbarHostIdentifier,
 		string textName)

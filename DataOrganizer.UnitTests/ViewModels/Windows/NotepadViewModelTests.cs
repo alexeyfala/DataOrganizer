@@ -16,6 +16,7 @@ using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
@@ -41,7 +42,12 @@ internal class NotepadViewModelTests
 	public void AddTabCommand_Adds_A_Selected_Tab_At_The_End()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -72,6 +78,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -110,6 +120,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -142,7 +156,12 @@ internal class NotepadViewModelTests
 	public void AddTabCommand_Takes_The_Smallest_Free_Number()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -185,6 +204,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -210,13 +233,20 @@ internal class NotepadViewModelTests
 		// Arrange
 		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		NotepadTabViewModel tab = sut.Tabs[0];
 
-		tab.Editor.Document.Text = "Text";
+		tab.Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		await sut
@@ -244,13 +274,20 @@ internal class NotepadViewModelTests
 		// Arrange
 		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		NotepadTabViewModel tab = sut.Tabs[0];
 
-		tab.Editor.Document.Text = " \t\r\n";
+		tab.Editor.Document.AsTextDocument().Text = " \t\r\n";
 
 		// Act
 		await sut
@@ -287,13 +324,17 @@ internal class NotepadViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		NotepadTabViewModel tab = sut.Tabs[0];
 
-		tab.Editor.Document.Text = "Text";
+		tab.Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		await sut
@@ -313,7 +354,12 @@ internal class NotepadViewModelTests
 	public void CloseTabCommand_Closes_The_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -363,6 +409,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -374,7 +424,7 @@ internal class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// White space only, so the tab closes with no question.
-		sut.Tabs[1].Editor.Document.Text = " ";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = " ";
 
 		await sut
 			.CloseTabCommand
@@ -406,6 +456,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -441,6 +495,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -472,7 +530,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		NotepadSessionState sessionState = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotepadSessionState>(sessionState));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<INotepadSessionState>(sessionState);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -516,13 +581,17 @@ internal class NotepadViewModelTests
 				.Returns(false);
 
 			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		NotepadTabViewModel tab = sut.Tabs[0];
 
-		tab.Editor.Document.Text = "Text";
+		tab.Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		await sut
@@ -555,6 +624,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -583,7 +656,12 @@ internal class NotepadViewModelTests
 	public void CloseTabCommand_Replaces_The_Last_Tab_With_The_First_One()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -628,6 +706,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -656,6 +738,66 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: a change of the text of a closed tab is not written, so the erased
+	/// file does not come back.
+	/// </summary>
+	[Test]
+	public async Task CloseTabCommand_Stops_Writing_The_Text_Of_The_Tab()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut
+			.AddTabCommand
+			.Execute(null);
+
+		sut.LoadTabs();
+
+		NotepadTabViewModel tab = sut.Tabs[1];
+
+		await sut
+			.CloseTabCommand
+			.ExecuteAsync(tab);
+
+		tab.Editor.Document.AsTextDocument().Text = " ";
+
+		// Act
+		time.Advance(TypingPause.Delay);
+
+		// Assert
+		store
+			.DidNotReceive()
+			.Write(2, Arg.Any<byte[]>());
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.CloseTabCommand" />: the tabs are written without the closed one.
 	/// </summary>
 	[Test]
@@ -675,6 +817,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -706,7 +852,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -714,9 +867,9 @@ internal class NotepadViewModelTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.Tabs[0].Editor.Document.Text = "First";
+		sut.Tabs[0].Editor.Document.AsTextDocument().Text = "First";
 
-		sut.Tabs[1].Editor.Document.Text = "Second";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = "Second";
 
 		NotepadTabViewModel[] tabs = [.. sut.Tabs];
 
@@ -741,7 +894,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -753,7 +913,7 @@ internal class NotepadViewModelTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.Tabs[1].Editor.Document.Text = " \t\r\n";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = " \t\r\n";
 
 		NotepadTabViewModel[] tabs = [sut.Tabs[0], sut.Tabs[1]];
 
@@ -783,7 +943,12 @@ internal class NotepadViewModelTests
 		// Arrange
 		List<NotepadTabViewModel> closed = [];
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -832,6 +997,10 @@ internal class NotepadViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -844,7 +1013,7 @@ internal class NotepadViewModelTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.Tabs[1].Editor.Document.Text = "Text";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = "Text";
 
 		NotepadTabViewModel[] tabs = [sut.Tabs[0], sut.Tabs[1]];
 
@@ -879,6 +1048,10 @@ internal class NotepadViewModelTests
 				.Returns(false);
 
 			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -891,7 +1064,7 @@ internal class NotepadViewModelTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.Tabs[1].Editor.Document.Text = "Text";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = "Text";
 
 		NotepadTabViewModel[] tabs = [sut.Tabs[0], sut.Tabs[1]];
 
@@ -913,7 +1086,12 @@ internal class NotepadViewModelTests
 	public async Task CloseTabsCommand_Replaces_All_Tabs_With_The_First_One()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -939,14 +1117,19 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDocumentEncodingSwitcher, IMainWindowActivator, INotepadSessionState, INotepadStore, INotepadTexts, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt)" />:
+	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDocumentEncodingSwitcher, IDocumentTextFactory, IMainWindowActivator, INotepadSessionState, INotepadStore, INotepadTexts, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt)" />:
 	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]
 	public void Constructor_Opens_The_First_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		// Act
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -977,6 +1160,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1054,6 +1241,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1119,13 +1310,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		sut.LoadTabs();
 
-		sut.Tabs[0].Editor.Document.Text = "Text";
+		sut.Tabs[0].Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		sut.Dispose();
@@ -1152,13 +1347,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		NotepadTabViewModel tab = sut.Tabs[0];
 
-		tab.Editor.Document.Text = "Text";
+		tab.Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		tab.Editor.Encoding = Encoding.Unicode.WebName;
@@ -1190,6 +1389,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1197,7 +1400,7 @@ internal class NotepadViewModelTests
 		NotepadTabViewModel tab = sut.Tabs[0];
 
 		// Three bytes in UTF-8, which UTF-16 cannot read.
-		tab.Editor.Document.Text = "Tex";
+		tab.Editor.Document.AsTextDocument().Text = "Tex";
 
 		// Act
 		tab.Editor.Encoding = Encoding.Unicode.WebName;
@@ -1241,6 +1444,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1299,6 +1506,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1352,6 +1563,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1404,13 +1619,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		sut.LoadTabs();
 
-		TextDocument document = sut.Tabs[0].Editor.Document;
+		TextDocument document = sut.Tabs[0].Editor.Document.AsTextDocument();
 
 		// A lone surrogate, which UTF-16 cannot hold either.
 		document.Insert(4, "\uD800");
@@ -1454,6 +1673,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1488,6 +1711,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1521,6 +1748,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1555,6 +1786,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1617,6 +1852,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1659,13 +1898,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		sut.LoadTabs();
 
-		TextDocument document = sut.Tabs[0].Editor.Document;
+		TextDocument document = sut.Tabs[0].Editor.Document.AsTextDocument();
 
 		document.Insert(0, "a");
 
@@ -1725,6 +1968,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1759,6 +2006,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1796,6 +2047,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1855,6 +2110,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1924,6 +2183,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1976,6 +2239,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2047,6 +2314,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2081,6 +2352,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2116,6 +2391,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2164,6 +2443,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2173,7 +2456,9 @@ internal class NotepadViewModelTests
 		// A lone surrogate, which UTF-16 cannot hold either.
 		sut
 			.Tabs[0]
-			.Editor.Document
+			.Editor
+			.Document
+			.AsTextDocument()
 			.Insert(4, "\uD800");
 
 		// Act
@@ -2205,6 +2490,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2213,7 +2502,7 @@ internal class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// Assert
-		sut.Tabs[0].Editor.Document.UndoStack.CanUndo
+		sut.Tabs[0].Editor.Document.AsTextDocument().UndoStack.CanUndo
 			.Should()
 			.BeFalse();
 	}
@@ -2246,13 +2535,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		sut.LoadTabs();
 
-		sut.Tabs[0].Editor.Document.Text = "Text";
+		sut.Tabs[0].Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		time.Advance(TypingPause.Delay);
@@ -2299,6 +2592,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2307,7 +2604,9 @@ internal class NotepadViewModelTests
 
 		sut
 			.Tabs[0]
-			.Editor.Document
+			.Editor
+			.Document
+			.AsTextDocument()
 			.Insert(4, "!");
 
 		// Act
@@ -2354,6 +2653,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2363,7 +2666,9 @@ internal class NotepadViewModelTests
 		// A lone surrogate, which UTF-16 cannot hold either.
 		sut
 			.Tabs[0]
-			.Editor.Document
+			.Editor
+			.Document
+			.AsTextDocument()
 			.Insert(4, "\uD800");
 
 		// Act
@@ -2396,6 +2701,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2438,13 +2747,17 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
 		sut.LoadTabs();
 
-		sut.Tabs[0].Editor.Document.Text = "Text";
+		sut.Tabs[0].Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		time.Advance(TypingPause.Delay);
@@ -2488,6 +2801,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2547,6 +2864,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2556,7 +2877,9 @@ internal class NotepadViewModelTests
 		// A lone surrogate, which UTF-16 cannot hold either.
 		sut
 			.Tabs[0]
-			.Editor.Document
+			.Editor
+			.Document
+			.AsTextDocument()
 			.Insert(4, "\uD800");
 
 		// Act
@@ -2589,6 +2912,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2624,6 +2951,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2667,6 +2998,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2677,7 +3012,7 @@ internal class NotepadViewModelTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.Tabs[1].Editor.Document.Text = "Text";
+		sut.Tabs[1].Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
 		time.Advance(TypingPause.Delay);
@@ -2697,7 +3032,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		NotepadSessionState sessionState = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotepadSessionState>(sessionState));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<INotepadSessionState>(sessionState);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -2724,7 +3066,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -2763,6 +3112,10 @@ internal class NotepadViewModelTests
 				.Returns(new KeyValueInput("Notes"));
 
 			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2798,6 +3151,10 @@ internal class NotepadViewModelTests
 				.Returns((KeyValueInput?)null);
 
 			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2837,6 +3194,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();

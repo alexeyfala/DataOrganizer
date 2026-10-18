@@ -1,3 +1,4 @@
+using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.UnitTests.Factories;
@@ -13,7 +14,7 @@ public static class DocumentEditorFactory
 	/// </summary>
 	public static DocumentEditorViewModel CreateEditor(byte[] contents, string? encoding = null)
 	{
-		DocumentEditorViewModel editor = new();
+		DocumentEditorViewModel editor = new(new AvaloniaDocumentText());
 
 		editor.ReplaceText(editor.Codec.Read(contents, encoding)!);
 

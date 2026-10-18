@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Diagnostics;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Fakes;
@@ -39,7 +40,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -124,7 +126,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -191,7 +194,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -256,7 +260,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -321,7 +326,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -371,7 +377,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -448,7 +455,8 @@ internal class ConsoleWindowHostTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor());
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText());
 
 		ConsoleWindow consoleWindow = new(viewModel);
 

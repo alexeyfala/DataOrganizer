@@ -14,9 +14,11 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Text;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.ViewModels.Windows;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +51,32 @@ internal class AppTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: the view model of the console, which the view factory builds with no
+	/// registration of its own, finds every dependency, the text of its log included.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Builds_The_Console_View_Model()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// The environment of the test keeps the folders of the application untouched.
+		services.AddSingleton(Substitute.For<IAppEnvironment>());
+
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		// Act
+		using ConsoleViewModel result = ActivatorUtilities.CreateInstance<ConsoleViewModel>(provider);
+
+		// Assert
+		result.Document
+			.Should()
+			.BeOfType<AvaloniaLogText>();
+	}
+
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: the logger that also writes into the console is built, though the console and
 	/// the services it uses log through that logger.
@@ -276,7 +304,6 @@ internal class AppTests
 			.Should()
 			.AllSatisfy(x => x.Should().BeSameAs(roles[0]));
 	}
-
 
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: the executing files have one owner for the whole application, so every main

@@ -165,6 +165,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -173,7 +177,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = "Hello, world";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world";
 
 		FlushEditorsMessage flush = new();
 
@@ -182,7 +186,7 @@ internal class EmbeddedFileEditorViewModelTests
 		// The queue is now busy with the save of the first edit.
 		await writing.Task;
 
-		sut.Editor.Document.Text = "Hello, world!";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world!";
 
 		// Act
 		sut.Dispose();
@@ -241,6 +245,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -310,6 +318,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -359,6 +371,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -420,6 +436,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -464,6 +484,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -520,6 +544,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -564,11 +592,15 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextDocument document = sut.Editor.Document;
+		TextDocument document = sut.Editor.Document.AsTextDocument();
 
 		// Act
 		await sut.EditorLoaded();
@@ -619,6 +651,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -677,6 +713,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -685,7 +725,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		// Act
 		time.Advance(TypingPause.Delay);
@@ -724,6 +764,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -732,7 +776,7 @@ internal class EmbeddedFileEditorViewModelTests
 		await sut.EditorLoaded();
 
 		// Assert
-		sut.Editor.Document.UndoStack.CanUndo
+		sut.Editor.Document.AsTextDocument().UndoStack.CanUndo
 			.Should()
 			.BeFalse();
 	}
@@ -793,6 +837,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -859,6 +907,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -907,6 +959,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -946,6 +1002,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1012,18 +1072,22 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = "Hello, world";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world";
 
 		time.Advance(TypingPause.Delay / 2.0);
 
 		// Act
-		sut.Editor.Document.Text = "Hello, world!";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world!";
 
 		// The pause after the first edit is over, the pause after the second is not.
 		time.Advance(TypingPause.Delay / 2.0);
@@ -1089,6 +1153,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1208,6 +1276,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1254,6 +1326,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1297,6 +1373,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1342,6 +1422,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1401,6 +1485,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1464,6 +1552,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1534,6 +1626,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1603,6 +1699,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1664,6 +1764,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1745,6 +1849,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1807,6 +1915,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(editorSplits);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1880,6 +1992,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1970,6 +2086,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -1979,7 +2099,7 @@ internal class EmbeddedFileEditorViewModelTests
 		await sut.EditorLoaded();
 
 		// Act
-		sut.Editor.Document.Text = "Hello, world";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world";
 
 		time.Advance(TypingPause.Delay - TimeSpan.FromMilliseconds(1));
 
@@ -2036,6 +2156,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2088,6 +2212,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2134,6 +2262,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2193,6 +2325,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2243,6 +2379,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2280,6 +2420,10 @@ internal class EmbeddedFileEditorViewModelTests
 				});
 
 			builder.RegisterInstance(fileContentsReader);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2363,6 +2507,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2371,7 +2519,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = "Привет";
+		sut.Editor.Document.AsTextDocument().Text = "Привет";
 
 		byte[] expected = Encoding.UTF8.GetBytes("Привет");
 
@@ -2435,6 +2583,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2449,7 +2601,7 @@ internal class EmbeddedFileEditorViewModelTests
 			.Should()
 			.Be(text);
 
-		sut.Editor.Document.UndoStack.CanUndo
+		sut.Editor.Document.AsTextDocument().UndoStack.CanUndo
 			.Should()
 			.BeFalse();
 
@@ -2496,13 +2648,17 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		TextDocument document = sut.Editor.Document;
+		TextDocument document = sut.Editor.Document.AsTextDocument();
 
 		// Act
 		sut.Editor.Encoding = "cp866";
@@ -2569,6 +2725,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2654,6 +2814,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2662,7 +2826,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = "Hello, world";
+		sut.Editor.Document.AsTextDocument().Text = "Hello, world";
 
 		// Act
 		sut.Editor.Encoding = "windows-1251";
@@ -2721,6 +2885,10 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2779,6 +2947,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(notification);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2824,6 +2996,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2885,6 +3061,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2955,6 +3135,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3006,7 +3190,14 @@ internal class EmbeddedFileEditorViewModelTests
 
 		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(editorSplits);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -3034,7 +3225,14 @@ internal class EmbeddedFileEditorViewModelTests
 
 		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(editorSplits);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -3111,6 +3309,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3119,7 +3321,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage flush = new();
 
@@ -3187,13 +3389,17 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage flush = new();
 
@@ -3247,6 +3453,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3255,7 +3465,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage flush = new();
 
@@ -3316,13 +3526,17 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
 
@@ -3397,13 +3611,17 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text += "😀";
+		sut.Editor.Document.AsTextDocument().Text += "😀";
 
 		FlushEditorsMessage flush = new();
 
@@ -3472,6 +3690,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<TimeProvider>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3544,6 +3766,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<TimeProvider>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3615,6 +3841,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3625,7 +3855,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage flush = new();
 
@@ -3699,6 +3929,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3709,7 +3943,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		string text = sut.Editor.Document.Text;
 
-		sut.Editor.Document.Text = $"{text}😀";
+		sut.Editor.Document.AsTextDocument().Text = $"{text}😀";
 
 		FlushEditorsMessage refused = new();
 
@@ -3717,7 +3951,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await refused.GetResponsesAsync();
 
-		sut.Editor.Document.Text = $"{text}x";
+		sut.Editor.Document.AsTextDocument().Text = $"{text}x";
 
 		FlushEditorsMessage flush = new();
 
@@ -3795,24 +4029,28 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = "first";
+		sut.Editor.Document.AsTextDocument().Text = "first";
 
 		sut.Receive(new FlushEditorsMessage());
 
 		// The queue is now busy with the save of the first text.
 		await writing.Task;
 
-		sut.Editor.Document.Text = "second";
+		sut.Editor.Document.AsTextDocument().Text = "second";
 
 		sut.Receive(new FlushEditorsMessage());
 
-		sut.Editor.Document.Text = "third";
+		sut.Editor.Document.AsTextDocument().Text = "third";
 
 		FlushEditorsMessage flush = new();
 
@@ -3895,6 +4133,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3903,7 +4145,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = text;
+		sut.Editor.Document.AsTextDocument().Text = text;
 
 		FlushEditorsMessage flush = new();
 
@@ -3969,13 +4211,17 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<TypingPauseFactory>()
 				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage failedFlush = new();
 
@@ -4060,6 +4306,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4068,7 +4318,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = text;
+		sut.Editor.Document.AsTextDocument().Text = text;
 
 		FlushEditorsMessage flush = new();
 
@@ -4147,6 +4397,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4155,7 +4409,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text += "x";
+		sut.Editor.Document.AsTextDocument().Text += "x";
 
 		FlushEditorsMessage flush = new();
 
@@ -4213,6 +4467,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<TimeProvider>();
 
 			builder.RegisterInstance(exceptionHandler);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4297,13 +4555,17 @@ internal class EmbeddedFileEditorViewModelTests
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = RandomString.Create(10);
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
 
 		FlushEditorsMessage flush = new();
 
@@ -4376,6 +4638,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<ITypingPauseFactory>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4384,7 +4650,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		sut.Editor.Document.Text = text;
+		sut.Editor.Document.AsTextDocument().Text = text;
 
 		// Act
 		sut.Receive(new EditorReadOnlyModeChangedMessage(true));
@@ -4437,6 +4703,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4474,7 +4744,14 @@ internal class EmbeddedFileEditorViewModelTests
 
 		messenger.Register<ShowInEditorMessage>(this, (_, message) => sent = message);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IMessenger>(messenger));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<IMessenger>(messenger);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -4500,7 +4777,14 @@ internal class EmbeddedFileEditorViewModelTests
 
 		IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(editorSplits));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(editorSplits);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
@@ -4555,6 +4839,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4618,6 +4906,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4679,6 +4971,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4768,6 +5064,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4848,6 +5148,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(contentCipher);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4930,6 +5234,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -4994,6 +5302,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -5072,6 +5384,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		IDbAccess dbAccess = mock.Create<IDbAccess>();
@@ -5175,6 +5491,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -5258,6 +5578,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();

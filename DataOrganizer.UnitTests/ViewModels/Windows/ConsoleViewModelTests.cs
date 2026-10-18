@@ -1,20 +1,20 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
-using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Services.Diagnostics;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -31,11 +31,17 @@ internal class ConsoleViewModelTests
 		// Arrange
 		ConsoleLog consoleLog = new();
 
+		AvaloniaLogText logText = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -50,25 +56,31 @@ internal class ConsoleViewModelTests
 		sut.ClearCommand.Execute(null);
 
 		// Assert
-		sut.Document.TextLength
+		logText.Document.TextLength
 			.Should()
 			.Be(0);
 	}
 
 	/// <summary>
-	/// <see cref="ConsoleViewModel.Document" />: the log keeps no undo history of its records.
+	/// <see cref="ConsoleViewModel.Document" />: records of whole lines keep every line in the log.
 	/// </summary>
 	[AvaloniaTest]
-	public void Document_Keeps_No_Undo_History()
+	public void Document_Keeps_Every_Line_Of_The_Records()
 	{
 		// Arrange
 		ConsoleLog consoleLog = new();
+
+		AvaloniaLogText logText = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -78,12 +90,14 @@ internal class ConsoleViewModelTests
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		// Act
-		consoleLog.Write("record");
+		consoleLog.Write("first\n");
+
+		consoleLog.Write("second\n");
 
 		// Assert
-		sut.Document.UndoStack.CanUndo
+		logText.Document.Text
 			.Should()
-			.BeFalse();
+			.Be("first\nsecond\n");
 	}
 
 	/// <summary>
@@ -96,11 +110,17 @@ internal class ConsoleViewModelTests
 		// Arrange
 		ConsoleLog consoleLog = new();
 
+		AvaloniaLogText logText = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -115,7 +135,7 @@ internal class ConsoleViewModelTests
 		consoleLog.Write("second ");
 
 		// Assert
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.Be("first second ");
 	}
@@ -129,11 +149,17 @@ internal class ConsoleViewModelTests
 		// Arrange
 		ConsoleLog consoleLog = new();
 
+		AvaloniaLogText logText = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -146,7 +172,7 @@ internal class ConsoleViewModelTests
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		// Assert
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.Be("before");
 	}
@@ -160,11 +186,17 @@ internal class ConsoleViewModelTests
 		// Arrange
 		ConsoleLog consoleLog = new();
 
+		AvaloniaLogText logText = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -179,13 +211,13 @@ internal class ConsoleViewModelTests
 		consoleLog.Write("while paused");
 
 		// Assert
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.BeEmpty();
 
 		sut.IsPaused = false;
 
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.Be("while paused");
 	}
@@ -202,6 +234,8 @@ internal class ConsoleViewModelTests
 
 		ConsoleLog consoleLog = new();
 
+		AvaloniaLogText logText = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
@@ -213,6 +247,10 @@ internal class ConsoleViewModelTests
 			builder
 				.RegisterInstance(consoleLog)
 				.As<IConsoleLog>();
+
+			builder
+				.RegisterInstance(logText)
+				.As<ILogText>();
 
 			builder.RegisterInstance(dispatcher);
 		});
@@ -229,13 +267,13 @@ internal class ConsoleViewModelTests
 		posted.ForEach(static x => x());
 
 		// Assert
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.BeEmpty();
 
 		sut.IsPaused = false;
 
-		sut.Document.Text
+		logText.Document.Text
 			.Should()
 			.Be("before while paused");
 	}
@@ -307,50 +345,5 @@ internal class ConsoleViewModelTests
 			.Received(1)
 			.OpenAppDirectory();
 	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.RemoveStartLines" />: a longer document keeps only its last lines.
-	/// </summary>
-	[AvaloniaTest]
-	public void RemoveStartLines_Keeps_The_Last_Lines()
-	{
-		// Arrange
-		TextDocument document = new(CreateText(lineCount: 5));
-
-		// Act
-		ConsoleViewModel.RemoveStartLines(document, maxLines: 3);
-
-		// Assert
-		document.Text
-			.Should()
-			.Be("3\n4\n5");
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.RemoveStartLines" />: a document within the limit stays as it is.
-	/// </summary>
-	[AvaloniaTest]
-	public void RemoveStartLines_Leaves_A_Document_Within_The_Limit([Values(2, 3)] int lineCount)
-	{
-		// Arrange
-		string text = CreateText(lineCount);
-
-		TextDocument document = new(text);
-
-		// Act
-		ConsoleViewModel.RemoveStartLines(document, maxLines: 3);
-
-		// Assert
-		document.Text
-			.Should()
-			.Be(text);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a text of lines numbered from one.
-	/// </summary>
-	private static string CreateText(int lineCount) => string.Join('\n', Enumerable.Range(1, lineCount));
 	#endregion
 }

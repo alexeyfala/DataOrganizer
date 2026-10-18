@@ -4,6 +4,7 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
@@ -64,7 +65,12 @@ internal class EmbeddedEditorFactoryTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -132,7 +138,12 @@ internal class EmbeddedEditorFactoryTests
 
 		file.Parent = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -167,7 +178,12 @@ internal class EmbeddedEditorFactoryTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -207,7 +223,12 @@ internal class EmbeddedEditorFactoryTests
 
 		file.Parent = keeper;
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -243,7 +264,12 @@ internal class EmbeddedEditorFactoryTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -280,7 +306,12 @@ internal class EmbeddedEditorFactoryTests
 
 		DateTime updatedAt = new(2026, 10, 12, 18, 30, 0);
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -319,7 +350,12 @@ internal class EmbeddedEditorFactoryTests
 
 		string state = RandomString.Create(10);
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -359,7 +395,12 @@ internal class EmbeddedEditorFactoryTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto(editorState: state);
 
-		using AutoMock viewModelMock = AutoMock.GetLoose();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
@@ -403,6 +444,10 @@ internal class EmbeddedEditorFactoryTests
 				.Returns(true);
 
 			builder.RegisterInstance(sessionReadOnlyMode);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();

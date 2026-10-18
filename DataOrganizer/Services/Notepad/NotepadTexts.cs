@@ -4,12 +4,10 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.ViewModels;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace DataOrganizer.Services.Notepad;
@@ -23,12 +21,12 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <summary>
 	/// Tabs whose last write failed, so that a failure is told once rather than after every pause in typing.
 	/// </summary>
-	private readonly HashSet<NotepadTabViewModel> _failedWrites = [];
+	private readonly HashSet<INotepadTab> _failedWrites = [];
 
 	/// <summary>
-	/// Tabs whose texts are written back after each pause in typing.
+	/// Tabs whose texts are written back after each pause in typing, with the subscriptions to the changes of their texts.
 	/// </summary>
-	private readonly HashSet<NotepadTabViewModel> _followedTabs = [];
+	private readonly Dictionary<INotepadTab, IDisposable> _followedTabs = [];
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
@@ -42,7 +40,7 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <summary>
 	/// Pauses in typing after which the changed texts of the tabs are written.
 	/// </summary>
-	private readonly Dictionary<NotepadTabViewModel, ITypingPause> _typingPauses = [];
+	private readonly Dictionary<INotepadTab, ITypingPause> _typingPauses = [];
 	#endregion
 
 	#region Constructors
@@ -64,15 +62,10 @@ public sealed class NotepadTexts : INotepadTexts
 
 	#region Event Handlers
 	/// <summary>
-	/// Puts the write of a changed text off until typing pauses.
+	/// <see cref="IDocumentText.Changed" /> handler of a tab: puts the write of the changed text off until typing pauses.
 	/// </summary>
-	private void Document_TextChanged(object? sender, EventArgs e)
+	private void Document_Changed(INotepadTab tab)
 	{
-		if (_followedTabs.FirstOrDefault(x => ReferenceEquals(x.Editor.Document, sender)) is not { } tab)
-		{
-			return;
-		}
-
 		if (!_typingPauses.TryGetValue(tab, out ITypingPause? typingPause))
 		{
 			typingPause = _typingPauseFactory.Create(() => WriteText(tab));
@@ -86,7 +79,7 @@ public sealed class NotepadTexts : INotepadTexts
 
 	#region Methods
 	/// <inheritdoc />
-	public void Erase(NotepadTabViewModel tab)
+	public void Erase(INotepadTab tab)
 	{
 		if (tab.IsReadOnly)
 		{
@@ -97,7 +90,7 @@ public sealed class NotepadTexts : INotepadTexts
 	}
 
 	/// <inheritdoc />
-	public void Follow(NotepadTabViewModel tab)
+	public void Follow(INotepadTab tab)
 	{
 		tab.Editor.RefreshEncoding();
 
@@ -105,11 +98,12 @@ public sealed class NotepadTexts : INotepadTexts
 	}
 
 	/// <inheritdoc />
-	public void Forget(NotepadTabViewModel tab)
+	public void Forget(INotepadTab tab)
 	{
-		tab.Editor.Document.TextChanged -= Document_TextChanged;
-
-		_followedTabs.Remove(tab);
+		if (_followedTabs.Remove(tab, out IDisposable? subscription))
+		{
+			subscription.Dispose();
+		}
 
 		if (_typingPauses.Remove(tab, out ITypingPause? typingPause))
 		{
@@ -120,9 +114,9 @@ public sealed class NotepadTexts : INotepadTexts
 	}
 
 	/// <inheritdoc />
-	public bool Load(NotepadTabViewModel tab)
+	public bool Load(INotepadTab tab)
 	{
-		DocumentEditorViewModel editor = tab.Editor;
+		IEncodedDocument editor = tab.Editor;
 
 		// The text is read in the encoding of the tab, UTF-8 unless the settings keep another one.
 		if (_store.Read(tab.Number) is not { } contents
@@ -162,9 +156,9 @@ public sealed class NotepadTexts : INotepadTexts
 	/// Returns the bytes of the text of a tab in its encoding; a text that the encoding cannot hold is kept in UTF-8 from
 	/// then on, where a lone surrogate becomes the replacement character.
 	/// </summary>
-	private byte[] EncodeText(NotepadTabViewModel tab)
+	private byte[] EncodeText(INotepadTab tab)
 	{
-		DocumentEditorViewModel editor = tab.Editor;
+		IEncodedDocument editor = tab.Editor;
 
 		string text = editor.Document.Text;
 
@@ -200,17 +194,19 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <summary>
 	/// Writes the text of a tab back after each pause in typing.
 	/// </summary>
-	private void StartFollowing(NotepadTabViewModel tab)
+	private void StartFollowing(INotepadTab tab)
 	{
-		_followedTabs.Add(tab);
-
-		tab.Editor.Document.TextChanged += Document_TextChanged;
+		_followedTabs[tab] = tab
+			.Editor
+			.Document
+			.Changed
+			.Subscribe(_ => Document_Changed(tab));
 	}
 
 	/// <summary>
 	/// Writes the text of a tab to the disk.
 	/// </summary>
-	private void WriteText(NotepadTabViewModel tab)
+	private void WriteText(INotepadTab tab)
 	{
 		if (_store.Write(tab.Number, EncodeText(tab)))
 		{

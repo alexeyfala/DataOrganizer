@@ -165,6 +165,7 @@ public sealed class App : Application
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
 		services.AddTransient<IDocumentEncodingSwitcher, DocumentEncodingSwitcher>();
+		services.AddTransient<IDocumentTextFactory, DocumentTextFactory>();
 		services.AddTransient<IEditorStateStore, EditorStateStore>();
 		services.AddTransient<IEmbeddedEditorFactory, EmbeddedEditorFactory>();
 		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
@@ -198,6 +199,7 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
+		services.AddTransient<ILogText, AvaloniaLogText>();
 		services.AddTransient<IMainWindowActivator, ViewLauncher>();
 		services.AddTransient<IMainWindowLauncher, ViewLauncher>();
 		services.AddTransient<INoteCipher, NoteCipher>();

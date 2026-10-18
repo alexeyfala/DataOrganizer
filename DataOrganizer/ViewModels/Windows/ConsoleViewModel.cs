@@ -1,10 +1,10 @@
-using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
 using System;
@@ -23,14 +23,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <summary>
 	/// The log records shown in the console.
 	/// </summary>
-	public TextDocument Document { get; } = new()
-	{
-		// An undo history of the log would keep every record and every removed line in memory.
-		UndoStack =
-		{
-			SizeLimit = 0
-		}
-	};
+	public ILogText Document { get; }
 
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
@@ -57,7 +50,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// Clears the log.
 	/// </summary>
 	[RelayCommand]
-	private void Clear() => Document.Remove(0, Document.TextLength);
+	private void Clear() => Document.Clear();
 
 	/// <summary>
 	/// Opens the application data directory.
@@ -109,7 +102,8 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 		IAppEnvironment appEnvironment,
 		IConsoleLog consoleLog,
 		IDirectoryAccessor directoryAccessor,
-		IDispatcherAccessor dispatcher)
+		IDispatcherAccessor dispatcher,
+		ILogText logText)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -118,6 +112,8 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 		_directoryAccessor = directoryAccessor;
 
 		_dispatcher = dispatcher;
+
+		Document = logText;
 
 		// The records written before the console existed come with the first read. The pause is checked on the UI
 		// thread, which owns the document and sets the pause, so a record posted just before a pause waits with the
@@ -130,34 +126,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	}
 	#endregion
 
-	#region Methods
-	/// <summary>
-	/// Removes leading lines of <paramref name="document" />, so that at most <paramref name="maxLines" /> remain.
-	/// </summary>
-	internal static void RemoveStartLines(TextDocument document, int maxLines)
-	{
-		if (document.LineCount <= maxLines)
-		{
-			return;
-		}
-
-		DocumentLine firstKeptLine = document.GetLineByNumber(document.LineCount - maxLines + 1);
-
-		document.Remove(0, firstKeptLine.Offset);
-	}
-	#endregion
-
 	#region Helpers
-	/// <summary>
-	/// Appends a record to the end of the log.
-	/// </summary>
-	private void Append(string value)
-	{
-		Document.Insert(Document.TextLength, value);
-
-		RemoveStartLines(Document, MaxLineCount);
-	}
-
 	/// <summary>
 	/// Moves the records of the console log into <see cref="Document" /> unless recording is paused.
 	/// </summary>
@@ -170,7 +139,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 
 		foreach (string record in _consoleLog.TakeAll())
 		{
-			Append(record);
+			Document.Append(record, MaxLineCount);
 		}
 	}
 	#endregion

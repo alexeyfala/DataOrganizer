@@ -129,6 +129,10 @@ internal class DocumentTabTemplateTests
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
 				.As<IEmbeddedEditorFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -153,7 +157,7 @@ internal class DocumentTabTemplateTests
 	public void Build_Creates_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -221,6 +225,10 @@ internal class DocumentTabTemplateTests
 				.RegisterType<EditorSplitStore>()
 				.As<IEditorSplitStore>()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel first = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -316,6 +324,10 @@ internal class DocumentTabTemplateTests
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -368,7 +380,7 @@ internal class DocumentTabTemplateTests
 	public void Build_Keeps_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -404,7 +416,7 @@ internal class DocumentTabTemplateTests
 	public void Match_Takes_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -452,6 +464,10 @@ internal class DocumentTabTemplateTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -505,7 +521,7 @@ internal class DocumentTabTemplateTests
 	public void Remove_Disposes_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -514,7 +530,7 @@ internal class DocumentTabTemplateTests
 			Number = 1
 		};
 
-		tab.Editor.Document.Text = PowerShellText;
+		tab.Editor.Document.AsTextDocument().Text = PowerShellText;
 
 		using NotepadTabView view = new(tab);
 

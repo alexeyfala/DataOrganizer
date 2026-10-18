@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 
@@ -15,7 +16,7 @@ internal class NotepadTabViewModelTests
 	public void Header_Is_The_Name_Of_A_Named_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel sut = new()
+		NotepadTabViewModel sut = new(new AvaloniaDocumentText())
 		{
 			Name = "Notes",
 			Number = 1
@@ -34,7 +35,7 @@ internal class NotepadTabViewModelTests
 	public void Name_Reports_A_Change_Of_The_Header()
 	{
 		// Arrange
-		NotepadTabViewModel sut = new()
+		NotepadTabViewModel sut = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};

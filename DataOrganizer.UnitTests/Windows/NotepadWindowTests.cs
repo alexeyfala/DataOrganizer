@@ -24,6 +24,7 @@ using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.Templates;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
@@ -63,6 +64,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -110,7 +115,12 @@ internal class NotepadWindowTests
 	public void Click_On_A_Tab_Selects_It()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -144,7 +154,14 @@ internal class NotepadWindowTests
 		// Arrange
 		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(confirmationPrompt));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -153,9 +170,9 @@ internal class NotepadWindowTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.ViewModel.Tabs[0].Editor.Document.Text = "First";
+		sut.ViewModel.Tabs[0].Editor.Document.AsTextDocument().Text = "First";
 
-		sut.ViewModel.Tabs[1].Editor.Document.Text = "Second";
+		sut.ViewModel.Tabs[1].Editor.Document.AsTextDocument().Text = "Second";
 
 		sut.Show();
 
@@ -189,7 +206,12 @@ internal class NotepadWindowTests
 	public void Click_On_The_Add_Button_Adds_A_Selected_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -219,7 +241,12 @@ internal class NotepadWindowTests
 	public void Click_On_The_Close_Button_Closes_The_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -261,7 +288,12 @@ internal class NotepadWindowTests
 			.Build(Arg.Any<object?>())
 			.Returns(_ => new Border());
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -308,7 +340,14 @@ internal class NotepadWindowTests
 		// Arrange
 		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowActivator));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -345,6 +384,10 @@ internal class NotepadWindowTests
 				.Returns(new KeyValueInput("Notes"));
 
 			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -395,7 +438,12 @@ internal class NotepadWindowTests
 			.Build(Arg.Any<object?>())
 			.Returns(_ => new Border());
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -481,6 +529,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -522,6 +574,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -572,7 +628,14 @@ internal class NotepadWindowTests
 		// Arrange
 		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(mainWindowActivator));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -610,7 +673,12 @@ internal class NotepadWindowTests
 			.Build(Arg.Any<object?>())
 			.Returns(_ => new Border());
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -696,6 +764,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -770,6 +842,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -808,7 +884,12 @@ internal class NotepadWindowTests
 	public void PreviousTab_Follows_The_Selected_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -838,7 +919,12 @@ internal class NotepadWindowTests
 	public void SnackbarHost_Is_The_One_Of_The_Notepad()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		// Act
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -860,7 +946,12 @@ internal class NotepadWindowTests
 	public void Tabs_Show_A_New_Name_Of_Their_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -901,6 +992,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -937,7 +1032,12 @@ internal class NotepadWindowTests
 	public void Tabs_Show_Their_Headers()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -968,7 +1068,12 @@ internal class NotepadWindowTests
 		// Arrange
 		string name = RandomString.Create(200);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 

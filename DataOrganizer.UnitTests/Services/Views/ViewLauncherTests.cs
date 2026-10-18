@@ -85,6 +85,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -157,6 +158,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -217,6 +219,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -268,6 +271,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -331,6 +335,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -394,7 +399,8 @@ internal class ViewLauncherTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor()));
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText()));
 
 		console.Closed += (_, _) => isClosed = true;
 
@@ -443,7 +449,8 @@ internal class ViewLauncherTests
 			Substitute.For<IAppEnvironment>(),
 			new ConsoleLog(),
 			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor())
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText())
 		{
 			IsSaved = true
 		});
@@ -498,6 +505,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3598,6 +3606,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3689,6 +3698,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3769,6 +3779,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3823,6 +3834,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3881,6 +3893,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -3991,6 +4004,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IConfirmationPrompt>(),
 				Substitute.For<IDocumentEncodingSwitcher>(),
+				new DocumentTextFactory(),
 				Substitute.For<IMainWindowActivator>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
@@ -4067,6 +4081,7 @@ internal class ViewLauncherTests
 			NotepadViewModel viewModel = new(
 				Substitute.For<IConfirmationPrompt>(),
 				Substitute.For<IDocumentEncodingSwitcher>(),
+				new DocumentTextFactory(),
 				Substitute.For<IMainWindowActivator>(),
 				Substitute.For<INotepadSessionState>(),
 				store,
@@ -4126,6 +4141,7 @@ internal class ViewLauncherTests
 		NotepadWindow notepad = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -4194,6 +4210,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -4274,6 +4291,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -4360,6 +4378,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),
@@ -4423,6 +4442,7 @@ internal class ViewLauncherTests
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
 			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
 			Substitute.For<IMainWindowActivator>(),
 			Substitute.For<INotepadSessionState>(),
 			Substitute.For<INotepadStore>(),

@@ -1,6 +1,9 @@
 using Avalonia.Headless.NUnit;
+using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Services.Documents;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using System.Text;
@@ -26,7 +29,7 @@ internal class NotepadTabViewTests
 	public void DefaultEncoding_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -53,7 +56,7 @@ internal class NotepadTabViewTests
 	public void DefaultSyntaxLanguageMark_Is_Not_Set()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -74,7 +77,7 @@ internal class NotepadTabViewTests
 	public void Document_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -85,7 +88,45 @@ internal class NotepadTabViewTests
 		// Assert
 		sut.Editor.Document
 			.Should()
-			.BeSameAs(viewModel.Editor.Document);
+			.BeSameAs(viewModel.Editor.Document.AsTextDocument());
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorViewModel.Document" />: an edit in the editor reaches the text of the tab, and undo takes it
+	/// back.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Shares_The_Edits_And_The_Undo_With_The_Editor()
+	{
+		// Arrange
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
+		{
+			Number = 1
+		};
+
+		using NotepadTabView sut = new(viewModel);
+
+		TextDocument document = sut.Editor.Document!;
+
+		// Act
+		document.Insert(0, "Hello");
+
+		string edited = viewModel.Editor.Document.Text;
+
+		document.UndoStack.Undo();
+
+		// Assert
+		edited
+			.Should()
+			.Be("Hello");
+
+		viewModel.Editor.Document.Text
+			.Should()
+			.BeEmpty();
+
+		document.UndoStack.CanUndo
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -95,7 +136,7 @@ internal class NotepadTabViewTests
 	public void Encoding_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -120,7 +161,7 @@ internal class NotepadTabViewTests
 	public void Encoding_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -145,7 +186,7 @@ internal class NotepadTabViewTests
 	public void EncodingName_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -169,7 +210,7 @@ internal class NotepadTabViewTests
 	public void FindUnreadableEncodingsCommand_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -190,7 +231,7 @@ internal class NotepadTabViewTests
 	public void FontSize_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -215,7 +256,7 @@ internal class NotepadTabViewTests
 	public void FontSize_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -240,7 +281,7 @@ internal class NotepadTabViewTests
 	public void IsReadOnly_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			IsReadOnly = true,
 			Number = 1
@@ -262,7 +303,7 @@ internal class NotepadTabViewTests
 	public void IsSplit_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -287,7 +328,7 @@ internal class NotepadTabViewTests
 	public void IsSplit_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -312,7 +353,7 @@ internal class NotepadTabViewTests
 	public void ShowEndOfLine_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -337,7 +378,7 @@ internal class NotepadTabViewTests
 	public void ShowEndOfLine_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -362,7 +403,7 @@ internal class NotepadTabViewTests
 	public void ShowSpaces_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -387,7 +428,7 @@ internal class NotepadTabViewTests
 	public void ShowSpaces_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -412,7 +453,7 @@ internal class NotepadTabViewTests
 	public void ShowTabs_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -437,7 +478,7 @@ internal class NotepadTabViewTests
 	public void ShowTabs_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -463,7 +504,7 @@ internal class NotepadTabViewTests
 	public void SplitShare_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -488,7 +529,7 @@ internal class NotepadTabViewTests
 	public void SplitShare_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -513,7 +554,7 @@ internal class NotepadTabViewTests
 	public void SyntaxLanguage_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -538,7 +579,7 @@ internal class NotepadTabViewTests
 	public void SyntaxLanguage_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -564,12 +605,12 @@ internal class NotepadTabViewTests
 	public void UnreadableEncodings_Reach_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
 
-		viewModel.Editor.Document.Text = "Hi!";
+		viewModel.Editor.Document.AsTextDocument().Text = "Hi!";
 
 		viewModel.Editor.FindUnreadableEncodings();
 
@@ -607,7 +648,7 @@ internal class NotepadTabViewTests
 			SelectionStart = 20
 		};
 
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -650,7 +691,7 @@ internal class NotepadTabViewTests
 			SelectionStart = 20
 		};
 
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{
@@ -675,7 +716,7 @@ internal class NotepadTabViewTests
 	public void WordWrap_Follows_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -700,7 +741,7 @@ internal class NotepadTabViewTests
 	public void WordWrap_Reaches_The_Editor()
 	{
 		// Arrange
-		NotepadTabViewModel viewModel = new()
+		NotepadTabViewModel viewModel = new(new AvaloniaDocumentText())
 		{
 			Editor =
 			{

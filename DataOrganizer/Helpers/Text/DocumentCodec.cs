@@ -8,7 +8,7 @@ namespace DataOrganizer.Helpers.Text;
 /// <summary>
 /// Encoding that the text of a document is stored in: reads the text from its bytes and gives the bytes of the text.
 /// </summary>
-internal sealed class DocumentCodec
+public sealed class DocumentCodec
 {
 	#region Properties
 	/// <summary>
