@@ -891,6 +891,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
+	/// <inheritdoc cref="IDeletionScenario" />
+	private readonly IDeletionScenario _deletion;
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
@@ -971,6 +974,7 @@ public sealed partial class EditorViewModel :
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
 		IDbFailureReporter dbFailureReporter,
+		IDeletionScenario deletion,
 		IDialogService dialogService,
 		IEntityPropertyWriter propertyWriter,
 		IExecutingFiles executingFiles,
@@ -1025,6 +1029,8 @@ public sealed partial class EditorViewModel :
 		_dataExchange = dataExchange;
 
 		_dbFailureReporter = dbFailureReporter;
+
+		_deletion = deletion;
 
 		_dialogService = dialogService;
 
@@ -1173,31 +1179,11 @@ public sealed partial class EditorViewModel :
 		ExplorerItemDtoBase dto,
 		CancellationToken token = default)
 	{
-		if (!await _hierarchyEditor
+		if (!await _deletion
 			.DeleteAsync(dto, Hierarchy, token)
 			.ConfigureAwait(false))
 		{
 			return false;
-		}
-
-		// A folder leaves the database together with every file of its subtree.
-		FileDto[] deletedFiles = dto switch
-		{
-			FileDto file => [file],
-			FolderDto folder => [.. folder.Children.GetFiles()],
-			_ => []
-		};
-
-		foreach (FileDto deletedFile in deletedFiles)
-		{
-			_openFilesCloser.Close([deletedFile]);
-
-			_copyHistoryRecorder.Remove(deletedFile);
-		}
-
-		if (dto is FolderDto deletedFolder)
-		{
-			_contentKeys.DiscardKeys(deletedFolder);
 		}
 
 		UpdateHierarchySummary();

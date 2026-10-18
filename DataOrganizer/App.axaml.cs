@@ -155,6 +155,7 @@ public sealed class App : Application
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDekCipher, EncryptionService>();
+		services.AddTransient<IDeletionScenario, DeletionScenario>();
 		services.AddTransient<IDialogCloser, DialogCloser>();
 		services.AddTransient<IDialogHostFinder, DesktopAccessor>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();

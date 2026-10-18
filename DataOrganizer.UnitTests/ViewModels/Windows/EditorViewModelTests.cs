@@ -37,6 +37,7 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
@@ -863,6 +864,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -968,6 +973,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1007,6 +1016,59 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a deletion counts the objects of the tree again.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Counts_The_Objects_Again()
+	{
+		// Arrange
+		FileDto deleted = ItemDtoFactory.CreateFileDto();
+
+		FileDto kept = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			// The editor takes the object out of the tree, as the real one does.
+			hierarchyEditor
+				.DeleteAsync(
+					deleted,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(x => Task.FromResult(x
+					.ArgAt<Collection<ExplorerItemDtoBase>>(1)
+					.Remove(deleted)));
+
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.AddRange([deleted, kept]);
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.DeleteAsync(deleted);
+
+		// Assert
+		sut.HierarchySummary
+			.Should()
+			.Be(new ExplorerItemDtoBase[] { kept }.GetCount().AsString());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: the key of a deleted folder is dropped with the folder.
 	/// </summary>
 	[Test]
@@ -1042,6 +1104,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1098,6 +1164,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1160,6 +1230,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1211,6 +1285,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1274,6 +1352,10 @@ internal class EditorViewModelTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			builder
+				.RegisterType<DeletionScenario>()
+				.As<IDeletionScenario>();
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
