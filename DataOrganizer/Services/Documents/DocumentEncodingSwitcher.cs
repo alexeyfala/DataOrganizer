@@ -100,8 +100,6 @@ public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 
 		editor.ReplaceText(text);
 
-		editor.RefreshEncoding();
-
 		return true;
 	}
 	#endregion

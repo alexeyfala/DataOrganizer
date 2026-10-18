@@ -250,8 +250,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// The language comes after the text, so the highlighting starts on the document it colors.
 			Editor.SyntaxLanguage = Editor.DefaultSyntaxLanguage;
 
-			Editor.RefreshEncoding();
-
 			_writeQueue.SetStored(contents);
 
 			ApplyEditorState(state);

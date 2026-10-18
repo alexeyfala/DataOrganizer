@@ -142,8 +142,6 @@ public sealed class NotepadTexts : INotepadTexts
 
 		editor.ReplaceText(text);
 
-		editor.RefreshEncoding();
-
 		StartFollowing(tab);
 
 		return true;

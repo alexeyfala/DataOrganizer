@@ -17,8 +17,6 @@ public static class DocumentEditorFactory
 
 		editor.ReplaceText(editor.Codec.Read(contents, encoding)!);
 
-		editor.RefreshEncoding();
-
 		return editor;
 	}
 	#endregion

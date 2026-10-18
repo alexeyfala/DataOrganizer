@@ -121,7 +121,8 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	}
 
 	/// <summary>
-	/// Replaces the text of <see cref="Document" /> with one that is not an edit, so undo starts from it.
+	/// Replaces the text of <see cref="Document" /> with one that <see cref="Codec" /> has read, which is not an edit, so
+	/// undo starts from it, and takes the encodings of the codec.
 	/// </summary>
 	internal void ReplaceText(string text)
 	{
@@ -130,6 +131,8 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 		Document
 			.UndoStack
 			.ClearAll();
+
+		RefreshEncoding();
 	}
 	#endregion
 }

@@ -145,6 +145,33 @@ internal class DocumentEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorViewModel.ReplaceText" />: the editor takes the encoding the new text is read in, with its
+	/// name, and the one found from its bytes.
+	/// </summary>
+	[Test]
+	public void ReplaceText_Takes_The_Encodings_Of_The_Text()
+	{
+		// Arrange
+		DocumentEditorViewModel sut = new();
+
+		// Bytes of UTF-8, read in UTF-16 by choice.
+		string text = sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName)!;
+
+		// Act
+		sut.ReplaceText(text);
+
+		// Assert
+		sut
+			.Should()
+			.BeEquivalentTo(new
+			{
+				DefaultEncoding = Encoding.UTF8.WebName,
+				Encoding = Encoding.Unicode.WebName,
+				EncodingName = "UTF-16 LE"
+			});
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorViewModel.SplitShare" />: a text split for the first time is split in halves.
 	/// </summary>
 	[Test]
