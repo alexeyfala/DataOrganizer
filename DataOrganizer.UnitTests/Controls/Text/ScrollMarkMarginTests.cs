@@ -15,14 +15,13 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ScrollMarkMargin)}"" type")]
 internal class ScrollMarkMarginTests

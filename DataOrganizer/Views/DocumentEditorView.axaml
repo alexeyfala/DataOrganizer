@@ -12,6 +12,7 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Helpers.Text"
 	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
+	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -117,7 +118,7 @@
 			<ContentPresenter Content="{Binding #View.ToolBarContent}" />
 		</StackPanel>
 
-		<controls:SplitDocumentEditor
+		<textControls:SplitDocumentEditor
 			x:Name="Editor"
 			Grid.Row="1"
 			DataContext="{Binding #View}"
@@ -138,7 +139,7 @@
 				<textBehaviors:DocumentViewStateBehavior ViewState="{Binding ViewState, Mode=TwoWay}" />
 			</Interaction.Behaviors>
 
-			<controls:SplitDocumentEditor.Styles>
+			<textControls:SplitDocumentEditor.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 					<Setter Property="Cursor" Value="Arrow" />
@@ -151,10 +152,10 @@
 					<Setter Property="SelectedFoldingMarkerBackgroundBrush" Value="Transparent" />
 					<Setter Property="SelectedFoldingMarkerBrush" Value="{StaticResource MaterialBodyBrush}" />
 				</Style>
-			</controls:SplitDocumentEditor.Styles>
+			</textControls:SplitDocumentEditor.Styles>
 
 			<!--  One menu serves both halves, as it acts on the active one.  -->
-			<controls:SplitDocumentEditor.ContextFlyout>
+			<textControls:SplitDocumentEditor.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
 					<StackPanel Orientation="Vertical">
 						<StackPanel.Styles>
@@ -352,8 +353,8 @@
 						</controls:FlyoutButton>
 					</StackPanel>
 				</Flyout>
-			</controls:SplitDocumentEditor.ContextFlyout>
-		</controls:SplitDocumentEditor>
+			</textControls:SplitDocumentEditor.ContextFlyout>
+		</textControls:SplitDocumentEditor>
 
 		<Border
 			Grid.Row="2"

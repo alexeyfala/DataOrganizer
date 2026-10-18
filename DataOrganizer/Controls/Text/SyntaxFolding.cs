@@ -7,13 +7,14 @@ using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.Interfaces.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Folding of the blocks of a text area by the rules of a language, with the margin of their markers.

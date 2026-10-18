@@ -10,10 +10,10 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SelectionOccurrenceRenderer)}"" type")]
 internal class SelectionOccurrenceRendererTests

@@ -1,7 +1,7 @@
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Bookmarks of the lines of a <see cref="DocumentTextEditor" /> as the caret goes through them: sets, clears and follows

@@ -18,7 +18,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Text;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions;

@@ -3,7 +3,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using System;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Paints every occurrence of a word in the editor with the given brush.

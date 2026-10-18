@@ -20,7 +20,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using TextMateSharp.Themes;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// <see cref="TextEditorBase" /> for documents.

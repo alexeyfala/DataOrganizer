@@ -8,7 +8,7 @@ using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;

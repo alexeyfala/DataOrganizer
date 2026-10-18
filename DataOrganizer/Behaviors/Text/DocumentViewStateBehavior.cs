@@ -4,7 +4,7 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Extensions;
 using DataOrganizer.Messages.Documents;

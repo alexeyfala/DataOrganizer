@@ -1,11 +1,11 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Text.FoldingStrategies;
+using DataOrganizer.Controls.Text;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Helpers.Text.FoldingStrategies;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(XmlTagFoldingStrategy)}"" type")]
 internal class XmlTagFoldingStrategyTests

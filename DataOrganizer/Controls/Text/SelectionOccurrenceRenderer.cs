@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Paints the occurrences of the selected text in the visible lines of the editor.

@@ -6,7 +6,7 @@ using Avalonia.LogicalTree;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;

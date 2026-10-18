@@ -2,13 +2,13 @@
 	x:Class="DataOrganizer.Windows.ConsoleWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
+	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	x:DataType="windows:ConsoleViewModel"
 	Icon="/Assets/Logo.ico"
@@ -99,7 +99,7 @@
 
 		<Separator Grid.Row="2" Margin="0.0" />
 
-		<controls:ConsoleLogViewer
+		<textControls:ConsoleLogViewer
 			x:Name="Editor"
 			Grid.Row="3"
 			Document="{Binding Document, Mode=OneWay, Converter={x:Static converters:DocumentConverters.ToTextDocument}}"
@@ -107,7 +107,7 @@
 			IsReadOnly="True"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
-			<controls:ConsoleLogViewer.ContextMenu>
+			<textControls:ConsoleLogViewer.ContextMenu>
 				<ContextMenu Padding="4.0,0.0">
 					<MenuItem
 						Command="{Binding #Editor.CopyCommand}"
@@ -131,7 +131,7 @@
 						InputGesture="{OnPlatform Default='Ctrl+F',
 						                          macOS='⌘+F'}" />
 				</ContextMenu>
-			</controls:ConsoleLogViewer.ContextMenu>
-		</controls:ConsoleLogViewer>
+			</textControls:ConsoleLogViewer.ContextMenu>
+		</textControls:ConsoleLogViewer>
 	</Grid>
 </Window>

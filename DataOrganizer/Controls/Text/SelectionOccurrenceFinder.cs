@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Finds the occurrences of the selected text by the rules common to the highlight and the scroll marks.

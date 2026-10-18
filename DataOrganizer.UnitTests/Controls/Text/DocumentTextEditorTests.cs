@@ -19,7 +19,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers;
@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentTextEditor)}"" type")]
 internal class DocumentTextEditorTests

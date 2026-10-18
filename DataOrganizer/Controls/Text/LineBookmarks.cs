@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace DataOrganizer.Helpers.Text;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Bookmarks of the lines of a document, which stay with their lines through the edits.

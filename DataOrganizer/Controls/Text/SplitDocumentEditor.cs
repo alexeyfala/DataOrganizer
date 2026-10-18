@@ -13,7 +13,7 @@ using DataOrganizer.Behaviors.Styling;
 using System;
 using System.Reactive.Linq;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Editor of a <see cref="TextDocument" /> that can be split into two halves one above the other.

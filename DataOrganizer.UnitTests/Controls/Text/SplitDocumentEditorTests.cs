@@ -10,10 +10,10 @@ using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SplitDocumentEditor)}"" type")]
 internal class SplitDocumentEditorTests

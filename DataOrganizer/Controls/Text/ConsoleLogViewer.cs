@@ -1,9 +1,8 @@
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using Serilog.Events;
 using System;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// <see cref="TextEditorBase" /> for the log, which paints the log levels and keeps the end of the text in view.

@@ -13,11 +13,10 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Controls;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextEditorBase)}"" type")]
 internal class TextEditorBaseTests

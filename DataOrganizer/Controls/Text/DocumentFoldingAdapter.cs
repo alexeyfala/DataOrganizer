@@ -1,10 +1,11 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
+using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.Interfaces.Text;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Helpers.Text.FoldingStrategies;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// <see cref="IFoldingStrategy" /> that finds the blocks of a document in its text with a

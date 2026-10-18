@@ -1,12 +1,12 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LineBookmarks)}"" type")]
 internal class LineBookmarksTests

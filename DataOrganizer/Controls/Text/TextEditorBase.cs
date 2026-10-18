@@ -8,11 +8,10 @@ using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers.Text;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// <see cref="TextEditor" /> with the settings, commands and zoom common to the text editors and viewers of the application.

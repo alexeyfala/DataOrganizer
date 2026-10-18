@@ -6,14 +6,13 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Rendering;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Folding of the blocks of the text of a <see cref="DocumentTextEditor" /> by the rules of its language, with the chords

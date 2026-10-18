@@ -6,13 +6,12 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Controls;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 using Serilog.Events;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ConsoleLogViewer)}"" type")]
 internal class ConsoleLogViewerTests

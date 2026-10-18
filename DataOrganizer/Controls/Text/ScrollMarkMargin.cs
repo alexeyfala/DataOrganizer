@@ -15,7 +15,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Converters;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using Shared.Properties;
 using System;
@@ -24,7 +23,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Margin that marks the occurrences of the selected text, the bookmarks and the caret line along the whole document,

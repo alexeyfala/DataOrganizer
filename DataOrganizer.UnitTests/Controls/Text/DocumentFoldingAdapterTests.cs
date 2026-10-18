@@ -1,12 +1,13 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 using DataOrganizer.UnitTests.Fakes;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Helpers.Text.FoldingStrategies;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentFoldingAdapter)}"" type")]
 internal class DocumentFoldingAdapterTests

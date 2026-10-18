@@ -3,7 +3,7 @@ using AvaloniaEdit.Folding;
 using DataOrganizer.Interfaces.Text;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Helpers.Text.FoldingStrategies;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// <see cref="IFoldingStrategy" /> of XML, which folds the elements and the comments of several lines by their tags,

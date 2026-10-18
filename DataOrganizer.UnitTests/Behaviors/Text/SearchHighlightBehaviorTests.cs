@@ -4,7 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Text;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Behaviors.Text;

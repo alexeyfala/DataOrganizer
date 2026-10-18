@@ -3,13 +3,13 @@ using Avalonia.Input;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Text;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SyntaxFolding)}"" type")]
 internal class SyntaxFoldingTests

@@ -11,11 +11,11 @@ using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Controls;
+namespace DataOrganizer.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(BookmarkMargin)}"" type")]
 internal class BookmarkMarginTests

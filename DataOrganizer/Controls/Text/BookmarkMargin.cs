@@ -6,12 +6,11 @@ using Avalonia.Media.TextFormatting;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using Material.Icons;
 using System;
 
-namespace DataOrganizer.Controls;
+namespace DataOrganizer.Controls.Text;
 
 /// <summary>
 /// Margin with the bookmarks of the lines, where a click sets or removes the bookmark of a line.
