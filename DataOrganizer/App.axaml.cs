@@ -196,6 +196,7 @@ public sealed class App : Application
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INotepadStore, NotepadStore>();
+		services.AddTransient<INotepadTexts, NotepadTexts>();
 		services.AddTransient<INoteReader, NoteReader>();
 		services.AddTransient<INoticeLauncher, ViewLauncher>();
 		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();

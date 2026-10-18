@@ -477,6 +477,10 @@ internal class NotepadWindowTests
 			builder.RegisterInstance<INotepadSessionState>(sessionState);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -684,6 +688,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -754,6 +762,10 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();

@@ -67,7 +67,12 @@ internal class NotepadViewModelTests
 	public void AddTabCommand_Shows_The_Encoding_Of_The_New_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -101,6 +106,10 @@ internal class NotepadViewModelTests
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -169,7 +178,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		INotepadStore store = Substitute.For<INotepadStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -339,6 +355,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -357,7 +377,7 @@ internal class NotepadViewModelTests
 			.ExecuteAsync(sut.Tabs[1]);
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store
@@ -375,7 +395,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		INotepadStore store = Substitute.For<INotepadStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -403,7 +430,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		INotepadStore store = Substitute.For<INotepadStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -513,6 +547,10 @@ internal class NotepadViewModelTests
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -579,7 +617,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		INotepadStore store = Substitute.For<INotepadStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -622,6 +667,10 @@ internal class NotepadViewModelTests
 			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -886,7 +935,7 @@ internal class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDispatcherAccessor, IDocumentEncodingSwitcher, IMainWindowActivator, INotepadSessionState, INotepadStore, INotificationService, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt, TimeProvider)" />:
+	/// <see cref="NotepadViewModel(IConfirmationPrompt, IDocumentEncodingSwitcher, IMainWindowActivator, INotepadSessionState, INotepadStore, INotepadTexts, ISyntaxRegistry, ITaskExceptionHandler, ITextInputPrompt)" />:
 	/// the notepad opens with one selected tab with the first number.
 	/// </summary>
 	[Test]
@@ -917,7 +966,14 @@ internal class NotepadViewModelTests
 		// Arrange
 		INotepadStore store = Substitute.For<INotepadStore>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
 
@@ -990,6 +1046,10 @@ internal class NotepadViewModelTests
 			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1047,6 +1107,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1165,6 +1229,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1215,6 +1283,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1260,6 +1332,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1269,7 +1345,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -1304,6 +1380,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1315,12 +1395,12 @@ internal class NotepadViewModelTests
 		// A lone surrogate, which UTF-16 cannot hold either.
 		document.Insert(4, "\uD800");
 
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		document.Text = "Text!";
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -1350,6 +1430,10 @@ internal class NotepadViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1380,6 +1464,10 @@ internal class NotepadViewModelTests
 				.Returns([0x00, 0xFF, 0x00]);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1409,6 +1497,10 @@ internal class NotepadViewModelTests
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1439,6 +1531,10 @@ internal class NotepadViewModelTests
 				.Returns([4, 1, 3]);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1497,6 +1593,10 @@ internal class NotepadViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1531,6 +1631,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1541,12 +1645,12 @@ internal class NotepadViewModelTests
 
 		document.Insert(0, "a");
 
-		time.Advance(NotepadViewModel.WriteDelay / 2.0);
+		time.Advance(NotepadTexts.WriteDelay / 2.0);
 
 		document.Insert(1, "b");
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay / 2.0);
+		time.Advance(NotepadTexts.WriteDelay / 2.0);
 
 		// Assert
 		store
@@ -1593,6 +1697,10 @@ internal class NotepadViewModelTests
 				.Returns(Encoding.Unicode.GetBytes("Text"));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1623,6 +1731,10 @@ internal class NotepadViewModelTests
 				.Returns(Encoding.UTF8.GetBytes("A\0B"));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1656,6 +1768,10 @@ internal class NotepadViewModelTests
 				.Returns(Encoding.UTF8.GetBytes("Second"));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1711,6 +1827,10 @@ internal class NotepadViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1776,6 +1896,10 @@ internal class NotepadViewModelTests
 			builder.RegisterInstance<INotepadSessionState>(sessionState);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1824,6 +1948,10 @@ internal class NotepadViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1891,6 +2019,10 @@ internal class NotepadViewModelTests
 				.Returns(settings);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1921,6 +2053,10 @@ internal class NotepadViewModelTests
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1952,6 +2088,10 @@ internal class NotepadViewModelTests
 				.Returns(contents);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -1992,6 +2132,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2005,7 +2149,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		sut.Tabs[0].Editor.Encoding
@@ -2029,6 +2173,10 @@ internal class NotepadViewModelTests
 				.Returns(Encoding.UTF8.GetBytes("Text"));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2062,6 +2210,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2071,7 +2223,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Document.Text = "Text";
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2107,6 +2259,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2119,7 +2275,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "!");
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2154,6 +2310,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2167,7 +2327,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2192,6 +2352,10 @@ internal class NotepadViewModelTests
 				.Returns(Encoding.UTF8.GetBytes("Text"));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2203,6 +2367,56 @@ internal class NotepadViewModelTests
 		store
 			.DidNotReceive()
 			.WriteSettings(Arg.Any<NotepadViewSettings>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadViewModel.LoadTabs" />: a tab whose text cannot be read writes nothing, even when its document
+	/// changes.
+	/// </summary>
+	[Test]
+	public void LoadTabs_Writes_Nothing_For_A_Text_That_Cannot_Be_Read()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotepadStore store = Substitute.For<INotepadStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			store
+				.Read(1)
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+		});
+
+		NotepadViewModel sut = mock.Create<NotepadViewModel>();
+
+		sut.LoadTabs();
+
+		sut.Tabs[0].Editor.Document.Text = "Text";
+
+		// Act
+		time.Advance(NotepadTexts.WriteDelay);
+
+		// Assert
+		sut.Tabs[0].IsReadOnly
+			.Should()
+			.BeTrue();
+
+		store
+			.DidNotReceiveWithAnyArgs()
+			.Write(default, default!);
 	}
 
 	/// <summary>
@@ -2230,6 +2444,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2237,7 +2455,7 @@ internal class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store
@@ -2281,6 +2499,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2294,7 +2516,7 @@ internal class NotepadViewModelTests
 			.Insert(4, "\uD800");
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		encodingAtTextWrite
@@ -2319,6 +2541,10 @@ internal class NotepadViewModelTests
 			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2350,6 +2576,10 @@ internal class NotepadViewModelTests
 			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2385,6 +2615,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
@@ -2398,7 +2632,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[1].Editor.Document.Text = "Text";
 
 		// Act
-		time.Advance(NotepadViewModel.WriteDelay);
+		time.Advance(NotepadTexts.WriteDelay);
 
 		// Assert
 		store.Received(1).Write(
@@ -2551,6 +2785,10 @@ internal class NotepadViewModelTests
 			store.WriteSettings(Arg.Do<NotepadViewSettings>(written.Add));
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
 		});
 
 		NotepadViewModel sut = mock.Create<NotepadViewModel>();
