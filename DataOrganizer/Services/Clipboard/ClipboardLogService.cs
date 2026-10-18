@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using Serilog;

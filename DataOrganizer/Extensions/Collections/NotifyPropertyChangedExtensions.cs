@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using DynamicData.Binding;
 using System;
 using System.ComponentModel;

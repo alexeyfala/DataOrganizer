@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;

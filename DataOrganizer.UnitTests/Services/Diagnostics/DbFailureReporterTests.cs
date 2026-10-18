@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.UnitTests.Fakes;

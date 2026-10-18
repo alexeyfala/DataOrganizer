@@ -1,6 +1,6 @@
 using Avalonia;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DialogHostAvalonia;
 using System;
 using System.Threading.Tasks;

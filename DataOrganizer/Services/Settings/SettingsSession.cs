@@ -1,9 +1,9 @@
 using Baksteen.Extensions.DeepCopy;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Settings;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Views;
 using System.Threading;
 using System.Threading.Tasks;
 

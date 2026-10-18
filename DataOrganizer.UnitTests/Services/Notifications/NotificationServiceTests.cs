@@ -1,12 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Notifications;
+using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

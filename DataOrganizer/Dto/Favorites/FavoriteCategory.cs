@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using System.Collections.Generic;
 using System.Diagnostics;
 

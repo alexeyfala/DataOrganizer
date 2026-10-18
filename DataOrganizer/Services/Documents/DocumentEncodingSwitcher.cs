@@ -1,6 +1,6 @@
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Views;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

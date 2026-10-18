@@ -1,5 +1,5 @@
-using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Exchange;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 

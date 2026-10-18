@@ -5,7 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Services.Notifications;
 using Material.Styles.Controls;
 using System.Linq;

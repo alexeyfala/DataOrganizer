@@ -1,5 +1,5 @@
-using DataOrganizer.Dto;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Notifications;
+using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
 

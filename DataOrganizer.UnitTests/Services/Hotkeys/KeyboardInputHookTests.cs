@@ -10,7 +10,6 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;

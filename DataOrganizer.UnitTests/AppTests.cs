@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;

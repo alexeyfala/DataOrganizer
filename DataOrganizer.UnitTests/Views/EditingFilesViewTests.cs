@@ -11,7 +11,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;

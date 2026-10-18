@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;

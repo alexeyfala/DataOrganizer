@@ -7,7 +7,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Views;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
-using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Interfaces.Views;
 using System;
 using System.Threading.Tasks;
 

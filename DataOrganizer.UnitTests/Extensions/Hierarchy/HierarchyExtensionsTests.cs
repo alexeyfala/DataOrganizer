@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Hierarchy;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.UnitTests.Factories;
 using System;

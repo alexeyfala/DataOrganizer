@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Exchange;
 using System.Threading;
 using System.Threading.Tasks;
 

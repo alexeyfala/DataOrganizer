@@ -10,7 +10,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Views;
 using Material.Icons;
 using NSubstitute;
 using System;

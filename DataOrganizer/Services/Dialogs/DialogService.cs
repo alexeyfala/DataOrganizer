@@ -1,12 +1,11 @@
 using Avalonia.Controls;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;

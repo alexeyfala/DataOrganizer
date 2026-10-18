@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;

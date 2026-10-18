@@ -1,6 +1,6 @@
 using Comparation;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Hotkeys;

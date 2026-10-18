@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;

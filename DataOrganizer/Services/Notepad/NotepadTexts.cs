@@ -1,9 +1,9 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Views;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;

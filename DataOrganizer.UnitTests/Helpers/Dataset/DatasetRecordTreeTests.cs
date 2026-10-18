@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Dataset;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Models.Dataset;
 using Shared.Common;

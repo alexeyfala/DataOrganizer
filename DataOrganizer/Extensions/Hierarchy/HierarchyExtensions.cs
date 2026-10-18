@@ -1,5 +1,5 @@
-using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Hierarchy;
 using DynamicData;
 using Entities.Enums;
 using Shared.Extensions;

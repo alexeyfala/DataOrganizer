@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Enums;
 using Entities.Models;
 using System;

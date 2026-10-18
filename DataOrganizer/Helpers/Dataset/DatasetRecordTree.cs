@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Dataset;
 using DataOrganizer.Models.Dataset;
 using Shared.Extensions;
 using System;
