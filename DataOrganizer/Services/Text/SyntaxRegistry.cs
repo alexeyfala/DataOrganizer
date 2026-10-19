@@ -153,8 +153,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 	/// </summary>
 	private static void RepairXmlComments(IRawGrammar grammar)
 	{
-		// The rules of TextMateSharp.Grammars 2.0.3 name only their end. After an update of TextMateSharp, check whether its
-		// XML grammar names the whole comment, and remove this repair then.
+		// The rules of TextMateSharp.Grammars 2.0.3 name only their end mark.
 		foreach (IRawRule rule in grammar
 			.GetRepository()?
 			.GetProp("comments")?
@@ -217,6 +216,8 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 
 		if (scopeName == XmlScopeName && grammar is not null)
 		{
+			// After an update of TextMateSharp, comment this call out and run the XML comment tests
+			// of SyntaxRegistryTests: when they pass, its grammar is fixed, and this repair can go.
 			RepairXmlComments(grammar);
 		}
 
