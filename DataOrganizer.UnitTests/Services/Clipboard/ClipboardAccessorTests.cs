@@ -768,7 +768,8 @@ internal class ClipboardAccessorTests
 
 			IStorageFile relative = Substitute.For<IStorageFile>();
 
-			valid.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			// A path split at '/' as every OS does, so the name is the same on each.
+			valid.Path.Returns(new Uri("file:///dir/a.txt"));
 
 			relative.Path.Returns(new Uri("b.txt", UriKind.Relative));
 
@@ -810,9 +811,10 @@ internal class ClipboardAccessorTests
 
 			IStorageFile lower = Substitute.For<IStorageFile>();
 
-			upper.Path.Returns(new Uri("file:///C:/dir/B.txt"));
+			// Paths split at '/' as every OS does, so the names are the same on each.
+			upper.Path.Returns(new Uri("file:///dir/B.txt"));
 
-			lower.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			lower.Path.Returns(new Uri("file:///dir/a.txt"));
 
 			clipboard
 				.TryGetFilesAsync()

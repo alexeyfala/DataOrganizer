@@ -11,13 +11,14 @@ public static class ClipboardEntryFactory
 {
 	#region Methods
 	/// <summary>
-	/// Creates the required number of plain files, named in order from <c>file0.txt</c>.
+	/// Creates the required number of plain files, named in order from <c>file0.txt</c>, in a path split at '/' as every
+	/// OS does.
 	/// </summary>
 	public static ClipboardFileSystemEntry[] CreateFiles(int count)
 	{
 		return [.. Enumerable
 			.Range(0, count)
-			.Select(static i => new ClipboardFileSystemEntry($@"C:\dir\file{i}.txt", IsFolder: false))];
+			.Select(static i => new ClipboardFileSystemEntry($"/dir/file{i}.txt", IsFolder: false))];
 	}
 
 	/// <summary>

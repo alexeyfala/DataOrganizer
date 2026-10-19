@@ -1890,8 +1890,9 @@ internal class DatasetEditorViewTests
 		// Act
 		recordsScroller.Offset = place + new Vector(0.0, 1.0);
 
-		// Shorter than the pause after a scroll, so only the place where the scroll ends counts.
-		await RunJobsAsync(repeats: 10);
+		// One run of the jobs lays the move out, far within the pause on any machine, so only the place where the scroll
+		// ends counts.
+		Dispatcher.UIThread.RunJobs();
 
 		recordsScroller.Offset = place;
 

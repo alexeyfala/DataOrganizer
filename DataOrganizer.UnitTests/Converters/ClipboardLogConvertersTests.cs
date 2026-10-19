@@ -20,17 +20,17 @@ internal class ClipboardLogConvertersTests
 	/// <summary>
 	/// Path of the first listed file.
 	/// </summary>
-	private const string FirstFile = $@"{Folder}\a.txt";
+	private const string FirstFile = $"{Folder}/a.txt";
 
 	/// <summary>
-	/// Directory holding the listed files.
+	/// Directory holding the listed files, split at '/' as every OS does.
 	/// </summary>
-	private const string Folder = @"C:\dir";
+	private const string Folder = "/dir";
 
 	/// <summary>
 	/// Path of the second listed file.
 	/// </summary>
-	private const string SecondFile = $@"{Folder}\b.txt";
+	private const string SecondFile = $"{Folder}/b.txt";
 	#endregion
 
 	#region Methods
