@@ -146,17 +146,20 @@ internal class DatasetEditorViewTests
 			.OfType<Button>()
 			.Single(x => x.Content is MaterialIcon { Kind: var kind } && kind == icon);
 
-		Func<double> edge = () => toEnd ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		double Edge()
+		{
+			return toEnd ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		}
 
 		// Act
 		Click(button);
 
-		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - edge()) < 0.5);
+		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - Edge()) < 0.5);
 
 		// Assert
 		recordsScroller.Offset.Y
 			.Should()
-			.BeApproximately(edge(), 0.5);
+			.BeApproximately(Edge(), 0.5);
 	}
 
 	/// <summary>
@@ -227,7 +230,10 @@ internal class DatasetEditorViewTests
 			.OfType<Button>()
 			.Single(x => x.Content is MaterialIcon { Kind: var kind } && kind == icon);
 
-		Func<double> edge = () => toEnd ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		double Edge()
+		{
+			return toEnd ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		}
 
 		Show(sut);
 
@@ -237,7 +243,7 @@ internal class DatasetEditorViewTests
 		// Act
 		Click(button);
 
-		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - edge()) < 0.5);
+		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - Edge()) < 0.5);
 
 		// Longer than the rest of the scroll back would take.
 		await OutlastThePauseAsync();
@@ -245,7 +251,7 @@ internal class DatasetEditorViewTests
 		// Assert
 		recordsScroller.Offset.Y
 			.Should()
-			.BeApproximately(edge(), 0.5);
+			.BeApproximately(Edge(), 0.5);
 	}
 
 	/// <summary>
@@ -496,19 +502,22 @@ internal class DatasetEditorViewTests
 
 		Button toEnd = buttons.Single(static x => x.Content is MaterialIcon { Kind: MaterialIconKind.ArrowCollapseDown });
 
-		Func<double> edge = () => toEndFirst ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		double Edge()
+		{
+			return toEndFirst ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+		}
 
 		// Act
 		Click(toEndFirst ? toEnd : toTop);
 
 		Click(toEndFirst ? toTop : toEnd);
 
-		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - edge()) < 0.5);
+		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - Edge()) < 0.5);
 
 		// Assert
 		recordsScroller.Offset.Y
 			.Should()
-			.BeApproximately(edge(), 0.5);
+			.BeApproximately(Edge(), 0.5);
 	}
 
 	/// <summary>

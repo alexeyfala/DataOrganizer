@@ -483,12 +483,15 @@ internal class DatasetScrollBehaviorTests
 
 		Show(scrollViewer);
 
-		Func<double> end = () => scrollViewer.Extent.Height - scrollViewer.Viewport.Height;
+		double End()
+		{
+			return scrollViewer.Extent.Height - scrollViewer.Viewport.Height;
+		}
 
 		// Act
 		sut.IsEnabled = true;
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - end()) < 0.5);
+		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
 
 		// The move ends one step after the list reaches its end.
 		await RunJobsAsync(repeats: 10);
@@ -621,12 +624,15 @@ internal class DatasetScrollBehaviorTests
 
 		Show(scrollViewer);
 
-		Func<double> end = () => scrollViewer.Extent.Height - scrollViewer.Viewport.Height;
+		double End()
+		{
+			return scrollViewer.Extent.Height - scrollViewer.Viewport.Height;
+		}
 
 		// Act
 		sut.IsEnabled = true;
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - end()) < 0.5);
+		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
 
 		await OutlastThePauseAsync();
 

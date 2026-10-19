@@ -25,15 +25,17 @@ internal class DispatcherAccessorTests
 
 		DispatcherAccessor sut = mock.Create<DispatcherAccessor>();
 
-		Action action = static () => { };
+		static void DoNothing()
+		{
+		}
 
 		// Act
-		sut.Post(action, priority);
+		sut.Post(DoNothing, priority);
 
 		// Assert
 		dispatcher
 			.Received(1)
-			.Post(action, expected);
+			.Post(DoNothing, expected);
 	}
 
 	/// <summary>
