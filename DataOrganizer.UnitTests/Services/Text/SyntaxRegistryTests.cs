@@ -4,7 +4,9 @@ using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
+using TextMateSharp.Registry;
 using TextMateSharp.Themes;
 
 namespace DataOrganizer.UnitTests.Services.Text;
@@ -476,6 +478,69 @@ internal class SyntaxRegistryTests
 		theme.GetName()
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.GetGrammar" />: both marks of an XML comment take the scope of a comment mark, as in VS Code.
+	/// </summary>
+	[Test]
+	public void GetGrammar_Gives_Both_Marks_Of_An_Xml_Comment_The_Mark_Scope()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		IGrammar grammar = new Registry(sut).LoadGrammar(sut.FindScope("xml"));
+
+		// Act
+		IToken[] tokens = grammar
+			.TokenizeLine("<!-- note -->", null, TimeSpan.MaxValue)
+			.Tokens;
+
+		// Assert
+		tokens
+			.Should()
+			.SatisfyRespectively(
+				static x => x.Scopes.Should().Contain("punctuation.definition.comment.xml"),
+				static x => x.Scopes.Should().NotContain("punctuation.definition.comment.xml"),
+				static x => x.Scopes.Should().Contain("punctuation.definition.comment.xml"));
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.GetGrammar" />: every token of an XML comment takes the comment scope, its marks too,
+	/// so that the whole comment takes the color of a comment, as in VS Code.
+	/// </summary>
+	[Test]
+	[TestCase("xml", new[] { "<!-- Nuget: Material.Avalonia -->" })]
+	[TestCase("xml", new[] { "<!--", "  Et asperiores eos.", "-->" })]
+	[TestCase("xml", new[] { "<%-- note --%>" })]
+	[TestCase("xsl", new[] { "<!-- note -->" })]
+	public void GetGrammar_Gives_The_Whole_Xml_Comment_The_Comment_Scope(string language, string[] lines)
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		IGrammar grammar = new Registry(sut).LoadGrammar(sut.FindScope(language));
+
+		List<List<string>> scopes = [];
+
+		IStateStack? state = null;
+
+		// Act
+		foreach (string line in lines)
+		{
+			ITokenizeLineResult result = grammar.TokenizeLine(line, state, TimeSpan.MaxValue);
+
+			state = result.RuleStack;
+
+			scopes.AddRange(result.Tokens.Select(static x => x.Scopes));
+		}
+
+		// Assert
+		scopes
+			.Should()
+			.NotBeEmpty()
+			.And
+			.AllSatisfy(static x => x.Should().Contain("comment.block.xml"));
 	}
 
 	/// <summary>

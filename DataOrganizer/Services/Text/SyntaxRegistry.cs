@@ -33,6 +33,21 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 
 	#region Data
 	/// <summary>
+	/// Scope of the marks that open and close a comment of XML.
+	/// </summary>
+	private const string XmlCommentMarkScope = "punctuation.definition.comment.xml";
+
+	/// <summary>
+	/// Scope of a comment of XML.
+	/// </summary>
+	private const string XmlCommentScope = "comment.block.xml";
+
+	/// <summary>
+	/// Scope name of the XML grammar.
+	/// </summary>
+	private const string XmlScopeName = "text.xml";
+
+	/// <summary>
 	/// The registry, made on first use, as it reads the list of all grammars.
 	/// </summary>
 	private static readonly Lazy<SyntaxRegistry> LazyInstance = new(static () => new SyntaxRegistry());
@@ -122,7 +137,7 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 	public IRawTheme GetDefaultTheme() => GetColorTheme(isDark: false);
 
 	/// <inheritdoc />
-	public IRawGrammar? GetGrammar(string scopeName) => _grammars.GetOrAdd(scopeName, _options.GetGrammar);
+	public IRawGrammar? GetGrammar(string scopeName) => _grammars.GetOrAdd(scopeName, ReadGrammar);
 
 	/// <inheritdoc />
 	public ICollection<string>? GetInjections(string scopeName) => _options.GetInjections(scopeName);
@@ -132,6 +147,28 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Gives the comment rules of XML the comment scope over the whole comment, as VS Code has it, where the package
+	/// gives it to the end mark alone and leaves the rest of a comment without color.
+	/// </summary>
+	private static void RepairXmlComments(IRawGrammar grammar)
+	{
+		// The rules of TextMateSharp.Grammars 2.0.3 name only their end. After an update of TextMateSharp, check whether its
+		// XML grammar names the whole comment, and remove this repair then.
+		foreach (IRawRule rule in grammar
+			.GetRepository()?
+			.GetProp("comments")?
+			.GetPatterns() ?? [])
+		{
+			if (rule.GetEndCaptures()?.GetCapture("0") is { } end && end.GetName() == XmlCommentScope)
+			{
+				rule.SetName(XmlCommentScope);
+
+				end.SetName(XmlCommentMarkScope);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Builds the folding rules of a language from its settings and from its profile.
 	/// </summary>
@@ -169,6 +206,21 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 			LineComment = SyntaxLanguageProfiles.FindLineComment(language, comments?.LineComment),
 			StartMarker = markers is null ? null : new Regex(markers.Start, RegexOptions.Compiled)
 		};
+	}
+
+	/// <summary>
+	/// Reads a grammar of the package, the one of XML with its comment rules repaired.
+	/// </summary>
+	private IRawGrammar? ReadGrammar(string scopeName)
+	{
+		IRawGrammar? grammar = _options.GetGrammar(scopeName);
+
+		if (scopeName == XmlScopeName && grammar is not null)
+		{
+			RepairXmlComments(grammar);
+		}
+
+		return grammar;
 	}
 	#endregion
 }
