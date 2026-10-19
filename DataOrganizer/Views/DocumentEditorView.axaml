@@ -11,6 +11,8 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Helpers.Text"
+	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
+	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -116,7 +118,7 @@
 			<ContentPresenter Content="{Binding #View.ToolBarContent}" />
 		</StackPanel>
 
-		<controls:SplitDocumentEditor
+		<textControls:SplitDocumentEditor
 			x:Name="Editor"
 			Grid.Row="1"
 			DataContext="{Binding #View}"
@@ -133,7 +135,11 @@
 			SyntaxLanguage="{Binding SyntaxLanguage, Mode=OneWay}"
 			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
-			<controls:SplitDocumentEditor.Styles>
+			<Interaction.Behaviors>
+				<textBehaviors:DocumentViewStateBehavior ViewState="{Binding ViewState, Mode=TwoWay}" />
+			</Interaction.Behaviors>
+
+			<textControls:SplitDocumentEditor.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 					<Setter Property="Cursor" Value="Arrow" />
@@ -146,10 +152,10 @@
 					<Setter Property="SelectedFoldingMarkerBackgroundBrush" Value="Transparent" />
 					<Setter Property="SelectedFoldingMarkerBrush" Value="{StaticResource MaterialBodyBrush}" />
 				</Style>
-			</controls:SplitDocumentEditor.Styles>
+			</textControls:SplitDocumentEditor.Styles>
 
 			<!--  One menu serves both halves, as it acts on the active one.  -->
-			<controls:SplitDocumentEditor.ContextFlyout>
+			<textControls:SplitDocumentEditor.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
 					<StackPanel Orientation="Vertical">
 						<StackPanel.Styles>
@@ -347,8 +353,8 @@
 						</controls:FlyoutButton>
 					</StackPanel>
 				</Flyout>
-			</controls:SplitDocumentEditor.ContextFlyout>
-		</controls:SplitDocumentEditor>
+			</textControls:SplitDocumentEditor.ContextFlyout>
+		</textControls:SplitDocumentEditor>
 
 		<Border
 			Grid.Row="2"
@@ -384,7 +390,7 @@
 				<Border ClipToBounds="True" DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="LineEndingBlock"
-						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:AppConverters.LineEndingToCaption}}"
+						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:DocumentConverters.LineEndingToCaption}}"
 						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
 						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
 						FlyoutPlacement="TopEdgeAlignedRight"
@@ -413,9 +419,9 @@
 						Margin="8.0,4.0"
 						HorizontalSpacing="{StaticResource ElementSpacing}"
 						LastChildFill="False">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
 					</DockPanel>
 				</Border>
 
@@ -427,11 +433,11 @@
 						Margin="8.0,4.0"
 						HorizontalSpacing="{StaticResource ElementSpacing}"
 						LastChildFill="False">
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:AppConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
 
-						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:AppConverters.SelectionOrPosition}}" />
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SelectionOrPosition}}" />
 					</DockPanel>
 				</Border>
 
@@ -440,7 +446,7 @@
 				<Border ClipToBounds="True" DockPanel.Dock="Left">
 					<views:ChoiceSelector
 						x:Name="LanguageBlock"
-						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:AppConverters.SyntaxLanguageToName}}"
+						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SyntaxLanguageToName}}"
 						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
 						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
 						DefaultMark="{Binding #View.DefaultSyntaxLanguageMark, Mode=OneWay}"

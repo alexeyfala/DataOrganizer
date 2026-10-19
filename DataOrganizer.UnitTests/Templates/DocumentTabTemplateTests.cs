@@ -6,14 +6,19 @@ using Avalonia.LogicalTree;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Text;
+using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Documents;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using Entities.Enums;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
@@ -45,13 +50,115 @@ internal class DocumentTabTemplateTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a dataset opened in the editor gets the editor of its records.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Creates_The_Editor_Of_A_Dataset()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true, kind: EntityKind.Dataset);
+
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		DatasetEditorViewModel viewModel = viewModelMock.Create<DatasetEditorViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<DatasetEditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<DatasetEditorView>(Arg.Any<object[]>())
+				.Returns(x => new DatasetEditorView((DatasetEditorViewModel)x.Arg<object[]>()[0]));
+
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		Control? control = sut.Build(file);
+
+		// Assert
+		control
+			.Should()
+			.BeOfType<DatasetEditorView>()
+			.Which
+			.DataContext
+			.Should()
+			.BeSameAs(viewModel);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a file opened in the editor gets the editor of its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void Build_Creates_The_Editor_Of_A_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
+
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(x => new EmbeddedFileEditorView((EmbeddedFileEditorViewModel)x.Arg<object[]>()[0]));
+
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		// Act
+		Control? control = sut.Build(file);
+
+		// Assert
+		control
+			.Should()
+			.BeOfType<EmbeddedFileEditorView>()
+			.Which
+			.DataContext
+			.Should()
+			.BeSameAs(viewModel);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabTemplate.Build" />: a tab of the notepad gets the editor of its text.
 	/// </summary>
 	[AvaloniaTest]
 	public void Build_Creates_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -83,6 +190,108 @@ internal class DocumentTabTemplateTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTabTemplate.Build" />: a file opened again gets back the split its editor had, as the split
+	/// lasts while the application runs.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Build_Gives_A_File_Opened_Again_Its_Split()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateNamedFileDto(PowerShellFileName);
+
+		file.IsEditing = true;
+
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			// Both editors of the file share the store, as in the application.
+			builder
+				.RegisterType<EditorSplitStore>()
+				.As<IEditorSplitStore>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		EmbeddedFileEditorViewModel first = viewModelMock.Create<EmbeddedFileEditorViewModel>();
+
+		// AutoMock gives one instance of a type per scope, while a file opened again gets an editor of its own.
+		using ILifetimeScope reopening = viewModelMock.Container.BeginLifetimeScope();
+
+		EmbeddedFileEditorViewModel second = reopening.Resolve<EmbeddedFileEditorViewModel>();
+
+		using EmbeddedFileEditorView firstView = new(first);
+
+		using EmbeddedFileEditorView secondView = new(second);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EmbeddedFileEditorViewModel>()
+				.Returns(first, second);
+
+			viewFactory
+				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
+				.Returns(firstView, secondView);
+
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
+		});
+
+		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
+
+		sut.Build(file);
+
+		await first.EditorLoaded();
+
+		first.Editor.SplitShare = 0.25;
+
+		first.Editor.IsSplit = true;
+
+		sut.Remove(file);
+
+		// Act
+		sut.Build(file);
+
+		await second.EditorLoaded();
+
+		// Assert
+		second.Editor.IsSplit
+			.Should()
+			.BeTrue();
+
+		second.Editor.SplitShare
+			.Should()
+			.Be(0.25);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTabTemplate.Build" />: the name of the file gives the language of its text to the editor.
 	/// </summary>
 	[AvaloniaTest]
@@ -107,11 +316,19 @@ internal class DocumentTabTemplateTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterInstance(SyntaxRegistry.Instance)
+				.As<ISyntaxRegistry>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -130,7 +347,13 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(view);
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -158,7 +381,7 @@ internal class DocumentTabTemplateTests
 	public void Build_Keeps_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -194,7 +417,7 @@ internal class DocumentTabTemplateTests
 	public void Match_Takes_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
 			Number = 1
 		};
@@ -237,11 +460,15 @@ internal class DocumentTabTemplateTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			dbAccess
-				.GetFileEditorStateAsync(Arg.Any<Guid>())
-				.Returns((string?)null);
-
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		EmbeddedFileEditorViewModel viewModel = viewModelMock.Create<EmbeddedFileEditorViewModel>();
@@ -260,7 +487,13 @@ internal class DocumentTabTemplateTests
 				.CreateUserControl<EmbeddedFileEditorView>(Arg.Any<object[]>())
 				.Returns(view);
 
-			builder.RegisterInstance(viewFactory);
+			builder
+				.RegisterInstance(viewFactory)
+				.As<IViewFactory, IViewModelFactory>();
+
+			builder
+				.RegisterType<EmbeddedEditorFactory>()
+				.As<IEmbeddedEditorFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -289,13 +522,16 @@ internal class DocumentTabTemplateTests
 	public void Remove_Disposes_The_Editor_Of_A_Notepad_Tab()
 	{
 		// Arrange
-		NotepadTabViewModel tab = new()
+		NotepadTabViewModel tab = new(new AvaloniaDocumentText())
 		{
-			Number = 1,
-			SyntaxLanguage = PowerShellLanguage
+			Editor =
+			{
+				SyntaxLanguage = PowerShellLanguage
+			},
+			Number = 1
 		};
 
-		tab.Document.Text = PowerShellText;
+		tab.Editor.Document.AsTextDocument().Text = PowerShellText;
 
 		using NotepadTabView view = new(tab);
 

@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using System;
@@ -34,7 +33,7 @@ internal class SessionKeyStoreTests
 	public void Decrypt_Refuses_After_Lock()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -69,7 +68,7 @@ internal class SessionKeyStoreTests
 	public void Decrypt_Refuses_Another_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -100,7 +99,7 @@ internal class SessionKeyStoreTests
 	public void Decrypt_Refuses_Another_Purpose()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -131,7 +130,7 @@ internal class SessionKeyStoreTests
 	public void Decrypt_Refuses_For_Unknown_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -150,7 +149,7 @@ internal class SessionKeyStoreTests
 	public void Dispose_Locks_Every_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -174,7 +173,7 @@ internal class SessionKeyStoreTests
 	public void Encrypt_Decrypt_Round_Trips_Contents()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -210,7 +209,7 @@ internal class SessionKeyStoreTests
 	public void Encrypt_Refuses_For_Locked_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -229,7 +228,7 @@ internal class SessionKeyStoreTests
 	public void IsUnlocked_Follows_Unlock_And_Lock()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -260,7 +259,7 @@ internal class SessionKeyStoreTests
 	public void Lock_Keeps_Other_Keepers_Usable()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -292,7 +291,7 @@ internal class SessionKeyStoreTests
 	public void LockAll_Locks_Every_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -325,7 +324,7 @@ internal class SessionKeyStoreTests
 	public void Unlock_Keeps_Other_Keepers_Usable_When_The_Key_Cannot_Be_Wrapped()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -360,7 +359,7 @@ internal class SessionKeyStoreTests
 	public void Unlock_Rejects_An_Empty_Dek()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
@@ -383,7 +382,7 @@ internal class SessionKeyStoreTests
 	public void Unlock_Replaces_The_Key_Of_A_Keeper()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().AsImplementedInterfaces());
 
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 

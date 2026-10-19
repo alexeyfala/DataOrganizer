@@ -1,6 +1,6 @@
-using DataOrganizer.Dto;
-using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Dto.Notifications;
+using DataOrganizer.Enums.Notifications;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
 
 namespace DataOrganizer.UnitTests.Fakes;

@@ -1,6 +1,4 @@
 using Autofac.Extras.Moq;
-using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Services.Dialogs;
 using System.Threading.Tasks;
@@ -12,10 +10,10 @@ internal class FileSystemPickerTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FileSystemPicker.SaveFileAsync{T}" />: returns null when no window of the required type is open.
+	/// <see cref="FileSystemPicker.SaveFileAsync" />: returns null when no main window is open.
 	/// </summary>
 	[Test]
-	public async Task SaveFileAsync_Returns_Null_When_Application_Has_No_Window_Of_Required_Type()
+	public async Task SaveFileAsync_Returns_Null_Without_A_Main_Window()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -23,7 +21,14 @@ internal class FileSystemPickerTests
 		FileSystemPicker sut = mock.Create<FileSystemPicker>();
 
 		// Act
-		string? result = await sut.SaveFileAsync<Window>(new FilePickerSaveOptions());
+		string? result = await sut.SaveFileAsync(new()
+		{
+			DefaultExtension = "json",
+			FileTypes = [],
+			ShowOverwritePrompt = true,
+			SuggestedFileName = "name",
+			Title = "title"
+		});
 
 		// Assert
 		result
@@ -32,10 +37,10 @@ internal class FileSystemPickerTests
 	}
 
 	/// <summary>
-	/// <see cref="FileSystemPicker.SelectFilesAsync{T}" />: returns an empty array when no window of the required type is open.
+	/// <see cref="FileSystemPicker.SelectFilesAsync" />: returns an empty array when no main window is open.
 	/// </summary>
 	[Test]
-	public async Task SelectFilesAsync_Returns_Empty_Array_When_Application_Has_No_Window_Of_Required_Type()
+	public async Task SelectFilesAsync_Returns_Empty_Array_Without_A_Main_Window()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -43,7 +48,12 @@ internal class FileSystemPickerTests
 		FileSystemPicker sut = mock.Create<FileSystemPicker>();
 
 		// Act
-		string[] result = await sut.SelectFilesAsync<Window>(new FilePickerOpenOptions());
+		string[] result = await sut.SelectFilesAsync(new()
+		{
+			AllowMultiple = false,
+			FileTypes = [],
+			Title = "title"
+		});
 
 		// Assert
 		result

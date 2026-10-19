@@ -1,8 +1,8 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:dto="using:DataOrganizer.Dto"
-	xmlns:enums="using:DataOrganizer.Enums">
+	xmlns:dto="using:DataOrganizer.Dto.Notifications"
+	xmlns:enums="using:DataOrganizer.Enums.Notifications">
 
 	<!-- SnackbarMessageTemplate -->
 	<DataTemplate

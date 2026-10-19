@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;

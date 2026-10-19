@@ -1,256 +1,102 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Notifications;
-using Material.Icons.Avalonia;
-using Repository.Dto;
-using Repository.Interfaces.Database;
-using Serilog;
-using Shared.Extensions;
-using Shared.Interfaces;
-using Shared.Properties;
+using DataOrganizer.Messages.Editor;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Security.Cryptography;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
-public abstract partial class FileListViewModelBase : CopyContentViewModelBase
+public abstract partial class FileListViewModelBase : ObservableDisposableBase
 {
+	#region Properties
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	public IObservable<ExplorerItemDtoBase> HighlightSignal => _highlightSignal;
+	#endregion
+
 	#region Auto-Generated Commands
-	/// <summary>
-	/// <see cref="InputElement.PointerExited" /> event handler of control for preview object's content.
-	/// </summary>
-	[RelayCommand]
-	private static void PreviewPointerExited(MaterialIcon? icon)
-	{
-		if (icon is null)
-		{
-			return;
-		}
-
-		ToolTip.SetTip(icon, null);
-	}
-
-	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
+	/// <inheritdoc cref="IContentCopier.CopyAsync" />
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
-	private void CopyContent(IEnumerable<object>? multiBindings)
+	private void CopyContent(FileDto? file)
 	{
-		object[] values = [.. multiBindings.AsNotNull()];
-
-		if (!TryGetFile(
-			values,
-			out FileDto? file))
+		if (file is null)
 		{
 			return;
 		}
 
-		if (!TryGetContainer(
-			values,
-			out SelectingItemsControl? container))
-		{
-			return;
-		}
+		SelectFile(file);
 
-		container.SelectedItem = file;
-
-		_exceptionHandler.Watch(CopyContentAsync(
-			file: file,
-			container: container,
-			updateView: false));
-
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerEntered" /> event handler of control for preview object's content.
-	/// </summary>
-	[RelayCommand]
-	private async Task PreviewPointerEntered(MaterialIcon? icon)
-	{
-		if (icon?.DataContext is not FileDto file)
-		{
-			return;
-		}
-
-		ValidatedContents result;
-
-		try
-		{
-			result = await _dbAccess
-				.GetFileContentsAsync(file.Id)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			// A preview is rendered on demand, so the failure only reaches the log.
-			_logger.LogException(ex, breakInDebugger: false);
-
-			return;
-		}
-
-		if (!result.IsValid)
-		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-			return;
-		}
-
-		byte[] contents = result.Contents;
-
-		if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-		{
-			try
-			{
-				contents = _contentCipher.Decrypt(file, contents);
-			}
-			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-			{
-				// A preview is rendered on demand, so the failure only reaches the log.
-				_logger.LogException(ex);
-
-				return;
-			}
-		}
-
-		try
-		{
-			// A preview is rendered on demand, so contents that are not text only reach the log.
-			if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
-			{
-				_logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
-
-				return;
-			}
-
-			if (string.IsNullOrEmpty(text))
-			{
-				_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-				return;
-			}
-
-			ToolTip.SetTip(icon, text.Truncate(200));
-
-			ToolTip.SetIsOpen(icon, true);
-
-			_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
-		}
-		finally
-		{
-			if (file.EncryptionStatus == EncryptionStatus.Decrypted)
-			{
-				contents.ZeroMemory();
-			}
-		}
+		_exceptionHandler.Watch(CopyContentAsync(file));
 	}
 
 	/// <summary>
 	/// Displays object in "Editor".
 	/// </summary>
 	[RelayCommand]
-	private void ShowInEditor(Guid id)
-	{
-		if (_app.FindDataContext<ViewModelBase>(out Window? window) is not { } viewModel || window is null)
-		{
-			return;
-		}
+	private void ShowInEditor(Guid id) => _messenger.Send(new ShowInEditorMessage(id));
+	#endregion
 
-		_exceptionHandler.Watch(viewModel.ShowInEditorAsync(id, window));
-	}
+	#region Data
+	/// <inheritdoc cref="IContentCopier" />
+	private readonly IContentCopier _contentCopier;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <summary>
+	/// Objects to highlight where the view shows them.
+	/// </summary>
+	private readonly Subject<ExplorerItemDtoBase> _highlightSignal = new();
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
 	protected FileListViewModelBase(
-		Application app,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
-		ILogger logger,
+		IContentCopier contentCopier,
 		IMessenger messenger,
-		INotificationService notification,
-		ITaskExceptionHandler exceptionHandler) : base(
-			app,
-			clipboard,
-			contentCipher,
-			dbAccess,
-			dialogService,
-			jsonSerializer,
-			logger,
-			messenger,
-			notification,
-			exceptionHandler)
+		ITaskExceptionHandler exceptionHandler)
 	{
+		_contentCopier = contentCopier;
+
+		_exceptionHandler = exceptionHandler;
+
+		_messenger = messenger;
 	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Selects a file of the list.
+	/// </summary>
+	protected abstract void SelectFile(FileDto file);
 	#endregion
 
 	#region Helpers
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
-	private static bool CanCopyContent(IEnumerable<object>? multiBindings)
-	{
-		if (TryGetFile(
-			multiBindings?.ToArray() ?? [],
-			out FileDto? file))
-		{
-			return !file.IsOpened();
-		}
-
-		return true;
-	}
+	private static bool CanCopyContent(FileDto? file) => file?.IsOpened() != true;
 
 	/// <summary>
-	/// Tries to get reference to container from multi bindings.
+	/// Copies the contents of a file of the list and highlights it; a shown copy history moves it at its next showing.
 	/// </summary>
-	private static bool TryGetContainer(
-		object[] values,
-		[NotNullWhen(true)] out SelectingItemsControl? container)
+	private async Task CopyContentAsync(FileDto file)
 	{
-		container = null;
-
-		if (values.Length < 2 || values[1] is not SelectingItemsControl control)
+		if (!await _contentCopier
+			.CopyAsync(file, showAtOnce: false)
+			.ConfigureAwait(true))
 		{
-			return false;
+			return;
 		}
 
-		container = control;
-
-		return true;
-	}
-
-	/// <summary>
-	/// Tries to get a reference to a file from multi bindings.
-	/// </summary>
-	private static bool TryGetFile(
-		object[] values,
-		[NotNullWhen(true)] out FileDto? file)
-	{
-		file = null;
-
-		if (values.Length < 2 || values[0] is not FileDto dto)
-		{
-			return false;
-		}
-
-		file = dto;
-
-		return true;
+		_highlightSignal.OnNext(file);
 	}
 	#endregion
 }

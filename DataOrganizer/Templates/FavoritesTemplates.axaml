@@ -46,8 +46,9 @@
 							Classes="NameInFlyoutTextBlockStyle"
 							Text="{Binding Name, Mode=OneTime}" />
 
+						<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
 						<controls:FlyoutButton
-							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -71,15 +72,15 @@
 			<views:IconsBlock
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}"
-				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryHasNote}}"
-				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryToFolder}}"
+				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:FavoritesConverters.FavoriteCategoryHasNote}}"
+				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:FavoritesConverters.FavoriteCategoryToFolder}}"
 				NoteName="{Binding Name, Mode=OneTime}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -88,16 +89,6 @@
 
 	<!-- SelectedFavoritesViewTemplate -->
 	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
-		<views:SelectedFavoritesView
-			x:Name="View"
-			DataContext="{markup:Resolve {x:Type vm:SelectedFavoritesViewModel}}">
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="Loaded">
-					<InvokeCommandAction
-						Command="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
-						CommandParameter="{Binding #View.DataContext}" />
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-		</views:SelectedFavoritesView>
+		<views:SelectedFavoritesView DataContext="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).SelectedFavorites, Mode=OneWay}" />
 	</DataTemplate>
 </ResourceDictionary>

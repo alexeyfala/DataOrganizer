@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Text;
 using System;
@@ -59,14 +58,14 @@ internal sealed class ImportFoldingStrategy : ILineFoldingStrategy
 
 	#region Methods
 	/// <inheritdoc />
-	public NewFolding[] CreateNewFoldings(FoldingText text)
+	public TextFolding[] CreateNewFoldings(FoldingText text)
 	{
 		if (_rules.ImportLine is not { } importLine)
 		{
 			return [];
 		}
 
-		List<NewFolding> blocks = [];
+		List<TextFolding> blocks = [];
 
 		// The run under way: its first line, the last line of its last statement and the number of its statements.
 		int first = 0;
@@ -130,7 +129,7 @@ internal sealed class ImportFoldingStrategy : ILineFoldingStrategy
 	/// Adds the block of a run that holds enough statements, from the first word of its first line and the blanks after
 	/// it to the end of its last line.
 	/// </summary>
-	private static void AddRun(FoldingText text, List<NewFolding> blocks, int first, int last, int statementCount)
+	private static void AddRun(FoldingText text, List<TextFolding> blocks, int first, int last, int statementCount)
 	{
 		if (statementCount < MinStatementCount)
 		{
@@ -150,7 +149,11 @@ internal sealed class ImportFoldingStrategy : ILineFoldingStrategy
 
 		int column = blankCount < 0 ? line.Length : wordEnd + blankCount;
 
-		blocks.Add(new NewFolding(text.GetLineStart(first) + column, text.GetLineEnd(last)));
+		blocks.Add(new TextFolding
+		{
+			EndOffset = text.GetLineEnd(last),
+			StartOffset = text.GetLineStart(first) + column
+		});
 	}
 
 	/// <summary>

@@ -8,19 +8,23 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
+using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Controls;
+using DataOrganizer.Behaviors.Text;
+using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Views;
 using Shared.Extensions;
 using System;
@@ -278,15 +282,24 @@ internal class DocumentEditorViewTests
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = splitEditor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 4,
+					Line = 5,
+					VisualColumn = 3
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 3,
 				SelectionStart = 40
 			});
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: the reported state is not restored back,
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: the reported state is not restored back,
 	/// so a later scroll stays where it is.
 	/// </summary>
 	[AvaloniaTest]
@@ -309,7 +322,7 @@ internal class DocumentEditorViewTests
 		Vector offset = new(0.0, 800.0);
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		scrollViewer.Offset = offset;
 
@@ -322,7 +335,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: a block that the engine folds by itself, as on a click on its
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: a block that the engine folds by itself, as on a click on its
 	/// marker, reaches the view state after a pause, as the engine tells no fold and neither the caret nor the view moves.
 	/// </summary>
 	[AvaloniaTest]
@@ -362,7 +375,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: a view state that is still to be restored is not overwritten.
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: a view state that is still to be restored is not overwritten.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Keeps_A_Pending_View_State()
@@ -377,8 +390,17 @@ internal class DocumentEditorViewTests
 
 		DocumentViewState state = new()
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = new(0.0, 100.0),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -386,7 +408,7 @@ internal class DocumentEditorViewTests
 		sut.ViewState = state;
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		// Assert
 		sut.ViewState
@@ -395,7 +417,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: a text with every block folded is kept as no unfolded block,
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: a text with every block folded is kept as no unfolded block,
 	/// whatever the number of its blocks.
 	/// </summary>
 	[AvaloniaTest]
@@ -418,7 +440,7 @@ internal class DocumentEditorViewTests
 		}
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		// Assert
 		// Locals keep the assertions from being skipped by the null-conditional operator when there is no state.
@@ -436,7 +458,65 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: reports the caret, the selection and the offset of the active half.
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: reports every field of the caret, also at the end of a wrapped
+	/// line.
+	/// </summary>
+	[AvaloniaTest]
+	public void CaptureViewState_Reports_Every_Field_Of_The_Caret()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new TextDocument(new string('a', 1000)),
+			WordWrap = true
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		VisualLine line = editor
+			.TextArea
+			.TextView
+			.GetOrConstructVisualLine(editor.Document.GetLineByNumber(1));
+
+		// The end of the first row of the wrapped line, where the caret may stand before the break
+		int column = line.TextLines[0].Length + 1;
+
+		editor
+			.TextArea
+			.Caret
+			.Position = new(line: 1, column: column)
+			{
+				IsAtEndOfLine = true
+			};
+
+		TextViewPosition caret = editor
+			.TextArea
+			.Caret
+			.Position;
+
+		// Act
+		CaptureViewState(sut);
+
+		// Assert
+		caret.IsAtEndOfLine
+			.Should()
+			.BeTrue();
+
+		sut.ViewState!.Value.CaretPosition
+			.Should()
+			.BeEquivalentTo(new
+			{
+				caret.Column,
+				caret.IsAtEndOfLine,
+				caret.Line,
+				caret.VisualColumn
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: reports the caret, the selection and the offset of the active half.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Reports_The_Active_Half()
@@ -465,22 +545,31 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		// Assert
 		sut.ViewState
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = splitEditor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 4,
+					Line = 5,
+					VisualColumn = 3
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 3,
 				SelectionStart = 40
 			});
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: reports the caret, the selection and the offset the editor shows.
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: reports the caret, the selection and the offset the editor shows.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Reports_The_Caret_The_Selection_And_The_Offset()
@@ -504,22 +593,31 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		// Assert
 		sut.ViewState
 			.Should()
 			.Be(new DocumentViewState
 			{
-				CaretPosition = editor.TextArea.Caret.Position,
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 5,
+					Line = 3,
+					VisualColumn = 4
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 4,
 				SelectionStart = 20
 			});
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.CaptureViewState" />: keeps the folded blocks or the unfolded ones, whichever are fewer.
+	/// <see cref="DocumentViewStateBehavior.CaptureViewState" />: keeps the folded blocks or the unfolded ones, whichever are fewer.
 	/// </summary>
 	[AvaloniaTest]
 	public void CaptureViewState_Reports_The_Fewer_Of_The_Folded_And_The_Unfolded_Blocks([Values] bool isMostlyFolded)
@@ -548,7 +646,7 @@ internal class DocumentEditorViewTests
 		int start = blocks[1].StartOffset;
 
 		// Act
-		sut.CaptureViewState();
+		CaptureViewState(sut);
 
 		// Assert
 		DocumentViewState? state = sut.ViewState;
@@ -1185,7 +1283,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: listens to the messages about the bookmarks once it stands in a window.
+	/// <see cref="DocumentViewStateBehavior" />: listens to the messages about the bookmarks once the view of its editor stands in a window.
 	/// </summary>
 	[AvaloniaTest]
 	public void OnAttachedToVisualTree_Registers_For_The_Bookmark_Messages()
@@ -1201,13 +1299,13 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		WeakReferenceMessenger.Default
-			.IsRegistered<BookmarksChangedMessage>(sut)
+			.IsRegistered<BookmarksChangedMessage>(GetViewStateBehavior(sut))
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: listens to the messages about the folding once it stands in a window.
+	/// <see cref="DocumentViewStateBehavior" />: listens to the messages about the folding once the view of its editor stands in a window.
 	/// </summary>
 	[AvaloniaTest]
 	public void OnAttachedToVisualTree_Registers_For_The_Folding_Messages()
@@ -1223,13 +1321,13 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		WeakReferenceMessenger.Default
-			.IsRegistered<FoldingChangedMessage>(sut)
+			.IsRegistered<FoldingChangedMessage>(GetViewStateBehavior(sut))
 			.Should()
 			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: stops listening to the messages about the bookmarks when it leaves the window.
+	/// <see cref="DocumentViewStateBehavior" />: stops listening to the messages about the bookmarks when the view of its editor leaves the window.
 	/// </summary>
 	[AvaloniaTest]
 	public void OnDetachedFromVisualTree_Unregisters_From_The_Bookmark_Messages()
@@ -1249,13 +1347,13 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		WeakReferenceMessenger.Default
-			.IsRegistered<BookmarksChangedMessage>(sut)
+			.IsRegistered<BookmarksChangedMessage>(GetViewStateBehavior(sut))
 			.Should()
 			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView" />: stops listening to the messages about the folding when it leaves the window.
+	/// <see cref="DocumentViewStateBehavior" />: stops listening to the messages about the folding when the view of its editor leaves the window.
 	/// </summary>
 	[AvaloniaTest]
 	public void OnDetachedFromVisualTree_Unregisters_From_The_Folding_Messages()
@@ -1275,7 +1373,7 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		WeakReferenceMessenger.Default
-			.IsRegistered<FoldingChangedMessage>(sut)
+			.IsRegistered<FoldingChangedMessage>(GetViewStateBehavior(sut))
 			.Should()
 			.BeFalse();
 	}
@@ -1474,7 +1572,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: the bookmarks of another editor leave the view
+	/// <see cref="DocumentViewStateBehavior.Receive(BookmarksChangedMessage)" />: the bookmarks of another editor leave the view
 	/// state alone.
 	/// </summary>
 	[AvaloniaTest]
@@ -1504,7 +1602,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: the folding of another editor leaves the view state
+	/// <see cref="DocumentViewStateBehavior.Receive(FoldingChangedMessage)" />: the folding of another editor leaves the view state
 	/// alone.
 	/// </summary>
 	[AvaloniaTest]
@@ -1536,7 +1634,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: the folding of the inactive half leaves the view
+	/// <see cref="DocumentViewStateBehavior.Receive(FoldingChangedMessage)" />: the folding of the inactive half leaves the view
 	/// state alone, as each half folds on its own and the state is that of the active one.
 	/// </summary>
 	[AvaloniaTest]
@@ -1562,7 +1660,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: a change of the bookmarks reaches the view state
+	/// <see cref="DocumentViewStateBehavior.Receive(BookmarksChangedMessage)" />: a change of the bookmarks reaches the view state
 	/// at once, as a click on the bookmark margin moves neither the caret nor the view.
 	/// </summary>
 	[AvaloniaTest]
@@ -1591,7 +1689,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(BookmarksChangedMessage)" />: a bookmark set in the lower half reaches the view
+	/// <see cref="DocumentViewStateBehavior.Receive(BookmarksChangedMessage)" />: a bookmark set in the lower half reaches the view
 	/// state too, as both halves share the bookmarks of the document.
 	/// </summary>
 	[AvaloniaTest]
@@ -1620,7 +1718,7 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEditorView.Receive(FoldingChangedMessage)" />: a fold by a command reaches the view state at once,
+	/// <see cref="DocumentViewStateBehavior.Receive(FoldingChangedMessage)" />: a fold by a command reaches the view state at once,
 	/// as it may fold only blocks out of view, which the view does not draw anew.
 	/// </summary>
 	[AvaloniaTest]
@@ -2167,8 +2265,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 500, column: 40),
-			ScrollOffset = new(0.0, 100000.0),
+			CaretPosition = new()
+			{
+				Column = 40,
+				Line = 500,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100000.0
+			},
 			SelectionLength = 50,
 			SelectionStart = 80
 		};
@@ -2192,6 +2299,55 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: once a state set from outside is restored, the state follows the editor
+	/// again.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Follows_The_Editor_Once_Restored()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Show(sut);
+
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = 0.0,
+				Y = 100.0
+			},
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		GetScrollViewer(sut).Offset = new(0.0, 500.0);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		CaptureViewState(sut);
+
+		// Assert
+		double? offset = sut.ViewState?.ScrollOffset.Y;
+
+		offset
+			.Should()
+			.Be(500.0);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentEditorView.ViewState" />: a document set right after the state is the one it is restored on,
 	/// not the one it would have been lost with.
 	/// </summary>
@@ -2211,8 +2367,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 4,
 			SelectionStart = 20
 		};
@@ -2261,7 +2426,12 @@ internal class DocumentEditorViewTests
 		// The caret inside the first block, which folds from the end of line 1 to the end of line 4.
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 3),
+			CaretPosition = new()
+			{
+				Column = 3,
+				Line = 3,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [start],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2294,7 +2464,12 @@ internal class DocumentEditorViewTests
 		sut.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2, 4],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0
@@ -2327,7 +2502,12 @@ internal class DocumentEditorViewTests
 		sut.ViewState = new DocumentViewState
 		{
 			Bookmarks = [2, 4],
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0
@@ -2339,6 +2519,59 @@ internal class DocumentEditorViewTests
 		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.Bookmarks.GetLines()
 			.Should()
 			.Equal(2, 4);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: restores the caret at the end of a wrapped line, before the break.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Caret_At_The_End_Of_A_Wrapped_Line()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			Document = new TextDocument(new string('a', 1000)),
+			WordWrap = true
+		};
+
+		Show(sut);
+
+		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+
+		VisualLine line = editor
+			.TextArea
+			.TextView
+			.GetOrConstructVisualLine(editor.Document.GetLineByNumber(1));
+
+		// The end of the first row of the wrapped line, where the caret may stand before the break
+		int column = line.TextLines[0].Length + 1;
+
+		// Act
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = column,
+				IsAtEndOfLine = true,
+				Line = 1,
+				VisualColumn = -1
+			},
+			ScrollOffset = default,
+			SelectionLength = 0,
+			SelectionStart = 0
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		editor.TextArea.Caret.Position
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Column = column,
+				IsAtEndOfLine = true,
+				Line = 1
+			});
 	}
 
 	/// <summary>
@@ -2363,7 +2596,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [starts[1], starts[3]],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2401,7 +2639,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = [start],
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2435,8 +2678,17 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 900, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 900,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -2471,8 +2723,17 @@ internal class DocumentEditorViewTests
 
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 30, column: 1),
-			ScrollOffset = offset,
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 30,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
 			SelectionLength = 0,
 			SelectionStart = 0
 		};
@@ -2509,7 +2770,7 @@ internal class DocumentEditorViewTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		source.CaptureViewState();
+		CaptureViewState(source);
 
 		using DocumentEditorView sut = new()
 		{
@@ -2554,7 +2815,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 3, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 4,
 			SelectionStart = 20
@@ -2574,6 +2840,57 @@ internal class DocumentEditorViewTests
 			.Be(4);
 
 		editor.TextArea.Caret.Location
+			.Should()
+			.Be(new TextLocation(3, 1));
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a split that came before the document, as on a new opening of the file,
+	/// restores the selection into the upper half only, while the lower one opens at the caret without it.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Restores_The_Selection_Into_The_Upper_Half_Only()
+	{
+		// Arrange
+		DocumentEditorView sut = new()
+		{
+			IsSplit = true
+		};
+
+		Show(sut);
+
+		// Act
+		sut.Document = CreateDocument(lineCount: 100);
+
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = default,
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		DocumentTextEditor secondaryEditor = editor.SecondaryEditor!;
+
+		editor.PrimaryEditor.SelectionLength
+			.Should()
+			.Be(4);
+
+		secondaryEditor.SelectionLength
+			.Should()
+			.Be(0);
+
+		secondaryEditor.TextArea.Caret.Location
 			.Should()
 			.Be(new TextLocation(3, 1));
 	}
@@ -2600,7 +2917,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			ScrollOffset = default,
 			SelectionLength = 0,
 			SelectionStart = 0,
@@ -2629,8 +2951,17 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000),
 			ViewState = new DocumentViewState
 			{
-				CaretPosition = new(line: 3, column: 1),
-				ScrollOffset = offset,
+				CaretPosition = new()
+				{
+					Column = 1,
+					Line = 3,
+					VisualColumn = -1
+				},
+				ScrollOffset = new()
+				{
+					X = offset.X,
+					Y = offset.Y
+				},
 				SelectionLength = 4,
 				SelectionStart = 20
 			}
@@ -2638,6 +2969,57 @@ internal class DocumentEditorViewTests
 
 		// Act
 		Show(sut);
+
+		// Assert
+		GetScrollViewer(sut).Offset
+			.Should()
+			.Be(offset);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorView.ViewState" />: a value set while the control is out of the window waits and is
+	/// restored once the control is back.
+	/// </summary>
+	[AvaloniaTest]
+	public void ViewState_Set_Out_Of_The_Window_Is_Restored_Once_Back()
+	{
+		// Arrange
+		Vector offset = new(0.0, 500.0);
+
+		DocumentEditorView sut = new()
+		{
+			Document = CreateDocument(lineCount: 1000)
+		};
+
+		Window window = Show(sut);
+
+		window.Content = null;
+
+		Dispatcher.UIThread.RunJobs();
+
+		sut.ViewState = new DocumentViewState
+		{
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 3,
+				VisualColumn = -1
+			},
+			ScrollOffset = new()
+			{
+				X = offset.X,
+				Y = offset.Y
+			},
+			SelectionLength = 4,
+			SelectionStart = 20
+		};
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		window.Content = sut;
+
+		Dispatcher.UIThread.RunJobs();
 
 		// Assert
 		GetScrollViewer(sut).Offset
@@ -2681,7 +3063,12 @@ internal class DocumentEditorViewTests
 		// Act
 		sut.ViewState = new DocumentViewState
 		{
-			CaretPosition = new(line: 1, column: 1),
+			CaretPosition = new()
+			{
+				Column = 1,
+				Line = 1,
+				VisualColumn = -1
+			},
 			FoldedBlocks = isMostlyFolded ? null : blocks,
 			ScrollOffset = default,
 			SelectionLength = 0,
@@ -2721,6 +3108,11 @@ internal class DocumentEditorViewTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Reports the view state of a view at once, through the behavior of its editor.
+	/// </summary>
+	private static void CaptureViewState(DocumentEditorView view) => GetViewStateBehavior(view).CaptureViewState();
+
 	/// <summary>
 	/// Returns the point in the middle of the control.
 	/// </summary>
@@ -2831,6 +3223,17 @@ internal class DocumentEditorViewTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
+	}
+
+	/// <summary>
+	/// Returns the behavior that keeps the view state of a view.
+	/// </summary>
+	private static DocumentViewStateBehavior GetViewStateBehavior(DocumentEditorView view)
+	{
+		return Interaction
+			.GetBehaviors(view.GetControl<SplitDocumentEditor>(EditorName))
+			.OfType<DocumentViewStateBehavior>()
+			.Single();
 	}
 
 	/// <summary>

@@ -1,8 +1,8 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,8 +108,8 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 
 	#region Constructors
 	public YesNoCancelBoxViewModel(
-		Application app,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 	}
 	#endregion

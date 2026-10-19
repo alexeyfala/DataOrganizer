@@ -2,8 +2,8 @@ using AwesomeAssertions;
 using Entities.Models;
 using Repository.Enums;
 using Repository.Services;
-using Repository.UnitTests.Fixtures;
 using System.Threading.Tasks;
+using TestSupport.Database;
 using TestSupport.Models;
 
 namespace Repository.UnitTests.Services;

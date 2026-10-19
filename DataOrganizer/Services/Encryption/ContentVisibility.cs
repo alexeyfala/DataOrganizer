@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Editor;
+using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
@@ -16,7 +17,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Encryption;
 
-public sealed class ContentVisibility : IContentVisibility
+/// <summary>
+/// Shows and hides the protected contents of explorer objects and drops the session keys that open them.
+/// </summary>
+public sealed class ContentVisibility : IContentKeys, IContentVisibility
 {
 	#region Data
 	/// <inheritdoc cref="IEncryptionFailureReporter" />

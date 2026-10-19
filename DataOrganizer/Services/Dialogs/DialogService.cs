@@ -1,13 +1,13 @@
 using Avalonia.Controls;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers;
+using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
@@ -25,7 +25,14 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Dialogs;
 
-public sealed class DialogService : IDialogService
+public sealed class DialogService :
+	IAppPickerPrompt,
+	IConfirmationPrompt,
+	IDialogService,
+	IHotkeysPrompt,
+	IImportModePrompt,
+	IPasswordPrompt,
+	ITextInputPrompt
 {
 	#region Data
 	/// <inheritdoc cref="IDispatcherAccessor" />
@@ -33,6 +40,9 @@ public sealed class DialogService : IDialogService
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="ISettingsCloseGuard" />
+	private readonly ISettingsCloseGuard _settingsCloseGuard;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -42,11 +52,14 @@ public sealed class DialogService : IDialogService
 	public DialogService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
+		ISettingsCloseGuard settingsCloseGuard,
 		IViewFactory viewFactory)
 	{
 		_dispatcher = dispatcher;
 
 		_logger = logger;
+
+		_settingsCloseGuard = settingsCloseGuard;
 
 		_viewFactory = viewFactory;
 	}
@@ -101,24 +114,6 @@ public sealed class DialogService : IDialogService
 		return await viewModel
 			.GetResultAsync(dialogClosed, token)
 			.ConfigureAwait(false);
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
-	{
-		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
-
-		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
-			DialogHostIdentifiers.Main);
-
-		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelAnswer.Yes;
 	}
 
 	/// <inheritdoc />
@@ -331,7 +326,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<ShowSettingsResult> ShowSettingsAsync()
+	public async Task ShowSettingsAsync()
 	{
 		SettingsViewModel viewModel = _viewFactory.CreateViewModel<SettingsViewModel>();
 
@@ -343,9 +338,7 @@ public sealed class DialogService : IDialogService
 		// an in-place confirmation instead of a silent discard.
 		void ClosingSettings(object sender, DialogClosingEventArgs args)
 		{
-			if (viewModel.IsSaved
-				|| viewModel.IsDiscarded
-				|| !viewModel.IsDirty)
+			if (!_settingsCloseGuard.ShouldConfirmClose)
 			{
 				return;
 			}
@@ -354,12 +347,6 @@ public sealed class DialogService : IDialogService
 
 			viewModel.IsConfirmingClose = true;
 		}
-
-		return new()
-		{
-			IsSaved = viewModel.IsSaved,
-			Settings = viewModel.CurrentSettings
-		};
 	}
 
 	/// <summary>

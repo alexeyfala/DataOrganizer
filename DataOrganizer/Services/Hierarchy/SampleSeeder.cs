@@ -1,10 +1,11 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Hierarchy;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Hierarchy;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Text;
 using Entities.Models;
 using Repository.Dto;
 using Repository.Enums;
@@ -27,19 +28,31 @@ public sealed class SampleSeeder : ISampleSeeder
 
 	/// <inheritdoc cref="IFolderProtection" />
 	private readonly IFolderProtection _folderProtection;
+
+	/// <inheritdoc cref="ISyntaxRegistry" />
+	private readonly ISyntaxRegistry _syntaxRegistry;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
 	public SampleSeeder(
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
-		IFolderProtection folderProtection)
+		IFolderProtection folderProtection,
+		ISyntaxRegistry syntaxRegistry,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
 		_entityLoader = entityLoader;
 
 		_folderProtection = folderProtection;
+
+		_syntaxRegistry = syntaxRegistry;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -60,8 +73,9 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		SampleObjects samples = SampleHierarchy.Create(
 			rootIndex,
-			DateTime.Now,
-			takenHotkeys);
+			_timeProvider.GetLocalNow().LocalDateTime,
+			takenHotkeys,
+			_syntaxRegistry);
 
 		FolderDto run = await WriteAsync(samples.Items, token).ConfigureAwait(false);
 
@@ -104,7 +118,7 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		ExplorerItemBase[] items = LargeSampleHierarchy.Create(
 			rootIndex,
-			DateTime.Now);
+			_timeProvider.GetLocalNow().LocalDateTime);
 
 		return await WriteAsync(items, token).ConfigureAwait(false);
 	}
@@ -150,11 +164,9 @@ public sealed class SampleSeeder : ISampleSeeder
 
 		contents[^1] ^= byte.MaxValue;
 
+		// The damage is not an edit, so the file keeps its date.
 		await _dbAccess
-			.UpdateFilePropertiesAsync(
-				id,
-				[builder => builder.SetProperty(x => x.Contents, contents)],
-				token)
+			.UpdateFileContentsAsync(id, contents, null, token)
 			.ConfigureAwait(false);
 	}
 
@@ -192,6 +204,7 @@ public sealed class SampleSeeder : ISampleSeeder
 		// The folder of the run is the only root of the samples.
 		return _entityLoader
 			.Map(folders, files)
+			.Items
 			.OfType<FolderDto>()
 			.Single();
 	}

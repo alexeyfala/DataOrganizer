@@ -1,18 +1,15 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Models;
-using Mapster;
 using MapsterMapper;
 using Repository.Enums;
 using Repository.Interfaces.Database;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,13 +41,13 @@ public sealed class EntityLoader : IEntityLoader
 
 		_logger = logger;
 
-		_mapper = ConfigureMapper(mapper);
+		_mapper = mapper;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerItemDtoBase[]?> LoadHierarchyAsync(CancellationToken token = default)
+	public async Task<LoadedHierarchy?> LoadHierarchyAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -83,7 +80,7 @@ public sealed class EntityLoader : IEntityLoader
 	}
 
 	/// <inheritdoc />
-	public ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> folders, IEnumerable<FileEntity> files)
+	public LoadedHierarchy Map(IReadOnlyCollection<FolderEntity> folders, IReadOnlyCollection<FileEntity> files)
 	{
 		FileDto[] fileDtos = _mapper.Map<IEnumerable<FileEntity>, FileDto[]>(files);
 
@@ -105,8 +102,6 @@ public sealed class EntityLoader : IEntityLoader
 			file
 				.Hotkeys
 				.ClearAddRange(orderedHotkeys);
-
-			file.SetHotkeysToolTip();
 		});
 
 		ExplorerItemDtoBase[] hierarchy = _mapper
@@ -128,60 +123,17 @@ public sealed class EntityLoader : IEntityLoader
 					.ForEach(x => x.EncryptionStatus = status);
 			});
 
-		return hierarchy;
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Configures the <see cref="IMapper" />.
-	/// </summary>
-	private static IMapper ConfigureMapper(IMapper mapper)
-	{
-		TypeAdapterConfig config = mapper.Config;
-
-		config.NewConfig<HotkeyEntity, HotkeyDto>();
-
-		config
-			.NewConfig<FileEntity, FileDto>()
-			.Ignore(dest => dest.Parent!);
-
-		config
-			.NewConfig<FolderEntity, FolderDto>()
-			.Ignore(dest => dest.Parent!)
-			.Ignore(dest => dest.Children);
-
-		config
-			.NewConfig<ExplorerItemBase, ExplorerItemDtoBase>()
-			.MapWith(src => src.GetType() == typeof(FileEntity)
-				? ((FileEntity)src).Adapt<FileDto>(config)
-				: ((FolderEntity)src).Adapt<FolderDto>(config));
-
-		if (AppInfo.IsDebug)
+		return new()
 		{
-			try
-			{
-				config.Compile();
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex.ToStringDemystified());
-
-				// A break under a test runner would stop a batch debug run.
-				if (!AppDomain
-					.CurrentDomain
-					.IsRunningFromNUnit())
-				{
-					Debugger.Break();
-				}
-
-				// Temporarily add .IgnoreNonMapped(true) to the problematic mapping,
-				// then remove one property at a time using .Map(dest => dest.PropertyName, src => src.PropertyName)
-				// until you find the one that breaks the compilation.
-			}
-		}
-
-		return mapper;
+			ExpandedIds = [.. folders
+				.Where(static x => x.IsExpanded)
+				.Select(static x => x.Id)],
+			Items = hierarchy,
+			SelectedIds = [.. folders
+				.Concat<ExplorerItemBase>(files)
+				.Where(static x => x.IsSelected)
+				.Select(static x => x.Id)]
+		};
 	}
 	#endregion
 }

@@ -7,14 +7,21 @@ using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
+using Repository.Enums;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using Shared.Common;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
@@ -23,7 +30,7 @@ internal class HierarchyEditorTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="HierarchyEditor.AddAsync" />: a new entity is created and, when a parent is given, linked to it and the parent is expanded.
+	/// <see cref="HierarchyEditor.AddAsync" />: a new entity is created and, when a parent is given, linked to it.
 	/// </summary>
 	[Test]
 	public async Task AddAsync_Returns_Entity(
@@ -96,46 +103,55 @@ internal class HierarchyEditorTests
 		parent.Children
 			.Should()
 			.Contain(entity);
-
-		parent.IsExpanded
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyEditor.DeleteAsync" />: on success the entity is removed from the hierarchy.
+	/// <see cref="HierarchyEditor.DeleteAsync" />: a file or a dataset leaves the database and the hierarchy, while the
+	/// folder it lies in stays.
 	/// </summary>
-	[TestCase(EntityKind.Folder)]
-	[TestCase(EntityKind.File)]
-	public async Task DeleteAsync_Deletes_Entity_In_Database_And_In_Treeview(EntityKind type)
+	[Test]
+	public async Task DeleteAsync_Deletes_A_File_In_Database_And_In_Treeview(
+		[Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
-		ExplorerItemDtoBase toBeDeleted = type switch
-		{
-			EntityKind.Folder => ItemDtoFactory.CreateFolderDto(),
-			EntityKind.File => ItemDtoFactory.CreateFileDto(),
-			_ => throw new NotImplementedException()
-		};
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder();
+
+		FileEntity file = EntityFactory.CreateFile(parentId: folder.Id);
+
+		ExplorerItemDtoBase toBeDeleted = ItemDtoFactory.CreateFileDto(id: file.Id, kind: kind);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			builder.RegisterInstance(database.Context);
 
-			if (type == EntityKind.Folder)
-			{
-				dbAccess
-					.DeleteFolderAsync(toBeDeleted.Id)
-					.Returns(true);
-			}
-			else
-			{
-				dbAccess
-					.DeleteFileAsync(toBeDeleted.Id)
-					.Returns(true);
-			}
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<HotkeysRepository>()
+				.As<IHotkeysRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([folder]);
+
+		await dbAccess.AddFilesAsync([file]);
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
@@ -154,41 +170,136 @@ internal class HierarchyEditorTests
 		hierarchy
 			.Should()
 			.NotContain(toBeDeleted);
+
+		FileEntity[] files = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		files
+			.Should()
+			.BeEmpty();
+
+		FolderEntity[] folders = await dbAccess.GetAllFoldersAsync();
+
+		folders.Select(static x => x.Id)
+			.Should()
+			.Equal(folder.Id);
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyEditor.DeleteAsync" />: when the database delete fails the entity stays in the hierarchy.
+	/// <see cref="HierarchyEditor.DeleteAsync" />: a folder leaves the database together with what lies in it, and leaves
+	/// the hierarchy.
 	/// </summary>
-	[TestCase(EntityKind.Folder)]
-	[TestCase(EntityKind.File)]
-	public async Task DeleteAsync_Keeps_The_Entity_When_The_Database_Delete_Fails(EntityKind type)
+	[Test]
+	public async Task DeleteAsync_Deletes_A_Folder_With_Its_Contents_In_Database_And_In_Treeview()
 	{
 		// Arrange
-		ExplorerItemDtoBase entity = type switch
-		{
-			EntityKind.Folder => ItemDtoFactory.CreateFolderDto(),
-			EntityKind.File => ItemDtoFactory.CreateFileDto(),
-			_ => throw new NotImplementedException()
-		};
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder();
+
+		FolderEntity subfolder = EntityFactory.CreateFolder(parentId: folder.Id);
+
+		FileEntity file = EntityFactory.CreateFile(parentId: subfolder.Id);
+
+		ExplorerItemDtoBase toBeDeleted = ItemDtoFactory.CreateFolderDto(id: folder.Id);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			builder.RegisterInstance(database.Context);
 
-			if (type == EntityKind.Folder)
-			{
-				dbAccess
-					.DeleteFolderAsync(entity.Id)
-					.Returns(false);
-			}
-			else
-			{
-				dbAccess
-					.DeleteFileAsync(entity.Id)
-					.Returns(false);
-			}
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<HotkeysRepository>()
+				.As<IHotkeysRepository>();
+		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([folder, subfolder]);
+
+		await dbAccess.AddFilesAsync([file]);
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
+
+		hierarchy.Add(toBeDeleted);
+
+		// Act
+		bool result = await sut.DeleteAsync(toBeDeleted, hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		hierarchy
+			.Should()
+			.NotContain(toBeDeleted);
+
+		FolderEntity[] folders = await dbAccess.GetAllFoldersAsync();
+
+		folders
+			.Should()
+			.BeEmpty();
+
+		FileEntity[] files = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		files
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteAsync" />: an object the database does not have stays in the hierarchy.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Keeps_The_Entity_When_The_Database_Delete_Fails([Values] EntityKind kind)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		ExplorerItemDtoBase entity = kind == EntityKind.Folder
+			? ItemDtoFactory.CreateFolderDto()
+			: ItemDtoFactory.CreateFileDto(kind: kind);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<HotkeysRepository>()
+				.As<IHotkeysRepository>();
 		});
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
@@ -225,12 +336,14 @@ internal class HierarchyEditorTests
 
 		DateTime updatedAt = DateTime.Now;
 
+		toBeRenamed.UpdatedAt = updatedAt;
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedAt);
+		bool result = await sut.RenameAsync(toBeRenamed, newName);
 
 		// Assert
 		result
@@ -239,40 +352,64 @@ internal class HierarchyEditorTests
 
 		toBeRenamed.UpdatedAt
 			.Should()
-			.NotBe(updatedAt);
+			.Be(updatedAt);
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyEditor.RenameAsync" />: the dto name and updated date are changed and persisted in the database.
+	/// <see cref="HierarchyEditor.RenameAsync" />: the dto name and updated date are changed and persisted in the database,
+	/// in the table of the kind of the object.
 	/// </summary>
 	[Test]
-	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
+	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity([Values] EntityKind kind)
 	{
 		// Arrange
-		ExplorerItemDtoBase dto = Substitute.For<ExplorerItemDtoBase>();
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder();
+
+		FileEntity file = EntityFactory.CreateFile();
+
+		ExplorerItemDtoBase dto = kind == EntityKind.Folder
+			? ItemDtoFactory.CreateFolderDto(id: folder.Id)
+			: ItemDtoFactory.CreateFileDto(id: file.Id, kind: kind);
 
 		string newName = RandomString.Create(10);
 
-		dto.Name = RandomString.Create(10);
-
-		DateTime updatedAt = DateTime.Now;
+		FakeTimeProvider time = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			builder.RegisterInstance(database.Context);
 
-			dbAccess.UpdateFolderPropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
-			.Returns(true);
+			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterInstance(dbAccess);
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([folder]);
+
+		await dbAccess.AddFilesAsync([file]);
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(dto, newName, updatedAt);
+		bool result = await sut.RenameAsync(dto, newName);
 
 		// Assert
 		result
@@ -285,7 +422,24 @@ internal class HierarchyEditorTests
 
 		dto.UpdatedAt
 			.Should()
-			.Be(updatedAt);
+			.Be(time.GetLocalNow().LocalDateTime);
+
+		FolderEntity[] folders = await dbAccess.GetAllFoldersAsync();
+
+		FileEntity[] files = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		ExplorerItemBase[] stored = [.. folders, .. files];
+
+		stored
+			.Should()
+			.ContainSingle(x => x.Id == dto.Id)
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Name = newName,
+				UpdatedAt = time.GetLocalNow().LocalDateTime
+			});
 	}
 	#endregion
 }

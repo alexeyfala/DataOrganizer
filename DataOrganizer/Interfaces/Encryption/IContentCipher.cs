@@ -1,15 +1,12 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using System;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Encryption;
 
 /// <summary>
-/// Opens the protected contents of a file, asking for a password when the keeper is locked.
+/// Encrypts and decrypts contents with the session keys of unlocked keepers.
 /// </summary>
 public interface IContentCipher
 {
@@ -26,16 +23,6 @@ public interface IContentCipher
 	/// Decrypts contents held under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
 	/// </summary>
 	byte[]? TryDecrypt(Guid keeperId, ContentIdentity identity, byte[] input);
-
-	/// <summary>
-	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
-	/// Empty content is handed back untouched, without asking for a password.
-	/// </summary>
-	Task<byte[]?> TryDecryptContentsAsync(
-		FileDto file,
-		byte[] contents,
-		string header,
-		CancellationToken token = default);
 
 	/// <summary>
 	/// Encrypts contents under an unlocked keeper; <c>null</c> reports a refusal, which is logged.

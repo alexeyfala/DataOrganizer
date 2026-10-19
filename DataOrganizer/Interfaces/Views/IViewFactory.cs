@@ -1,13 +1,12 @@
 using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace DataOrganizer.Interfaces.Views;
 
 /// <summary>
-/// Provides methods for creating views.
+/// Provides methods for creating views and their view models.
 /// </summary>
-public interface IViewFactory
+public interface IViewFactory : IViewModelFactory
 {
 	#region Methods
 	/// <summary>
@@ -19,13 +18,6 @@ public interface IViewFactory
 	/// </summary>
 	T CreateUserControl<T>(params object[] args) where T : UserControl;
 
-	/// <summary>
-	/// Creates a view model resolving its constructor parameters from application's
-	/// <see cref="ServiceCollection" />. The returned instance is NOT registered with
-	/// the root provider's tracked-disposables list, so its <see cref="IDisposable.Dispose" />
-	/// will be called only when the caller invokes it explicitly.
-	/// </summary>
-	T CreateViewModel<T>();
 
 	/// <summary>
 	/// Creates a <see cref="Window" /> resolving constructor parameters from application's

@@ -92,7 +92,7 @@
 						Margin="0.0,0.0,8.0,8.0"
 						Classes="HeaderTextBlockStyle"
 						Foreground="{StaticResource MaterialPaperBrush}"
-						Text="{Binding NoteName, Mode=OneWay, Converter={x:Static converters:AppConverters.NoteHeader}}"
+						Text="{Binding NoteName, Mode=OneWay, Converter={x:Static converters:ExplorerConverters.NoteHeader}}"
 						TextTrimming="CharacterEllipsis" />
 
 					<ToggleButton
@@ -142,7 +142,7 @@
 							<Interaction.Behaviors>
 								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 							</Interaction.Behaviors>
 						</SelectableTextBlock>
 					</ScrollViewer>

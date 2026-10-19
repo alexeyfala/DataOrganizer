@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Encryption;
 
 /// <summary>
-/// Puts a folder under a password, takes it out and changes the password of a protected one.
+/// Puts a folder under a password, takes it out and changes the password of a protected one, when the rules of
+/// <c>FolderProtectionRules</c> allow it.
 /// </summary>
 public interface IFolderProtection
 {

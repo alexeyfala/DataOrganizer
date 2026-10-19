@@ -1,24 +1,16 @@
-using Avalonia;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.DragAndDrop;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Extensions.Collections;
+using DataOrganizer.Helpers.Collections;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Notifications;
-using Repository.Interfaces.Database;
-using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>SelectedFavoritesView</c>.
 /// </summary>
-public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel
+public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings.Categories" />
@@ -66,9 +58,11 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// </summary>
 	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 
-	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
+	/// <summary>
+	/// Width of the navigation column.
+	/// </summary>
 	[ObservableProperty]
-	public partial GridLength NavigationColumnWidth { get; set; }
+	public partial double NavigationColumnWidth { get; set; }
 
 	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategoryIds" />
 	public List<Guid> OrderedCategoryIds { get; } = [];
@@ -154,17 +148,17 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 
 	/// <summary>
-	/// <see cref="Control.SizeChanged" /> event handler of <see cref="UserControl" />.
+	/// Keeps <see cref="NavigationColumnWidth" /> narrower than the view, whose new width is <paramref name="viewWidth" />.
 	/// </summary>
 	[RelayCommand]
-	private void SizeChanged(SizeChangedEventArgs? e)
+	private void SizeChanged(double viewWidth)
 	{
-		if (e is null)
+		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth, viewWidth) is not { } width)
 		{
 			return;
 		}
 
-		((INavigationColumnViewModel)this).SetNavigationColumnWidth(e.NewSize.Width);
+		NavigationColumnWidth = width;
 	}
 
 	/// <summary>
@@ -198,25 +192,11 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Constructors
 	public SelectedFavoritesViewModel(
-		Application app,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
-		ILogger logger,
+		IContentCopier contentCopier,
 		IMessenger messenger,
-		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
-			clipboard,
-			contentCipher,
-			dbAccess,
-			dialogService,
-			jsonSerializer,
-			logger,
+			contentCopier,
 			messenger,
-			notification,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(
@@ -290,37 +270,26 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public void Initialize(
 		double navigationColumnWidth,
 		Guid selectedCategoryId,
-		List<FavoriteCategory> categories,
-		List<Guid> orderedCategoryIds,
-		List<FavoriteSelection> selectedPairs)
+		IReadOnlyCollection<FavoriteCategory> categories,
+		IReadOnlyCollection<Guid> orderedCategoryIds,
+		IReadOnlyCollection<FavoriteSelection> selectedPairs)
 	{
-		NavigationColumnWidth = new(navigationColumnWidth);
+		NavigationColumnWidth = navigationColumnWidth;
 
-		if (orderedCategoryIds.Count > 0)
-		{
-			Guid[] identifiers = [.. categories.Select(x => x.Id)];
+		Guid[] identifiers = [.. categories.Select(x => x.Id)];
 
-			for (int i = 0; i < orderedCategoryIds.Count; i++)
-			{
-				if (!identifiers.Contains(orderedCategoryIds[i]))
-				{
-					orderedCategoryIds.RemoveAt(i);
-				}
-			}
+		// The ids of the categories that are gone stay out of the stored order.
+		Guid[] kept = [.. orderedCategoryIds.Where(identifiers.Contains)];
 
-			if (orderedCategoryIds.Count > 0)
-			{
-				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategoryIds, x => x.Id)]);
+		FavoriteCategory[] ordered = [.. categories.OrderBySequenceKeepSource(kept, x => x.Id)];
 
-				OrderedCategoryIds.AddRange(orderedCategoryIds);
-			}
-		}
+		OrderedCategoryIds.AddRange(kept);
 
-		_categoriesFilter.AddRange(categories);
+		_categoriesFilter.AddRange(ordered);
 
 		SelectedPairs.AddRange(selectedPairs);
 
-		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
+		_categoriesFilter.PostToUi(() => SelectedCategory = ordered.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
 
 	/// <inheritdoc />
@@ -344,6 +313,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		SelectedPairs.Clear();
 	}
+
+	/// <inheritdoc />
+	protected override void SelectFile(FileDto file) => SelectedFavorite = file;
 	#endregion
 
 	#region Helpers

@@ -1,5 +1,5 @@
-using Avalonia.Threading;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Interfaces.Views;
 using System;
 using System.Threading.Tasks;
 
@@ -13,10 +13,10 @@ internal sealed class InlineDispatcherAccessor : IDispatcherAccessor
 {
 	#region Methods
 	/// <inheritdoc />
-	public void Post(Action action, DispatcherPriority priority = default) => action();
+	public void Post(Action action, UiPriority priority = default) => action();
 
 	/// <inheritdoc />
-	public Task PostAsync(Action action, DispatcherPriority priority = default)
+	public Task PostAsync(Action action, UiPriority priority = default)
 	{
 		action();
 
@@ -24,13 +24,13 @@ internal sealed class InlineDispatcherAccessor : IDispatcherAccessor
 	}
 
 	/// <inheritdoc />
-	public Task<TResult> PostAsync<TResult>(Func<TResult> func, DispatcherPriority priority = default)
+	public Task<TResult> PostAsync<TResult>(Func<TResult> func, UiPriority priority = default)
 	{
 		return Task.FromResult(func());
 	}
 
 	/// <inheritdoc />
-	public Task<TResult> PostAsync<TResult>(Func<Task<TResult>> func, DispatcherPriority priority = default)
+	public Task<TResult> PostAsync<TResult>(Func<Task<TResult>> func, UiPriority priority = default)
 	{
 		return func();
 	}

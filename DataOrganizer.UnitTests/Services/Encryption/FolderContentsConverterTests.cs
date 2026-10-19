@@ -54,7 +54,7 @@ internal class FolderContentsConverterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
@@ -149,7 +149,7 @@ internal class FolderContentsConverterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
@@ -209,7 +209,7 @@ internal class FolderContentsConverterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
@@ -271,7 +271,7 @@ internal class FolderContentsConverterTests
 			}
 		];
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		IDekCipher encryption = Substitute.For<IDekCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -335,7 +335,7 @@ internal class FolderContentsConverterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
@@ -401,7 +401,7 @@ internal class FolderContentsConverterTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IDekCipher encryption = Substitute.For<IDekCipher>();
 
 			encryption
 				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())

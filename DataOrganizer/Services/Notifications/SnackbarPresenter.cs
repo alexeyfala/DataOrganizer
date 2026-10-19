@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Interfaces.Notifications;
 using Material.Styles.Controls;
 using Material.Styles.Models;

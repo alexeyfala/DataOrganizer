@@ -1,5 +1,3 @@
-using Avalonia;
-using AvaloniaEdit;
 using Generator.Equals;
 
 namespace DataOrganizer.Dto.Documents;
@@ -25,7 +23,7 @@ public readonly partial record struct DocumentViewState
 	/// <summary>
 	/// The caret position.
 	/// </summary>
-	public required TextViewPosition CaretPosition { get; init; }
+	public required CaretPosition CaretPosition { get; init; }
 
 	/// <summary>
 	/// Offsets where the folded blocks start, while the other blocks are unfolded; <c>null</c> stands for none, and an
@@ -42,7 +40,7 @@ public readonly partial record struct DocumentViewState
 	/// <summary>
 	/// The offset of scrolling position.
 	/// </summary>
-	public required Vector ScrollOffset { get; init; }
+	public required ScrollOffset ScrollOffset { get; init; }
 
 	/// <summary>
 	/// The length of selected text.

@@ -31,7 +31,7 @@
 
 				<dragAndDrop:DatasetDropRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
-					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					MoveCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).MoveRecordCommand}"
 					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
@@ -85,7 +85,7 @@
 
 				<dragAndDrop:DatasetDropRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
-					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					MoveCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).MoveRecordCommand}"
 					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
@@ -147,7 +147,7 @@
 
 								<dragAndDrop:DatasetDropRecordInsideBehavior
 									IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
-									MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+									MoveCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).MoveRecordCommand}"
 									Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 							</Interaction.Behaviors>
 
@@ -211,17 +211,7 @@
 
 					<styling:ExpanderToggleCursorBehavior />
 
-					<EventTriggerBehavior EventName="Expanded">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
-							PassEventArgsToCommand="True" />
-					</EventTriggerBehavior>
-
-					<EventTriggerBehavior EventName="Collapsed">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
-							PassEventArgsToCommand="True" />
-					</EventTriggerBehavior>
+					<input:ExpanderToggledByUserBehavior Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}" />
 				</Interaction.Behaviors>
 			</Expander>
 		</Border>

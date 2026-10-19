@@ -1,8 +1,17 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Enums.Documents;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Messages.Editor;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using NSubstitute;
+using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +24,80 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a file copied from the list goes into the copy history,
+	/// and a shown list moves it at its next showing.
+	/// </summary>
+	[Test]
+	public void CopyContentCommand_Puts_The_File_Into_The_Copy_History()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			fileTextCopier
+				.CopyAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(FileTextStatus.Text);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<ContentCopier>()
+				.As<IContentCopier>();
+		});
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.CopyContentCommand
+			.Execute(file);
+
+		// Assert
+		copyHistory
+			.Received(1)
+			.Add(file, false);
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.CopyContentCommand" />: the copied file becomes the selected favorite.
+	/// </summary>
+	[Test]
+	public void CopyContentCommand_Selects_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.CopyContentCommand
+			.Execute(file);
+
+		// Assert
+		sut.SelectedFavorite
+			.Should()
+			.BeSameAs(file);
+	}
+
 	/// <summary>
 	/// <see cref="ObservableDisposableBase.Dispose" />: it clears all collections and selection properties.
 	/// </summary>
@@ -80,6 +163,36 @@ internal class SelectedFavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.Initialize" />: the stored order drops the ids of the categories that are gone,
+	/// also when two of them stand in a row.
+	/// </summary>
+	[Test]
+	public void Initialize_Drops_The_Ids_Of_Categories_That_Are_Gone()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(2)];
+
+		// Act
+		sut.Initialize(
+			navigationColumnWidth: RandomValues.CreateDouble(100.0, 300.0),
+			selectedCategoryId: categories[0].Id,
+			categories: categories,
+			orderedCategoryIds: [categories[1].Id, Guid.NewGuid(), Guid.NewGuid(), categories[0].Id],
+			selectedPairs: []);
+
+		// Assert
+		sut.OrderedCategoryIds
+			.Should()
+			.Equal(categories[1].Id, categories[0].Id);
+	}
+
+	/// <summary>
 	/// <see cref="SelectedFavoritesViewModel.Initialize" />: it populates the collections and selection properties from the supplied data.
 	/// </summary>
 	[Test]
@@ -105,7 +218,7 @@ internal class SelectedFavoritesViewModelTests
 			selectedPairs: [.. FavoriteFactory.CreateFavoriteSelections(count)]);
 
 		// Assert
-		sut.NavigationColumnWidth.Value
+		sut.NavigationColumnWidth
 			.Should()
 			.NotBe(default);
 
@@ -124,6 +237,63 @@ internal class SelectedFavoritesViewModelTests
 		sut.SelectedPairs
 			.Should()
 			.NotBeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="FileListViewModelBase.ShowInEditorCommand" />: the object is shown in the editor, whichever main window shows.
+	/// </summary>
+	[Test]
+	public void ShowInEditorCommand_Shows_The_Object_In_The_Editor()
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		List<Guid> shown = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ShowInEditorMessage>(this, (_, message) => shown.Add(message.Id));
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(messenger));
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		sut
+			.ShowInEditorCommand
+			.Execute(id);
+
+		// Assert
+		shown
+			.Should()
+			.Equal(id);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.SizeChangedCommand" />: the navigation column narrows below the view width
+	/// when the view shrinks.
+	/// </summary>
+	[Test]
+	public void SizeChangedCommand_Clamps_The_Navigation_Column_To_Less_Than_The_View_Width()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		const double viewWidth = 250.0;
+
+		sut.NavigationColumnWidth = viewWidth * 2;
+
+		// Act
+		sut.SizeChangedCommand.Execute(viewWidth);
+
+		// Assert
+		sut.NavigationColumnWidth
+			.Should()
+			.BeLessThan(viewWidth);
 	}
 	#endregion
 }

@@ -7,11 +7,14 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Interfaces.Views;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 
 namespace DataOrganizer.Controls;
@@ -141,9 +144,19 @@ internal sealed class DocumentTabControl : TabControl
 	private Point _grabPoint;
 
 	/// <summary>
+	/// Subscription to the removals from <see cref="ItemsControl.ItemsSource" />, replaced with the source.
+	/// </summary>
+	private readonly SerialDisposable _itemsSubscription = new();
+
+	/// <summary>
 	/// Tab the middle button was pressed on.
 	/// </summary>
 	private TabItem? _middlePressedTab;
+
+	/// <summary>
+	/// Item that leaves the items only to come back at once, moved along the row.
+	/// </summary>
+	private object? _movedItem;
 
 	/// <summary>
 	/// Index of the item removed by the last change of the items, or -1.
@@ -247,6 +260,17 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Takes the views of all tabs out of the cache of the template that builds them.
+	/// </summary>
+	public void ForgetViews()
+	{
+		foreach (object? item in ItemsView)
+		{
+			ForgetView(item);
+		}
+	}
+
 	/// <inheritdoc />
 	protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
 	{
@@ -319,6 +343,13 @@ internal sealed class DocumentTabControl : TabControl
 	{
 		base.OnPropertyChanged(change);
 
+		if (change.Property == ItemsSourceProperty)
+		{
+			FollowRemovals(change.GetNewValue<IEnumerable?>() as INotifyCollectionChanged);
+
+			return;
+		}
+
 		if (change.Property != SelectedItemProperty)
 		{
 			return;
@@ -362,18 +393,6 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Moves the item at <paramref name="oldIndex" /> of a list to <paramref name="newIndex" />.
-	/// </summary>
-	private static void MoveItem(IList items, int oldIndex, int newIndex)
-	{
-		object? item = items[oldIndex];
-
-		items.RemoveAt(oldIndex);
-
-		items.Insert(newIndex, item);
-	}
-
 	/// <summary>
 	/// Closes every tab.
 	/// </summary>
@@ -436,6 +455,37 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <summary>
+	/// Forgets the view of an item removed from <paramref name="items" />, but for one moved along the row.
+	/// </summary>
+	private void FollowRemovals(INotifyCollectionChanged? items)
+	{
+		// Subscribed after the base class, so a view goes once its tab has given way and the content shows it no more.
+		_itemsSubscription.Disposable = items is null
+			? null
+			: Observable
+				.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
+					x => items.CollectionChanged += x,
+					x => items.CollectionChanged -= x)
+				.Where(static x => x.EventArgs.Action is NotifyCollectionChangedAction.Remove)
+				.SelectMany(static x => x.EventArgs.OldItems!.Cast<object?>())
+				.Where(x => !ReferenceEquals(x, _movedItem))
+				.Subscribe(ForgetView);
+	}
+
+	/// <summary>
+	/// Takes the view of an item out of the cache of the template that builds it, where that template keeps one.
+	/// </summary>
+	private void ForgetView(object? item)
+	{
+		if (item is null || this.FindDataTemplate(item, ContentTemplate) is not IViewCache cache)
+		{
+			return;
+		}
+
+		cache.Remove(item);
+	}
+
+	/// <summary>
 	/// Finds the tab of this control the event source belongs to.
 	/// </summary>
 	private TabItem? GetTabItem(object? source)
@@ -449,6 +499,23 @@ internal sealed class DocumentTabControl : TabControl
 		return ReferenceEquals(tabItem.FindAncestorOfType<TabControl>(), this)
 			? tabItem
 			: null;
+	}
+
+	/// <summary>
+	/// Moves the item at <paramref name="oldIndex" /> of a list to <paramref name="newIndex" />.
+	/// </summary>
+	private void MoveItem(IList items, int oldIndex, int newIndex)
+	{
+		object? item = items[oldIndex];
+
+		// The item comes back at once, so its view stays.
+		_movedItem = item;
+
+		items.RemoveAt(oldIndex);
+
+		items.Insert(newIndex, item);
+
+		_movedItem = null;
 	}
 
 	/// <summary>

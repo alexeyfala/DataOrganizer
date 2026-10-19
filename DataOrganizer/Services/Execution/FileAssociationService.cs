@@ -1,6 +1,7 @@
 using DataOrganizer.Interfaces.Execution;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 /*
  * Path to the "Open with" list in the registry:
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 namespace DataOrganizer.Services.Execution;
 
 /// <inheritdoc cref="IFileAssociationService" />
+[SupportedOSPlatform("windows")]
 public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods
@@ -50,23 +52,6 @@ public sealed partial class FileAssociationService : IFileAssociationService
 
 		return new string(buffer, 0, nullTerminator >= 0 ? nullTerminator : buffer.Length);
 	}
-
-	/// <inheritdoc />
-	public string? FindApplicationByPath(string absoluteFilePath)
-	{
-		Span<char> buffer = stackalloc char[1024];
-
-		FindExecutable(absoluteFilePath, string.Empty, buffer);
-
-		int nullTerminator = buffer.IndexOf('\0');
-
-		if (nullTerminator <= 0)
-		{
-			return null;
-		}
-
-		return new string(buffer[..nullTerminator]);
-	}
 	#endregion
 
 	#region Native
@@ -78,12 +63,6 @@ public sealed partial class FileAssociationService : IFileAssociationService
 		string? pszExtra,
 		[Out] char[]? pszOut,
 		ref uint pcchOut);
-
-	[LibraryImport("shell32.dll", EntryPoint = "FindExecutableW", StringMarshalling = StringMarshalling.Utf16)]
-	private static partial long FindExecutable(
-		string lpFile,
-		string lpDirectory,
-		Span<char> lpResult);
 	#endregion
 
 	#region Nested Types

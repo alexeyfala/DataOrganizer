@@ -6,10 +6,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
@@ -89,7 +89,78 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogPersistenceCoordinator.DisposeAsync" />: the flush writes the entries of the log.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Saves_The_Entries_Of_The_Log()
+	{
+		// Arrange
+		ClipboardLogEntryBase[] entries =
+		[
+			ClipboardEntryFactory.CreateTextEntry("a", [1]),
+			ClipboardEntryFactory.CreateTextEntry("b", [2])
+		];
+
+		IReadOnlyList<ClipboardLogEntryBase>? saved = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
+
+			IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings() with
+				{
+					PersistClipboardHistory = true
+				});
+
+			clipboardLog
+				.Entries
+				.Returns([.. entries]);
+
+			store
+				.IsUnlocked
+				.Returns(true);
+
+			store
+				.When(x => x.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>()))
+				.Do(call => saved = call.Arg<IReadOnlyList<ClipboardLogEntryBase>>());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(TimeProvider.System);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<ClipboardLogPersistenceCoordinator>()
+				.ExternallyOwned();
+		});
+
+		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
+
+		// Act
+		await sut.DisposeAsync();
+
+		// Assert
+		saved
+			.Should()
+			.Equal(entries);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogPersistenceCoordinator.DisposeAsync" />: it unsubscribes, so a later
+
 	/// change raises no further save (the only save is the dispose-time flush).
 	/// </summary>
 	[Test]
@@ -108,7 +179,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -236,7 +307,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 			settingsStore
 				.Settings
@@ -298,7 +369,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -486,7 +557,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -644,7 +715,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+			IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
@@ -853,7 +924,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Arrange
 		ClipboardLogEntryBase[] loaded = [ClipboardEntryFactory.CreateTextEntry("A", [1])];
 
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
@@ -923,7 +994,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	public async Task TryUnlockAndMergeAsync_Wrong_Password_Does_Not_Merge_Or_Save()
 	{
 		// Arrange
-		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+		IClipboardLogMerger clipboardLog = Substitute.For<IClipboardLogMerger>();
 
 		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 

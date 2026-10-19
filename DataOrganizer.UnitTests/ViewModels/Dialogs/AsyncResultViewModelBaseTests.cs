@@ -1,16 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.ViewModels.Dialogs;
-using DialogHostAvalonia;
 using NSubstitute;
 using System;
 using System.Threading;
@@ -22,6 +17,61 @@ namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 internal class AsyncResultViewModelBaseTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />: a dialog shown in its host and closed without an
+	/// answer answers with the default only once it has faded out.
+	/// </summary>
+	[Test]
+	public async Task GetResultAsync_Answers_Once_The_Closed_Dialog_Is_Hidden()
+	{
+		// Arrange
+		TaskCompletionSource dialogClosed = new();
+
+		TaskCompletionSource hidden = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogCloser dialogCloser = Substitute.For<IDialogCloser>();
+
+			IShownDialog shown = Substitute.For<IShownDialog>();
+
+			shown
+				.WaitUntilHiddenAsync()
+				.Returns(hidden.Task);
+
+			dialogCloser
+				.FindShownDialog(DialogHostIdentifiers.Main)
+				.Returns(shown);
+
+			builder.RegisterInstance(dialogCloser);
+		});
+
+		YesNoCancelBoxViewModel sut = mock.Create<YesNoCancelBoxViewModel>();
+
+		Task<YesNoCancelAnswer> answer = sut.GetResultAsync(dialogClosed.Task, YesNoCancelButtons.YesNoCancel);
+
+		// Act
+		dialogClosed.SetResult();
+
+		// Time for the answer to come, were it not waiting for the dialog to fade out.
+		await Task.Delay(100);
+
+		bool isAnsweredWhileShown = answer.IsCompleted;
+
+		hidden.SetResult();
+
+		YesNoCancelAnswer actual = await answer.WaitAsync(TimeSpan.FromSeconds(5.0));
+
+		// Assert
+		isAnsweredWhileShown
+			.Should()
+			.BeFalse();
+
+		actual
+			.Should()
+			.Be(YesNoCancelAnswer.Cancel);
+	}
+
 	/// <summary>
 	/// <see cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />: a dialog closed without an answer answers with the default.
 	/// </summary>
@@ -106,72 +156,28 @@ internal class AsyncResultViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="AsyncResultViewModelBase{TResult}.SetResultAsync" />: the answer closes the dialog in the host that
-	/// shows it, while another window has a host of its own.
+	/// <see cref="AsyncResultViewModelBase{TResult}.SetResultAsync" />: the answer closes the dialog in the host that shows
+	/// it.
 	/// </summary>
-	[AvaloniaTest]
-	public void SetResultAsync_Closes_The_Dialog_In_Its_Host()
+	[Test]
+	public async Task SetResultAsync_Closes_The_Dialog_In_Its_Host()
 	{
 		// Arrange
-		Window mainWindow = new()
-		{
-			Content = new DialogHost
-			{
-				Identifier = DialogHostIdentifiers.Main
-			}
-		};
+		IDialogCloser dialogCloser = Substitute.For<IDialogCloser>();
 
-		Window notepadWindow = new()
-		{
-			Content = new DialogHost
-			{
-				Identifier = DialogHostIdentifiers.Notepad
-			}
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([mainWindow, notepadWindow]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder
-				.RegisterInstance(app)
-				.As<Application>();
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogCloser));
 
 		YesNoCancelBoxViewModel sut = mock.Create<YesNoCancelBoxViewModel>();
 
 		sut.DialogHostIdentifier = DialogHostIdentifiers.Notepad;
 
-		mainWindow.Show();
-
-		notepadWindow.Show();
-
-		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Notepad);
-
-		Dispatcher.UIThread.RunJobs();
-
 		// Act
-		_ = sut.SetResultAsync(YesNoCancelAnswer.Yes);
-
-		bool isClosed = dialogClosed.IsCompleted;
-
-		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
-		mainWindow.Close();
-
-		notepadWindow.Close();
+		await sut.SetResultAsync(YesNoCancelAnswer.Yes);
 
 		// Assert
-		isClosed
-			.Should()
-			.BeTrue();
+		await dialogCloser
+			.Received(1)
+			.CloseAsync(DialogHostIdentifiers.Notepad);
 	}
 
 	/// <summary>

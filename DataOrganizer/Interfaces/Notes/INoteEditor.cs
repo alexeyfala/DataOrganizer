@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Entities;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,6 @@ public interface INoteEditor
 	Task<bool> EditAsync(
 		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedAt,
 		CancellationToken token = default);
 	#endregion
 }

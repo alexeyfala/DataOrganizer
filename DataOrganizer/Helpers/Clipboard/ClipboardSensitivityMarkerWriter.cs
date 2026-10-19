@@ -1,6 +1,5 @@
 using Avalonia.Input;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces.Clipboard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +21,6 @@ internal static class ClipboardSensitivityMarkerWriter
 	/// Application-scoped ownership marker format identifying a sensitive payload this application placed.
 	/// </summary>
 	private static readonly DataFormat<byte[]> OwnershipFormat = DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership);
-
-	/// <summary>
-	/// Auto-clear scheduler armed after each sensitive copy; wired once at startup, <c>null</c> until then.
-	/// </summary>
-	private static IClipboardAutoClear? _autoClear;
 	#endregion
 
 	#region Methods
@@ -44,38 +38,11 @@ internal static class ClipboardSensitivityMarkerWriter
 	}
 
 	/// <summary>
-	/// Wires (or clears) the auto-clear scheduler armed after each sensitive copy.
-	/// </summary>
-	public static void Configure(IClipboardAutoClear? autoClear) => _autoClear = autoClear;
-
-	/// <summary>
 	/// <c>True</c> when <paramref name="formats" /> carries the ownership marker, i.e. the current clipboard content is a sensitive payload this application placed.
 	/// </summary>
 	public static bool ContainsOwnershipMarker(IReadOnlyList<DataFormat> formats)
 	{
 		return formats.Any(static format => format.Identifier == OwnershipFormat.Identifier);
-	}
-
-	/// <summary>
-	/// Builds a single-item <see cref="DataTransfer" /> holding <paramref name="text" /> plus the sensitivity markers.
-	/// </summary>
-	public static DataTransfer CreateSensitiveText(string text)
-	{
-		DataTransferItem item = new();
-
-		item.SetText(text);
-
-		AttachSensitivityMarkers(item);
-
-		// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
-		DataTransfer transfer = new();
-
-		transfer.Add(item);
-
-		// Start the auto-clear countdown for this sensitive copy (no-op until wired at startup).
-		_autoClear?.Arm();
-
-		return transfer;
 	}
 	#endregion
 

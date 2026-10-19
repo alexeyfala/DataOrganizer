@@ -34,6 +34,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -42,7 +45,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		IMapper mapper,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -53,6 +57,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		_mapper = mapper;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -118,11 +124,6 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			GetCollectionToAdd(parent, hierarchy).Add(dto);
 
-			if (parent?.IsExpanded == false)
-			{
-				parent.IsExpanded = true;
-			}
-
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
 			_notification.ShowInformationSnackbar(successText);
@@ -151,11 +152,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		try
 		{
-			result = dto.Kind switch
-			{
-				EntityKind.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
-				_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
-			};
+			result = await _dbAccess
+				.DeleteAsync(dto.Kind, dto.Id, token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -188,7 +187,6 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	public async Task<bool> RenameAsync(
 		ExplorerItemDtoBase dto,
 		string newName,
-		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		if (newName.Equals(dto.Name, StringComparison.Ordinal))
@@ -202,20 +200,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			return false;
 		}
 
-		Task<bool> task = dto.Kind switch
-		{
-			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			_ => throw new NotImplementedException()
-		};
+		DateTime updatedAt = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
@@ -223,7 +210,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		try
 		{
-			result = await task.ConfigureAwait(false);
+			result = await _dbAccess
+				.RenameAsync(dto.Kind, dto.Id, newName, updatedAt, token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

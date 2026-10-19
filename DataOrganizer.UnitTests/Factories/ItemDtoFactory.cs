@@ -98,6 +98,19 @@ public static class ItemDtoFactory
 	}
 
 	/// <summary>
+	/// Creates a <see cref="LoadedHierarchy" /> of objects, with the identifiers stored expanded and selected.
+	/// </summary>
+	public static LoadedHierarchy CreateLoadedHierarchy(
+		ExplorerItemDtoBase[] items,
+		Guid[]? expandedIds = null,
+		Guid[]? selectedIds = null) => new()
+		{
+			ExpandedIds = expandedIds ?? [],
+			Items = items,
+			SelectedIds = selectedIds ?? []
+		};
+
+	/// <summary>
 	/// Creates a <see cref="FileDto" /> with the required base members populated, the given name and index 0.
 	/// </summary>
 	public static FileDto CreateNamedFileDto(string name = "") => new()

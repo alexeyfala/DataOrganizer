@@ -1,134 +1,172 @@
-using Avalonia.Controls;
-using Cysharp.Text;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using Repository.Enums;
-using Repository.Interfaces.Database;
+using DataOrganizer.Messages.Runtime;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
-using Shared.Properties;
 using System;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using OSVersion = OSVersionExtension.OSVersion;
 
 namespace DataOrganizer.Services.Runtime;
 
-public sealed class AppController : IAppController
+public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, IRecipient<RestartAppMessage>
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IAppShutdown" />
+	private readonly IAppShutdown _appShutdown;
 
-	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
-	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+	/// <inheritdoc cref="IAppUptime" />
+	private readonly IAppUptime _appUptime;
+
+	/// <inheritdoc cref="IAvaloniaLogForwarder" />
+	private readonly IAvaloniaLogForwarder _avaloniaLogForwarder;
+
+	/// <inheritdoc cref="IBackgroundServices" />
+	private readonly IBackgroundServices _backgroundServices;
 
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IEntityLoader" />
-	private readonly IEntityLoader _entityLoader;
+	/// <inheritdoc cref="ICopyHistoryStore" />
+	private readonly ICopyHistoryStore _copyHistory;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
+	/// <inheritdoc cref="IExecutingFiles" />
+	private readonly IExecutingFiles _executingFiles;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="IGlobalExceptionHandler" />
+	private readonly IGlobalExceptionHandler _globalExceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notification;
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processManager;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
-	/// <inheritdoc cref="IAppSettingsStore" />
-	private readonly IAppSettingsStore _settingsStore;
+	/// <inheritdoc cref="ISecondaryWindowCloser" />
+	private readonly ISecondaryWindowCloser _secondaryWindowCloser;
+
+	/// <inheritdoc cref="IServiceProvider" />
+	private readonly IServiceProvider _serviceProvider;
+
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
+
+	/// <inheritdoc cref="ISessionTreeState" />
+	private readonly ISessionTreeState _sessionTreeState;
+
+	/// <inheritdoc cref="IStartupDataLoader" />
+	private readonly IStartupDataLoader _startupData;
+
+	/// <inheritdoc cref="IStartupInfoLogger" />
+	private readonly IStartupInfoLogger _startupInfo;
 
 	/// <inheritdoc cref="IUpdateNotifier" />
 	private readonly IUpdateNotifier _updateNotifier;
 
-	/// <inheritdoc cref="IViewLauncher" />
-	private readonly IViewLauncher _viewLauncher;
+	/// <summary>
+	/// <c>True</c> once a restart is asked for: the application starts again after it stops.
+	/// </summary>
+	private bool _isRestartAsked;
 	#endregion
 
 	#region Constructors
 	public AppController(
 		IAppEnvironment appEnvironment,
-		IAppSettingsStore settingsStore,
+		IAppShutdown appShutdown,
+		IAppUptime appUptime,
 		IAvaloniaLogForwarder avaloniaLogForwarder,
-		IClipboardLogService clipboardLog,
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IBackgroundServices backgroundServices,
 		ICommandLineOptions options,
-		IDbAccess dbAccess,
-		IEntityLoader entityLoader,
+		ICopyHistoryStore copyHistory,
+		IExecutingFiles executingFiles,
 		IExecutionSandbox sandbox,
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
-		INotificationService notification,
+		IMainWindowLauncher mainWindowLauncher,
+		IMessenger messenger,
+		IProcessManager processManager,
+		ISecondaryWindowCloser secondaryWindowCloser,
+		IServiceProvider serviceProvider,
+		ISessionHierarchy sessionHierarchy,
+		ISessionTreeState sessionTreeState,
+		IStartupDataLoader startupData,
+		IStartupInfoLogger startupInfo,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
-		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
 
-		_clipboardLog = clipboardLog;
+		_appShutdown = appShutdown;
 
-		_clipboardLogPersistence = clipboardLogPersistence;
+		_appUptime = appUptime;
+
+		_avaloniaLogForwarder = avaloniaLogForwarder;
+
+		_backgroundServices = backgroundServices;
 
 		_consoleWindowHost = consoleWindowHost;
 
-		_dbAccess = dbAccess;
+		_copyHistory = copyHistory;
 
-		_entityLoader = entityLoader;
+		_executingFiles = executingFiles;
 
 		_fileSystem = fileSystem;
+
+		_globalExceptionHandler = globalExceptionHandler;
 
 		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
-		_notification = notification;
+		_mainWindowLauncher = mainWindowLauncher;
 
 		_options = options;
 
+		_processManager = processManager;
+
 		_sandbox = sandbox;
 
-		_settingsStore = settingsStore;
+		_secondaryWindowCloser = secondaryWindowCloser;
+
+		_serviceProvider = serviceProvider;
+
+		_sessionHierarchy = sessionHierarchy;
+
+		_sessionTreeState = sessionTreeState;
+
+		_startupData = startupData;
+
+		_startupInfo = startupInfo;
 
 		_updateNotifier = updateNotifier;
 
-		_viewLauncher = viewLauncher;
-
-		globalExceptionHandler.StartMonitoring();
-
-		avaloniaLogForwarder.StartForwarding();
+		messenger.RegisterAll(this);
 	}
 	#endregion
 
@@ -138,6 +176,10 @@ public sealed class AppController : IAppController
 	{
 		try
 		{
+			_globalExceptionHandler.StartMonitoring();
+
+			_avaloniaLogForwarder.StartForwarding();
+
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			await _sandbox
@@ -152,147 +194,96 @@ public sealed class AppController : IAppController
 					.ConfigureAwait(true);
 			}
 
-			InitialPrint();
+			_startupInfo.Log();
 
 			// TODO: Display a splash screen while connecting to database.
 
-			DbConnectionStatus status = await _dbAccess
-				.ConnectAsync(token)
-				.ConfigureAwait(true);
-
-			if (status is DbConnectionStatus.SchemaTooOld or DbConnectionStatus.SchemaTooNew)
+			if (await _startupData
+				.LoadAsync(token)
+				.ConfigureAwait(true) is not { } loaded)
 			{
-				// The data is intact, and an empty hierarchy would read as a loss worth undoing.
-				_logger.LogError($"The schema of the database is {status}, the launch ends.", breakInDebugger: false);
-
-				await _viewLauncher
-					.ShowStartupErrorAsync(_dbAccess.GetDbFilePath())
-					.ConfigureAwait(true);
+				// There is no window left to keep the application alive, and nothing to save.
+				_appShutdown.Shutdown();
 
 				return;
-			}
-
-			bool isConnected = status is DbConnectionStatus.Connected;
-
-			if (!isConnected)
-			{
-				_logger.LogError("The database is unavailable, the launch continues without it.", breakInDebugger: false);
-
-				_notification.ShowToast(Strings.DatabaseIsUnavailable);
-			}
-
-			// Nothing is read from a database that is not there: the toast above has already said so.
-			ExplorerItemDtoBase[]? hierarchy = isConnected
-				? await _entityLoader
-					.LoadHierarchyAsync(token)
-					.ConfigureAwait(true)
-				: [];
-
-			if (hierarchy is null)
-			{
-				_logger.LogError(
-					"The database could not be read, the launch continues with an empty hierarchy.",
-					breakInDebugger: false);
-
-				_notification.ShowToast(Strings.FailedToReadDatabase);
-			}
-			else
-			{
-				FileDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
-
-				if (unreadable.IsNotEmpty())
-				{
-					unreadable.ForEach(x =>
-					{
-						_logger.LogError(
-							$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
-							breakInDebugger: false);
-					});
-
-					_notification.ShowToast(
-						unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
-				}
 			}
 
 			// TODO: Close splash screen here.
 
-			_clipboardLogPersistence.Start();
+			_backgroundServices.Start(token);
 
-			if (_settingsStore
-				.Settings
-				.TrackClipboardHistory)
-			{
-				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
-			}
+			_sessionTreeState.Remember(loaded);
 
-			Window? mainWindow = _viewLauncher.CreateMainWindow(hierarchy ?? []);
+			_sessionHierarchy.Hierarchy.AddRange(loaded.Items);
 
-			mainWindow?.Show();
+			_copyHistory.Load(_sessionHierarchy.Hierarchy);
 
-			if (mainWindow?.DataContext is not IUpdatePrompt updatePrompt)
-			{
-				return;
-			}
+			_mainWindowLauncher.ShowMainWindow();
 
-			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(updatePrompt, token));
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(token));
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 		}
 	}
+
+	/// <inheritdoc />
+	public void Receive(ExitAppMessage message) => _exceptionHandler.Watch(StopAppAsync());
+
+	/// <inheritdoc />
+	public void Receive(RestartAppMessage message) => _isRestartAsked = true;
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Writes initial data to log.
+	/// Closes the executed files, erases the sandbox and disposes the services.
 	/// </summary>
-	private void InitialPrint()
+	private async Task ReleaseSessionAsync()
 	{
-		if (_options.PrintHelp)
-		{
-			_logger.LogInformationWithTemplate(_options.GetHelp());
-		}
+		await _executingFiles
+			.CloseAllAsync()
+			.ConfigureAwait(false);
+
+		await _sandbox
+			.EraseAsync()
+			.ConfigureAwait(false);
 
 		_logger.LogInformationWithTemplate(
-			$"{AppInfo.AppDisplayName} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
+			$@"App life time is: {_appUptime.Elapsed:hh\:mm\:ss\.fff}{Environment.NewLine}{Environment.NewLine}");
 
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		builder.AppendLine("System specifications:");
-
-		const string os = "OS";
-
-		builder.AppendLine($"{os} platform - {Environment.OSVersion.Platform}");
-
-		if (OperatingSystem.IsMacOS())
+		if (_serviceProvider is IAsyncDisposable asyncDisposable)
 		{
-			builder.AppendLine($"{os} type - macOS {Environment.OSVersion.Version}");
+			await asyncDisposable
+				.DisposeAsync()
+				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Stops the background services, closes the secondary windows, releases the session, starts the application again when
+	/// asked and ends it.
+	/// </summary>
+	private async Task StopAppAsync()
+	{
+		await _backgroundServices
+			.StopAsync()
+			.ConfigureAwait(true);
+
+		await _secondaryWindowCloser
+			.CloseSecondaryWindowsAsync()
+			.ConfigureAwait(true);
+
+		// The application ends on the UI thread.
+		await ReleaseSessionAsync().ConfigureAwait(true);
+
+		// The new instance starts once this one has released its session.
+		if (_isRestartAsked && Environment.ProcessPath is { } path)
+		{
+			_processManager.StartProcess(path);
 		}
 
-		if (OperatingSystem.IsLinux())
-		{
-			builder.AppendLine($"{os} type - Linux {Environment.OSVersion.Version}");
-		}
-
-		if (OperatingSystem.IsWindows())
-		{
-			builder.AppendLine($"{os} type - {OSVersion.GetOperatingSystem()} {OSVersion.GetOSVersion().Version}");
-		}
-
-		builder.AppendLine($"{os} architecture - {RuntimeInformation.OSArchitecture}");
-
-		builder.AppendLine($"Process architecture - {RuntimeInformation.ProcessArchitecture}");
-
-		builder.AppendLine($"Runtime identifier - {RuntimeInformation.RuntimeIdentifier}");
-
-		builder.Append($".NET version - {RuntimeInformation.FrameworkDescription}");
-
-		_logger.LogInformationWithTemplate(builder.ToString());
-
-		_logger.LogInformationWithTemplate($"Application settings:{_settingsStore
-			.Settings
-			.GetPropertyValues(true)}");
+		_appShutdown.Shutdown();
 	}
 	#endregion
 }

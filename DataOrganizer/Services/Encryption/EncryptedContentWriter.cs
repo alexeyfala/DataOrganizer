@@ -1,12 +1,11 @@
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
-using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
+using Repository.Dto;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;
 using Serilog;
@@ -26,6 +25,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbBackupService" />
+	private readonly IDbBackupService _dbBackupService;
+
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
@@ -34,22 +36,31 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
+		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
+
+		_dbBackupService = dbBackupService;
 
 		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -61,48 +72,26 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		try
 		{
-			DateTime updatedAt = DateTime.Now;
-
-			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
-				.Contents
-				.ToDictionary(x => x.Id, pair =>
+			ProtectionUpdate update = new()
 			{
-				return new Action<UpdateSettersBuilder<FileEntity>>[]
-				{
-					builder => builder.SetProperty(x => x.Contents, pair.Contents),
-					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
-				};
-			});
-
-			// A note of a file is stored in the same transaction as its contents.
-			foreach (NoteUpdate note in parameters.Notes.Where(x => !x.IsFolderNote()))
-			{
-				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileEntity>>[]? setters))
-				{
-					continue;
-				}
-
-				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
-			}
-
-			Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = parameters
-				.Notes
-				.Where(x => x.IsFolderNote())
-				.ToDictionary(x => x.Id, note =>
-			{
-				return new Action<UpdateSettersBuilder<FolderEntity>>[]
-				{
-					builder => builder.SetProperty(x => x.Note, note.Note),
-					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
-				};
-			});
-
-			Action<UpdateSettersBuilder<FolderEntity>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
-
-			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
+				Contents = parameters.Contents.ToDictionary(x => x.Id, x => x.Contents),
+				EncryptedDek = parameters.EncryptedDek,
+				FileNotes = parameters
+					.Notes
+					.Where(x => !x.IsFolderNote())
+					.ToDictionary(x => x.Id, x => x.Note),
+				FolderId = parameters.Folder.Id,
+				FolderNotes = parameters
+					.Notes
+					.Where(x => x.IsFolderNote())
+					.ToDictionary(x => x.Id, x => x.Note),
+				UpdatedAt = _timeProvider
+					.GetLocalNow()
+					.LocalDateTime
+			};
 
 			await _dbAccess
-				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
+				.UpdateProtectionAsync(update, token)
 				.ConfigureAwait(false);
 
 			ExplorerItemDtoBase[] objects =
@@ -120,11 +109,6 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.EncryptedDek = parameters.EncryptedDek;
 
 			return UpdateDatabaseOutcome.Saved;
-
-			void SetDek(UpdateSettersBuilder<FolderEntity> builder)
-			{
-				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
-			}
 		}
 		catch (DatabaseNotWritableException ex)
 		{
@@ -184,7 +168,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 		try
 		{
 			// The rollback has to run even when the operation was cancelled.
-			await _dbAccess
+			await _dbBackupService
 				.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
 				.ConfigureAwait(false);
 		}

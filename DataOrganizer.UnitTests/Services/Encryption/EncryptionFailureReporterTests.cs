@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
-using DataOrganizer.Enums;
+using DataOrganizer.Dto.Notifications;
+using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Fakes;

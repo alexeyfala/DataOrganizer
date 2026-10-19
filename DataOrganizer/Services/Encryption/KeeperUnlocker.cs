@@ -1,7 +1,6 @@
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -14,39 +13,39 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class KeeperUnlocker : IKeeperUnlocker
 {
 	#region Data
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IPasswordDekWrapper" />
+	private readonly IPasswordDekWrapper _encryption;
 
 	/// <inheritdoc cref="IEncryptionFailureReporter" />
 	private readonly IEncryptionFailureReporter _failureReporter;
 
+	/// <inheritdoc cref="IKeeperDekWriter" />
+	private readonly IKeeperDekWriter _keeperDekWriter;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IPasswordPrompt" />
+	private readonly IPasswordPrompt _passwordPrompt;
 	#endregion
 
 	#region Constructors
 	public KeeperUnlocker(
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
-		ILogger logger)
+		IKeeperDekWriter keeperDekWriter,
+		ILogger logger,
+		IPasswordDekWrapper encryption,
+		IPasswordPrompt passwordPrompt)
 	{
-		_dbAccess = dbAccess;
+		_failureReporter = failureReporter;
 
-		_dialogService = dialogService;
+		_keeperDekWriter = keeperDekWriter;
+
+		_logger = logger;
 
 		_encryption = encryption;
 
-		_failureReporter = failureReporter;
-
-		_logger = logger;
+		_passwordPrompt = passwordPrompt;
 	}
 	#endregion
 
@@ -64,7 +63,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 			return null;
 		}
 
-		using PinnedSecret password = await _dialogService
+		using PinnedSecret password = await _passwordPrompt
 			.RequestPasswordAsync(header, label, token: token)
 			.ConfigureAwait(false);
 
@@ -125,15 +124,9 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 				return;
 			}
 
-			if (!await _dbAccess.UpdateFolderPropertiesAsync(keeper.Id,
-				[
-					x => x.SetProperty(x => x.EncryptedDek, rewrapped)
-				], token).ConfigureAwait(false))
-			{
-				return;
-			}
-
-			keeper.EncryptedDek = rewrapped;
+			await _keeperDekWriter
+				.WriteAsync(keeper, rewrapped, token)
+				.ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{

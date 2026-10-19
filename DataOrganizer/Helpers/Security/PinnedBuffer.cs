@@ -1,4 +1,4 @@
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using System;
 using System.Threading;
 

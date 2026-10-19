@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Platform;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
@@ -16,14 +15,14 @@ namespace DataOrganizer.Services.Notifications;
 public sealed class ToastPresenter : IToastPresenter
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
+
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
 
 	/// <summary>
 	/// The window the shown message occupies; <c>null</c> while none is shown.
@@ -33,15 +32,15 @@ public sealed class ToastPresenter : IToastPresenter
 
 	#region Constructors
 	public ToastPresenter(
-		Application app,
 		ILogger logger,
-		IViewFactory viewFactory)
+		IViewFactory viewFactory,
+		IWindowFinder windowFinder)
 	{
-		_app = app;
-
 		_logger = logger;
 
 		_viewFactory = viewFactory;
+
+		_windowFinder = windowFinder;
 	}
 	#endregion
 
@@ -97,7 +96,7 @@ public sealed class ToastPresenter : IToastPresenter
 		try
 		{
 			// A window left over from an earlier message counts as well.
-			(_window ?? _app.FindWindow<ToastWindow>())?.Close();
+			(_window ?? _windowFinder.FindWindow<ToastWindow>())?.Close();
 
 			_window = null;
 		}

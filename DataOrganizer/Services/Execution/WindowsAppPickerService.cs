@@ -1,4 +1,3 @@
-using Avalonia.Media.Imaging;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
@@ -22,7 +21,7 @@ namespace DataOrganizer.Services.Execution;
 /// <summary>
 /// Windows-only implementation of <see cref="IAppPickerService" />. Enumerates
 /// candidate applications for a file via shell32 <c>SHAssocEnumHandlers</c>, extracts
-/// icons via <c>SHGetFileInfo</c>, and delegates the UI to <see cref="IDialogService" />.
+/// icons via <c>SHGetFileInfo</c>, and delegates the UI to <see cref="IAppPickerPrompt" />.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed partial class WindowsAppPickerService : IAppPickerService
@@ -44,8 +43,8 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// </summary>
 	private const uint SHGFI_LARGEICON = 0x000000000;
 
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
+	/// <inheritdoc cref="IAppPickerPrompt" />
+	private readonly IAppPickerPrompt _appPickerPrompt;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -53,10 +52,10 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 	#region Constructors
 	public WindowsAppPickerService(
-		IDialogService dialogService,
+		IAppPickerPrompt appPickerPrompt,
 		ILogger logger)
 	{
-		_dialogService = dialogService;
+		_appPickerPrompt = appPickerPrompt;
 
 		_logger = logger;
 	}
@@ -75,7 +74,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		{
 			AppName = Path.GetFileNameWithoutExtension(appPath),
 			AppPath = appPath,
-			Icon = TryLoadIcon(appPath)
+			IconPng = TryLoadIcon(appPath)
 		};
 	}
 
@@ -107,7 +106,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			return null;
 		}
 
-		return await _dialogService
+		return await _appPickerPrompt
 			.PickAppAsync(candidates, token)
 			.ConfigureAwait(false);
 	}
@@ -194,7 +193,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		{
 			AppName = uiName,
 			AppPath = appPath,
-			Icon = TryLoadIcon(appPath)
+			IconPng = TryLoadIcon(appPath)
 		};
 	}
 
@@ -218,7 +217,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		{
 			AppName = Path.GetFileNameWithoutExtension(subkeyName),
 			AppPath = appPath,
-			Icon = TryLoadIcon(appPath)
+			IconPng = TryLoadIcon(appPath)
 		};
 	}
 
@@ -261,15 +260,15 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		{
 			AppName = ResolveFriendlyName(appKey, subkeyName),
 			AppPath = executablePath,
-			Icon = TryLoadIcon(executablePath)
+			IconPng = TryLoadIcon(executablePath)
 		};
 	}
 
 	/// <summary>
-	/// Loads the large shell icon for <paramref name="appPath" /> as an Avalonia
-	/// bitmap; <c>null</c> on any failure.
+	/// Loads the large shell icon for <paramref name="appPath" /> as a PNG
+	/// image; <c>null</c> on any failure.
 	/// </summary>
-	private static Bitmap? TryLoadIcon(string appPath)
+	private static byte[]? TryLoadIcon(string appPath)
 	{
 		SHFILEINFO info = default;
 
@@ -295,9 +294,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 			gdiBitmap.Save(memoryStream, ImageFormat.Png);
 
-			memoryStream.Position = 0;
-
-			return new Bitmap(memoryStream);
+			return memoryStream.ToArray();
 		}
 		catch
 		{

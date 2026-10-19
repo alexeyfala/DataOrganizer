@@ -8,15 +8,21 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using Entities.Models;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -31,15 +37,15 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Asks_To_Verify_The_Password()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -51,7 +57,7 @@ internal class KeeperUnlockerTests
 			"label");
 
 		// Assert
-		await dialogService.Received(1).RequestPasswordAsync(
+		await passwordPrompt.Received(1).RequestPasswordAsync(
 			"header",
 			"label",
 			Arg.Any<string>(),
@@ -70,19 +76,19 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(dek);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 		});
@@ -116,11 +122,11 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -135,7 +141,7 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())!
 			.Throws(new InvalidOperationException());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 		});
@@ -173,11 +179,11 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -193,11 +199,15 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())
 			.Returns((byte[]?)null);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -214,7 +224,7 @@ internal class KeeperUnlockerTests
 
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.UpdateFolderPropertiesAsync(default, default!, default);
+			.UpdateEncryptedDekAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -231,11 +241,11 @@ internal class KeeperUnlockerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -250,9 +260,13 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())
 			.Returns(RandomValues.CreateBytes(20));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -275,17 +289,17 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Refuses_A_Cancelled_Prompt()
 	{
 		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 		});
@@ -314,15 +328,15 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Refuses_A_Keeper_Without_A_Wrapper()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -337,7 +351,7 @@ internal class KeeperUnlockerTests
 			.Should()
 			.BeNull();
 
-		await dialogService
+		await passwordPrompt
 			.DidNotReceiveWithAnyArgs()
 			.RequestPasswordAsync(default!);
 	}
@@ -353,19 +367,19 @@ internal class KeeperUnlockerTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
 				.Throws(failure);
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
 		});
@@ -390,25 +404,23 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Writes_The_Wrapper_At_The_Current_Cost()
 	{
 		// Arrange
+		using TestDatabase database = new();
+
 		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
 		byte[] rewrapped = RandomValues.CreateBytes(20);
 
 		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
 
+		FolderEntity entity = EntityFactory.CreateFolder(id: keeper.Id, encryptedDek: keeper.EncryptedDek);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(default, default!, default)
-				.ReturnsForAnyArgs(true);
-
-			dialogService
+			passwordPrompt
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
@@ -423,12 +435,32 @@ internal class KeeperUnlockerTests
 				Arg.Any<ContentIdentity>())
 			.Returns(rewrapped);
 
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(passwordPrompt);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<KeeperDekWriter>()
+				.As<IKeeperDekWriter>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([entity]);
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
@@ -445,6 +477,16 @@ internal class KeeperUnlockerTests
 		keeper.EncryptedDek
 			.Should()
 			.BeSameAs(rewrapped);
+
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EncryptedDek
+			.Should()
+			.Equal(rewrapped);
 	}
 	#endregion
 

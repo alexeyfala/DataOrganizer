@@ -1,5 +1,4 @@
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
@@ -69,12 +68,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n  \tb\n    c");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		// Two spaces and a tab reach the column of four spaces, so the two lines make one block.
@@ -100,12 +99,12 @@ internal partial class IndentFoldingStrategyTests
 			IsOffSide = isOffSide
 		};
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -127,12 +126,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -150,12 +149,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n    c\nd");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
@@ -172,12 +171,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new(string.Empty);
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -194,12 +193,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\nb\nc");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -221,12 +220,12 @@ internal partial class IndentFoldingStrategyTests
 			// #endregion
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -243,12 +242,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n    c\nd");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -272,12 +271,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -304,12 +303,12 @@ internal partial class IndentFoldingStrategyTests
 			]
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -334,12 +333,12 @@ internal partial class IndentFoldingStrategyTests
 			#endregion
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -363,12 +362,12 @@ internal partial class IndentFoldingStrategyTests
 			// #endregion
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -390,12 +389,12 @@ internal partial class IndentFoldingStrategyTests
 			end
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -423,12 +422,12 @@ internal partial class IndentFoldingStrategyTests
 			EndLine = EndWordRegex()
 		};
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -446,12 +445,12 @@ internal partial class IndentFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("a\n    b\n        c\n    d\ne");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -473,12 +472,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(OffSideRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -508,12 +507,12 @@ internal partial class IndentFoldingStrategyTests
 			IsOffSide = true
 		};
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -540,12 +539,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -569,12 +568,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -606,12 +605,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -634,12 +633,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -665,12 +664,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -697,12 +696,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -724,12 +723,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(MarkedRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -753,12 +752,12 @@ internal partial class IndentFoldingStrategyTests
 			}
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -781,12 +780,12 @@ internal partial class IndentFoldingStrategyTests
 			end
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -809,12 +808,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(PlainRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -837,12 +836,12 @@ internal partial class IndentFoldingStrategyTests
 			y
 			""");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		IndentFoldingStrategy sut = new(EndLineRules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -885,7 +884,7 @@ internal partial class IndentFoldingStrategyTests
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.
 	/// </summary>
-	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<NewFolding> foldings)
+	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<TextFolding> foldings)
 	{
 		return [.. foldings.Select(x => (
 			document.GetLineByOffset(x.StartOffset).LineNumber,

@@ -1,6 +1,4 @@
-using DataOrganizer.Dto.Entities;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,9 +23,9 @@ public interface IKeyboardInputHook : IDisposable
 
 	#region Methods
 	/// <summary>
-	/// Starts tracking global keyboard input.
+	/// Starts tracking global keyboard input for the hotkeys of the files in the tree of the work session.
 	/// </summary>
-	Task StartTrackingAsync(IEnumerable<ExplorerItemDtoBase> hierarchy, CancellationToken token = default);
+	Task StartTrackingAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Stops tracking global keyboard input.

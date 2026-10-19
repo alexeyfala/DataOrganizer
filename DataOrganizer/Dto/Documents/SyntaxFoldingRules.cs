@@ -1,9 +1,10 @@
+using DataOrganizer.Enums.Documents;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Dto.Documents;
 
 /// <summary>
-/// Rules of a language for folding its text, taken from the settings of the language.
+/// Rules of a language for folding its text, taken from its settings and from its profile.
 /// </summary>
 public sealed record SyntaxFoldingRules
 {
@@ -51,6 +52,11 @@ public sealed record SyntaxFoldingRules
 	/// <c>True</c> for a language of the off-side rule, whose blocks leave the blank lines after them to the next block.
 	/// </summary>
 	public bool IsOffSide { get; init; }
+
+	/// <summary>
+	/// How the blocks of the language are found.
+	/// </summary>
+	public SyntaxFoldingKind Kind { get; init; }
 
 	/// <summary>
 	/// Pattern of the token that opens a line comment, matched at the start of a text; <c>null</c> when the language has

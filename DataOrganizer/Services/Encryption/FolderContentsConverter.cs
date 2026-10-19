@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
@@ -22,8 +22,8 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IDekCipher" />
+	private readonly IDekCipher _encryption;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -35,7 +35,7 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 	#region Constructors
 	public FolderContentsConverter(
 		IDbAccess dbAccess,
-		IEncryptionService encryption,
+		IDekCipher encryption,
 		ILogger logger,
 		INotificationService notification)
 	{

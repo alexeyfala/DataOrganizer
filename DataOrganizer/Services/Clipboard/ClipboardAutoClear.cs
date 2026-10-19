@@ -1,11 +1,8 @@
-using Avalonia.Input;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -112,12 +109,8 @@ public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 
 		try
 		{
-			IReadOnlyList<DataFormat> formats = await _clipboard
-				.GetDataFormatsAsync()
-				.ConfigureAwait(false);
-
 			// Something else was copied since — leave the current content alone.
-			if (!ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker(formats))
+			if (!await _clipboard.ContainsOwnershipMarkerAsync().ConfigureAwait(false))
 			{
 				return;
 			}

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -7,6 +6,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
 using NSubstitute;
@@ -31,7 +31,7 @@ internal class YesNoCancelBoxViewTests
 	{
 		// Arrange
 		YesNoCancelBoxViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		// The view carries the buttons on its own; a dialog host would only add a registry shared

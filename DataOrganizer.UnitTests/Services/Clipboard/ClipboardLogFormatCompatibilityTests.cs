@@ -213,7 +213,7 @@ internal class ClipboardLogFormatCompatibilityTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()

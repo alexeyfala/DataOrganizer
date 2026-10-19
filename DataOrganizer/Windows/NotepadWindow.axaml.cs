@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
+using System;
 
 namespace DataOrganizer.Windows;
 
@@ -22,5 +23,16 @@ public sealed partial class NotepadWindow : Window
 	}
 
 	public NotepadWindow(NotepadViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	protected override void OnClosed(EventArgs e)
+	{
+		base.OnClosed(e);
+
+		// The tabs end with the window, and the views kept for them go with it.
+		Tabs.ForgetViews();
+	}
 	#endregion
 }

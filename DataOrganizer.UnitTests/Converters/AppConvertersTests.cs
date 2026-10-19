@@ -1,9 +1,10 @@
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Headless.NUnit;
+using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Enums.Documents;
-using System;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;
@@ -13,81 +14,31 @@ internal class AppConvertersTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="AppConverters.AutoLockIsExpiring" />: the warning starts within the last twenty seconds.
+	/// <see cref="AppConverters.PngToBitmap" />: the bytes of a PNG become its image.
 	/// </summary>
-	[TestCase(21.0, false)]
-	[TestCase(20.0, true)]
-	[TestCase(1.0, true)]
-	public void AutoLockIsExpiring_Warns_About_The_Last_Seconds(double seconds, bool expected)
+	[AvaloniaTest]
+	public void PngToBitmap_Builds_The_Image_Of_A_Png()
 	{
+		// Arrange
+		const string onePixelPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
 		// Act
-		object? result = Convert(AppConverters.AutoLockIsExpiring, TimeSpan.FromSeconds(seconds));
+		object? result = Convert(AppConverters.PngToBitmap, System.Convert.FromBase64String(onePixelPng));
 
 		// Assert
 		result
 			.Should()
-			.Be(expected);
+			.BeOfType<Bitmap>();
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.AutoLockIsExpiring" />: a countdown that is not running never warns.
+	/// <see cref="AppConverters.PngToBitmap" />: without bytes there is no image.
 	/// </summary>
 	[Test]
-	public void AutoLockIsExpiring_Without_A_Countdown_Is_False()
+	public void PngToBitmap_Without_A_Png_Is_Empty()
 	{
 		// Act
-		object? result = Convert(AppConverters.AutoLockIsExpiring, null);
-
-		// Assert
-		result
-			.Should()
-			.Be(false);
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.AutoLockRemaining" />: an hour or more keeps its hours in the caption.
-	/// </summary>
-	[Test]
-	public void AutoLockRemaining_Keeps_The_Hours_Of_The_Longest_Delay()
-	{
-		// Act
-		object? result = Convert(AppConverters.AutoLockRemaining, TimeSpan.FromMinutes(60.0));
-
-		// Assert
-		result
-			.Should()
-			.BeOfType<string>()
-			.Which
-			.Should()
-			.Contain("1:00:00");
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.AutoLockRemaining" />: the time left is shown as minutes and seconds.
-	/// </summary>
-	[Test]
-	public void AutoLockRemaining_Shows_Minutes_And_Seconds()
-	{
-		// Act
-		object? result = Convert(AppConverters.AutoLockRemaining, TimeSpan.FromSeconds(577.0));
-
-		// Assert
-		result
-			.Should()
-			.BeOfType<string>()
-			.Which
-			.Should()
-			.Contain("09:37");
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.AutoLockRemaining" />: a countdown that is not running has no caption.
-	/// </summary>
-	[Test]
-	public void AutoLockRemaining_Without_A_Countdown_Is_Empty()
-	{
-		// Act
-		object? result = Convert(AppConverters.AutoLockRemaining, null);
+		object? result = Convert(AppConverters.PngToBitmap, null);
 
 		// Assert
 		result
@@ -96,197 +47,102 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.LineEndingToCaption" />: line endings of one style are named after their system and characters.
+	/// <see cref="AppConverters.ScrollGutter" />: content that fits reserves no gutter.
 	/// </summary>
-	[TestCase(LineEnding.CrLf, "Windows (CR LF)")]
-	[TestCase(LineEnding.Lf, "Unix (LF)")]
-	[TestCase(LineEnding.Cr, "Macintosh (CR)")]
-	public void LineEndingToCaption_Names_The_Line_Break(LineEnding ending, string expected)
+	[TestCase(100.0)]
+	[TestCase(50.0)]
+	public void ScrollGutter_Reserves_Nothing_While_The_Content_Fits(double extent)
 	{
 		// Act
-		object? result = Convert(AppConverters.LineEndingToCaption, ending);
+		object? result = Convert(AppConverters.ScrollGutter, extent, 100.0);
 
 		// Assert
 		result
 			.Should()
-			.Be(expected);
+			.Be(default(Thickness));
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.LineEndingToCaption" />: a document without line breaks has no caption.
+	/// <see cref="AppConverters.ScrollGutter" />: content that overflows reserves the width of the scroll bar on the right.
 	/// </summary>
 	[Test]
-	public void LineEndingToCaption_Without_Line_Breaks_Is_Empty()
+	public void ScrollGutter_Reserves_The_Scroll_Bar_While_The_Content_Overflows()
 	{
 		// Act
-		object? result = Convert(AppConverters.LineEndingToCaption, LineEnding.None);
+		object? result = Convert(AppConverters.ScrollGutter, 200.0, 100.0);
 
 		// Assert
 		result
 			.Should()
-			.BeNull();
+			.Be(new Thickness(0.0, 0.0, 10.0, 0.0));
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.NumberCaption" />: puts the number, with its digits grouped, into the format given as the parameter.
+	/// <see cref="AppConverters.SizeChangedToWidth" />: a changed size gives its new width.
 	/// </summary>
 	[Test]
-	public void NumberCaption_Groups_The_Digits()
-	{
-		// Act
-		object? result = Convert(AppConverters.NumberCaption, 1234567, "[{0}]");
-
-		// Assert
-		result
-			.Should()
-			.Be($"[{1234567.ToString("N0", CultureInfo.CurrentCulture)}]");
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.SelectionOrPosition" />: while nothing is selected, shows the caret position counted from one.
-	/// </summary>
-	[Test]
-	public void SelectionOrPosition_Shows_The_Position_Counted_From_One()
+	public void SizeChangedToWidth_Gives_The_New_Width()
 	{
 		// Arrange
-		DocumentStatus status = default(DocumentStatus) with
-		{
-			CaretOffset = 776
-		};
+		SizeChangedEventArgs args = new(null, null, new Size(500.0, 300.0), new Size(250.0, 400.0));
 
 		// Act
-		object? result = Convert(AppConverters.SelectionOrPosition, status);
+		object? result = Convert(AppConverters.SizeChangedToWidth, args);
 
 		// Assert
 		result
 			.Should()
-			.BeOfType<string>()
-			.Which
-			.Should()
-			.Contain("777");
+			.Be(250.0);
 	}
 
 	/// <summary>
-	/// <see cref="AppConverters.SelectionOrPosition" />: a selection shows its characters and lines instead of the caret position.
+	/// <see cref="AppConverters.SizeChangedToWidth" />: no change gives no width.
 	/// </summary>
 	[Test]
-	public void SelectionOrPosition_Shows_The_Selection_Instead_Of_The_Position()
+	public void SizeChangedToWidth_Without_A_Change_Is_Not_A_Number()
 	{
-		// Arrange
-		DocumentStatus status = default(DocumentStatus) with
-		{
-			CaretOffset = 776,
-			SelectionLength = 128,
-			SelectionLineCount = 45
-		};
-
 		// Act
-		object? result = Convert(AppConverters.SelectionOrPosition, status);
+		object? result = Convert(AppConverters.SizeChangedToWidth, null);
 
 		// Assert
 		result
 			.Should()
-			.BeOfType<string>()
-			.Which
-			.Should()
-			.Contain("128")
-			.And
-			.Contain("45")
-			.And
-			.NotContain("777");
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.SyntaxLanguageToName" />: a language takes the name its grammar gives it.
-	/// </summary>
-	[Test]
-	public void SyntaxLanguageToName_Gives_The_Name_Of_The_Grammar()
-	{
-		// Act
-		object? result = Convert(AppConverters.SyntaxLanguageToName, "powershell");
-
-		// Assert
-		result
-			.Should()
-			.Be("PowerShell");
-	}
-
-	/// <summary>
-	/// <see cref="AppConverters.SyntaxLanguageToName" />: a language without a grammar is named as plain text.
-	/// </summary>
-	[Test]
-	[TestCase("unknown")]
-	[TestCase(FileEditorState.PlainTextLanguage)]
-	public void SyntaxLanguageToName_Names_A_Language_Without_A_Grammar_As_Plain_Text(string language)
-	{
-		// Act
-		object? result = Convert(AppConverters.SyntaxLanguageToName, language);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNull()
-			.And
-			.Be(Convert(AppConverters.SyntaxLanguageToName, null));
+			.Be(double.NaN);
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Runs a converter over the time left of a countdown.
+	/// Runs a converter over the extent and the viewport heights of a scroll viewer.
 	/// </summary>
-	private static object? Convert(IValueConverter converter, TimeSpan? remaining)
+	private static object? Convert(FuncMultiValueConverter<double, Thickness> converter, double extent, double viewport)
 	{
 		return converter.Convert(
-			remaining,
+			[extent, viewport],
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);
 	}
 
 	/// <summary>
-	/// Runs a converter over the line endings of a document.
+	/// Runs a converter over the bytes of a PNG.
 	/// </summary>
-	private static object? Convert(FuncValueConverter<LineEnding, string?> converter, LineEnding ending)
+	private static object? Convert(FuncValueConverter<byte[]?, Bitmap?> converter, byte[]? png)
 	{
 		return converter.Convert(
-			ending,
+			png,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);
 	}
 
 	/// <summary>
-	/// Runs a converter over a number with the format given as the parameter.
+	/// Runs a converter over a change of the size of a control.
 	/// </summary>
-	private static object? Convert(FuncValueConverter<int, string, string> converter, int number, string format)
+	private static object? Convert(FuncValueConverter<SizeChangedEventArgs?, double> converter, SizeChangedEventArgs? args)
 	{
 		return converter.Convert(
-			number,
-			typeof(object),
-			format,
-			CultureInfo.CurrentCulture);
-	}
-
-	/// <summary>
-	/// Runs a converter over the status of a document.
-	/// </summary>
-	private static object? Convert(FuncValueConverter<DocumentStatus, string> converter, DocumentStatus status)
-	{
-		return converter.Convert(
-			status,
-			typeof(object),
-			null,
-			CultureInfo.CurrentCulture);
-	}
-
-	/// <summary>
-	/// Runs a converter over a language of the syntax highlighting.
-	/// </summary>
-	private static object? Convert(FuncValueConverter<string?, string> converter, string? language)
-	{
-		return converter.Convert(
-			language,
+			args,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

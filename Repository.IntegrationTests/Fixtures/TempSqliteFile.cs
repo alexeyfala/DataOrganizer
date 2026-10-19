@@ -21,10 +21,7 @@ internal sealed class TempSqliteFile : IDisposable
 	#region Constructors
 	public TempSqliteFile()
 	{
-		_directoryPath = Path.Combine(
-			Path.GetTempPath(),
-			"DataOrganizerTests",
-			Guid.NewGuid().ToString("N"));
+		_directoryPath = Path.Combine(RootDirectoryPath, Guid.NewGuid().ToString("N"));
 
 		Directory.CreateDirectory(_directoryPath);
 
@@ -49,6 +46,11 @@ internal sealed class TempSqliteFile : IDisposable
 	/// Path of the database file.
 	/// </summary>
 	public string FilePath { get; }
+
+	/// <summary>
+	/// Folder that holds the folders of all temporary databases.
+	/// </summary>
+	public static string RootDirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "DataOrganizerTests");
 	#endregion
 
 	#region Methods
@@ -79,14 +81,10 @@ internal sealed class TempSqliteFile : IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		try
-		{
-			Directory.Delete(_directoryPath, recursive: true);
-		}
-		catch (IOException)
-		{
-			// The folder is temporary; a locked file is not worth failing a test over.
-		}
+		// A connection left in a pool keeps its file open, and Windows does not delete an open file.
+		SqliteConnection.ClearAllPools();
+
+		Directory.Delete(_directoryPath, recursive: true);
 	}
 
 	/// <summary>

@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Entities;
+using Entities.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ public interface IEntityPropertyWriter
 {
 	#region Methods
 	/// <summary>
-	/// Updates the <see cref="FolderDto.IsExpanded" /> property of a folder in the database.
+	/// Updates the <see cref="FolderEntity.IsExpanded" /> property of a folder in the database.
 	/// </summary>
 	Task<bool> UpdateIsExpandedAsync(
 		Guid folderId,
@@ -25,8 +26,11 @@ public interface IEntityPropertyWriter
 	Task<bool> UpdateIsFavoriteAsync(FileDto dto, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the <see cref="ExplorerItemDtoBase.IsSelected" /> property of an object in the database.
+	/// Updates the <see cref="ExplorerItemBase.IsSelected" /> property of an object in the database.
 	/// </summary>
-	Task<bool> UpdateIsSelectedAsync(ExplorerItemDtoBase dto, CancellationToken token = default);
+	Task<bool> UpdateIsSelectedAsync(
+		ExplorerItemDtoBase dto,
+		bool isSelected,
+		CancellationToken token = default);
 	#endregion
 }

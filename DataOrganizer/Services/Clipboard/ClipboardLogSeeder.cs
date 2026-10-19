@@ -1,10 +1,10 @@
 using Bogus;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using System.Linq;
@@ -16,27 +16,33 @@ namespace DataOrganizer.Services.Clipboard;
 public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 {
 	#region Data
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogMerger" />
+	private readonly IClipboardLogMerger _clipboardLog;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="IPngPainter" />
+	private readonly IPngPainter _pngPainter;
 	#endregion
 
 	#region Constructors
 	public ClipboardLogSeeder(
-		IClipboardLogService clipboardLog,
+		IClipboardLogMerger clipboardLog,
 		IDispatcherAccessor dispatcher,
-		IMessenger messenger)
+		IMessenger messenger,
+		IPngPainter pngPainter)
 	{
 		_clipboardLog = clipboardLog;
 
 		_dispatcher = dispatcher;
 
 		_messenger = messenger;
+
+		_pngPainter = pngPainter;
 	}
 	#endregion
 
@@ -56,25 +62,19 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 		[
 			.. SampleClipboardContents
 				.CreateTexts(faker)
-				.Select(static x => ClipboardLogService.BuildTextEntry(
+				.Select(static x => ClipboardLogEntryFactory.CreateText(
 					x.Text,
 					x.Html,
 					x.Rtf,
-					ClipboardLogService.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
+					ClipboardHistory.ComputeTextEntryHash(x.Text, x.Html, x.Rtf))),
 			.. SampleClipboardContents
-				.CreateImages()
-				.Select(static x => new ClipboardImageEntry
-				{
-					Hash = SHA256.HashData(x),
-					OriginalPng = x
-				}),
+				.CreateImageShapes()
+				.Select(x => _pngPainter.Paint(x.Width, x.Height, x.Paint))
+				.Select(static x => ClipboardLogEntryFactory.CreateImage(x, SHA256.HashData(x))),
+
 			.. SampleClipboardContents
 				.CreateFileLists(faker)
-				.Select(static x => new ClipboardFilesEntry
-				{
-					FileSystemEntries = x,
-					Hash = ClipboardLogService.HashFiles(x)
-				})
+				.Select(static x => ClipboardLogEntryFactory.CreateFiles(x, ClipboardHistory.HashFiles(x)))
 		];
 
 		// The entries of the history belong to the UI thread.

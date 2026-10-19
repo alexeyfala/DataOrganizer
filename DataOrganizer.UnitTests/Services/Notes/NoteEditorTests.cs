@@ -7,14 +7,19 @@ using DataOrganizer.Services.Notes;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
+using Repository.Enums;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
+using Repository.Services;
+using Repository.Services.Database;
 using Shared.Common;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Notes;
 
@@ -23,45 +28,59 @@ internal class NoteEditorTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NoteEditor.EditAsync" />: blank text removes the note.
+	/// <see cref="NoteEditor.EditAsync" />: blank text removes the note, in the database too.
 	/// </summary>
 	[Test]
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
+		using TestDatabase database = new();
+
+		FileEntity entity = EntityFactory.CreateFile(note: RandomValues.CreateBytes(10));
+
+		FileDto file = ItemDtoFactory.CreateFileDto(id: entity.Id);
 
 		file.Note = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateFilePropertiesAsync(
-					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
 			INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
 			noteCipher
 				.Encode(file, Arg.Any<string>())
 				.Returns((byte[]?)null);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([entity]);
 
 		NoteEditor sut = mock.Create<NoteEditor>();
 
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			note,
-			DateTime.Now);
+			note);
 
 		// Assert
 		result
@@ -69,6 +88,16 @@ internal class NoteEditorTests
 			.BeTrue();
 
 		file.Note
+			.Should()
+			.BeNull();
+
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Note
 			.Should()
 			.BeNull();
 	}
@@ -93,6 +122,10 @@ internal class NoteEditorTests
 				.Returns(encoded);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -100,8 +133,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -142,18 +174,16 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
 			.Should()
 			.BeFalse();
 
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateNoteAsync(default, default, default, default, default);
 	}
 
 	/// <summary>
@@ -185,62 +215,73 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
 			.Should()
 			.BeFalse();
 
-		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.UpdateNoteAsync(default, default, default, default, default);
 	}
 
 	/// <summary>
-	/// <see cref="NoteEditor.EditAsync" />: the note of a file and of a dataset is stored through the file update.
+	/// <see cref="NoteEditor.EditAsync" />: the note of a file and of a dataset is stored in its file, with the date of the
+	/// change.
 	/// </summary>
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(kind: kind);
+		using TestDatabase database = new();
+
+		FileEntity entity = EntityFactory.CreateFile();
+
+		FileDto file = ItemDtoFactory.CreateFileDto(id: entity.Id, kind: kind);
 
 		byte[] encoded = RandomValues.CreateBytes(10);
 
-		DateTime updatedAt = DateTime.Now.AddDays(1);
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		FakeTimeProvider time = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFilePropertiesAsync(
-					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
 			INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
 			noteCipher
 				.Encode(file, Arg.Any<string>())
 				.Returns(encoded);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([entity]);
 
 		NoteEditor sut = mock.Create<NoteEditor>();
 
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			updatedAt);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -253,54 +294,76 @@ internal class NoteEditorTests
 
 		file.UpdatedAt
 			.Should()
-			.Be(updatedAt);
+			.Be(time.GetLocalNow().LocalDateTime);
 
-		await dbAccess.Received(1).UpdateFilePropertiesAsync(
-			file.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Note = encoded,
+				UpdatedAt = time.GetLocalNow().LocalDateTime
+			});
 	}
 
 	/// <summary>
-	/// <see cref="NoteEditor.EditAsync" />: the note of a folder is stored through the folder update.
+	/// <see cref="NoteEditor.EditAsync" />: the note of a folder is stored in the folder, with the date of the change.
 	/// </summary>
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
 		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+		using TestDatabase database = new();
+
+		FolderEntity entity = EntityFactory.CreateFolder();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(id: entity.Id);
 
 		byte[] encoded = RandomValues.CreateBytes(10);
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		FakeTimeProvider time = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess
-				.UpdateFolderPropertiesAsync(
-					folder.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
 			INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
 			noteCipher
 				.Encode(folder, Arg.Any<string>())
 				.Returns(encoded);
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
 		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([entity]);
 
 		NoteEditor sut = mock.Create<NoteEditor>();
 
 		// Act
 		bool result = await sut.EditAsync(
 			folder,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		result
@@ -311,10 +374,18 @@ internal class NoteEditorTests
 			.Should()
 			.BeSameAs(encoded);
 
-		await dbAccess.Received(1).UpdateFolderPropertiesAsync(
-			folder.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>(),
-			Arg.Any<CancellationToken>());
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Note = encoded,
+				UpdatedAt = time.GetLocalNow().LocalDateTime
+			});
 	}
 
 	/// <summary>
@@ -324,7 +395,11 @@ internal class NoteEditorTests
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{
 		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
+		using TestDatabase database = new();
+
+		FileEntity entity = EntityFactory.CreateFile();
+
+		FileDto file = ItemDtoFactory.CreateFileDto(id: entity.Id);
 
 		byte[] replaced = RandomValues.CreateBytes(10);
 
@@ -332,33 +407,43 @@ internal class NoteEditorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateFilePropertiesAsync(
-					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
 			INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
 			noteCipher
 				.Encode(file, Arg.Any<string>())
 				.Returns(RandomValues.CreateBytes(10));
 
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
 		});
+
+		await mock
+			.Create<IDbAccess>()
+			.AddFilesAsync([entity]);
 
 		NoteEditor sut = mock.Create<NoteEditor>();
 
 		// Act
 		await sut.EditAsync(
 			file,
-			RandomString.Create(20),
-			DateTime.Now);
+			RandomString.Create(20));
 
 		// Assert
 		replaced.Should().AllSatisfy(x => x

@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;
@@ -12,7 +12,10 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Services.Encryption;
 
-public sealed class EncryptionService : IEncryptionService
+/// <summary>
+/// Encryption of keys and contents in the formats the application stores.
+/// </summary>
+public sealed class EncryptionService : IDekCipher, IPasswordDekWrapper, ISessionDekWrapper
 {
 	#region Data
 	/// <summary>

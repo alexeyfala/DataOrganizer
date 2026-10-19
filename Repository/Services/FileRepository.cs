@@ -5,9 +5,7 @@ using Repository.DbContexts;
 using Repository.Enums;
 using Repository.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -137,20 +135,6 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
-	}
-
-	/// <inheritdoc />
-	public Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
-		CancellationToken token = default)
-	{
-		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
-
-		static KeyValuePair<Expression<Func<FileEntity, bool>>, Action<UpdateSettersBuilder<FileEntity>>[]> ToFilter(
-			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> entry)
-		{
-			return new(x => x.Id == entry.Key, entry.Value);
-		}
 	}
 	#endregion
 }

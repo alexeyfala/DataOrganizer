@@ -1,8 +1,7 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
-using Entities.Enums;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -27,6 +26,9 @@ public sealed class NoteEditor : INoteEditor
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 	#endregion
 
 	#region Constructors
@@ -34,7 +36,8 @@ public sealed class NoteEditor : INoteEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		INoteCipher noteCipher,
-		INotificationService notification)
+		INotificationService notification,
+		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
 
@@ -43,6 +46,8 @@ public sealed class NoteEditor : INoteEditor
 		_noteCipher = noteCipher;
 
 		_notification = notification;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -51,7 +56,6 @@ public sealed class NoteEditor : INoteEditor
 	public async Task<bool> EditAsync(
 		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation("Editing a note of an object");
@@ -77,26 +81,20 @@ public sealed class NoteEditor : INoteEditor
 			return Fail(item);
 		}
 
-		Task<bool> task = item.Kind switch
-		{
-			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
-			[
-				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(item.Id,
-			[
-				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
-			], token),
-			_ => throw new NotImplementedException()
-		};
+		DateTime updatedAt = _timeProvider
+			.GetLocalNow()
+			.LocalDateTime;
 
 		bool isSaved;
 
 		try
 		{
-			isSaved = await task.ConfigureAwait(false);
+			isSaved = await _dbAccess.UpdateNoteAsync(
+				item.Kind,
+				item.Id,
+				encoded,
+				updatedAt,
+				token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

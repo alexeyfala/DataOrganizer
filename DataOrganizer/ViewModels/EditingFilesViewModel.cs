@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.ObjectModel;
@@ -34,7 +33,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	public FileDto? SelectedFile => Items.ElementAtOrDefault(SelectedIndex);
 
 	/// <summary>
-	/// Index of selected element in <see cref="TabControl" />.
+	/// Index of the selected tab.
 	/// </summary>
 	[ObservableProperty]
 	public partial int SelectedIndex { get; set; }
@@ -53,7 +52,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Closes a the tab in <see cref="TabControl" />.
+	/// Closes the tab of a file.
 	/// </summary>
 	[RelayCommand]
 	internal void CloseTab(FileDto dto)
@@ -73,22 +72,36 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		CloseEditor(dto);
 	}
+
+	/// <summary>
+	/// Opens the tabs that the work session keeps for the editor.
+	/// </summary>
+	[RelayCommand]
+	private void RestoreTabs()
+	{
+		if (_sessionEditorTabs.EditorTabs is not { } tabs)
+		{
+			return;
+		}
+
+		Restore(tabs);
+	}
 	#endregion
 
 	#region Data
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewCache" />
-	private readonly IViewCache _viewCache;
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	private readonly ISessionEditorTabs _sessionEditorTabs;
 	#endregion
 
 	#region Constructors
-	public EditingFilesViewModel(ILogger logger, IViewCache viewCache)
+	public EditingFilesViewModel(ILogger logger, ISessionEditorTabs sessionEditorTabs)
 	{
 		_logger = logger;
 
-		_viewCache = viewCache;
+		_sessionEditorTabs = sessionEditorTabs;
 	}
 	#endregion
 
@@ -96,12 +109,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Closes editor associated with the object.
 	/// </summary>
-	public void CloseEditor(FileDto dto)
-	{
-		Items.Remove(dto);
-
-		_viewCache.Remove(dto);
-	}
+	public void CloseEditor(FileDto dto) => Items.Remove(dto);
 
 	/// <summary>
 	/// Opens a file in built-in the editor.
@@ -135,11 +143,13 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		SelectedIndex = Items.Count - 1;
 	}
+	#endregion
 
+	#region Helpers
 	/// <summary>
 	/// Opens the files of the tabs, selects the tab of the selected file and gives Ctrl+Tab its way back.
 	/// </summary>
-	public void Restore(EditorTabsState state)
+	private void Restore(EditorTabsState state)
 	{
 		Items.AddRange(state.Files);
 

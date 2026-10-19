@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Runtime;
 
 /// <summary>
-/// Performs application lifecycle control.
+/// Launches the application and stops it when its exit is requested.
 /// </summary>
 public interface IAppController
 {

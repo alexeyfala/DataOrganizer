@@ -185,7 +185,7 @@ internal class PointerHoverCommandBehaviorTests
 	}
 
 	/// <summary>
-	/// <see cref="PointerHoverCommandBehavior.Delay" />: a pointer that comes back counts the delay anew, not what was left of it.
+	/// <see cref="PointerHoverBehaviorBase.Delay" />: a pointer that comes back counts the delay anew, not what was left of it.
 	/// </summary>
 	[AvaloniaTest]
 	public void Entering_Again_Counts_The_Delay_Anew()

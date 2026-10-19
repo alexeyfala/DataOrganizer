@@ -1,36 +1,18 @@
-using Avalonia;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Diagnostics;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Editor;
-using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Execution;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
-using Shared.Properties;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -38,29 +20,23 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// Base view model.
 /// </summary>
-public abstract partial class ViewModelBase :
-	CopyContentViewModelBase,
-	IRecipient<CloseExecutingFileMessage>,
-	IRecipient<SessionAutoLockedMessage>
+public abstract partial class ViewModelBase : ObservableDisposableBase
 {
 	#region Properties
-	/// <inheritdoc cref="CopyHistoryViewSettings" />
-	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
+	/// <inheritdoc cref="ICopyHistory.ItemIds" />
+	public ReadOnlyObservableCollection<Guid> CopyHistoryItemIds => _copyHistory.ItemIds;
 
 	/// <summary>
-	/// Tabs of the editor kept until the editor opens them; <c>null</c> stands for none.
+	/// The list of the copy history while the window shows it.
 	/// </summary>
-	public EditorTabsState? EditorTabs { get; set; }
+	[ObservableProperty]
+	public partial CopyHistoryViewModel? CopyHistoryList { get; private set; }
 
-	/// <summary>
-	/// Executed in operating system files.
-	/// </summary>
-	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
+	/// <inheritdoc cref="IExecutingFiles.Files" />
+	public ReadOnlyObservableCollection<FileDto> ExecutingFiles => _executingFiles.Files;
 
-	/// <summary>
-	/// Hierarchical sequence of objects.
-	/// </summary>
-	public ObservableCollection<ExplorerItemDtoBase> Hierarchy { get; } = [];
+	/// <inheritdoc cref="ISessionHierarchy.Hierarchy" />
+	public ObservableCollection<ExplorerItemDtoBase> Hierarchy => _sessionHierarchy.Hierarchy;
 
 	/// <summary>
 	/// <c>True</c> when clipboard history tracking is enabled in settings.
@@ -73,10 +49,6 @@ public abstract partial class ViewModelBase :
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 
-	/// <summary>
-	/// <c>True</c> when shutdown is requested.
-	/// </summary>
-	public bool IsShutdown { get; protected set; } = true;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -91,239 +63,89 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name),
-			nameof(FileDto.Kind))}");
-
-		_dispatcher.Post(() =>
-		{
-			ExecutingFiles.Remove(dto);
-
-			dto.IsExecuting = false;
-		});
-
-		_exceptionHandler.Watch(_executionEngine.CloseAsync(dto.Id));
+		_executingFiles.Close(dto);
 	}
 
 	/// <summary>
-	/// Brings the open notepad to the center of the screen of the window.
+	/// Brings the open notepad to the center of the screen of the main window.
 	/// </summary>
 	[RelayCommand]
-	private void CenterNotepad(Window? owner)
-	{
-		if (owner is null)
-		{
-			return;
-		}
-
-		_viewLauncher.CenterNotepadWindow(owner);
-	}
-
-	/// <summary>
-	/// Handles the display of copy history.
-	/// </summary>
-	[RelayCommand]
-	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
-	{
-		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.ItemIds),
-			CopyHistorySettings.SelectedItemId);
-
-		_copyHistory = viewModel;
-	}
+	private void CenterNotepad() => _secondaryWindowLauncher.CenterNotepadWindow();
 
 	/// <summary>
 	/// Opens the custom clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
-	private Task ShowCustomClipboard(Window? owner)
-	{
-		if (owner is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		return _viewLauncher.ShowClipboardLogWindowAsync(owner);
-	}
+	private Task ShowCustomClipboard() => _secondaryWindowLauncher.ShowClipboardLogWindowAsync();
 
 	/// <summary>
 	/// Activates the open notepad or opens a new one.
 	/// </summary>
 	[RelayCommand]
-	private void ShowNotepad(Window? owner)
-	{
-		if (owner is null)
-		{
-			return;
-		}
-
-		_viewLauncher.ShowNotepadWindow(owner);
-	}
+	private void ShowNotepad() => _secondaryWindowLauncher.ShowNotepadWindow();
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IContentVisibility" />
-	protected readonly IContentVisibility _contentVisibility;
+	/// <inheritdoc cref="ICopyHistory" />
+	protected readonly ICopyHistory _copyHistory;
 
-	/// <inheritdoc cref="IDispatcherAccessor" />
-	protected readonly IDispatcherAccessor _dispatcher;
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	protected readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IExecutionEngine" />
-	protected readonly IExecutionEngine _executionEngine;
+	/// <inheritdoc cref="IExecutingFiles" />
+	protected readonly IExecutingFiles _executingFiles;
 
-	/// <inheritdoc cref="IKeyboardInputHook" />
-	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
+	/// <inheritdoc cref="ILogger" />
+	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IAppSettingsStore" />
-	protected readonly IAppSettingsStore _settingsStore;
+	/// <inheritdoc cref="IMessenger" />
+	protected readonly IMessenger _messenger;
 
-	/// <inheritdoc cref="IViewLauncher" />
-	protected readonly IViewLauncher _viewLauncher;
+	/// <inheritdoc cref="ISecondaryWindowLauncher" />
+	private readonly ISecondaryWindowLauncher _secondaryWindowLauncher;
 
-	/// <inheritdoc cref="CopyHistoryViewModel" />
-	protected CopyHistoryViewModel? _copyHistory;
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
+
+	/// <inheritdoc cref="IViewModelFactory" />
+	protected readonly IViewModelFactory _viewModelFactory;
 	#endregion
 
 	#region Constructors
 	protected ViewModelBase(
-		Application app,
 		IAppSettingsStore settingsStore,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IContentVisibility contentVisibility,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IDispatcherAccessor dispatcher,
-		IExecutionEngine executionEngine,
-		IJsonSerializer jsonSerializer,
+		ICopyHistory copyHistory,
+		IExecutingFiles executingFiles,
 		ILogger logger,
 		IMessenger messenger,
-		INotificationService notification,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
-			app,
-			clipboard,
-			contentCipher,
-			dbAccess,
-			dialogService,
-			jsonSerializer,
-			logger,
-			messenger,
-			notification,
-			exceptionHandler)
+		IViewModelFactory viewModelFactory)
 	{
-		_contentVisibility = contentVisibility;
+		_copyHistory = copyHistory;
 
-		_dispatcher = dispatcher;
+		_exceptionHandler = exceptionHandler;
 
-		_executionEngine = executionEngine;
+		_executingFiles = executingFiles;
 
-		_keyboardInputHook = keyboardInputHook;
+		_logger = logger;
 
-		_settingsStore = settingsStore;
+		_messenger = messenger;
 
-		_viewLauncher = viewLauncher;
+		_secondaryWindowLauncher = secondaryWindowLauncher;
+
+		_sessionHierarchy = sessionHierarchy;
+
+		_viewModelFactory = viewModelFactory;
 
 		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 
 		messenger.RegisterAll(this);
-
-		if (keyboardInputHook.IsValueCreated && keyboardInputHook.Value.IsRunning)
-		{
-			_exceptionHandler.Watch(keyboardInputHook.Value.StopTrackingAsync());
-		}
-
-		if (settingsStore.Settings.IsDefault() || !settingsStore.Settings.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Adds objects to <see cref="Hierarchy" />.
-	/// </summary>
-	public abstract void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy);
-
-	/// <summary>
-	/// Inserts or moves to top value in copy history.
-	/// </summary>
-	public void InsertIntoCopyHistory(FileDto file, bool updateView)
-	{
-		if (CopyHistorySettings
-			.ItemIds
-			.Contains(file.Id))
-		{
-			CopyHistorySettings
-				.ItemIds
-				.MoveToTop(CopyHistorySettings.ItemIds.IndexOf(file.Id));
-		}
-		else
-		{
-			CopyHistorySettings
-				.ItemIds
-				.Insert(0, file.Id);
-		}
-
-		if (!updateView)
-		{
-			return;
-		}
-
-		_copyHistory?.InsertOrMoveToTop(file);
-	}
-
-	/// <inheritdoc />
-	public void Receive(CloseExecutingFileMessage message)
-	{
-		CloseExecutingFile(message.File);
-	}
-
-	/// <inheritdoc />
-	public void Receive(SessionAutoLockedMessage message)
-	{
-		_exceptionHandler.Watch(LockAsync());
-	}
-
-	/// <summary>
-	/// Displays object in the "Editor" window.
-	/// </summary>
-	public abstract Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Closes editing and executing files.
-	/// </summary>
-	internal void CloseFiles(
-		IEnumerable<FileDto> editingFiles,
-		IEnumerable<FileDto> executingFiles)
-	{
-		foreach (FileDto file in editingFiles)
-		{
-			CloseEditingFile(file);
-		}
-
-		foreach (FileDto file in executingFiles)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
-	/// Reacts to a change of the decrypted contents in <see cref="Hierarchy" />.
-	/// </summary>
-	protected internal virtual void NotifyDecryptedContentsChanged()
-	{
-	}
-
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
@@ -335,114 +157,23 @@ public abstract partial class ViewModelBase :
 		}
 
 		_messenger.UnregisterAll(this);
+
+		CloseCopyHistoryList();
 	}
 
 	/// <summary>
-	/// Marks the file as no longer being edited.
+	/// Disposes the list of the copy history that the window no longer shows.
 	/// </summary>
-	protected virtual void CloseEditingFile(FileDto file) => file.IsEditing = false;
-
-	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	protected void CloseFile(FileDto file)
+	protected void CloseCopyHistoryList()
 	{
-		if (file.IsEditing)
-		{
-			CloseEditingFile(file);
-		}
+		CopyHistoryList?.Dispose();
 
-		if (file.IsExecuting)
-		{
-			CloseExecutingFile(file);
-		}
+		CopyHistoryList = null;
 	}
 
 	/// <summary>
-	/// Asks every open editor to persist its pending changes and awaits all of them.
+	/// Creates the list of the copy history that the window starts to show, read afresh from the history.
 	/// </summary>
-	protected async Task<bool> FlushEditorsAsync(CancellationToken token = default)
-	{
-		FlushEditorsMessage request = new();
-
-		_messenger.Send(request);
-
-		IReadOnlyCollection<bool> responses = await request
-			.GetResponsesAsync(token)
-			.ConfigureAwait(true);
-
-		return responses.All(x => x);
-	}
-
-	/// <summary>
-	/// Saves data in <see cref="CopyHistorySettings" />.
-	/// </summary>
-	protected void SaveCopyHistory()
-	{
-		if (_copyHistory is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Save copy history");
-
-		SaveCopyHistory(_copyHistory);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Hides the decrypted contents after the auto-lock expiry, closing the open files first.
-	/// </summary>
-	private async Task LockAsync()
-	{
-		_logger.LogInformation("Auto-lock: hiding the decrypted contents");
-
-		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
-		await FlushEditorsAsync().ConfigureAwait(true);
-
-		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
-
-		CloseFiles(
-			openedFiles.Where(x => x.IsEditing),
-			openedFiles.Where(x => x.IsExecuting));
-
-		EditorTabs = null;
-
-		_contentVisibility.HideAllContents(Hierarchy);
-
-		NotifyDecryptedContentsChanged();
-
-		_notification.ShowInformationSnackbar(Strings.ContentsHiddenByAutoLock);
-	}
-
-	/// <inheritdoc cref="SaveCopyHistory()" />
-	private void SaveCopyHistory(CopyHistoryViewModel viewModel)
-	{
-		if (viewModel.SelectedItem is { } selected)
-		{
-			CopyHistorySettings.SelectedItemId = selected.Id;
-		}
-		else
-		{
-			CopyHistorySettings.SelectedItemId = default;
-		}
-
-		Guid[] identifiers = [.. viewModel.GetItemIds()];
-
-		foreach (Guid item in CopyHistorySettings
-			.ItemIds
-			.ToArray())
-		{
-			if (identifiers.Contains(item))
-			{
-				continue;
-			}
-
-			CopyHistorySettings
-				.ItemIds
-				.Remove(item);
-		}
-	}
+	protected void OpenCopyHistoryList() => CopyHistoryList = _viewModelFactory.CreateViewModel<CopyHistoryViewModel>();
 	#endregion
 }

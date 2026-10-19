@@ -1,5 +1,4 @@
-using Material.Colors;
-using Material.Styles.Themes.Base;
+using DataOrganizer.Enums.Settings;
 using System;
 
 namespace DataOrganizer.Dto.Settings;
@@ -46,12 +45,12 @@ public record AppSettings
 	/// <summary>
 	/// Material design primary color.
 	/// </summary>
-	public required PrimaryColor PrimaryColor { get; set; }
+	public required ThemePrimaryColor PrimaryColor { get; set; }
 
 	/// <summary>
 	/// Material design secondary color.
 	/// </summary>
-	public required SecondaryColor SecondaryColor { get; set; }
+	public required ThemeSecondaryColor SecondaryColor { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the favorites popup opens on hovering over the fix toggle.
@@ -61,7 +60,7 @@ public record AppSettings
 	/// <summary>
 	/// Application theme: inherited from the system, light or dark.
 	/// </summary>
-	public required BaseThemeMode Theme { get; set; }
+	public required ThemeMode Theme { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the clipboard history is tracked.

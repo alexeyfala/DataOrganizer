@@ -1,28 +1,18 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
-using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Extensions.Hotkeys;
+using DataOrganizer.Helpers.Hotkeys;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
-using Shared.Properties;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,18 +43,6 @@ public sealed class KeyboardInputHook :
 	/// </summary>
 	private static readonly TimeSpan StrokeTimeout = TimeSpan.FromSeconds(3);
 
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
-	/// <inheritdoc cref="IClipboardAccessor" />
-	private readonly IClipboardAccessor _clipboard;
-
-	/// <inheritdoc cref="IContentCipher" />
-	private readonly IContentCipher _contentCipher;
-
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -74,8 +52,8 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="IGlobalHookRunner" />
 	private readonly IGlobalHookRunner _hookRunner;
 
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
+	/// <inheritdoc cref="IHotkeyContentCopier" />
+	private readonly IHotkeyContentCopier _hotkeyContentCopier;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -83,11 +61,11 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
-	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notification;
-
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+	/// <inheritdoc cref="ISessionHierarchy" />
+	private readonly ISessionHierarchy _sessionHierarchy;
 
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
@@ -105,40 +83,28 @@ public sealed class KeyboardInputHook :
 
 	#region Constructors
 	public KeyboardInputHook(
-		Application app,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
 		IGlobalHookRunner hookRunner,
-		IJsonSerializer jsonSerializer,
+		IHotkeyContentCopier hotkeyContentCopier,
 		ILogger logger,
 		IMessenger messenger,
-		INotificationService notification,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
 		TimeProvider timeProvider)
 	{
-		_app = app;
-
-		_clipboard = clipboard;
-
-		_dbAccess = dbAccess;
-
 		_dispatcher = dispatcher;
-
-		_contentCipher = contentCipher;
 
 		_exceptionHandler = exceptionHandler;
 
 		_hookRunner = hookRunner;
 
-		_jsonSerializer = jsonSerializer;
+		_hotkeyContentCopier = hotkeyContentCopier;
 
 		_logger = logger;
 
 		_messenger = messenger;
 
-		_notification = notification;
+		_sessionHierarchy = sessionHierarchy;
 
 		_timeProvider = timeProvider;
 
@@ -173,9 +139,7 @@ public sealed class KeyboardInputHook :
 	}
 
 	/// <inheritdoc />
-	public async Task StartTrackingAsync(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
+	public async Task StartTrackingAsync(CancellationToken token = default)
 	{
 		Func<bool> condition = () => !IsRunning;
 
@@ -203,7 +167,7 @@ public sealed class KeyboardInputHook :
 				return;
 			}
 
-			Hierarchy = hierarchy;
+			Hierarchy = _sessionHierarchy.Hierarchy;
 		}
 		catch (Exception ex)
 		{
@@ -313,7 +277,7 @@ public sealed class KeyboardInputHook :
 
 			// The tree is read on the UI thread that changes it, so it cannot change during the search.
 			if (await _dispatcher
-				.PostAsync(() => FindFileByHotkey(hierarchy, typed))
+				.PostAsync(() => HotkeyMatcher.FindFile(hierarchy, typed))
 				.ConfigureAwait(false) is not { } file)
 			{
 				return;
@@ -322,71 +286,9 @@ public sealed class KeyboardInputHook :
 			// The keys of a hotkey that fired do not start the next one.
 			InputStack.Clear();
 
-			ValidatedContents result = await _dbAccess
-				.GetFileContentsAsync(file.Id, token)
+			await _hotkeyContentCopier
+				.CopyAsync(file, token)
 				.ConfigureAwait(false);
-
-			if (!result.IsValid)
-			{
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-				return;
-			}
-
-			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-			{
-				await ActivateWindowAsync().ConfigureAwait(false);
-			}
-
-			if (await _contentCipher
-				.TryDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
-				.ConfigureAwait(false) is not { } contents)
-			{
-				return;
-			}
-
-			try
-			{
-				// Bytes that are not text would reach the clipboard as garbage.
-				if (FileTextCodec.TryRead(contents, file.FindChosenEncoding(_jsonSerializer)) is not { Text: var text })
-				{
-					_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
-
-					_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
-
-					return;
-				}
-
-				if (string.IsNullOrEmpty(text))
-				{
-					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-					return;
-				}
-
-				try
-				{
-					// Protected contents carry the markers that keep them out of the clipboard
-					// history and hand them to the auto-clear, same as the copy command does.
-					await (file.EncryptionStatus != EncryptionStatus.None
-						? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
-						: _clipboard.SetTextAsync(text))
-						.ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
-
-				_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-			}
-			finally
-			{
-				if (file.EncryptionStatus != EncryptionStatus.None)
-				{
-					contents.ZeroMemory();
-				}
-			}
 		}
 		catch (Exception ex)
 		{
@@ -404,58 +306,5 @@ public sealed class KeyboardInputHook :
 			}
 		}
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Returns the file whose hotkey the typed keys end with, or <c>null</c> if there is none.
-	/// </summary>
-	private static FileDto? FindFileByHotkey(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		KeyStroke[] typed)
-	{
-		foreach (FileDto file in hierarchy.GetFilesBy(static x => x.Hotkeys.Count > 0))
-		{
-			KeyStroke[] hotkeys = ReadHotkey(file);
-
-			if (hotkeys.SequenceEqual(typed.TakeLast(hotkeys.Length)))
-			{
-				return file;
-			}
-		}
-
-		return null;
-	}
-
-	/// <summary>
-	/// Returns the keys of the hotkey of a file with only the modifiers in their masks, as the typed keys have them.
-	/// </summary>
-	private static KeyStroke[] ReadHotkey(FileDto file) => [.. file
-		.Hotkeys
-		.ToKeyStrokes()
-		.Select(static x => x with
-		{
-			Mask = x.Mask.ToModifiers()
-		})];
-
-	/// <summary>
-	/// Activates the main window.
-	/// </summary>
-	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
-	{
-		if (_app.FindMainWindow() is not { } window)
-		{
-			return;
-		}
-
-		window.RestoreAndActivate();
-
-		if (_app.FindDataContext<FavoritesViewModel>() is not { } faforites)
-		{
-			return;
-		}
-
-		faforites.ShowFavorites();
-	});
 	#endregion
 }

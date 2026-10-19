@@ -1,5 +1,4 @@
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
@@ -39,12 +38,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\ntext\n# B\nmore");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -61,12 +60,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("<!-- #region A -->\ntext\n<!-- #endregion -->\nmore");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -83,12 +82,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("- a\n  - b\n- c");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -106,12 +105,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("A\n===\ntext\nB\n---\nmore");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -129,12 +128,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\ntext\n\n# B\nmore");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -151,12 +150,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n## B\ntext\n# C\nmore");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -174,12 +173,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n    code\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -197,12 +196,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("# A\n```\n# B\n```\n# C\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		GetLines(document, foldings)
@@ -219,12 +218,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("    # A\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -242,12 +241,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("---\ntitle: A\n---\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -267,12 +266,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new($"{line}\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -289,12 +288,12 @@ internal partial class MarkdownFoldingStrategyTests
 		// Arrange
 		TextDocument document = new("- a\n---\ntext");
 
-		using FoldingText text = new(document);
+		using FoldingText text = new(document.Text);
 
 		MarkdownFoldingStrategy sut = new(Rules, TabSize);
 
 		// Act
-		NewFolding[] foldings = sut.CreateNewFoldings(text);
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
 		foldings
@@ -313,7 +312,7 @@ internal partial class MarkdownFoldingStrategyTests
 	/// <summary>
 	/// Returns the numbers of the first and the last lines of the blocks.
 	/// </summary>
-	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<NewFolding> foldings)
+	private static (int Start, int End)[] GetLines(TextDocument document, IEnumerable<TextFolding> foldings)
 	{
 		return [.. foldings.Select(x => (
 			document.GetLineByOffset(x.StartOffset).LineNumber,

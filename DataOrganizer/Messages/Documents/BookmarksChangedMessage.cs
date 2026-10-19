@@ -1,4 +1,4 @@
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Controls.Text;
 
 namespace DataOrganizer.Messages.Documents;
 

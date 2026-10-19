@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using DataOrganizer.Dto.Documents;
+using DataOrganizer.Helpers.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -361,43 +362,6 @@ internal sealed partial class ChoiceSelector : UserControl
 
 	#region Helpers
 	/// <summary>
-	/// Returns how well an item matches the search, where a lower rank is better; <c>null</c> when it does not match.
-	/// </summary>
-	private static int? Rank(SelectorChoice choice, string search)
-	{
-		if (choice
-			.SearchTerms
-			.Any(x => x.Equals(search, StringComparison.OrdinalIgnoreCase)))
-		{
-			return 0;
-		}
-
-		if (choice
-			.Name
-			.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-		{
-			return 1;
-		}
-
-		if (choice
-			.SearchTerms
-			.Any(x => x.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-			|| choice.Description?.StartsWith(search, StringComparison.OrdinalIgnoreCase) == true)
-		{
-			return 2;
-		}
-
-		if (choice
-			.Name
-			.Contains(search, StringComparison.OrdinalIgnoreCase))
-		{
-			return 3;
-		}
-
-		return choice.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) == true ? 4 : null;
-	}
-
-	/// <summary>
 	/// Takes an item and closes the list.
 	/// </summary>
 	private void Choose(SelectorChoice? choice)
@@ -449,8 +413,7 @@ internal sealed partial class ChoiceSelector : UserControl
 	/// </summary>
 	private void ShowChoices()
 	{
-		// An extension may be typed with its dot.
-		string search = SearchInput.Text?.Trim().TrimStart('.') ?? string.Empty;
+		string search = ChoiceSearch.Normalize(SearchInput.Text);
 
 		if (search.Length == 0)
 		{
@@ -463,14 +426,8 @@ internal sealed partial class ChoiceSelector : UserControl
 			return;
 		}
 
-		// The best matches come first, so that Enter takes the item the search most likely means, while the items that
-		// cannot be chosen follow all the others.
-		SelectorChoice[] matches = [.. _choices
-			.Select(x => (Choice: x, Rank: Rank(x, search)))
-			.Where(static x => x.Rank is not null)
-			.OrderBy(static x => !x.Choice.IsAvailable)
-			.ThenBy(static x => x.Rank)
-			.Select(static x => x.Choice)];
+		// The best matches come first, so that Enter takes the item the search most likely means.
+		SelectorChoice[] matches = ChoiceSearch.Find(_choices, search);
 
 		ChoicesList.ItemsSource = matches;
 

@@ -1,4 +1,3 @@
-using AvaloniaEdit;
 using System.Drawing;
 
 namespace DataOrganizer.Dto.Documents;
@@ -24,7 +23,7 @@ public readonly struct FileEditorState
 	/// <summary>
 	/// The caret position.
 	/// </summary>
-	public TextViewPosition CaretPosition { get; init; }
+	public CaretPosition CaretPosition { get; init; }
 
 	/// <summary>
 	/// Web name of the encoding chosen for the text; <c>null</c> when the text takes the one found from the contents.

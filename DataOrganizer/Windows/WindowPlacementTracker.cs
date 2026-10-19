@@ -1,7 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Helpers.Views;
 
 namespace DataOrganizer.Windows;
 
@@ -18,22 +19,29 @@ internal sealed class WindowPlacementTracker
 	public PixelPoint Position => _position ?? _window.Position;
 
 	/// <summary>
-	/// Size of the window in the <see cref="WindowState.Normal" /> state.
+	/// State of the window as the settings store it, where a minimized window is reported as a normal one.
+	/// </summary>
+	public WindowShowState ShowState => _window.WindowState == WindowState.Minimized
+		? WindowShowState.Normal
+		: (WindowShowState)_window.WindowState;
+
+	/// <summary>
+	/// Size of the window in the <see cref="WindowState.Normal" /> state, in whole pixels as the settings store it.
 	/// </summary>
 	/// <remarks>
 	/// A window in the normal state carries the wanted size itself, the tracked one answers for the other states.
 	/// </remarks>
-	public Size Size => _window.WindowState == WindowState.Normal || _size is null
-		? new(_window.Width, _window.Height)
-		: _size.Value;
+	public System.Drawing.Size Size
+	{
+		get
+		{
+			Size size = _window.WindowState == WindowState.Normal || _size is null
+				? new(_window.Width, _window.Height)
+				: _size.Value;
 
-	/// <summary>
-	/// State of the window, where <see cref="WindowState.Minimized" /> is reported
-	/// as <see cref="WindowState.Normal" />.
-	/// </summary>
-	public WindowState WindowState => _window.WindowState == WindowState.Minimized
-		? WindowState.Normal
-		: _window.WindowState;
+			return new((int)size.Width, (int)size.Height);
+		}
+	}
 	#endregion
 
 	#region Data
@@ -83,7 +91,7 @@ internal sealed class WindowPlacementTracker
 	/// </summary>
 	private void Window_PositionChanged(object? sender, PixelPointEventArgs e)
 	{
-		if (_window.WindowState != WindowState.Normal || !IViewLauncher.IsWindowPositionOnScreen(_window, e.Point))
+		if (_window.WindowState != WindowState.Normal || !WindowPlacementHelper.IsOnScreen(_window, e.Point))
 		{
 			return;
 		}

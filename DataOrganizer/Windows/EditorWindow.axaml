@@ -10,13 +10,15 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
-	xmlns:entities="using:DataOrganizer.Dto.Entities"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:enums="using:DataOrganizer.Enums.Views"
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
+	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
@@ -63,13 +65,12 @@
 					chrome:WindowDecorationProperties.ElementRole="User"
 					Classes="CaptionButtonStyle primary"
 					Command="{Binding ShowNotepadCommand}"
-					CommandParameter="{Binding $parent[Window]}"
 					Content="{materialIcons:MaterialIconExt Kind=NotebookOutline,
 					                                        IconSize={StaticResource CaptionIconSize}}"
 					ToolTip.Tip="{x:Static prop:Strings.Notepad}">
 					<Interaction.Behaviors>
 						<DoubleTappedTrigger MarkAsHandled="True">
-							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" CommandParameter="{Binding $parent[Window]}" />
+							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" />
 						</DoubleTappedTrigger>
 					</Interaction.Behaviors>
 				</Button>
@@ -115,7 +116,7 @@
 									</Style>
 								</Menu.Styles>
 
-								<MenuItem Command="{Binding ShowFavoritesCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem Command="{Binding ShowFavoritesCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -137,7 +138,7 @@
 
 								<Separator Margin="16.0,0.0" />
 
-								<MenuItem Command="{Binding RestartApplicationCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem>
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="Restart" />
@@ -145,9 +146,17 @@
 											<TextBlock Text="{x:Static prop:Strings.Restart}" />
 										</StackPanel>
 									</MenuItem.Header>
+
+									<Interaction.Behaviors>
+										<EventTriggerBehavior EventName="Click">
+											<InvokeCommandAction Command="{Binding RestartApplicationCommand}" />
+
+											<CloseWindowAction />
+										</EventTriggerBehavior>
+									</Interaction.Behaviors>
 								</MenuItem>
 
-								<MenuItem Command="{Binding ExitCommand}" CommandParameter="{Binding $parent[Window]}">
+								<MenuItem>
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="LocationExit" />
@@ -155,6 +164,12 @@
 											<TextBlock Text="{x:Static prop:Strings.Exit}" />
 										</StackPanel>
 									</MenuItem.Header>
+
+									<Interaction.Behaviors>
+										<EventTriggerBehavior EventName="Click">
+											<CloseWindowAction />
+										</EventTriggerBehavior>
+									</Interaction.Behaviors>
 								</MenuItem>
 
 								<Separator
@@ -191,7 +206,15 @@
 								<MenuItem
 									x:Name="ClipboardHistorySeeding"
 									Command="{Binding SeedClipboardHistoryCommand}"
-									IsVisible="{x:Static common:AppInfo.IsDebug}">
+									IsVisible="{x:Static common:AppInfo.IsDebug}"
+									ToolTip.ShowOnDisabled="True">
+									<MenuItem.Styles>
+										<!--  The tip tells why the item is unavailable, so it is there only then.  -->
+										<Style Selector="MenuItem:disabled">
+											<Setter Property="ToolTip.Tip" Value="Needs clipboard history tracking to be enabled in the settings" />
+										</Style>
+									</MenuItem.Styles>
+
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="ClipboardPlusOutline" />
@@ -284,7 +307,6 @@
 								<Button
 									Classes="primary"
 									Command="{Binding ShowCustomClipboardCommand}"
-									CommandParameter="{Binding $parent[Window]}"
 									IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
 									Theme="{StaticResource CustomClipboardButtonTheme}" />
 
@@ -365,14 +387,14 @@
 										Theme="{StaticResource MaterialFlatButton}"
 										ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-									<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
+									<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
 								</Panel>
 							</StackPanel>
 						</Grid>
 
 						<Grid RowDefinitions="*,Auto">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay}" />
+								<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay, Converter={x:Static converters:AppConverters.PixelsToGridLength}}" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition />
 								<ColumnDefinition Width="Auto" />
@@ -383,12 +405,12 @@
 								Grid.Column="0"
 								AutoScrollToSelectedItem="True"
 								Classes="VirtualizedTreeViewStyle"
-								ItemsSource="{Binding Hierarchy, Mode=OneTime}"
+								ItemsSource="{Binding Nodes, Mode=OneTime}"
 								ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-								SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
+								SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
 
 								<TreeView.Styles>
-									<Style x:DataType="entities:ExplorerItemDtoBase" Selector="TreeViewItem">
+									<Style x:DataType="nodes:ExplorerNodeViewModelBase" Selector="TreeViewItem">
 										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									</Style>
@@ -396,6 +418,11 @@
 
 								<Interaction.Behaviors>
 									<input:DisableRightClickSelectionBehavior />
+
+									<hierarchy:ExplorerItemSignalsBehavior
+										HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
+										SelectCommand="{Binding SelectObjectCommand, Mode=OneWay}"
+										ShowSignal="{Binding ShowSignal, Mode=OneWay}" />
 								</Interaction.Behaviors>
 
 								<TreeView.DataTemplates>
@@ -414,23 +441,44 @@
 							<ContentControl
 								Grid.Row="0"
 								Grid.Column="2"
+								Content="{Binding EditingFiles, Mode=OneWay}"
 								ContentTemplate="{StaticResource EditingFilesTemplate}" />
 
 							<materialControls:SideSheet
 								Grid.Row="0"
 								Grid.Column="3"
+								Focusable="True"
 								SideSheetCanClose="False"
 								SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
 								SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 								SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
 								SideSheetPadding="4.0"
 								Theme="{StaticResource ScrollableSideSheetTheme}">
-								<materialControls:SideSheet.SideSheetContentTemplate>
-									<selectors:RightSideSheetContentTemplateSelector>
-										<StaticResource ResourceKey="CopyHistoryTemplate" />
+								<Interaction.Behaviors>
+									<!--
+										The sheet takes the focus whenever its button shows new content, so Escape reaches it at once.
+									-->
+									<DataTriggerBehavior
+										Binding="{Binding RightSideSheetContent, Mode=OneWay}"
+										ComparisonCondition="NotEqual"
+										Value="{x:Static enums:RightSideSheetContentKind.None}">
+										<FocusControlAction />
+									</DataTriggerBehavior>
 
-										<StaticResource ResourceKey="ExecutingFilesTemplate" />
-									</selectors:RightSideSheetContentTemplateSelector>
+									<!--
+										An Escape that nothing inside the sheet took, such as the open menu of a row, closes it.
+									-->
+									<KeyDownTrigger Key="Escape" EventRoutingStrategy="Bubble">
+										<InvokeCommandAction Command="{Binding CloseRightSideSheetCommand}" />
+									</KeyDownTrigger>
+								</Interaction.Behaviors>
+
+								<materialControls:SideSheet.SideSheetContentTemplate>
+									<selectors:ContentKindTemplateSelector>
+										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
+
+										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.ExecutingFiles}" Template="{StaticResource ExecutingFilesTemplate}" />
+									</selectors:ContentKindTemplateSelector>
 								</materialControls:SideSheet.SideSheetContentTemplate>
 							</materialControls:SideSheet>
 
@@ -463,7 +511,7 @@
 									</StackPanel>
 
 									<Grid
-										Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
+										Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:SecurityConverters.AutoLockIsExpiring}}"
 										ColumnDefinitions="Auto,Auto"
 										Cursor="Hand"
 										IsVisible="{Binding AutoLock.IsArmed, Mode=OneWay}"
@@ -494,7 +542,7 @@
 										<TextBlock
 											Grid.Column="1"
 											Margin="0.0,0.0,2.0,0.0"
-											Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
+											Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:SecurityConverters.AutoLockRemaining}}" />
 
 										<Interaction.Behaviors>
 											<EventTriggerBehavior EventName="Tapped">

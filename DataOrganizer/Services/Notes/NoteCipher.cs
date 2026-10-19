@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
@@ -35,7 +35,7 @@ public sealed class NoteCipher : INoteCipher
 		}
 
 		// A protected note stays unreadable while its keeper is locked, so the store is left alone.
-		if (item.EncryptionStatus != EncryptionStatus.Decrypted || item.FindPasswordKeeper() is not { } keeper)
+		if (item.FindUnlockedKeeper() is not { } keeper)
 		{
 			return null;
 		}
@@ -80,7 +80,7 @@ public sealed class NoteCipher : INoteCipher
 		{
 			// A protected note can only be written while its keeper is unlocked;
 			// a failure here must not take the note editor down, the caller reports the refusal.			
-			return item.EncryptionStatus == EncryptionStatus.Decrypted && item.FindPasswordKeeper() is { } keeper
+			return item.FindUnlockedKeeper() is { } keeper
 				? _contentCipher.TryEncrypt(keeper.Id, ContentIdentity.Note, decoded)
 				: null;
 		}

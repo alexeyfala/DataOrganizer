@@ -1,11 +1,7 @@
-using Avalonia;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Diagnostics;
-using DialogHostAvalonia;
-using System;
+using DataOrganizer.Interfaces.Dialogs;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,19 +11,14 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {
 	#region Properties
 	/// <summary>
-	/// Identifier of the <see cref="DialogHost" /> that shows the dialog.
+	/// Identifier of the dialog host that shows the dialog.
 	/// </summary>
 	public string DialogHostIdentifier { get; set; } = DialogHostIdentifiers.Main;
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Longest wait for the closing animation of the dialog.
-	/// </summary>
-	private static readonly TimeSpan HideTimeout = TimeSpan.FromSeconds(3.0);
-
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
+	/// <inheritdoc cref="IDialogCloser" />
+	private readonly IDialogCloser _dialogCloser;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -43,10 +34,10 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 	#region Constructors
 	protected AsyncResultViewModelBase(
-		Application app,
+		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler)
 	{
-		_app = app;
+		_dialogCloser = dialogCloser;
 
 		_exceptionHandler = exceptionHandler;
 	}
@@ -54,7 +45,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Sets a result and closes the dialog in its <see cref="DialogHost" />; the first result wins.
+	/// Sets a result and closes the dialog in its host; the first result wins.
 	/// </summary>
 	public async Task SetResultAsync(TResult result)
 	{
@@ -66,19 +57,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 		_isResultSet = true;
 
-		if (_app.IsDialogHostOpened(DialogHostIdentifier))
-		{
-			DialogOverlayPopupHost? host = DialogHost
-				.GetDialogSession(DialogHostIdentifier)?
-				.Host;
-
-			DialogHost.Close(DialogHostIdentifier);
-
-			if (host is not null)
-			{
-				await WaitUntilHiddenAsync(host).ConfigureAwait(true);
-			}
-		}
+		await _dialogCloser
+			.CloseAsync(DialogHostIdentifier)
+			.ConfigureAwait(true);
 
 		_source.TrySetResult(result);
 	}
@@ -86,7 +67,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <summary>
 	/// Awaits the answer, falling back to <paramref name="defaultResult" /> when the dialog closes without one.
 	/// </summary>
-	/// <param name="dialogClosed">Completes when the dialog closes, as the task of <see cref="DialogHost.Show(object)" /> does.</param>
+	/// <param name="dialogClosed">Completes when the dialog closes, as the task that shows it in its host does.</param>
 	/// <param name="defaultResult">Answer of a dialog closed without one.</param>
 	/// <param name="token">Stops waiting for the answer.</param>
 	protected Task<TResult> GetResultAsync(
@@ -95,14 +76,12 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		in CancellationToken token = default)
 	{
 		// A dialog that failed to show has no host to fade out.
-		DialogOverlayPopupHost? host = !dialogClosed.IsCompleted && _app.IsDialogHostOpened(DialogHostIdentifier)
-			? DialogHost.GetDialogSession(DialogHostIdentifier)?.Host
-			: null;
+		IShownDialog? shown = dialogClosed.IsCompleted ? null : _dialogCloser.FindShownDialog(DialogHostIdentifier);
 
 		// The failure of a dialog that could not be shown goes to the log, and the caller still gets the default answer.
 		_exceptionHandler.Watch(dialogClosed);
 
-		_exceptionHandler.Watch(SetDefaultResultOnCloseAsync(dialogClosed, host, defaultResult));
+		_exceptionHandler.Watch(SetDefaultResultOnCloseAsync(dialogClosed, shown, defaultResult));
 
 		return _source.Task.WaitAsync(token);
 	}
@@ -110,34 +89,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 	#region Helpers
 	/// <summary>
-	/// Completes once the closing animation has hidden <paramref name="host" />, or after <see cref="HideTimeout" />.
-	/// </summary>
-	private static async Task WaitUntilHiddenAsync(DialogOverlayPopupHost host)
-	{
-		TaskCompletionSource hidden = new();
-
-		using IDisposable subscription = host
-			.GetObservable(DialogOverlayPopupHost.IsActuallyOpenProperty)
-			.Subscribe(isOpen =>
-			{
-				if (!isOpen)
-				{
-					hidden.TrySetResult();
-				}
-			});
-
-		// The animation runs on the render clock, so a stalled one must not hold the answer back.
-		using IDisposable timeout = DispatcherTimer.RunOnce(() => hidden.TrySetResult(), HideTimeout);
-
-		await hidden.Task.ConfigureAwait(true);
-	}
-
-	/// <summary>
 	/// Answers with <paramref name="defaultResult" /> once the dialog has closed and faded out without an answer.
 	/// </summary>
 	private async Task SetDefaultResultOnCloseAsync(
 		Task dialogClosed,
-		DialogOverlayPopupHost? host,
+		IShownDialog? shown,
 		TResult defaultResult)
 	{
 		await dialogClosed.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
@@ -150,9 +106,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		// Closing decides the answer: a button pressed while the dialog fades out is ignored.
 		_isResultSet = true;
 
-		if (host is not null)
+		if (shown is not null)
 		{
-			await WaitUntilHiddenAsync(host).ConfigureAwait(true);
+			await shown
+				.WaitUntilHiddenAsync()
+				.ConfigureAwait(true);
 		}
 
 		_source.TrySetResult(defaultResult);

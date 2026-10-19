@@ -8,13 +8,13 @@ namespace DataOrganizer.Interfaces.Execution;
 public interface IProcessManager
 {
 	#region Methods
-	/// <summary>
-	/// Returns a list of child processes.
-	/// </summary>
-	Process[] GetChildProcesses(int parentProcessId);
-
 	/// <inheritdoc cref="Process.Kill()" />
 	void KillProcess(int processId);
+
+	/// <summary>
+	/// Opens <paramref name="target" />, a file or a URL, with the program the operating system assigns to it.
+	/// </summary>
+	void OpenWithShell(string target);
 
 	/// <summary>
 	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.

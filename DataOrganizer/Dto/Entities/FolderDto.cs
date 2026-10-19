@@ -1,8 +1,5 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions;
+using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages.Editor;
 using Entities.Models;
 using Shared.Extensions;
 using System;
@@ -13,35 +10,14 @@ using System.Linq;
 namespace DataOrganizer.Dto.Entities;
 
 /// <inheritdoc cref="FolderEntity" />
-public sealed partial class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
+public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 {
 	#region Properties
 	/// <inheritdoc cref="FolderEntity.Children" />
-	public override ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
+	public ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
 
 	/// <inheritdoc />
 	public byte[]? EncryptedDek { get; set; }
-
-	/// <inheritdoc cref="FolderEntity.IsExpanded" />
-	[ObservableProperty]
-	public override partial bool IsExpanded { get; set; }
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="IsExpanded" /> changes.
-	/// </summary>
-	partial void OnIsExpandedChanged(bool value)
-	{
-		if (Id == default)
-		{
-			return;
-		}
-
-		WeakReferenceMessenger
-			.Default
-			.Send(new FolderExpandedChangedMessage(Id, value));
-	}
 	#endregion
 
 	#region Methods

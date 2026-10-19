@@ -1,14 +1,16 @@
-using Avalonia.Threading;
-using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Enums.Views;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Interfaces.Views;
 using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.Reactive;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -21,14 +23,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <summary>
 	/// The log records shown in the console.
 	/// </summary>
-	public TextDocument Document { get; } = new()
-	{
-		// An undo history of the log would keep every record and every removed line in memory.
-		UndoStack =
-		{
-			SizeLimit = 0
-		}
-	};
+	public ILogText Document { get; }
 
 	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
@@ -48,11 +43,6 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
 	public partial bool WordWrap { get; set; }
-
-	/// <summary>
-	/// A reference to a method for writing a line of text.
-	/// </summary>
-	public Action<string> WriteCallback => Write;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -60,7 +50,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// Clears the log.
 	/// </summary>
 	[RelayCommand]
-	private void Clear() => Document.Remove(0, Document.TextLength);
+	private void Clear() => Document.Clear();
 
 	/// <summary>
 	/// Opens the application data directory.
@@ -84,7 +74,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 			return;
 		}
 
-		ReadFromBuffer();
+		ReadFromLog();
 	}
 	#endregion
 
@@ -97,94 +87,60 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IConsoleLog" />
+	private readonly IConsoleLog _consoleLog;
+
 	/// <inheritdoc cref="IDirectoryAccessor" />
 	private readonly IDirectoryAccessor _directoryAccessor;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
-
-	/// <inheritdoc cref="Lock" />
-	private readonly Lock _mutex = new();
-
-	/// <summary>
-	/// Log records waiting to be written into <see cref="Document" />.
-	/// </summary>
-	private readonly List<string> _recordsBuffer = [];
 	#endregion
 
 	#region Constructors
 	public ConsoleViewModel(
 		IAppEnvironment appEnvironment,
+		IConsoleLog consoleLog,
 		IDirectoryAccessor directoryAccessor,
-		IDispatcherAccessor dispatcher)
+		IDispatcherAccessor dispatcher,
+		ILogText logText)
 	{
 		_appEnvironment = appEnvironment;
+
+		_consoleLog = consoleLog;
 
 		_directoryAccessor = directoryAccessor;
 
 		_dispatcher = dispatcher;
-	}
-	#endregion
 
-	#region Methods
-	/// <summary>
-	/// Removes leading lines of <paramref name="document" />, so that at most <paramref name="maxLines" /> remain.
-	/// </summary>
-	internal static void RemoveStartLines(TextDocument document, int maxLines)
-	{
-		if (document.LineCount <= maxLines)
-		{
-			return;
-		}
+		Document = logText;
 
-		DocumentLine firstKeptLine = document.GetLineByNumber(document.LineCount - maxLines + 1);
-
-		document.Remove(0, firstKeptLine.Offset);
+		// The records written before the console existed come with the first read. The pause is checked on the UI
+		// thread, which owns the document and sets the pause, so a record posted just before a pause waits with the
+		// ones written after it.
+		_consoleLog
+			.Written
+			.StartWith(Unit.Default)
+			.Subscribe(_ => _dispatcher.Post(ReadFromLog, UiPriority.Background))
+			.DisposeWith(_disposables);
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Appends a record to the end of the log.
+	/// Moves the records of the console log into <see cref="Document" /> unless recording is paused.
 	/// </summary>
-	private void Append(string value)
-	{
-		Document.Insert(Document.TextLength, value);
-
-		RemoveStartLines(Document, MaxLineCount);
-	}
-
-	/// <summary>
-	/// Moves the records from the buffer into the log unless recording is paused.
-	/// </summary>
-	private void ReadFromBuffer()
+	private void ReadFromLog()
 	{
 		if (IsPaused)
 		{
 			return;
 		}
 
-		lock (_mutex)
+		foreach (string record in _consoleLog.TakeAll())
 		{
-			_recordsBuffer.ForEach(Append);
-
-			_recordsBuffer.Clear();
+			Document.Append(record, MaxLineCount);
 		}
-	}
-
-	/// <summary>
-	/// Writes a line of text.
-	/// </summary>
-	private void Write(string value)
-	{
-		lock (_mutex)
-		{
-			_recordsBuffer.Add(value);
-		}
-
-		// The pause is checked on the UI thread, which owns the document and sets the pause,
-		// so a record posted just before a pause waits with the ones written after it.
-		_dispatcher.Post(ReadFromBuffer, DispatcherPriority.Background);
 	}
 	#endregion
 }

@@ -2,12 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Security;
+using DataOrganizer.Helpers.Views;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Dataset;
 using Shared.Extensions;
 using System;
 using System.ComponentModel;
@@ -17,7 +18,6 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.Views;
 
@@ -42,6 +42,13 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	{
 		get => GetValue(CanHideProperty);
 		set => SetValue(CanHideProperty, value);
+	}
+
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	public IClipboardTextWriter? ClipboardWriter
+	{
+		get => GetValue(ClipboardWriterProperty);
+		set => SetValue(ClipboardWriterProperty, value);
 	}
 
 	/// <summary>
@@ -181,6 +188,12 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		.Register<DatasetFieldView, bool>(name: nameof(CanHide));
 
 	/// <summary>
+	/// Identifies the <see cref="ClipboardWriter" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IClipboardTextWriter?> ClipboardWriterProperty = AvaloniaProperty
+		.Register<DatasetFieldView, IClipboardTextWriter?>(name: nameof(ClipboardWriter));
+
+	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Brush?> ColorSampleBrushProperty = AvaloniaProperty
@@ -266,24 +279,16 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	[RelayCommand(CanExecute = nameof(HasText))]
 	private async Task CopyToClipboard()
 	{
-		if (string.IsNullOrWhiteSpace(Text) || TopLevel
-			.GetTopLevel(this)?
-			.Clipboard is not { } clipboard)
+		if (string.IsNullOrWhiteSpace(Text) || ClipboardWriter is not { } writer)
 		{
 			return;
 		}
 
-		try
-		{
-			await (IsSensitive
-				? clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(Text))
-				: clipboard.SetTextAsync(Text))
-				.ConfigureAwait(true);
-		}
-		finally
-		{
-			_ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
-		}
+		await writer
+			.WriteTextAsync(Text, IsSensitive)
+			.ConfigureAwait(true);
+
+		_ = BrushAnimations.ApplyHighlightAnimationAsync(() => AreaBrush);
 	}
 	#endregion
 
@@ -300,7 +305,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// <see cref="HighlightSignal" /> <see cref="IObserver{T}.OnNext" /> handler.
 	/// </summary>
-	private void HighlightSignal_OnNext(Unit signal) => _ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
+	private void HighlightSignal_OnNext(Unit signal) => _ = BrushAnimations.ApplyHighlightAnimationAsync(() => AreaBrush);
 
 	/// <summary>
 	/// <see cref="IsHiddenProperty" /> changed handler.
@@ -338,7 +343,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Plays a single highlight pulse on <see cref="AreaBrush" />.
 	/// </summary>
-	public void PulseHighlight() => _ = BrushExtensions.ApplyHighlightAnimationAsync(() => AreaBrush);
+	public void PulseHighlight() => _ = BrushAnimations.ApplyHighlightAnimationAsync(() => AreaBrush);
 
 	/// <inheritdoc />
 	protected override void OnLoaded(RoutedEventArgs e)
@@ -398,14 +403,8 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Recomputes <see cref="DisplayText" /> based on the current <see cref="Text" /> and <see cref="IsHidden" />.
-	/// When hidden, replaces visible text with a fixed-length bullet mask so the real text length is not leaked.
+	/// Recomputes <see cref="DisplayText" /> from <see cref="Text" /> and <see cref="IsHidden" />.
 	/// </summary>
-	private void UpdateDisplayText()
-	{
-		DisplayText = IsHidden && !string.IsNullOrEmpty(Text)
-			? "▓▓▓▓▓▓▓▓"
-			: Text;
-	}
+	private void UpdateDisplayText() => DisplayText = SecretMask.Apply(Text, IsHidden);
 	#endregion
 }

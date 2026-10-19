@@ -1,6 +1,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Exchange;
 using DataOrganizer.ViewModels.Dialogs;
 using System.Threading.Tasks;
 

@@ -1,11 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Enums;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace DataOrganizer.Dto.Entities;
@@ -19,30 +18,12 @@ namespace DataOrganizer.Dto.Entities;
 public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 {
 	#region Properties
-	/// <summary>
-	/// Default empty for non-folder items; <see cref="FolderDto" /> overrides it.
-	/// Lives on the base because the TreeDataTemplate ItemsSource binding can re-evaluate
-	/// against a <see cref="FileDto" /> when a <c>TreeViewItem</c> is recycled.
-	/// </summary>
-	public virtual ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
-
 	/// <inheritdoc cref="ExplorerItemBase.CreatedAt" />
 	public required DateTime CreatedAt { get; init; }
 
 	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
-
-	/// <inheritdoc cref="FolderEntity.IsExpanded" />
-	/// <remarks>
-	/// Stays on the base as a virtual auto-property: the TreeView's TreeViewItem style binds
-	/// IsExpanded for every container, so the property must resolve against <see cref="ExplorerItemDtoBase" />.
-	/// <see cref="FolderDto" /> overrides it with the real observable implementation.
-	/// </remarks>
-	public virtual bool IsExpanded { get; set; }
-
-	/// <inheritdoc cref="ExplorerItemBase.IsSelected" />
-	public bool IsSelected { get; set; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Kind" />
 	public required EntityKind Kind { get; init; }
@@ -110,6 +91,17 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// Searches the password keeper the object belongs to; <c>null</c> when there is none.
 	/// </summary>
 	public virtual FolderDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
+
+	/// <summary>
+	/// Searches the password keeper whose session key opens the object now; <c>null</c> when the object is not decrypted
+	/// or has no keeper.
+	/// </summary>
+	public FolderDto? FindUnlockedKeeper()
+	{
+		return EncryptionStatus == EncryptionStatus.Decrypted
+			? FindPasswordKeeper()
+			: null;
+	}
 
 	/// <summary>
 	/// Returns a sequence of <see cref="FolderDto" /> parent objects.

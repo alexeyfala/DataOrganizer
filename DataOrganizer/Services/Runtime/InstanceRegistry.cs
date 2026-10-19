@@ -1,5 +1,6 @@
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Runtime;
+using Shared.Interfaces;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -25,6 +26,9 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	/// </summary>
 	private const int MaxInstances = 1024;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <summary>
 	/// The exclusive lock held for the whole session; releasing it frees the slot.
 	/// A field keeps the stream alive so the finalizer cannot close the handle early.
@@ -32,8 +36,14 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	private readonly FileStream? _lock;
 	#endregion
 
+
 	#region Constructors
-	public InstanceRegistry() => InstanceNumber = ClaimSlot(out _lock);
+	public InstanceRegistry(IFileSystem fileSystem)
+	{
+		_fileSystem = fileSystem;
+
+		InstanceNumber = ClaimSlot(out _lock);
+	}
 	#endregion
 
 	#region Methods
@@ -43,10 +53,33 @@ public sealed class InstanceRegistry : IInstanceRegistry
 
 	#region Helpers
 	/// <summary>
+	/// Overwrites the lock file with the current process id for diagnostics.
+	/// </summary>
+	private static void WritePidMarker(FileStream stream)
+	{
+		try
+		{
+			stream.SetLength(0);
+
+			byte[] pid = TextDefaults
+				.Encoding
+				.GetBytes(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+
+			stream.Write(pid);
+
+			stream.Flush();
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex.ToStringDemystified());
+		}
+	}
+
+	/// <summary>
 	/// Claims the lowest free instance slot by holding an exclusive lock on its file.
 	/// Falls back to slot 1 without a lock when the registry directory is unusable.
 	/// </summary>
-	private static int ClaimSlot(out FileStream? lockStream)
+	private int ClaimSlot(out FileStream? lockStream)
 	{
 		lockStream = null;
 
@@ -56,7 +89,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 				IAppEnvironment.GetAppDataDirectoryPath(),
 				LocksDirectoryName);
 
-			Directory.CreateDirectory(directory);
+			_fileSystem.CreateDirectory(directory);
 
 			for (int number = 1; number <= MaxInstances; number++)
 			{
@@ -90,29 +123,6 @@ public sealed class InstanceRegistry : IInstanceRegistry
 		}
 
 		return 1;
-	}
-
-	/// <summary>
-	/// Overwrites the lock file with the current process id for diagnostics.
-	/// </summary>
-	private static void WritePidMarker(FileStream stream)
-	{
-		try
-		{
-			stream.SetLength(0);
-
-			byte[] pid = TextDefaults
-				.Encoding
-				.GetBytes(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
-
-			stream.Write(pid);
-
-			stream.Flush();
-		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex.ToStringDemystified());
-		}
 	}
 	#endregion
 }

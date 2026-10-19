@@ -1,20 +1,14 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Extensions.Collections;
+using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Helpers.Collections;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Notifications;
-using Repository.Interfaces.Database;
-using Serilog;
-using Shared.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Messages.Clipboard;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Reactive.Disposables;
@@ -25,7 +19,11 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>CopyHistoryView</c>.
 /// </summary>
-public sealed partial class CopyHistoryViewModel : FileListViewModelBase
+public sealed partial class CopyHistoryViewModel :
+	FileListViewModelBase,
+	IRecipient<CopyHistoryClearedMessage>,
+	IRecipient<CopyHistoryFileAddedMessage>,
+	IRecipient<CopyHistoryFileRemovedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -44,7 +42,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// </summary>
 	public ReadOnlyObservableCollection<FileDto> Items => _filter.Visible;
 
-	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />
+	/// <inheritdoc cref="ICopyHistory.SelectedItemId" />
 	[ObservableProperty]
 	public partial FileDto? SelectedItem { get; set; }
 	#endregion
@@ -58,14 +56,28 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		FileDto? newValue)
 	{
 		_previousSelectedItem = oldValue;
+
+		// A disposed list lets go of its files, which is not a choice.
+		if (IsDisposed)
+		{
+			return;
+		}
+
+		_copyHistory.SelectedItemId = newValue?.Id ?? default;
 	}
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="ICopyHistory" />
+	private readonly ICopyHistory _copyHistory;
+
 	/// <summary>
 	/// <inheritdoc cref="FilteredCollection{T}" /> <see cref="Items" />.
 	/// </summary>
 	private readonly FilteredCollection<FileDto> _filter;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 
 	/// <summary>
 	/// Previous <see cref="SelectedItem" /> value.
@@ -75,30 +87,30 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 	#region Constructors
 	public CopyHistoryViewModel(
-		Application app,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
-		IJsonSerializer jsonSerializer,
-		ILogger logger,
+		IContentCopier contentCopier,
+		ICopyHistory copyHistory,
 		IMessenger messenger,
-		INotificationService notification,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
-			clipboard,
-			contentCipher,
-			dbAccess,
-			dialogService,
-			jsonSerializer,
-			logger,
+			contentCopier,
 			messenger,
-			notification,
 			exceptionHandler)
 	{
+		_copyHistory = copyHistory;
+
+		_messenger = messenger;
+
 		_filter = new(
 			this.FilterPredicate(x => x.HistorySearch),
 			autoRefreshOn: x => x.Name);
+
+		_filter.AddRange(sessionHierarchy.Hierarchy.FilterFilesById(copyHistory.ItemIds));
+
+		Guid selectedId = copyHistory.SelectedItemId;
+
+		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefaultFromSource(x => x.Id == selectedId));
+
+		messenger.RegisterAll(this);
 
 		if (_filter.Visible is not INotifyCollectionChanged notifier)
 		{
@@ -134,9 +146,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 	#region Methods
 	/// <summary>
-	/// Clears <see cref="Items" />.
+	/// Empties the list, its search and its choice.
 	/// </summary>
-	public void Clear()
+	public void Receive(CopyHistoryClearedMessage message)
 	{
 		HistorySearch = null;
 
@@ -146,48 +158,38 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	}
 
 	/// <summary>
-	/// Returns a sequence of identifiers from <see cref="Items" />.
+	/// Inserts the copied file at the top of the list or moves it there.
 	/// </summary>
-	public IEnumerable<Guid> GetItemIds() => _filter.SelectFromSource(x => x.Id);
-
-	/// <summary>
-	/// Fills the history with the given files and selects one of them.
-	/// </summary>
-	public void Initialize(IEnumerable<FileDto> items, Guid selectedId)
+	public void Receive(CopyHistoryFileAddedMessage message)
 	{
-		_filter.AddRange(items);
-
-		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefaultFromSource(x => x.Id == selectedId));
-	}
-
-	/// <summary>
-	/// Inserts or moves to top value in <see cref="Items" />.
-	/// </summary>
-	public void InsertOrMoveToTop(FileDto file)
-	{
-		if (_filter.Contains(file))
+		if (_filter.Contains(message.File))
 		{
-			_filter.Reorder(file, 0);
+			_filter.Reorder(message.File, 0);
 		}
 		else
 		{
-			_filter.InsertAndRebuild(file, 0);
+			_filter.InsertAndRebuild(message.File, 0);
 		}
 	}
 
 	/// <summary>
-	/// Tries to remove value from <see cref="Items" />.
+	/// Removes the file from the list.
 	/// </summary>
-	public bool Remove(FileDto file) => _filter.Remove(file);
+	public void Receive(CopyHistoryFileRemovedMessage message) => _filter.Remove(message.File);
 
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
 
+		_messenger.UnregisterAll(this);
+
 		_filter.Dispose();
 
 		SelectedItem = null;
 	}
+
+	/// <inheritdoc />
+	protected override void SelectFile(FileDto file) => SelectedItem = file;
 	#endregion
 }

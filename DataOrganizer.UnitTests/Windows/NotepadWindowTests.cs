@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -13,14 +14,16 @@ using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
+using DataOrganizer.Services.Views;
 using DataOrganizer.Templates;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
@@ -60,6 +63,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -107,7 +114,12 @@ internal class NotepadWindowTests
 	public void Click_On_A_Tab_Selects_It()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -139,9 +151,16 @@ internal class NotepadWindowTests
 	public async Task Click_On_Close_All_Tabs_Asks_Once_For_The_Tabs_With_Text()
 	{
 		// Arrange
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -150,9 +169,9 @@ internal class NotepadWindowTests
 			.AddTabCommand
 			.Execute(null);
 
-		sut.ViewModel.Tabs[0].Document.Text = "First";
+		sut.ViewModel.Tabs[0].Editor.Document.AsTextDocument().Text = "First";
 
-		sut.ViewModel.Tabs[1].Document.Text = "Second";
+		sut.ViewModel.Tabs[1].Editor.Document.AsTextDocument().Text = "Second";
 
 		sut.Show();
 
@@ -173,7 +192,7 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		await dialogService.Received(1).RequestYesNoAsync(
+		await confirmationPrompt.Received(1).RequestYesNoAsync(
 			Arg.Any<string>(),
 			Arg.Is(DialogHostIdentifiers.Notepad),
 			Arg.Any<CancellationToken>());
@@ -186,7 +205,12 @@ internal class NotepadWindowTests
 	public void Click_On_The_Add_Button_Adds_A_Selected_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -216,7 +240,12 @@ internal class NotepadWindowTests
 	public void Click_On_The_Close_Button_Closes_The_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -241,6 +270,66 @@ internal class NotepadWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadViewModel.CloseTabCommand" />: the view of a closed tab leaves the cache once another tab has
+	/// taken its place.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Close_Button_Forgets_The_View_Once_Another_Tab_Is_Selected()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		NotepadTabViewModel closed = sut.ViewModel.Tabs[1];
+
+		object? selected = null;
+
+		((IViewCache)template)
+			.When(x => x.Remove(closed))
+			.Do(_ => selected = sut.Tabs.SelectedItem);
+
+		Point point = Center(sut, GetCloseButton(sut.Tabs, 1));
+
+		// Act
+		Click(sut, point, MouseButton.Left);
+
+		// Assert
+		selected
+			.Should()
+			.BeSameAs(sut.ViewModel.Tabs[0]);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadViewModel.ActivateMainWindowCommand" />: a click on the home button of the title bar activates
 	/// the main window.
 	/// </summary>
@@ -248,9 +337,16 @@ internal class NotepadWindowTests
 	public void Click_On_The_Home_Button_Activates_The_Main_Window()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -264,7 +360,7 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		viewLauncher
+		mainWindowActivator
 			.Received(1)
 			.ActivateMainWindow();
 	}
@@ -278,15 +374,19 @@ internal class NotepadWindowTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDialogService dialogService = Substitute.For<IDialogService>();
+			ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
 
-			dialogService
+			textInputPrompt
 				.RequestKeyValueInputAsync(
 					Arg.Any<KeyValueInputParameters>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new KeyValueInput("Notes"));
 
-			builder.RegisterInstance(dialogService);
+			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -318,6 +418,57 @@ internal class NotepadWindowTests
 		sut.ViewModel.Tabs.Select(x => x.Name)
 			.Should()
 			.Equal("Notes", null);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadWindow" />: the views of the tabs leave the cache when the window closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void Close_Forgets_The_Views_Of_The_Tabs()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		// Act
+		sut.Close();
+
+		// Assert
+		((IViewCache)template)
+			.Received(1)
+			.Remove(sut.ViewModel.Tabs[0]);
+
+		((IViewCache)template)
+			.Received(1)
+			.Remove(sut.ViewModel.Tabs[1]);
 	}
 
 	/// <summary>
@@ -373,6 +524,14 @@ internal class NotepadWindowTests
 			builder.RegisterInstance<INotepadSessionState>(sessionState);
 
 			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -414,6 +573,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -462,9 +625,16 @@ internal class NotepadWindowTests
 	public void DoubleClick_On_The_Home_Button_Centers_The_Main_Window()
 	{
 		// Arrange
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+		IMainWindowActivator mainWindowActivator = Substitute.For<IMainWindowActivator>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(mainWindowActivator);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -480,13 +650,72 @@ internal class NotepadWindowTests
 		Click(sut, point, MouseButton.Left);
 
 		// Assert
-		viewLauncher
+		mainWindowActivator
 			.Received(1)
-			.CenterMainWindow(sut);
+			.CenterMainWindow();
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding chosen in the status bar reads the text of the tab again
+	/// <see cref="NotepadViewModel.Tabs" />: a tab dragged past its neighbour keeps the views of both tabs.
+	/// </summary>
+	[AvaloniaTest]
+	public void Drag_Of_A_Tab_Keeps_The_Views_Of_The_Tabs()
+	{
+		// Arrange
+		IDataTemplate template = Substitute.For<IDataTemplate, IViewCache>();
+
+		template
+			.Match(Arg.Any<object?>())
+			.Returns(x => x.Arg<object?>() is NotepadTabViewModel);
+
+		template
+			.Build(Arg.Any<object?>())
+			.Returns(_ => new Border());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
+
+		// The application keeps the template among its own, which the tests do without.
+		sut
+			.DataTemplates
+			.Add(template);
+
+		sut
+			.ViewModel
+			.AddTabCommand
+			.Execute(null);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		NotepadTabViewModel[] tabs = [.. sut.ViewModel.Tabs];
+
+		Point from = Center(sut, GetHeaderText(sut.Tabs, tabs[0].Header));
+
+		Point to = Center(sut, GetHeaderText(sut.Tabs, tabs[1].Header));
+
+		// Act
+		Drag(sut, from, to);
+
+		// Assert
+		sut.ViewModel.Tabs
+			.Should()
+			.Equal(tabs[1], tabs[0]);
+
+		((IViewCache)template)
+			.DidNotReceiveWithAnyArgs()
+			.Remove(tabs[0]);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding chosen in the status bar reads the text of the tab again
 	/// from the same bytes.
 	/// </summary>
 	[AvaloniaTest]
@@ -518,10 +747,26 @@ internal class NotepadWindowTests
 				.RegisterType<DispatcherAccessor>()
 				.As<IDispatcherAccessor>();
 
+			builder
+				.RegisterType<DocumentEncodingSwitcher>()
+				.As<IDocumentEncodingSwitcher>();
+
 			// The text read again waits for a pause in typing to be written, which does not come here.
 			builder
 				.RegisterType<FakeTimeProvider>()
 				.As<TimeProvider>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -550,13 +795,13 @@ internal class NotepadWindowTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		tab.Document.Text
+		tab.Editor.Document.Text
 			.Should()
 			.Be(Encoding.Unicode.GetString(Encoding.UTF8.GetBytes("Text")));
 	}
 
 	/// <summary>
-	/// <see cref="NotepadTabViewModel.Encoding" />: an encoding that cannot read the text gives way in the status bar to
+	/// <see cref="DocumentEditorViewModel.Encoding" />: an encoding that cannot read the text gives way in the status bar to
 	/// the one the text is in.
 	/// </summary>
 	[AvaloniaTest]
@@ -588,6 +833,18 @@ internal class NotepadWindowTests
 			builder
 				.RegisterType<DispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<DocumentEncodingSwitcher>()
+				.As<IDocumentEncodingSwitcher>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadViewModel viewModel = mock.Create<NotepadViewModel>();
@@ -626,7 +883,12 @@ internal class NotepadWindowTests
 	public void PreviousTab_Follows_The_Selected_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -656,7 +918,12 @@ internal class NotepadWindowTests
 	public void SnackbarHost_Is_The_One_Of_The_Notepad()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		// Act
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -678,7 +945,12 @@ internal class NotepadWindowTests
 	public void Tabs_Show_A_New_Name_Of_Their_Tab()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -719,6 +991,10 @@ internal class NotepadWindowTests
 				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
 		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
@@ -755,7 +1031,12 @@ internal class NotepadWindowTests
 	public void Tabs_Show_Their_Headers()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -786,7 +1067,12 @@ internal class NotepadWindowTests
 		// Arrange
 		string name = RandomString.Create(200);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
 
 		NotepadWindow sut = new(mock.Create<NotepadViewModel>());
 
@@ -825,6 +1111,18 @@ internal class NotepadWindowTests
 		window.MouseDown(point, button);
 
 		window.MouseUp(point, button);
+	}
+
+	/// <summary>
+	/// Presses the left button of the mouse at one point of a window, moves the mouse to another and releases it there.
+	/// </summary>
+	private static void Drag(Window window, Point from, Point to)
+	{
+		window.MouseDown(from, MouseButton.Left);
+
+		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+
+		window.MouseUp(to, MouseButton.Left);
 	}
 
 	/// <summary>

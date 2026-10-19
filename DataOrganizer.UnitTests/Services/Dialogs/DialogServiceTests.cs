@@ -7,15 +7,18 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Helpers;
+using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.Services.Settings;
+using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
@@ -207,7 +210,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		KeyValueInputViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -290,7 +293,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		MultilineTextEditViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -366,7 +369,7 @@ internal class DialogServiceTests
 
 		dispatcher
 			.Received(1)
-			.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>());
+			.Post(Arg.Any<Action>(), Arg.Any<UiPriority>());
 	}
 
 	/// <summary>
@@ -427,7 +430,7 @@ internal class DialogServiceTests
 		app.ApplicationLifetime = lifetime;
 
 		YesNoCancelBoxViewModel viewModel = new(
-			app,
+			new DialogCloser(new DesktopAccessor(app, Substitute.For<IProcessTerminator>()), Substitute.For<IUiTimer>()),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -482,7 +485,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		YesNoCancelBoxViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -561,7 +564,7 @@ internal class DialogServiceTests
 	{
 		// Arrange
 		YesNoCancelBoxViewModel viewModel = new(
-			Application.Current!,
+			Substitute.For<IDialogCloser>(),
 			Substitute.For<ITaskExceptionHandler>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -645,10 +648,15 @@ internal class DialogServiceTests
 			.Settings
 			.Returns(SettingsFactory.CreateSettings());
 
-		SettingsViewModel viewModel = new(
+		// The view model and the dialog service share one settings session, as they do in the application.
+		SettingsSession session = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
+			Substitute.For<IBackgroundServiceControl>());
+
+		SettingsViewModel viewModel = new(
 			Substitute.For<IDialogHostCloser>(),
+			session,
 			Substitute.For<ISettingsSessionState>());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -664,6 +672,10 @@ internal class DialogServiceTests
 				.Returns(new SettingsView(viewModel));
 
 			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterInstance(session)
+				.As<ISettingsCloseGuard>();
 		});
 
 		DialogService sut = mock.Create<DialogService>();
@@ -679,7 +691,7 @@ internal class DialogServiceTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Task<ShowSettingsResult> showTask = sut.ShowSettingsAsync();
+		Task showTask = sut.ShowSettingsAsync();
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -710,12 +722,12 @@ internal class DialogServiceTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		ShowSettingsResult result = await showTask;
+		await showTask;
 
 		// Closed before the assertion, otherwise the host leaks into the following tests.
 		window.Close();
 
-		result.IsSaved
+		viewModel.IsSaved
 			.Should()
 			.BeFalse();
 	}

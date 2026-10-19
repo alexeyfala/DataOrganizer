@@ -13,14 +13,14 @@ public interface IEntityLoader
 {
 	#region Methods
 	/// <summary>
-	/// Loads all entities from the database, maps them to the <see cref="ExplorerItemDtoBase" /> hierarchy, and returns the result.
-	/// <c>Null</c> stands for a database that could not be read, which an empty hierarchy does not tell apart.
+	/// Loads all entities from the database and maps them to the <see cref="ExplorerItemDtoBase" /> hierarchy with its stored
+	/// tree state. <c>Null</c> stands for a database that could not be read, which an empty hierarchy does not tell apart.
 	/// </summary>
-	Task<ExplorerItemDtoBase[]?> LoadHierarchyAsync(CancellationToken token = default);
+	Task<LoadedHierarchy?> LoadHierarchyAsync(CancellationToken token = default);
 
 	/// <summary>
-	/// Maps entities from the database to DTO objects.
+	/// Maps entities from the database to DTO objects, with the ones stored expanded and selected.
 	/// </summary>
-	ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> folders, IEnumerable<FileEntity> files);
+	LoadedHierarchy Map(IReadOnlyCollection<FolderEntity> folders, IReadOnlyCollection<FileEntity> files);
 	#endregion
 }

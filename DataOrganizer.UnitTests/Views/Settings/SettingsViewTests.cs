@@ -6,10 +6,11 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
-using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
@@ -150,9 +151,11 @@ internal class SettingsViewTests
 		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
 
 		SettingsViewModel viewModel = new(
-			settingsStore,
-			Substitute.For<IAppThemeService>(),
 			Substitute.For<IDialogHostCloser>(),
+			new SettingsSession(
+				settingsStore,
+				Substitute.For<IAppThemeService>(),
+				Substitute.For<IBackgroundServiceControl>()),
 			sessionState);
 
 		SettingsView sut = new(viewModel);

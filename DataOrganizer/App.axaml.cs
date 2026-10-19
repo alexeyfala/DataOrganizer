@@ -4,16 +4,18 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Notifications;
+using DataOrganizer.Extensions.Runtime;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Explorer;
 using DataOrganizer.Interfaces.Hierarchy;
@@ -22,15 +24,18 @@ using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Seeding;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
+using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Dialogs;
+using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Explorer;
 using DataOrganizer.Services.Hierarchy;
@@ -39,8 +44,10 @@ using DataOrganizer.Services.Notepad;
 using DataOrganizer.Services.Notes;
 using DataOrganizer.Services.Notifications;
 using DataOrganizer.Services.Runtime;
+using DataOrganizer.Services.Seeding;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Storage;
+using DataOrganizer.Services.Text;
 using DataOrganizer.Services.Updates;
 using DataOrganizer.Services.Views;
 using DataOrganizer.Templates;
@@ -52,15 +59,8 @@ using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
 using DataOrganizer.Windows;
 using Mapster;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Repository.DbContexts;
-using Repository.Interceptors;
-using Repository.Interfaces;
-using Repository.Interfaces.Database;
-using Repository.Services;
-using Repository.Services.Database;
+using Repository.Extensions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Exceptions;
@@ -73,7 +73,6 @@ using SharpHook;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
 
 namespace DataOrganizer;
 
@@ -86,11 +85,6 @@ public sealed class App : Application
 	/// Consumed by XAML markup extensions and other contexts that cannot use constructor injection.
 	/// </summary>
 	public static IServiceProvider? Services { get; private set; }
-
-	/// <summary>
-	/// The application lifetime timer.
-	/// </summary>
-	public Stopwatch AppLifetimeTimer { get; } = new();
 	#endregion
 
 	#region Methods
@@ -106,7 +100,7 @@ public sealed class App : Application
 	{
 		base.OnFrameworkInitializationCompleted();
 
-		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop)
+		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop
 			|| Services is not { } serviceProvider)
 		{
 			return;
@@ -118,8 +112,6 @@ public sealed class App : Application
 		serviceProvider
 			.GetRequiredService<IAppThemeService>()
 			.ApplyFromSettings();
-
-		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
 		DataTemplates.Add(serviceProvider.GetRequiredService<DocumentTabTemplate>());
 
@@ -137,67 +129,126 @@ public sealed class App : Application
 
 		services.AddMapster();
 
+		services.AddSingleton(CreateMapperConfig());
+
+		services.AddRepository(GetDatabaseFilePath);
+
+		services.AddGitHubReleasesClient();
+
 		RegisterPlatformServices(services);
 
 		#region Transients
-		services.AddTransient<IAppController, AppController>();
+		services.AddTransient<IAppPickerPrompt, DialogService>();
+		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
+		services.AddTransient<IBackgroundServiceControl, BackgroundServices>();
+		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
+		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
+		services.AddTransient<IClipboardTextWriter, ClipboardTextWriter>();
+		services.AddTransient<IConfirmationPrompt, DialogService>();
 		services.AddTransient<IContentCipher, ContentCipher>();
+		services.AddTransient<IContentCopier, ContentCopier>();
+		services.AddTransient<IContentKeys, ContentVisibility>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
-		services.AddTransient<IDbMaintenance, DbMaintenance>();
+		services.AddTransient<IDekCipher, EncryptionService>();
+		services.AddTransient<IDeletionScenario, DeletionScenario>();
+		services.AddTransient<IDialogCloser, DialogCloser>();
+		services.AddTransient<IDialogHostFinder, DesktopAccessor>();
 		services.AddTransient<IDialogHostCloser, DialogHostCloser>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
+		services.AddTransient<IDocumentEncodingSwitcher, DocumentEncodingSwitcher>();
+		services.AddTransient<IDocumentTextFactory, DocumentTextFactory>();
+		services.AddTransient<IEditorStateStore, EditorStateStore>();
+		services.AddTransient<IEmbeddedEditorFactory, EmbeddedEditorFactory>();
 		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
 		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
-		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
+		// The file picker lists the exchange formats in this order.
+		services.AddTransient<IExchangeFormat, JsonExchangeFormat>();
+		services.AddTransient<IExchangeFormat, XmlExchangeFormat>();
+		services.AddTransient<IExchangeFormat, SqliteExchangeFormat>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
-		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();
-		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileContentsReader, FileContentsReader>();
+		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
+		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
-		services.AddTransient<IFileRepository, FileRepository>();
+		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
+		services.AddTransient<IFileTextCopier, FileTextCopier>();
+		services.AddTransient<IFileTextReader, FileTextReader>();
+		services.AddTransient<IFolderCipher, FolderCipher>();
 		services.AddTransient<IFolderContentsConverter, FolderContentsConverter>();
 		services.AddTransient<IFolderProtection, FolderProtection>();
-		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
-		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
+		services.AddTransient<IHotkeyContentCopier, HotkeyContentCopier>();
+		services.AddTransient<IHotkeysEditingScenario, HotkeysEditingScenario>();
+		services.AddTransient<IHotkeysPrompt, DialogService>();
+		services.AddTransient<IImportModePrompt, DialogService>();
+		services.AddTransient<IImportScenario, ImportScenario>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
+		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
+		services.AddTransient<ILogText, AvaloniaLogText>();
+		services.AddTransient<IMainWindowActivator, ViewLauncher>();
+		services.AddTransient<IMainWindowLauncher, ViewLauncher>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INotepadStore, NotepadStore>();
+		services.AddTransient<INotepadTexts, NotepadTexts>();
 		services.AddTransient<INoteReader, NoteReader>();
+		services.AddTransient<INoticeLauncher, ViewLauncher>();
+		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();
+		services.AddTransient<IPasswordDekWrapper, EncryptionService>();
+		services.AddTransient<IPasswordPrompt, DialogService>();
+		services.AddTransient<IPngPainter, PngPainter>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
+		services.AddTransient<IProtectionScenarios, ProtectionScenarios>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
-		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
+		services.AddTransient<ISecondaryWindowCloser, ViewLauncher>();
+		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
+		services.AddTransient<ISeedingScenarios, SeedingScenarios>();
+		services.AddTransient<ISessionDekWrapper, EncryptionService>();
+		services.AddTransient<IStartupDataLoader, StartupDataLoader>();
+		services.AddTransient<IStartupInfoLogger, StartupInfoLogger>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
+		services.AddTransient<ITextInputPrompt, DialogService>();
+		services.AddTransient<ITypingPauseFactory, TypingPauseFactory>();
+		services.AddTransient<IUiTimer, UiTimer>();
+		services.AddTransient<IUnreadableHotkeysFinder, UnreadableHotkeysFinder>();
 		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
+		services.AddTransient<IUpdatePrompt, UpdatePromptRelay>();
 		services.AddTransient<IViewFactory, ViewFactory>();
-		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IViewModelFactory, ViewFactory>();
+		services.AddTransient<IWindowCloser, DesktopAccessor>();
+		services.AddTransient<IWindowFinder, DesktopAccessor>();
+		services.AddTransient<IWindowSettingsStore, WindowSettingsStore>();
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 
 		#region View Locator
 		services.AddSingleton<DocumentTabTemplate>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<DocumentTabTemplate>());
 		#endregion
 
 		#region Singletons
-		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
+		services.AddKeyedSingleton<IMessagePresenter<SnackbarContent>>(
+			SnackbarHostIdentifiers.Main,
+			static (x, key) => x.GetRequiredKeyedService<ISnackbarPresenter>(key));
+		services.AddKeyedSingleton<IMessagePresenter<SnackbarContent>>(
+			SnackbarHostIdentifiers.Notepad,
+			static (x, key) => x.GetRequiredKeyedService<ISnackbarPresenter>(key));
 		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Main);
 		services.AddKeyedSingleton<ISnackbarPresenter, SnackbarPresenter>(SnackbarHostIdentifiers.Notepad);
@@ -205,20 +256,29 @@ public sealed class App : Application
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<Application>(this);
+		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
+		services.AddSingleton<IAppUptime, AppUptime>();
 		services.AddSingleton<IAutoLockService, AutoLockService>();
 		services.AddSingleton<IAvaloniaLogForwarder, AvaloniaLogForwarder>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
+		services.AddSingleton<IClipboardHistory, ClipboardHistory>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
-		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
+		services.AddSingleton<IClipboardLogMerger>(static x => x.GetRequiredService<ClipboardLogService>());
+		services.AddSingleton<IClipboardLogRunner>(static x => x.GetRequiredService<ClipboardLogService>());
+		services.AddSingleton<IClipboardLogService>(static x => x.GetRequiredService<ClipboardLogService>());
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
-		services.AddSingleton<IDbAccess, DbAccess>();
-		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IConsoleLog, ConsoleLog>();
+		services.AddSingleton<ICopyHistory>(static x => x.GetRequiredService<CopyHistory>());
+		services.AddSingleton<ICopyHistoryRecorder>(static x => x.GetRequiredService<CopyHistory>());
+		services.AddSingleton<ICopyHistoryStore>(static x => x.GetRequiredService<CopyHistory>());
 		services.AddSingleton<IDbFailureReporter, DbFailureReporter>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton<IEditorSplitStore, EditorSplitStore>();
+		services.AddSingleton<IExecutingFiles, ExecutingFiles>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook());
@@ -228,10 +288,22 @@ public sealed class App : Application
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<INotepadSessionState, NotepadSessionState>();
 		services.AddSingleton<INotificationService, NotificationService>();
+		services.AddSingleton<ISessionEditorTabs>(static x => x.GetRequiredService<WorkSession>());
+		services.AddSingleton<ISessionHierarchy>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
+		services.AddSingleton<ISessionReadOnlyMode>(static x => x.GetRequiredService<WorkSession>());
+		services.AddSingleton<ISessionTreeState>(static x => x.GetRequiredService<WorkSession>());
+		services.AddSingleton<ISettingsCloseGuard>(static x => x.GetRequiredService<SettingsSession>());
+		services.AddSingleton<ISettingsCommit>(static x => x.GetRequiredService<SettingsSession>());
+		services.AddSingleton<ISettingsDraft>(static x => x.GetRequiredService<SettingsSession>());
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
+		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
+		services.AddSingleton<ClipboardLogService>();
+		services.AddSingleton<CopyHistory>();
+		services.AddSingleton<SettingsSession>();
+		services.AddSingleton<WorkSession>();
 		#endregion
 
 		#endregion
@@ -323,71 +395,55 @@ public sealed class App : Application
 	}
 
 	/// <summary>
-	/// Configures <see cref="SqliteDbContext" />.
+	/// Creates the mapping rules that every <see cref="MapsterMapper.IMapper" /> of the application uses.
 	/// </summary>
-	private static void ConfigureDbContext(
-		IServiceProvider provider,
-		DbContextOptionsBuilder builder)
+	private static TypeAdapterConfig CreateMapperConfig()
 	{
-		try
+		TypeAdapterConfig config = new();
+
+		config.Apply(new EntityMappingRegister());
+
+		if (AppInfo.IsDebug)
 		{
-			string directoryPath = provider
-				.GetRequiredService<IAppEnvironment>()
-				.DatabaseDirectoryPath;
-
-			Directory.CreateDirectory(directoryPath);
-
-			string databaseFilePath = Path.Combine(
-				directoryPath,
-				AppInfo.AppName + KnownFileExtensions.Sqlite);
-
-			SqliteConnectionStringBuilder connectionBuilder = new()
+			try
 			{
-				DataSource = databaseFilePath,
-				Mode = SqliteOpenMode.ReadWriteCreate,
-				RecursiveTriggers = false,
-				DefaultTimeout = 30,
-				Pooling = true
-			};
+				config.Compile();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.ToStringDemystified());
 
-			builder.UseSqlite(
-				connectionBuilder.ToString(),
-				x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName));
+				// A break under a test runner would stop a batch debug run.
+				if (!AppDomain
+					.CurrentDomain
+					.IsRunningFromNUnit())
+				{
+					Debugger.Break();
+				}
 
-			// Pooled connections are reused, and the pragmas do not survive in the database file.
-			builder.AddInterceptors(new SqlitePragmaInterceptor());
-
-			//ILogger logger = provider.GetRequiredService<ILogger>();
-
-			//builder.LogTo(logger.LogDebugWithTemplate);
+				// Temporarily add .IgnoreNonMapped(true) to the problematic mapping,
+				// then remove one property at a time using .Map(dest => dest.PropertyName, src => src.PropertyName)
+				// until you find the one that breaks the compilation.
+			}
 		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex.ToStringDemystified());
-		}
+
+		return config;
 	}
 
 	/// <summary>
-	/// Configures the <see cref="HttpClient" /> used to query the GitHub releases API.
+	/// Returns the path of the database file and creates its directory.
 	/// </summary>
-	private static void ConfigureGitHubHttpClient(HttpClient client)
+	private static string GetDatabaseFilePath(IServiceProvider provider)
 	{
-		client.Timeout = TimeSpan.FromSeconds(10.0);
+		string directoryPath = provider
+			.GetRequiredService<IAppEnvironment>()
+			.DatabaseDirectoryPath;
 
-		// GitHub requires a User-Agent; Accept and the API version pin the response format.
-		client
-			.DefaultRequestHeaders
-			.UserAgent
-			.ParseAdd($"{AppInfo.AppName}/{AppInfo.AppVersion}");
+		Directory.CreateDirectory(directoryPath);
 
-		client
-			.DefaultRequestHeaders
-			.Accept
-			.ParseAdd("application/vnd.github+json");
-
-		client
-			.DefaultRequestHeaders
-			.Add("X-GitHub-Api-Version", "2022-11-28");
+		return Path.Combine(
+			directoryPath,
+			AppInfo.AppName + KnownFileExtensions.Sqlite);
 	}
 
 	/// <summary>
@@ -400,12 +456,18 @@ public sealed class App : Application
 		{
 			services.AddTransient<IAppPickerService, WindowsAppPickerService>();
 
+			services.AddTransient<IAppResolver, WindowsAppResolver>();
+
 			services.AddTransient<IExplorerManager, WindowsExplorerManager>();
+
+			services.AddTransient<IFileAssociationService, FileAssociationService>();
 
 			return;
 		}
 
 		services.AddTransient<IAppPickerService, UnsupportedAppPickerService>();
+
+		services.AddTransient<IAppResolver, SystemAppResolver>();
 
 		if (OperatingSystem.IsLinux())
 		{
@@ -450,12 +512,10 @@ public sealed class App : Application
 	/// </remarks>
 	private void Bootstrap()
 	{
-		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
 		{
 			return;
 		}
-
-		AppLifetimeTimer.Start();
 
 		ServiceProvider serviceProvider;
 
@@ -471,6 +531,9 @@ public sealed class App : Application
 
 			return;
 		}
+
+		// The uptime counts from here.
+		_ = serviceProvider.GetRequiredService<IAppUptime>();
 
 		Services = serviceProvider;
 
@@ -509,13 +572,11 @@ public sealed class App : Application
 
 		if (options.ShowConsole)
 		{
-			ConsoleViewModel viewModel = provider
-				.GetRequiredService<IConsoleWindowHost>()
-				.ViewModel;
-
 			LogCallbackSink sink = new()
 			{
-				LogCallback = viewModel.WriteCallback
+				LogCallback = provider
+					.GetRequiredService<IConsoleLog>()
+					.Write
 			};
 
 			configuration

@@ -1,20 +1,24 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers.Security;
+using DataOrganizer.Dto.Documents;
+using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -125,204 +129,100 @@ internal class EmbeddedEditorViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: delegates to the cipher when a keeper is known.
+	/// <see cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />: a write without a date of change, as of a view change,
+	/// reports no date.
 	/// </summary>
 	[Test]
-	public void TryDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
+	public async Task SaveContentsAsync_Reports_No_Date_When_None_Is_Written()
 	{
 		// Arrange
-		byte[] input = [1, 2, 3];
-
-		byte[] decrypted = [7];
-
-		Guid keeperId = Guid.NewGuid();
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentCipher
-				.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input)
-				.Returns(decrypted);
+			IFileContentsWriter writer = Substitute.For<IFileContentsWriter>();
 
-			builder.RegisterInstance(contentCipher);
+			writer
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = FileContentsWriteStatus.Written
+				});
+
+			builder.RegisterInstance(writer);
 		});
 
 		TestEditor sut = mock.Create<TestEditor>();
 
-		sut.KeeperId = keeperId;
+		DateTime? reported = null;
+
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(setUpdatedAtCallback: x => reported = x));
 
 		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
+		await sut.InvokeSaveContentsAsync(RandomValues.CreateBytes(10), FileContentsChange.View);
 
 		// Assert
-		result
+		reported
 			.Should()
-			.BeSameAs(decrypted);
-
-		contentCipher
-			.Received(1)
-			.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input);
+			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when it is empty.
+	/// <see cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />: the contents go to the writer with the file and its
+	/// keeper, and the date of change written with an edit is reported.
 	/// </summary>
 	[Test]
-	public void TryDecrypt_Returns_Input_When_Input_Is_Empty()
+	public async Task SaveContentsAsync_Reports_The_Date_Of_Change_Of_An_Edit()
 	{
 		// Arrange
-		byte[] input = [];
+		byte[] contents = RandomValues.CreateBytes(10);
 
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+		DateTime updatedAt = new(2026, 10, 12, 18, 30, 0);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		sut.KeeperId = Guid.NewGuid();
-
-		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(input);
-
-		contentCipher
-			.DidNotReceive()
-			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when no keeper is known.
-	/// </summary>
-	[Test]
-	public void TryDecrypt_Returns_Input_When_No_Keeper()
-	{
-		// Arrange
-		byte[] input = [1, 2, 3];
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		// Act
-		byte[]? result = sut.InvokeTryDecrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(input);
-
-		contentCipher
-			.DidNotReceive()
-			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryEncrypt" />: delegates to the cipher when a keeper is known.
-	/// </summary>
-	[Test]
-	public void TryEncrypt_Delegates_To_Store_When_Keeper_Is_Known()
-	{
-		// Arrange
-		byte[] input = [1, 2, 3];
-
-		byte[] encrypted = [7];
-
-		Guid keeperId = Guid.NewGuid();
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
+		IFileContentsWriter writer = Substitute.For<IFileContentsWriter>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			contentCipher
-				.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input)
-				.Returns(encrypted);
+			writer
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = FileContentsWriteStatus.Written,
+					UpdatedAt = updatedAt
+				});
 
-			builder.RegisterInstance(contentCipher);
+			builder.RegisterInstance(writer);
 		});
 
 		TestEditor sut = mock.Create<TestEditor>();
 
-		sut.KeeperId = keeperId;
+		DateTime? reported = null;
+
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			keeperId: Guid.NewGuid(),
+			setUpdatedAtCallback: x => reported = x));
 
 		// Act
-		byte[]? result = sut.InvokeTryEncrypt(input);
+		FileContentsWriteStatus status = await sut.InvokeSaveContentsAsync(contents, FileContentsChange.Edit);
 
 		// Assert
-		result
+		status
 			.Should()
-			.BeSameAs(encrypted);
+			.Be(FileContentsWriteStatus.Written);
 
-		contentCipher
-			.Received(1)
-			.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input);
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryEncrypt" />: returns the input unchanged when it is empty.
-	/// </summary>
-	[Test]
-	public void TryEncrypt_Returns_Input_When_Input_Is_Empty()
-	{
-		// Arrange
-		byte[] input = [];
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		sut.KeeperId = Guid.NewGuid();
-
-		// Act
-		byte[]? result = sut.InvokeTryEncrypt(input);
-
-		// Assert
-		result
+		reported
 			.Should()
-			.BeSameAs(input);
+			.Be(updatedAt);
 
-		contentCipher
-			.DidNotReceive()
-			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryEncrypt" />: returns the input unchanged when no keeper is known.
-	/// </summary>
-	[Test]
-	public void TryEncrypt_Returns_Input_When_No_Keeper()
-	{
-		// Arrange
-		byte[] input = [1, 2, 3];
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		TestEditor sut = mock.Create<TestEditor>();
-
-		// Act
-		byte[]? result = sut.InvokeTryEncrypt(input);
-
-		// Assert
-		result
-			.Should()
-			.BeSameAs(input);
-
-		contentCipher
-			.DidNotReceive()
-			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+		await writer.Received(1).WriteAsync(
+			sut.FileId,
+			sut.KeeperId,
+			contents,
+			FileContentsChange.Edit,
+			Arg.Any<CancellationToken>());
 	}
 	#endregion
 }
+
 
 // TestEditor is a top-level internal type so the CommunityToolkit messenger source generator
 // (IMessengerRegisterAllGenerator), which emits a RegisterAll for every IRecipient<T> recipient,
@@ -334,21 +234,25 @@ internal class EmbeddedEditorViewModelBaseTests
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
 	public TestEditor(
-		Application app,
-		IContentCipher contentCipher,
-		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
+		IEditorStateStore editorStateStore,
+		IFileContentsReader fileContentsReader,
+		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
+		ISessionReadOnlyMode sessionReadOnlyMode,
 		ITaskExceptionHandler exceptionHandler) : base(
-			app,
-			contentCipher,
-			dbAccess,
+			dbFailureReporter,
+			editorStateStore,
+			fileContentsReader,
+			fileContentsWriter,
 			jsonSerializer,
 			logger,
 			messenger,
 			notification,
+			sessionReadOnlyMode,
 			exceptionHandler)
 	{
 	}
@@ -358,11 +262,20 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	/// </summary>
 	public List<bool> QueuedWhileReadOnly { get; } = [];
 
-	public byte[]? InvokeTryDecrypt(byte[] input) => TryDecrypt(input);
-
-	public byte[]? InvokeTryEncrypt(byte[] input) => TryEncrypt(input);
+	public Task<FileContentsWriteStatus> InvokeSaveContentsAsync(byte[] contents, FileContentsChange change)
+	{
+		return SaveContentsAsync(contents, change);
+	}
 
 	public void MarkInitialized() => IsInitialized = true;
+
+	/// <inheritdoc />
+	protected override Task LoadContentsAsync(byte[] contents) => Task.CompletedTask;
+
+	/// <inheritdoc />
+	protected override void LogUnopenedContents(FileContentsStatus status, string message)
+	{
+	}
 
 	/// <inheritdoc />
 	protected override void QueuePendingChanges() => QueuedWhileReadOnly.Add(IsReadOnly);

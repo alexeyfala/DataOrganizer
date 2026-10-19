@@ -1,72 +1,72 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
-using Avalonia.Media;
-using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Execution;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Helpers.Execution;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Helpers.Hierarchy;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Seeding;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
-using DataOrganizer.Windows;
+using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Runtime;
+using DataOrganizer.Messages.Updates;
+using DataOrganizer.ViewModels.Hierarchy;
+using DynamicData;
+using DynamicData.Binding;
 using Entities.Enums;
 using Entities.Models;
-using Material.Styles.Controls;
 using Repository.Dto;
-using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Security.Cryptography;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>EditorWindow</c>.
 /// </summary>
-public partial class EditorViewModel :
+public sealed partial class EditorViewModel :
 	ViewModelBase,
-	INavigationColumnViewModel,
-	IRecipient<FolderExpandedChangedMessage>,
+	IRecipient<CloseEditingFileMessage>,
+	IRecipient<ConfirmUpdateMessage>,
+	IRecipient<SessionAutoLockedMessage>,
 	IRecipient<ShowInEditorMessage>,
-	IRecipient<ShowProgressBarMessage>,
-	IUpdatePrompt
+	IRecipient<ShowProgressBarMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="IAutoLockService" />
 	public IAutoLockService AutoLock => _autoLock;
+
+	/// <summary>
+	/// The tabs of the files open in the editor.
+	/// </summary>
+	public EditingFilesViewModel EditingFiles { get; }
 
 	/// <summary>
 	/// Information in the lower left corner.
@@ -75,22 +75,47 @@ public partial class EditorViewModel :
 	public partial string? HierarchySummary { get; set; }
 
 	/// <summary>
+	/// Rows to highlight where the view shows them.
+	/// </summary>
+	public IObservable<ExplorerNodeViewModelBase> HighlightSignal => _highlightSignal;
+
+	/// <summary>
 	/// Controls the progress bar for an action.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsActionInProgress { get; set; }
 
 	/// <summary>
-	/// Controls the display of the <see cref="NavigationDrawer" />.
+	/// <c>True</c> when the left drawer should be opened.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsLeftDrawerOpened { get; set; }
 
-	/// <summary>
-	/// <c>True</c> when the contents cannot be edited.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsReadOnly { get; set; }
+	/// <inheritdoc cref="ISessionReadOnlyMode.IsReadOnly" />
+	public bool IsReadOnly
+	{
+		get => _sessionReadOnlyMode.IsReadOnly;
+		set
+		{
+			if (!SetProperty(
+				_sessionReadOnlyMode.IsReadOnly,
+				value,
+				_sessionReadOnlyMode,
+				static (mode, isReadOnly) => mode.IsReadOnly = isReadOnly))
+			{
+				return;
+			}
+
+			AddCommand.NotifyCanExecuteChanged();
+
+			DeleteCommand.NotifyCanExecuteChanged();
+
+			_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
+
+			_logger.LogDebug(
+				$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
+		}
+	}
 
 	/// <summary>
 	/// <c>True</c> when the right side sheet should be opened.
@@ -98,21 +123,38 @@ public partial class EditorViewModel :
 	[ObservableProperty]
 	public partial bool IsRightSideSheetOpened { get; set; }
 
-	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
+	/// <summary>
+	/// <c>True</c> while the window of the editor is loaded and visible.
+	/// </summary>
+	public bool IsWindowShown { get; set; }
+
+	/// <summary>
+	/// Width of the navigation column.
+	/// </summary>
 	[ObservableProperty]
-	public partial GridLength NavigationColumnWidth { get; set; }
+	public partial double NavigationColumnWidth { get; set; }
+
+	/// <summary>
+	/// Rows of the tree that show the objects of <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	public ReadOnlyObservableCollection<ExplorerNodeViewModelBase> Nodes => _nodes;
 
 	/// <inheritdoc cref="RightSideSheetContentKind" />
 	[ObservableProperty]
 	public partial RightSideSheetContentKind RightSideSheetContent { get; set; }
 
 	/// <summary>
-	/// The selected object in <see cref="TreeView" /> from <see cref="ViewModelBase.Hierarchy" />.
+	/// The row selected in <see cref="Nodes" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
-	public partial ExplorerItemDtoBase? SelectedObject { get; set; }
+	public partial ExplorerNodeViewModelBase? SelectedNode { get; set; }
+
+	/// <summary>
+	/// Rows for the tree to bring into view, select and highlight.
+	/// </summary>
+	public IObservable<ExplorerNodeViewModelBase> ShowSignal => _showSignal;
 
 	/// <summary>
 	/// The current width of the window.
@@ -137,21 +179,6 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Called when <see cref="IsReadOnly" /> changes.
-	/// </summary>
-	partial void OnIsReadOnlyChanged(bool value)
-	{
-		AddCommand.NotifyCanExecuteChanged();
-
-		DeleteCommand.NotifyCanExecuteChanged();
-
-		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
-
-		_logger.LogDebug(
-			$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
-	}
-
-	/// <summary>
 	/// Called when <see cref="IsRightSideSheetOpened" /> changes.
 	/// </summary>
 	partial void OnIsRightSideSheetOpenedChanged(bool value)
@@ -161,47 +188,52 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
-
 		RightSideSheetContent = RightSideSheetContentKind.None;
 	}
 
 	/// <summary>
-	/// Called when <see cref="SelectedObject" /> changes.
+	/// Called when <see cref="RightSideSheetContent" /> changes.
 	/// </summary>
-	partial void OnSelectedObjectChanging(
-		ExplorerItemDtoBase? oldValue,
-		ExplorerItemDtoBase? newValue)
+	partial void OnRightSideSheetContentChanged(
+		RightSideSheetContentKind oldValue,
+		RightSideSheetContentKind newValue)
 	{
-		if (IsReadOnly
-			|| IsActionInProgress
-			|| _app.HasWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
+		if (oldValue == RightSideSheetContentKind.CopyHistory)
+		{
+			CloseCopyHistoryList();
+		}
+
+		if (newValue != RightSideSheetContentKind.CopyHistory)
 		{
 			return;
 		}
 
-		// When an object is removed from a collection, its selection is reset and its existence must be checked
-		// to ensure that no attempt is made to save properties to the database for a non-existent object.
-		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
-		{
-			_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(oldValue));
-		}
+		OpenCopyHistoryList();
+	}
 
-		if (newValue is null)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(newValue));
+	/// <summary>
+	/// Called when <see cref="SelectedNode" /> changes.
+	/// </summary>
+	partial void OnSelectedNodeChanging(
+		ExplorerNodeViewModelBase? oldValue,
+		ExplorerNodeViewModelBase? newValue)
+	{
+		// The tree clears only the rows it has shown, while one object at most stays selected.
+		oldValue?.IsSelected = false;
 	}
 
 	/// <summary>
 	/// Called when <see cref="ViewWidth" /> changes.
 	/// </summary>
-	partial void OnViewWidthChanged(double value) => ((INavigationColumnViewModel)this).SetNavigationColumnWidth(value);
+	partial void OnViewWidthChanged(double value)
+	{
+		if (NavigationColumnHelper.FitWidth(NavigationColumnWidth, value) is not { } width)
+		{
+			return;
+		}
+
+		NavigationColumnWidth = width;
+	}
 	#endregion
 
 	#region Auto-Generated Commands
@@ -209,63 +241,28 @@ public partial class EditorViewModel :
 	/// Changes the password of a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanChangePassword))]
-	internal async Task ChangePassword(FolderDto? dto)
+	internal Task ChangePassword(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] openedFiles = [.. dto
-			.Children
-			.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Change password of the folder");
-
-		await _folderProtection
-			.ChangePasswordAsync(dto)
-			.ConfigureAwait(false);
+		return _protectionScenarios.ChangePasswordAsync(dto);
 	}
 
 	/// <summary>
 	/// Decrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
-	internal async Task DecryptFolder(FolderDto? dto)
+	internal Task DecryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Decrypt files in a folder");
-
-		await _folderProtection
-			.DecryptFolderAsync(dto, files)
-			.ConfigureAwait(false);
+		return _protectionScenarios.DecryptFolderAsync(dto);
 	}
 
 	/// <summary>
@@ -281,7 +278,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Editing a note of an object using dialog");
 
-		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _textInputPrompt.RequestMultilineTextAsync(
 			_noteReader.ReadNote(dto),
 			dto.Name,
 			isSensitive: dto.EncryptionStatus != EncryptionStatus.None)
@@ -293,7 +290,7 @@ public partial class EditorViewModel :
 		}
 
 		await _noteEditor
-			.EditAsync(dto, result.Value, DateTime.Now)
+			.EditAsync(dto, result.Value)
 			.ConfigureAwait(false);
 	}
 
@@ -301,36 +298,14 @@ public partial class EditorViewModel :
 	/// Encrypts the files in a folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanEncryptFolder))]
-	internal async Task EncryptFolder(FolderDto? dto)
+	internal Task EncryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Encrypt files in a folder");
-
-		await _folderProtection
-			.EncryptFolderAsync(dto, files)
-			.ConfigureAwait(false);
+		return _protectionScenarios.EncryptFolderAsync(dto);
 	}
 
 	/// <summary>
@@ -344,134 +319,21 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (_executionEngine.IsExecuting(dto.Id))
+		if (!await _fileExecution
+			.ConfirmAsync(dto)
+			.ConfigureAwait(true))
 		{
-			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Name),
-				nameof(FileDto.Kind))}");
-
 			return;
 		}
-
-		if (ExecutableFileDetector.IsExecutable(dto.Name))
-		{
-			string text =
-				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, dto.Name, Environment.NewLine)}" +
-				Environment.NewLine +
-				Environment.NewLine +
-				$"{Strings.OpenTheExecutableFile}?";
-
-			if (!await _dialogService
-				.RequestYesCancelAsync(text)
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-		}
-
-		_logger.LogInformation($"The file needs to be executed in the operating system:{dto.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name),
-			nameof(FileDto.Kind))}");
 
 		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
 			return;
 		}
 
-		ValidatedContents result;
-
-		try
-		{
-			result = await _dbAccess
-				.GetFileContentsAsync(dto.Id)
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{dto.Name}""");
-
-			return;
-		}
-
-		if (!result.IsValid)
-		{
-			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
-
-			_notification.ShowErrorSnackbar(errorText);
-
-			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Kind))}");
-
-			return;
-		}
-
-		_logger.LogInformation(
-			$"Contents of the {result.Contents.Length}-byte file loaded from the database:{dto.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Name),
-				nameof(FileDto.Kind),
-				nameof(FileDto.UpdatedAt))}");
-
-		byte[] contents = result.Contents;
-
-		Guid? keeperId = null;
-
-		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindPasswordKeeper() is { } keeper)
-		{
-			keeperId = keeper.Id;
-
-			try
-			{
-				contents = _contentCipher.Decrypt(dto, contents);
-			}
-			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-			{
-				_logger.LogException(ex);
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return;
-			}
-		}
-
-		ExecuteFileParameters parameters = new()
-		{
-			Contents = contents,
-			File = dto,
-			IsReadOnly = IsReadOnly,
-			KeeperId = keeperId,
-		};
-
-		if (!await _executionEngine
-			.ExecuteAsync(parameters)
-			.ConfigureAwait(true))
-		{
-			return;
-		}
-
-		dto.IsExecuting = true;
-
-		ExecutingFiles.Add(dto);
-	}
-
-	/// <summary>
-	/// Exits the application.
-	/// </summary>
-	[RelayCommand]
-	internal void Exit(Window? window)
-	{
-		IsShutdown = true;
-
-		window?.Close();
+		await _fileExecution
+			.ExecuteAsync(dto, IsReadOnly)
+			.ConfigureAwait(true);
 	}
 
 	/// <summary>
@@ -480,22 +342,14 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideAllFileContents))]
 	internal async Task HideAllFileContents()
 	{
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.		
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
+		if (!await _protectionScenarios
+			.HideAllContentsAsync()
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_contentVisibility.HideAllContents(Hierarchy);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -504,65 +358,28 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideFileContents))]
 	internal async Task HideFileContents(FileDto? dto)
 	{
-		if (dto is null)
+		if (dto is null || !await _protectionScenarios
+			.HideFileContentsAsync(dto)
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
-		{
-			return;
-		}
-
-		if (dto.IsOpened())
-		{
-			if (!await _dialogService
-				.RequestCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFile(dto);
-		}
-
-		_logger.LogInformation("Hide file contents");
-
-		_contentVisibility.HideFileContents(dto);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
-	/// <inheritdoc cref="IContentVisibility.HideFolderContents" />
+	/// <inheritdoc cref="IProtectionScenarios.HideFolderContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
 	internal async Task HideFolderContents(FolderDto? dto)
 	{
-		if (dto is null)
+		if (dto is null || !await _protectionScenarios
+			.HideFolderContentsAsync(dto)
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.
-		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
-		{
-			return;
-		}
-
-		FileDto[] openedFiles = [.. dto
-			.Children
-			.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide files in a folder");
-
-		_contentVisibility.HideFolderContents(dto);
-
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -571,71 +388,44 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanImport))]
 	internal async Task Import()
 	{
-		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		if (await _dataExchange
-			.ImportDataAsync(Hierarchy)
-			.ConfigureAwait(true) is not { } result || result.Variant == ImportMode.None)
+		if (await _import
+			.ImportAsync(Hierarchy)
+			.ConfigureAwait(true) is not { } result)
 		{
 			return;
 		}
 
 		if (result.Variant == ImportMode.Replace)
 		{
-			CopyHistorySettings
-				.ItemIds
-				.Clear();
-
 			IsRightSideSheetOpened = false;
-
-			_contentVisibility.DiscardAllKeys();
 		}
 
-		AddHierarchy(result.ImportedItems);
+		AddHierarchy(result.Imported.Items);
 
 		_notification.ShowInformationSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
-	/// Resets the <see cref="SelectedObject" />.
+	/// Resets the <see cref="SelectedNode" />.
 	/// </summary>
-	/// <remarks>
-	/// Change to the <see cref="ExplorerItemDtoBase.IsSelected" /> property is saved to the database
-	/// using the <see cref="OnSelectedObjectChanging(ExplorerItemDtoBase?, ExplorerItemDtoBase?)" /> method.
-	/// </remarks>
 	[RelayCommand(CanExecute = nameof(CanResetSelectedObject))]
 	internal void ResetSelectedObject()
 	{
-		if (SelectedObject is null)
+		if (SelectedNode is null)
 		{
 			return;
 		}
 
-		SelectedObject.IsSelected = false;
+		SelectedNode.IsSelected = false;
 
-		SelectedObject = null;
+		SelectedNode = null;
 	}
 
 	/// <summary>
-	/// Restarts the application.
+	/// Asks the application to start again once it stops.
 	/// </summary>
 	[RelayCommand]
-	internal void RestartApplication(Window? window)
-	{
-		Exit(window);
-
-		if (Environment.ProcessPath is null)
-		{
-			return;
-		}
-
-		_processManager.StartProcess(Environment.ProcessPath);
-	}
+	internal void RestartApplication() => _messenger.Send(new RestartAppMessage());
 
 	/// <summary>
 	/// Sets <see cref="FileDto.IsFavorite" /> value.
@@ -666,27 +456,17 @@ public partial class EditorViewModel :
 	/// Displays the "Favorites" window.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
-	internal void ShowFavorites(EditorWindow? window)
+	internal void ShowFavorites()
 	{
-		IsShutdown = false;
+		CloseCopyHistoryList();
 
-		window?.Close();
+		_sessionEditorTabs.EditorTabs = EditingFiles.State;
 
-		_copyHistory?.Dispose();
-
-		_viewLauncher.CreateFavoritesWindow(
-			Hierarchy,
-			_editingFiles?.State,
-			ExecutingFiles).Show();
-
-		if (_editingFiles is null)
-		{
-			return;
-		}
+		_mainWindowLauncher.SwitchToFavorites();
 
 		Hierarchy
 			.GetFilesBy(x => x.IsEditing)
-			.ForEach(_editingFiles.CloseEditor);
+			.ForEach(EditingFiles.CloseEditor);
 	}
 
 	/// <summary>
@@ -695,36 +475,14 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanShowFolderContents))]
 	internal async Task ShowFolderContents(FolderDto? dto)
 	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		FileDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.IsEmpty())
-		{
-			_notification.ShowInformationSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		FileDto[] openedFiles = [.. files.Where(IsOpened)];
-
-		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show file contents in a folder");
-
-		await _contentVisibility
+		if (dto is null || !await _protectionScenarios
 			.ShowFolderContentsAsync(dto)
-			.ConfigureAwait(true);
+			.ConfigureAwait(true))
+		{
+			return;
+		}
 
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -761,18 +519,18 @@ public partial class EditorViewModel :
 
 		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
-			if (CopyHistorySettings.ItemIds.Count == 0 || !await _dialogService
+			if (_copyHistory.ItemIds.Count == 0 || !await _confirmationPrompt
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
 				return;
 			}
 
-			ClearCopyHistory();
+			_copyHistoryRecorder.Clear();
 		}
 		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
-			if (ExecutingFiles.Count == 0 || !await _dialogService
+			if (ExecutingFiles.Count == 0 || !await _confirmationPrompt
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
@@ -785,7 +543,9 @@ public partial class EditorViewModel :
 		}
 	}
 
-	/// <inheritdoc cref="ViewModelBase.CloseFile" />
+	/// <summary>
+	/// Closes a file that is being edited or executed.
+	/// </summary>
 	[RelayCommand]
 	private void CloseOpenedFile(FileDto? dto)
 	{
@@ -794,8 +554,14 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		CloseFile(dto);
+		_openFilesCloser.Close([dto]);
 	}
+
+	/// <summary>
+	/// Closes the right side sheet.
+	/// </summary>
+	[RelayCommand]
+	private void CloseRightSideSheet() => IsRightSideSheetOpened = false;
 
 	/// <summary>
 	/// Collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
@@ -803,21 +569,23 @@ public partial class EditorViewModel :
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
-	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
+	/// <inheritdoc cref="IContentCopier.CopyAsync" />
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
-	private Task CopyContentByContextMenu(FileDto? dto)
+	private async Task CopyContentByContextMenu(FileDto? dto)
 	{
-		if (dto is null
-			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
+		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return CopyContentAsync(
-			file: dto,
-			container: container,
-			updateView: true);
+		if (!await _contentCopier
+			.CopyAsync(dto, showAtOnce: true)
+			.ConfigureAwait(true))
+		{
+			return;
+		}
+
+		Highlight(dto);
 	}
 
 	/// <summary>
@@ -828,25 +596,14 @@ public partial class EditorViewModel :
 	{
 		try
 		{
-			if (dto is null
-				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
+			if (dto is null)
 			{
 				return;
 			}
 
-			_exceptionHandler.Watch(_clipboard.SetTextAsync(dto.Name));
+			_exceptionHandler.Watch(_clipboardWriter.WriteTextAsync(dto.Name, isSensitive: false));
 
-			FolderDto[] parents = [.. dto
-				.GetAllParents()
-				.Reverse()];
-
-			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
-			{
-				return;
-			}
-
-			_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush));
+			Highlight(dto);
 		}
 		catch (Exception ex)
 		{
@@ -860,7 +617,7 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanDelete))]
 	private async Task Delete(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedNode?.Model;
 
 		if (toBeDeleted is null)
 		{
@@ -876,7 +633,7 @@ public partial class EditorViewModel :
 			_ => Strings.Delete
 		};
 
-		if (!await _dialogService
+		if (!await _confirmationPrompt
 			.RequestYesNoAsync($@"{action} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
@@ -901,23 +658,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_editingFiles?.OpenInEditor(dto);
-	}
-
-	/// <summary>
-	/// Handles loading event for rendering the file editor: opens the tabs of <see cref="ViewModelBase.EditorTabs" />.
-	/// </summary>
-	[RelayCommand]
-	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
-	{
-		_editingFiles = viewModel;
-
-		if (viewModel is null || EditorTabs is not { } tabs)
-		{
-			return;
-		}
-
-		viewModel.Restore(tabs);
+		EditingFiles.OpenInEditor(dto);
 	}
 
 	/// <summary>
@@ -933,50 +674,12 @@ public partial class EditorViewModel :
 	private Task Export() => _dataExchange.ExportDataAsync();
 
 	/// <summary>
-	/// Opens a file context menu.
-	/// </summary>
-	[RelayCommand]
-	private void OpenFileContextMenu(Control? container)
-	{
-		if (container is null)
-		{
-			return;
-		}
-
-		if (Interaction
-			.GetBehaviors(container)
-			.OfType<LazyContextFlyoutBehavior>()
-			.FirstOrDefault() is { } behavior)
-		{
-			behavior.Show();
-		}
-		else if (container.ContextFlyout is { } flyout)
-		{
-			flyout.ShowAt(container);
-		}
-		else
-		{
-			return;
-		}
-
-		if (SelectedObject is null)
-		{
-			return;
-		}
-
-		_logger.LogDebug($"Open a file context menu:{SelectedObject.GetPropertyValues(
-			true,
-			nameof(FileDto.Id),
-			nameof(FileDto.Name))}");
-	}
-
-	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanRename))]
 	private async Task Rename(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedNode?.Model;
 
 		if (toBeRenamed is null)
 		{
@@ -992,7 +695,7 @@ public partial class EditorViewModel :
 			KeyHint = Strings.Name
 		};
 
-		if (await _dialogService
+		if (await _textInputPrompt
 			.RequestKeyValueInputAsync(parameters)
 			.ConfigureAwait(false) is not { } pair)
 		{
@@ -1000,7 +703,7 @@ public partial class EditorViewModel :
 		}
 
 		await _hierarchyEditor
-			.RenameAsync(toBeRenamed, pair.Key, DateTime.Now)
+			.RenameAsync(toBeRenamed, pair.Key)
 			.ConfigureAwait(false);
 	}
 
@@ -1008,41 +711,44 @@ public partial class EditorViewModel :
 	/// Starts the auto-lock countdown over from the delay currently in the settings.
 	/// </summary>
 	[RelayCommand]
-	private void RestartAutoLock() => _autoLock.Arm();
+	private void RestartAutoLock() => _backgroundServiceControl.RestartAutoLock();
 
 	/// <summary>
 	/// Adds entries made up for trying the clipboard history to it.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedClipboardHistory))]
-	private async Task SeedClipboardHistory()
+	private Task SeedClipboardHistory()
 	{
 		IsLeftDrawerOpened = false;
 
-		_logger.LogInformation("Seed clipboard history");
-
-		try
-		{
-			await _clipboardLogSeeder
-				.SeedAsync()
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException("The sample clipboard entries could not be added.", ex);
-		}
+		return _seeding.SeedClipboardHistoryAsync();
 	}
 
 	/// <summary>
 	/// Adds a run of many sample objects with large contents to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
-	private Task SeedLargeSamples() => SeedAsync("Seed large samples", _sampleSeeder.SeedLargeAsync);
+	private Task SeedLargeSamples() => SeedAsync(_seeding.SeedLargeSamplesAsync);
 
 	/// <summary>
 	/// Adds a run of sample objects to the database and the tree.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSeedSamples))]
-	private Task SeedSamples() => SeedAsync("Seed samples", _sampleSeeder.SeedAsync);
+	private Task SeedSamples() => SeedAsync(_seeding.SeedSamplesAsync);
+
+	/// <summary>
+	/// Selects a row of the tree.
+	/// </summary>
+	[RelayCommand]
+	private void SelectObject(ExplorerNodeViewModelBase? node)
+	{
+		if (node is null)
+		{
+			return;
+		}
+
+		SelectNode(node);
+	}
 
 	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
@@ -1056,15 +762,10 @@ public partial class EditorViewModel :
 	[RelayCommand]
 	private void ShowExecutingFiles()
 	{
-		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
-
 		SwitchRightSideSheetContent(RightSideSheetContentKind.ExecutingFiles);
 	}
 
-	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanShowFileContents))]
 	private Task ShowFileContents(FileDto? dto)
 	{
@@ -1080,55 +781,19 @@ public partial class EditorViewModel :
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowHotkeysEditor))]
-	private async Task ShowHotkeysEditor(FileDto? dto)
+	private Task ShowHotkeysEditor(FileDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Show hotkeys editor");
-
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
-
-		EditingHotkeysResult result = await _dialogService
-			.EditHotkeysAsync(dto.Hotkeys.ToKeyStrokes())
-			.ConfigureAwait(false);
-
-		if (result.IsSaved)
-		{
-			await _fileHotkeyEditor
-				.OverwriteAsync(dto, result.NewHotkeys, Hierarchy)
-				.ConfigureAwait(false);
-		}
-
-		if (!_settingsStore
-			.Settings
-			.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
+		return _hotkeysEditing.EditAsync(dto, Hierarchy);
 	}
 
-	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
+	/// <inheritdoc cref="ShowObject" />
 	[RelayCommand]
-	private void ShowInList(Guid id)
-	{
-		if (_app.FindWindow<EditorWindow>() is not { } window)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(ShowInEditorAsync(id, window));
-	}
+	private void ShowInList(Guid id) => ShowObject(id);
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1154,13 +819,18 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Show settings");
 
-		ShowSettingsResult result = await _dialogService
+		await _dialogService
 			.ShowSettingsAsync()
 			.ConfigureAwait(true);
 
-		await HandleSettingsChangedAsync(
-			result.IsSaved,
-			result.Settings).ConfigureAwait(false);
+		if (await _settingsCommit
+			.EndAsync()
+			.ConfigureAwait(true) is not { } saved)
+		{
+			return;
+		}
+
+		IsClipboardHistoryEnabled = saved.TrackClipboardHistory;
 	}
 	#endregion
 
@@ -1168,14 +838,20 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
-	/// <inheritdoc cref="IClipboardLogService" />
-	private readonly IClipboardLogService _clipboardLog;
+	/// <inheritdoc cref="IBackgroundServiceControl" />
+	private readonly IBackgroundServiceControl _backgroundServiceControl;
 
-	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
-	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
+	/// <inheritdoc cref="IClipboardTextWriter" />
+	private readonly IClipboardTextWriter _clipboardWriter;
 
-	/// <inheritdoc cref="IClipboardLogSeeder" />
-	private readonly IClipboardLogSeeder _clipboardLogSeeder;
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
+
+	/// <inheritdoc cref="IContentCopier" />
+	private readonly IContentCopier _contentCopier;
+
+	/// <inheritdoc cref="ICopyHistoryRecorder" />
+	private readonly ICopyHistoryRecorder _copyHistoryRecorder;
 
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
@@ -1183,17 +859,35 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
 
-	/// <inheritdoc cref="IFileHotkeyEditor" />
-	private readonly IFileHotkeyEditor _fileHotkeyEditor;
+	/// <inheritdoc cref="IDeletionScenario" />
+	private readonly IDeletionScenario _deletion;
 
-	/// <inheritdoc cref="IFolderProtection" />
-	private readonly IFolderProtection _folderProtection;
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
+	/// <inheritdoc cref="IFileExecutionScenario" />
+	private readonly IFileExecutionScenario _fileExecution;
 
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
+	/// <inheritdoc cref="HighlightSignal" />
+	private readonly Subject<ExplorerNodeViewModelBase> _highlightSignal = new();
+
+	/// <inheritdoc cref="IHotkeysEditingScenario" />
+	private readonly IHotkeysEditingScenario _hotkeysEditing;
+
+	/// <inheritdoc cref="IImportScenario" />
+	private readonly IImportScenario _import;
+
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
+
+	/// <inheritdoc cref="Nodes" />
+	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _nodes;
 
 	/// <inheritdoc cref="INoteEditor" />
 	private readonly INoteEditor _noteEditor;
@@ -1201,208 +895,203 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="INoteReader" />
 	private readonly INoteReader _noteReader;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
+	/// <inheritdoc cref="IOpenFilesCloser" />
+	private readonly IOpenFilesCloser _openFilesCloser;
 
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
 
-	/// <inheritdoc cref="ISampleSeeder" />
-	private readonly ISampleSeeder _sampleSeeder;
+	/// <inheritdoc cref="IProtectionScenarios" />
+	private readonly IProtectionScenarios _protectionScenarios;
 
-	/// <inheritdoc cref="IAppThemeService" />
-	private readonly IAppThemeService _themeService;
+	/// <inheritdoc cref="ISeedingScenarios" />
+	private readonly ISeedingScenarios _seeding;
+
+	/// <inheritdoc cref="ISessionEditorTabs" />
+	private readonly ISessionEditorTabs _sessionEditorTabs;
+
+	/// <inheritdoc cref="ISessionReadOnlyMode" />
+	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
+
+	/// <inheritdoc cref="ISessionTreeState" />
+	private readonly ISessionTreeState _sessionTreeState;
+
+	/// <inheritdoc cref="ISettingsCommit" />
+	private readonly ISettingsCommit _settingsCommit;
+
+	/// <inheritdoc cref="ShowSignal" />
+	private readonly Subject<ExplorerNodeViewModelBase> _showSignal = new();
+	/// <inheritdoc cref="ITextInputPrompt" />
+	private readonly ITextInputPrompt _textInputPrompt;
 
 	/// <summary>
 	/// Number of operations showing the progress bar.
 	/// </summary>
 	private int _actionsInProgress;
-
-	/// <inheritdoc cref="EditingFilesViewModel" />
-	private EditingFilesViewModel? _editingFiles;
 	#endregion
 
 	#region Constructors
 	public EditorViewModel(
-		Application app,
+		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
-		IAppThemeService themeService,
 		IAutoLockService autoLock,
-		IClipboardAccessor clipboard,
-		IClipboardLogService clipboardLog,
-		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
-		IClipboardLogSeeder clipboardLogSeeder,
-		IContentCipher contentCipher,
-		IContentVisibility contentVisibility,
+		IBackgroundServiceControl backgroundServiceControl,
+		IClipboardTextWriter clipboardWriter,
+		IConfirmationPrompt confirmationPrompt,
+		IContentCopier contentCopier,
+		ICopyHistory copyHistory,
+		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
-		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
+		IDeletionScenario deletion,
 		IDialogService dialogService,
-		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
-		IExecutionEngine executionEngine,
-		IFileHotkeyEditor fileHotkeyEditor,
-		IFolderProtection folderProtection,
+		IExecutingFiles executingFiles,
+		IFileExecutionScenario fileExecution,
 		IHierarchyEditor hierarchyEditor,
-		IJsonSerializer jsonSerializer,
+		IHotkeysEditingScenario hotkeysEditing,
+		IImportScenario import,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		INotificationService notification,
-		IProcessManager processManager,
-		ISampleSeeder sampleSeeder,
+		IOpenFilesCloser openFilesCloser,
+		IProtectionScenarios protectionScenarios,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
+		ISeedingScenarios seeding,
+		ISessionEditorTabs sessionEditorTabs,
+		ISessionHierarchy sessionHierarchy,
+		ISessionReadOnlyMode sessionReadOnlyMode,
+		ISessionTreeState sessionTreeState,
+		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
-			app,
+		ITextInputPrompt textInputPrompt,
+		IViewModelFactory viewModelFactory) : base(
 			settingsStore,
-			clipboard,
-			contentCipher,
-			contentVisibility,
-			dbAccess,
-			dialogService,
-			dispatcher,
-			executionEngine,
-			jsonSerializer,
+			copyHistory,
+			executingFiles,
 			logger,
 			messenger,
-			notification,
+			secondaryWindowLauncher,
+			sessionHierarchy,
 			exceptionHandler,
-			viewLauncher,
-			keyboardInputHook)
+			viewModelFactory)
 	{
+		EditingFiles = editingFiles;
+
 		_autoLock = autoLock;
 
-		_folderProtection = folderProtection;
+		_backgroundServiceControl = backgroundServiceControl;
 
-		_clipboardLog = clipboardLog;
+		_clipboardWriter = clipboardWriter;
 
-		_clipboardLogPersistence = clipboardLogPersistence;
+		_confirmationPrompt = confirmationPrompt;
 
-		_clipboardLogSeeder = clipboardLogSeeder;
+		_contentCopier = contentCopier;
+
+		_copyHistoryRecorder = copyHistoryRecorder;
 
 		_dataExchange = dataExchange;
 
 		_dbFailureReporter = dbFailureReporter;
 
-		_fileHotkeyEditor = fileHotkeyEditor;
+		_deletion = deletion;
+
+		_dialogService = dialogService;
+
+		_fileExecution = fileExecution;
 
 		_hierarchyEditor = hierarchyEditor;
+
+		_hotkeysEditing = hotkeysEditing;
+
+		_import = import;
+
+		_mainWindowLauncher = mainWindowLauncher;
 
 		_noteEditor = noteEditor;
 
 		_noteReader = noteReader;
 
-		_processManager = processManager;
+		_notification = notification;
+
+		_openFilesCloser = openFilesCloser;
+
+		_protectionScenarios = protectionScenarios;
 
 		_propertyWriter = propertyWriter;
 
-		_sampleSeeder = sampleSeeder;
+		_seeding = seeding;
 
-		_themeService = themeService;
+		_sessionEditorTabs = sessionEditorTabs;
+
+		_sessionReadOnlyMode = sessionReadOnlyMode;
+
+		_sessionTreeState = sessionTreeState;
+
+		_settingsCommit = settingsCommit;
+
+		_textInputPrompt = textInputPrompt;
+
+		Hierarchy
+			.ToObservableChangeSet()
+			.Transform(x => ExplorerNodeViewModelBase.Create(x, sessionTreeState))
+			.DisposeMany()
+			.Bind(out _nodes)
+			.Subscribe()
+			.DisposeWith(_disposables);
+
+		// The expanded folders and the selected object of the tree are kept for the next start.
+		Nodes
+			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsExpanded, notifyOnInitialValue: false))
+			.Subscribe(x => SaveIsExpanded(x.Sender.Model.Id, x.Value))
+			.DisposeWith(_disposables);
+
+		Nodes
+			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsSelected, notifyOnInitialValue: false))
+			.Subscribe(x => SaveIsSelected(x.Sender.Model, x.Value))
+			.DisposeWith(_disposables);
+
+		UpdateHierarchySummary();
 	}
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		Hierarchy.AddRange(hierarchy);
-
-		UpdateHierarchySummary();
-	}
-
-	/// <inheritdoc />
-	public Task<bool> ConfirmUpdateAsync(
-		string text,
-		CancellationToken token = default)
-	{
-		return _dialogService.RequestYesNoAsync(text, token: token);
-	}
-
 	/// <summary>
-	/// Restores the window placement and the copy history from the stored settings.
+	/// Restores the navigation column and the read-only mode from the stored settings.
 	/// </summary>
-	public void Initialize(
-		Window window,
-		EditorWindowSettings windowSettings,
-		CopyHistoryViewSettings copyHistorySettings)
+	public void Initialize(EditorWindowSettings windowSettings)
 	{
-		if (windowSettings.Size is { Width: > 0, Height: > 0 })
-		{
-			window.Width = windowSettings.Size.Width;
-
-			window.Height = windowSettings.Size.Height;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultSize(window);
-		}
-
-		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
-
-		if (windowSettings.X > 0
-			&& windowSettings.Y > 0
-			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-		{
-			window.Position = savedPosition;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-		}
-
-		if (windowSettings.WindowState != WindowState.Minimized)
-		{
-			window.WindowState = windowSettings.WindowState;
-		}
-
-		window.Topmost = windowSettings.IsTopmost;
-
+		// A width that was never stored keeps the default one.
 		if (windowSettings.NavigationColumnWidth > default(double))
 		{
-			NavigationColumnWidth = new GridLength(windowSettings.NavigationColumnWidth);
-		}
-		else
-		{
-			IViewLauncher.SetDefaultNavigationColumnWidth(window, this);
+			NavigationColumnWidth = windowSettings.NavigationColumnWidth;
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
-
-		if (CopyHistorySettings.ItemIds.Count > 0)
-		{
-			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
-		}
-
 		IsInitialized = true;
 	}
 
-	/// <summary>
 	/// <inheritdoc />
-	/// </summary>
-	/// <remarks>
-	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global message to persist the changes to the database in one place.
-	/// </remarks>
-	public void Receive(FolderExpandedChangedMessage message)
-	{
-		if (IsReadOnly || IsActionInProgress)
-		{
-			return;
-		}
+	public void Receive(CloseEditingFileMessage message) => EditingFiles.CloseTab(message.File);
 
-		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(message.Id, message.IsExpanded));
+	/// <inheritdoc />
+	public void Receive(ConfirmUpdateMessage message)
+	{
+		message.Reply(_confirmationPrompt.RequestYesNoAsync(message.Text, token: message.Token));
 	}
 
 	/// <inheritdoc />
-	public void Receive(ShowInEditorMessage message)
-	{
-		_exceptionHandler.Watch(ShowInEditorAsync(message.Id, message.Window));
-	}
+	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(LockAsync());
+
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message) => ShowObject(message.Id);
 
 	/// <inheritdoc />
 	public void Receive(ShowProgressBarMessage message)
@@ -1417,72 +1106,17 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Sets the <see cref="ExplorerItemDtoBase.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
+	/// Selects again the row of the object the tree keeps selected; selecting it again saves nothing.
 	/// </summary>
-	public void SetSelectedObject(ExplorerItemDtoBase selected)
+	public void RestoreSelection()
 	{
-		selected.IsSelected = true;
-
-		SelectedObject = selected;
-	}
-
-	/// <inheritdoc />
-	public override async Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken token = default)
-	{
-		if (Hierarchy.FindById(id) is not { } found)
+		if (Hierarchy.FindBy(x => _sessionTreeState.IsSelected(x.Id)) is not { } selected
+			|| Nodes.FindNode(selected) is not { } node)
 		{
 			return;
 		}
 
-		FolderDto[] parents = [.. found
-			.GetAllParents()
-			.ForEach(x => x.IsExpanded = true)
-			.Reverse()];
-
-		TreeView? treeView = null;
-
-		Func<bool> condition = () =>
-		{
-			treeView = window.FindDescendantOfType<TreeView>();
-
-			return treeView is not null;
-		};
-
-		const int delay = 200;
-
-		if (!await condition
-			.WaitAsync(delay, 10, token)
-			.ConfigureAwait(true) || treeView is null)
-		{
-			return;
-		}
-
-		treeView.ScrollIntoView(found);
-
-		if (treeView.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
-		{
-			scrollViewer.Offset = new(
-				int.MaxValue,
-				scrollViewer.Offset.Y);
-		}
-
-		SetSelectedObject(found);
-
-		if (FindLastContainer(treeView, parents)?.ContainerFromItem(found) is not TemplatedControl item)
-		{
-			return;
-		}
-
-		await Task
-			.Delay(delay, token)
-			.ConfigureAwait(true);
-
-		await BrushExtensions.ApplyHighlightAnimationAsync(
-			() => item.Background as Brush,
-			token).ConfigureAwait(false);
+		SelectNode(node);
 	}
 
 	/// <summary>
@@ -1500,6 +1134,12 @@ public partial class EditorViewModel :
 
 		if (dto is not null)
 		{
+			// The folder opens to show what was added to it.
+			if (parent is not null && Nodes.FindNode(parent) is { } folder)
+			{
+				folder.IsExpanded = true;
+			}
+
 			UpdateHierarchySummary();
 		}
 
@@ -1513,31 +1153,11 @@ public partial class EditorViewModel :
 		ExplorerItemDtoBase dto,
 		CancellationToken token = default)
 	{
-		if (!await _hierarchyEditor
+		if (!await _deletion
 			.DeleteAsync(dto, Hierarchy, token)
 			.ConfigureAwait(false))
 		{
 			return false;
-		}
-
-		// A folder leaves the database together with every file of its subtree.
-		FileDto[] deletedFiles = dto switch
-		{
-			FileDto file => [file],
-			FolderDto folder => [.. folder.Children.GetFiles()],
-			_ => []
-		};
-
-		foreach (FileDto deletedFile in deletedFiles)
-		{
-			CloseFile(deletedFile);
-
-			RemoveFromCopyHistory(deletedFile);
-		}
-
-		if (dto is FolderDto deletedFolder)
-		{
-			_contentVisibility.DiscardKeys(deletedFolder);
 		}
 
 		UpdateHierarchySummary();
@@ -1548,10 +1168,6 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
-	/// <remarks>
-	/// Changes to the <see cref="ExplorerItemDtoBase.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
-	/// </remarks>
 	internal Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
 		if (!isExpanded)
@@ -1559,7 +1175,14 @@ public partial class EditorViewModel :
 			ResetSelectedObject();
 		}
 
-		FolderDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
+		ExplorerNodeViewModelBase[] folders =
+		[
+			.. Hierarchy
+				.GetFolders()
+				.Select(x => Nodes.FindNode(x))
+				.OfType<ExplorerNodeViewModelBase>()
+				.Where(x => x.IsExpanded != isExpanded)
+		];
 
 		if (folders.IsEmpty())
 		{
@@ -1570,99 +1193,41 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Handles changing application settings.
-	/// </summary>
-	internal async Task HandleSettingsChangedAsync(
-		bool isSave,
-		AppSettings settings,
-		CancellationToken token = default)
-	{
-		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
-		bool wasPersistingClipboard = _settingsStore
-			.Settings
-			.PersistClipboardHistory;
-
-		// Captured before overwrite so that only a changed delay restarts the countdown.
-		int previousAutoLockMinutes = _settingsStore
-			.Settings
-			.AutoLockMinutes;
-
-		if (isSave)
-		{
-			_settingsStore.Overwrite(settings);
-
-			_settingsStore.Save();
-		}
-		else
-		{
-			_themeService.ApplyFromSettings();
-		}
-
-		if (!isSave)
-		{
-			return;
-		}
-
-		// A changed delay takes effect at once: the countdown restarts from it, and no auto-lock stops it.
-		if (settings.AutoLockMinutes != previousAutoLockMinutes)
-		{
-			NotifyDecryptedContentsChanged();
-		}
-
-		await ApplyClipboardHistorySettingAsync(
-			settings.TrackClipboardHistory,
-			token).ConfigureAwait(false);
-
-		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
-		{
-			_clipboardLogPersistence.DisablePersistence();
-		}
-
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync(token)
-				.ConfigureAwait(false);
-		}
-
-		if (!settings.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
-	}
-
-	/// <summary>
 	/// Refreshes the command that hides everything and keeps the auto-lock countdown
 	/// in step with the decrypted contents.
 	/// </summary>
-	protected internal override void NotifyDecryptedContentsChanged()
+	internal void NotifyDecryptedContentsChanged()
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
-		if (CanHideAllFileContents())
-		{
-			_autoLock.Arm();
-		}
-		else
-		{
-			_autoLock.Stop();
-		}
+		_backgroundServiceControl.RefreshAutoLock();
 	}
 
-	/// <inheritdoc />
-	protected override void CloseEditingFile(FileDto file)
+	/// <summary>
+	/// Sets the default <see cref="NavigationColumnWidth" /> for a window <paramref name="windowWidth" /> wide.
+	/// </summary>
+	internal void SetDefaultNavigationColumnWidth(double windowWidth)
 	{
-		if (_editingFiles is not null)
+		NavigationColumnWidth = windowWidth / 3.0;
+	}
+
+	/// <summary>
+	/// Expands the folders of an object and asks the tree to bring the object into view, select and highlight it.
+	/// </summary>
+	internal void ShowObject(Guid id)
+	{
+		if (Hierarchy.FindById(id) is not { } found
+			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, ExplorerNodeViewModelBase node])
 		{
-			_editingFiles.CloseTab(file);
+			return;
 		}
-		else
+
+		foreach (ExplorerNodeViewModelBase folder in folders)
 		{
-			file.IsEditing = false;
+			folder.IsExpanded = true;
 		}
+
+		_showSignal.OnNext(node);
 	}
 	#endregion
 
@@ -1712,31 +1277,13 @@ public partial class EditorViewModel :
 	private static bool IsOpened(FileDto dto) => dto.IsOpened();
 
 	/// <summary>
-	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
-	/// dropping the in-memory history when disabled.
+	/// Adds objects to <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
-	private async Task ApplyClipboardHistorySettingAsync(bool isEnabled, CancellationToken token)
+	private void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		IsClipboardHistoryEnabled = isEnabled;
+		Hierarchy.AddRange(hierarchy);
 
-		if (isEnabled)
-		{
-			if (!_clipboardLog.IsRunning)
-			{
-				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
-			}
-
-			return;
-		}
-
-		if (_clipboardLog.IsRunning)
-		{
-			_clipboardLog.Stop();
-		}
-
-		await _clipboardLog
-			.ClearEntriesAsync()
-			.ConfigureAwait(false);
+		UpdateHierarchySummary();
 	}
 
 	/// <summary>
@@ -1761,7 +1308,8 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& dto?.IsPasswordKeeper() == true;
+			&& dto is not null
+			&& FolderProtectionRules.CanChangePassword(dto);
 	}
 
 	/// <summary>
@@ -1776,9 +1324,8 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& dto?.IsPasswordKeeper() == true
-			&& dto.EncryptionStatus == EncryptionStatus.Encrypted
-			&& dto.Children.AllBy(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+			&& dto is not null
+			&& FolderProtectionRules.CanDecrypt(dto);
 	}
 
 	/// <summary>
@@ -1788,7 +1335,7 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& (dto is not null || SelectedObject is not null);
+			&& (dto is not null || SelectedNode is not null);
 	}
 
 	/// <summary>
@@ -1807,12 +1354,10 @@ public partial class EditorViewModel :
 	/// </summary>
 	private bool CanEncryptFolder(FolderDto? dto)
 	{
-		// A folder can be encrypted only while it belongs to no keeper, itself included.
 		return !IsReadOnly
 			&& !IsActionInProgress
 			&& dto is not null
-			&& dto.FindPasswordKeeper() is null
-			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
+			&& FolderProtectionRules.CanEncrypt(dto);
 	}
 
 	/// <summary>
@@ -1844,7 +1389,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="ResetSelectedObjectCommand" />.
 	/// </summary>
-	private bool CanResetSelectedObject() => SelectedObject is not null;
+	private bool CanResetSelectedObject() => SelectedNode is not null;
 
 	/// <summary>
 	/// Validates <see cref="SeedClipboardHistoryCommand" />.
@@ -1893,64 +1438,92 @@ public partial class EditorViewModel :
 	private bool CanShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
-	/// Clears copy history.
+	/// Asks the view to highlight the row of an object where it shows it.
 	/// </summary>
-	private void ClearCopyHistory()
+	private void Highlight(ExplorerItemDtoBase dto)
 	{
-		_copyHistory?.Clear();
+		if (Nodes.FindNode(dto) is not { } node)
+		{
+			return;
+		}
 
-		SaveCopyHistory();
+		_highlightSignal.OnNext(node);
 	}
 
 	/// <summary>
-	/// Tries to remove value from copy history.
+	/// Hides the decrypted contents once the auto-lock expires and refreshes the command that hides them all.
 	/// </summary>
-	private void RemoveFromCopyHistory(FileDto file)
+	private async Task LockAsync()
 	{
-		CopyHistorySettings
-			.ItemIds
-			.Remove(file.Id);
+		await _protectionScenarios
+			.LockAsync()
+			.ConfigureAwait(true);
 
-		_copyHistory?.Remove(file);
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
-	/// Adds to the tree the run of samples that <paramref name="seed" /> writes to the database, with the menu closed and the
-	/// progress bar on.
+	/// Saves a folder of the tree expanded or collapsed, unless the editor is read-only or busy with an action.
 	/// </summary>
-	private async Task SeedAsync(string logMessage, Func<CancellationToken, Task<FolderDto>> seed)
+	private void SaveIsExpanded(Guid folderId, bool isExpanded)
+	{
+		if (IsReadOnly || IsActionInProgress)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(folderId, isExpanded));
+	}
+
+	/// <summary>
+	/// Saves an object of the tree selected or cleared, unless the editor is read-only, busy with an action or not shown.
+	/// </summary>
+	private void SaveIsSelected(ExplorerItemDtoBase item, bool isSelected)
+	{
+		if (IsReadOnly
+			|| IsActionInProgress
+			|| !IsWindowShown)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(item, isSelected));
+	}
+
+	/// <summary>
+	/// Adds to the tree the run of samples that <paramref name="seed" /> makes, with the menu closed, and counts the objects
+	/// again.
+	/// </summary>
+	private async Task SeedAsync(Func<Collection<ExplorerItemDtoBase>, Task> seed)
 	{
 		IsLeftDrawerOpened = false;
 
-		_logger.LogInformation(logMessage);
+		await seed(Hierarchy).ConfigureAwait(true);
 
-		try
-		{
-			using ProgressScope _ = _messenger.ShowProgress();
-
-			FolderDto run = await seed(CancellationToken.None).ConfigureAwait(true);
-
-			AddHierarchy([run]);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException("The sample objects could not be added.", ex);
-		}
+		UpdateHierarchySummary();
 	}
 
-	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
+	/// <summary>
+	/// Marks a row selected and makes it the <see cref="SelectedNode" />.
+	/// </summary>
+	private void SelectNode(ExplorerNodeViewModelBase node)
+	{
+		node.IsSelected = true;
+
+		SelectedNode = node;
+	}
+
+	/// <inheritdoc cref="IProtectionScenarios.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileDto dto)
 	{
-		_logger.LogInformation("Show file contents");
-
-		if (!await _contentVisibility
+		if (!await _protectionScenarios
 			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true))
 		{
 			return false;
 		}
 
-		NotifyDecryptedContentsChanged();
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		return true;
 	}
@@ -1977,48 +1550,6 @@ public partial class EditorViewModel :
 		RightSideSheetContent = content;
 
 		IsRightSideSheetOpened = true;
-	}
-
-	/// <summary>
-	/// Tries to close editing or executing files if any.
-	/// </summary>
-	private async Task<bool> TryCloseOpenedFilesAsync(
-		FileDto[] openedFiles,
-		CancellationToken token = default)
-	{
-		if (openedFiles.IsNotEmpty())
-		{
-			if (!await _dialogService
-				.RequestCloseFilesAsync(token)
-				.ConfigureAwait(true))
-			{
-				return false;
-			}
-
-			CloseFiles(
-				openedFiles.Where(x => x.IsEditing),
-				openedFiles.Where(x => x.IsExecuting));
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Persists the pending changes of the open editors before the key is dropped;
-	/// <c>False</c> reports the failure to the user and keeps the caller from hiding anything.
-	/// </summary>
-	private async Task<bool> TryFlushEditorsAsync(CancellationToken token = default)
-	{
-		if (await FlushEditorsAsync(token).ConfigureAwait(true))
-		{
-			return true;
-		}
-
-		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
-
-		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-		return false;
 	}
 
 	/// <summary>

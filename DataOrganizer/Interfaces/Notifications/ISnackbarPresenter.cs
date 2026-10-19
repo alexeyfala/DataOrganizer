@@ -1,4 +1,4 @@
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Notifications;
 using Material.Styles.Controls;
 
 namespace DataOrganizer.Interfaces.Notifications;

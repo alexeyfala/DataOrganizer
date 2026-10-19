@@ -5,7 +5,9 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:enums="using:DataOrganizer.Enums.Views"
+
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -74,15 +76,14 @@
 					Margin="4.0,0.0"
 					Padding="6.0,0.0"
 					Command="{Binding ShowNotepadCommand}"
-					CommandParameter="{Binding $parent[Window]}"
-					Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
+										Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
 					                                            IconSize=16.0}"
 					Foreground="{StaticResource LightForegroundBrush}"
 					Theme="{StaticResource MaterialFlatButton}"
 					ToolTip.Tip="{x:Static prop:Strings.Notepad}">
 					<Interaction.Behaviors>
 						<DoubleTappedTrigger MarkAsHandled="True">
-							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" CommandParameter="{Binding $parent[Window]}" />
+							<InvokeCommandAction Command="{Binding CenterNotepadCommand}" />
 						</DoubleTappedTrigger>
 					</Interaction.Behaviors>
 				</Button>
@@ -123,7 +124,7 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="DoubleTapped">
-						<InvokeCommandAction Command="{Binding ShowEditorCommand}" CommandParameter="{Binding $parent[Window]}" />
+						<InvokeCommandAction Command="{Binding ShowEditorCommand}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 			</Grid>
@@ -184,11 +185,11 @@
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
-											<selectors:FavoritesPopupContentTemplateSelector>
-												<StaticResource ResourceKey="CopyHistoryTemplate" />
+											<selectors:ContentKindTemplateSelector>
+												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
 
-												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
-											</selectors:FavoritesPopupContentTemplateSelector>
+												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.Favorites}" Template="{StaticResource SelectedFavoritesViewTemplate}" />
+											</selectors:ContentKindTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>
@@ -292,16 +293,14 @@
 					<Button
 						Classes="primary"
 						Command="{Binding ShowEditorCommand}"
-						CommandParameter="{Binding $parent[Window]}"
-						Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
+												Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
 						ToolTip.Tip="{x:Static prop:Strings.Editor}" />
 
 					<Button
 						Classes="primary"
 						Command="{Binding ShowCustomClipboardCommand}"
-						CommandParameter="{Binding $parent[Window]}"
-						IsVisible="{Binding IsClipboardHistoryEnabled}"
+												IsVisible="{Binding IsClipboardHistoryEnabled}"
 						Theme="{StaticResource CustomClipboardButtonTheme}" />
 
 					<Panel>
@@ -312,7 +311,7 @@
 							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-						<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
+						<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
 					</Panel>
 				</StackPanel>
 			</Border>

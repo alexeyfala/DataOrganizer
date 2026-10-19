@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
+using DataOrganizer.Helpers.Views;
 
 namespace DataOrganizer.UnitTests.Helpers.Text.FoldingStrategies;
 

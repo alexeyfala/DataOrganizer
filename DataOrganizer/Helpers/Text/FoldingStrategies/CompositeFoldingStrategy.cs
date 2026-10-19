@@ -1,5 +1,3 @@
-using AvaloniaEdit.Document;
-using AvaloniaEdit.Folding;
 using DataOrganizer.Interfaces.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +5,10 @@ using System.Linq;
 namespace DataOrganizer.Helpers.Text.FoldingStrategies;
 
 /// <summary>
-/// <see cref="IFoldingStrategy" /> that joins the blocks of several ways over one reading of the text, with one block per
-/// line and no block that crosses another.
+/// Joins the blocks of several ways over one reading of the text, with one block per line and no block that crosses
+/// another.
 /// </summary>
-internal sealed class CompositeFoldingStrategy : IFoldingStrategy
+internal sealed class CompositeFoldingStrategy
 {
 	#region Data
 	/// <summary>
@@ -27,21 +25,20 @@ internal sealed class CompositeFoldingStrategy : IFoldingStrategy
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public IEnumerable<NewFolding> CreateNewFoldings(TextDocument document, out int firstErrorOffset)
+	/// <summary>
+	/// Returns the blocks of a text sorted by their start.
+	/// </summary>
+	public List<TextFolding> CreateNewFoldings(string text)
 	{
-		// The ways read any text.
-		firstErrorOffset = -1;
-
-		using FoldingText text = new(document);
+		using FoldingText lines = new(text);
 
 		// Of the blocks that start together the outer one comes first, and the sort keeps the order of the ways for the rest.
-		IEnumerable<NewFolding> blocks = _strategies
-			.SelectMany(x => x.CreateNewFoldings(text))
+		IEnumerable<TextFolding> blocks = _strategies
+			.SelectMany(x => x.CreateNewFoldings(lines))
 			.OrderBy(static x => x.StartOffset)
 			.ThenByDescending(static x => x.EndOffset);
 
-		return SelectNested(text, blocks);
+		return SelectNested(lines, blocks);
 	}
 	#endregion
 
@@ -49,16 +46,16 @@ internal sealed class CompositeFoldingStrategy : IFoldingStrategy
 	/// <summary>
 	/// Returns the blocks, sorted by their start, that start first on their lines and nest in each other.
 	/// </summary>
-	private static List<NewFolding> SelectNested(FoldingText text, IEnumerable<NewFolding> blocks)
+	private static List<TextFolding> SelectNested(FoldingText text, IEnumerable<TextFolding> blocks)
 	{
-		List<NewFolding> selected = [];
+		List<TextFolding> selected = [];
 
 		// The ends of the selected blocks that hold the start of the next one, the innermost on top.
 		Stack<int> openEnds = [];
 
 		int lastLine = 0;
 
-		foreach (NewFolding block in blocks)
+		foreach (TextFolding block in blocks)
 		{
 			int line = text.GetLineNumber(block.StartOffset);
 

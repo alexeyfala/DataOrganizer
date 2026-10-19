@@ -12,10 +12,6 @@
 	WixStandardBootstrapperApplication - https://docs.firegiant.com/wix/tools/burn/wixstdba
 -->
 
-<!--
-	https://dotnet.microsoft.com/en-us/download/dotnet/10.0
--->
-
 <Wix
 	xmlns="http://wixtoolset.org/schemas/v4/wxs"
 	xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal"
@@ -85,7 +81,7 @@
 				InstallArguments="/norestart /quiet"
 				PerMachine="yes"
 				Permanent="yes"
-				SourceFile="Resources\dotnet-runtime-10.0.11-win-x64.exe"
+				SourceFile="Resources\dotnet-runtime-$(DotNetVersion)-win-x64.exe"
 				Vital="yes">
 			</ExePackage>
 		</PackageGroup>

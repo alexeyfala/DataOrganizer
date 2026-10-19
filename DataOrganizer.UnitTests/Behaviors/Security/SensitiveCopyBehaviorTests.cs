@@ -29,7 +29,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -51,7 +51,7 @@ internal class SensitiveCopyBehaviorTests
 
 		writer
 			.DidNotReceive()
-			.Write(Arg.Any<string>());
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -70,7 +70,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -94,7 +94,7 @@ internal class SensitiveCopyBehaviorTests
 
 		writer
 			.DidNotReceive()
-			.Write(Arg.Any<string>());
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -113,7 +113,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -129,7 +129,7 @@ internal class SensitiveCopyBehaviorTests
 		// Assert
 		writer
 			.Received(1)
-			.Write(text);
+			.WriteTextAsync(text, isSensitive: true);
 	}
 
 	/// <summary>
@@ -148,7 +148,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -170,7 +170,7 @@ internal class SensitiveCopyBehaviorTests
 
 		writer
 			.Received(1)
-			.Write(text);
+			.WriteTextAsync(text, isSensitive: true);
 	}
 
 	/// <summary>
@@ -189,7 +189,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -217,7 +217,7 @@ internal class SensitiveCopyBehaviorTests
 
 		writer
 			.Received(1)
-			.Write("abc");
+			.WriteTextAsync("abc", isSensitive: true);
 	}
 
 	/// <summary>
@@ -236,7 +236,7 @@ internal class SensitiveCopyBehaviorTests
 			SelectionEnd = text.Length
 		};
 
-		ISensitiveClipboardWriter writer = Substitute.For<ISensitiveClipboardWriter>();
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
 
 		SensitiveCopyBehavior sut = new()
 		{
@@ -260,7 +260,7 @@ internal class SensitiveCopyBehaviorTests
 
 		writer
 			.DidNotReceive()
-			.Write(Arg.Any<string>());
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
 	}
 	#endregion
 }

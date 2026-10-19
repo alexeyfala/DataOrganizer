@@ -2,7 +2,8 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
@@ -19,7 +20,7 @@
 	<!-- ClipboardTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
-		x:DataType="clipboard:ClipboardTextEntry">
+		x:DataType="clipboard:ClipboardTextEntryBase">
 		<ScrollViewer
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
 			HorizontalScrollBarVisibility="Disabled"
@@ -46,7 +47,7 @@
 			MaxWidth="{StaticResource ImageEntryMaxWidth}"
 			MaxHeight="{StaticResource ImageEntryMaxHeight}"
 			HorizontalAlignment="Left"
-			Source="{Binding ImagePreview, Mode=OneTime}"
+			Source="{Binding OriginalPng, Mode=OneTime, Converter={x:Static converters:ClipboardLogConverters.PngToPreview}, ConverterParameter={StaticResource ImageEntryMaxWidth}}"
 			Stretch="Uniform" />
 	</DataTemplate>
 
@@ -55,7 +56,7 @@
 		x:Key="ClipboardFilesEntryTemplate"
 		x:DataType="clipboard:ClipboardFilesEntry">
 		<TextBlock
-			Text="{Binding Preview, Mode=OneTime}"
+			Text="{Binding FileSystemEntries, Mode=OneTime, Converter={x:Static converters:ClipboardLogConverters.FilesPreview}}"
 			TextTrimming="CharacterEllipsis"
 			TextWrapping="NoWrap" />
 	</DataTemplate>
@@ -73,7 +74,7 @@
 			Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
 			CommandParameter="{Binding}"
 			Cursor="Arrow"
-			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
+			ToolTip.Tip="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.ContentToolTip}}">
 
 			<!-- Accent left bar marks the entry currently held in the system clipboard. -->
 			<Button.Styles>
@@ -292,7 +293,7 @@
 							BorderBrush="{StaticResource MaterialDividerBrush}"
 							BorderThickness="1.0"
 							CornerRadius="4.0"
-							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+							ToolTip.Tip="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.TypeToolTip}}">
 
 							<Border.Styles>
 								<Style Selector="Border:pointerover">
@@ -303,7 +304,7 @@
 							<TextBlock
 								FontFamily="Segoe UI Emoji"
 								FontSize="12.0"
-								Text="{Binding TypeGlyph, Mode=OneTime}" />
+								Text="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.TypeGlyph}}" />
 						</Border>
 					</StackPanel>
 				</Grid>

@@ -118,16 +118,6 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a sequence by a specific type, ignoring the base type.
-	/// </summary>
-	public static IEnumerable<TResult> OfSpecificType<TSource, TResult>(this IEnumerable<TSource> sequence) where TSource : class
-	{
-		return sequence
-			.Where(x => x.GetType() == typeof(TResult))
-			.OfType<TResult>();
-	}
-
-	/// <summary>
 	/// Orders the source sequence by the properties of another.
 	/// </summary>
 	/// <typeparam name="T">Type of the original sequence.</typeparam>

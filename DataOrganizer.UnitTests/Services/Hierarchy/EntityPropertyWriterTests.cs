@@ -1,15 +1,19 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.EntityFrameworkCore.Query;
-using NSubstitute;
+using Repository.Enums;
+using Repository.Interfaces;
 using Repository.Interfaces.Database;
-using System;
+using Repository.Services;
+using Repository.Services.Database;
 using System.Threading.Tasks;
+using TestSupport.Database;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
@@ -18,108 +22,211 @@ internal class EntityPropertyWriterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EntityPropertyWriter.UpdateIsExpandedAsync" />: the folder IsExpanded property is persisted in the database.
+	/// <see cref="EntityPropertyWriter.UpdateIsExpandedAsync" />: the expansion of the folder is written to the database.
 	/// </summary>
 	[Test]
 	public async Task UpdateIsExpandedAsync_Persists_In_Database([Values] bool isExpanded)
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		using TestDatabase database = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
+		FolderEntity folder = EntityFactory.CreateFolder(isExpanded: !isExpanded);
 
-		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
-
-		// Act
-		await sut.UpdateIsExpandedAsync(Guid.NewGuid(), isExpanded);
-
-		// Assert
-		await dbAccess
-			.Received(1)
-			.UpdateFolderPropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityPropertyWriter.UpdateIsFavoriteAsync" />: the file IsFavorite property is persisted in the database.
-	/// </summary>
-	[Test]
-	public async Task UpdateIsFavoriteAsync_Persists_In_Database()
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
-
-		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
-
-		// Act
-		await sut.UpdateIsFavoriteAsync(ItemDtoFactory.CreateFileDto());
-
-		// Assert
-		await dbAccess
-			.Received(1)
-			.UpdateFilePropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityPropertyWriter.UpdateIsSelectedAsync" />: the IsSelected property of a file or dataset is persisted via the file update.
-	/// </summary>
-	[Test]
-	public async Task UpdateIsSelectedAsync_Persists_File_In_Database([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
-
-		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
-
-		FileDto dto = new()
+		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			CreatedAt = default,
-			Id = Guid.NewGuid(),
-			Index = 0,
-			Kind = kind,
-			UpdatedAt = default
-		};
+			builder.RegisterInstance(database.Context);
 
-		// Act
-		await sut.UpdateIsSelectedAsync(dto);
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
 
-		// Assert
-		await dbAccess
-			.Received(1)
-			.UpdateFilePropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
-	}
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
 
-	/// <summary>
-	/// <see cref="EntityPropertyWriter.UpdateIsSelectedAsync" />: the folder IsSelected property is persisted via the folder update.
-	/// </summary>
-	[Test]
-	public async Task UpdateIsSelectedAsync_Persists_Folder_In_Database()
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([folder]);
 
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsSelectedAsync(ItemDtoFactory.CreateFolderDto());
+		await sut.UpdateIsExpandedAsync(folder.Id, isExpanded);
 
 		// Assert
-		await dbAccess
-			.Received(1)
-			.UpdateFolderPropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsExpanded
+			.Should()
+			.Be(isExpanded);
+	}
+
+	/// <summary>
+	/// <see cref="EntityPropertyWriter.UpdateIsFavoriteAsync" />: the favorite mark of the file is written to the database.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsFavoriteAsync_Persists_In_Database([Values] bool isFavorite)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(isFavorite: !isFavorite);
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: file.Id);
+
+		dto.IsFavorite = isFavorite;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
+
+		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
+
+		// Act
+		await sut.UpdateIsFavoriteAsync(dto);
+
+		// Assert
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsFavorite
+			.Should()
+			.Be(isFavorite);
+	}
+
+	/// <summary>
+	/// <see cref="EntityPropertyWriter.UpdateIsSelectedAsync" />: the selection of a file or a dataset is written to its file
+	/// in the database.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsSelectedAsync_Persists_File_In_Database(
+		[Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind,
+		[Values] bool isSelected)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(isSelected: !isSelected);
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: file.Id, kind: kind);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFilesAsync([file]);
+
+		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
+
+		// Act
+		await sut.UpdateIsSelectedAsync(dto, isSelected);
+
+		// Assert
+		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.None);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsSelected
+			.Should()
+			.Be(isSelected);
+	}
+
+	/// <summary>
+	/// <see cref="EntityPropertyWriter.UpdateIsSelectedAsync" />: the selection of a folder is written to the folder in the
+	/// database.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsSelectedAsync_Persists_Folder_In_Database([Values] bool isSelected)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder(isSelected: !isSelected);
+
+		FolderDto dto = ItemDtoFactory.CreateFolderDto(id: folder.Id);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbAccess>()
+				.As<IDbAccess>();
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		IDbAccess dbAccess = mock.Create<IDbAccess>();
+
+		await dbAccess.AddFoldersAsync([folder]);
+
+		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
+
+		// Act
+		await sut.UpdateIsSelectedAsync(dto, isSelected);
+
+		// Assert
+		FolderEntity[] stored = await dbAccess.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsSelected
+			.Should()
+			.Be(isSelected);
 	}
 	#endregion
 }

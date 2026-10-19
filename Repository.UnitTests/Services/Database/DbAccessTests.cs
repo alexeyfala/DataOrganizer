@@ -5,6 +5,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
@@ -14,8 +15,8 @@ using Repository.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
-using Repository.UnitTests.Fixtures;
 using Shared.Common;
+using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Database;
 using TestSupport.Dto;
 using TestSupport.Models;
 
@@ -65,6 +67,10 @@ internal class DbAccessTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -111,6 +117,10 @@ internal class DbAccessTests
 			builder.RegisterInstance(folderRepository);
 
 			builder.RegisterInstance(fileRepository);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -165,6 +175,40 @@ internal class DbAccessTests
 				.Received(1)
 				.AddAsync(Arg.Any<FileEntity>());
 		}
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.AddEntityAsync" />: a new folder or file is created and updated at the current local time.
+	/// </summary>
+	[Test]
+	public async Task AddEntityAsync_Stamps_The_Entity_With_The_Current_Time([Values] EntityKind type)
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		AddEntityParameters parameters = new()
+		{
+			Index = RandomValues.CreateIntFrom10To100(),
+			Kind = type,
+			Name = RandomString.Create(10),
+			ParentId = Guid.NewGuid()
+		};
+
+		// Act
+		ExplorerItemBase entity = await sut.AddEntityAsync(parameters);
+
+		// Assert
+		entity.CreatedAt
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
+
+		entity.UpdatedAt
+			.Should()
+			.Be(time.GetLocalNow().LocalDateTime);
 	}
 
 	/// <summary>
@@ -266,6 +310,10 @@ internal class DbAccessTests
 			builder
 				.RegisterType<FolderRepository>()
 				.As<IFolderRepository>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -703,27 +751,39 @@ internal class DbAccessTests
 
 		await AssertRefusedAsync(() => sut.ClearDatabaseAsync());
 
-		await AssertRefusedAsync(() => sut.DeleteFileAsync(Guid.NewGuid()));
+		await AssertRefusedAsync(() => sut.DeleteAsync(EntityKind.File, Guid.NewGuid()));
 
-		await AssertRefusedAsync(() => sut.DeleteFolderAsync(Guid.NewGuid()));
+		await AssertRefusedAsync(() => sut.DeleteAsync(EntityKind.Folder, Guid.NewGuid()));
 
 		await AssertRefusedAsync(() => sut.DeleteHotkeysAsync(Guid.NewGuid()));
 
+		await AssertRefusedAsync(() => sut.RenameAsync(EntityKind.File, Guid.NewGuid(), RandomString.Create(10), default));
+
 		await AssertRefusedAsync(() => sut.RestoreFromBackupAsync(RandomString.Create(10)));
 
-		await AssertRefusedAsync(() => sut.UpdateFileAndFolderPropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
+		await AssertRefusedAsync(() => sut.UpdateEncryptedDekAsync(Guid.NewGuid(), []));
 
-		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(Guid.NewGuid(), []));
+		await AssertRefusedAsync(() => sut.UpdateFileContentsAsync(Guid.NewGuid(), [], null));
 
-		await AssertRefusedAsync(() => sut.UpdateFilePropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>()));
+		await AssertRefusedAsync(() => sut.UpdateFileEditorStateAsync(Guid.NewGuid(), RandomString.Create(10)));
 
-		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(Guid.NewGuid(), []));
+		await AssertRefusedAsync(() => sut.UpdateIsExpandedAsync(Guid.NewGuid(), true));
 
-		await AssertRefusedAsync(() => sut.UpdateFolderPropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>()));
+		await AssertRefusedAsync(() => sut.UpdateIsFavoriteAsync(Guid.NewGuid(), true));
+
+		await AssertRefusedAsync(() => sut.UpdateIsSelectedAsync(EntityKind.Folder, Guid.NewGuid(), true));
+
+		await AssertRefusedAsync(() => sut.UpdateNoteAsync(EntityKind.Folder, Guid.NewGuid(), null, default));
+
+		await AssertRefusedAsync(() => sut.UpdateProtectionAsync(new()
+		{
+			Contents = new Dictionary<Guid, byte[]>(),
+			EncryptedDek = null,
+			FileNotes = new Dictionary<Guid, byte[]>(),
+			FolderId = Guid.NewGuid(),
+			FolderNotes = new Dictionary<Guid, byte[]>(),
+			UpdatedAt = default
+		}));
 
 		await dbContextService
 			.DidNotReceive()
@@ -852,10 +912,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.DeleteFileAsync" />: removes the file's hotkeys and the file itself, returning true.
+	/// <see cref="DbAccess.DeleteAsync" />: removes the file's hotkeys and the file itself, returning true.
 	/// </summary>
 	[Test]
-	public async Task DeleteFileAsync_Deletes_File_From_Database()
+	public async Task DeleteAsync_Deletes_File_From_Database([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
 		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
@@ -876,7 +936,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.DeleteFileAsync(default);
+		bool result = await sut.DeleteAsync(kind, default);
 
 		// Assert
 		result
@@ -893,39 +953,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.DeleteFileAsync" />: returns false when no file rows are removed.
+	/// <see cref="DbAccess.DeleteAsync" />: removes an empty folder without touching file or hotkey repositories.
 	/// </summary>
 	[Test]
-	public async Task DeleteFileAsync_Returns_False_When_File_Does_Not_Exist()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository fileRepository = Substitute.For<IFileRepository>();
-
-			fileRepository
-				.RemoveAsync(Arg.Any<Guid>())
-				.Returns(0);
-
-			builder.RegisterInstance(fileRepository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.DeleteFileAsync(Guid.NewGuid());
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.DeleteFolderAsync" />: removes an empty folder without touching file or hotkey repositories.
-	/// </summary>
-	[Test]
-	public async Task DeleteFolderAsync_Deletes_Folder_From_Database()
+	public async Task DeleteAsync_Deletes_Folder_From_Database()
 	{
 		// Arrange
 		Guid folderId = Guid.NewGuid();
@@ -962,7 +993,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.DeleteFolderAsync(folderId);
+		bool result = await sut.DeleteAsync(EntityKind.Folder, folderId);
 
 		// Assert
 		result
@@ -983,10 +1014,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.DeleteFolderAsync" />: removes the whole subtree including nested folders, files and their hotkeys.
+	/// <see cref="DbAccess.DeleteAsync" />: removes the whole subtree including nested folders, files and their hotkeys.
 	/// </summary>
 	[Test]
-	public async Task DeleteFolderAsync_Removes_Folder_With_Nested_Folders_And_Files()
+	public async Task DeleteAsync_Removes_Folder_With_Nested_Folders_And_Files()
 	{
 		// Arrange
 		Guid rootId = Guid.NewGuid();
@@ -1033,7 +1064,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.DeleteFolderAsync(rootId);
+		bool result = await sut.DeleteAsync(EntityKind.Folder, rootId);
 
 		// Assert
 		result
@@ -1054,10 +1085,39 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.DeleteFolderAsync" />: returns false when no folder rows are removed.
+	/// <see cref="DbAccess.DeleteAsync" />: returns false when no file rows are removed.
 	/// </summary>
 	[Test]
-	public async Task DeleteFolderAsync_Returns_False_When_Folder_Does_Not_Exist()
+	public async Task DeleteAsync_Returns_False_When_File_Does_Not_Exist()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			fileRepository
+				.RemoveAsync(Arg.Any<Guid>())
+				.Returns(0);
+
+			builder.RegisterInstance(fileRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteAsync(EntityKind.File, Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.DeleteAsync" />: returns false when no folder rows are removed.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Returns_False_When_Folder_Does_Not_Exist()
 	{
 		// Arrange
 		Guid folderId = Guid.NewGuid();
@@ -1088,7 +1148,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.DeleteFolderAsync(folderId);
+		bool result = await sut.DeleteAsync(EntityKind.Folder, folderId);
 
 		// Assert
 		result
@@ -1429,10 +1489,591 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: an empty set of updates is not a failure.
+	/// <see cref="DbAccess.RenameAsync" />: an object the database does not have is reported as not renamed.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Accepts_An_Empty_Set_Of_Updates()
+	public async Task RenameAsync_Returns_False_For_An_Object_Not_In_The_Database([Values] EntityKind kind)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.RenameAsync(
+			kind,
+			Guid.NewGuid(),
+			RandomString.Create(10),
+			default);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.RenameAsync" />: an object gets its new name and date of change in the table of its kind.
+	/// </summary>
+	[Test]
+	public async Task RenameAsync_Writes_The_Name_And_The_Date([Values] EntityKind kind)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder();
+
+		FileEntity file = EntityFactory.CreateFile();
+
+		Guid id = kind == EntityKind.Folder ? folder.Id : file.Id;
+
+		string name = RandomString.Create(10);
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([folder]);
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.RenameAsync(kind, id, name, updatedAt);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		ExplorerItemBase[] stored =
+		[
+			.. await sut.GetAllFoldersAsync(),
+			.. await sut.GetAllFilesAsync(OptionalFileProperties.None)
+		];
+
+		stored
+			.Should()
+			.ContainSingle(x => x.Id == id)
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Name = name,
+				UpdatedAt = updatedAt
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateEncryptedDekAsync" />: the folder gets its new wrapped key.
+	/// </summary>
+	[Test]
+	public async Task UpdateEncryptedDekAsync_Writes_The_Wrapped_Key()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder(encryptedDek: RandomValues.CreateBytes(10));
+
+		byte[] encryptedDek = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([folder]);
+
+		// Act
+		bool result = await sut.UpdateEncryptedDekAsync(folder.Id, encryptedDek);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FolderEntity[] stored = await sut.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EncryptedDek
+			.Should()
+			.Equal(encryptedDek);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileContentsAsync" />: contents written without a date leave the date of the file as it
+	/// is.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileContentsAsync_Keeps_The_Date_Without_One()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		file.UpdatedAt = updatedAt;
+
+		byte[] contents = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateFileContentsAsync(file.Id, contents, null);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FileEntity[] stored = await sut.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Contents = contents,
+				UpdatedAt = updatedAt
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileContentsAsync" />: a file the database does not have is reported as not written.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileContentsAsync_Returns_False_For_A_File_Not_In_The_Database()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFileContentsAsync(
+			Guid.NewGuid(),
+			RandomValues.CreateBytes(10),
+			null);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileContentsAsync" />: the file gets its new contents and date of change.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileContentsAsync_Writes_The_Contents_And_The_Date()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(contents: RandomValues.CreateBytes(10));
+
+		byte[] contents = RandomValues.CreateBytes(10);
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateFileContentsAsync(file.Id, contents, updatedAt);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FileEntity[] stored = await sut.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Contents = contents,
+				UpdatedAt = updatedAt
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileEditorStateAsync" />: the file gets its new editor state.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileEditorStateAsync_Writes_The_Editor_State()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(editorState: RandomString.Create(10));
+
+		string editorState = RandomString.Create(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateFileEditorStateAsync(file.Id, editorState);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FileEntity[] stored = await sut.GetAllFilesAsync(OptionalFileProperties.EditorState);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.EditorState
+			.Should()
+			.Be(editorState);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateIsExpandedAsync" />: the folder gets its new expansion.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsExpandedAsync_Writes_The_Expansion([Values] bool isExpanded)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder(isExpanded: !isExpanded);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([folder]);
+
+		// Act
+		bool result = await sut.UpdateIsExpandedAsync(folder.Id, isExpanded);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FolderEntity[] stored = await sut.GetAllFoldersAsync();
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsExpanded
+			.Should()
+			.Be(isExpanded);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateIsFavoriteAsync" />: the file gets its new favorite mark.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsFavoriteAsync_Writes_The_Favorite_Mark([Values] bool isFavorite)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FileEntity file = EntityFactory.CreateFile(isFavorite: !isFavorite);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateIsFavoriteAsync(file.Id, isFavorite);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		FileEntity[] stored = await sut.GetAllFilesAsync(OptionalFileProperties.None);
+
+		stored
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsFavorite
+			.Should()
+			.Be(isFavorite);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateIsSelectedAsync" />: an object gets its new selection in the table of its kind.
+	/// </summary>
+	[Test]
+	public async Task UpdateIsSelectedAsync_Writes_The_Selection([Values] EntityKind kind, [Values] bool isSelected)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder(isSelected: !isSelected);
+
+		FileEntity file = EntityFactory.CreateFile(isSelected: !isSelected);
+
+		Guid id = kind == EntityKind.Folder ? folder.Id : file.Id;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([folder]);
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateIsSelectedAsync(kind, id, isSelected);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		ExplorerItemBase[] stored =
+		[
+			.. await sut.GetAllFoldersAsync(),
+			.. await sut.GetAllFilesAsync(OptionalFileProperties.None)
+		];
+
+		stored
+			.Should()
+			.ContainSingle(x => x.Id == id)
+			.Which
+			.IsSelected
+			.Should()
+			.Be(isSelected);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateNoteAsync" />: an object gets its new note and date of change in the table of its kind.
+	/// </summary>
+	[Test]
+	public async Task UpdateNoteAsync_Writes_The_Note_And_The_Date([Values] EntityKind kind)
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		FolderEntity folder = EntityFactory.CreateFolder(note: RandomValues.CreateBytes(10));
+
+		FileEntity file = EntityFactory.CreateFile(note: RandomValues.CreateBytes(10));
+
+		Guid id = kind == EntityKind.Folder ? folder.Id : file.Id;
+
+		byte[] note = RandomValues.CreateBytes(10);
+
+		// The database keeps dates to the second.
+		DateTime updatedAt = new(2020, 1, 2, 3, 4, 5);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([folder]);
+
+		await sut.AddFilesAsync([file]);
+
+		// Act
+		bool result = await sut.UpdateNoteAsync(kind, id, note, updatedAt);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		ExplorerItemBase[] stored =
+		[
+			.. await sut.GetAllFoldersAsync(),
+			.. await sut.GetAllFilesAsync(OptionalFileProperties.None)
+		];
+
+		stored
+			.Should()
+			.ContainSingle(x => x.Id == id)
+			.Which
+			.Should()
+			.BeEquivalentTo(new
+			{
+				Note = note,
+				UpdatedAt = updatedAt
+			});
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateProtectionAsync" />: a change with nothing but the key of the folder is not a failure.
+	/// </summary>
+	[Test]
+	public async Task UpdateProtectionAsync_Accepts_An_Empty_Set_Of_Updates()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1450,9 +2091,15 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		Func<Task> act = () => sut.UpdateFileAndFolderPropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
+		Func<Task> act = () => sut.UpdateProtectionAsync(new()
+		{
+			Contents = new Dictionary<Guid, byte[]>(),
+			EncryptedDek = null,
+			FileNotes = new Dictionary<Guid, byte[]>(),
+			FolderId = Guid.NewGuid(),
+			FolderNotes = new Dictionary<Guid, byte[]>(),
+			UpdatedAt = default
+		});
 
 		// Assert
 		await act
@@ -1461,84 +2108,12 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: applies the updates of both entity types in one transaction.
+	/// <see cref="DbAccess.UpdateProtectionAsync" />: a write that failed inside the transaction reaches the caller.
 	/// </summary>
 	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Forwards_Every_Update()
+	public async Task UpdateProtectionAsync_Lets_A_Failed_Write_Out()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
-
-		Guid folderId = Guid.NewGuid();
-
-		Action<UpdateSettersBuilder<FileEntity>>[] fileSetters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
-
-		Action<UpdateSettersBuilder<FolderEntity>>[] folderSetters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
-
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
-		{
-			[fileId] = fileSetters
-		};
-
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = new()
-		{
-			[folderId] = folderSetters
-		};
-
-		IFileRepository fileRepository = Substitute.For<IFileRepository>();
-
-		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-			// The stub runs the body of the transaction instead of a database.
-			dbContextService
-				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
-				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
-
-			builder.RegisterInstance(dbContextService);
-
-			builder.RegisterInstance(fileRepository);
-
-			builder.RegisterInstance(folderRepository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, folderUpdates);
-
-		// Assert
-		await fileRepository
-			.Received(1)
-			.UpdatePropertiesAsync(fileId, fileSetters, Arg.Any<CancellationToken>());
-
-		await folderRepository
-			.Received(1)
-			.UpdatePropertiesAsync(folderId, folderSetters, Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: a write that failed inside the transaction
-	/// reaches the caller.
-	/// </summary>
-	[Test]
-	public async Task UpdateFileAndFolderPropertiesAsync_Lets_A_Failed_Write_Out()
-	{
-		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
-		};
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
@@ -1565,9 +2140,18 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		Func<Task> act = () => sut.UpdateFileAndFolderPropertiesAsync(
-			fileUpdates,
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
+		Func<Task> act = () => sut.UpdateProtectionAsync(new()
+		{
+			Contents = new Dictionary<Guid, byte[]>
+			{
+				[Guid.NewGuid()] = RandomValues.CreateBytes(10)
+			},
+			EncryptedDek = null,
+			FileNotes = new Dictionary<Guid, byte[]>(),
+			FolderId = Guid.NewGuid(),
+			FolderNotes = new Dictionary<Guid, byte[]>(),
+			UpdatedAt = default
+		});
 
 		// Assert
 		await act
@@ -1576,305 +2160,210 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileEntity}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
+	/// <see cref="DbAccess.UpdateProtectionAsync" />: every write of the change belongs to the one transaction, so none is
+	/// made outside of it.
 	/// </summary>
 	[Test]
-	public async Task UpdateFilePropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
-	{
-		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository repository = Substitute.For<IFileRepository>();
-
-			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
-				.Returns(0);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFilePropertiesAsync(updates);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileEntity}}[], System.Threading.CancellationToken)" />: returns false when the file does not exist.
-	/// </summary>
-	[Test]
-	public async Task UpdateFilePropertiesAsync_Returns_False_When_File_Does_Not_Exist()
-	{
-		// Arrange
-		Action<UpdateSettersBuilder<FileEntity>>[] setters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository repository = Substitute.For<IFileRepository>();
-
-			repository
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
-				.Returns(0);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFilePropertiesAsync(Guid.NewGuid(), setters);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileEntity}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
-	/// </summary>
-	[Test]
-	public async Task UpdateFilePropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
-	{
-		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, RandomValues.CreateIntFrom10To100())]
-		};
-
-		IFileRepository repository = Substitute.For<IFileRepository>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
-				.Returns(updates.Count);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFilePropertiesAsync(updates);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		await repository
-			.Received(1)
-			.UpdatePropertiesAsync(updates);
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileEntity}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the file was updated.
-	/// </summary>
-	[Test]
-	public async Task UpdateFilePropertiesAsync_Returns_True_When_File_Was_Updated()
+	public async Task UpdateProtectionAsync_Writes_Only_Inside_The_Transaction()
 	{
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		Action<UpdateSettersBuilder<FileEntity>>[] setters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
-
-		IFileRepository repository = Substitute.For<IFileRepository>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			repository
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
-				.Returns(1);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFilePropertiesAsync(fileId, setters);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		await repository
-			.Received(1)
-			.UpdatePropertiesAsync(fileId, setters);
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderEntity}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
-	/// </summary>
-	[Test]
-	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
-	{
-		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFolderRepository repository = Substitute.For<IFolderRepository>();
-
-			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
-				.Returns(0);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFolderPropertiesAsync(updates);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderEntity}}[], System.Threading.CancellationToken)" />: returns false when the folder does not exist.
-	/// </summary>
-	[Test]
-	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Folder_Does_Not_Exist()
-	{
-		// Arrange
-		Action<UpdateSettersBuilder<FolderEntity>>[] setters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFolderRepository repository = Substitute.For<IFolderRepository>();
-
-			repository
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
-				.Returns(0);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFolderPropertiesAsync(Guid.NewGuid(), setters);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderEntity}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
-	/// </summary>
-	[Test]
-	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
-	{
-		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates = new()
-		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, RandomValues.CreateIntFrom10To100())]
-		};
-
-		IFolderRepository repository = Substitute.For<IFolderRepository>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
-				.Returns(updates.Count);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdateFolderPropertiesAsync(updates);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		await repository
-			.Received(1)
-			.UpdatePropertiesAsync(updates);
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderEntity}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the folder was updated.
-	/// </summary>
-	[Test]
-	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Folder_Was_Updated()
-	{
-		// Arrange
 		Guid folderId = Guid.NewGuid();
 
-		Action<UpdateSettersBuilder<FolderEntity>>[] setters =
-		[
-			x => x.SetProperty(x => x.Name, RandomString.Create(10))
-		];
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
-		IFolderRepository repository = Substitute.For<IFolderRepository>();
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			repository
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
-				.Returns(1);
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-			builder.RegisterInstance(repository);
+			// The transaction never runs its body, though that is also the default answer.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(Task.CompletedTask);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(folderRepository);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.UpdateFolderPropertiesAsync(folderId, setters);
+		await sut.UpdateProtectionAsync(new()
+		{
+			Contents = new Dictionary<Guid, byte[]>
+			{
+				[fileId] = RandomValues.CreateBytes(10)
+			},
+			EncryptedDek = RandomValues.CreateBytes(10),
+			FileNotes = new Dictionary<Guid, byte[]>
+			{
+				[fileId] = RandomValues.CreateBytes(10)
+			},
+			FolderId = folderId,
+			FolderNotes = new Dictionary<Guid, byte[]>
+			{
+				[folderId] = RandomValues.CreateBytes(10)
+			},
+			UpdatedAt = default
+		});
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
+		await fileRepository
+			.DidNotReceiveWithAnyArgs()
+			.UpdatePropertiesAsync(default, default!, default);
 
-		await repository
-			.Received(1)
-			.UpdatePropertiesAsync(folderId, setters);
+		await folderRepository
+			.DidNotReceiveWithAnyArgs()
+			.UpdatePropertiesAsync(default, default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateProtectionAsync" />: the new contents, the notes and the wrapped key reach their rows, and
+	/// what changes gets the date; a file note goes in only with the contents of its file.
+	/// </summary>
+	[Test]
+	public async Task UpdateProtectionAsync_Writes_The_Contents_The_Notes_And_The_Key()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		// The database keeps dates to the second.
+		DateTime before = new(2020, 1, 2, 3, 4, 5);
+
+		DateTime updatedAt = new(2021, 2, 3, 4, 5, 6);
+
+		byte[] oldContents = RandomValues.CreateBytes(10);
+
+		byte[] oldNote = RandomValues.CreateBytes(10);
+
+		FolderEntity keeper = EntityFactory.CreateFolder(encryptedDek: RandomValues.CreateBytes(10), note: oldNote);
+
+		FolderEntity subfolder = EntityFactory.CreateFolder(parentId: keeper.Id, note: oldNote);
+
+		FileEntity noted = EntityFactory.CreateFile(contents: oldContents, parentId: keeper.Id, note: oldNote);
+
+		FileEntity unnoted = EntityFactory.CreateFile(contents: oldContents, parentId: subfolder.Id, note: oldNote);
+
+		FileEntity untouched = EntityFactory.CreateFile(contents: oldContents, parentId: subfolder.Id, note: oldNote);
+
+		ExplorerItemBase[] entities = [keeper, subfolder, noted, unnoted, untouched];
+
+		entities.ForEach(x => x.UpdatedAt = before);
+
+		byte[] encryptedDek = RandomValues.CreateBytes(10);
+
+		byte[] notedContents = RandomValues.CreateBytes(10);
+
+		byte[] unnotedContents = RandomValues.CreateBytes(10);
+
+		byte[] subfolderNote = RandomValues.CreateBytes(10);
+
+		byte[] notedNote = RandomValues.CreateBytes(10);
+
+		ProtectionUpdate update = new()
+		{
+			Contents = new Dictionary<Guid, byte[]>
+			{
+				[noted.Id] = notedContents,
+				[unnoted.Id] = unnotedContents
+			},
+			EncryptedDek = encryptedDek,
+			FileNotes = new Dictionary<Guid, byte[]>
+			{
+				[noted.Id] = notedNote,
+				[untouched.Id] = RandomValues.CreateBytes(10)
+			},
+			FolderId = keeper.Id,
+			FolderNotes = new Dictionary<Guid, byte[]>
+			{
+				[subfolder.Id] = subfolderNote
+			},
+			UpdatedAt = updatedAt
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(database.Context);
+
+			builder
+				.RegisterType<DbContextService>()
+				.As<IDbContextService>();
+
+			builder
+				.RegisterType<FileRepository>()
+				.As<IFileRepository>();
+
+			builder
+				.RegisterType<FolderRepository>()
+				.As<IFolderRepository>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		await sut.AddFoldersAsync([keeper, subfolder]);
+
+		await sut.AddFilesAsync([noted, unnoted, untouched]);
+
+		// Act
+		await sut.UpdateProtectionAsync(update);
+
+		// Assert
+		FolderEntity[] folders = await sut.GetAllFoldersAsync();
+
+		folders
+			.Should()
+			.BeEquivalentTo(new[]
+			{
+				new
+				{
+					EncryptedDek = (byte[]?)encryptedDek,
+					Id = keeper.Id,
+					Note = oldNote,
+					UpdatedAt = before
+				},
+				new
+				{
+					EncryptedDek = (byte[]?)null,
+					Id = subfolder.Id,
+					Note = subfolderNote,
+					UpdatedAt = updatedAt
+				}
+			});
+
+		FileEntity[] files = await sut.GetAllFilesAsync(OptionalFileProperties.Contents);
+
+		files
+			.Should()
+			.BeEquivalentTo(new[]
+			{
+				new
+				{
+					Contents = notedContents,
+					Id = noted.Id,
+					Note = notedNote,
+					UpdatedAt = updatedAt
+				},
+				new
+				{
+					Contents = unnotedContents,
+					Id = unnoted.Id,
+					Note = oldNote,
+					UpdatedAt = updatedAt
+				},
+				new
+				{
+					Contents = oldContents,
+					Id = untouched.Id,
+					Note = oldNote,
+					UpdatedAt = before
+				}
+			});
 	}
 	#endregion
 

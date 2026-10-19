@@ -2,8 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
+using DataOrganizer.Enums.Hotkeys;
+using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
@@ -89,7 +89,7 @@ internal class FileHotkeyEditorTests
 	}
 
 	/// <summary>
-	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: new hotkeys are saved to the database, the tooltip is set, and Rewritten is returned.
+	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: new hotkeys are saved to the database and the file, and Rewritten is returned.
 	/// </summary>
 	[Test]
 	public async Task OverwriteAsync_Returns_Rewritten()
@@ -127,10 +127,6 @@ internal class FileHotkeyEditorTests
 		dto.Hotkeys
 			.Should()
 			.HaveCount(newHotkeys.Length);
-
-		dto.HotkeysToolTip
-			.Should()
-			.NotBeNullOrEmpty();
 
 		await dbAccess
 			.Received(1)

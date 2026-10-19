@@ -1,8 +1,8 @@
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using Shared.Properties;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -92,8 +92,8 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 
 	#region Constructors
 	public PasswordBoxViewModel(
-		Application app,
-		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
 	}
 	#endregion

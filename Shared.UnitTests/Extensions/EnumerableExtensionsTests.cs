@@ -141,28 +141,6 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.OfSpecificType{TSource, TResult}" />: returns only exact-type instances, excluding subclasses.
-	/// </summary>
-	[Test]
-	public void OfSpecificType_Returns_Only_Exact_Type_Excluding_Subclasses()
-	{
-		// Arrange
-		Base exact = new();
-
-		Derived derived = new();
-
-		Base[] source = [exact, derived];
-
-		// Act
-		IEnumerable<Base> result = source.OfSpecificType<Base, Base>();
-
-		// Assert
-		result
-			.Should()
-			.Equal(exact);
-	}
-
-	/// <summary>
 	/// <see cref="EnumerableExtensions.OrderBySequenceKeepSource{T, TOrdered}" />: appends source items missing from the ordering sequence at the end.
 	/// </summary>
 	[Test]
@@ -240,16 +218,6 @@ internal class EnumerableExtensionsTests
 	#endregion
 
 	#region Nested Types
-	/// <summary>
-	/// Base type for the exact-type filtering test.
-	/// </summary>
-	private class Base;
-
-	/// <summary>
-	/// Subclass that must be excluded by an exact-type filter on <see cref="Base" />.
-	/// </summary>
-	private sealed class Derived : Base;
-
 	/// <summary>
 	/// Item with an ordering key and a label for sequence-ordering tests.
 	/// </summary>

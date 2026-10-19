@@ -74,7 +74,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -127,7 +127,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -184,7 +184,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -252,7 +252,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -299,7 +299,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -350,7 +350,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -383,7 +383,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -440,7 +440,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -475,7 +475,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -544,7 +544,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -589,7 +589,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -637,7 +637,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -691,7 +691,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -745,7 +745,7 @@ internal class ClipboardLogStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			appEnvironment
 				.ClipboardHistoryDirectoryPath
@@ -772,7 +772,7 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
 		});
 
 		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
@@ -812,7 +812,7 @@ internal class ClipboardLogStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			appEnvironment
 				.ClipboardHistoryDirectoryPath
@@ -831,7 +831,7 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
@@ -866,7 +866,7 @@ internal class ClipboardLogStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			appEnvironment
 				.ClipboardHistoryDirectoryPath
@@ -885,7 +885,7 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
@@ -916,7 +916,7 @@ internal class ClipboardLogStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			appEnvironment
 				.ClipboardHistoryDirectoryPath
@@ -939,7 +939,7 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
 		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
@@ -988,7 +988,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1006,7 +1006,7 @@ internal class ClipboardLogStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
 
 			appEnvironment
 				.ClipboardHistoryDirectoryPath
@@ -1026,7 +1026,7 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService()));
+			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
@@ -1071,7 +1071,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1106,7 +1106,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1155,7 +1155,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1190,7 +1190,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1238,7 +1238,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()
@@ -1269,7 +1269,7 @@ internal class ClipboardLogStoreTests
 
 			builder
 				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+				.AsImplementedInterfaces();
 
 			builder
 				.RegisterType<SessionKeyStore>()

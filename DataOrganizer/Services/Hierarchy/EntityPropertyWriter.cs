@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Hierarchy;
-using Entities.Enums;
+using Entities.Models;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -38,10 +38,7 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 		bool isExpanded,
 		CancellationToken token = default)
 	{
-		return _dbAccess.UpdateFolderPropertiesAsync(folderId,
-		[
-			x => x.SetProperty(x => x.IsExpanded, isExpanded)
-		], token);
+		return _dbAccess.UpdateIsExpandedAsync(folderId, isExpanded, token);
 	}
 
 	/// <inheritdoc />
@@ -55,37 +52,36 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
-		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-		[
-			x => x.SetProperty(x => x.IsFavorite, dto.IsFavorite)
-		], token);
+		return _dbAccess.UpdateIsFavoriteAsync(dto.Id, dto.IsFavorite, token);
 	}
 
 	/// <inheritdoc />
 	public Task<bool> UpdateIsSelectedAsync(
 		ExplorerItemDtoBase dto,
+		bool isSelected,
 		CancellationToken token = default)
 	{
-		const string propertyName = nameof(ExplorerItemDtoBase.IsSelected);
+		const string propertyName = nameof(ExplorerItemBase.IsSelected);
 
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
+		// The object as it is written, so the line reads like the lines of the other writes.
+		var written = new
+		{
+			dto.Kind,
+			dto.Name,
+			IsSelected = isSelected
+		};
+
+		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{written.GetPropertyValues(
 			true,
 			nameof(ExplorerItemDtoBase.Kind),
 			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
-		return dto.Kind switch
-		{
-			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			_ => throw new NotImplementedException()
-		};
+		return _dbAccess.UpdateIsSelectedAsync(
+			dto.Kind,
+			dto.Id,
+			isSelected,
+			token);
 	}
 	#endregion
 }

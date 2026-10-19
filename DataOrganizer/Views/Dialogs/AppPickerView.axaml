@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Views.Dialogs.AppPickerView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:execution="using:DataOrganizer.Dto.Execution"
@@ -43,7 +44,7 @@
 							Width="24"
 							Height="24"
 							VerticalAlignment="Center"
-							Source="{Binding Icon, Mode=OneWay}" />
+							Source="{Binding IconPng, Mode=OneWay, Converter={x:Static converters:AppConverters.PngToBitmap}}" />
 
 						<TextBlock
 							VerticalAlignment="Center"

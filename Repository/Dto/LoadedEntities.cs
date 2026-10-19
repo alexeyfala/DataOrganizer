@@ -3,7 +3,7 @@ using Entities.Models;
 namespace Repository.Dto;
 
 /// <summary>
-/// The entities read out of a database file.
+/// The entities read out of a file.
 /// </summary>
 public sealed class LoadedEntities
 {

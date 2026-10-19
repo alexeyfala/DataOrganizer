@@ -1,36 +1,24 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers.Hierarchy;
+using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Windows;
-using DynamicData;
-using Repository.Interfaces.Database;
+using DataOrganizer.Messages.Editor;
+using DataOrganizer.Messages.Encryption;
+using DataOrganizer.Messages.Favorites;
+using DataOrganizer.Messages.Updates;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,7 +27,12 @@ namespace DataOrganizer.ViewModels.Windows;
 /// <summary>
 /// View model for <c>FavoritesWindow</c>.
 /// </summary>
-public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUpdatePrompt
+public sealed partial class FavoritesViewModel :
+	ViewModelBase,
+	IRecipient<ConfirmUpdateMessage>,
+	IRecipient<SessionAutoLockedMessage>,
+	IRecipient<ShowFavoritesMessage>,
+	IRecipient<ShowInEditorMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
@@ -77,6 +70,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
 	public partial double PopupWidth { get; set; }
+
+	/// <summary>
+	/// The favorites while the popup shows them.
+	/// </summary>
+	[ObservableProperty]
+	public partial SelectedFavoritesViewModel? SelectedFavorites { get; private set; }
 	#endregion
 
 	#region Partial
@@ -96,9 +95,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 		// overlay stops dismissing the popup once it is fixed, swallowing every press over the window.
 		IsPopupOpen = false;
 
-		// The RestorePopupContent method must be executed in DispatcherPriority.Background
+		// The RestorePopupContent method must be executed in UiPriority.Background
 		// otherwise the UI will freeze.
-		_dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
+		_dispatcher.Post(RestorePopupContent, UiPriority.Background);
 	}
 
 	/// <summary>
@@ -117,12 +116,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		UpdateCommands();
 
-		if (_app.FindDialogHost(DialogHostIdentifiers.Main) is not { } dialogHost || !dialogHost.IsOpen)
-		{
-			return;
-		}
-
-		dialogHost.IsOpen = false;
+		_exceptionHandler.Watch(_dialogCloser.CloseAsync(DialogHostIdentifiers.Main));
 	}
 
 	/// <summary>
@@ -130,7 +124,28 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// </summary>
 	partial void OnPopupContentChanged(
 		FavoritesPopupContentKind oldValue,
-		FavoritesPopupContentKind newValue) => _previousPopupContent = oldValue;
+		FavoritesPopupContentKind newValue)
+	{
+		_previousPopupContent = oldValue;
+
+		if (oldValue == FavoritesPopupContentKind.CopyHistory)
+		{
+			CloseCopyHistoryList();
+		}
+		else if (oldValue == FavoritesPopupContentKind.Favorites)
+		{
+			CloseSelectedFavorites();
+		}
+
+		if (newValue == FavoritesPopupContentKind.CopyHistory)
+		{
+			OpenCopyHistoryList();
+		}
+		else if (newValue == FavoritesPopupContentKind.Favorites)
+		{
+			OpenSelectedFavorites();
+		}
+	}
 	#endregion
 
 	#region Auto-Generated Commands
@@ -162,23 +177,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// Opens the popup with the restored content on hovering over the fix toggle.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowPopupOnHover))]
-	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
-
-	/// <summary>
-	/// Handles the display of the favorites.
-	/// </summary>
-	[RelayCommand]
-	private void FavoritesDisplayed(SelectedFavoritesViewModel? viewModel)
-	{
-		_favorites = viewModel;
-
-		viewModel?.Initialize(
-			FavoritesSettings.NavigationColumnWidth,
-			FavoritesSettings.SelectedCategoryId,
-			FavoritesSettings.Categories,
-			FavoritesSettings.OrderedCategoryIds,
-			FavoritesSettings.SelectedPairs);
-	}
+	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, UiPriority.Background);
 
 	/// <summary>
 	/// Displays the copy history in the popup panel.
@@ -197,124 +196,93 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// Displays the "Editor" window.
 	/// </summary>
 	[RelayCommand]
-	private Task ShowEditor(FavoritesWindow? window)
-	{
-		if (window is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		return ShowInEditorAsync(default, window);
-	}
+	private void ShowEditor() => _mainWindowLauncher.SwitchToEditor();
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="SelectedFavoritesViewModel" />
-	private SelectedFavoritesViewModel? _favorites;
+	/// <inheritdoc cref="IConfirmationPrompt" />
+	private readonly IConfirmationPrompt _confirmationPrompt;
+
+	/// <inheritdoc cref="IDialogCloser" />
+	private readonly IDialogCloser _dialogCloser;
+
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
+
+	/// <inheritdoc cref="IMainWindowLauncher" />
+	private readonly IMainWindowLauncher _mainWindowLauncher;
 
 	/// <summary>
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
 	private FavoritesPopupContentKind _previousPopupContent;
+
+	/// <inheritdoc cref="IProtectionScenarios" />
+	private readonly IProtectionScenarios _protectionScenarios;
 	#endregion
 
 	#region Constructors
 	public FavoritesViewModel(
-		Application app,
 		IAppSettingsStore settingsStore,
-		IClipboardAccessor clipboard,
-		IContentCipher contentCipher,
-		IContentVisibility contentVisibility,
-		IDbAccess dbAccess,
-		IDialogService dialogService,
+		IConfirmationPrompt confirmationPrompt,
+		ICopyHistory copyHistory,
+		IDialogCloser dialogCloser,
 		IDispatcherAccessor dispatcher,
-		IExecutionEngine executionEngine,
-		IJsonSerializer jsonSerializer,
+		IExecutingFiles executingFiles,
 		ILogger logger,
+		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
-		INotificationService notification,
+		IProtectionScenarios protectionScenarios,
+		ISecondaryWindowLauncher secondaryWindowLauncher,
+		ISessionHierarchy sessionHierarchy,
 		ITaskExceptionHandler exceptionHandler,
-		IViewLauncher viewLauncher,
-		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
-			app,
+		IViewModelFactory viewModelFactory) : base(
 			settingsStore,
-			clipboard,
-			contentCipher,
-			contentVisibility,
-			dbAccess,
-			dialogService,
-			dispatcher,
-			executionEngine,
-			jsonSerializer,
+			copyHistory,
+			executingFiles,
 			logger,
 			messenger,
-			notification,
+			secondaryWindowLauncher,
+			sessionHierarchy,
 			exceptionHandler,
-			viewLauncher,
-			keyboardInputHook)
+			viewModelFactory)
 	{
+		_confirmationPrompt = confirmationPrompt;
+
+		_dialogCloser = dialogCloser;
+
+		_dispatcher = dispatcher;
+
+		_mainWindowLauncher = mainWindowLauncher;
+
+		_protectionScenarios = protectionScenarios;
+
 		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
+
+		FavoritesSettings
+			.Categories
+			.AddRange(FavoriteCategories.Gather(Hierarchy));
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		Hierarchy.AddRange(hierarchy);
-
-		FavoritesSettings
-			.Categories
-			.AddRange(GetCategories(hierarchy));
-	}
+	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
 
 	/// <inheritdoc />
-	public Task<bool> ConfirmUpdateAsync(string text, CancellationToken token = default)
-	{
-		bool wasPopupOpen = IsPopupOpen;
+	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
 
-		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
+	/// <inheritdoc />
+	public void Receive(ShowFavoritesMessage message) => ShowFavorites();
 
-		return _dispatcher.PostAsync(async () =>
-		{
-			try
-			{
-				return await _dialogService
-					.RequestYesNoAsync(text, token: token)
-					.ConfigureAwait(true);
-			}
-			finally
-			{
-				if (!wasPopupOpen)
-				{
-					IsPopupOpen = false;
-				}
-			}
-		}, DispatcherPriority.Background);
-	}
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message) => _mainWindowLauncher.SwitchToEditor(message.Id);
 
 	/// <summary>
-	/// Restores the window placement, the favorites and the copy history from the stored settings.
+	/// Restores the popup size and the favorites from the stored settings.
 	/// </summary>
-	public void Initialize(
-		Window window,
-		FavoritesWindowSettings windowSettings,
-		FavoritesViewSettings favoritesSettings,
-		CopyHistoryViewSettings copyHistorySettings)
+	public void Initialize(FavoritesWindowSettings windowSettings, FavoritesViewSettings favoritesSettings)
 	{
-		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
-
-		if (windowSettings.X > 0
-			&& windowSettings.Y > 0
-			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
-		{
-			window.Position = savedPosition;
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-		}
-
 		if (windowSettings.PopupWidth > 0.0 && windowSettings.PopupHeight > 0.0)
 		{
 			PopupWidth = windowSettings.PopupWidth;
@@ -323,7 +291,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 		}
 		else
 		{
-			IViewLauncher.SetDefaultPopupSize(this);
+			SetDefaultPopupSize();
 		}
 
 		if (favoritesSettings.NavigationColumnWidth > default(double))
@@ -332,7 +300,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 		}
 		else
 		{
-			IViewLauncher.SetDefaultNavigationColumnWidth(this);
+			SetDefaultNavigationColumnWidth();
 		}
 
 		FavoritesSettings.SelectedCategoryId = favoritesSettings.SelectedCategoryId;
@@ -341,60 +309,38 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
 
-		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
-
-		if (CopyHistorySettings
-			.ItemIds
-			.Count > 0)
-		{
-			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
-		}
-
 		IsInitialized = true;
 	}
 
 	/// <summary>
-	/// Saves current content in popup.
+	/// Saves the favorites while the popup shows them.
 	/// </summary>
 	public void SaveContent()
 	{
-		if (PopupContent == FavoritesPopupContentKind.None)
+		if (PopupContent != FavoritesPopupContentKind.Favorites)
 		{
 			return;
 		}
 
-		if (PopupContent == FavoritesPopupContentKind.Favorites)
-		{
-			SaveFavorites();
-		}
-		else if (PopupContent == FavoritesPopupContentKind.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
+		SaveFavorites();
 	}
 
-	/// <inheritdoc />
-	public override Task ShowInEditorAsync(
-		Guid id,
-		Window window,
-		CancellationToken _ = default)
+	/// <summary>
+	/// Sets the default <see cref="FavoritesViewSettings.NavigationColumnWidth" />.
+	/// </summary>
+	internal void SetDefaultNavigationColumnWidth()
 	{
-		IsShutdown = false;
+		FavoritesSettings.NavigationColumnWidth = PopupWidth / 2.0;
+	}
 
-		if (IsPopupFixed)
-		{
-			SaveContent();
-		}
+	/// <summary>
+	/// Sets the default <see cref="PopupHeight" /> and <see cref="PopupWidth" />.
+	/// </summary>
+	internal void SetDefaultPopupSize()
+	{
+		PopupHeight = 250.0;
 
-		window.Close();
-
-		_viewLauncher.CreateEditorWindow(
-			Hierarchy,
-			EditorTabs,
-			ExecutingFiles,
-			id).Show();
-
-		return Task.CompletedTask;
+		PopupWidth = PopupHeight * 2.0;
 	}
 
 	/// <inheritdoc />
@@ -418,15 +364,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			.SelectedPairs
 			.Clear();
 
-		CopyHistorySettings
-			.ItemIds
-			.Clear();
-
+		// Leaving the content disposes its view model.
 		PopupContent = FavoritesPopupContentKind.None;
-
-		_copyHistory?.Dispose();
-
-		_favorites?.Dispose();
 	}
 	#endregion
 
@@ -447,35 +386,57 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	private bool CanShowPopupOnHover() => IsShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
 
 	/// <summary>
-	/// Returns a flat sequence of <see cref="FavoriteCategory" />.
+	/// Disposes the favorites that the popup no longer shows.
 	/// </summary>
-	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	private void CloseSelectedFavorites()
 	{
-		List<FileDto> files = [.. hierarchy
-			.OfType<FileDto>()
-			.Where(x => x.IsFavorite)];
+		SelectedFavorites?.Dispose();
 
-		if (files.Count > 0)
+		SelectedFavorites = null;
+	}
+
+	/// <summary>
+	/// Asks whether to open the page of a newer application version, over the favorites shown in the popup.
+	/// </summary>
+	private Task<bool> ConfirmUpdateAsync(string text, CancellationToken token)
+	{
+		bool wasPopupOpen = IsPopupOpen;
+
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
+
+		return _dispatcher.PostAsync(async () =>
 		{
-			FolderDto? parent = files[0].Parent;
-
-			yield return new()
+			try
 			{
-				Children = files,
-				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
-				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
-				Index = FavoritesSettings.Categories.Count,
-				Name = parent?.Name ?? "Root"
-			};
-		}
-
-		foreach (FolderDto folder in hierarchy.OfType<FolderDto>())
-		{
-			foreach (FavoriteCategory category in GetCategories(folder.Children))
-			{
-				yield return category;
+				return await _confirmationPrompt
+					.RequestYesNoAsync(text, token: token)
+					.ConfigureAwait(true);
 			}
-		}
+			finally
+			{
+				if (!wasPopupOpen)
+				{
+					IsPopupOpen = false;
+				}
+			}
+		}, UiPriority.Background);
+	}
+
+	/// <summary>
+	/// Creates the favorites that the popup starts to show, from the stored settings.
+	/// </summary>
+	private void OpenSelectedFavorites()
+	{
+		SelectedFavoritesViewModel favorites = _viewModelFactory.CreateViewModel<SelectedFavoritesViewModel>();
+
+		favorites.Initialize(
+			FavoritesSettings.NavigationColumnWidth,
+			FavoritesSettings.SelectedCategoryId,
+			FavoritesSettings.Categories,
+			FavoritesSettings.OrderedCategoryIds,
+			FavoritesSettings.SelectedPairs);
+
+		SelectedFavorites = favorites;
 	}
 
 	/// <summary>
@@ -507,31 +468,27 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// </summary>
 	private void SaveFavorites()
 	{
-		if (_favorites is null)
+		if (SelectedFavorites is not { } favorites)
 		{
 			return;
 		}
 
 		_logger.LogInformation("Save favorites");
 
-		FavoritesSettings.NavigationColumnWidth = _favorites
-			.NavigationColumnWidth
-			.Value;
+		FavoritesSettings.NavigationColumnWidth = favorites.NavigationColumnWidth;
 
-		if (_favorites.SelectedCategory is { } category)
+		if (favorites.SelectedCategory is { } category)
 		{
 			FavoritesSettings.SelectedCategoryId = category.Id;
 		}
 
 		FavoritesSettings
 			.SelectedPairs
-			.ClearAddRange(_favorites.SelectedPairs);
+			.ClearAddRange(favorites.SelectedPairs);
 
 		FavoritesSettings
 			.OrderedCategoryIds
-			.ClearAddRange(_favorites.OrderedCategoryIds);
-
-		_favorites.Dispose();
+			.ClearAddRange(favorites.OrderedCategoryIds);
 	}
 
 	/// <summary>

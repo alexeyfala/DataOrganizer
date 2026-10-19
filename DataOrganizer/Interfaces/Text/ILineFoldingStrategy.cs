@@ -1,4 +1,3 @@
-using AvaloniaEdit.Folding;
 using DataOrganizer.Helpers.Text.FoldingStrategies;
 
 namespace DataOrganizer.Interfaces.Text;
@@ -12,6 +11,6 @@ internal interface ILineFoldingStrategy
 	/// <summary>
 	/// Returns the blocks of a text.
 	/// </summary>
-	NewFolding[] CreateNewFoldings(FoldingText text);
+	TextFolding[] CreateNewFoldings(FoldingText text);
 	#endregion
 }

@@ -9,11 +9,6 @@ public abstract partial class ClipboardLogEntryBase : ObservableObject
 {
 	#region Properties
 	/// <summary>
-	/// Content for the entry's hover tooltip; <c>null</c> shows none.
-	/// </summary>
-	public virtual string? ContentToolTip => null;
-
-	/// <summary>
 	/// SHA-256 of the source data; used for change detection and deduplication.
 	/// </summary>
 	public required byte[] Hash { get; init; }
@@ -33,7 +28,7 @@ public abstract partial class ClipboardLogEntryBase : ObservableObject
 	/// <summary>
 	/// <c>True</c> when the entry content is treated as a secret.
 	/// </summary>
-	public virtual bool IsSensitive => false;
+	public bool IsSensitive { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when this entry exposes an openable URL.
@@ -44,15 +39,5 @@ public abstract partial class ClipboardLogEntryBase : ObservableObject
 	/// Text used to match this entry against a search query; <c>null</c> excludes it from matching.
 	/// </summary>
 	public virtual string? SearchableText => null;
-
-	/// <summary>
-	/// Emoji glyph shown as a type badge over the entry in the clipboard log list.
-	/// </summary>
-	public abstract string TypeGlyph { get; }
-
-	/// <summary>
-	/// Human-readable payload type, shown as the badge tooltip. Localized by the caller.
-	/// </summary>
-	public abstract string TypeToolTip { get; }
 	#endregion
 }

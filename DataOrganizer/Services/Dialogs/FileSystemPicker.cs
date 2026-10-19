@@ -1,8 +1,7 @@
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using DataOrganizer.Extensions;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Views;
 using Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,20 +12,20 @@ namespace DataOrganizer.Services.Dialogs;
 public sealed class FileSystemPicker : IFileSystemPicker
 {
 	#region Data
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
+	/// <inheritdoc cref="IWindowFinder" />
+	private readonly IWindowFinder _windowFinder;
 	#endregion
 
 	#region Constructors
-	public FileSystemPicker(Application app) => _app = app;
+	public FileSystemPicker(IWindowFinder windowFinder) => _windowFinder = windowFinder;
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window
+	public async Task<string?> SaveFileAsync(FileSaveParameters parameters)
 	{
-		if (FindStorageProvider<T>() is not { } provider || await provider
-			.SaveFilePickerAsync(options)
+		if (FindStorageProvider() is not { } provider || await provider
+			.SaveFilePickerAsync(FilePickerOptionsMapper.ToSaveOptions(parameters))
 			.ConfigureAwait(false) is not { } file)
 		{
 			return null;
@@ -45,15 +44,15 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	}
 
 	/// <inheritdoc />
-	public async Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window
+	public async Task<string[]> SelectFilesAsync(FileOpenParameters parameters)
 	{
-		if (FindStorageProvider<T>() is not { } provider)
+		if (FindStorageProvider() is not { } provider)
 		{
 			return [];
 		}
 
 		IReadOnlyList<IStorageFile> files = await provider
-			.OpenFilePickerAsync(options)
+			.OpenFilePickerAsync(FilePickerOptionsMapper.ToOpenOptions(parameters))
 			.ConfigureAwait(false);
 
 		try
@@ -69,12 +68,12 @@ public sealed class FileSystemPicker : IFileSystemPicker
 
 	#region Helpers
 	/// <summary>
-	/// Tries to get <see cref="IStorageProvider" /> in the application.
+	/// Tries to get <see cref="IStorageProvider" /> of the main window.
 	/// </summary>
-	private IStorageProvider? FindStorageProvider<T>() where T : Window
+	private IStorageProvider? FindStorageProvider()
 	{
-		return _app
-			.FindWindow<T>()?
+		return _windowFinder
+			.FindMainWindow()?
 			.StorageProvider;
 	}
 	#endregion

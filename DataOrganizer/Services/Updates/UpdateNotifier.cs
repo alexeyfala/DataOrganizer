@@ -18,24 +18,28 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	/// <inheritdoc cref="IUpdateCheckService" />
 	private readonly IUpdateCheckService _updateCheckService;
+
+	/// <inheritdoc cref="IUpdatePrompt" />
+	private readonly IUpdatePrompt _updatePrompt;
 	#endregion
 
 	#region Constructors
 	public UpdateNotifier(
 		IProcessManager processManager,
-		IUpdateCheckService updateCheckService)
+		IUpdateCheckService updateCheckService,
+		IUpdatePrompt updatePrompt)
 	{
 		_processManager = processManager;
 
 		_updateCheckService = updateCheckService;
+
+		_updatePrompt = updatePrompt;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task NotifyIfUpdateAvailableAsync(
-		IUpdatePrompt prompt,
-		CancellationToken token = default)
+	public async Task NotifyIfUpdateAvailableAsync(CancellationToken token = default)
 	{
 		UpdateCheckResult result = await _updateCheckService
 			.CheckAsync(token)
@@ -54,7 +58,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			Strings.UpdateAvailablePrompt,
 			result.LatestVersion);
 
-		if (!await prompt
+		if (!await _updatePrompt
 			.ConfirmUpdateAsync(text, token)
 			.ConfigureAwait(true))
 		{

@@ -11,8 +11,6 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
 using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
@@ -73,19 +71,11 @@ internal class ContentCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(RandomValues.CreateBytes(10));
-
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
 				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -175,214 +165,6 @@ internal class ContentCipherTests
 		result
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: prompts for the password and decrypts when the file is encrypted.
-	/// </summary>
-	[Test]
-	public async Task TryDecryptContentsAsync_Asks_For_The_Password_When_File_Is_Encrypted()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
-
-		folder.EncryptedDek = RandomValues.CreateBytes(10);
-
-		folder
-			.Children
-			.Add(file);
-
-		file.Parent = folder;
-
-		byte[] contents = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			unlocker
-				.RequestDekAsync(
-					Arg.Any<IPasswordKeeper>(),
-					Arg.Any<string>(),
-					Arg.Any<string>(),
-					Arg.Any<CancellationToken>(),
-					Arg.Any<string>())
-				.Returns(SecretFactory.CreateRandomKey(10));
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(unlocker);
-		});
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(
-			file,
-			contents,
-			string.Empty);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNullOrEmpty();
-
-		result
-			.Should()
-			.NotBeEquivalentTo(contents);
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: decrypts through the key store when the file is already decrypted.
-	/// </summary>
-	[Test]
-	public async Task TryDecryptContentsAsync_Decrypts_Through_The_Key_Store_When_File_Is_Decrypted()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
-
-		folder.EncryptedDek = RandomValues.CreateBytes(10);
-
-		folder
-			.Children
-			.Add(file);
-
-		file.Parent = folder;
-
-		byte[] contents = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(sessionKeyStore);
-		});
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(
-			file,
-			contents,
-			string.Empty);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNullOrEmpty();
-
-		result
-			.Should()
-			.NotBeEquivalentTo(contents);
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: a file belonging to no password keeper
-	/// cannot be decrypted, so no password is asked for.
-	/// </summary>
-	[Test]
-	public async Task TryDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
-
-		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(
-			file,
-			RandomValues.CreateBytes(10),
-			string.Empty);
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		await unlocker
-			.DidNotReceiveWithAnyArgs()
-			.RequestDekAsync(default!, default!);
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: empty contents come back untouched
-	/// and no password is asked for.
-	/// </summary>
-	[Test]
-	public async Task TryDecryptContentsAsync_Hands_Empty_Contents_Back()
-	{
-		// Arrange
-		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(
-			ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted),
-			[],
-			string.Empty);
-
-		// Assert
-		result
-			.Should()
-			.BeEmpty();
-
-		await unlocker
-			.DidNotReceiveWithAnyArgs()
-			.RequestDekAsync(default!, default!);
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: returns the input unchanged when the file is not encrypted.
-	/// </summary>
-	[Test]
-	public async Task TryDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
-	{
-		// Arrange
-		byte[] contents = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = await sut.TryDecryptContentsAsync(
-			ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.None),
-			contents,
-			string.Empty);
-
-		// Assert
-		result
-			.Should()
-			.BeEquivalentTo(contents);
 	}
 
 	/// <summary>
