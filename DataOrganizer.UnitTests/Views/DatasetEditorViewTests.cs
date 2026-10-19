@@ -160,6 +160,95 @@ internal class DatasetEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorView" />: a click on a scroll button of the toolbar while the list scrolls back to the
+	/// stored record brings the list to that edge, and the list stays there.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_During_The_Scroll_Back_Brings_The_List_To_The_Edge([Values] bool toEnd)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			DatasetEditorState state = new()
+			{
+				TopRecordIndex = StoredRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(serializer.Serialize(state));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		DatasetEditorView sut = new(viewModel);
+
+		ScrollViewer recordsScroller = sut.GetControl<ScrollViewer>(RecordsScrollerName);
+
+		MaterialIconKind icon = toEnd ? MaterialIconKind.ArrowCollapseDown : MaterialIconKind.ArrowCollapseUp;
+
+		Button button = sut
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => x.Content is MaterialIcon { Kind: var kind } && kind == icon);
+
+		Func<double> edge = () => toEnd ? recordsScroller.Extent.Height - recordsScroller.Viewport.Height : 0.0;
+
+		Show(sut);
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => recordsScroller.Offset.Y > recordsScroller.Viewport.Height);
+
+		// Act
+		Click(button);
+
+		await RunJobsUntilAsync(() => Math.Abs(recordsScroller.Offset.Y - edge()) < 0.5);
+
+		// Longer than the rest of the scroll back would take.
+		await OutlastThePauseAsync();
+
+		// Assert
+		recordsScroller.Offset.Y
+			.Should()
+			.BeApproximately(edge(), 0.5);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorView" />: a group expanded or collapsed by a click on its chevron saves the records as a
 	/// change of the view.
 	/// </summary>
@@ -1803,6 +1892,199 @@ internal class DatasetEditorViewTests
 		await dbAccess
 			.Received(1)
 			.UpdateFileEditorStateAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorView" />: a turn of the mouse wheel while the list scrolls back to the stored record stops
+	/// the list where the wheel leaves it, and that place is saved after the pause.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Wheel_During_The_Scroll_Back_Stops_The_List_And_Saves_Its_Place()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			DatasetEditorState state = new()
+			{
+				TopRecordIndex = StoredRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(serializer.Serialize(state));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		string? reported = null;
+
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
+			fileId: Guid.NewGuid(),
+			setEditorStateCallback: x => reported = x));
+
+		DatasetEditorView sut = new(viewModel);
+
+		ItemsRepeater recordsHost = sut.GetControl<ItemsRepeater>(RecordsHostName);
+
+		ScrollViewer recordsScroller = sut.GetControl<ScrollViewer>(RecordsScrollerName);
+
+		Window window = Show(sut);
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => recordsScroller.Offset.Y > recordsScroller.Viewport.Height);
+
+		Point center = recordsScroller.TranslatePoint(new Rect(recordsScroller.Bounds.Size).Center, window)!.Value;
+
+		// Act
+		window.MouseWheel(center, new Vector(0.0, 1.0));
+
+		Vector place = recordsScroller.Offset;
+
+		await RunJobsUntilAsync(() => reported is not null);
+
+		// Assert
+		recordsScroller.Offset.Y
+			.Should()
+			.BeApproximately(place.Y, 0.5);
+
+		DatasetEditorState state = new SystemTextJsonSerializer().Deserialize<DatasetEditorState>(reported!);
+
+		FindRecordTop(recordsHost, recordsScroller, state.TopRecordIndex)
+			.Should()
+			.BeApproximately(-state.WithinRecordOffset, 0.5);
+
+		await dbAccess
+			.Received(1)
+			.UpdateFileEditorStateAsync(viewModel.FileId, reported!, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorView" />: a turn of the mouse wheel while a scroll button of the toolbar moves the list stops
+	/// the list where the wheel leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Wheel_During_The_Scroll_To_The_Edge_Stops_The_List([Values] bool toEnd)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			DatasetEditorState state = new()
+			{
+				TopRecordIndex = StoredRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			dbAccess
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(serializer.Serialize(state));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		DatasetEditorView sut = new(viewModel);
+
+		ItemsRepeater recordsHost = sut.GetControl<ItemsRepeater>(RecordsHostName);
+
+		ScrollViewer recordsScroller = sut.GetControl<ScrollViewer>(RecordsScrollerName);
+
+		Window window = Show(sut);
+
+		// The list starts in the middle, so either edge is a move away.
+		await WaitUntilScrolledBackAsync(recordsHost, recordsScroller);
+
+		MaterialIconKind icon = toEnd ? MaterialIconKind.ArrowCollapseDown : MaterialIconKind.ArrowCollapseUp;
+
+		Button button = sut
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => x.Content is MaterialIcon { Kind: var kind } && kind == icon);
+
+		Point center = recordsScroller.TranslatePoint(new Rect(recordsScroller.Bounds.Size).Center, window)!.Value;
+
+		// The move takes its first step at once and the rest later.
+		Click(button);
+
+		// Act
+		window.MouseWheel(center, new Vector(0.0, 1.0));
+
+		Vector place = recordsScroller.Offset;
+
+		// Longer than the rest of the move would take.
+		await OutlastThePauseAsync();
+
+		// Assert
+		recordsScroller.Offset.Y
+			.Should()
+			.BeApproximately(place.Y, 0.5);
 	}
 	#endregion
 

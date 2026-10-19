@@ -1,6 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dataset;
@@ -18,6 +22,7 @@ namespace DataOrganizer.Behaviors.Scrolling;
 /// <summary>
 /// Keeps the place of the records in the associated <see cref="ScrollViewer" />: once enabled, brings back
 /// <see cref="ViewState" /> and then reports the record at the top after each scroll; also scrolls to either edge.
+/// A scroll that the user starts stops these moves.
 /// </summary>
 internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer>
 {
@@ -42,12 +47,12 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 
 	#region Commands
 	/// <summary>
-	/// Scrolls the list to the end.
+	/// Scrolls the list to the end, stopping the scroll back to <see cref="ViewState" /> if it runs.
 	/// </summary>
 	public AsyncRelayCommand ScrollToEndCommand { get; }
 
 	/// <summary>
-	/// Scrolls the list to the top.
+	/// Scrolls the list to the top, stopping the scroll back to <see cref="ViewState" /> if it runs.
 	/// </summary>
 	public AsyncRelayCommand ScrollToTopCommand { get; }
 	#endregion
@@ -59,9 +64,19 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	private readonly SerialDisposable _scrollSubscription = new();
 
 	/// <summary>
+	/// Subscription to the scrolls that the user starts.
+	/// </summary>
+	private readonly SerialDisposable _userScrollSubscription = new();
+
+	/// <summary>
 	/// <c>True</c> once the behavior has brought back <see cref="ViewState" /> or is doing so.
 	/// </summary>
 	private bool _isStarted;
+
+	/// <summary>
+	/// Stops the scroll back to <see cref="ViewState" /> while it runs.
+	/// </summary>
+	private CancellationTokenSource? _scrollBack;
 	#endregion
 
 	#region Constructors
@@ -73,9 +88,9 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 
 	public DatasetScrollBehavior()
 	{
-		ScrollToEndCommand = new(() => ScrollToEdgeAsync(toEnd: true), CanScrollToEnd);
+		ScrollToEndCommand = new(token => ScrollToEdgeAsync(toEnd: true, token), CanScrollToEnd);
 
-		ScrollToTopCommand = new(() => ScrollToEdgeAsync(toEnd: false), CanScrollToTop);
+		ScrollToTopCommand = new(token => ScrollToEdgeAsync(toEnd: false, token), CanScrollToTop);
 
 		this
 			.GetObservable(IsEnabledProperty)
@@ -84,36 +99,6 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	#endregion
 
 	#region Event Handlers
-	/// <summary>
-	/// <see cref="ScrollViewer.ScrollChanged" /> handler of <see cref="StyledElementBehavior{T}.AssociatedObject" />.
-	/// </summary>
-	private void AssociatedObject_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
-	{
-		if (!IsEnabled || e.Sender is not ScrollViewer { Content: ItemsRepeater container } scrollViewer)
-		{
-			return;
-		}
-
-		// Skip layout-driven events (Extent/Viewport changed but not Offset).
-		if (e.EventArgs.OffsetDelta == default)
-		{
-			return;
-		}
-
-		if (TryGetTopVisibleRecord(container, scrollViewer) is not { } anchor)
-		{
-			return;
-		}
-
-		DatasetEditorState state = new()
-		{
-			TopRecordIndex = anchor.Index,
-			WithinRecordOffset = anchor.WithinRecordOffset
-		};
-
-		SetCurrentValue(ViewStateProperty, state);
-	}
-
 	/// <summary>
 	/// <see cref="StyledElementBehavior.IsEnabledProperty" /> changed handler.
 	/// </summary>
@@ -129,6 +114,19 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	protected override void OnAttached()
+	{
+		base.OnAttached();
+
+		if (AssociatedObject is not { } scrollViewer)
+		{
+			return;
+		}
+
+		_userScrollSubscription.Disposable = WhenScrolledByUser(scrollViewer).Subscribe(_ => StopMoves());
+	}
+
 	/// <inheritdoc />
 	protected override void OnAttachedToVisualTree()
 	{
@@ -155,6 +153,8 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	{
 		_scrollSubscription.Disposable = null;
 
+		_userScrollSubscription.Disposable = null;
+
 		base.OnDetaching();
 	}
 
@@ -169,10 +169,18 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 
 	#region Helpers
 	/// <summary>
+	/// <c>True</c> when <paramref name="e" /> presses a scroll bar, of the list or of a control inside it.
+	/// </summary>
+	private static bool IsOnScrollBar(PointerPressedEventArgs e)
+	{
+		return e.Source is Visual source && source.FindAncestorOfType<ScrollBar>(includeSelf: true) is not null;
+	}
+
+	/// <summary>
 	/// Smoothly scrolls <paramref name="scrollViewer" /> to the absolute top
 	/// (<paramref name="toEnd" /> <c>False</c>) or bottom (<c>True</c>).
 	/// </summary>
-	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
+	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd, CancellationToken token)
 	{
 		return StepOffsetUntilDoneAsync(scrollViewer, () =>
 		{
@@ -181,7 +189,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			double targetY = toEnd ? maxY : 0;
 
 			return targetY - scrollViewer.Offset.Y;
-		});
+		}, token);
 	}
 
 	/// <summary>
@@ -194,7 +202,8 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 		ItemsRepeater container,
 		int topRecordIndex,
 		int totalRecords,
-		double withinRecordOffset)
+		double withinRecordOffset,
+		CancellationToken token)
 	{
 		if (totalRecords <= 0)
 		{
@@ -211,7 +220,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 				maxY);
 
 			return targetY - scrollViewer.Offset.Y;
-		}).ConfigureAwait(true);
+		}, token).ConfigureAwait(true);
 
 		double targetViewportY = -withinRecordOffset;
 
@@ -238,15 +247,18 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			}
 
 			return pointInViewport.Y - targetViewportY;
-		}).ConfigureAwait(true);
+		}, token).ConfigureAwait(true);
 	}
 
 	/// <summary>
 	/// Shared step-loop for the <c>SmoothScrollAsync</c> overloads.
 	/// <paramref name="getRemainingDelta" /> returns signed pixels still to move
-	/// (positive scrolls down).
+	/// (positive scrolls down); <paramref name="token" /> stops the loop at once.
 	/// </summary>
-	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
+	private static async Task StepOffsetUntilDoneAsync(
+		ScrollViewer scrollViewer,
+		Func<double> getRemainingDelta,
+		CancellationToken token)
 	{
 		// Pixels moved per step. Smaller = more reliable realization, slower travel.
 		const double stepPx = 100;
@@ -257,7 +269,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 		// Safety cap against runaway loops if the offset never converges (e.g. extent keeps growing).
 		const int maxIterations = 1000;
 
-		for (int i = 0; i < maxIterations; i++)
+		for (int i = 0; i < maxIterations && !token.IsCancellationRequested; i++)
 		{
 			double delta = getRemainingDelta();
 
@@ -282,8 +294,8 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
 			await Task
-				.Delay(delayMs)
-				.ConfigureAwait(true);
+				.Delay(delayMs, token)
+				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
 		}
 	}
 
@@ -330,21 +342,45 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	/// <summary>
 	/// Waits until <paramref name="container" /> has realized at least one child.
 	/// </summary>
-	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(
-		ItemsRepeater container,
-		CancellationToken token = default)
+	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(ItemsRepeater container)
 	{
 		Func<bool> condition = () => container
 			.Children
 			.Count > 0;
 
 		await condition
-			.WaitAsync(400, 10, token)
+			.WaitAsync(400, 10)
 			.ConfigureAwait(true);
 
 		return container
 			.Children
 			.Count > 0;
+	}
+
+	/// <summary>
+	/// Signals each scroll that the user starts in <paramref name="scrollViewer" />: a turn of the mouse wheel, a press on
+	/// a scroll bar or a page key.
+	/// </summary>
+	private static IObservable<Unit> WhenScrolledByUser(ScrollViewer scrollViewer)
+	{
+		// Seen on their way in, before the controls inside handle them.
+		IObservable<Unit> wheel = scrollViewer
+			.GetObservable(InputElement.PointerWheelChangedEvent, RoutingStrategies.Tunnel, handledEventsToo: true)
+			.Select(static _ => Unit.Default);
+
+		IObservable<Unit> scrollBar = scrollViewer
+			.GetObservable(InputElement.PointerPressedEvent, RoutingStrategies.Tunnel, handledEventsToo: true)
+			.Where(IsOnScrollBar)
+			.Select(static _ => Unit.Default);
+
+		IObservable<Unit> pageKeys = scrollViewer
+			.GetObservable(InputElement.KeyDownEvent, RoutingStrategies.Tunnel, handledEventsToo: true)
+			.Where(static x => x.Key is Key.PageDown or Key.PageUp)
+			.Select(static _ => Unit.Default);
+
+		return wheel
+			.Merge(scrollBar)
+			.Merge(pageKeys);
 	}
 
 	/// <summary>
@@ -358,16 +394,71 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	private bool CanScrollToTop() => !ScrollToEndCommand.IsRunning;
 
 	/// <summary>
-	/// Smoothly scrolls the list to the end (<paramref name="toEnd" /> <c>True</c>) or to the top.
+	/// Reports the record at the top of the list and how far the list is scrolled into it.
 	/// </summary>
-	private Task ScrollToEdgeAsync(bool toEnd)
+	private void ReportTopRecord()
+	{
+		if (!IsEnabled || AssociatedObject is not { Content: ItemsRepeater container } scrollViewer)
+		{
+			return;
+		}
+
+		if (TryGetTopVisibleRecord(container, scrollViewer) is not { } anchor)
+		{
+			return;
+		}
+
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = anchor.Index,
+			WithinRecordOffset = anchor.WithinRecordOffset
+		};
+
+		SetCurrentValue(ViewStateProperty, state);
+	}
+
+	/// <summary>
+	/// Brings back <see cref="ViewState" /> once the records are shown, unless <paramref name="token" /> stops it.
+	/// </summary>
+	private async Task ScrollBackAsync(ScrollViewer scrollViewer, ItemsRepeater container, CancellationToken token)
+	{
+		// A dataset that starts without records has nothing to realize and no position to restore.
+		if (container.ItemsSourceView is not { Count: > 0 } records)
+		{
+			return;
+		}
+
+		await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
+
+		// A record that the list does not have is not looked for.
+		if (ViewState is not { } state || state.TopRecordIndex < 0 || state.TopRecordIndex >= records.Count)
+		{
+			return;
+		}
+
+		await SmoothScrollAsync(
+			scrollViewer,
+			container,
+			state.TopRecordIndex,
+			records.Count,
+			state.WithinRecordOffset,
+			token).ConfigureAwait(true);
+	}
+
+	/// <summary>
+	/// Smoothly scrolls the list to the end (<paramref name="toEnd" /> <c>True</c>) or to the top, stopping the scroll back
+	/// to <see cref="ViewState" /> if it runs.
+	/// </summary>
+	private Task ScrollToEdgeAsync(bool toEnd, CancellationToken token)
 	{
 		if (AssociatedObject is not { } scrollViewer)
 		{
 			return Task.CompletedTask;
 		}
 
-		return SmoothScrollAsync(scrollViewer, toEnd);
+		_scrollBack?.Cancel();
+
+		return SmoothScrollAsync(scrollViewer, toEnd, token);
 	}
 
 	/// <summary>
@@ -375,46 +466,68 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	/// </summary>
 	private async Task StartAsync(ScrollViewer scrollViewer, ItemsRepeater container)
 	{
-		// A dataset that starts without records has nothing to realize and no position to restore,
-		// yet the position it gains once records are added still has to be kept.
-		if (container.ItemsSourceView is { Count: > 0 } records)
-		{
-			await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
+		using CancellationTokenSource scrollBack = new();
 
-			// A record that the list does not have is not looked for.
-			if (ViewState is { } state && state.TopRecordIndex >= 0 && state.TopRecordIndex < records.Count)
-			{
-				await SmoothScrollAsync(
-					scrollViewer,
-					container,
-					state.TopRecordIndex,
-					records.Count,
-					state.WithinRecordOffset).ConfigureAwait(true);
-			}
+		_scrollBack = scrollBack;
+
+		try
+		{
+			await ScrollBackAsync(scrollViewer, container, scrollBack.Token).ConfigureAwait(true);
+		}
+		finally
+		{
+			_scrollBack = null;
 		}
 
-		SubscribeToScrollChanged();
+		SubscribeToScrollChanged(isStopped: scrollBack.IsCancellationRequested);
+	}
+
+	/// <summary>
+	/// Stops the scroll back to <see cref="ViewState" /> and the scroll to an edge, whichever runs.
+	/// </summary>
+	private void StopMoves()
+	{
+		_scrollBack?.Cancel();
+
+		ScrollToEndCommand.Cancel();
+
+		ScrollToTopCommand.Cancel();
 	}
 
 	/// <summary>
 	/// Follows <see cref="ScrollViewer.ScrollChanged" /> of <see cref="StyledElementBehavior{T}.AssociatedObject" />,
-	/// posted after the layout of the list, so the scroll that the layout itself makes is not reported.
+	/// posted after the layout of the list, so the scroll that the layout itself makes is not reported;
+	/// <paramref name="isStopped" /> also reports the place where the stopped scroll back left the list.
 	/// </summary>
-	private void SubscribeToScrollChanged()
+	private void SubscribeToScrollChanged(bool isStopped = false)
 	{
 		if (AssociatedObject is not { } scrollViewer)
 		{
 			return;
 		}
 
-		Dispatcher.UIThread.Post(() =>
-		{
-			_scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
-				x => scrollViewer.ScrollChanged += x,
-				x => scrollViewer.ScrollChanged -= x)
-				.SetDelay(TimeSpan.FromSeconds(0.5))
-				.Subscribe(AssociatedObject_ScrollChanged);
-		}, DispatcherPriority.Loaded);
+		Dispatcher
+			.UIThread
+			.Post(() =>
+			{
+				// False for a layout-driven event (Extent/Viewport changed but not Offset), which is skipped.
+				IObservable<bool> isScrolled = Observable
+					.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
+						x => scrollViewer.ScrollChanged += x,
+						x => scrollViewer.ScrollChanged -= x)
+					.Select(static x => x.EventArgs.OffsetDelta != default);
+
+				// The place where the list stopped is kept like the place after any scroll.
+				if (isStopped)
+				{
+					isScrolled = isScrolled.StartWith(true);
+				}
+
+				_scrollSubscription.Disposable = isScrolled
+					.SetDelay(TimeSpan.FromSeconds(0.5))
+					.Where(static x => x)
+					.Subscribe(_ => ReportTopRecord());
+			}, DispatcherPriority.Loaded);
 	}
 
 	/// <summary>

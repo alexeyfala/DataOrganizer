@@ -1,8 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
+using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
+using Avalonia.Input;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Scrolling;
@@ -12,6 +18,7 @@ using DataOrganizer.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -42,15 +49,136 @@ internal class DatasetScrollBehaviorTests
 	private const double WithinRecordOffset = 10.0;
 
 	/// <summary>
-	/// Template that shows every record at <see cref="RecordHeight" />.
+	/// Template that shows every record at <see cref="RecordHeight" />, with a background the pointer can hit.
 	/// </summary>
 	private static readonly FuncDataTemplate<DatasetRecordBase> RecordTemplate = new((_, _) => new Border
 	{
+		Background = Brushes.Transparent,
 		Height = RecordHeight
 	});
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DatasetScrollBehavior" />: a click on a record while the list scrolls back to
+	/// <see cref="DatasetScrollBehavior.ViewState" /> leaves the list on its way, since a click is not a scroll.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_A_Record_Leaves_The_Scroll_Back_Going()
+	{
+		// Arrange
+		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Window window = Show(scrollViewer);
+
+		sut.IsEnabled = true;
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+
+		Point point = scrollViewer.TranslatePoint(new Rect(scrollViewer.Viewport).Center, window)!.Value;
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
+
+		// Assert
+		window.InputHitTest(point)
+			.Should()
+			.BeOfType<Border>();
+
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(offset, 0.5);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetScrollBehavior" />: a click on the track of the scroll bar while the list scrolls back to
+	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the click leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Click_On_The_Track_Stops_The_Scroll_Back()
+	{
+		// Arrange
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Window window = Show(scrollViewer);
+
+		sut.IsEnabled = true;
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+
+		// The part of the track below the thumb.
+		Button track = scrollViewer
+			.GetVisualDescendants()
+			.OfType<Track>()
+			.Single(static x => x.Orientation == Orientation.Vertical)
+			.IncreaseButton!;
+
+		Point point = track.TranslatePoint(new Rect(track.Bounds.Size).Center, window)!.Value;
+
+		// Act
+		window.MouseDown(point, MouseButton.Left);
+
+		window.MouseUp(point, MouseButton.Left);
+
+		Vector place = scrollViewer.Offset;
+
+		// Longer than the rest of the scroll back would take.
+		await OutlastThePauseAsync();
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(place.Y, 0.5);
+	}
+
 	/// <summary>
 	/// <see cref="StyledElementBehavior.Detach" />: a behavior taken off the list no longer reports its scroll.
 	/// </summary>
@@ -92,6 +220,71 @@ internal class DatasetScrollBehaviorTests
 		sut.ViewState
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetScrollBehavior" />: a drag of the thumb of the scroll bar while the list scrolls back to
+	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the drag leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Drag_Of_The_Thumb_Stops_The_Scroll_Back()
+	{
+		// Arrange
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Window window = Show(scrollViewer);
+
+		sut.IsEnabled = true;
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+
+		Thumb thumb = scrollViewer
+			.GetVisualDescendants()
+			.OfType<Track>()
+			.Single(static x => x.Orientation == Orientation.Vertical)
+			.Thumb!;
+
+		Point from = thumb.TranslatePoint(new Rect(thumb.Bounds.Size).Center, window)!.Value;
+
+		Point to = from + new Point(0.0, 20.0);
+
+		// Act
+		window.MouseDown(from, MouseButton.Left);
+
+		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
+
+		window.MouseUp(to, MouseButton.Left);
+
+		Vector place = scrollViewer.Offset;
+
+		// Longer than the rest of the scroll back would take.
+		await OutlastThePauseAsync();
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(place.Y, 0.5);
 	}
 
 	/// <summary>
@@ -395,6 +588,55 @@ internal class DatasetScrollBehaviorTests
 	}
 
 	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a record too near the end to come to the top brings the list to its
+	/// end, and <see cref="DatasetScrollBehavior.ViewState" /> stays as it was, since nobody scrolled the list.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsEnabled_Leaves_The_View_State_Of_A_Record_Near_The_End()
+	{
+		// Arrange
+		DatasetEditorState state = new()
+		{
+			TopRecordIndex = RecordCount - 2,
+			WithinRecordOffset = 0.0
+		};
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			ViewState = state
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		Func<double> end = () => scrollViewer.Extent.Height - scrollViewer.Viewport.Height;
+
+		// Act
+		sut.IsEnabled = true;
+
+		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - end()) < 0.5);
+
+		await OutlastThePauseAsync();
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.Be(state);
+	}
+
+	/// <summary>
 	/// <see cref="StyledElementBehavior.IsEnabled" />: turned off, the behavior no longer reports the scroll.
 	/// </summary>
 	[AvaloniaTest]
@@ -481,6 +723,61 @@ internal class DatasetScrollBehaviorTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetScrollBehavior" />: a page key while the list scrolls back to
+	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the key leaves it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Page_Key_Stops_The_Scroll_Back([Values(PhysicalKey.PageUp, PhysicalKey.PageDown)] PhysicalKey key)
+	{
+		// Arrange
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			},
+			// The keys reach the list through the control that has the focus.
+			Focusable = true
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Window window = Show(scrollViewer);
+
+		scrollViewer.Focus();
+
+		sut.IsEnabled = true;
+
+		// Past its first screen the list is on its way back to the stored record.
+		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+
+		// Act
+		window.KeyPressQwerty(key, RawInputModifiers.None);
+
+		Vector place = scrollViewer.Offset;
+
+		// Longer than the rest of the scroll back would take.
+		await OutlastThePauseAsync();
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(place.Y, 0.5);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetScrollBehavior" />: after a scroll and a pause, the record at the top is reported, scrolled as far
 	/// into it as it is.
 	/// </summary>
@@ -564,7 +861,7 @@ internal class DatasetScrollBehaviorTests
 	/// <summary>
 	/// Shows <paramref name="scrollViewer" /> in a window too short to hold all the records, and lets it load.
 	/// </summary>
-	private static void Show(ScrollViewer scrollViewer)
+	private static Window Show(ScrollViewer scrollViewer)
 	{
 		Window window = new()
 		{
@@ -576,6 +873,8 @@ internal class DatasetScrollBehaviorTests
 		window.Show();
 
 		Dispatcher.UIThread.RunJobs();
+
+		return window;
 	}
 	#endregion
 }
