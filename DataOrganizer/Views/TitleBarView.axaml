@@ -30,6 +30,7 @@
 					Orientation="Horizontal">
 
 					<Button
+						AutomationProperties.Name="{x:Static prop:Strings.Minimize}"
 						chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
 						Classes="CaptionButtonStyle"
 						Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
@@ -43,11 +44,13 @@
 
 					<ToggleButton
 						x:Name="MaximizeButton"
+						AutomationProperties.Name="{x:Static prop:Strings.Maximize}"
 						chrome:WindowDecorationProperties.ElementRole="MaximizeButton"
 						Classes="CaptionButtonStyle"
 						IsChecked="{Binding $parent[Window].WindowState, Converter={x:Static converters:AppConverters.WindowStateToBool}, Mode=TwoWay}" />
 
 					<Button
+						AutomationProperties.Name="{x:Static prop:Strings.Close}"
 						chrome:WindowDecorationProperties.ElementRole="CloseButton"
 						Classes="CaptionButtonStyle CloseCaptionButtonStyle"
 						Content="{materialIcons:MaterialIconExt Kind=WindowClose,

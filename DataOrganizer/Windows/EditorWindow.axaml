@@ -117,7 +117,7 @@
 									</Style>
 								</Menu.Styles>
 
-								<MenuItem Command="{Binding ShowFavoritesCommand}">
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.FavoritesMode}" Command="{Binding ShowFavoritesCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -127,7 +127,7 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem Command="{Binding ShowSettingsCommand}">
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Settings}" Command="{Binding ShowSettingsCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="CogOutline" />
@@ -139,7 +139,7 @@
 
 								<Separator Margin="16.0,0.0" />
 
-								<MenuItem>
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Restart}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="Restart" />
@@ -157,7 +157,7 @@
 									</Interaction.Behaviors>
 								</MenuItem>
 
-								<MenuItem>
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Exit}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="LocationExit" />
@@ -180,6 +180,7 @@
 
 								<MenuItem
 									x:Name="SampleSeeding"
+									AutomationProperties.Name="Sample Seeding"
 									Command="{Binding SeedSamplesCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
@@ -193,6 +194,7 @@
 
 								<MenuItem
 									x:Name="LargeSampleSeeding"
+									AutomationProperties.Name="Large Sample Seeding"
 									Command="{Binding SeedLargeSamplesCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
@@ -206,6 +208,7 @@
 
 								<MenuItem
 									x:Name="ClipboardHistorySeeding"
+									AutomationProperties.Name="Clipboard History Seeding"
 									Command="{Binding SeedClipboardHistoryCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}"
 									ToolTip.ShowOnDisabled="True">
@@ -412,6 +415,7 @@
 
 								<TreeView.Styles>
 									<Style x:DataType="nodes:ExplorerNodeViewModelBase" Selector="TreeViewItem">
+										<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
 										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									</Style>

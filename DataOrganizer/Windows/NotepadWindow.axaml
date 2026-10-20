@@ -77,6 +77,12 @@
 					ItemsSource="{Binding Tabs, Mode=OneTime}"
 					PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
 					SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+					<controls:DocumentTabControl.Styles>
+						<Style x:DataType="vm:NotepadTabViewModel" Selector="TabItem">
+							<Setter Property="AutomationProperties.Name" Value="{Binding Header, Mode=OneWay}" />
+						</Style>
+					</controls:DocumentTabControl.Styles>
+
 					<controls:DocumentTabControl.AdditionalMenuItemsTemplate>
 						<DataTemplate x:DataType="vm:NotepadTabViewModel">
 							<controls:FlyoutButton
