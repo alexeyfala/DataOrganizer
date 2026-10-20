@@ -29,7 +29,7 @@ internal class ClipboardTextWriterTests
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 			clipboard
-				.SetTextAsync(text, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: true, isRestored: false)
 				.Returns(true);
 
 			builder.RegisterInstance(autoClear);
@@ -62,7 +62,7 @@ internal class ClipboardTextWriterTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			clipboard
-				.SetTextAsync(text, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: true, isRestored: false)
 				.Returns(true);
 
 			builder.RegisterInstance(clipboard);
@@ -80,11 +80,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, html: null, rtf: null, isSensitive: true);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: true, isRestored: false);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false, isRestored: false);
 	}
 
 	/// <summary>
@@ -104,7 +104,7 @@ internal class ClipboardTextWriterTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			clipboard
-				.SetTextAsync(text, html: null, rtf: null, isSensitive: false)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: false)
 				.Returns(true);
 
 			builder.RegisterInstance(autoClear);
@@ -124,11 +124,11 @@ internal class ClipboardTextWriterTests
 
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: false);
 
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true, isRestored: false);
 
 		autoClear
 			.DidNotReceive()
@@ -153,7 +153,7 @@ internal class ClipboardTextWriterTests
 
 			// The clipboard refuses the text.
 			clipboard
-				.SetTextAsync(text, html: null, rtf: null, isSensitive)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive, isRestored: false)
 				.Returns(false);
 
 			builder.RegisterInstance(autoClear);

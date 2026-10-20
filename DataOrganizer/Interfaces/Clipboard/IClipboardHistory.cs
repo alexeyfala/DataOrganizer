@@ -30,12 +30,14 @@ public interface IClipboardHistory
 	void HandleClipboardCleared();
 
 	/// <summary>
-	/// Records a payload seen on the clipboard by its hash, creating its entry only when it is new.
+	/// Records a payload seen on the clipboard by its hash, creating its entry only when it is new; only a payload marked as
+	/// restored answers a restore.
 	/// </summary>
 	void HandleNewPayload(
 		byte[] hash,
 		Func<ClipboardLogEntryBase> entryFactory,
-		bool isSensitive);
+		bool isSensitive,
+		bool isRestored);
 
 	/// <summary>
 	/// Makes a restored entry the active one, atop unless its position is kept, and waits for the clipboard to hand it back.

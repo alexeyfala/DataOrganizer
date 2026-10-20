@@ -21,29 +21,36 @@ public interface IClipboardAccessor
 	Task<bool> ContainsOwnershipMarkerAsync();
 
 	/// <summary>
+	/// <c>True</c> when the clipboard holds a payload this application put back from its clipboard log.
+	/// </summary>
+	Task<bool> ContainsRestoreMarkerAsync();
+
+	/// <summary>
 	/// <c>True</c> when a password manager marked the contents of the clipboard as a secret.
 	/// </summary>
 	Task<bool> ContainsSensitivityMarkerAsync();
 
 	/// <summary>
-	/// Puts files and folders on the clipboard by their paths, leaving out the ones that are gone.
+	/// Puts files and folders on the clipboard by their paths, leaving out the ones that are gone, marked as put back from
+	/// the clipboard log when they are restored.
 	/// </summary>
-	Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries);
+	Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored);
 
 	/// <summary>
-	/// Puts the image of a PNG on the clipboard.
+	/// Puts the image of a PNG on the clipboard, marked as put back from the clipboard log when it is restored.
 	/// </summary>
-	Task SetImageAsync(byte[] png);
+	Task SetImageAsync(byte[] png, bool isRestored);
 
 	/// <summary>
-	/// Puts a text with its HTML and RTF on the clipboard, marked as a secret when it is sensitive; <c>false</c> when the
-	/// clipboard refused it.
+	/// Puts a text with its HTML and RTF on the clipboard, marked as a secret when it is sensitive and as put back from the
+	/// clipboard log when it is restored; <c>false</c> when the clipboard refused it.
 	/// </summary>
 	Task<bool> SetTextAsync(
 		string text,
 		string? html,
 		string? rtf,
-		bool isSensitive);
+		bool isSensitive,
+		bool isRestored);
 
 	/// <summary>
 	/// Returns the files and folders on the clipboard, folders first; <c>null</c> without them.

@@ -88,6 +88,16 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> ContainsRestoreMarkerAsync()
+	{
+		IReadOnlyList<DataFormat> formats = await _clipboard
+			.GetDataFormatsAsync()
+			.ConfigureAwait(false);
+
+		return ClipboardRestoreMarker.IsAmong(formats);
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> ContainsSensitivityMarkerAsync()
 	{
 		try
@@ -127,7 +137,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
-	public async Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries)
+	public async Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored)
 	{
 		try
 		{
@@ -170,6 +180,12 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 				transfer.Add(DataTransferItem.CreateFile(item));
 			}
 
+			// One marked item is enough: the clipboard lists the formats of all items.
+			if (isRestored)
+			{
+				ClipboardRestoreMarker.Attach(transfer.Items[0]);
+			}
+
 			// On Linux file managers paste files from x-special/gnome-copied-files, not from the
 			// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
 			if (GnomeCopiedFilesFormat.Value is { } gnomeFormat)
@@ -192,7 +208,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
-	public async Task SetImageAsync(byte[] png)
+	public async Task SetImageAsync(byte[] png, bool isRestored)
 	{
 		try
 		{
@@ -202,8 +218,22 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			// here yields an empty paste. GC reclaims it once clipboard ownership changes.
 			Bitmap bitmap = new(stream);
 
+			DataTransferItem item = new();
+
+			item.SetBitmap(bitmap);
+
+			if (isRestored)
+			{
+				ClipboardRestoreMarker.Attach(item);
+			}
+
+			// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
+			DataTransfer transfer = new();
+
+			transfer.Add(item);
+
 			await _clipboard
-				.SetBitmapAsync(bitmap)
+				.SetDataAsync(transfer)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -217,7 +247,8 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 		string text,
 		string? html,
 		string? rtf,
-		bool isSensitive)
+		bool isSensitive,
+		bool isRestored)
 	{
 		try
 		{
@@ -238,6 +269,11 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			if (isSensitive)
 			{
 				ClipboardSensitivityMarkerWriter.AttachSensitivityMarkers(item);
+			}
+
+			if (isRestored)
+			{
+				ClipboardRestoreMarker.Attach(item);
 			}
 
 			// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).

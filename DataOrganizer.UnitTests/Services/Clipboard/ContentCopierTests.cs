@@ -130,7 +130,7 @@ internal class ContentCopierTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -188,7 +188,7 @@ internal class ContentCopierTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -248,7 +248,7 @@ internal class ContentCopierTests
 		// Assert
 		await clipboard
 			.DidNotReceive()
-			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>());
+			.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<bool>(), Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -310,7 +310,7 @@ internal class ContentCopierTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync("Hi", html: null, rtf: null, isSensitive: false);
+			.SetTextAsync("Hi", html: null, rtf: null, isSensitive: false, isRestored: false);
 	}
 
 	/// <summary>
@@ -379,7 +379,7 @@ internal class ContentCopierTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
+			.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: false);
 	}
 
 	/// <summary>
@@ -444,21 +444,21 @@ internal class ContentCopierTests
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true, isRestored: false);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: false, isRestored: false);
 		}
 		else
 		{
 			await clipboard
 				.Received(1)
-				.SetTextAsync(content, html: null, rtf: null, isSensitive: false);
+				.SetTextAsync(content, html: null, rtf: null, isSensitive: false, isRestored: false);
 
 			await clipboard
 				.DidNotReceive()
-				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true);
+				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true, isRestored: false);
 		}
 	}
 

@@ -43,12 +43,12 @@ internal class ClipboardHistoryTests
 
 		ClipboardTextEntry capturedAgain = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false);
+		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
 
 		// Act (the same content is still on the clipboard when the logging resumes).
 		sut.Clear(preservePinned: false);
 
-		sut.HandleNewPayload([1], () => capturedAgain, isSensitive: false);
+		sut.HandleNewPayload([1], () => capturedAgain, isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -108,6 +108,37 @@ internal class ClipboardHistoryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistory.HandleClipboardCleared" />: once a copy was made over a restored entry, an emptied clipboard
+	/// drops the highlight of that copy.
+	/// </summary>
+	[Test]
+	public void HandleClipboardCleared_After_Another_Copy_Over_A_Restore_Drops_The_Highlight()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
+
+		ClipboardTextEntry copied = ClipboardEntryFactory.CreateTextEntry("copied", [2]);
+
+		sut.Entries.Add(restored);
+
+		sut.MarkRestored(restored, keepPosition: false);
+
+		sut.HandleNewPayload([2], () => copied, isSensitive: false, isRestored: false);
+
+		// Act
+		sut.HandleClipboardCleared();
+
+		// Assert
+		copied.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistory.HandleClipboardCleared" />: a restored entry keeps its highlight while the clipboard has not
 	/// handed it back yet.
 	/// </summary>
@@ -135,6 +166,43 @@ internal class ClipboardHistoryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistory.HandleNewPayload" />: a copy made before the clipboard hands a restored entry back is added
+	/// below it, and the restored entry keeps its content and pin.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_After_Restore_Adds_Another_Copy_Below_The_Restored_Entry()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreatePinnedTextEntry("restored", [1]);
+
+		ClipboardTextEntry copied = ClipboardEntryFactory.CreateTextEntry("copied", [2]);
+
+		sut.Entries.Add(restored);
+
+		sut.MarkRestored(restored, keepPosition: false);
+
+		// Act (something else is copied over the restored entry).
+		sut.HandleNewPayload([2], () => copied, isSensitive: false, isRestored: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.Equal(restored, copied);
+
+		restored.IsPinned
+			.Should()
+			.BeTrue();
+
+		copied.IsPinned
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistory.HandleNewPayload" />: a restored pinned entry keeps its pinned state on the replacement.
 	/// </summary>
 	[Test]
@@ -154,7 +222,7 @@ internal class ClipboardHistoryTests
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false, isRestored: true);
 
 		// Assert
 		sut.Entries
@@ -196,7 +264,7 @@ internal class ClipboardHistoryTests
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false, isRestored: true);
 
 		// Assert
 		sut.Entries
@@ -240,7 +308,7 @@ internal class ClipboardHistoryTests
 			built = true;
 
 			return ClipboardEntryFactory.CreateTextEntry("x", [1]);
-		}, isSensitive: false);
+		}, isSensitive: false, isRestored: true);
 
 		// Assert
 		sut.Entries
@@ -279,7 +347,7 @@ internal class ClipboardHistoryTests
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false, isRestored: true);
 
 		// Assert
 		rebaselined.IsActive
@@ -311,7 +379,7 @@ internal class ClipboardHistoryTests
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false, isRestored: true);
 
 		// Assert
 		sut.Entries
@@ -324,6 +392,36 @@ internal class ClipboardHistoryTests
 		received
 			.Should()
 			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistory.HandleNewPayload" />: a secret copied before the clipboard hands a restored entry back is
+	/// skipped, and the restored entry stays.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_After_Restore_Skips_A_Secret_Copied_Over_It()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
+
+		sut.Entries.Add(restored);
+
+		sut.MarkRestored(restored, keepPosition: false);
+
+		// Act (a password manager puts its secret over the restored entry).
+		sut.HandleNewPayload([2], () => ClipboardEntryFactory.CreateTextEntry("secret", [2]), isSensitive: true, isRestored: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(restored);
 	}
 
 	/// <summary>
@@ -345,7 +443,7 @@ internal class ClipboardHistoryTests
 		}
 
 		// Act
-		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
+		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -370,12 +468,12 @@ internal class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false);
+		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
 
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (same hash as the last observed payload).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -405,7 +503,7 @@ internal class ClipboardHistoryTests
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Act
-		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+		sut.HandleNewPayload([1], () => entry, isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -438,13 +536,13 @@ internal class ClipboardHistoryTests
 
 		sut.Entries.Add(pinned);
 
-		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+		sut.HandleNewPayload([1], () => entry, isSensitive: false, isRestored: false);
 
 		// Pinning the captured entry puts it at the end of the pinned block, below the older pin.
 		sut.TogglePin(entry);
 
 		// Act (the clipboard still holds the same payload).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -467,10 +565,10 @@ internal class ClipboardHistoryTests
 
 		ClipboardTextEntry second = ClipboardEntryFactory.CreateTextEntry("b", [2]);
 
-		sut.HandleNewPayload([1], () => first, isSensitive: false);
+		sut.HandleNewPayload([1], () => first, isSensitive: false, isRestored: false);
 
 		// Act
-		sut.HandleNewPayload([2], () => second, isSensitive: false);
+		sut.HandleNewPayload([2], () => second, isSensitive: false, isRestored: false);
 
 		// Assert
 		second.IsActive
@@ -506,7 +604,7 @@ internal class ClipboardHistoryTests
 		sut.Entries.Add(target);
 
 		// Act (the factory must not run — the entry already exists).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -538,7 +636,7 @@ internal class ClipboardHistoryTests
 		sut.Entries.Add(unpinned);
 
 		// Act (the factory must not run — the entry already exists).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -568,7 +666,7 @@ internal class ClipboardHistoryTests
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (the factory must not run — the entry already exists).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -600,7 +698,7 @@ internal class ClipboardHistoryTests
 		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
 
 		// Act
-		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false);
+		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
 
 		// Assert
 		received
@@ -629,7 +727,7 @@ internal class ClipboardHistoryTests
 		}
 
 		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
-		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false);
+		sut.HandleNewPayload([201], () => ClipboardEntryFactory.CreateTextEntry("new", [201]), isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries
@@ -827,35 +925,6 @@ internal class ClipboardHistoryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistory.Remove" />: an entry removed before the clipboard handed it back is no longer awaited, so a
-	/// secret copied next is still skipped.
-	/// </summary>
-	[Test]
-	public void Remove_Of_A_Restored_Entry_Still_Skips_The_Next_Secret()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ClipboardHistory sut = mock.Create<ClipboardHistory>();
-
-		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
-
-		sut.Entries.Add(restored);
-
-		sut.MarkRestored(restored, keepPosition: false);
-
-		// Act (a secret is copied next).
-		sut.Remove(restored);
-
-		sut.HandleNewPayload([2], () => ClipboardEntryFactory.CreateTextEntry("secret", [2]), isSensitive: true);
-
-		// Assert
-		sut.Entries
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardHistory.Remove" />: after the active entry is removed, the same payload copied again is captured
 	/// again.
 	/// </summary>
@@ -871,12 +940,12 @@ internal class ClipboardHistoryTests
 
 		ClipboardTextEntry copiedAgain = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+		sut.HandleNewPayload([1], () => entry, isSensitive: false, isRestored: false);
 
 		// Act (the same content is copied again before a poll sees the emptied clipboard).
 		sut.Remove(entry);
 
-		sut.HandleNewPayload([1], () => copiedAgain, isSensitive: false);
+		sut.HandleNewPayload([1], () => copiedAgain, isSensitive: false, isRestored: false);
 
 		// Assert
 		sut.Entries

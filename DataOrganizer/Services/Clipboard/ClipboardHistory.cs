@@ -41,7 +41,7 @@ public sealed class ClipboardHistory : IClipboardHistory
 
 	/// <summary>
 	/// The entry just restored to the system clipboard, awaiting re-baseline to the clipboard's
-	/// actual representation on the next poll tick.
+	/// actual representation on the next poll tick that sees its marker.
 	/// </summary>
 	private ClipboardLogEntryBase? _restoredEntry;
 	#endregion
@@ -100,20 +100,25 @@ public sealed class ClipboardHistory : IClipboardHistory
 	public void HandleNewPayload(
 		byte[] hash,
 		Func<ClipboardLogEntryBase> entryFactory,
-		bool isSensitive)
+		bool isSensitive,
+		bool isRestored)
 	{
 		if (_restoredEntry is { } restored)
 		{
 			_restoredEntry = null;
 
-			_lastHash = hash;
-
-			if (!HashEquals(restored.Hash, hash))
+			// A payload without the marker was copied over the restored entry, so it goes the usual way.
+			if (isRestored)
 			{
-				RebaselineRestored(restored, entryFactory());
-			}
+				_lastHash = hash;
 
-			return;
+				if (!HashEquals(restored.Hash, hash))
+				{
+					RebaselineRestored(restored, entryFactory());
+				}
+
+				return;
+			}
 		}
 
 		if (IsEchoOrUnchanged(hash))
@@ -212,12 +217,6 @@ public sealed class ClipboardHistory : IClipboardHistory
 		if (wasActive)
 		{
 			_lastHash = null;
-		}
-
-		// Forget the entry if it was awaiting its restore echo, so a later poll does not re-baseline it.
-		if (ReferenceEquals(_restoredEntry, entry))
-		{
-			_restoredEntry = null;
 		}
 
 		return true;
