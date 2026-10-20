@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -291,6 +292,9 @@ internal abstract class TextEditorBase : TextEditor
 		// A template replaces all the visual children, the scroll marks included.
 		VisualChildren.Add(_scrollMarkMargin);
 	}
+
+	/// <inheritdoc />
+	protected override AutomationPeer OnCreateAutomationPeer() => new TextEditorAutomationPeer(this);
 	#endregion
 
 	#region Helpers
