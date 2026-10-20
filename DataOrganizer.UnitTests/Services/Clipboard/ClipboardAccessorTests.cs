@@ -26,6 +26,28 @@ namespace DataOrganizer.UnitTests.Services.Clipboard;
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardAccessor)}"" type")]
 internal class ClipboardAccessorTests
 {
+	#region Data
+	/// <summary>
+	/// Name of the file on the clipboard.
+	/// </summary>
+	private const string FileName = "a.txt";
+
+	/// <summary>
+	/// Name of the folder that holds the items of the clipboard.
+	/// </summary>
+	private const string FolderName = "dir";
+
+	/// <summary>
+	/// Path of the file on the clipboard.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine(FolderName, FileName);
+
+	/// <summary>
+	/// Path of the folder on the clipboard.
+	/// </summary>
+	private static readonly string SubfolderPath = TestPath.Combine(FolderName, "sub");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardAccessor.ClearAsync" />: the clipboard is emptied.
@@ -318,8 +340,6 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Ignores_A_Refused_Write()
 	{
 		// Arrange
-		string filePath = TestPath.Combine("dir", "a.txt");
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
@@ -329,10 +349,10 @@ internal class ClipboardAccessorTests
 			IStorageFile file = Substitute.For<IStorageFile>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri(filePath));
+			file.Path.Returns(new Uri(FilePath));
 
 			storage
-				.TryGetFileFromPathAsync(filePath)
+				.TryGetFileFromPathAsync(FilePath)
 				.Returns(file);
 
 			clipboard
@@ -347,7 +367,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		Func<Task> act = () => sut.SetFilesAsync([new ClipboardFileSystemEntry(filePath, IsFolder: false)]);
+		Func<Task> act = () => sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)]);
 
 		// Assert
 		await act
@@ -363,9 +383,7 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Leaves_Out_A_File_Whose_Lookup_Fails()
 	{
 		// Arrange
-		string failingPath = TestPath.Combine("dir", "locked.txt");
-
-		string filePath = TestPath.Combine("dir", "a.txt");
+		string failingPath = TestPath.Combine(FolderName, "locked.txt");
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -378,14 +396,14 @@ internal class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri(filePath));
+			file.Path.Returns(new Uri(FilePath));
 
 			storage
 				.TryGetFileFromPathAsync(failingPath)
 				.ThrowsAsync(new UnauthorizedAccessException());
 
 			storage
-				.TryGetFileFromPathAsync(filePath)
+				.TryGetFileFromPathAsync(FilePath)
 				.Returns(file);
 
 			clipboard.SetDataAsync(Arg.Do<DataTransfer>(x => placed = x));
@@ -401,7 +419,7 @@ internal class ClipboardAccessorTests
 		await sut.SetFilesAsync(
 		[
 			new ClipboardFileSystemEntry(failingPath, IsFolder: false),
-			new ClipboardFileSystemEntry(filePath, IsFolder: false)
+			new ClipboardFileSystemEntry(FilePath, IsFolder: false)
 		]);
 
 		// Assert
@@ -452,11 +470,7 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Puts_The_Found_Files_On_The_Clipboard()
 	{
 		// Arrange
-		string filePath = TestPath.Combine("dir", "a.txt");
-
-		string folderPath = TestPath.Combine("dir", "sub");
-
-		string missingPath = TestPath.Combine("dir", "gone.txt");
+		string missingPath = TestPath.Combine(FolderName, "gone.txt");
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -471,16 +485,16 @@ internal class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the paths also go into the format of the file managers.
-			file.Path.Returns(new Uri(filePath));
+			file.Path.Returns(new Uri(FilePath));
 
-			folder.Path.Returns(new Uri(folderPath));
+			folder.Path.Returns(new Uri(SubfolderPath));
 
 			storage
-				.TryGetFileFromPathAsync(filePath)
+				.TryGetFileFromPathAsync(FilePath)
 				.Returns(file);
 
 			storage
-				.TryGetFolderFromPathAsync(folderPath)
+				.TryGetFolderFromPathAsync(SubfolderPath)
 				.Returns(folder);
 
 			// The third one is gone.
@@ -500,8 +514,8 @@ internal class ClipboardAccessorTests
 		// Act
 		await sut.SetFilesAsync(
 		[
-			new ClipboardFileSystemEntry(filePath, IsFolder: false),
-			new ClipboardFileSystemEntry(folderPath, IsFolder: true),
+			new ClipboardFileSystemEntry(FilePath, IsFolder: false),
+			new ClipboardFileSystemEntry(SubfolderPath, IsFolder: true),
 			new ClipboardFileSystemEntry(missingPath, IsFolder: false)
 		]);
 
@@ -732,9 +746,9 @@ internal class ClipboardAccessorTests
 
 			IStorageFolder folder = Substitute.For<IStorageFolder>();
 
-			file.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
+			file.Path.Returns(new Uri(FilePath));
 
-			folder.Path.Returns(new Uri(TestPath.Combine("dir", "sub")));
+			folder.Path.Returns(new Uri(SubfolderPath));
 
 			clipboard
 				.TryGetFilesAsync()
@@ -769,7 +783,7 @@ internal class ClipboardAccessorTests
 
 			IStorageFile relative = Substitute.For<IStorageFile>();
 
-			valid.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
+			valid.Path.Returns(new Uri(FilePath));
 
 			relative.Path.Returns(new Uri("b.txt", UriKind.Relative));
 
@@ -792,7 +806,7 @@ internal class ClipboardAccessorTests
 			.Which
 			.Name
 			.Should()
-			.Be("a.txt");
+			.Be(FileName);
 	}
 
 	/// <summary>
@@ -811,9 +825,9 @@ internal class ClipboardAccessorTests
 
 			IStorageFile lower = Substitute.For<IStorageFile>();
 
-			upper.Path.Returns(new Uri(TestPath.Combine("dir", "B.txt")));
+			upper.Path.Returns(new Uri(TestPath.Combine(FolderName, "B.txt")));
 
-			lower.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
+			lower.Path.Returns(new Uri(TestPath.Combine(FolderName, "a.txt")));
 
 			clipboard
 				.TryGetFilesAsync()

@@ -17,6 +17,18 @@ namespace DataOrganizer.UnitTests.Services.Clipboard;
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistory)}"" type")]
 internal class ClipboardHistoryTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the first item of a list of files.
+	/// </summary>
+	private static readonly string FirstItemPath = TestPath.Combine("a");
+
+	/// <summary>
+	/// Path of the second item of a list of files.
+	/// </summary>
+	private static readonly string SecondItemPath = TestPath.Combine("b");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardHistory.Clear" />: the payload still on the clipboard is captured again after a clear.
@@ -661,8 +673,8 @@ internal class ClipboardHistoryTests
 		// Arrange
 		ClipboardFileSystemEntry[] entries =
 		[
-			new(TestPath.Combine("a"), IsFolder: false),
-			new(TestPath.Combine("b"), IsFolder: true)
+			new(FirstItemPath, IsFolder: false),
+			new(SecondItemPath, IsFolder: true)
 		];
 
 		// Act, Assert
@@ -678,9 +690,9 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Is_Order_Sensitive()
 	{
 		// Arrange
-		ClipboardFileSystemEntry a = new(TestPath.Combine("a"), IsFolder: false);
+		ClipboardFileSystemEntry a = new(FirstItemPath, IsFolder: false);
 
-		ClipboardFileSystemEntry b = new(TestPath.Combine("b"), IsFolder: false);
+		ClipboardFileSystemEntry b = new(SecondItemPath, IsFolder: false);
 
 		// Act, Assert
 		ClipboardHistory.HashFiles([a, b])
