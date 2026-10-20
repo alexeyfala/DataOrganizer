@@ -9,6 +9,7 @@ using Shared.Interfaces;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Execution;
 
@@ -19,7 +20,7 @@ internal class ExecutionSandboxTests
 	/// <summary>
 	/// Path of the sandbox used in the tests.
 	/// </summary>
-	private static readonly string DirectoryPath = Path.Combine(Path.GetTempPath(), "Sandbox");
+	private static readonly string DirectoryPath = TestPath.Combine("Sandbox");
 	#endregion
 
 	#region Methods

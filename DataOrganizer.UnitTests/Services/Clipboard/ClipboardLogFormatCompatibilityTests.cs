@@ -16,9 +16,9 @@ using NSubstitute;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
@@ -33,9 +33,9 @@ internal class ClipboardLogFormatCompatibilityTests
 		"02E11DC0EBFC573223051C22ACFF3C0075F1A94C4E50E7C6B9703C699A616F0268F3F88386E2F8DDC5056D577EF36FB61F2ED172581E15ED5657C3149F4FE0B0163396BB6B30E55640863A7A17A9645BAB076234CD8BF52EAC32BB6C459589CC6C3279DD2D89B8F7AEDAE423D1CFB350417A16D2844B50ED82499A64548A13BDA6B2D3A385EC07F4014E0DA7E41E310B764D90046AF0F4FCB397FF2AF5CB48C86CB1FA2D630F2AF91DD4616109766D6FA228FBBCCF08AEBCB6372D8EC07B53239A5216DBB64B83EA81202B8A71C0C6306D6F1061BF8FF6B9CBD88974B762791D4DD76938BD597F05B83E63A3A2344F8D5ECCCA7995AA0899B1D4D04639F764366D290243B80A2723BE620902A8C54CE67E3BE150FF11C5606094C879B94FC026E0F9863D6CA1382A0D318E6F96FE10C8B18F323701E6A5FC417599660FAB2BDCA42A49C42CFACA4539AC19F281E1A12DFCA73ABE24E50C304CDE4E0CF47773CA3F9D4DEA4A7029958F3F86A497B476B5C1AE604BE7BC13F2D8911B8B7FA4CA81ED490521E713463FA3E8B921FA3956738E60D3D9C814FDE23AEF4D28B419BF8E198A5520DAB44BA74B6BE4E62B97D064AF26825E6195FD17116036704F81E87BD4F8996459901625097B6141AF9AE98E0158A486FCE0FAF7E6B180D0773F325AEE0E27937546D28660C31C10";
 
 	/// <summary>
-	/// Directory the clipboard history files live in.
+	/// Name of the directory the clipboard history files live in.
 	/// </summary>
-	private const string HistoryFolder = "clip";
+	private const string HistoryFolderName = "clip";
 
 	/// <summary>
 	/// The payload <see cref="BinFile" /> carries, as an earlier build wrote it.
@@ -100,12 +100,17 @@ internal class ClipboardLogFormatCompatibilityTests
 	/// <summary>
 	/// Path of the clipboard history file.
 	/// </summary>
-	private static readonly string BinPath = Path.Combine(HistoryFolder, "History.bin");
+	private static readonly string BinPath = TestPath.Combine(HistoryFolderName, "History.bin");
+
+	/// <summary>
+	/// Directory the clipboard history files live in.
+	/// </summary>
+	private static readonly string HistoryFolder = TestPath.Combine(HistoryFolderName);
 
 	/// <summary>
 	/// Path of the clipboard history key file.
 	/// </summary>
-	private static readonly string KeyPath = Path.Combine(HistoryFolder, "History.key");
+	private static readonly string KeyPath = TestPath.Combine(HistoryFolderName, "History.key");
 	#endregion
 
 	#region Methods

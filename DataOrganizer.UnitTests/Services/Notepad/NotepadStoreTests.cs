@@ -13,6 +13,7 @@ using Shared.Services;
 using System;
 using System.IO;
 using System.Text;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Notepad;
 
@@ -21,14 +22,29 @@ internal class NotepadStoreTests
 {
 	#region Data
 	/// <summary>
-	/// Directory the texts of the tabs live in.
+	/// Name of the directory the texts of the tabs live in.
 	/// </summary>
-	private const string NotepadFolder = "notepad";
+	private const string NotepadFolderName = "notepad";
 
 	/// <summary>
-	/// Directory the settings of the tabs live in.
+	/// Directory the texts of the tabs live in.
 	/// </summary>
-	private const string SettingsFolder = "settings";
+	private static readonly string NotepadFolder = TestPath.Combine(NotepadFolderName);
+
+	/// <summary>
+	/// Path of the file the settings of the tabs live in.
+	/// </summary>
+	private static readonly string SettingsPath = TestPath.Combine("settings", $"{nameof(NotepadViewSettings)}.json");
+
+	/// <summary>
+	/// Path of the text of the tab numbered 3.
+	/// </summary>
+	private static readonly string TabThreeTextPath = TestPath.Combine(NotepadFolderName, "3.txt");
+
+	/// <summary>
+	/// Path of the text of the tab numbered 2.
+	/// </summary>
+	private static readonly string TabTwoTextPath = TestPath.Combine(NotepadFolderName, "2.txt");
 	#endregion
 
 	#region Methods
@@ -39,11 +55,9 @@ internal class NotepadStoreTests
 	public void Erase_Takes_The_File_Of_The_Text_Away()
 	{
 		// Arrange
-		string filePath = Path.Combine(NotepadFolder, "2.txt");
-
 		InMemoryFileSystem files = new();
 
-		files.Files[filePath] = [1, 2, 3];
+		files.Files[TabTwoTextPath] = [1, 2, 3];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -68,7 +82,7 @@ internal class NotepadStoreTests
 		// Assert
 		files.Files
 			.Should()
-			.NotContainKey(filePath);
+			.NotContainKey(TabTwoTextPath);
 	}
 
 	/// <summary>
@@ -189,8 +203,6 @@ internal class NotepadStoreTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			string filePath = Path.Combine(NotepadFolder, "2.txt");
-
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -200,11 +212,11 @@ internal class NotepadStoreTests
 				.Returns(NotepadFolder);
 
 			fileSystem
-				.FileExists(filePath)
+				.FileExists(TabTwoTextPath)
 				.Returns(true);
 
 			fileSystem
-				.ReadAllBytes(filePath)
+				.ReadAllBytes(TabTwoTextPath)
 				.Throws(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
@@ -232,7 +244,7 @@ internal class NotepadStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		files.Files[Path.Combine(NotepadFolder, "2.txt")] = [1, 2, 3];
+		files.Files[TabTwoTextPath] = [1, 2, 3];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -267,11 +279,9 @@ internal class NotepadStoreTests
 	public void ReadSettings_Returns_Nothing_When_The_Settings_Cannot_Be_Read()
 	{
 		// Arrange
-		string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
-
 		InMemoryFileSystem files = new();
 
-		files.Files[filePath] = Encoding.UTF8.GetBytes("""{ "SelectedTabNumber": 1, "Tabs": [""");
+		files.Files[SettingsPath] = Encoding.UTF8.GetBytes("""{ "SelectedTabNumber": 1, "Tabs": [""");
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -279,7 +289,7 @@ internal class NotepadStoreTests
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(filePath);
+				.Returns(SettingsPath);
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -316,7 +326,7 @@ internal class NotepadStoreTests
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json"));
+				.Returns(SettingsPath);
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -392,7 +402,7 @@ internal class NotepadStoreTests
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json"));
+				.Returns(SettingsPath);
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -430,8 +440,6 @@ internal class NotepadStoreTests
 	public void Write_Puts_The_Bytes_In_Place_Atomically()
 	{
 		// Arrange
-		string filePath = Path.Combine(NotepadFolder, "3.txt");
-
 		InMemoryFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -461,9 +469,9 @@ internal class NotepadStoreTests
 
 		files.AtomicWrites
 			.Should()
-			.Equal(filePath);
+			.Equal(TabThreeTextPath);
 
-		files.Files[filePath]
+		files.Files[TabThreeTextPath]
 			.Should()
 			.Equal(4, 5, 6);
 	}
@@ -486,7 +494,7 @@ internal class NotepadStoreTests
 				.Returns(NotepadFolder);
 
 			fileSystem
-				.When(x => x.WriteAllBytesAtomic(Path.Combine(NotepadFolder, "3.txt"), Arg.Any<byte[]>()))
+				.When(x => x.WriteAllBytesAtomic(TabThreeTextPath, Arg.Any<byte[]>()))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
@@ -529,18 +537,16 @@ internal class NotepadStoreTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
-
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(filePath);
+				.Returns(SettingsPath);
 
 			fileSystem
-				.When(x => x.WriteAllBytesAtomic(filePath, Arg.Any<byte[]>()))
+				.When(x => x.WriteAllBytesAtomic(SettingsPath, Arg.Any<byte[]>()))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
@@ -567,8 +573,6 @@ internal class NotepadStoreTests
 	public void WriteSettings_Puts_The_Settings_In_Place_Atomically()
 	{
 		// Arrange
-		string filePath = Path.Combine(SettingsFolder, $"{nameof(NotepadViewSettings)}.json");
-
 		NotepadViewSettings settings = new()
 		{
 			SelectedTabNumber = 1,
@@ -592,7 +596,7 @@ internal class NotepadStoreTests
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(filePath);
+				.Returns(SettingsPath);
 
 			builder.RegisterInstance(appEnvironment);
 
@@ -613,7 +617,7 @@ internal class NotepadStoreTests
 		// Assert
 		files.AtomicWrites
 			.Should()
-			.Equal(filePath);
+			.Equal(SettingsPath);
 	}
 	#endregion
 }

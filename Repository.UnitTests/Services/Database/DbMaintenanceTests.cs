@@ -5,6 +5,7 @@ using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System.IO;
+using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
 
@@ -15,10 +16,7 @@ internal class DbMaintenanceTests
 	/// <summary>
 	/// Path of the database used in the tests of the leftover copies.
 	/// </summary>
-	private static readonly string DatabaseFilePath = Path.Combine(
-		Path.GetTempPath(),
-		"Database",
-		"DataOrganizer.sqlite");
+	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
 	#endregion
 
 	#region Methods
