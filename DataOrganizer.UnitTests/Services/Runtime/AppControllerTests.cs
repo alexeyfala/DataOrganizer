@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 
@@ -126,7 +127,7 @@ internal class AppControllerTests
 	public async Task LaunchAppAsync_Erases_The_Sandbox_Before_The_Main_Window()
 	{
 		// Arrange
-		const string appDataFolder = @"C:\AppData\DataOrganizer";
+		string appDataFolder = TestPath.Combine("AppData", "DataOrganizer");
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 

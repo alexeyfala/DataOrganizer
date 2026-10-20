@@ -15,12 +15,25 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogService)}"" type")]
 internal class ClipboardLogServiceTests
 {
+	#region Data
+	/// <summary>
+	/// Name of the folder that holds the items of the clipboard.
+	/// </summary>
+	private const string FolderName = "dir";
+
+	/// <summary>
+	/// Path of the file on the clipboard.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine(FolderName, "a.txt");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardLogService.ClearAllAsync" />: the active highlight is cleared from a surviving pin.
@@ -528,8 +541,8 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		ClipboardFileSystemEntry[] entries =
 		[
-			new(@"C:\dir\sub", IsFolder: true),
-			new(@"C:\dir\a.txt", IsFolder: false)
+			new(TestPath.Combine(FolderName, "sub"), IsFolder: true),
+			new(FilePath, IsFolder: false)
 		];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -774,7 +787,7 @@ internal class ClipboardLogServiceTests
 
 			clipboard
 				.TryReadFilesAsync()
-				.Returns([new ClipboardFileSystemEntry(@"C:\dir\a.txt", IsFolder: false)]);
+				.Returns([new ClipboardFileSystemEntry(FilePath, IsFolder: false)]);
 
 			builder
 				.RegisterType<ClipboardHistory>()

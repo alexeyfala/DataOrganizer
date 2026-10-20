@@ -10,12 +10,25 @@ using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistory)}"" type")]
 internal class ClipboardHistoryTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the first item of a list of files.
+	/// </summary>
+	private static readonly string FirstItemPath = TestPath.Combine("a");
+
+	/// <summary>
+	/// Path of the second item of a list of files.
+	/// </summary>
+	private static readonly string SecondItemPath = TestPath.Combine("b");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ClipboardHistory.Clear" />: the payload still on the clipboard is captured again after a clear.
@@ -639,9 +652,11 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Distinguishes_Folder_From_File()
 	{
 		// Arrange
-		byte[] asFolder = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: true)]);
+		string path = TestPath.Combine("x");
 
-		byte[] asFile = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: false)]);
+		byte[] asFolder = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry(path, IsFolder: true)]);
+
+		byte[] asFile = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry(path, IsFolder: false)]);
 
 		// Act, Assert
 		asFolder
@@ -656,7 +671,11 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Is_Deterministic()
 	{
 		// Arrange
-		ClipboardFileSystemEntry[] entries = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
+		ClipboardFileSystemEntry[] entries =
+		[
+			new(FirstItemPath, IsFolder: false),
+			new(SecondItemPath, IsFolder: true)
+		];
 
 		// Act, Assert
 		ClipboardHistory.HashFiles(entries)
@@ -671,9 +690,9 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Is_Order_Sensitive()
 	{
 		// Arrange
-		ClipboardFileSystemEntry a = new("C:\\a", IsFolder: false);
+		ClipboardFileSystemEntry a = new(FirstItemPath, IsFolder: false);
 
-		ClipboardFileSystemEntry b = new("C:\\b", IsFolder: false);
+		ClipboardFileSystemEntry b = new(SecondItemPath, IsFolder: false);
 
 		// Act, Assert
 		ClipboardHistory.HashFiles([a, b])

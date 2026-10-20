@@ -18,11 +18,11 @@ using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
@@ -31,19 +31,24 @@ internal class ClipboardLogStoreTests
 {
 	#region Data
 	/// <summary>
-	/// Directory the clipboard history files live in.
+	/// Name of the directory the clipboard history files live in.
 	/// </summary>
-	private const string HistoryFolder = "clip";
+	private const string HistoryFolderName = "clip";
 
 	/// <summary>
 	/// Path of the clipboard history file.
 	/// </summary>
-	private static readonly string BinPath = Path.Combine(HistoryFolder, "History.bin");
+	private static readonly string BinPath = TestPath.Combine(HistoryFolderName, "History.bin");
+
+	/// <summary>
+	/// Directory the clipboard history files live in.
+	/// </summary>
+	private static readonly string HistoryFolder = TestPath.Combine(HistoryFolderName);
 
 	/// <summary>
 	/// Path of the clipboard history key file.
 	/// </summary>
-	private static readonly string KeyPath = Path.Combine(HistoryFolder, "History.key");
+	private static readonly string KeyPath = TestPath.Combine(HistoryFolderName, "History.key");
 	#endregion
 
 	#region Methods

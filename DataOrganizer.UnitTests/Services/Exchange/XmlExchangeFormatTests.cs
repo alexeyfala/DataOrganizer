@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using TestSupport.Common;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Exchange;
@@ -25,7 +26,7 @@ internal class XmlExchangeFormatTests
 	/// <summary>
 	/// The path of the exchange file.
 	/// </summary>
-	private const string FilePath = @"C:\exchange\organizer.xml";
+	private static readonly string FilePath = TestPath.Combine("exchange", "organizer.xml");
 	#endregion
 
 	#region Methods

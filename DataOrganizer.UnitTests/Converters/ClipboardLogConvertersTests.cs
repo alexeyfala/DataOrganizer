@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Converters;
 
@@ -18,19 +19,24 @@ internal class ClipboardLogConvertersTests
 {
 	#region Data
 	/// <summary>
-	/// Path of the first listed file.
+	/// Name of the directory holding the listed files.
 	/// </summary>
-	private const string FirstFile = $"{Folder}/a.txt";
+	private const string FolderName = "dir";
 
 	/// <summary>
-	/// Directory holding the listed files, split at '/' as every OS does.
+	/// Path of the first listed file.
 	/// </summary>
-	private const string Folder = "/dir";
+	private static readonly string FirstFile = TestPath.Combine(FolderName, "a.txt");
+
+	/// <summary>
+	/// Directory holding the listed files.
+	/// </summary>
+	private static readonly string Folder = TestPath.Combine(FolderName);
 
 	/// <summary>
 	/// Path of the second listed file.
 	/// </summary>
-	private const string SecondFile = $"{Folder}/b.txt";
+	private static readonly string SecondFile = TestPath.Combine(FolderName, "b.txt");
 	#endregion
 
 	#region Methods
@@ -368,7 +374,7 @@ internal class ClipboardLogConvertersTests
 			.Should()
 			.Equal(
 				$"{Glyphs.FileFolder}: 1  {Glyphs.PageFacingUp}: 2  Σ: 3",
-				$"{Glyphs.MiddleDot}  {Glyphs.FileFolder}  dir",
+				$"{Glyphs.MiddleDot}  {Glyphs.FileFolder}  {FolderName}",
 				$"{Glyphs.MiddleDot}  {Glyphs.PageFacingUp}  a.txt",
 				$"{Glyphs.MiddleDot}  {Glyphs.PageFacingUp}  b.txt");
 	}

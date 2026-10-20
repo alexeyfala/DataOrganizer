@@ -15,6 +15,7 @@ using SharpHook.Data;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 
@@ -31,7 +32,7 @@ internal class StartupDataLoaderTests
 		[Values(DbConnectionStatus.SchemaTooOld, DbConnectionStatus.SchemaTooNew)] DbConnectionStatus status)
 	{
 		// Arrange
-		const string databaseFilePath = @"C:\Database\DataOrganizer.sqlite";
+		string databaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 

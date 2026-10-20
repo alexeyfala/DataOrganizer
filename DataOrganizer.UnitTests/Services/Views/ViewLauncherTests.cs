@@ -4596,7 +4596,7 @@ internal class ViewLauncherTests
 	public async Task ShowStartupErrorAsync_Shows_A_Topmost_Notice_Until_It_Is_Closed()
 	{
 		// Arrange
-		const string databaseFilePath = @"C:\Database\DataOrganizer.sqlite";
+		string databaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
 
 		NoticeViewModel viewModel = new(Substitute.For<IDirectoryAccessor>());
 

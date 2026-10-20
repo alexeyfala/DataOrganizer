@@ -7,6 +7,7 @@ using DataOrganizer.Services.Execution;
 using NSubstitute;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Execution;
 
@@ -15,14 +16,14 @@ internal class WindowsAppResolverTests
 {
 	#region Data
 	/// <summary>
-	/// Path of the file to open.
-	/// </summary>
-	private const string FilePath = @"C:\Sandbox\notes.txt";
-
-	/// <summary>
 	/// Path of the application the user picks to open the file.
 	/// </summary>
 	private const string PickedAppPath = @"C:\Apps\picked.exe";
+
+	/// <summary>
+	/// Path of the file to open.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine("Sandbox", "notes.txt");
 	#endregion
 
 	#region Methods
