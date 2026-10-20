@@ -27,7 +27,7 @@ public sealed class ClipboardTextWriter : IClipboardTextWriter
 	public async Task<bool> WriteTextAsync(string text, bool isSensitive)
 	{
 		bool isWritten = await _clipboard
-			.SetTextAsync(text, html: null, rtf: null, isSensitive)
+			.SetTextAsync(text, html: null, rtf: null, isSensitive, isRestored: false)
 			.ConfigureAwait(false);
 
 		if (isWritten && isSensitive)

@@ -235,7 +235,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 						textEntry.Text,
 						textEntry.Html,
 						textEntry.Rtf,
-						textEntry.IsSensitive).ConfigureAwait(false);
+						textEntry.IsSensitive,
+						isRestored: true).ConfigureAwait(false);
 
 					// A restored sensitive entry carries the ownership marker; arm the same auto-clear as a fresh copy.
 					if (isWritten && textEntry.IsSensitive)
@@ -249,7 +250,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
 					await _clipboard
-						.SetImageAsync(png)
+						.SetImageAsync(png, isRestored: true)
 						.ConfigureAwait(false);
 					break;
 
@@ -258,7 +259,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
 					await _clipboard
-						.SetFilesAsync(fileSystemEntries)
+						.SetFilesAsync(fileSystemEntries, isRestored: true)
 						.ConfigureAwait(false);
 					break;
 			}
@@ -343,12 +344,16 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 				.ContainsSensitivityMarkerAsync()
 				.ConfigureAwait(false);
 
+			bool isRestored = await _clipboard
+				.ContainsRestoreMarkerAsync()
+				.ConfigureAwait(false);
+
 			if (await _clipboard.TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
 				byte[] hash = ClipboardHistory.HashFiles(fileSystemEntries);
 
 				await _dispatcher
-					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateFiles(fileSystemEntries, hash), isSensitive))
+					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateFiles(fileSystemEntries, hash), isSensitive, isRestored))
 					.ConfigureAwait(false);
 
 				return;
@@ -359,7 +364,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 				byte[] hash = SHA256.HashData(png);
 
 				await _dispatcher
-					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateImage(png, hash), isSensitive))
+					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateImage(png, hash), isSensitive, isRestored))
 					.ConfigureAwait(false);
 
 				return;
@@ -380,7 +385,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 				byte[] hash = ClipboardHistory.ComputeTextEntryHash(text, html, rtf);
 
 				await _dispatcher
-					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateText(text, html, rtf, hash), isSensitive))
+					.PostAsync(() => _history.HandleNewPayload(hash, () => ClipboardLogEntryFactory.CreateText(text, html, rtf, hash), isSensitive, isRestored))
 					.ConfigureAwait(false);
 
 				return;

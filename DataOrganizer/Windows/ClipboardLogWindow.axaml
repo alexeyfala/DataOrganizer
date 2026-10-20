@@ -1,4 +1,4 @@
-<Window
+<local:AppWindowBase
 	x:Class="DataOrganizer.Windows.ClipboardLogWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,6 +6,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:enums="using:DataOrganizer.Enums.Clipboard"
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
+	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -311,4 +312,4 @@
 			</Interaction.Behaviors>
 		</Border>
 	</Panel>
-</Window>
+</local:AppWindowBase>

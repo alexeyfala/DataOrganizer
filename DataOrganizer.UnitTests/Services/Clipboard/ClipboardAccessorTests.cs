@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Clipboard;
@@ -123,6 +122,65 @@ internal class ClipboardAccessorTests
 
 		// Act
 		bool result = await sut.ContainsOwnershipMarkerAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardAccessor.ContainsRestoreMarkerAsync" />: the marker of a payload put back from the clipboard log is
+	/// found.
+	/// </summary>
+	[Test]
+	public async Task ContainsRestoreMarkerAsync_Finds_The_Marker_Of_A_Restored_Payload()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.CreateBytesApplicationFormat(ClipboardRestoreMarker.Identifier)]);
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
+
+		// Act
+		bool result = await sut.ContainsRestoreMarkerAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardAccessor.ContainsRestoreMarkerAsync" />: content copied by something else carries no marker.
+	/// </summary>
+	[Test]
+	public async Task ContainsRestoreMarkerAsync_Without_The_Marker_Is_False()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([DataFormat.Text]);
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
+
+		// Act
+		bool result = await sut.ContainsRestoreMarkerAsync();
 
 		// Assert
 		result
@@ -367,7 +425,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		Func<Task> act = () => sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)]);
+		Func<Task> act = () => sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)], isRestored: false);
 
 		// Assert
 		await act
@@ -420,7 +478,7 @@ internal class ClipboardAccessorTests
 		[
 			new ClipboardFileSystemEntry(failingPath, IsFolder: false),
 			new ClipboardFileSystemEntry(FilePath, IsFolder: false)
-		]);
+		], isRestored: false);
 
 		// Assert
 		placed!.TryGetFiles()
@@ -454,12 +512,55 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetFilesAsync([new ClipboardFileSystemEntry(TestPath.Combine("file.txt"), IsFolder: false)]);
+		await sut.SetFilesAsync([new ClipboardFileSystemEntry(TestPath.Combine("file.txt"), IsFolder: false)], isRestored: false);
 
 		// Assert
 		await clipboard
 			.DidNotReceive()
 			.SetDataAsync(Arg.Any<DataTransfer>());
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardAccessor.SetFilesAsync" />: only files put back from the clipboard log carry the restore marker.
+	/// </summary>
+	[TestCase(false)]
+	[TestCase(true)]
+	public async Task SetFilesAsync_Marks_Only_Restored_Files(bool isRestored)
+	{
+		// Arrange
+		DataTransfer? placed = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
+
+			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
+
+			IStorageFile file = Substitute.For<IStorageFile>();
+
+			// On Linux the path also goes into the format of the file managers.
+			file.Path.Returns(new Uri(FilePath));
+
+			storage
+				.TryGetFileFromPathAsync(FilePath)
+				.Returns(file);
+
+			clipboard.SetDataAsync(Arg.Do<DataTransfer>(x => placed = x));
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(storage);
+		});
+
+		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
+
+		// Act
+		await sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)], isRestored);
+
+		// Assert
+		ClipboardRestoreMarker.IsAmong(placed!.Formats)
+			.Should()
+			.Be(isRestored);
 	}
 
 	/// <summary>
@@ -517,7 +618,7 @@ internal class ClipboardAccessorTests
 			new ClipboardFileSystemEntry(FilePath, IsFolder: false),
 			new ClipboardFileSystemEntry(SubfolderPath, IsFolder: true),
 			new ClipboardFileSystemEntry(missingPath, IsFolder: false)
-		]);
+		], isRestored: false);
 
 		// Assert
 		placed!.TryGetFiles()
@@ -537,7 +638,7 @@ internal class ClipboardAccessorTests
 			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
 
 			clipboard
-				.SetBitmapAsync(Arg.Any<Bitmap>())
+				.SetDataAsync(Arg.Any<DataTransfer>())
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(clipboard);
@@ -546,7 +647,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		Func<Task> act = () => sut.SetImageAsync(ImageFactory.CreatePng());
+		Func<Task> act = () => sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
 
 		// Assert
 		await act
@@ -555,7 +656,29 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetImageAsync" />: the picture of the PNG goes to the clipboard.
+	/// <see cref="ClipboardAccessor.SetImageAsync" />: a picture put back from the clipboard log carries the restore marker.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task SetImageAsync_Marks_A_Restored_Picture()
+	{
+		// Arrange
+		IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
+
+		// Act
+		await sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: true);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetBitmap() != null && ClipboardRestoreMarker.IsAmong(x.Formats)));
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardAccessor.SetImageAsync" />: the picture of the PNG goes to the clipboard, without markers.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task SetImageAsync_Puts_The_Picture_Of_The_Png_On_The_Clipboard()
@@ -568,12 +691,36 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetImageAsync(ImageFactory.CreatePng());
+		await sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
 
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetBitmapAsync(Arg.Any<Bitmap>());
+			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetBitmap() != null && x.Formats.Count == 1));
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardAccessor.SetTextAsync" />: a text put back from the clipboard log carries the restore marker.
+	/// </summary>
+	[Test]
+	public async Task SetTextAsync_Marks_A_Restored_Text()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
+
+		// Act
+		await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: true);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetText() == text && ClipboardRestoreMarker.IsAmong(x.Formats)));
 	}
 
 	/// <summary>
@@ -592,7 +739,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		bool result = await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: true);
+		bool result = await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: true, isRestored: false);
 
 		// Assert
 		result
@@ -621,7 +768,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: false);
+		await sut.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: false);
 
 		// Assert
 		await clipboard
@@ -654,7 +801,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetTextAsync("hello", html, rtf, isSensitive: false);
+		await sut.SetTextAsync("hello", html, rtf, isSensitive: false, isRestored: false);
 
 		// Assert
 		DataTransfer transfer = placed!;
@@ -694,7 +841,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		bool result = await sut.SetTextAsync(RandomString.Create(16), html: null, rtf: null, isSensitive: false);
+		bool result = await sut.SetTextAsync(RandomString.Create(16), html: null, rtf: null, isSensitive: false, isRestored: false);
 
 		// Assert
 		result

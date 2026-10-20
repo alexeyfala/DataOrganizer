@@ -13,6 +13,7 @@ using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -349,6 +350,267 @@ internal class ClipboardLogServiceTests
 		history
 			.Received(1)
 			.Merge(entries);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: the marked echo of restored files that the clipboard hands back in
+	/// another form takes the place of the restored entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_After_A_Restore_Rebaselines_The_Marked_Files()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The restored files come back marked, under a hash of their own.
+			clipboard
+				.ContainsRestoreMarkerAsync()
+				.Returns(true);
+
+			clipboard
+				.TryReadFilesAsync()
+				.Returns([new ClipboardFileSystemEntry(FilePath, IsFolder: false)]);
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardFilesEntry restored = ClipboardEntryFactory.CreateFilesEntry();
+
+		sut.Entries.Add(restored);
+
+		await sut.RestoreAsync(restored);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.NotBeSameAs(restored);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: the marked echo of a restored image that the clipboard hands back in
+	/// another form takes the place of the restored entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_After_A_Restore_Rebaselines_The_Marked_Image()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The restored image comes back marked, under a hash of its own.
+			clipboard
+				.ContainsRestoreMarkerAsync()
+				.Returns(true);
+
+			clipboard
+				.TryReadImagePngAsync()
+				.Returns(ImageFactory.CreatePng());
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardImageEntry restored = ClipboardEntryFactory.CreateImageEntry(ImageFactory.CreatePng());
+
+		sut.Entries.Add(restored);
+
+		await sut.RestoreAsync(restored);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.NotBeSameAs(restored);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: the marked echo of a restored text that the clipboard hands back in
+	/// another form takes the place of the restored entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_After_A_Restore_Rebaselines_The_Marked_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The restored text comes back marked, under a hash of its own.
+			clipboard
+				.ContainsRestoreMarkerAsync()
+				.Returns(true);
+
+			clipboard
+				.TryReadTextAsync()
+				.Returns("restored");
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
+
+		sut.Entries.Add(restored);
+
+		await sut.RestoreAsync(restored);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.NotBeSameAs(restored);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: a secret copied right after a restore, before the clipboard hands the
+	/// restored entry back, is skipped, and the restored entry stays.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_After_A_Restore_Skips_A_Secret_Copied_Over_It()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// A password manager put its secret over the restored entry.
+			clipboard
+				.ContainsSensitivityMarkerAsync()
+				.Returns(true);
+
+			clipboard
+				.TryReadTextAsync()
+				.Returns("super-secret");
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
+
+		sut.Entries.Add(restored);
+
+		await sut.RestoreAsync(restored);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(restored);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: once a restored pin is cleared with the rest of the history, the next
+	/// copy is added below it instead of taking its place.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_After_ClearAllAsync_Adds_The_Next_Copy_Below_A_Restored_Pin()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The emptied clipboard reads empty first, then holds the next copy.
+			clipboard
+				.TryReadTextAsync()
+				.Returns((string?)null, "next");
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [1]);
+
+		sut.Entries.Add(pinned);
+
+		await sut.RestoreAsync(pinned, keepPosition: true);
+
+		await sut.ClearAllAsync();
+
+		// Act
+		await sut.PollOnceAsync();
+
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries.OfType<ClipboardTextEntry>().Select(x => x.Text)
+			.Should()
+			.Equal("pinned", "next");
+
+		pinned.IsPinned
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1050,7 +1312,7 @@ internal class ClipboardLogServiceTests
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 			clipboard
-				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true, isRestored: true)
 				.Returns(true);
 
 			builder
@@ -1090,7 +1352,7 @@ internal class ClipboardLogServiceTests
 
 			// The text reaches the clipboard, so only its kind keeps the auto-clear off.
 			clipboard
-				.SetTextAsync(text, html: null, rtf: null, isSensitive: false)
+				.SetTextAsync(text, html: null, rtf: null, isSensitive: false, isRestored: true)
 				.Returns(true);
 
 			builder
@@ -1130,7 +1392,7 @@ internal class ClipboardLogServiceTests
 
 			// The clipboard refuses the text.
 			clipboard
-				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true)
+				.SetTextAsync(secret, html: null, rtf: null, isSensitive: true, isRestored: true)
 				.Returns(false);
 
 			builder
@@ -1181,7 +1443,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(secret, html: null, rtf: null, isSensitive: true);
+			.SetTextAsync(secret, html: null, rtf: null, isSensitive: true, isRestored: true);
 	}
 
 	/// <summary>
@@ -1344,7 +1606,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetImageAsync(png);
+			.SetImageAsync(png, isRestored: true);
 	}
 
 	/// <summary>
@@ -1375,7 +1637,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetFilesAsync(entry.FileSystemEntries);
+			.SetFilesAsync(entry.FileSystemEntries, isRestored: true);
 	}
 
 	/// <summary>
@@ -1408,7 +1670,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync("hello", html, rtf, isSensitive: false);
+			.SetTextAsync("hello", html, rtf, isSensitive: false, isRestored: true);
 	}
 
 	/// <summary>
@@ -1439,7 +1701,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		await clipboard
 			.Received(1)
-			.SetTextAsync(url, html: null, rtf: null, isSensitive: false);
+			.SetTextAsync(url, html: null, rtf: null, isSensitive: false, isRestored: true);
 	}
 
 	/// <summary>

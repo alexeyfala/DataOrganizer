@@ -1,4 +1,4 @@
-<Window
+<local:AppWindowBase
 	x:Class="DataOrganizer.Windows.EditorWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,6 +14,7 @@
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
+	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -569,4 +570,4 @@
 			</materialControls:SnackbarHost>
 		</dialogHost:DialogHost>
 	</DockPanel>
-</Window>
+</local:AppWindowBase>
