@@ -15,6 +15,7 @@ using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -285,7 +286,7 @@ internal class ConsoleViewModelTests
 	public void OpenAppDataDirectoryCommand_Opens_The_Application_Data_Directory()
 	{
 		// Arrange
-		const string directoryPath = @"C:\Data\DataOrganizer";
+		string directoryPath = TestPath.Combine("Data", "DataOrganizer");
 
 		IDirectoryAccessor directoryAccessor = Substitute.For<IDirectoryAccessor>();
 

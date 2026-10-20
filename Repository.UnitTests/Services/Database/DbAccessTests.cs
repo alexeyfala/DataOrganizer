@@ -35,13 +35,6 @@ namespace Repository.UnitTests.Services.Database;
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests
 {
-	#region Data
-	/// <summary>
-	/// Path the database file is taken to live at.
-	/// </summary>
-	private const string DatabaseFilePath = @"C:\Database\DataOrganizer.sqlite";
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// <see cref="DbAccess.AddEntityAsync" />: a failed save leaves no entity tracked for the next save to write.
@@ -885,7 +878,7 @@ internal class DbAccessTests
 
 			dbContextService
 				.GetDbFilePath()
-				.Returns(DatabaseFilePath);
+				.Returns(TestPath.Combine("Database", "DataOrganizer.sqlite"));
 
 			fileSystem
 				.FileExists(Arg.Any<string>())

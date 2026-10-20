@@ -6,6 +6,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Settings;
 using NSubstitute;
 using Shared.Interfaces;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
@@ -16,7 +17,9 @@ internal class WindowSettingsStoreTests
 	/// <summary>
 	/// Path of the file the settings of the copy history are kept in.
 	/// </summary>
-	private const string CopyHistorySettingsPath = $@"C:\Settings\{nameof(CopyHistoryViewSettings)}.json";
+	private static readonly string CopyHistorySettingsPath = TestPath.Combine(
+		"Settings",
+		$"{nameof(CopyHistoryViewSettings)}.json");
 	#endregion
 
 	#region Methods

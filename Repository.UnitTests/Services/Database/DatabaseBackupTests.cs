@@ -7,6 +7,7 @@ using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
 
@@ -15,17 +16,14 @@ internal class DatabaseBackupTests
 {
 	#region Data
 	/// <summary>
-	/// Path of the copy used in the tests.
-	/// </summary>
-	private const string FilePath = @"C:\Database\Backup.sqlite";
-
-	/// <summary>
 	/// Path of the database the copies are built from.
 	/// </summary>
-	private static readonly string DatabaseFilePath = Path.Combine(
-		Path.GetTempPath(),
-		"Database",
-		"DataOrganizer.sqlite");
+	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Path of the copy used in the tests.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine("Database", "Backup.sqlite");
 	#endregion
 
 	#region Methods

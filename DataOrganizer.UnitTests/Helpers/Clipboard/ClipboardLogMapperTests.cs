@@ -5,6 +5,7 @@ using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 using System.Text.Json;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Helpers.Clipboard;
 
@@ -23,7 +24,7 @@ internal class ClipboardLogMapperTests
 		[
 			ClipboardEntryFactory.CreateTextEntry("plain"),
 			ClipboardEntryFactory.CreateImageEntry([2, 2], [2]),
-			ClipboardEntryFactory.CreateFilesEntry([new ClipboardFileSystemEntry(@"C:\a", IsFolder: false)], [3])
+			ClipboardEntryFactory.CreateFilesEntry([new(TestPath.Combine("a"), IsFolder: false)], [3])
 		];
 
 		// Act
@@ -115,12 +116,14 @@ internal class ClipboardLogMapperTests
 	public void RoundTrip_Preserves_Files_Entry()
 	{
 		// Arrange
+		string folderPath = TestPath.Combine("folder");
+
 		ClipboardFilesEntry entry = new()
 		{
 			FileSystemEntries =
 			[
-				new("C:\\folder", IsFolder: true),
-				new("C:\\folder\\file.txt", IsFolder: false)
+				new(folderPath, IsFolder: true),
+				new(TestPath.Combine("folder", "file.txt"), IsFolder: false)
 			],
 			Hash = [9, 9, 9]
 		};
@@ -144,7 +147,7 @@ internal class ClipboardLogMapperTests
 
 		files.FileSystemEntries[0].Path
 			.Should()
-			.Be("C:\\folder");
+			.Be(folderPath);
 
 		files.FileSystemEntries[0].IsFolder
 			.Should()

@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Exchange;
@@ -24,7 +25,7 @@ internal class JsonExchangeFormatTests
 	/// <summary>
 	/// The path of the exchange file.
 	/// </summary>
-	private const string FilePath = @"C:\exchange\organizer.json";
+	private static readonly string FilePath = TestPath.Combine("exchange", "organizer.json");
 	#endregion
 
 	#region Methods

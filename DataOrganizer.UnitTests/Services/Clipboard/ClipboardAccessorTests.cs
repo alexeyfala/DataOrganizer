@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
@@ -317,7 +318,7 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Ignores_A_Refused_Write()
 	{
 		// Arrange
-		const string filePath = @"C:\dir\a.txt";
+		string filePath = TestPath.Combine("dir", "a.txt");
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -328,7 +329,7 @@ internal class ClipboardAccessorTests
 			IStorageFile file = Substitute.For<IStorageFile>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			file.Path.Returns(new Uri(filePath));
 
 			storage
 				.TryGetFileFromPathAsync(filePath)
@@ -362,9 +363,9 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Leaves_Out_A_File_Whose_Lookup_Fails()
 	{
 		// Arrange
-		const string failingPath = @"C:\dir\locked.txt";
+		string failingPath = TestPath.Combine("dir", "locked.txt");
 
-		const string filePath = @"C:\dir\a.txt";
+		string filePath = TestPath.Combine("dir", "a.txt");
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -377,7 +378,7 @@ internal class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			file.Path.Returns(new Uri(filePath));
 
 			storage
 				.TryGetFileFromPathAsync(failingPath)
@@ -435,7 +436,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetFilesAsync([new ClipboardFileSystemEntry(@"C:\file.txt", IsFolder: false)]);
+		await sut.SetFilesAsync([new ClipboardFileSystemEntry(TestPath.Combine("file.txt"), IsFolder: false)]);
 
 		// Assert
 		await clipboard
@@ -451,11 +452,11 @@ internal class ClipboardAccessorTests
 	public async Task SetFilesAsync_Puts_The_Found_Files_On_The_Clipboard()
 	{
 		// Arrange
-		const string filePath = @"C:\dir\a.txt";
+		string filePath = TestPath.Combine("dir", "a.txt");
 
-		const string folderPath = @"C:\dir\sub";
+		string folderPath = TestPath.Combine("dir", "sub");
 
-		const string missingPath = @"C:\dir\gone.txt";
+		string missingPath = TestPath.Combine("dir", "gone.txt");
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -470,9 +471,9 @@ internal class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the paths also go into the format of the file managers.
-			file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			file.Path.Returns(new Uri(filePath));
 
-			folder.Path.Returns(new Uri("file:///C:/dir/sub"));
+			folder.Path.Returns(new Uri(folderPath));
 
 			storage
 				.TryGetFileFromPathAsync(filePath)
@@ -731,9 +732,9 @@ internal class ClipboardAccessorTests
 
 			IStorageFolder folder = Substitute.For<IStorageFolder>();
 
-			file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+			file.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
 
-			folder.Path.Returns(new Uri("file:///C:/dir/sub"));
+			folder.Path.Returns(new Uri(TestPath.Combine("dir", "sub")));
 
 			clipboard
 				.TryGetFilesAsync()
@@ -768,8 +769,7 @@ internal class ClipboardAccessorTests
 
 			IStorageFile relative = Substitute.For<IStorageFile>();
 
-			// A path split at '/' as every OS does, so the name is the same on each.
-			valid.Path.Returns(new Uri("file:///dir/a.txt"));
+			valid.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
 
 			relative.Path.Returns(new Uri("b.txt", UriKind.Relative));
 
@@ -811,10 +811,9 @@ internal class ClipboardAccessorTests
 
 			IStorageFile lower = Substitute.For<IStorageFile>();
 
-			// Paths split at '/' as every OS does, so the names are the same on each.
-			upper.Path.Returns(new Uri("file:///dir/B.txt"));
+			upper.Path.Returns(new Uri(TestPath.Combine("dir", "B.txt")));
 
-			lower.Path.Returns(new Uri("file:///dir/a.txt"));
+			lower.Path.Returns(new Uri(TestPath.Combine("dir", "a.txt")));
 
 			clipboard
 				.TryGetFilesAsync()

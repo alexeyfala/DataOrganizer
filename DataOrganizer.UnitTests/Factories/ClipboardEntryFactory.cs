@@ -1,6 +1,7 @@
 using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Linq;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Factories;
 
@@ -11,14 +12,15 @@ public static class ClipboardEntryFactory
 {
 	#region Methods
 	/// <summary>
-	/// Creates the required number of plain files, named in order from <c>file0.txt</c>, in a path split at '/' as every
-	/// OS does.
+	/// Creates the required number of plain files, named in order from <c>file0.txt</c>.
 	/// </summary>
 	public static ClipboardFileSystemEntry[] CreateFiles(int count)
 	{
 		return [.. Enumerable
 			.Range(0, count)
-			.Select(static i => new ClipboardFileSystemEntry($"/dir/file{i}.txt", IsFolder: false))];
+			.Select(static i => new ClipboardFileSystemEntry(
+				TestPath.Combine("dir", $"file{i}.txt"),
+				IsFolder: false))];
 	}
 
 	/// <summary>
@@ -28,7 +30,7 @@ public static class ClipboardEntryFactory
 		IReadOnlyList<ClipboardFileSystemEntry>? entries = null,
 		byte[]? hash = null) => new()
 		{
-			FileSystemEntries = entries ?? [new ClipboardFileSystemEntry(@"C:\file.txt", IsFolder: false)],
+			FileSystemEntries = entries ?? [new(TestPath.Combine("file.txt"), IsFolder: false)],
 			Hash = hash ?? [1]
 		};
 

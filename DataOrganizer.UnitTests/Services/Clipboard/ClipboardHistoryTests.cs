@@ -10,6 +10,7 @@ using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
@@ -639,9 +640,11 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Distinguishes_Folder_From_File()
 	{
 		// Arrange
-		byte[] asFolder = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: true)]);
+		string path = TestPath.Combine("x");
 
-		byte[] asFile = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: false)]);
+		byte[] asFolder = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry(path, IsFolder: true)]);
+
+		byte[] asFile = ClipboardHistory.HashFiles([new ClipboardFileSystemEntry(path, IsFolder: false)]);
 
 		// Act, Assert
 		asFolder
@@ -656,7 +659,11 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Is_Deterministic()
 	{
 		// Arrange
-		ClipboardFileSystemEntry[] entries = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
+		ClipboardFileSystemEntry[] entries =
+		[
+			new(TestPath.Combine("a"), IsFolder: false),
+			new(TestPath.Combine("b"), IsFolder: true)
+		];
 
 		// Act, Assert
 		ClipboardHistory.HashFiles(entries)
@@ -671,9 +678,9 @@ internal class ClipboardHistoryTests
 	public void HashFiles_Is_Order_Sensitive()
 	{
 		// Arrange
-		ClipboardFileSystemEntry a = new("C:\\a", IsFolder: false);
+		ClipboardFileSystemEntry a = new(TestPath.Combine("a"), IsFolder: false);
 
-		ClipboardFileSystemEntry b = new("C:\\b", IsFolder: false);
+		ClipboardFileSystemEntry b = new(TestPath.Combine("b"), IsFolder: false);
 
 		// Act, Assert
 		ClipboardHistory.HashFiles([a, b])

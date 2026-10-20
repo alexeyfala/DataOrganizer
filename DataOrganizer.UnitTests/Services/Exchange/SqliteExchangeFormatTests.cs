@@ -7,6 +7,7 @@ using Repository.Dto;
 using Repository.Interfaces.Database;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Exchange;
@@ -18,7 +19,7 @@ internal class SqliteExchangeFormatTests
 	/// <summary>
 	/// The path of the exchange file.
 	/// </summary>
-	private const string FilePath = @"C:\exchange\organizer.sqlite";
+	private static readonly string FilePath = TestPath.Combine("exchange", "organizer.sqlite");
 	#endregion
 
 	#region Methods

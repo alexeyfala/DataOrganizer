@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
@@ -528,8 +529,8 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		ClipboardFileSystemEntry[] entries =
 		[
-			new(@"C:\dir\sub", IsFolder: true),
-			new(@"C:\dir\a.txt", IsFolder: false)
+			new(TestPath.Combine("dir", "sub"), IsFolder: true),
+			new(TestPath.Combine("dir", "a.txt"), IsFolder: false)
 		];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -774,7 +775,7 @@ internal class ClipboardLogServiceTests
 
 			clipboard
 				.TryReadFilesAsync()
-				.Returns([new ClipboardFileSystemEntry(@"C:\dir\a.txt", IsFolder: false)]);
+				.Returns([new ClipboardFileSystemEntry(TestPath.Combine("dir", "a.txt"), IsFolder: false)]);
 
 			builder
 				.RegisterType<ClipboardHistory>()

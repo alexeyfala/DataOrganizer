@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Services.Execution;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Execution;
 
@@ -19,7 +20,7 @@ internal class SystemAppResolverTests
 		SystemAppResolver sut = new();
 
 		// Act
-		AppResolution result = await sut.ResolveAsync(@"C:\Sandbox\notes.txt");
+		AppResolution result = await sut.ResolveAsync(TestPath.Combine("Sandbox", "notes.txt"));
 
 		// Assert
 		result

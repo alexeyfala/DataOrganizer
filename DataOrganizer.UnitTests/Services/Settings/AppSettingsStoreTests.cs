@@ -9,6 +9,7 @@ using DataOrganizer.Services.Settings;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using Shared.Interfaces;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
@@ -92,7 +93,7 @@ internal class AppSettingsStoreTests
 	public void Save_Uses_Path_From_AppEnvironment()
 	{
 		// Arrange
-		const string expectedPath = $@"C:\Settings\{nameof(AppSettings)}.json";
+		string expectedPath = TestPath.Combine("Settings", $"{nameof(AppSettings)}.json");
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
