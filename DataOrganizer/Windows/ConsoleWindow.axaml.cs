@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class ConsoleWindow : Window
+public sealed partial class ConsoleWindow : AppWindowBase
 {
 	#region Properties
 	/// <inheritdoc cref="WindowPlacementTracker" />

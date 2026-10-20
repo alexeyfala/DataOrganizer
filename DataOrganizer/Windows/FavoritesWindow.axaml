@@ -1,4 +1,4 @@
-<Window
+<local:AppWindowBase
 	x:Class="DataOrganizer.Windows.FavoritesWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +9,7 @@
 
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
+	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -317,4 +318,4 @@
 			</Border>
 		</Grid>
 	</Border>
-</Window>
+</local:AppWindowBase>

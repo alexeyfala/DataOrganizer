@@ -1,9 +1,10 @@
-<Window
+<local:AppWindowBase
 	x:Class="DataOrganizer.Windows.ConsoleWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -134,4 +135,4 @@
 			</textControls:ConsoleLogViewer.ContextMenu>
 		</textControls:ConsoleLogViewer>
 	</Grid>
-</Window>
+</local:AppWindowBase>

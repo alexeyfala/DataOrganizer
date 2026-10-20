@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class ClipboardLogWindow : Window
+public sealed partial class ClipboardLogWindow : AppWindowBase
 {
 	#region Properties
 	/// <inheritdoc cref="ClipboardLogViewModel" />

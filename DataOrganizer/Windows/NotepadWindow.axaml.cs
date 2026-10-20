@@ -1,10 +1,9 @@
-using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
 using System;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class NotepadWindow : Window
+public sealed partial class NotepadWindow : AppWindowBase
 {
 	#region Properties
 	/// <inheritdoc cref="NotepadViewModel" />

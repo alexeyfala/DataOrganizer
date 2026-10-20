@@ -5,6 +5,8 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
+using DataOrganizer.Windows;
+using System;
 using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.Helpers.Views;
@@ -310,6 +312,43 @@ internal class WindowPlacementHelperTests
 		window.Position
 			.Should()
 			.NotBe(new PixelPoint(-20000, -20000));
+	}
+
+	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: a window of the application not shown yet hands the stored size to its
+	/// platform window before it moves to the stored position.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(typeof(ClipboardLogWindow))]
+	[TestCase(typeof(ConsoleWindow))]
+	[TestCase(typeof(EditorWindow))]
+	[TestCase(typeof(FavoritesWindow))]
+	[TestCase(typeof(NotepadWindow))]
+	public void Restore_Sizes_A_Window_Not_Shown_Yet_Before_It_Moves(Type windowType)
+	{
+		// Arrange
+		WindowPlacementSettings settings = new()
+		{
+			IsTopmost = false,
+			Size = new(640, 480),
+			WindowState = WindowShowState.Normal,
+			X = 120,
+			Y = 90
+		};
+
+		List<Size> sizesAtMove = [];
+
+		Window window = (Window)Activator.CreateInstance(windowType)!;
+
+		window.PositionChanged += (_, _) => sizesAtMove.Add(window.ClientSize);
+
+		// Act
+		WindowPlacementHelper.Restore(window, settings, static _ => { });
+
+		// Assert
+		sizesAtMove
+			.Should()
+			.Equal(new Size(640, 480));
 	}
 	#endregion
 }

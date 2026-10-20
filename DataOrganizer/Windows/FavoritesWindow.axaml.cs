@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class FavoritesWindow : Window, IMainWindow
+public sealed partial class FavoritesWindow : AppWindowBase, IMainWindow
 {
 	#region Properties
 	/// <inheritdoc />

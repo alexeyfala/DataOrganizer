@@ -1,11 +1,10 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class EditorWindow : Window, IMainWindow
+public sealed partial class EditorWindow : AppWindowBase, IMainWindow
 {
 	#region Properties
 	/// <inheritdoc />
