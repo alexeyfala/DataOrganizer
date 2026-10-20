@@ -22,17 +22,7 @@
 				</Template>
 			</Setter.Value>
 		</Setter>
-		<Setter Property="ToolTip.Tip">
-			<Setter.Value>
-				<Template>
-					<ToolTip>
-						<TextBlock>
-							<Run Text="{x:Static prop:Strings.Clipboard}" />
-						</TextBlock>
-					</ToolTip>
-				</Template>
-			</Setter.Value>
-		</Setter>
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clipboard}" />
 	</ControlTheme>
 
 	<ControlTheme x:Key="DialogTheme" TargetType="UserControl">

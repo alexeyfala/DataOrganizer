@@ -5,10 +5,25 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text">
+
+	<!--
+		A button that shows no text is named for screen readers and UI Automation by its tip.
+		The binding shadows a name set by a control theme, so a theme names a button by a text tip.
+	-->
+	<Style Selector=":is(Button)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.ToolTipAutomationName}">
+				<Binding Mode="OneWay" Path="$self.Content" />
+
+				<Binding Mode="OneWay" Path="$self.(ToolTip.Tip)" />
+			</MultiBinding>
+		</Setter>
+	</Style>
 
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />

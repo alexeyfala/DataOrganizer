@@ -44,6 +44,9 @@ internal static class AppConverters
 	public static FuncValueConverter<SizeChangedEventArgs?, double> SizeChangedToWidth { get; } =
 		new(static x => x?.NewSize.Width ?? double.NaN);
 
+	/// <inheritdoc cref="ToolTipAutomationNameConverter" />
+	public static ToolTipAutomationNameConverter ToolTipAutomationName { get; } = new();
+
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
 	#endregion

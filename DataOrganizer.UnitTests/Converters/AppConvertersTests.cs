@@ -109,6 +109,67 @@ internal class AppConvertersTests
 			.Should()
 			.Be(double.NaN);
 	}
+
+	/// <summary>
+	/// <see cref="AppConverters.ToolTipAutomationName" />: a button with text keeps the text as its name.
+	/// </summary>
+	[Test]
+	public void ToolTipAutomationName_Leaves_A_Button_With_Text_To_Its_Text()
+	{
+		// Act
+		object? result = Convert(AppConverters.ToolTipAutomationName, "Save", "Add");
+
+		// Assert
+		result
+			.Should()
+			.Be(AvaloniaProperty.UnsetValue);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.ToolTipAutomationName" />: a button that shows no text is named by its tip.
+	/// </summary>
+	[TestCase(true)]
+	[TestCase(false)]
+	public void ToolTipAutomationName_Names_A_Button_Without_Text_By_Its_Tip(bool hasContent)
+	{
+		// Arrange
+		const string tip = "Add";
+
+		// An object stands for an icon or any other content that is not text.
+		object? content = hasContent
+			? new object()
+			: null;
+
+		// Act
+		object? result = Convert(AppConverters.ToolTipAutomationName, content, tip);
+
+		// Assert
+		result
+			.Should()
+			.Be(tip);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.ToolTipAutomationName" />: a tip that is not text leaves the name unset.
+	/// </summary>
+	[TestCase(true)]
+	[TestCase(false)]
+	public void ToolTipAutomationName_Without_A_Text_Tip_Leaves_The_Name_Unset(bool hasTip)
+	{
+		// Arrange
+		// An object stands for a tip built from a template.
+		object? tip = hasTip
+			? new object()
+			: null;
+
+		// Act
+		object? result = Convert(AppConverters.ToolTipAutomationName, new object(), tip);
+
+		// Assert
+		result
+			.Should()
+			.Be(AvaloniaProperty.UnsetValue);
+	}
 	#endregion
 
 	#region Helpers
@@ -143,6 +204,18 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			args,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the content and the tip of a button.
+	/// </summary>
+	private static object? Convert(ToolTipAutomationNameConverter converter, object? content, object? tip)
+	{
+		return converter.Convert(
+			[content, tip],
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);
