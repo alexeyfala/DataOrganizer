@@ -1,9 +1,8 @@
-using Avalonia.Controls;
 using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
-internal partial class ToastWindow : Window
+internal partial class ToastWindow : AppWindowBase
 {
 	#region Constructors
 	public ToastWindow() => InitializeComponent();
