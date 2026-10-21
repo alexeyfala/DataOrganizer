@@ -18,6 +18,15 @@
 		<Style Selector="ToolTip">
 			<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 		</Style>
+
+		<!--  The field is named for screen readers and UI Automation by what it shows, a sensitive one by a neutral word.  -->
+		<Style Selector="views|DatasetFieldView">
+			<Setter Property="AutomationProperties.Name" Value="{Binding $self.DisplayText, Mode=OneWay}" />
+		</Style>
+
+		<Style Selector="views|DatasetFieldView[IsSensitive=True]">
+			<Setter Property="AutomationProperties.Name" Value="{x:Static prop:Strings.HiddenText}" />
+		</Style>
 	</UserControl.Styles>
 
 	<UserControl.Resources>

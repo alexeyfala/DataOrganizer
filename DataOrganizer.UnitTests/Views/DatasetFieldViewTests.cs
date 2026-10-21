@@ -1,3 +1,4 @@
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.NUnit;
@@ -109,6 +110,42 @@ internal class DatasetFieldViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetFieldView.DisplayText" />: the field is named for UI Automation by what it shows, the text or its
+	/// mask.
+	/// </summary>
+	[AvaloniaTest]
+	public void DisplayText_Names_The_Field_For_UI_Automation([Values] bool isHidden)
+	{
+		// Arrange
+		DatasetFieldView sut = new()
+		{
+			IsHidden = isHidden,
+			Text = RandomString.Create(16)
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		string name = ControlAutomationPeer
+			.CreatePeerForElement(sut)
+			.GetName();
+
+		// Assert
+		name
+			.Should()
+			.NotBeNullOrEmpty()
+			.And
+			.Be(sut.DisplayText);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetFieldView.DisplayText" />: an empty hidden text shows no mask.
 	/// </summary>
 	[AvaloniaTest]
@@ -202,6 +239,63 @@ internal class DatasetFieldViewTests
 		toggle.IsChecked
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetFieldView.IsSensitive" />: a sensitive field carries none of its text in the name for UI Automation,
+	/// and every sensitive field gets the same one.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSensitive_Keeps_The_Text_Out_Of_The_Name()
+	{
+		// Arrange
+		DatasetFieldView first = new()
+		{
+			IsSensitive = true,
+			Text = RandomString.Create(16)
+		};
+
+		DatasetFieldView second = new()
+		{
+			IsSensitive = true,
+			Text = RandomString.Create(16)
+		};
+
+		Window window = new()
+		{
+			Content = new StackPanel
+			{
+				Children =
+				{
+					first,
+					second
+				}
+			}
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		string firstName = ControlAutomationPeer
+			.CreatePeerForElement(first)
+			.GetName();
+
+		string secondName = ControlAutomationPeer
+			.CreatePeerForElement(second)
+			.GetName();
+
+		// Assert
+		firstName
+			.Should()
+			.NotBeNullOrEmpty()
+			.And
+			.NotContain(first.Text!);
+
+		secondName
+			.Should()
+			.Be(firstName);
 	}
 	#endregion
 }
