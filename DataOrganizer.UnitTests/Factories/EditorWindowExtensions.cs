@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Windows;
 using System.Linq;
@@ -32,7 +31,7 @@ internal static class EditorWindowExtensions
 		return window
 			.GetVisualDescendants()
 			.OfType<Grid>()
-			.FirstOrDefault(x => x.DataContext == dto && Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any());
+			.FirstOrDefault(x => x.DataContext == dto && x.ContextFlyout is LazyMenuFlyout);
 	}
 	#endregion
 }

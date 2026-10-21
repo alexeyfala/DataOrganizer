@@ -122,27 +122,31 @@
 
 			<controls:FlyoutButton Header="{x:Static prop:Strings.Add}" Icon="Plus">
 				<Button.Flyout>
-					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddKeyValueCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.AddKeyAndValue}"
-								Icon="Plus" />
+					<controls:LazyMenuFlyout Placement="Right">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="dataset:RecordsGroup">
+								<StackPanel Orientation="Vertical">
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddKeyValueCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.AddKeyAndValue}"
+										Icon="Plus" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddValueCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.AddValue}"
-								Icon="Plus" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddValueCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.AddValue}"
+										Icon="Plus" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddGroupCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.AddGroup}"
-								Icon="ShapeRectanglePlus" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddGroupCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.AddGroup}"
+										Icon="ShapeRectanglePlus" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</controls:FlyoutButton>
 
@@ -154,49 +158,53 @@
 
 			<controls:FlyoutButton Header="{x:Static prop:Strings.Options}" Icon="CogOutline">
 				<Button.Flyout>
-					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.CollapseAll}"
-								Icon="ChevronDoubleUp" />
+					<controls:LazyMenuFlyout Placement="Right">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="dataset:RecordsGroup">
+								<StackPanel Orientation="Vertical">
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.CollapseAll}"
+										Icon="ChevronDoubleUp" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.ExpandAll}"
-								Icon="ChevronDoubleDown" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.ExpandAll}"
+										Icon="ChevronDoubleDown" />
 
-							<Separator />
+									<Separator />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).HideCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.HideAll}"
-								Icon="EyeOffOutline" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).HideCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.HideAll}"
+										Icon="EyeOffOutline" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ShowCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.ShowAll}"
-								Icon="EyeOutline" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ShowCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.ShowAll}"
+										Icon="EyeOutline" />
 
-							<Separator />
+									<Separator />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortAscendingCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.SortAscending}"
-								Icon="SortAlphabeticalAscending" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortAscendingCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.SortAscending}"
+										Icon="SortAlphabeticalAscending" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortDescendingCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.SortDescending}"
-								Icon="SortAlphabeticalDescending" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortDescendingCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.SortDescending}"
+										Icon="SortAlphabeticalDescending" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</controls:FlyoutButton>
 		</StackPanel>
@@ -254,46 +262,50 @@
 
 			<controls:FlyoutButton Header="{x:Static prop:Strings.Encryption}" Icon="LockOutline">
 				<Button.Flyout>
-					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFolderContentsCommand}"
-								CommandParameter="{Binding}"
-								Foreground="{StaticResource WarningBrush}"
-								Header="{x:Static prop:Strings.ShowContents}"
-								Icon="LockOpenVariantOutline" />
+					<controls:LazyMenuFlyout Placement="Right">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="entities:FolderDto">
+								<StackPanel Orientation="Vertical">
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFolderContentsCommand}"
+										CommandParameter="{Binding}"
+										Foreground="{StaticResource WarningBrush}"
+										Header="{x:Static prop:Strings.ShowContents}"
+										Icon="LockOpenVariantOutline" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFolderContentsCommand}"
-								CommandParameter="{Binding}"
-								Foreground="ForestGreen"
-								Header="{x:Static prop:Strings.HideContents}"
-								Icon="LockCheckOutline" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFolderContentsCommand}"
+										CommandParameter="{Binding}"
+										Foreground="ForestGreen"
+										Header="{x:Static prop:Strings.HideContents}"
+										Icon="LockCheckOutline" />
 
-							<Separator />
+									<Separator />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EncryptFolderCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.EncryptFiles}"
-								Icon="LockOutline" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EncryptFolderCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.EncryptFiles}"
+										Icon="LockOutline" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DecryptFolderCommand}"
-								CommandParameter="{Binding}"
-								Foreground="{StaticResource WarningBrush}"
-								Header="{x:Static prop:Strings.DecryptFiles}"
-								Icon="LockOffOutline" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DecryptFolderCommand}"
+										CommandParameter="{Binding}"
+										Foreground="{StaticResource WarningBrush}"
+										Header="{x:Static prop:Strings.DecryptFiles}"
+										Icon="LockOffOutline" />
 
-							<Separator />
+									<Separator />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ChangePasswordCommand}"
-								CommandParameter="{Binding}"
-								Header="{x:Static prop:Strings.ChangePassword}"
-								Icon="LockReset" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ChangePasswordCommand}"
+										CommandParameter="{Binding}"
+										Header="{x:Static prop:Strings.ChangePassword}"
+										Icon="LockReset" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</controls:FlyoutButton>
 
@@ -394,23 +406,27 @@
 				Icon="LockOutline"
 				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}">
 				<Button.Flyout>
-					<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFileContentsCommand}"
-								CommandParameter="{Binding}"
-								Foreground="{StaticResource WarningBrush}"
-								Header="{x:Static prop:Strings.ShowContents}"
-								Icon="LockOpenVariantOutline" />
+					<controls:LazyMenuFlyout Placement="Right">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="entities:FileDto">
+								<StackPanel Orientation="Vertical">
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowFileContentsCommand}"
+										CommandParameter="{Binding}"
+										Foreground="{StaticResource WarningBrush}"
+										Header="{x:Static prop:Strings.ShowContents}"
+										Icon="LockOpenVariantOutline" />
 
-							<controls:FlyoutButton
-								Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFileContentsCommand}"
-								CommandParameter="{Binding}"
-								Foreground="ForestGreen"
-								Header="{x:Static prop:Strings.HideContents}"
-								Icon="LockCheckOutline" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).HideFileContentsCommand}"
+										CommandParameter="{Binding}"
+										Foreground="ForestGreen"
+										Header="{x:Static prop:Strings.HideContents}"
+										Icon="LockCheckOutline" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</controls:FlyoutButton>
 
@@ -452,7 +468,7 @@
 
 			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
-			<!-- A list loses its view model before its rows leave the window, so the path to its command may meet a null. -->
+			<!--  A list loses its view model before its rows leave the window, so the path to its command may meet a null.  -->
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 				CommandParameter="{Binding Id}"

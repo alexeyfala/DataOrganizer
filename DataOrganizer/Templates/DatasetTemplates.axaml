@@ -1,6 +1,7 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:dataset="using:DataOrganizer.Models.Dataset"
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -12,13 +13,9 @@
 
 	<Thickness x:Key="RecordPadding">4.0</Thickness>
 
-	<!-- KeyValueRecordTemplate -->
-	<DataTemplate
-		x:Key="KeyValueRecordTemplate"
-		x:DataType="dataset:KeyValueRecord">
-		<Grid
-			Classes="PointerOverBackgroundStyle"
-			ColumnDefinitions="Auto,*">
+	<!--  KeyValueRecordTemplate  -->
+	<DataTemplate x:Key="KeyValueRecordTemplate" x:DataType="dataset:KeyValueRecord">
+		<Grid Classes="PointerOverBackgroundStyle" ColumnDefinitions="Auto,*">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -26,9 +23,11 @@
 				</Style>
 			</Grid.Styles>
 
-			<Interaction.Behaviors>
-				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
+			<Grid.ContextFlyout>
+				<controls:LazyMenuFlyout MenuTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
+			</Grid.ContextFlyout>
 
+			<Interaction.Behaviors>
 				<dragAndDrop:DatasetDropRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					MoveCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).MoveRecordCommand}"
@@ -43,9 +42,7 @@
 				Text="{Binding Key, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior
-						Record="{Binding Mode=OneWay}"
-						Text="{Binding Key, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Key, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 
@@ -61,18 +58,14 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior
-						Record="{Binding Mode=OneWay}"
-						Text="{Binding Value, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
-	<!-- ValueRecordTemplate -->
-	<DataTemplate
-		x:Key="ValueRecordTemplate"
-		x:DataType="dataset:ValueRecord">
+	<!--  ValueRecordTemplate  -->
+	<DataTemplate x:Key="ValueRecordTemplate" x:DataType="dataset:ValueRecord">
 		<Grid Classes="PointerOverBackgroundStyle">
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -80,9 +73,11 @@
 				</Style>
 			</Grid.Styles>
 
-			<Interaction.Behaviors>
-				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
+			<Grid.ContextFlyout>
+				<controls:LazyMenuFlyout MenuTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
+			</Grid.ContextFlyout>
 
+			<Interaction.Behaviors>
 				<dragAndDrop:DatasetDropRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					MoveCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).MoveRecordCommand}"
@@ -99,19 +94,15 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior
-						Record="{Binding Mode=OneWay}"
-						Text="{Binding Value, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
-	<!-- RecordsGroupTemplate -->
-	<DataTemplate
-		x:Key="RecordsGroupTemplate"
-		x:DataType="dataset:RecordsGroup">
-		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
+	<!--  RecordsGroupTemplate  -->
+	<DataTemplate x:Key="RecordsGroupTemplate" x:DataType="dataset:RecordsGroup">
+		<!--  BorderBrush="{StaticResource MaterialDividerBrush}"  -->
 		<Border
 			Padding="4.0"
 			BorderBrush="DarkGray"
@@ -138,9 +129,7 @@
 
 				<Expander.HeaderTemplate>
 					<DataTemplate x:DataType="dataset:RecordsGroup">
-						<Grid
-							Classes="PointerOverBackgroundStyle"
-							ColumnDefinitions="Auto,*">
+						<Grid Classes="PointerOverBackgroundStyle" ColumnDefinitions="Auto,*">
 
 							<Interaction.Behaviors>
 								<input:ExpanderDoubleClickToggleBehavior />
@@ -176,9 +165,7 @@
 								NoteName="{Binding Name, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}">
 								<Interaction.Behaviors>
-									<dragAndDrop:DatasetRecordDragBehavior
-										Record="{Binding Mode=OneWay}"
-										Text="{Binding Name, Mode=OneWay}" />
+									<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Name, Mode=OneWay}" />
 								</Interaction.Behaviors>
 							</views:DatasetFieldView>
 						</Grid>
@@ -207,9 +194,11 @@
 					</DataTemplate>
 				</Expander.ContentTemplate>
 
-				<Interaction.Behaviors>
-					<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource RecordsGroupContextMenuTemplate}" />
+				<Expander.ContextFlyout>
+					<controls:LazyMenuFlyout MenuTemplate="{StaticResource RecordsGroupContextMenuTemplate}" />
+				</Expander.ContextFlyout>
 
+				<Interaction.Behaviors>
 					<styling:ExpanderToggleCursorBehavior />
 
 					<input:ExpanderToggledByUserBehavior Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}" />

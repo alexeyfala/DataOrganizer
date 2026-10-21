@@ -156,203 +156,220 @@
 
 			<!--  One menu serves both halves, as it acts on the active one.  -->
 			<textControls:SplitDocumentEditor.ContextFlyout>
-				<Flyout OverlayDismissEventPassThrough="True">
-					<StackPanel Orientation="Vertical">
-						<StackPanel.Styles>
-							<Style Selector="Button">
-								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-							</Style>
-						</StackPanel.Styles>
+				<controls:LazyMenuFlyout>
+					<controls:LazyMenuFlyout.MenuTemplate>
+						<!--  A template has names of its own, so the items reach the editor as the ancestor the menu is shown at.  -->
+						<DataTemplate>
+							<StackPanel Orientation="Vertical">
+								<StackPanel.Styles>
+									<Style Selector="Button">
+										<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+										<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+									</Style>
+								</StackPanel.Styles>
 
-						<!--  The commands used most stand in one row of icons, which keeps the menu short.  -->
-						<StackPanel Orientation="Horizontal">
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.CutCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=ContentCut}"
-								Gesture="{OnPlatform Default='Ctrl+X',
-								                     macOS='⌘+X'}"
-								ToolTip.Tip="{x:Static prop:Strings.Cut}" />
+								<!--  The commands used most stand in one row of icons, which keeps the menu short.  -->
+								<StackPanel Orientation="Horizontal">
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CutCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentCut}"
+										Gesture="{OnPlatform Default='Ctrl+X',
+										                     macOS='⌘+X'}"
+										ToolTip.Tip="{x:Static prop:Strings.Cut}" />
 
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.CopyCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
-								Gesture="{OnPlatform Default='Ctrl+C',
-								                     macOS='⌘+C'}"
-								ToolTip.Tip="{x:Static prop:Strings.Copy}" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CopyCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+										Gesture="{OnPlatform Default='Ctrl+C',
+										                     macOS='⌘+C'}"
+										ToolTip.Tip="{x:Static prop:Strings.Copy}" />
 
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.PasteCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=ContentPaste}"
-								Gesture="{OnPlatform Default='Ctrl+V',
-								                     macOS='⌘+V'}"
-								ToolTip.Tip="{x:Static prop:Strings.Paste}" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.PasteCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentPaste}"
+										Gesture="{OnPlatform Default='Ctrl+V',
+										                     macOS='⌘+V'}"
+										ToolTip.Tip="{x:Static prop:Strings.Paste}" />
 
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.UndoCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=UndoVariant}"
-								Gesture="{OnPlatform Default='Ctrl+Z',
-								                     macOS='⌘+Z'}"
-								ToolTip.Tip="{x:Static prop:Strings.Undo}" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.UndoCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=UndoVariant}"
+										Gesture="{OnPlatform Default='Ctrl+Z',
+										                     macOS='⌘+Z'}"
+										ToolTip.Tip="{x:Static prop:Strings.Undo}" />
 
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.RedoCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=RedoVariant}"
-								Gesture="{OnPlatform Default='Ctrl+Y',
-								                     macOS='⌘+Y'}"
-								ToolTip.Tip="{x:Static prop:Strings.Redo}" />
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.RedoCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=RedoVariant}"
+										Gesture="{OnPlatform Default='Ctrl+Y',
+										                     macOS='⌘+Y'}"
+										ToolTip.Tip="{x:Static prop:Strings.Redo}" />
 
-							<controls:FlyoutButton
-								Command="{Binding #Editor.ActiveEditor.SelectAllCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=SelectAll}"
-								Gesture="{OnPlatform Default='Ctrl+A',
-								                     macOS='⌘+A'}"
-								ToolTip.Tip="{x:Static prop:Strings.SelectAll}" />
-						</StackPanel>
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.SelectAllCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=SelectAll}"
+										Gesture="{OnPlatform Default='Ctrl+A',
+										                     macOS='⌘+A'}"
+										ToolTip.Tip="{x:Static prop:Strings.SelectAll}" />
+								</StackPanel>
 
-						<Separator />
+								<Separator />
 
-						<controls:FlyoutButton Header="{x:Static prop:Strings.Transform}" Icon="FormatLetterCase">
-							<Button.Flyout>
-								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-									<StackPanel Orientation="Vertical">
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.UpperCase}"
-											Gesture="{OnPlatform Default='Ctrl+Shift+U',
-											                     macOS='⌘+Shift+U'}"
-											Header="{x:Static prop:Strings.Uppercase}"
-											Icon="FormatLetterCaseUpper" />
+								<controls:FlyoutButton Header="{x:Static prop:Strings.Transform}" Icon="FormatLetterCase">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.UpperCase}"
+															Gesture="{OnPlatform Default='Ctrl+Shift+U',
+															                     macOS='⌘+Shift+U'}"
+															Header="{x:Static prop:Strings.Uppercase}"
+															Icon="FormatLetterCaseUpper" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.LowerCase}"
-											Gesture="{OnPlatform Default='Ctrl+U',
-											                     macOS='⌘+U'}"
-											Header="{x:Static prop:Strings.Lowercase}"
-											Icon="FormatLetterCaseLower" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.LowerCase}"
+															Gesture="{OnPlatform Default='Ctrl+U',
+															                     macOS='⌘+U'}"
+															Header="{x:Static prop:Strings.Lowercase}"
+															Icon="FormatLetterCaseLower" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.TitleCase}"
-											Header="{x:Static prop:Strings.TitleCase}"
-											Icon="FormatLetterStartsWith" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.TitleCase}"
+															Header="{x:Static prop:Strings.TitleCase}"
+															Icon="FormatLetterStartsWith" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.InvertCase}"
-											Header="{x:Static prop:Strings.InvertCase}"
-											Icon="SwapVertical" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.InvertCase}"
+															Header="{x:Static prop:Strings.InvertCase}"
+															Icon="SwapVertical" />
 
-										<Separator />
+														<Separator />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
-											Header="{x:Static prop:Strings.RemoveTrailingSpaces}"
-											Icon="Eraser" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
+															Header="{x:Static prop:Strings.RemoveTrailingSpaces}"
+															Icon="Eraser" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
-											Header="{x:Static prop:Strings.RemoveLeadingSpaces}"
-											Icon="FormatIndentDecrease" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
+															Header="{x:Static prop:Strings.RemoveLeadingSpaces}"
+															Icon="FormatIndentDecrease" />
 
-										<Separator />
+														<Separator />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
-											Header="{x:Static prop:Strings.IndentsTabsToSpaces}"
-											Icon="KeyboardSpace" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
+															Header="{x:Static prop:Strings.IndentsTabsToSpaces}"
+															Icon="KeyboardSpace" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.TransformCommand}"
-											CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
-											Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
-											Icon="KeyboardTab" />
-									</StackPanel>
-								</Flyout>
-							</Button.Flyout>
-						</controls:FlyoutButton>
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
+															Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
+															Icon="KeyboardTab" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
 
-						<Separator />
+								<Separator />
 
-						<controls:FlyoutButton
-							Command="{Binding #Editor.ActiveEditor.FindCommand}"
-							Gesture="{OnPlatform Default='Ctrl+F',
-							                     macOS='⌘+F'}"
-							Header="{x:Static prop:Strings.Find}"
-							Icon="Magnify" />
+								<controls:FlyoutButton
+									Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.FindCommand}"
+									Gesture="{OnPlatform Default='Ctrl+F',
+									                     macOS='⌘+F'}"
+									Header="{x:Static prop:Strings.Find}"
+									Icon="Magnify" />
 
-						<controls:FlyoutButton Header="{x:Static prop:Strings.Bookmarks}" Icon="BookmarkMultipleOutline">
-							<Button.Flyout>
-								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-									<StackPanel Orientation="Vertical">
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.ToggleBookmarkCommand}"
-											Gesture="{OnPlatform Default='Ctrl+F2',
-											                     macOS='⌘+F2'}"
-											Header="{x:Static prop:Strings.ToggleBookmark}"
-											Icon="Bookmark" />
+								<controls:FlyoutButton Header="{x:Static prop:Strings.Bookmarks}" Icon="BookmarkMultipleOutline">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ToggleBookmarkCommand}"
+															Gesture="{OnPlatform Default='Ctrl+F2',
+															                     macOS='⌘+F2'}"
+															Header="{x:Static prop:Strings.ToggleBookmark}"
+															Icon="Bookmark" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.NextBookmarkCommand}"
-											Gesture="F2"
-											Header="{x:Static prop:Strings.NextBookmark}"
-											Icon="ArrowDown" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.NextBookmarkCommand}"
+															Gesture="F2"
+															Header="{x:Static prop:Strings.NextBookmark}"
+															Icon="ArrowDown" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.PreviousBookmarkCommand}"
-											Gesture="Shift+F2"
-											Header="{x:Static prop:Strings.PreviousBookmark}"
-											Icon="ArrowUp" />
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.PreviousBookmarkCommand}"
+															Gesture="Shift+F2"
+															Header="{x:Static prop:Strings.PreviousBookmark}"
+															Icon="ArrowUp" />
 
-										<Separator />
+														<Separator />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.ClearBookmarksCommand}"
-											Header="{x:Static prop:Strings.RemoveAllBookmarks}"
-											Icon="BookmarkRemoveOutline" />
-									</StackPanel>
-								</Flyout>
-							</Button.Flyout>
-						</controls:FlyoutButton>
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ClearBookmarksCommand}"
+															Header="{x:Static prop:Strings.RemoveAllBookmarks}"
+															Icon="BookmarkRemoveOutline" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
 
-						<controls:FlyoutButton
-							Header="{x:Static prop:Strings.Folding}"
-							Icon="UnfoldLessHorizontal"
-							IsEnabled="{Binding #Editor.ActiveEditor.CanFold, Mode=OneWay}">
-							<Button.Flyout>
-								<Flyout OverlayDismissEventPassThrough="True" Placement="Right">
-									<StackPanel Orientation="Vertical">
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.ToggleFoldingCommand}"
-											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+M',
-											                     macOS='⌃+M, ⌃+M'}"
-											Header="{x:Static prop:Strings.ToggleFolding}"
-											Icon="PlusMinusBox" />
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Folding}"
+									Icon="UnfoldLessHorizontal"
+									IsEnabled="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CanFold, Mode=OneWay}">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ToggleFoldingCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+M',
+															                     macOS='⌃+M, ⌃+M'}"
+															Header="{x:Static prop:Strings.ToggleFolding}"
+															Icon="PlusMinusBox" />
 
-										<!--  One chord serves both, as it unfolds every block when one is folded.  -->
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.FoldAllCommand}"
-											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
-											                     macOS='⌃+M, ⌃+L'}"
-											Header="{x:Static prop:Strings.FoldAll}"
-											Icon="CollapseAllOutline" />
+														<!--  One chord serves both, as it unfolds every block when one is folded.  -->
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.FoldAllCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+															                     macOS='⌃+M, ⌃+L'}"
+															Header="{x:Static prop:Strings.FoldAll}"
+															Icon="CollapseAllOutline" />
 
-										<controls:FlyoutButton
-											Command="{Binding #Editor.ActiveEditor.UnfoldAllCommand}"
-											Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
-											                     macOS='⌃+M, ⌃+L'}"
-											Header="{x:Static prop:Strings.UnfoldAll}"
-											Icon="ExpandAllOutline" />
-									</StackPanel>
-								</Flyout>
-							</Button.Flyout>
-						</controls:FlyoutButton>
-					</StackPanel>
-				</Flyout>
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.UnfoldAllCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+															                     macOS='⌃+M, ⌃+L'}"
+															Header="{x:Static prop:Strings.UnfoldAll}"
+															Icon="ExpandAllOutline" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
+							</StackPanel>
+						</DataTemplate>
+					</controls:LazyMenuFlyout.MenuTemplate>
+				</controls:LazyMenuFlyout>
 			</textControls:SplitDocumentEditor.ContextFlyout>
 		</textControls:SplitDocumentEditor>
 

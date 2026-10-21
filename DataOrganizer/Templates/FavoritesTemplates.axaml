@@ -33,27 +33,31 @@
 			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
-				<Flyout OverlayDismissEventPassThrough="True">
-					<StackPanel Orientation="Vertical">
-						<StackPanel.Styles>
-							<Style Selector="Button">
-								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-							</Style>
-						</StackPanel.Styles>
+				<controls:LazyMenuFlyout>
+					<controls:LazyMenuFlyout.MenuTemplate>
+						<DataTemplate x:DataType="favorites:FavoriteCategory">
+							<StackPanel Orientation="Vertical">
+								<StackPanel.Styles>
+									<Style Selector="Button">
+										<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+										<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+									</Style>
+								</StackPanel.Styles>
 
-						<TextBlock
-							Classes="NameInFlyoutTextBlockStyle"
-							Text="{Binding Name, Mode=OneTime}" />
+								<TextBlock
+									Classes="NameInFlyoutTextBlockStyle"
+									Text="{Binding Name, Mode=OneTime}" />
 
-						<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
-						<controls:FlyoutButton
-							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
-							CommandParameter="{Binding Id}"
-							Header="{x:Static prop:Strings.ShowInEditor}"
-							Icon="FileTree" />
-					</StackPanel>
-				</Flyout>
+								<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
+								<controls:FlyoutButton
+									Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
+									CommandParameter="{Binding Id}"
+									Header="{x:Static prop:Strings.ShowInEditor}"
+									Icon="FileTree" />
+							</StackPanel>
+						</DataTemplate>
+					</controls:LazyMenuFlyout.MenuTemplate>
+				</controls:LazyMenuFlyout>
 			</Grid.ContextFlyout>
 
 			<materialIcons:MaterialIcon

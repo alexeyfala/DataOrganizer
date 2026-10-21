@@ -341,25 +341,29 @@
 									</Button.Styles>
 
 									<Button.Flyout>
-										<Flyout OverlayDismissEventPassThrough="True" Placement="Bottom">
-											<StackPanel Orientation="Vertical">
-												<StackPanel.Styles>
-													<Style Selector="Button">
-														<Setter Property="Margin" Value="0.0" />
-													</Style>
-												</StackPanel.Styles>
+										<controls:LazyMenuFlyout Placement="Bottom">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate x:DataType="windows:EditorViewModel">
+													<StackPanel Orientation="Vertical">
+														<StackPanel.Styles>
+															<Style Selector="Button">
+																<Setter Property="Margin" Value="0.0" />
+															</Style>
+														</StackPanel.Styles>
 
-												<controls:FlyoutButton
-													Command="{Binding ImportCommand}"
-													Header="{x:Static prop:Strings.ImportList}"
-													Icon="Import" />
+														<controls:FlyoutButton
+															Command="{Binding ImportCommand}"
+															Header="{x:Static prop:Strings.ImportList}"
+															Icon="Import" />
 
-												<controls:FlyoutButton
-													Command="{Binding ExportCommand}"
-													Header="{x:Static prop:Strings.ExportList}"
-													Icon="Export" />
-											</StackPanel>
-										</Flyout>
+														<controls:FlyoutButton
+															Command="{Binding ExportCommand}"
+															Header="{x:Static prop:Strings.ExportList}"
+															Icon="Export" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
 									</Button.Flyout>
 								</Button>
 							</StackPanel>
