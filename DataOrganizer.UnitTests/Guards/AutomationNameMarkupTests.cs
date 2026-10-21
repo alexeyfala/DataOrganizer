@@ -25,6 +25,11 @@ internal partial class AutomationNameMarkupTests
 	private const string LabeledByProperty = "AutomationProperties.LabeledBy";
 
 	/// <summary>
+	/// Style class of an icon that tells the state of an object, which shows to UI Automation as an image.
+	/// </summary>
+	private const string StatusIconClass = "StatusIconStyle";
+
+	/// <summary>
 	/// Attribute, property element or setter of a tip, which names a button without text.
 	/// </summary>
 	private const string ToolTipProperty = "ToolTip.Tip";
@@ -137,6 +142,30 @@ internal partial class AutomationNameMarkupTests
 
 		// Assert
 		items
+			.Should()
+			.NotBeEmpty();
+
+		unnamed
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// An icon that tells the state of an object has a tip or an automation name, as the tree shows it as an image.
+	/// </summary>
+	[Test]
+	public void Status_Icons_Have_A_Tip_Or_A_Name()
+	{
+		// Arrange
+		(string FilePath, XElement Element)[] icons = [.. FindElements(["MaterialIcon"]).Where(static x => GetClasses(x.Element).Contains(StatusIconClass))];
+
+		// Act
+		string[] unnamed = [.. icons
+			.Where(x => !HasAny(x.Element, AutomationNameProperty, ToolTipProperty))
+			.Select(Describe)];
+
+		// Assert
+		icons
 			.Should()
 			.NotBeEmpty();
 

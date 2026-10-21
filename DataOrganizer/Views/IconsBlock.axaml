@@ -33,12 +33,14 @@
 			NoteReader="{Binding NoteReader, Mode=OneWay}" />
 
 		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
 			Foreground="{StaticResource EditingBrush}"
 			IsVisible="{Binding IsEditing, Mode=OneWay}"
 			Kind="TextBoxEditOutline"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInEditor}" />
 
 		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
 			Foreground="{StaticResource ExecutingBrush}"
 			IsVisible="{Binding IsExecuting, Mode=OneWay}"
 			Kind="{OnPlatform Default=MicrosoftWindows,
@@ -47,18 +49,21 @@
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
 
 		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
 			Foreground="{StaticResource HotkeysBrush}"
 			IsVisible="{Binding HotkeysToolTip, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 			Kind="KeyboardVariant"
 			ToolTip.Tip="{Binding HotkeysToolTip, Mode=OneWay}" />
 
 		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
 			Foreground="{StaticResource FavoriteBrush}"
 			IsVisible="{Binding IsFavorite, Mode=OneWay}"
 			Kind="StarOutline"
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
 
 		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
 			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconBrush}}"
 			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
 			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconKind}}"

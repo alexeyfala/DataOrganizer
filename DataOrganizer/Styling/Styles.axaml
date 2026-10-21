@@ -41,6 +41,16 @@
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
 	</Style>
 
+	<!--
+		An icon that tells the state of an object shows to screen readers and UI Automation as an image named by its tip;
+		other icons stay out of the tree, as the control they belong to names itself.
+	-->
+	<Style Selector="materialIcons|MaterialIcon.StatusIconStyle">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Control" />
+		<Setter Property="AutomationProperties.ControlTypeOverride" Value="Image" />
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.(ToolTip.Tip), Mode=OneWay}" />
+	</Style>
+
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 	</Style>

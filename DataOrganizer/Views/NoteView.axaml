@@ -33,7 +33,8 @@
 		<!--  Encrypted  -->
 		<materialIcons:MaterialIcon
 			Grid.Row="0"
-			Classes="NoteIconStyle"
+			AutomationProperties.Name="{x:Static prop:Strings.Note}"
+			Classes="NoteIconStyle StatusIconStyle"
 			IsVisible="{Binding IsLocked, Mode=OneWay}"
 			ToolTip.Tip="{x:Static prop:Strings.ContentIsEncrypted}" />
 
@@ -41,7 +42,8 @@
 		<materialIcons:MaterialIcon
 			x:Name="ReadableIcon"
 			Grid.Row="0"
-			Classes="NoteIconStyle"
+			AutomationProperties.Name="{x:Static prop:Strings.Note}"
+			Classes="NoteIconStyle StatusIconStyle"
 			IsVisible="{Binding !IsLocked, Mode=OneWay}">
 
 			<Interaction.Behaviors>
