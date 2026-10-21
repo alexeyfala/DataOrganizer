@@ -12,6 +12,7 @@
 	xmlns:converters="using:Material.Styles.Converters"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:parameters="using:Material.Styles.Converters.Parameters"
+	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System">
 
 	<SineEaseInOut x:Key="DataOrganizerSideSheetEasing" />
@@ -65,6 +66,7 @@
 									<Button
 										Name="PART_CloseButton"
 										DockPanel.Dock="Right"
+										AutomationProperties.Name="{x:Static prop:Strings.Close}"
 										IsVisible="{TemplateBinding SideSheetCanClose}"
 										Theme="{StaticResource MaterialIconButton}">
 										<materialControls:MaterialInternalIcon

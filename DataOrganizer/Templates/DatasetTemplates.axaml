@@ -156,6 +156,7 @@
 								Margin="0.0,0.0,4.0,0.0"
 								Padding="4.0"
 								VerticalAlignment="Center"
+								AutomationProperties.Name="{Binding Name, Mode=OneWay}"
 								IsChecked="{Binding $parent[Expander].IsExpanded, Mode=TwoWay}"
 								Theme="{StaticResource MaterialFlatButton}">
 								<materialIcons:MaterialIcon
