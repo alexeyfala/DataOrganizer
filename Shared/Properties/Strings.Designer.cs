@@ -1051,6 +1051,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hidden text.
+        /// </summary>
+        public static string HiddenText {
+            get {
+                return ResourceManager.GetString("HiddenText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hide.
         /// </summary>
         public static string Hide {

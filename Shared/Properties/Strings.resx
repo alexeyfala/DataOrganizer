@@ -856,4 +856,7 @@
   <data name="Maximize" xml:space="preserve">
     <value>Maximize</value>
   </data>
+  <data name="HiddenText" xml:space="preserve">
+    <value>Hidden text</value>
+  </data>
 </root>

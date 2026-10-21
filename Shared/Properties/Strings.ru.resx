@@ -876,4 +876,7 @@
   <data name="Maximize" xml:space="preserve">
     <value>Развернуть</value>
   </data>
+  <data name="HiddenText" xml:space="preserve">
+    <value>Скрытый текст</value>
+  </data>
 </root>

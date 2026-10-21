@@ -73,7 +73,8 @@ internal partial class AutomationNameMarkupTests
 
 	#region Methods
 	/// <summary>
-	/// A button that shows an icon, a glyph or a panel has a tip or an automation name.
+	/// A button that shows an icon, a glyph or a panel has a tip of text or an automation name; a bound tip does not
+	/// count, as it may give no text.
 	/// </summary>
 	[Test]
 	public void Buttons_Without_Text_Have_A_Tip_Or_A_Name()
@@ -83,7 +84,7 @@ internal partial class AutomationNameMarkupTests
 
 		// Act
 		string[] unnamed = [.. buttons
-			.Where(x => ShowsText(x.Element) is false && !HasAny(x.Element, AutomationNameProperty, LabeledByProperty, ToolTipProperty))
+			.Where(x => ShowsText(x.Element) is false && !HasAny(x.Element, AutomationNameProperty, LabeledByProperty) && !HasTextTip(x.Element))
 			.Select(Describe)];
 
 		// Assert
@@ -213,6 +214,32 @@ internal partial class AutomationNameMarkupTests
 	}
 
 	/// <summary>
+	/// Returns the values the element gives a property by an attribute, a property element or a setter of its own styles;
+	/// a property element that holds elements, or a setter without a value attribute, gives <c>null</c>.
+	/// </summary>
+	private static IEnumerable<string?> FindValues(XElement element, string name)
+	{
+		foreach (XAttribute attribute in element.Attributes().Where(attribute => attribute.Name.LocalName == name))
+		{
+			yield return attribute.Value;
+		}
+
+		foreach (XElement property in element.Elements().Where(child => child.Name.LocalName == name))
+		{
+			yield return property.HasElements ? null : property.Value;
+		}
+
+		foreach (XElement setter in element
+			.Elements()
+			.Where(child => child.Name.LocalName.EndsWith(".Styles", StringComparison.Ordinal))
+			.Descendants()
+			.Where(setter => setter.Name.LocalName == "Setter" && LocalName(setter.Attribute("Property")?.Value) == name))
+		{
+			yield return setter.Attribute("Value")?.Value;
+		}
+	}
+
+	/// <summary>
 	/// Returns the style classes an element lists in its <c>Classes</c> attribute.
 	/// </summary>
 	private static HashSet<string> GetClasses(XElement element)
@@ -223,20 +250,12 @@ internal partial class AutomationNameMarkupTests
 	/// <summary>
 	/// Whether the element sets any of the given properties by an attribute, a property element or a setter of its own styles.
 	/// </summary>
-	private static bool HasAny(XElement element, params string[] names)
-	{
-		return element
-			.Attributes()
-			.Any(attribute => names.Contains(attribute.Name.LocalName))
-		|| element
-			.Elements()
-			.Any(child => names.Contains(child.Name.LocalName))
-		|| element
-			.Elements()
-			.Where(child => child.Name.LocalName.EndsWith(".Styles", StringComparison.Ordinal))
-			.Descendants()
-			.Any(setter => setter.Name.LocalName == "Setter" && names.Contains(LocalName(setter.Attribute("Property")?.Value)));
-	}
+	private static bool HasAny(XElement element, params string[] names) => names.Any(name => FindValues(element, name).Any());
+
+	/// <summary>
+	/// Whether the element sets a tip of text, which names a button: a literal or a static string.
+	/// </summary>
+	private static bool HasTextTip(XElement element) => FindValues(element, ToolTipProperty).Any(IsTextTip);
 
 	/// <summary>
 	/// Whether element content names its control: a lone text block does as content, which Avalonia reads, not as a header.
@@ -244,6 +263,15 @@ internal partial class AutomationNameMarkupTests
 	private static bool IsTextContent(string contentName, IEnumerable<XElement> children)
 	{
 		return contentName == "Content" && children.ToArray() is [{ Name.LocalName: "TextBlock" or "SelectableTextBlock" }];
+	}
+
+	/// <summary>
+	/// Whether the value of a tip is text: a literal or a static string. A binding may give no text at run time, and a
+	/// tip that is not text names nothing.
+	/// </summary>
+	private static bool IsTextTip(string? value)
+	{
+		return value is not null && (!value.StartsWith('{') || value.StartsWith("{x:Static ", StringComparison.Ordinal));
 	}
 
 	/// <summary>

@@ -8,6 +8,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace DataOrganizer.Converters;
 
@@ -17,6 +18,11 @@ namespace DataOrganizer.Converters;
 internal static class ClipboardLogConverters
 {
 	#region Data
+	/// <summary>
+	/// Most characters of the name of an entry for UI Automation; the rest of a long text is cut.
+	/// </summary>
+	private const int AutomationNameMaxLength = 100;
+
 	/// <summary>
 	/// Total maximum number of lines rendered by the preview of a list of files.
 	/// </summary>
@@ -40,6 +46,12 @@ internal static class ClipboardLogConverters
 	#endregion
 
 	#region Properties
+	/// <summary>
+	/// Name of an entry for UI Automation: its text or the names of its files on one line, the size of an image, or a
+	/// neutral word for a secret, which the log blurs.
+	/// </summary>
+	public static FuncValueConverter<ClipboardLogEntryBase?, string?> AutomationName { get; } = new(GetAutomationName);
+
 	/// <summary>
 	/// Tooltip of the contents of an entry: the pixel size of an image, the wrapped URL of a link, or the list of files
 	/// the preview cuts; <c>null</c> for the rest.
@@ -133,6 +145,21 @@ internal static class ClipboardLogConverters
 	}
 
 	/// <summary>
+	/// Returns the name of an entry for UI Automation; <c>null</c> without an entry.
+	/// </summary>
+	private static string? GetAutomationName(ClipboardLogEntryBase? entry)
+	{
+		return entry switch
+		{
+			{ IsSensitive: true } => Strings.HiddenText,
+			ClipboardFilesEntry files => ToOneLine(GetFileNames(files.FileSystemEntries)),
+			ClipboardImageEntry image => GetPngSize(image.OriginalPng) is { } size ? $"{Strings.Image} {size}" : Strings.Image,
+			ClipboardTextEntryBase text => ToOneLine(text.Text),
+			_ => null
+		};
+	}
+
+	/// <summary>
 	/// Returns the tooltip of the contents of an entry; <c>null</c> for an entry without one.
 	/// </summary>
 	private static string? GetContentToolTip(ClipboardLogEntryBase? entry)
@@ -144,6 +171,14 @@ internal static class ClipboardLogConverters
 			ClipboardUrlEntry link => GetUrlToolTip(link.Url),
 			_ => null
 		};
+	}
+
+	/// <summary>
+	/// Returns the names of the items of a list of files, separated by commas.
+	/// </summary>
+	private static string GetFileNames(IReadOnlyList<ClipboardFileSystemEntry> entries)
+	{
+		return string.Join(", ", entries.Select(static x => x.Name));
 	}
 
 	/// <summary>
@@ -291,6 +326,46 @@ internal static class ClipboardLogConverters
 	/// Returns the wrapped, length-capped tooltip of <paramref name="url" />.
 	/// </summary>
 	private static string GetUrlToolTip(string url) => string.Join(Environment.NewLine, EnumerateUrlToolTipLines(url));
+
+	/// <summary>
+	/// Returns <paramref name="text" /> on one line, each run of white space as one space, cut at
+	/// <see cref="AutomationNameMaxLength" /> characters with an ellipsis.
+	/// </summary>
+	private static string ToOneLine(string text)
+	{
+		StringBuilder line = new(AutomationNameMaxLength + 3);
+
+		bool isSpaceDue = false;
+
+		// The walk stops at the limit, so a text of megabytes costs no more than a short one.
+		foreach (char character in text)
+		{
+			if (char.IsWhiteSpace(character))
+			{
+				isSpaceDue = line.Length > 0;
+
+				continue;
+			}
+
+			if (line.Length + (isSpaceDue ? 1 : 0) >= AutomationNameMaxLength)
+			{
+				return line
+					.Append("...")
+					.ToString();
+			}
+
+			if (isSpaceDue)
+			{
+				line.Append(' ');
+
+				isSpaceDue = false;
+			}
+
+			line.Append(character);
+		}
+
+		return line.ToString();
+	}
 
 	/// <summary>
 	/// Reads the image size from the PNG IHDR header without decoding the pixels.
