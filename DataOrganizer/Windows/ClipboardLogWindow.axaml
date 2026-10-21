@@ -17,6 +17,7 @@
 	MinWidth="320.0"
 	MinHeight="220.0"
 	x:DataType="windows:ClipboardLogViewModel"
+	AutomationProperties.Name="{x:Static prop:Strings.Clipboard}"
 	Background="Transparent"
 	CanMaximize="False"
 	CanMinimize="False"

@@ -25,6 +25,17 @@
 		</Setter>
 	</Style>
 
+	<!--  A text box is named for screen readers and UI Automation by its label, or else by its placeholder.  -->
+	<Style Selector=":is(TextBox)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.FieldLabelAutomationName}">
+				<Binding Mode="OneWay" Path="$self.(assists:TextFieldAssist.Label)" />
+
+				<Binding Mode="OneWay" Path="$self.PlaceholderText" />
+			</MultiBinding>
+		</Setter>
+	</Style>
+
 	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
 	<Style Selector=":is(ListBoxItem), :is(TabItem)">
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />

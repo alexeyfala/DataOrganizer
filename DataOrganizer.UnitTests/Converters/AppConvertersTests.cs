@@ -16,6 +16,59 @@ internal class AppConvertersTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="AppConverters.FieldLabelAutomationName" />: a field with a label is named by the label, not by its placeholder.
+	/// </summary>
+	[Test]
+	public void FieldLabelAutomationName_Gives_The_Label()
+	{
+		// Arrange
+		const string label = "Password";
+
+		// Act
+		object? result = Convert(AppConverters.FieldLabelAutomationName, label, "Type here");
+
+		// Assert
+		result
+			.Should()
+			.Be(label);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.FieldLabelAutomationName" />: a field without a label is named by its placeholder.
+	/// </summary>
+	[TestCase(null)]
+	[TestCase("")]
+	public void FieldLabelAutomationName_Without_A_Label_Gives_The_Placeholder(string? label)
+	{
+		// Arrange
+		const string placeholder = "Search";
+
+		// Act
+		object? result = Convert(AppConverters.FieldLabelAutomationName, label, placeholder);
+
+		// Assert
+		result
+			.Should()
+			.Be(placeholder);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.FieldLabelAutomationName" />: a field with neither a label nor a placeholder leaves the name
+	/// unset.
+	/// </summary>
+	[Test]
+	public void FieldLabelAutomationName_Without_Text_Leaves_The_Name_Unset()
+	{
+		// Act
+		object? result = Convert(AppConverters.FieldLabelAutomationName, null, string.Empty);
+
+		// Assert
+		result
+			.Should()
+			.Be(AvaloniaProperty.UnsetValue);
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.NamedItemAutomationName" />: the item of an object that has a name is named by it.
 	/// </summary>
 	[Test]
@@ -227,6 +280,18 @@ internal class AppConvertersTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Runs a converter over the label and the placeholder of an input field.
+	/// </summary>
+	private static object? Convert(FieldLabelAutomationNameConverter converter, string? label, string? placeholder)
+	{
+		return converter.Convert(
+			[label, placeholder],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
 	/// <summary>
 	/// Runs a converter over the extent and the viewport heights of a scroll viewer.
 	/// </summary>

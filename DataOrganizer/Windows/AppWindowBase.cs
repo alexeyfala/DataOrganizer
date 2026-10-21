@@ -1,10 +1,12 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 
 namespace DataOrganizer.Windows;
 
 /// <summary>
-/// Window of the application whose platform window takes the wanted size at once until the window is shown.
+/// Window of the application whose platform window takes the wanted size at once until the window is shown, and which
+/// UI Automation names by its automation name before its title.
 /// </summary>
 /// <remarks>
 /// On Windows a window placed before its first show near the edge of a screen next to one with another scaling opened a
@@ -13,6 +15,9 @@ namespace DataOrganizer.Windows;
 public abstract class AppWindowBase : Window
 {
 	#region Methods
+	/// <inheritdoc />
+	protected override AutomationPeer OnCreateAutomationPeer() => new AppWindowAutomationPeer(this);
+
 	/// <inheritdoc />
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{

@@ -22,6 +22,7 @@
 	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	x:DataType="windows:FavoritesViewModel"
+	AutomationProperties.Name="{x:Static prop:Strings.Favorites}"
 	Background="Transparent"
 	CanResize="False"
 	ShowInTaskbar="False"

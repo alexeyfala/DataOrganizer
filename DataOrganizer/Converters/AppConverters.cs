@@ -25,6 +25,9 @@ internal static class AppConverters
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
 
+	/// <inheritdoc cref="FieldLabelAutomationNameConverter" />
+	public static FieldLabelAutomationNameConverter FieldLabelAutomationName { get; } = new();
+
 	/// <summary>
 	/// Automation name of an item container: the name of its object when the object has one, otherwise unset.
 	/// </summary>

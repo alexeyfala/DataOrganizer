@@ -19,6 +19,7 @@
 			<StackPanel Orientation="Vertical">
 				<ComboBox
 					Height="{StaticResource SettingsComboBoxHeight}"
+					AutomationProperties.Name="{x:Static prop:Strings.Language}"
 					ItemsSource="{Binding Languages, Mode=OneTime}"
 					SelectedItem="{Binding Language, Mode=TwoWay}">
 					<ComboBox.ItemTemplate>
