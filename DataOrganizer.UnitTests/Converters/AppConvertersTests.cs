@@ -5,6 +5,8 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
+using DataOrganizer.Helpers.Views;
+using DataOrganizer.UnitTests.Factories;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;
@@ -13,6 +15,39 @@ namespace DataOrganizer.UnitTests.Converters;
 internal class AppConvertersTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AppConverters.NamedItemAutomationName" />: the item of an object that has a name is named by it.
+	/// </summary>
+	[Test]
+	public void NamedItemAutomationName_Gives_The_Name_Of_A_Named_Object()
+	{
+		// Arrange
+		const string name = "main.c";
+
+		// Act
+		object? result = Convert(AppConverters.NamedItemAutomationName, ItemDtoFactory.CreateNamedFileDto(name));
+
+		// Assert
+		result
+			.Should()
+			.Be(name);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.NamedItemAutomationName" />: an object without a name leaves the name unset.
+	/// </summary>
+	[Test]
+	public void NamedItemAutomationName_Without_A_Name_Is_Unset()
+	{
+		// Act
+		object? result = Convert(AppConverters.NamedItemAutomationName, new object());
+
+		// Assert
+		result
+			.Should()
+			.Be(AvaloniaProperty.UnsetValue);
+	}
+
 	/// <summary>
 	/// <see cref="AppConverters.PngToBitmap" />: the bytes of a PNG become its image.
 	/// </summary>
@@ -126,6 +161,25 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.ToolTipAutomationName" />: a button that shows a glyph, such as an emoji, is named by its tip.
+	/// </summary>
+	[TestCase(Glyphs.Clipboard)]
+	[TestCase(Glyphs.AngleBracketSlash)]
+	public void ToolTipAutomationName_Names_A_Button_With_A_Glyph_By_Its_Tip(string glyph)
+	{
+		// Arrange
+		const string tip = "All";
+
+		// Act
+		object? result = Convert(AppConverters.ToolTipAutomationName, glyph, tip);
+
+		// Assert
+		result
+			.Should()
+			.Be(tip);
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.ToolTipAutomationName" />: a button that shows no text is named by its tip.
 	/// </summary>
 	[TestCase(true)]
@@ -180,6 +234,18 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			[extent, viewport],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over the object of an item.
+	/// </summary>
+	private static object? Convert(FuncValueConverter<object?, object?> converter, object? item)
+	{
+		return converter.Convert(
+			item,
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

@@ -14,9 +14,7 @@
 	x:DataType="dialogs:SettingsViewModel"
 	mc:Ignorable="d">
 
-	<Grid
-		RowDefinitions="Auto,*,Auto"
-		RowSpacing="{StaticResource ElementSpacing}">
+	<Grid RowDefinitions="Auto,*,Auto" RowSpacing="{StaticResource ElementSpacing}">
 		<StackPanel
 			Grid.Row="0"
 			HorizontalAlignment="Left"
@@ -55,7 +53,7 @@
 			ColumnDefinitions="Auto,*"
 			ColumnSpacing="{StaticResource ElementSpacing}">
 			<Grid.Styles>
-				<!-- A long label of a setting wraps instead of being cut off by the width of the dialog. -->
+				<!--  A long label of a setting wraps instead of being cut off by the width of the dialog.  -->
 				<Style Selector="CheckBox TextBlock">
 					<Setter Property="TextWrapping" Value="Wrap" />
 				</Style>
@@ -78,50 +76,40 @@
 					x:Name="CategoriesList"
 					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
 					SelectionMode="AlwaysSelected">
-					<ListBoxItem>
-						<StackPanel
-							Orientation="Horizontal"
-							Spacing="{StaticResource ElementSpacing}">
+					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.General}">
+						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="Cog" />
 
 							<TextBlock Text="{x:Static prop:Strings.General}" />
 						</StackPanel>
 					</ListBoxItem>
 
-					<ListBoxItem>
-						<StackPanel
-							Orientation="Horizontal"
-							Spacing="{StaticResource ElementSpacing}">
+					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Appearance}">
+						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="Palette" />
 
 							<TextBlock Text="{x:Static prop:Strings.Appearance}" />
 						</StackPanel>
 					</ListBoxItem>
 
-					<ListBoxItem>
-						<StackPanel
-							Orientation="Horizontal"
-							Spacing="{StaticResource ElementSpacing}">
+					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Behavior}">
+						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="GestureTapButton" />
 
 							<TextBlock Text="{x:Static prop:Strings.Behavior}" />
 						</StackPanel>
 					</ListBoxItem>
 
-					<ListBoxItem>
-						<StackPanel
-							Orientation="Horizontal"
-							Spacing="{StaticResource ElementSpacing}">
+					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Clipboard}">
+						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="ClipboardOutline" />
 
 							<TextBlock Text="{x:Static prop:Strings.Clipboard}" />
 						</StackPanel>
 					</ListBoxItem>
 
-					<ListBoxItem>
-						<StackPanel
-							Orientation="Horizontal"
-							Spacing="{StaticResource ElementSpacing}">
+					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Security}">
+						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="ShieldLockOutline" />
 
 							<TextBlock Text="{x:Static prop:Strings.Security}" />
@@ -152,7 +140,7 @@
 			</ScrollViewer>
 		</Grid>
 
-		<!-- Shown instead of closing the dialog while there are unsaved changes. -->
+		<!--  Shown instead of closing the dialog while there are unsaved changes.  -->
 		<Border
 			Grid.Row="2"
 			Padding="{StaticResource DialogIndent}"
@@ -160,9 +148,7 @@
 			BorderThickness="1.0"
 			CornerRadius="4.0"
 			IsVisible="{Binding IsConfirmingClose, Mode=OneWay}">
-			<Grid
-				ColumnDefinitions="Auto,*,Auto"
-				ColumnSpacing="{StaticResource ElementSpacing}">
+			<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElementSpacing}">
 				<Grid.Styles>
 					<Style Selector="Button">
 						<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />

@@ -30,6 +30,12 @@
 			Grid.ColumnSpan="2"
 			ItemsSource="{Binding Candidates}"
 			SelectedItem="{Binding SelectedApp, Mode=TwoWay}">
+			<ListBox.Styles>
+				<Style x:DataType="execution:AssociatedAppInfo" Selector="ListBoxItem">
+					<Setter Property="AutomationProperties.Name" Value="{Binding AppName, Mode=OneWay}" />
+				</Style>
+			</ListBox.Styles>
+
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction Command="{Binding OpenCommand}" />
@@ -37,18 +43,14 @@
 			</Interaction.Behaviors>
 			<ListBox.ItemTemplate>
 				<DataTemplate DataType="execution:AssociatedAppInfo">
-					<StackPanel
-						Orientation="Horizontal"
-						Spacing="{StaticResource ElementSpacing}">
+					<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
 						<Image
 							Width="24"
 							Height="24"
 							VerticalAlignment="Center"
 							Source="{Binding IconPng, Mode=OneWay, Converter={x:Static converters:AppConverters.PngToBitmap}}" />
 
-						<TextBlock
-							VerticalAlignment="Center"
-							Text="{Binding AppName, Mode=OneWay}" />
+						<TextBlock VerticalAlignment="Center" Text="{Binding AppName, Mode=OneWay}" />
 					</StackPanel>
 				</DataTemplate>
 			</ListBox.ItemTemplate>

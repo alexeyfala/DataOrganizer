@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using INamed = DataOrganizer.Interfaces.Hierarchy.INamed;
 
 namespace DataOrganizer.Converters;
 
@@ -23,6 +24,12 @@ internal static class AppConverters
 	#region Properties
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
+
+	/// <summary>
+	/// Automation name of an item container: the name of its object when the object has one, otherwise unset.
+	/// </summary>
+	public static FuncValueConverter<object?, object?> NamedItemAutomationName { get; } =
+		new(static x => x is INamed named ? named.Name : AvaloniaProperty.UnsetValue);
 
 	/// <inheritdoc cref="PixelsToGridLengthConverter" />
 	public static PixelsToGridLengthConverter PixelsToGridLength { get; } = new();

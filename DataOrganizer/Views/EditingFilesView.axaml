@@ -4,7 +4,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EditingFilesViewModel"
@@ -16,11 +15,5 @@
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
 		PreviousItem="{Binding PreviousFile, Mode=TwoWay}"
-		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}">
-		<controls:DocumentTabControl.Styles>
-			<Style x:DataType="entities:FileDto" Selector="TabItem">
-				<Setter Property="AutomationProperties.Name" Value="{Binding Name, Mode=OneWay}" />
-			</Style>
-		</controls:DocumentTabControl.Styles>
-	</controls:DocumentTabControl>
+		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" />
 </UserControl>

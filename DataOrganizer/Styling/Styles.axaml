@@ -25,6 +25,11 @@
 		</Setter>
 	</Style>
 
+	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
+	<Style Selector=":is(ListBoxItem), :is(TabItem)">
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
+	</Style>
+
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 	</Style>

@@ -3,11 +3,13 @@ using Avalonia.Data.Converters;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace DataOrganizer.Converters;
 
 /// <summary>
-/// Automation name of a button that shows no text: its tip, while the tip is text. Inputs: [Content, ToolTip.Tip].
+/// Automation name of a button that shows no text, only an icon or a glyph: its tip, while the tip is text.
+/// Inputs: [Content, ToolTip.Tip].
 /// </summary>
 internal sealed class ToolTipAutomationNameConverter : IMultiValueConverter
 {
@@ -20,9 +22,16 @@ internal sealed class ToolTipAutomationNameConverter : IMultiValueConverter
 		CultureInfo culture)
 	{
 		// Text content names the button by itself; an unset value keeps a name set with a lower priority.
-		return values is [not string, string { Length: > 0 } tip]
+		return values is [var content, string { Length: > 0 } tip] && !IsText(content)
 			? tip
 			: AvaloniaProperty.UnsetValue;
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Whether the content reads as text: a string with a letter or a digit, unlike a glyph such as an emoji.
+	/// </summary>
+	private static bool IsText(object? content) => content is string text && text.Any(char.IsLetterOrDigit);
 	#endregion
 }
