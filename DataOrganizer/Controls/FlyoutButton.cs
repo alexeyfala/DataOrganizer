@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -132,6 +133,9 @@ internal sealed class FlyoutButton : Button
 			popup.Close();
 		}
 	}
+
+	/// <inheritdoc />
+	protected override AutomationPeer OnCreateAutomationPeer() => new FlyoutButtonAutomationPeer(this);
 
 	/// <inheritdoc />
 	protected override void OnInitialized()

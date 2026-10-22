@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using INamed = DataOrganizer.Interfaces.Hierarchy.INamed;
 
 namespace DataOrganizer.Converters;
 
@@ -24,6 +25,15 @@ internal static class AppConverters
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
 
+	/// <inheritdoc cref="FieldLabelAutomationNameConverter" />
+	public static FieldLabelAutomationNameConverter FieldLabelAutomationName { get; } = new();
+
+	/// <summary>
+	/// Automation name of an item container: the name of its object when the object has one, otherwise unset.
+	/// </summary>
+	public static FuncValueConverter<object?, object?> NamedItemAutomationName { get; } =
+		new(static x => x is INamed named ? named.Name : AvaloniaProperty.UnsetValue);
+
 	/// <inheritdoc cref="PixelsToGridLengthConverter" />
 	public static PixelsToGridLengthConverter PixelsToGridLength { get; } = new();
 
@@ -38,11 +48,17 @@ internal static class AppConverters
 	/// </summary>
 	public static FuncMultiValueConverter<double, Thickness> ScrollGutter { get; } = new(GetScrollGutter);
 
+	/// <inheritdoc cref="SensitiveAutomationNameConverter" />
+	public static SensitiveAutomationNameConverter SensitiveAutomationName { get; } = new();
+
 	/// <summary>
 	/// New width of a control whose size changed; not a number without the change.
 	/// </summary>
 	public static FuncValueConverter<SizeChangedEventArgs?, double> SizeChangedToWidth { get; } =
 		new(static x => x?.NewSize.Width ?? double.NaN);
+
+	/// <inheritdoc cref="ToolTipAutomationNameConverter" />
+	public static ToolTipAutomationNameConverter ToolTipAutomationName { get; } = new();
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();

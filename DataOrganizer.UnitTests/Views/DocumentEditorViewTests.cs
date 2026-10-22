@@ -124,7 +124,9 @@ internal class DocumentEditorViewTests
 
 		Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
+
+		DocumentTextEditor splitEditor = editor.SecondaryEditor!;
 
 		// Act
 		splitEditor
@@ -132,7 +134,7 @@ internal class DocumentEditorViewTests
 			.Focus();
 
 		// Assert
-		ICommand?[] commands = GetFlyoutCommands(sut.GetControl<SplitDocumentEditor>(EditorName).ContextFlyout);
+		ICommand?[] commands = GetFlyoutCommands(editor.ContextFlyout, editor);
 
 		commands
 			.Should()
@@ -683,11 +685,6 @@ internal class DocumentEditorViewTests
 
 		FlyoutBase flyout = editor.ContextFlyout!;
 
-		Button copy = ((Control)((Flyout)flyout).Content!)
-			.GetLogicalDescendants()
-			.OfType<Button>()
-			.Single(x => x.Command == editor.PrimaryEditor.CopyCommand);
-
 		editor.PrimaryEditor.Select(0, 4);
 
 		flyout.ShowAt(editor);
@@ -706,6 +703,11 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
+		Button copy = ((Control)((Flyout)flyout).Content!)
+			.GetLogicalDescendants()
+			.OfType<Button>()
+			.Single(x => x.Command == editor.PrimaryEditor.CopyCommand);
+
 		copy.IsEffectivelyEnabled
 			.Should()
 			.BeFalse();
@@ -728,11 +730,17 @@ internal class DocumentEditorViewTests
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
+		FlyoutBase flyout = editor.ContextFlyout!;
+
+		flyout.ShowAt(editor);
+
+		Dispatcher.UIThread.RunJobs();
+
 		// The submenu is the button whose flyout holds the command of the block at the caret.
-		Button folding = ((Control)((Flyout)editor.ContextFlyout!).Content!)
+		Button folding = ((Control)((Flyout)flyout).Content!)
 			.GetLogicalDescendants()
 			.OfType<Button>()
-			.Single(x => GetFlyoutCommands(x.Flyout).Contains(editor.PrimaryEditor.ToggleFoldingCommand));
+			.Single(x => GetFlyoutCommands(x.Flyout, x).Contains(editor.PrimaryEditor.ToggleFoldingCommand));
 
 		// Act
 		sut.SyntaxLanguage = hasLanguage ? PowerShellLanguage : null;
@@ -758,7 +766,7 @@ internal class DocumentEditorViewTests
 		// Assert
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
-		GetFlyoutCommands(editor.ContextFlyout)
+		GetFlyoutCommands(editor.ContextFlyout, editor)
 			.Should()
 			.NotContain(editor.PrimaryEditor.ConvertLineEndingsCommand);
 	}
@@ -3159,10 +3167,15 @@ internal class DocumentEditorViewTests
 	}
 
 	/// <summary>
-	/// Returns the commands of the buttons of a flyout that open no flyout, with those of the flyouts the others open.
+	/// Opens a flyout at its target and returns the commands of its buttons that open no flyout, with those of the flyouts
+	/// the others open.
 	/// </summary>
-	private static ICommand?[] GetFlyoutCommands(FlyoutBase? flyout)
+	private static ICommand?[] GetFlyoutCommands(FlyoutBase? flyout, Control target)
 	{
+		flyout?.ShowAt(target);
+
+		Dispatcher.UIThread.RunJobs();
+
 		if (flyout is not Flyout { Content: Control content })
 		{
 			return [];
@@ -3171,7 +3184,7 @@ internal class DocumentEditorViewTests
 		return [.. content
 			.GetLogicalDescendants()
 			.OfType<Button>()
-			.SelectMany(static x => x.Flyout is null ? [x.Command] : GetFlyoutCommands(x.Flyout))];
+			.SelectMany(static x => x.Flyout is null ? [x.Command] : GetFlyoutCommands(x.Flyout, x))];
 	}
 
 	/// <summary>

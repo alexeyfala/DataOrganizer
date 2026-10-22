@@ -4,6 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.Windows;
 
 namespace DataOrganizer.UnitTests.Windows;
@@ -95,12 +96,5 @@ internal class AppWindowBaseTests
 			.GetProperty("ClientSize")!
 			.GetValue(window.PlatformImpl)!;
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Window of the application with nothing of its own.
-	/// </summary>
-	private sealed class PlainWindow : AppWindowBase;
 	#endregion
 }

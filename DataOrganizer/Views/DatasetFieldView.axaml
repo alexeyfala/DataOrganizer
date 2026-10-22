@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -17,6 +18,17 @@
 	<UserControl.Styles>
 		<Style Selector="ToolTip">
 			<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
+		</Style>
+
+		<!--  The field is named for screen readers and UI Automation by what it shows, a sensitive one by a neutral word.  -->
+		<Style Selector="views|DatasetFieldView">
+			<Setter Property="AutomationProperties.Name">
+				<MultiBinding Converter="{x:Static converters:AppConverters.SensitiveAutomationName}">
+					<Binding Mode="OneWay" Path="$self.DisplayText" />
+
+					<Binding Mode="OneWay" Path="$self.IsSensitive" />
+				</MultiBinding>
+			</Setter>
 		</Style>
 	</UserControl.Styles>
 

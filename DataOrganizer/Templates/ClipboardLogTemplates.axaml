@@ -69,6 +69,7 @@
 			Padding="6.0"
 			HorizontalAlignment="Stretch"
 			HorizontalContentAlignment="Stretch"
+			AutomationProperties.Name="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.AutomationName}}"
 			Background="{StaticResource MaterialDividerBrush}"
 			Classes.active="{Binding IsActive}"
 			Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"

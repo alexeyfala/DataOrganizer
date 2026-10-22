@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -30,9 +31,9 @@ internal class FlyoutButtonTests
 			Header = "Item"
 		};
 
-		Flyout menu = new()
+		LazyMenuFlyout menu = new()
 		{
-			Content = sut
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => sut)
 		};
 
 		Border target = new();
@@ -66,9 +67,9 @@ internal class FlyoutButtonTests
 			Header = "Item"
 		};
 
-		Flyout menu = new()
+		LazyMenuFlyout menu = new()
 		{
-			Content = sut
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => sut)
 		};
 
 		Border target = new()
@@ -105,9 +106,9 @@ internal class FlyoutButtonTests
 			Header = "Item"
 		};
 
-		Flyout submenu = new()
+		LazyMenuFlyout submenu = new()
 		{
-			Content = sut
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => sut)
 		};
 
 		FlyoutButton opener = new()
@@ -116,9 +117,9 @@ internal class FlyoutButtonTests
 			Header = "More"
 		};
 
-		Flyout menu = new()
+		LazyMenuFlyout menu = new()
 		{
-			Content = opener
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => opener)
 		};
 
 		Border target = new();
@@ -197,19 +198,19 @@ internal class FlyoutButtonTests
 		// Arrange
 		FlyoutButton sut = new()
 		{
-			Flyout = new Flyout
+			Flyout = new LazyMenuFlyout
 			{
-				Content = new FlyoutButton
+				MenuTemplate = new FuncDataTemplate<object>((_, _) => new FlyoutButton
 				{
 					Header = "Item"
-				}
+				})
 			},
 			Header = "More"
 		};
 
-		Flyout menu = new()
+		LazyMenuFlyout menu = new()
 		{
-			Content = sut
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => sut)
 		};
 
 		Border target = new();
@@ -227,6 +228,51 @@ internal class FlyoutButtonTests
 
 		// Assert
 		menu.IsOpen
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FlyoutButton" />: the first click on a button that opens a submenu opens it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_A_Button_With_A_Submenu_Opens_The_Submenu()
+	{
+		// Arrange
+		LazyMenuFlyout submenu = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new FlyoutButton
+			{
+				Header = "Item"
+			})
+		};
+
+		FlyoutButton sut = new()
+		{
+			Flyout = submenu,
+			Header = "More"
+		};
+
+		LazyMenuFlyout menu = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => sut)
+		};
+
+		Border target = new();
+
+		Window window = Show(target);
+
+		menu.ShowAt(target);
+
+		Dispatcher.UIThread.RunJobs();
+
+		Point point = Center(window, sut);
+
+		// Act
+		Click(window, point);
+
+		// Assert
+		submenu.IsOpen
 			.Should()
 			.BeTrue();
 	}

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
@@ -93,6 +94,40 @@ internal class ScrollableSideSheetThemeTests
 		content.Viewport.Height
 			.Should()
 			.BeLessThan(content.Extent.Height);
+	}
+
+	/// <summary>
+	/// The header and the content of a sheet are enabled only while it is opened, so a closed sheet out of view takes
+	/// neither the focus nor the keys.
+	/// </summary>
+	[AvaloniaTest]
+	public void Header_And_Content_Are_Enabled_Only_While_The_Sheet_Is_Opened([Values] bool isOpened)
+	{
+		// Arrange
+		Button headerButton = new();
+
+		Button contentButton = new();
+
+		SideSheet sut = new()
+		{
+			SideSheetContent = contentButton,
+			SideSheetHeader = "Header",
+			SideSheetHeaderTemplate = new FuncDataTemplate<string>((_, _) => headerButton),
+			SideSheetOpened = isOpened,
+			Theme = GetTheme()
+		};
+
+		// Act
+		Show(sut);
+
+		// Assert
+		headerButton.IsEffectivelyEnabled
+			.Should()
+			.Be(isOpened);
+
+		contentButton.IsEffectivelyEnabled
+			.Should()
+			.Be(isOpened);
 	}
 
 	/// <summary>

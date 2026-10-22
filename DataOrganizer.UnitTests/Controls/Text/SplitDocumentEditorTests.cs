@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -11,6 +12,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
+using DataOrganizer.Controls;
 using DataOrganizer.Controls.Text;
 using System.Linq;
 
@@ -267,12 +269,12 @@ internal class SplitDocumentEditorTests
 	public void ContextFlyout_Opens_In_The_Lower_Half()
 	{
 		// Arrange
-		Flyout flyout = new()
+		LazyMenuFlyout flyout = new()
 		{
-			Content = new TextBlock
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new TextBlock
 			{
 				Text = "Item"
-			}
+			})
 		};
 
 		SplitDocumentEditor sut = new()
@@ -305,12 +307,12 @@ internal class SplitDocumentEditorTests
 	public void ContextFlyout_Stays_Closed_On_The_Splitter()
 	{
 		// Arrange
-		Flyout flyout = new()
+		LazyMenuFlyout flyout = new()
 		{
-			Content = new TextBlock
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new TextBlock
 			{
 				Text = "Item"
-			}
+			})
 		};
 
 		SplitDocumentEditor sut = new()

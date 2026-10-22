@@ -28,6 +28,7 @@
 		</Grid.ColumnDefinitions>
 
 		<TextBox
+			x:Name="CategorySearchInput"
 			Grid.Row="0"
 			Grid.Column="0"
 			Classes="clearButton SearchTextBoxStyle"
@@ -37,6 +38,7 @@
 			Virtualization is disabled because switching to edge elements does not work when using "Ctrl+Tab"
 		-->
 		<ListBox
+			x:Name="CategoriesList"
 			Grid.Row="1"
 			Grid.Column="0"
 			Classes="NonVirtualizedListBoxStyle"
@@ -75,12 +77,14 @@
 			Theme="{StaticResource SingleLineGridSplitterTheme}" />
 
 		<TextBox
+			x:Name="FavoriteSearchInput"
 			Grid.Row="0"
 			Grid.Column="2"
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding FavoriteSearch, Mode=TwoWay}" />
 
 		<ListBox
+			x:Name="FavoritesList"
 			Grid.Row="1"
 			Grid.Column="2"
 			ItemTemplate="{StaticResource FileInListTemplate}"

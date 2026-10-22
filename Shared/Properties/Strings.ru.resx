@@ -870,4 +870,13 @@
   <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
     <value>Символа «{0}» нет в кодировке {1}. Текст сохранён в UTF-8.</value>
   </data>
+  <data name="Minimize" xml:space="preserve">
+    <value>Свернуть</value>
+  </data>
+  <data name="Maximize" xml:space="preserve">
+    <value>Развернуть</value>
+  </data>
+  <data name="HiddenText" xml:space="preserve">
+    <value>Скрытый текст</value>
+  </data>
 </root>

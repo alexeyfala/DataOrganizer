@@ -27,19 +27,23 @@
 			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
-				<Flyout OverlayDismissEventPassThrough="True">
-					<StackPanel Orientation="Vertical">
-						<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneWay}" />
+				<controls:LazyMenuFlyout>
+					<controls:LazyMenuFlyout.MenuTemplate>
+						<DataTemplate x:DataType="entities:FileDto">
+							<StackPanel Orientation="Vertical">
+								<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneWay}" />
 
-						<controls:FlyoutButton
-							Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
-							CommandParameter="{Binding Id}"
-							Foreground="{StaticResource MaterialBodyBrush}"
-							Header="{x:Static prop:Strings.ShowInList}"
-							Icon="FileTree"
-							Theme="{StaticResource MaterialFlatButton}" />
-					</StackPanel>
-				</Flyout>
+								<controls:FlyoutButton
+									Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
+									CommandParameter="{Binding Id}"
+									Foreground="{StaticResource MaterialBodyBrush}"
+									Header="{x:Static prop:Strings.ShowInList}"
+									Icon="FileTree"
+									Theme="{StaticResource MaterialFlatButton}" />
+							</StackPanel>
+						</DataTemplate>
+					</controls:LazyMenuFlyout.MenuTemplate>
+				</controls:LazyMenuFlyout>
 			</Grid.ContextFlyout>
 
 			<TextBlock

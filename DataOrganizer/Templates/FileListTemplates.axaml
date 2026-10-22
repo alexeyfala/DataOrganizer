@@ -1,6 +1,7 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:documents="using:DataOrganizer.Interfaces.Documents"
 	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
@@ -107,10 +108,12 @@
 				</views:IconsBlock.HotkeysToolTip>
 			</views:IconsBlock>
 
+			<Grid.ContextFlyout>
+				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FileInListContextMenuTemplate}" />
+			</Grid.ContextFlyout>
+
 			<Interaction.Behaviors>
 				<input:DisableRightClickSelectionBehavior />
-
-				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInListContextMenuTemplate}" />
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction

@@ -16,6 +16,7 @@
 		<StackPanel Orientation="Vertical">
 			<ComboBox
 				Height="{StaticResource SettingsComboBoxHeight}"
+				AutomationProperties.Name="{x:Static prop:Strings.AutoLock}"
 				ItemsSource="{Binding AutoLockDelays, Mode=OneTime}"
 				SelectedItem="{Binding AutoLockMinutes, Mode=TwoWay}">
 				<ComboBox.ItemTemplate>

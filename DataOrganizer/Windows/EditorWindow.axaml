@@ -117,7 +117,7 @@
 									</Style>
 								</Menu.Styles>
 
-								<MenuItem Command="{Binding ShowFavoritesCommand}">
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.FavoritesMode}" Command="{Binding ShowFavoritesCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -127,7 +127,7 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem Command="{Binding ShowSettingsCommand}">
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Settings}" Command="{Binding ShowSettingsCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="CogOutline" />
@@ -139,7 +139,7 @@
 
 								<Separator Margin="16.0,0.0" />
 
-								<MenuItem>
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Restart}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="Restart" />
@@ -157,7 +157,7 @@
 									</Interaction.Behaviors>
 								</MenuItem>
 
-								<MenuItem>
+								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Exit}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="LocationExit" />
@@ -180,6 +180,7 @@
 
 								<MenuItem
 									x:Name="SampleSeeding"
+									AutomationProperties.Name="Sample Seeding"
 									Command="{Binding SeedSamplesCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
@@ -193,6 +194,7 @@
 
 								<MenuItem
 									x:Name="LargeSampleSeeding"
+									AutomationProperties.Name="Large Sample Seeding"
 									Command="{Binding SeedLargeSamplesCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}">
 									<MenuItem.Header>
@@ -206,6 +208,7 @@
 
 								<MenuItem
 									x:Name="ClipboardHistorySeeding"
+									AutomationProperties.Name="Clipboard History Seeding"
 									Command="{Binding SeedClipboardHistoryCommand}"
 									IsVisible="{x:Static common:AppInfo.IsDebug}"
 									ToolTip.ShowOnDisabled="True">
@@ -338,25 +341,29 @@
 									</Button.Styles>
 
 									<Button.Flyout>
-										<Flyout OverlayDismissEventPassThrough="True" Placement="Bottom">
-											<StackPanel Orientation="Vertical">
-												<StackPanel.Styles>
-													<Style Selector="Button">
-														<Setter Property="Margin" Value="0.0" />
-													</Style>
-												</StackPanel.Styles>
+										<controls:LazyMenuFlyout Placement="Bottom">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate x:DataType="windows:EditorViewModel">
+													<StackPanel Orientation="Vertical">
+														<StackPanel.Styles>
+															<Style Selector="Button">
+																<Setter Property="Margin" Value="0.0" />
+															</Style>
+														</StackPanel.Styles>
 
-												<controls:FlyoutButton
-													Command="{Binding ImportCommand}"
-													Header="{x:Static prop:Strings.ImportList}"
-													Icon="Import" />
+														<controls:FlyoutButton
+															Command="{Binding ImportCommand}"
+															Header="{x:Static prop:Strings.ImportList}"
+															Icon="Import" />
 
-												<controls:FlyoutButton
-													Command="{Binding ExportCommand}"
-													Header="{x:Static prop:Strings.ExportList}"
-													Icon="Export" />
-											</StackPanel>
-										</Flyout>
+														<controls:FlyoutButton
+															Command="{Binding ExportCommand}"
+															Header="{x:Static prop:Strings.ExportList}"
+															Icon="Export" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
 									</Button.Flyout>
 								</Button>
 							</StackPanel>
@@ -412,6 +419,7 @@
 
 								<TreeView.Styles>
 									<Style x:DataType="nodes:ExplorerNodeViewModelBase" Selector="TreeViewItem">
+										<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
 										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									</Style>

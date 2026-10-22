@@ -41,6 +41,141 @@ internal class ClipboardLogConvertersTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a text longer than the name keeps its first 100 characters and
+	/// ends with an ellipsis.
+	/// </summary>
+	[Test]
+	public void AutomationName_Cuts_A_Long_Text()
+	{
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, ClipboardEntryFactory.CreateTextEntry(new string('a', 150)));
+
+		// Assert
+		result
+			.Should()
+			.Be(new string('a', 100) + "...");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: an image adds its pixel size to the name of an image without
+	/// one.
+	/// </summary>
+	[Test]
+	public void AutomationName_Gives_The_Pixel_Size_Of_An_Image()
+	{
+		// Arrange
+		string? withoutSize = Convert(ClipboardLogConverters.AutomationName, ClipboardEntryFactory.CreateImageEntry([0, 1, 2, 3]));
+
+		ClipboardImageEntry image = ClipboardEntryFactory.CreateImageEntry(PngWithSize(width: 100, height: 50));
+
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, image);
+
+		// Assert
+		result
+			.Should()
+			.Be($"{withoutSize} 100 × 50");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a link is named by its URL.
+	/// </summary>
+	[Test]
+	public void AutomationName_Gives_The_Url_Of_A_Link()
+	{
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, ClipboardEntryFactory.CreateUrlEntry("https://example.com"));
+
+		// Assert
+		result
+			.Should()
+			.Be("https://example.com");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a secret, which the log blurs, carries none of its text in the
+	/// name, and every secret gets the same one.
+	/// </summary>
+	[Test]
+	public void AutomationName_Hides_The_Text_Of_A_Secret()
+	{
+		// Arrange
+		ClipboardTextEntry first = ClipboardEntryFactory.CreateTextEntry("Qw7#Lp2!zR9x", isSensitive: true);
+
+		ClipboardTextEntry second = ClipboardEntryFactory.CreateTextEntry("Zx3$Mn8&kT5v", isSensitive: true);
+
+		// Act
+		string? firstName = Convert(ClipboardLogConverters.AutomationName, first);
+
+		string? secondName = Convert(ClipboardLogConverters.AutomationName, second);
+
+		// Assert
+		firstName
+			.Should()
+			.NotBeNullOrEmpty()
+			.And
+			.NotContain(first.Text);
+
+		secondName
+			.Should()
+			.Be(firstName);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a text of exactly 100 characters is named whole, without an
+	/// ellipsis.
+	/// </summary>
+	[Test]
+	public void AutomationName_Keeps_A_Text_That_Fits_Whole()
+	{
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, ClipboardEntryFactory.CreateTextEntry(new string('a', 100)));
+
+		// Assert
+		result
+			.Should()
+			.Be(new string('a', 100));
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a list of files is named by the names of its items.
+	/// </summary>
+	[Test]
+	public void AutomationName_Lists_The_Names_Of_The_Files()
+	{
+		// Arrange
+		ClipboardFilesEntry files = ClipboardEntryFactory.CreateFilesEntry(
+		[
+			new ClipboardFileSystemEntry(Folder, IsFolder: true),
+			new ClipboardFileSystemEntry(FirstFile, IsFolder: false)
+		]);
+
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, files);
+
+		// Assert
+		result
+			.Should()
+			.Be($"{FolderName}, a.txt");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogConverters.AutomationName" />: a text of several lines is named on one line, each run of
+	/// white space turned into one space.
+	/// </summary>
+	[Test]
+	public void AutomationName_Puts_A_Text_On_One_Line()
+	{
+		// Act
+		string? result = Convert(ClipboardLogConverters.AutomationName, ClipboardEntryFactory.CreateTextEntry("  first\r\n\tsecond   third\n"));
+
+		// Assert
+		result
+			.Should()
+			.Be("first second third");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogConverters.ContentToolTip" />: a list longer than the tooltip ends with an ellipsis after as
 	/// many files as fit.
 	/// </summary>

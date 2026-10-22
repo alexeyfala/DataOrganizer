@@ -38,26 +38,28 @@
 				ToolTip.Tip="{x:Static prop:Strings.Add}">
 
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<controls:FlyoutButton
-								Command="{Binding AddKeyValueCommand}"
-								Header="{x:Static prop:Strings.AddKeyAndValue}"
-								Icon="Plus" />
+					<controls:LazyMenuFlyout Placement="Right">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="vm:DatasetEditorViewModel">
+								<StackPanel Orientation="Vertical">
+									<controls:FlyoutButton
+										Command="{Binding AddKeyValueCommand}"
+										Header="{x:Static prop:Strings.AddKeyAndValue}"
+										Icon="Plus" />
 
-							<controls:FlyoutButton
-								Command="{Binding AddValueCommand}"
-								Header="{x:Static prop:Strings.AddValue}"
-								Icon="Plus" />
+									<controls:FlyoutButton
+										Command="{Binding AddValueCommand}"
+										Header="{x:Static prop:Strings.AddValue}"
+										Icon="Plus" />
 
-							<controls:FlyoutButton
-								Command="{Binding AddGroupCommand}"
-								Header="{x:Static prop:Strings.AddGroup}"
-								Icon="ShapeRectanglePlus" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding AddGroupCommand}"
+										Header="{x:Static prop:Strings.AddGroup}"
+										Icon="ShapeRectanglePlus" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</Button>
 
@@ -121,29 +123,31 @@
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.Sorting}">
 				<Button.Flyout>
-					<Flyout
-						OverlayDismissEventPassThrough="True"
-						Placement="Bottom">
-						<StackPanel Orientation="Vertical">
-							<StackPanel.Styles>
-								<Style Selector="Button">
-									<Setter Property="Margin" Value="0.0" />
-								</Style>
-							</StackPanel.Styles>
+					<controls:LazyMenuFlyout Placement="Bottom">
+						<controls:LazyMenuFlyout.MenuTemplate>
+							<DataTemplate x:DataType="vm:DatasetEditorViewModel">
+								<StackPanel Orientation="Vertical">
+									<StackPanel.Styles>
+										<Style Selector="Button">
+											<Setter Property="Margin" Value="0.0" />
+										</Style>
+									</StackPanel.Styles>
 
-							<controls:FlyoutButton
-								Command="{Binding SortAscendingDescendingCommand}"
-								CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"
-								Header="{x:Static prop:Strings.SortAscending}"
-								Icon="SortAlphabeticalAscending" />
+									<controls:FlyoutButton
+										Command="{Binding SortAscendingDescendingCommand}"
+										CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"
+										Header="{x:Static prop:Strings.SortAscending}"
+										Icon="SortAlphabeticalAscending" />
 
-							<controls:FlyoutButton
-								Command="{Binding SortAscendingDescendingCommand}"
-								CommandParameter="{x:Static componentModel:ListSortDirection.Descending}"
-								Header="{x:Static prop:Strings.SortDescending}"
-								Icon="SortAlphabeticalDescending" />
-						</StackPanel>
-					</Flyout>
+									<controls:FlyoutButton
+										Command="{Binding SortAscendingDescendingCommand}"
+										CommandParameter="{x:Static componentModel:ListSortDirection.Descending}"
+										Header="{x:Static prop:Strings.SortDescending}"
+										Icon="SortAlphabeticalDescending" />
+								</StackPanel>
+							</DataTemplate>
+						</controls:LazyMenuFlyout.MenuTemplate>
+					</controls:LazyMenuFlyout>
 				</Button.Flyout>
 			</Button>
 

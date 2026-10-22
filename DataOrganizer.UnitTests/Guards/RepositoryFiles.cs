@@ -13,7 +13,7 @@ internal static class RepositoryFiles
 {
 	#region Methods
 	/// <summary>
-	/// Parses every markup file of the application project, each paired with its path.
+	/// Parses every markup file of the application project with the line of each element, each paired with its path.
 	/// </summary>
 	public static IEnumerable<(string FilePath, XDocument Document)> EnumerateProjectMarkup()
 	{
@@ -22,7 +22,7 @@ internal static class RepositoryFiles
 		return Directory
 			.EnumerateFiles(root, "*.axaml", SearchOption.AllDirectories)
 			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-			.Select(path => (FilePath: path, Document: XDocument.Load(path)));
+			.Select(path => (FilePath: path, Document: XDocument.Load(path, LoadOptions.SetLineInfo)));
 	}
 
 	/// <summary>

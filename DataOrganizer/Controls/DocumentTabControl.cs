@@ -197,15 +197,14 @@ internal sealed class DocumentTabControl : TabControl
 	{
 		if (e.Handled
 			|| GetTabItem(e.Source) is not { } tab
-			|| TabMenuTemplate?.Build(tab.DataContext) is not { } content)
+			|| TabMenuTemplate is not { } template)
 		{
 			return;
 		}
 
-		new Flyout
+		new LazyMenuFlyout
 		{
-			Content = content,
-			OverlayDismissEventPassThrough = true
+			MenuTemplate = template
 		}.ShowAt(tab, showAtPointer: true);
 
 		e.Handled = true;

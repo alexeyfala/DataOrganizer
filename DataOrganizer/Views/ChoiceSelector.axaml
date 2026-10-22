@@ -60,6 +60,7 @@
 						<ListBox.Styles>
 							<!--  An item that cannot be chosen is grayed out, and its tip tells why.  -->
 							<Style x:DataType="documents:SelectorChoice" Selector="ListBoxItem">
+								<Setter Property="AutomationProperties.Name" Value="{Binding Name, Mode=OneWay}" />
 								<Setter Property="IsEnabled" Value="{Binding IsAvailable, Mode=OneWay}" />
 								<Setter Property="ToolTip.ShowOnDisabled" Value="True" />
 								<Setter Property="ToolTip.Tip" Value="{Binding UnavailableTip, Mode=OneWay}" />

@@ -5,10 +5,67 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text">
+
+	<!--
+		A button that shows no text is named for screen readers and UI Automation by its tip.
+		The binding shadows a name set by a control theme, so a theme names a button by a text tip.
+	-->
+	<Style Selector=":is(Button)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.ToolTipAutomationName}">
+				<Binding Mode="OneWay" Path="$self.Content" />
+
+				<Binding Mode="OneWay" Path="$self.(ToolTip.Tip)" />
+			</MultiBinding>
+		</Setter>
+	</Style>
+
+	<!--  A text box is named for screen readers and UI Automation by its label, or else by its placeholder.  -->
+	<Style Selector=":is(TextBox)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.FieldLabelAutomationName}">
+				<Binding Mode="OneWay" Path="$self.(assists:TextFieldAssist.Label)" />
+
+				<Binding Mode="OneWay" Path="$self.PlaceholderText" />
+			</MultiBinding>
+		</Setter>
+	</Style>
+
+	<!--
+		The buttons that Material puts into a text box get tips in the language of the app instead of the English ones of their themes.
+		Material adds them as inner content only when they show, apart from the template of a box shown before, so they are reached as descendants rather than template parts.
+	-->
+	<Style Selector=":is(TextBox) Button#PART_ClearButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clear}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:unchecked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:checked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
+	</Style>
+
+	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
+	<Style Selector=":is(ListBoxItem), :is(TabItem)">
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
+	</Style>
+
+	<!--
+		An icon that tells the state of an object shows to screen readers and UI Automation as an image named by its tip;
+		other icons stay out of the tree, as the control they belong to names itself.
+	-->
+	<Style Selector="materialIcons|MaterialIcon.StatusIconStyle">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Control" />
+		<Setter Property="AutomationProperties.ControlTypeOverride" Value="Image" />
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.(ToolTip.Tip), Mode=OneWay}" />
+	</Style>
 
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
@@ -19,6 +76,7 @@
 		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 
 		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton">
+			<Setter Property="AutomationProperties.Name" Value="{Binding $parent[Expander].(AutomationProperties.Name), Mode=OneWay}" />
 			<Setter Property="MinHeight" Value="0.0" />
 			<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 		</Style>

@@ -19,6 +19,7 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
 using Repository.Interfaces.Database;
+using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Linq;
@@ -31,6 +32,59 @@ namespace DataOrganizer.UnitTests.Views;
 internal class SelectedFavoritesViewTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="SelectedFavoritesView.CategoriesList" />: the list with this id for UI Automation shows the categories.
+	/// </summary>
+	[AvaloniaTest]
+	public void CategoriesList_Shows_The_Categories()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		SelectedFavoritesView view = (SelectedFavoritesView)window.Content!;
+
+		window.Close();
+
+		// Assert
+		view.CategoriesList.ItemsSource
+			.Should()
+			.BeSameAs(viewModel.Categories);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesView.CategorySearchInput" />: the input with this id for UI Automation edits the search of
+	/// the categories.
+	/// </summary>
+	[AvaloniaTest]
+	public void CategorySearchInput_Edits_The_Category_Search()
+	{
+		// Arrange
+		string search = RandomString.Create(8);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		SelectedFavoritesView view = (SelectedFavoritesView)window.Content!;
+
+		// Act
+		view.CategorySearchInput.Text = search;
+
+		window.Close();
+
+		// Assert
+		viewModel.CategorySearch
+			.Should()
+			.Be(search);
+	}
+
 	/// <summary>
 	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a click on the copy button of a favorite highlights it in the
 	/// list.
@@ -124,6 +178,59 @@ internal class SelectedFavoritesViewTests
 		highlight
 			.Should()
 			.NotBeSameAs(background);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesView.FavoriteSearchInput" />: the input with this id for UI Automation edits the search of
+	/// the favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void FavoriteSearchInput_Edits_The_Favorite_Search()
+	{
+		// Arrange
+		string search = RandomString.Create(8);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		SelectedFavoritesView view = (SelectedFavoritesView)window.Content!;
+
+		// Act
+		view.FavoriteSearchInput.Text = search;
+
+		window.Close();
+
+		// Assert
+		viewModel.FavoriteSearch
+			.Should()
+			.Be(search);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesView.FavoritesList" />: the list with this id for UI Automation shows the favorites.
+	/// </summary>
+	[AvaloniaTest]
+	public void FavoritesList_Shows_The_Favorites()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+
+		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
+
+		// Act
+		Window window = Show(viewModel, navigationColumnWidth: 150.0);
+
+		SelectedFavoritesView view = (SelectedFavoritesView)window.Content!;
+
+		window.Close();
+
+		// Assert
+		view.FavoritesList.ItemsSource
+			.Should()
+			.BeSameAs(viewModel.Favorites);
 	}
 
 	/// <summary>

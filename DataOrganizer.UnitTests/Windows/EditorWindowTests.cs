@@ -11,9 +11,8 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.Controls;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Documents;
@@ -500,11 +499,7 @@ internal class EditorWindowTests
 		Grid row = sut.FindTreeRow(dto)!;
 
 		// Act
-		Interaction
-			.GetBehaviors(row)
-			.OfType<LazyContextFlyoutBehavior>()
-			.Single()
-			.Show();
+		row.ContextFlyout!.ShowAt(row);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1876,13 +1871,9 @@ internal class EditorWindowTests
 			.Single()
 			.GetVisualDescendants()
 			.OfType<Grid>()
-			.First(static x => x.DataContext is FileDto && Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any());
+			.First(static x => x.DataContext is FileDto && x.ContextFlyout is LazyMenuFlyout);
 
-		Interaction
-			.GetBehaviors(row)
-			.OfType<LazyContextFlyoutBehavior>()
-			.Single()
-			.Show();
+		row.ContextFlyout!.ShowAt(row);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2072,7 +2063,7 @@ internal class EditorWindowTests
 				.OfType<Grid>()
 				.Where(static x => x.IsEffectivelyVisible
 					&& x.DataContext is ExplorerItemDtoBase
-					&& Interaction.GetBehaviors(x).OfType<LazyContextFlyoutBehavior>().Any())
+					&& x.ContextFlyout is LazyMenuFlyout)
 				.Select(static x => ((ExplorerItemDtoBase)x.DataContext!, x.FindAncestorOfType<TreeViewItem>()!.ItemCount))
 		];
 

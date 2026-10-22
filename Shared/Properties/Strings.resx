@@ -850,4 +850,13 @@
   <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
     <value>The character "{0}" is not in the {1} encoding. The text is saved in UTF-8.</value>
   </data>
+  <data name="Minimize" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="Maximize" xml:space="preserve">
+    <value>Maximize</value>
+  </data>
+  <data name="HiddenText" xml:space="preserve">
+    <value>Hidden text</value>
+  </data>
 </root>

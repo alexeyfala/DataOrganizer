@@ -6,7 +6,6 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:enums="using:DataOrganizer.Enums.Views"
-
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:local="using:DataOrganizer.Windows"
@@ -22,6 +21,7 @@
 	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	x:DataType="windows:FavoritesViewModel"
+	AutomationProperties.Name="{x:Static prop:Strings.Favorites}"
 	Background="Transparent"
 	CanResize="False"
 	ShowInTaskbar="False"
@@ -77,7 +77,7 @@
 					Margin="4.0,0.0"
 					Padding="6.0,0.0"
 					Command="{Binding ShowNotepadCommand}"
-										Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
+					Content="{materialIcons:MaterialIconTextExt Kind=NotebookOutline,
 					                                            IconSize=16.0}"
 					Foreground="{StaticResource LightForegroundBrush}"
 					Theme="{StaticResource MaterialFlatButton}"
@@ -278,13 +278,13 @@
 				CornerRadius="{StaticResource CornerRadius}">
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.Styles>
-						<Style Selector="Button,ToggleButton">
+						<Style Selector="Button">
 							<Setter Property="Margin" Value="4.0" />
 							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 						</Style>
 					</StackPanel.Styles>
 
-					<ToggleButton
+					<Button
 						Classes="primary"
 						Command="{Binding ShowFavoritesCommand}"
 						Content="{materialIcons:MaterialIconTextExt Kind=StarOutline,
@@ -294,18 +294,18 @@
 					<Button
 						Classes="primary"
 						Command="{Binding ShowEditorCommand}"
-												Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
+						Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
 						ToolTip.Tip="{x:Static prop:Strings.Editor}" />
 
 					<Button
 						Classes="primary"
 						Command="{Binding ShowCustomClipboardCommand}"
-												IsVisible="{Binding IsClipboardHistoryEnabled}"
+						IsVisible="{Binding IsClipboardHistoryEnabled}"
 						Theme="{StaticResource CustomClipboardButtonTheme}" />
 
 					<Panel>
-						<ToggleButton
+						<Button
 							Classes="primary"
 							Command="{Binding ShowCopyHistoryCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,

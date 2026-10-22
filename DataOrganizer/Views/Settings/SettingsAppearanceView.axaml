@@ -51,6 +51,7 @@
 				Header="{x:Static prop:Strings.PrimaryColor}">
 				<ComboBox
 					Height="{StaticResource SettingsComboBoxHeight}"
+					AutomationProperties.Name="{x:Static prop:Strings.PrimaryColor}"
 					ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 					ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
 					SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
@@ -61,6 +62,7 @@
 				Header="{x:Static prop:Strings.SecondaryColor}">
 				<ComboBox
 					Height="{StaticResource SettingsComboBoxHeight}"
+					AutomationProperties.Name="{x:Static prop:Strings.SecondaryColor}"
 					ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 					ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
 					SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
