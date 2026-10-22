@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.Models.Dataset"
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -116,6 +117,18 @@
 				Header="{Binding Mode=OneWay}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
 
+				<!--
+					The group is named for screen readers and UI Automation as the field of its header, by a neutral word while the
+					dataset is encrypted; its header and its chevron take the same name.
+				-->
+				<AutomationProperties.Name>
+					<MultiBinding Converter="{x:Static converters:AppConverters.SensitiveAutomationName}">
+						<Binding Mode="OneWay" Path="Name" />
+
+						<Binding Mode="OneWay" Path="$parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted" />
+					</MultiBinding>
+				</AutomationProperties.Name>
+
 				<Expander.Styles>
 					<Style Selector="FlyoutPresenter">
 						<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
@@ -145,7 +158,7 @@
 								Margin="0.0,0.0,4.0,0.0"
 								Padding="4.0"
 								VerticalAlignment="Center"
-								AutomationProperties.Name="{Binding Name, Mode=OneWay}"
+								AutomationProperties.Name="{Binding $parent[Expander].(AutomationProperties.Name), Mode=OneWay}"
 								IsChecked="{Binding $parent[Expander].IsExpanded, Mode=TwoWay}"
 								Theme="{StaticResource MaterialFlatButton}">
 								<materialIcons:MaterialIcon

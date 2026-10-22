@@ -10,7 +10,7 @@ using System.Xml.Linq;
 namespace DataOrganizer.UnitTests.Guards;
 
 [Guard]
-[TestFixture(Description = "Guards that the markup gives every interactive element a name for UI Automation")]
+[TestFixture(Description = "Guards that the markup gives UI Automation a name for every interactive element and a state of meaning for every toggle")]
 internal partial class AutomationNameMarkupTests
 {
 	#region Data
@@ -18,6 +18,11 @@ internal partial class AutomationNameMarkupTests
 	/// Attribute that names an element for UI Automation.
 	/// </summary>
 	private const string AutomationNameProperty = "AutomationProperties.Name";
+
+	/// <summary>
+	/// Property of the state of a toggle, which UI Automation reads as its toggle state.
+	/// </summary>
+	private const string IsCheckedProperty = "IsChecked";
 
 	/// <summary>
 	/// Attribute that names an element for UI Automation by another element.
@@ -73,6 +78,17 @@ internal partial class AutomationNameMarkupTests
 		"PlaceholderText",
 		"TextFieldAssist.Label",
 		"Watermark"
+	};
+
+	/// <summary>
+	/// Kinds of toggles, which show their state to UI Automation.
+	/// </summary>
+	private static readonly HashSet<string> ToggleKinds = new(StringComparer.Ordinal)
+	{
+		"CheckBox",
+		"RadioButton",
+		"ToggleButton",
+		"ToggleSwitch"
 	};
 	#endregion
 
@@ -201,6 +217,31 @@ internal partial class AutomationNameMarkupTests
 			.Should()
 			.BeEmpty();
 	}
+
+	/// <summary>
+	/// A toggle binds its state, or another element reads it by name: the state of a toggle that only flips on a press
+	/// tells UI Automation nothing.
+	/// </summary>
+	[Test]
+	public void Toggles_Bind_Their_State_Or_Are_Read_By_Name()
+	{
+		// Arrange
+		(string FilePath, XElement Element)[] toggles = [.. FindElements(ToggleKinds)];
+
+		// Act
+		string[] stateless = [.. toggles
+			.Where(x => !HasAny(x.Element, IsCheckedProperty) && !IsReadByName(x.Element))
+			.Select(Describe)];
+
+		// Assert
+		toggles
+			.Should()
+			.NotBeEmpty();
+
+		stateless
+			.Should()
+			.BeEmpty();
+	}
 	#endregion
 
 	#region Helpers
@@ -285,6 +326,25 @@ internal partial class AutomationNameMarkupTests
 	/// Whether the element sets a tip of text, which names a button: a literal or a static string.
 	/// </summary>
 	private static bool HasTextTip(XElement element) => FindValues(element, ToolTipProperty).Any(IsTextTip);
+
+	/// <summary>
+	/// Whether another element of its markup reads the state of the toggle by its name, as <c>#RevealEye.IsChecked</c>.
+	/// </summary>
+	private static bool IsReadByName(XElement element)
+	{
+		if (element.Attributes().FirstOrDefault(static attribute => attribute.Name.LocalName == "Name") is not { } name)
+		{
+			return false;
+		}
+
+		string reading = $"#{name.Value}.{IsCheckedProperty}";
+
+		return element
+			.Document!
+			.Descendants()
+			.SelectMany(static descendant => descendant.Attributes())
+			.Any(attribute => attribute.Value.Contains(reading, StringComparison.Ordinal));
+	}
 
 	/// <summary>
 	/// Whether element content names its control: a lone text block does as content, which Avalonia reads, not as a header.

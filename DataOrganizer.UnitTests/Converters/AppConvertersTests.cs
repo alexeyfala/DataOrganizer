@@ -7,6 +7,7 @@ using AwesomeAssertions;
 using DataOrganizer.Converters;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.UnitTests.Factories;
+using Shared.Common;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;
@@ -163,6 +164,72 @@ internal class AppConvertersTests
 		result
 			.Should()
 			.Be(new Thickness(0.0, 0.0, 10.0, 0.0));
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SensitiveAutomationName" />: a text that is not sensitive names its element.
+	/// </summary>
+	[Test]
+	public void SensitiveAutomationName_Gives_A_Text_That_Is_Not_Sensitive()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		// Act
+		object? result = Convert(AppConverters.SensitiveAutomationName, text, false);
+
+		// Assert
+		result
+			.Should()
+			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SensitiveAutomationName" />: a sensitive text carries none of itself into the name, and every
+	/// sensitive text gives the same one.
+	/// </summary>
+	[Test]
+	public void SensitiveAutomationName_Keeps_A_Sensitive_Text_Out_Of_The_Name()
+	{
+		// Arrange
+		string first = RandomString.Create(16);
+
+		string second = RandomString.Create(16);
+
+		// Act
+		object? firstName = Convert(AppConverters.SensitiveAutomationName, first, true);
+
+		object? secondName = Convert(AppConverters.SensitiveAutomationName, second, true);
+
+		// Assert
+		firstName
+			.Should()
+			.BeOfType<string>()
+			.Which
+			.Should()
+			.NotBeEmpty()
+			.And
+			.NotContain(first);
+
+		secondName
+			.Should()
+			.Be(firstName);
+	}
+
+	/// <summary>
+	/// <see cref="AppConverters.SensitiveAutomationName" />: an element without a text that is not sensitive keeps the name
+	/// unset.
+	/// </summary>
+	[Test]
+	public void SensitiveAutomationName_Without_A_Text_Leaves_The_Name_Unset()
+	{
+		// Act
+		object? result = Convert(AppConverters.SensitiveAutomationName, null, false);
+
+		// Assert
+		result
+			.Should()
+			.Be(AvaloniaProperty.UnsetValue);
 	}
 
 	/// <summary>
@@ -335,6 +402,18 @@ internal class AppConvertersTests
 	{
 		return converter.Convert(
 			args,
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+	}
+
+	/// <summary>
+	/// Runs a converter over a text and whether it is sensitive.
+	/// </summary>
+	private static object? Convert(SensitiveAutomationNameConverter converter, string? text, bool isSensitive)
+	{
+		return converter.Convert(
+			[text, isSensitive],
 			typeof(object),
 			null,
 			CultureInfo.CurrentCulture);

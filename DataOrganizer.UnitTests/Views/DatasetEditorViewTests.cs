@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -12,7 +13,9 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Documents;
@@ -40,6 +43,11 @@ namespace DataOrganizer.UnitTests.Views;
 internal class DatasetEditorViewTests
 {
 	#region Data
+	/// <summary>
+	/// Name of the template part of an expander that shows its header and expands it.
+	/// </summary>
+	private const string HeaderPartName = "PART_ToggleButton";
+
 	/// <summary>
 	/// Number of the records that the tests load.
 	/// </summary>
@@ -1160,6 +1168,119 @@ internal class DatasetEditorViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorView" />: a shown group, its header and its chevron are named for UI Automation as the field
+	/// of its header: by the name of the group, or by the neutral word while the dataset is encrypted.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Loaded_Names_A_Group_As_Its_Header_Field([Values] bool isEncrypted)
+	{
+		// Arrange
+		const string groupName = "Group";
+
+		Guid? keeperId = isEncrypted
+			? Guid.NewGuid()
+			: null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			SystemTextJsonSerializer serializer = new();
+
+			DatasetRecordBase[] records =
+			[
+				new RecordsGroup
+				{
+					Children = [.. DatasetRecordFactory.CreateValueRecords(2)],
+					Name = groupName
+				}
+			];
+
+			ValidatedContents contents = new()
+			{
+				Contents = serializer.SerializeToUtf8Bytes(records),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The contents of an encrypted dataset come back from the session key of its keeper as they were stored.
+			if (keeperId is { } id)
+			{
+				IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+				contentCipher
+					.TryDecrypt(id, ContentIdentity.Contents, Arg.Any<byte[]>())
+					.Returns(x => x.ArgAt<byte[]>(2));
+
+				builder.RegisterInstance(contentCipher);
+			}
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<EditorStateStore>()
+				.As<IEditorStateStore>();
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		viewModel.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: keeperId));
+
+		DatasetEditorView sut = new(viewModel);
+
+		// Act
+		Show(sut);
+
+		await RunJobsUntilAsync(() => viewModel.IsInitialized && FindGroupExpander(sut, groupName) is not null);
+
+		// Assert
+		Expander expander = FindGroupExpander(sut, groupName)!;
+
+		DatasetFieldView field = expander
+			.GetVisualDescendants()
+			.OfType<DatasetFieldView>()
+			.First(static x => x.Text == groupName);
+
+		ToggleButton header = expander
+			.GetVisualDescendants()
+			.OfType<ToggleButton>()
+			.Single(static x => x.Name == HeaderPartName);
+
+		string? name = GetAutomationName(expander);
+
+		name
+			.Should()
+			.NotBeNullOrEmpty()
+			.And
+			.Be(GetAutomationName(field));
+
+		GetAutomationName(header)
+			.Should()
+			.Be(name);
+
+		GetAutomationName(FindChevron(expander))
+			.Should()
+			.Be(name);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorView" />: a stored record beyond the end of the list leaves the list on its first records.
 	/// </summary>
 	[AvaloniaTest]
@@ -2145,6 +2266,16 @@ internal class DatasetEditorViewTests
 			.TryGetElement(index)?
 			.TranslatePoint(default, recordsScroller)?
 			.Y;
+	}
+
+	/// <summary>
+	/// Returns the name of <paramref name="control" /> for UI Automation.
+	/// </summary>
+	private static string? GetAutomationName(Control control)
+	{
+		return ControlAutomationPeer
+			.CreatePeerForElement(control)
+			.GetName();
 	}
 
 	/// <summary>

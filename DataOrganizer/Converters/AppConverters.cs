@@ -48,6 +48,9 @@ internal static class AppConverters
 	/// </summary>
 	public static FuncMultiValueConverter<double, Thickness> ScrollGutter { get; } = new(GetScrollGutter);
 
+	/// <inheritdoc cref="SensitiveAutomationNameConverter" />
+	public static SensitiveAutomationNameConverter SensitiveAutomationName { get; } = new();
+
 	/// <summary>
 	/// New width of a control whose size changed; not a number without the change.
 	/// </summary>

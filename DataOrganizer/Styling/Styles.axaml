@@ -76,6 +76,7 @@
 		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 
 		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton">
+			<Setter Property="AutomationProperties.Name" Value="{Binding $parent[Expander].(AutomationProperties.Name), Mode=OneWay}" />
 			<Setter Property="MinHeight" Value="0.0" />
 			<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 		</Style>
