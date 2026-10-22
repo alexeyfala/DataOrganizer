@@ -143,6 +143,7 @@ public sealed class App : Application
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
+		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
 		services.AddTransient<IBackgroundServiceControl, BackgroundServices>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();

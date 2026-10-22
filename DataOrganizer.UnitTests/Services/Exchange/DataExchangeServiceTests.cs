@@ -9,9 +9,11 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Hotkeys;
+using DataOrganizer.Services.Storage;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
@@ -393,6 +395,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<XmlExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -497,6 +503,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -601,6 +611,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<EntityLoader>()
 				.As<IEntityLoader>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -666,6 +680,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -711,6 +729,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -776,6 +798,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<XmlExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -853,6 +879,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -937,6 +967,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1034,6 +1068,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<UnreadableHotkeysFinder>()
 				.As<IUnreadableHotkeysFinder>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1112,6 +1150,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<EntityLoader>()
 				.As<IEntityLoader>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1165,6 +1207,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<EntityLoader>()
 				.As<IEntityLoader>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1234,6 +1280,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<EntityLoader>()
 				.As<IEntityLoader>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1402,6 +1452,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<EntityLoader>()
 				.As<IEntityLoader>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1515,6 +1569,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1613,6 +1671,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1707,6 +1769,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<JsonExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1792,6 +1858,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<XmlExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1844,6 +1914,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -1911,6 +1985,10 @@ internal class DataExchangeServiceTests
 			builder
 				.RegisterType<SqliteExchangeFormat>()
 				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();

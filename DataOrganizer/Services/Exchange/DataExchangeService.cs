@@ -7,14 +7,13 @@ using DataOrganizer.Extensions.Editor;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Helpers.Exchange;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Storage;
 using Repository.Interfaces.Database;
-using Repository.Services.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -31,14 +30,14 @@ namespace DataOrganizer.Services.Exchange;
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data
+	/// <inheritdoc cref="IBackedUpWriter" />
+	private readonly IBackedUpWriter _backedUpWriter;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
 	/// <inheritdoc cref="IDbBackupService" />
 	private readonly IDbBackupService _dbBackupService;
-
-	/// <inheritdoc cref="IDbFailureReporter" />
-	private readonly IDbFailureReporter _dbFailureReporter;
 
 	/// <inheritdoc cref="IDbImporter" />
 	private readonly IDbImporter _dbImporter;
@@ -75,9 +74,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Constructors
 	public DataExchangeService(
+		IBackedUpWriter backedUpWriter,
 		IDbAccess dbAccess,
 		IDbBackupService dbBackupService,
-		IDbFailureReporter dbFailureReporter,
 		IDbImporter dbImporter,
 		IEntityLoader entityLoader,
 		IEnumerable<IExchangeFormat> formats,
@@ -89,11 +88,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		IUnreadableHotkeysFinder unreadableHotkeys,
 		TimeProvider timeProvider)
 	{
+		_backedUpWriter = backedUpWriter;
+
 		_dbAccess = dbAccess;
 
 		_dbBackupService = dbBackupService;
-
-		_dbFailureReporter = dbFailureReporter;
 
 		_dbImporter = dbImporter;
 
@@ -156,16 +155,14 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <inheritdoc />
-	public async Task<ImportDataResult?> ImportDataAsync(
-		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default)
+	public async Task<ImportDataResult?> ImportDataAsync(IReadOnlyCollection<ExplorerItemDtoBase> hierarchy)
 	{
 		ImportMode variant = ImportMode.Replace;
 
 		if (hierarchy.Count != 0)
 		{
 			variant = await _importModePrompt
-				.SelectImportModeAsync(token)
+				.SelectImportModeAsync()
 				.ConfigureAwait(true);
 
 			if (variant == ImportMode.None)
@@ -190,16 +187,31 @@ public sealed class DataExchangeService : IDataExchangeService
 			return null;
 		}
 
-		using DatabaseBackup? backup = await TryCreateBackupAsync(token).ConfigureAwait(false);
+		ImportDataResult? result = null;
 
-		if (backup is null)
+		try
 		{
-			_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+			// The database goes back to its copy when the import fails at any step.
+			if (!await _backedUpWriter
+				.WriteAsync(ImportAsync)
+				.ConfigureAwait(false))
+			{
+				return null;
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, breakInDebugger: false);
+
+			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 			return null;
 		}
 
-		try
+		return result;
+
+		// Writes the objects of the file into the database; false when nothing could be read from it.
+		async Task<bool> ImportAsync()
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
@@ -208,39 +220,29 @@ public sealed class DataExchangeService : IDataExchangeService
 			IExchangeFormat format = GetFormat(filePath);
 
 			LoadedHierarchy? imported = variant == ImportMode.Replace && format.IsDatabaseCopy
-				? await ReplaceDatabaseAsync(filePath, token).ConfigureAwait(false)
-				: await AddObjectsAsync(format, filePath, variant, hierarchy, token).ConfigureAwait(false);
+				? await ReplaceDatabaseAsync(filePath).ConfigureAwait(false)
+				: await AddObjectsAsync(format, filePath, variant, hierarchy).ConfigureAwait(false);
 
 			if (imported is null)
 			{
 				_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
-				await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
-
-				return null;
+				return false;
 			}
 
 			FileDto[] unreadable = _unreadableHotkeys.Find(imported.Items);
 
 			if (unreadable.IsNotEmpty())
 			{
-				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
+				await DropUnreadableHotkeysAsync(unreadable).ConfigureAwait(false);
 
 				_notification.ShowErrorSnackbar(
 					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
 			}
 
-			return new(imported, variant);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
+			result = new(imported, variant);
 
-			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
-
-			await RestoreAsync(backup.FilePath, token).ConfigureAwait(false);
-
-			return null;
+			return true;
 		}
 	}
 	#endregion
@@ -267,11 +269,10 @@ public sealed class DataExchangeService : IDataExchangeService
 		IExchangeFormat format,
 		string filePath,
 		ImportMode variant,
-		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token)
+		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy)
 	{
 		if (await format
-			.ReadAsync(filePath, token)
+			.ReadAsync(filePath)
 			.ConfigureAwait(false) is not { } entities)
 		{
 			return null;
@@ -280,7 +281,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		if (variant == ImportMode.Replace)
 		{
 			await _dbImporter
-				.ClearDatabaseAsync(token)
+				.ClearDatabaseAsync()
 				.ConfigureAwait(false);
 		}
 
@@ -305,14 +306,14 @@ public sealed class DataExchangeService : IDataExchangeService
 		if (entities.Folders.IsNotEmpty())
 		{
 			await _dbAccess
-				.AddFoldersAsync(entities.Folders, token)
+				.AddFoldersAsync(entities.Folders)
 				.ConfigureAwait(false);
 		}
 
 		if (entities.Files.IsNotEmpty())
 		{
 			await _dbAccess
-				.AddFilesAsync(entities.Files, token)
+				.AddFilesAsync(entities.Files)
 				.ConfigureAwait(false);
 		}
 
@@ -335,12 +336,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Removes the hotkeys of the files whose sequence could not be read.
 	/// </summary>
-	private async Task DropUnreadableHotkeysAsync(FileDto[] files, CancellationToken token)
+	private async Task DropUnreadableHotkeysAsync(FileDto[] files)
 	{
 		foreach (FileDto file in files)
 		{
 			if (!await _dbAccess
-				.DeleteHotkeysAsync(file.Id, token)
+				.DeleteHotkeysAsync(file.Id)
 				.ConfigureAwait(false))
 			{
 				_logger.LogError(
@@ -371,7 +372,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// Puts a copy of the database in its place and reads the objects back; <c>null</c> when the copy is not a database
 	/// or cannot be read.
 	/// </summary>
-	private async Task<LoadedHierarchy?> ReplaceDatabaseAsync(string filePath, CancellationToken token)
+	private async Task<LoadedHierarchy?> ReplaceDatabaseAsync(string filePath)
 	{
 		if (!_dbImporter.IsValidSqliteDatabase(filePath))
 		{
@@ -379,50 +380,13 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 
 		await _dbBackupService
-			.RestoreFromBackupAsync(filePath, token)
+			.RestoreFromBackupAsync(filePath)
 			.ConfigureAwait(false);
 
 		// A copy in place that cannot be read gives null, so the caller restores the copy it took.
 		return await _entityLoader
-			.LoadHierarchyAsync(token)
+			.LoadHierarchyAsync()
 			.ConfigureAwait(false);
-	}
-
-	/// <summary>
-	/// Rolls the database back to the copy taken before the import.
-	/// </summary>
-	private async Task RestoreAsync(string backupFilePath, CancellationToken token)
-	{
-		try
-		{
-			await _dbBackupService
-				.RestoreFromBackupAsync(backupFilePath, token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			// A rollback that did not happen leaves the import half-applied, which has to be said out loud.
-			_dbFailureReporter.Report(ex, Strings.FailedToRestoreDatabase);
-		}
-	}
-
-	/// <summary>
-	/// Makes a copy of the database; <c>null</c> when the copy could not be made.
-	/// </summary>
-	private async Task<DatabaseBackup?> TryCreateBackupAsync(CancellationToken token)
-	{
-		try
-		{
-			return await _dbBackupService
-				.CreateBackupAsync(token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			return null;
-		}
 	}
 	#endregion
 }

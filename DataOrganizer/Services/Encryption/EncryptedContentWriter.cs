@@ -2,7 +2,6 @@ using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Text;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Dto;
@@ -25,12 +24,6 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IDbBackupService" />
-	private readonly IDbBackupService _dbBackupService;
-
-	/// <inheritdoc cref="IDbFailureReporter" />
-	private readonly IDbFailureReporter _dbFailureReporter;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -44,17 +37,11 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
-		IDbBackupService dbBackupService,
-		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		INotificationService notification,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
-
-		_dbBackupService = dbBackupService;
-
-		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
@@ -115,16 +102,13 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			// The database turned the transaction down, which is a refusal and not a bug.
 			_logger.LogException(ex, breakInDebugger: false);
 
-			return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
-				.ConfigureAwait(false);
+			return Fail(UpdateDatabaseOutcome.SaveFailed);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return await RestoreAsync(
-				parameters.BackupFilePath,
-				UpdateDatabaseOutcome.ExceptionThrown).ConfigureAwait(false);
+			return Fail(UpdateDatabaseOutcome.ExceptionThrown);
 		}
 	}
 	#endregion
@@ -159,26 +143,13 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	}
 
 	/// <summary>
-	/// Reports the failure and rolls the database back to the copy taken before the conversion.
+	/// Tells that the contents were not written and gives <paramref name="outcome" /> back.
 	/// </summary>
-	private async Task<UpdateDatabaseOutcome> RestoreAsync(string backupFilePath, UpdateDatabaseOutcome result)
+	private UpdateDatabaseOutcome Fail(UpdateDatabaseOutcome outcome)
 	{
 		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-		try
-		{
-			// The rollback has to run even when the operation was cancelled.
-			await _dbBackupService
-				.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			// A rollback that did not happen leaves the conversion half-done, which has to be said out loud.
-			_dbFailureReporter.Report(ex, Strings.FailedToRestoreDatabase);
-		}
-
-		return result;
+		return outcome;
 	}
 	#endregion
 }

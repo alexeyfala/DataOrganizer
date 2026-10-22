@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
@@ -35,6 +36,57 @@ internal class EncryptedContentWriterTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: a write that throws answers ExceptionThrown and shows an error.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Answers_ExceptionThrown_When_The_Write_Throws()
+	{
+		// Arrange
+		UpdateDatabaseParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedDek = RandomValues.CreateBytes(10),
+			Files = [],
+			Folder = ItemDtoFactory.CreateFolderDto(),
+			NewStatus = default,
+			Notes = []
+		};
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdateProtectionAsync(Arg.Any<ProtectionUpdate>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(notification);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
+
+		// Act
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseOutcome.ExceptionThrown);
+
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns Done and applies the new status to the folder and all files.
 	/// </summary>
 	[Test]
@@ -51,7 +103,6 @@ internal class EncryptedContentWriterTests
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = RandomValues.CreateFileName(10),
 			Contents = [],
 			EncryptedDek = RandomValues.CreateBytes(10),
 			Files = files,
@@ -101,7 +152,8 @@ internal class EncryptedContentWriterTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the database turns the write down.
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: a write the database turns down answers SaveFailed and shows
+	/// an error.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
@@ -109,7 +161,6 @@ internal class EncryptedContentWriterTests
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = RandomValues.CreateFileName(10),
 			Contents = [],
 			EncryptedDek = null,
 			Files = [],
@@ -118,7 +169,7 @@ internal class EncryptedContentWriterTests
 			Notes = []
 		};
 
-		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+		INotificationService notification = Substitute.For<INotificationService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -130,7 +181,7 @@ internal class EncryptedContentWriterTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(dbBackupService);
+			builder.RegisterInstance(notification);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -147,61 +198,9 @@ internal class EncryptedContentWriterTests
 			.Should()
 			.Be(UpdateDatabaseOutcome.SaveFailed);
 
-		await dbBackupService
+		notification
 			.Received(1)
-			.RestoreFromBackupAsync(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns ExceptionThrown and restores the backup when the write throws.
-	/// </summary>
-	[Test]
-	public async Task UpdateDatabaseAsync_Restores_Backup_When_The_Write_Throws()
-	{
-		// Arrange
-		UpdateDatabaseParameters parameters = new()
-		{
-			BackupFilePath = RandomValues.CreateFileName(10),
-			Contents = [],
-			EncryptedDek = RandomValues.CreateBytes(10),
-			Files = [],
-			Folder = ItemDtoFactory.CreateFolderDto(),
-			NewStatus = default,
-			Notes = []
-		};
-
-		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.UpdateProtectionAsync(Arg.Any<ProtectionUpdate>())
-				.ThrowsAsync(new InvalidOperationException());
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(dbBackupService);
-
-			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
-		});
-
-		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
-
-		// Act
-		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
-
-		// Assert
-		result
-			.Should()
-			.Be(UpdateDatabaseOutcome.ExceptionThrown);
-
-		await dbBackupService
-			.Received(1)
-			.RestoreFromBackupAsync(parameters.BackupFilePath);
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -231,7 +230,6 @@ internal class EncryptedContentWriterTests
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = RandomValues.CreateFileName(10),
 			Contents =
 			[
 				new ValidatedContents
@@ -375,7 +373,6 @@ internal class EncryptedContentWriterTests
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = RandomValues.CreateFileName(10),
 			Contents =
 			[
 				new ValidatedContents

@@ -9,8 +9,10 @@ using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.Services.Storage;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
@@ -426,6 +428,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -549,6 +555,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -627,6 +637,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -771,6 +785,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -1168,6 +1186,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -1281,6 +1303,10 @@ internal class FolderProtectionTests
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
