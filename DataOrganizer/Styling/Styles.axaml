@@ -36,6 +36,19 @@
 		</Setter>
 	</Style>
 
+	<!--  The buttons that Material puts into a text box get tips in the language of the app instead of the English ones of their themes.  -->
+	<Style Selector=":is(TextBox) /template/ Button#PART_ClearButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clear}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) /template/ ToggleButton#PART_PasswordRevealToggle:unchecked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) /template/ ToggleButton#PART_PasswordRevealToggle:checked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
+	</Style>
+
 	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
 	<Style Selector=":is(ListBoxItem), :is(TabItem)">
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
