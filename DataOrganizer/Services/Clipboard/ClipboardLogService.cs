@@ -2,11 +2,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -54,6 +56,9 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="IToastNotifier" />
+	private readonly IToastNotifier _toastNotifier;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
@@ -85,7 +90,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		IClipboardHistory history,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		IToastNotifier toastNotifier)
 	{
 		_clipboard = clipboard;
 
@@ -100,6 +106,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_toastNotifier = toastNotifier;
 	}
 	#endregion
 
@@ -223,6 +231,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 
 		try
 		{
+			bool isWritten = false;
+
 			switch (entry)
 			{
 				case ClipboardTextEntryBase textEntry:
@@ -231,7 +241,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
 						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
-					bool isWritten = await _clipboard.SetTextAsync(
+					isWritten = await _clipboard.SetTextAsync(
 						textEntry.Text,
 						textEntry.Html,
 						textEntry.Rtf,
@@ -249,7 +259,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
-					await _clipboard
+					isWritten = await _clipboard
 						.SetImageAsync(png, isRestored: true)
 						.ConfigureAwait(false);
 					break;
@@ -258,10 +268,18 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
-					await _clipboard
+					isWritten = await _clipboard
 						.SetFilesAsync(fileSystemEntries, isRestored: true)
 						.ConfigureAwait(false);
 					break;
+			}
+
+			// Only a written entry is marked: the clipboard still holds what it had, maybe an earlier restore with its marker.
+			if (!isWritten)
+			{
+				ReportUnwrittenRestore(entry);
+
+				return;
 			}
 
 			await _dispatcher
@@ -527,5 +545,23 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	/// Publishes a <see cref="ClipboardLogEntryCountChangedMessage" /> after entries are added or removed.
 	/// </summary>
 	private void NotifyEntryCountChanged() => _messenger.Send(new ClipboardLogEntryCountChangedMessage());
+
+	/// <summary>
+	/// Tells that a restored entry did not reach the clipboard, which leaves the entry where it was.
+	/// </summary>
+	private void ReportUnwrittenRestore(ClipboardLogEntryBase entry)
+	{
+		// A files entry whose files are all gone writes nothing, and a refusal of the clipboard is logged where it happens.
+		bool isFilesEntry = entry is ClipboardFilesEntry;
+
+		_logger.LogWarning(isFilesEntry
+			? $"Restoring a {nameof(ClipboardFilesEntry)} wrote nothing: " +
+				"none of its items exists any more, or the clipboard refused them."
+			: $"Restoring a {entry.GetType().Name} wrote nothing: the clipboard refused it.");
+
+		_toastNotifier.ShowToast(isFilesEntry
+			? Strings.FailedToRestoreMissingFiles
+			: Strings.FailedToRestoreClipboardEntry);
+	}
 	#endregion
 }

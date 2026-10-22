@@ -667,8 +667,14 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>The database could not be read</value>
   </data>
+  <data name="FailedToRestoreClipboardEntry" xml:space="preserve">
+    <value>Failed to put the entry back on the clipboard</value>
+  </data>
   <data name="FailedToRestoreDatabase" xml:space="preserve">
     <value>The database could not be restored from the copy</value>
+  </data>
+  <data name="FailedToRestoreMissingFiles" xml:space="preserve">
+    <value>Failed to put the files back on the clipboard: none of them exists any more</value>
   </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Hotkeys could not be read for the files</value>

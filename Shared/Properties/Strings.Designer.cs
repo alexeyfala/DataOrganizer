@@ -853,6 +853,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to put the entry back on the clipboard.
+        /// </summary>
+        public static string FailedToRestoreClipboardEntry {
+            get {
+                return ResourceManager.GetString("FailedToRestoreClipboardEntry", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The database could not be restored from the copy.
         /// </summary>
         public static string FailedToRestoreDatabase {
@@ -860,7 +869,16 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToRestoreDatabase", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to put the files back on the clipboard: none of them exists any more.
+        /// </summary>
+        public static string FailedToRestoreMissingFiles {
+            get {
+                return ResourceManager.GetString("FailedToRestoreMissingFiles", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Failed to save file contents.
         /// </summary>

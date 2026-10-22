@@ -687,8 +687,14 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>Не удалось прочитать базу данных</value>
   </data>
+  <data name="FailedToRestoreClipboardEntry" xml:space="preserve">
+    <value>Не удалось вернуть запись в буфер обмена</value>
+  </data>
   <data name="FailedToRestoreDatabase" xml:space="preserve">
     <value>Не удалось восстановить базу данных из копии</value>
+  </data>
+  <data name="FailedToRestoreMissingFiles" xml:space="preserve">
+    <value>Не удалось вернуть файлы в буфер обмена: их больше нет</value>
   </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Не удалось прочитать горячие клавиши файлов</value>

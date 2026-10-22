@@ -298,6 +298,7 @@ public sealed class App : Application
 		services.AddSingleton<ISettingsDraft>(static x => x.GetRequiredService<SettingsSession>());
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
+		services.AddSingleton<IToastNotifier>(static x => x.GetRequiredService<INotificationService>());
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		services.AddSingleton<ClipboardLogService>();
