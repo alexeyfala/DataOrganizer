@@ -1,10 +1,13 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using DataOrganizer.Enums.Encryption;
+using DataOrganizer.Helpers.Security;
 using Material.Icons;
 using Shared.Properties;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace DataOrganizer.Converters;
 
@@ -72,6 +75,11 @@ internal static class SecurityConverters
 		});
 
 	/// <summary>
+	/// Text shown for a value: the mask while it is hidden, the value itself otherwise. Inputs: [Value, IsHidden].
+	/// </summary>
+	public static FuncMultiValueConverter<object?, string?> MaskedValue { get; } = new(GetMaskedValue);
+
+	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.
 	/// </summary>
 	public static FuncValueConverter<PasswordStrength, IBrush?> PasswordStrengthToBrush { get; } =
@@ -130,6 +138,16 @@ internal static class SecurityConverters
 		string time = left.ToString(left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss", CultureInfo.CurrentCulture);
 
 		return string.Format(CultureInfo.CurrentCulture, Strings.LockedInFormat, time);
+	}
+
+	/// <summary>
+	/// Returns the text shown for a value and its hidden state; <c>null</c> until both are known.
+	/// </summary>
+	private static string? GetMaskedValue(IEnumerable<object?> values)
+	{
+		return values.ToArray() is [var value, bool isHidden]
+			? SecretMask.Apply(value as string, isHidden)
+			: null;
 	}
 	#endregion
 }

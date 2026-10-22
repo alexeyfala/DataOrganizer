@@ -7,6 +7,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
@@ -91,6 +92,56 @@ internal class ContextMenuTemplatesTests
 			.Count(x => x != null && x.Contains(text))
 			.Should()
 			.Be(isEncrypted ? 0 : 1);
+	}
+
+	/// <summary>
+	/// <c>ValueRecordContextMenuTemplate</c>: the header shows what the field shows, the mask of a hidden value and an open
+	/// value itself.
+	/// </summary>
+	[AvaloniaTest]
+	public void ValueRecordContextMenuTemplate_Shows_The_Mask_Of_A_Hidden_Value([Values] bool isHidden)
+	{
+		// Arrange
+		string value = RandomString.Create(16);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using DatasetEditorViewModel viewModel = mock.Create<DatasetEditorViewModel>();
+
+		ContentControl menu = new()
+		{
+			Content = new ValueRecord
+			{
+				IsHidden = isHidden,
+				Value = value
+			},
+			ContentTemplate = (IDataTemplate)Application.Current!.FindResource(ValueRecordTemplateKey)!
+		};
+
+		Window window = new()
+		{
+			Content = new UserControl
+			{
+				Content = menu,
+				DataContext = viewModel
+			}
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		string? header = menu
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.First()
+			.Text;
+
+		header
+			.Should()
+			.Be(SecretMask.Apply(value, isHidden));
 	}
 	#endregion
 
