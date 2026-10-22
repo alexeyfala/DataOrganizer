@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -25,7 +26,7 @@
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
 
-		<TextBox
+		<controls:SecretTextBox
 			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsKeyMasked, Mode=OneWay}"
 			Classes.revealPasswordButton="{Binding IsKeyMasked, Mode=OneWay}"
@@ -44,9 +45,9 @@
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
-		</TextBox>
+		</controls:SecretTextBox>
 
-		<TextBox
+		<controls:SecretTextBox
 			x:Name="ValueInput"
 			assists:TextFieldAssist.Label="{Binding ValueHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsValueMasked, Mode=OneWay}"
@@ -59,7 +60,7 @@
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
-		</TextBox>
+		</controls:SecretTextBox>
 
 		<UniformGrid
 			HorizontalAlignment="Right"
