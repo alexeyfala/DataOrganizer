@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
@@ -6,6 +7,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
@@ -17,6 +19,42 @@ namespace DataOrganizer.UnitTests.Controls;
 internal class LazyMenuFlyoutTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="LazyMenuFlyout.CreatePresenter" />: the presenter of an open menu shows to UI Automation as a menu
+	/// element.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreatePresenter_Shows_The_Menu_To_UI_Automation_As_A_Menu()
+	{
+		// Arrange
+		LazyMenuFlyout sut = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new TextBlock())
+		};
+
+		Border target = new();
+
+		Show(target);
+
+		sut.ShowAt(target);
+
+		Dispatcher.UIThread.RunJobs();
+
+		FlyoutPresenter presenter = ((Control)sut.Content!).FindLogicalAncestorOfType<FlyoutPresenter>()!;
+
+		// Act
+		AutomationPeer peer = ControlAutomationPeer.CreatePeerForElement(presenter);
+
+		// Assert
+		peer.GetAutomationControlType()
+			.Should()
+			.Be(AutomationControlType.Menu);
+
+		peer.IsControlElement()
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="FlyoutBase.Hide" />: the menu built from <see cref="LazyMenuFlyout.MenuTemplate" /> goes away with the
 	/// flyout.

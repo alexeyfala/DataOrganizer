@@ -1,4 +1,6 @@
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using System.ComponentModel;
@@ -38,6 +40,19 @@ internal sealed class LazyMenuFlyout : Flyout
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	protected override Control CreatePresenter()
+	{
+		Control presenter = base.CreatePresenter();
+
+		// Screen readers and UI Automation see one menu around its items, not loose buttons of the window.
+		AutomationProperties.SetAccessibilityView(presenter, AccessibilityView.Control);
+
+		AutomationProperties.SetControlTypeOverride(presenter, AutomationControlType.Menu);
+
+		return presenter;
+	}
+
 	/// <inheritdoc />
 	protected override void OnClosed()
 	{
