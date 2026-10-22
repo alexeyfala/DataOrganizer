@@ -13,6 +13,11 @@ internal class TextBoxButtonTipTests
 {
 	#region Data
 	/// <summary>
+	/// Text of a box, which the clear button can clear.
+	/// </summary>
+	private const string BoxText = "Text";
+
+	/// <summary>
 	/// Style class that shows the clear button of a text box.
 	/// </summary>
 	private const string ClearButtonClass = "clearButton";
@@ -35,21 +40,26 @@ internal class TextBoxButtonTipTests
 
 	#region Methods
 	/// <summary>
-	/// The clear button of a text box has another tip than the one its theme gives it.
+	/// The clear button of a text box has another tip than the one its theme gives it, whether the box is shown with its
+	/// text or the text is typed into the box later.
 	/// </summary>
 	[AvaloniaTest]
-	public void Clear_Button_Has_Another_Tip_Than_Its_Theme()
+	public void Clear_Button_Has_Another_Tip_Than_Its_Theme([Values] bool isTypedLater)
 	{
 		// Arrange
-		// The theme builds the clear button only while the box has text to clear.
 		TextBox textBox = new()
 		{
 			Classes =
 			{
 				ClearButtonClass
-			},
-			Text = "Text"
+			}
 		};
+
+		// The theme builds the clear button only while the box has text to clear.
+		if (!isTypedLater)
+		{
+			textBox.Text = BoxText;
+		}
 
 		StackPanel panel = new()
 		{
@@ -60,6 +70,14 @@ internal class TextBoxButtonTipTests
 		};
 
 		Show(panel);
+
+		// Text typed into a shown box makes the theme build the button then, apart from the template of the box.
+		if (isTypedLater)
+		{
+			textBox.Text = BoxText;
+
+			Dispatcher.UIThread.RunJobs();
+		}
 
 		Button clearButton = FindPart<Button>(textBox, ClearButtonName);
 
@@ -85,19 +103,18 @@ internal class TextBoxButtonTipTests
 
 	/// <summary>
 	/// The toggle that reveals the content of a text box has another tip than the one its theme gives it, whether the
-	/// content is shown or hidden.
+	/// content is shown or hidden, and whether the box is shown with the toggle or gets it later.
 	/// </summary>
 	[AvaloniaTest]
-	public void Reveal_Toggle_Has_Another_Tip_Than_Its_Theme([Values] bool isRevealed)
+	public void Reveal_Toggle_Has_Another_Tip_Than_Its_Theme([Values] bool isRevealed, [Values] bool isMaskedLater)
 	{
 		// Arrange
-		TextBox textBox = new()
+		TextBox textBox = new();
+
+		if (!isMaskedLater)
 		{
-			Classes =
-			{
-				RevealToggleClass
-			}
-		};
+			textBox.Classes.Add(RevealToggleClass);
+		}
 
 		StackPanel panel = new()
 		{
@@ -108,6 +125,15 @@ internal class TextBoxButtonTipTests
 		};
 
 		Show(panel);
+
+		// A class bound to a state, as in the dialog of a key and a value, may come after the box is shown, and the
+		// theme then builds the toggle apart from the template of the box.
+		if (isMaskedLater)
+		{
+			textBox.Classes.Add(RevealToggleClass);
+
+			Dispatcher.UIThread.RunJobs();
+		}
 
 		ToggleButton toggle = FindPart<ToggleButton>(textBox, RevealToggleName);
 

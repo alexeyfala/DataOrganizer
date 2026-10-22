@@ -36,16 +36,19 @@
 		</Setter>
 	</Style>
 
-	<!--  The buttons that Material puts into a text box get tips in the language of the app instead of the English ones of their themes.  -->
-	<Style Selector=":is(TextBox) /template/ Button#PART_ClearButton">
+	<!--
+		The buttons that Material puts into a text box get tips in the language of the app instead of the English ones of their themes.
+		Material adds them as inner content only when they show, apart from the template of a box shown before, so they are reached as descendants rather than template parts.
+	-->
+	<Style Selector=":is(TextBox) Button#PART_ClearButton">
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clear}" />
 	</Style>
 
-	<Style Selector=":is(TextBox) /template/ ToggleButton#PART_PasswordRevealToggle:unchecked">
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:unchecked">
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
 	</Style>
 
-	<Style Selector=":is(TextBox) /template/ ToggleButton#PART_PasswordRevealToggle:checked">
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:checked">
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
 	</Style>
 
