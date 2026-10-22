@@ -870,24 +870,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			FileContentsWriteStatus status = await SaveContentsAsync(contents, change, token).ConfigureAwait(false);
+			bool isWritten = await SaveContentsAsync(contents, change, token).ConfigureAwait(false);
 
-			if (status == FileContentsWriteStatus.Closed)
-			{
-				_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
-			}
+			_unsavedChange = isWritten ? null : change;
 
-			_unsavedChange = status == FileContentsWriteStatus.Written ? null : change;
-
-			return status == FileContentsWriteStatus.Written;
-		}
-		catch (Exception ex)
-		{
-			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
-
-			_unsavedChange = change;
-
-			return false;
+			return isWritten;
 		}
 		finally
 		{

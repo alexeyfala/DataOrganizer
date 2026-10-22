@@ -3416,6 +3416,79 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text the database could not write goes to
+	/// the reporter of database failures and stays unsaved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Hands_A_Failed_Write_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ThrowsAsyncForAnyArgs(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(failureReporter);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		failureReporter
+			.Received(1)
+			.Report(failure, Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush leaves
 	/// a change made in the mode unsaved, as the mode saves nothing after it turned on.
 	/// </summary>
@@ -4427,6 +4500,81 @@ internal class EmbeddedFileEditorViewModelTests
 		responses
 			.Should()
 			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text the database did not take, as the key
+	/// of the session refused it or the file is gone, stays unsaved and shows an error.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Tells_Of_A_Text_The_Database_Did_Not_Take(
+		[Values(FileContentsWriteStatus.Closed, FileContentsWriteStatus.Missing)] FileContentsWriteStatus status)
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = status
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(notification);
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>

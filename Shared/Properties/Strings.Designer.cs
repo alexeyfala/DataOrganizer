@@ -961,6 +961,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file is no longer in the database, the changes are not saved.
+        /// </summary>
+        public static string FileIsMissingChangesNotSaved {
+            get {
+                return ResourceManager.GetString("FileIsMissingChangesNotSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Files.
         /// </summary>
         public static string Files {

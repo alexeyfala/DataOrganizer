@@ -12,6 +12,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dataset;
+using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
@@ -297,6 +298,13 @@ internal class DatasetEditorViewTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(contents);
 
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = FileContentsWriteStatus.Written
+				});
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
@@ -387,6 +395,13 @@ internal class DatasetEditorViewTests
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(contents);
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = FileContentsWriteStatus.Written
+				});
 
 			builder.RegisterInstance(dbAccess);
 

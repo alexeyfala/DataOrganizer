@@ -412,27 +412,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Writes the contents of the text as an edit; <c>false</c> when they did not reach the database.
 	/// </summary>
-	private async Task<bool> WriteContentsAsync(byte[] contents)
-	{
-		try
-		{
-			FileContentsWriteStatus status = await SaveContentsAsync(contents, FileContentsChange.Edit)
-				.ConfigureAwait(false);
-
-			if (status == FileContentsWriteStatus.Closed)
-			{
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-			}
-
-			return status == FileContentsWriteStatus.Written;
-		}
-		catch (Exception ex)
-		{
-			// The queue has to survive a failed save: the editor keeps the text and marks it unsaved.
-			_logger.LogException(ex, breakInDebugger: false);
-
-			return false;
-		}
-	}
+	private Task<bool> WriteContentsAsync(byte[] contents) => SaveContentsAsync(contents, FileContentsChange.Edit);
 	#endregion
 }

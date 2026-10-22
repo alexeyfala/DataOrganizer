@@ -223,6 +223,9 @@
   <data name="File" xml:space="preserve">
     <value>File</value>
   </data>
+  <data name="FileIsMissingChangesNotSaved" xml:space="preserve">
+    <value>The file is no longer in the database, the changes are not saved</value>
+  </data>
   <data name="NameAndExtension" xml:space="preserve">
     <value>Name And Extension</value>
   </data>

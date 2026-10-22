@@ -354,23 +354,53 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual Task ReplaceUnreadableEditorStateAsync(CancellationToken token = default) => Task.CompletedTask;
 
 	/// <summary>
-	/// Saves the contents of the file, encrypted when it is protected, and reports the date of change of an edit.
+	/// Saves the contents of the file, encrypted when it is protected, and reports the date of change of an edit;
+	/// <c>false</c> when they are not saved, which the user is told of.
 	/// </summary>
-	protected async Task<FileContentsWriteStatus> SaveContentsAsync(
+	protected async Task<bool> SaveContentsAsync(
 		byte[] contents,
 		FileContentsChange change,
 		CancellationToken token = default)
 	{
-		FileContentsWriting writing = await _fileContentsWriter
-			.WriteAsync(FileId, KeeperId, contents, change, token)
-			.ConfigureAwait(false);
+		FileContentsWriting writing;
+
+		try
+		{
+			writing = await _fileContentsWriter
+				.WriteAsync(FileId, KeeperId, contents, change, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
+
+			return false;
+		}
 
 		if (writing.UpdatedAt is { } updatedAt)
 		{
 			SetUpdatedAtCallback?.Invoke(updatedAt);
 		}
 
-		return writing.Status;
+		switch (writing.Status)
+		{
+			case FileContentsWriteStatus.Closed:
+				_logger.LogError($@"The key of the session refused to encrypt the contents of file ""{FileId}"".");
+
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				return false;
+
+			case FileContentsWriteStatus.Missing:
+				_logger.LogWarning($@"File ""{FileId}"" is no longer in the database; its changes are not saved.");
+
+				_notification.ShowErrorSnackbar(Strings.FileIsMissingChangesNotSaved);
+
+				return false;
+
+			default:
+				return true;
+		}
 	}
 
 	/// <summary>

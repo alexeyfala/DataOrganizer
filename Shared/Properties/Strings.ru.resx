@@ -243,6 +243,9 @@
   <data name="File" xml:space="preserve">
     <value>Файл</value>
   </data>
+  <data name="FileIsMissingChangesNotSaved" xml:space="preserve">
+    <value>Файла больше нет в базе, изменения не сохранены</value>
+  </data>
   <data name="NameAndExtension" xml:space="preserve">
     <value>Название и расширение</value>
   </data>

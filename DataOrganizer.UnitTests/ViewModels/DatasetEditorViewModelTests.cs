@@ -10,9 +10,11 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Models.Dataset;
@@ -2920,6 +2922,60 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: records the database could not write go to
+	/// the reporter of database failures at each attempt and stay unsaved.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Hands_A_Failed_Write_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ThrowsAsyncForAnyArgs(failure);
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(failureReporter);
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		failureReporter
+			.Received(2)
+			.Report(failure, Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush writes nothing,
 	/// not even records whose save failed.
 	/// </summary>
@@ -3040,6 +3096,62 @@ internal class DatasetEditorViewModelTests
 		await dbAccess
 			.ReceivedWithAnyArgs(2)
 			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: records the database did not take, as the key
+	/// of the session refused them or the file is gone, stay unsaved, and each attempt shows an error.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Tells_Of_Records_The_Database_Did_Not_Take(
+		[Values(FileContentsWriteStatus.Closed, FileContentsWriteStatus.Missing)] FileContentsWriteStatus status)
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = status
+				});
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		notification
+			.Received(2)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
