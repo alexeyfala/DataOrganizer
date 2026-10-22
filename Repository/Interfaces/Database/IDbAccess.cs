@@ -45,17 +45,6 @@ public interface IDbAccess
 	/// <exception cref="DbUpdateException">The folders could not be written.</exception>
 	Task AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default);
 
-	/// <summary>
-	/// Adds <see cref="FileEntity.Hotkeys" /> to the entity.
-	/// </summary>
-	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
-	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
-	/// <exception cref="DbUpdateException">The hotkeys could not be written.</exception>
-	Task<HotkeyEntity[]> AddHotkeysAsync(
-		Guid fileId,
-		KeyStroke[] hotkeys,
-		CancellationToken token = default);
-
 	/// <inheritdoc cref="IExplorerItemRepository.CountOfAsync" />
 	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
 	/// <exception cref="SqliteException">The database could not be read.</exception>
@@ -132,6 +121,19 @@ public interface IDbAccess
 		Guid id,
 		string name,
 		DateTime updatedAt,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Replaces <see cref="FileEntity.Hotkeys" /> of a file in one transaction, so that a failure leaves the old ones; returns
+	/// the new ones.
+	/// </summary>
+	/// <exception cref="DatabaseNotWritableException">The database does not accept changes.</exception>
+	/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
+	/// <exception cref="DbUpdateException">The hotkeys could not be written.</exception>
+	/// <exception cref="SqliteException">The old hotkeys could not be deleted.</exception>
+	Task<HotkeyEntity[]> ReplaceHotkeysAsync(
+		Guid fileId,
+		KeyStroke[] hotkeys,
 		CancellationToken token = default);
 
 	/// <summary>

@@ -714,6 +714,9 @@
   <data name="FailedToSaveFileContents" xml:space="preserve">
     <value>Не удалось сохранить содержимое файла</value>
   </data>
+  <data name="FailedToSaveHotkeys" xml:space="preserve">
+    <value>Не удалось сохранить горячие клавиши</value>
+  </data>
   <data name="FailedToChangePassword" xml:space="preserve">
     <value>Не удалось сменить пароль</value>
   </data>

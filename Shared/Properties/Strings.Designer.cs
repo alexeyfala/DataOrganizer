@@ -889,6 +889,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to save the hotkeys.
+        /// </summary>
+        public static string FailedToSaveHotkeys {
+            get {
+                return ResourceManager.GetString("FailedToSaveHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to save the note.
         /// </summary>
         public static string FailedToSaveNote {
