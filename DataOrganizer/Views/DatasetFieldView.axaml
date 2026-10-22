@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:markup="using:DataOrganizer.Markup"
@@ -50,8 +51,9 @@
 			<Grid Background="{Binding AreaBrush, Mode=OneWay}">
 
 				<!--  Plain Text  -->
-				<TextBlock
+				<controls:SensitiveTextBlock
 					Foreground="{StaticResource MaterialBodyBrush}"
+					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					IsVisible="{Binding !IsHyperlink, Mode=OneWay}"
 					Text="{Binding DisplayText, Mode=OneWay}">
 
@@ -66,11 +68,14 @@
 							</text:TextBlockAutoToolTipBehavior.IsEnabled>
 						</text:TextBlockAutoToolTipBehavior>
 					</Interaction.Behaviors>
-				</TextBlock>
+				</controls:SensitiveTextBlock>
 
 				<!--  Hyperlink  -->
-				<HyperlinkButton IsVisible="{Binding IsHyperlink, Mode=OneWay}" NavigateUri="{Binding Text, Mode=OneWay}">
-					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
+				<HyperlinkButton
+					AutomationProperties.Name="{Binding #View.(AutomationProperties.Name), Mode=OneWay}"
+					IsVisible="{Binding IsHyperlink, Mode=OneWay}"
+					NavigateUri="{Binding Text, Mode=OneWay}">
+					<controls:SensitiveTextBlock IsSensitive="{Binding IsSensitive, Mode=OneWay}" Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
 							<text:TextBlockAutoToolTipBehavior>
 								<text:TextBlockAutoToolTipBehavior.IsEnabled>
@@ -82,7 +87,7 @@
 								</text:TextBlockAutoToolTipBehavior.IsEnabled>
 							</text:TextBlockAutoToolTipBehavior>
 						</Interaction.Behaviors>
-					</TextBlock>
+					</controls:SensitiveTextBlock>
 				</HyperlinkButton>
 			</Grid>
 

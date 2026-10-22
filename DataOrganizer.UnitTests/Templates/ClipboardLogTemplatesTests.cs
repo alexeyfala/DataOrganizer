@@ -1,5 +1,7 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
@@ -10,6 +12,7 @@ using DataOrganizer.Behaviors.Text;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
+using Shared.Common;
 using System;
 using System.Linq;
 
@@ -33,9 +36,74 @@ internal class ClipboardLogTemplatesTests
 	/// Key of the template of the contents of a files entry.
 	/// </summary>
 	private const string FilesTemplateKey = "ClipboardFilesEntryTemplate";
+
+	/// <summary>
+	/// Name of the toggle that shows a secret entry unblurred.
+	/// </summary>
+	private const string RevealEyeName = "RevealEye";
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <c>ClipboardEntryItemTemplate</c>: no element of the entry of a secret gives its text to UI Automation, with the eye
+	/// open or closed.
+	/// </summary>
+	[AvaloniaTest]
+	public void ClipboardEntryItemTemplate_Keeps_A_Secret_Out_Of_UI_Automation([Values] bool isRevealed)
+	{
+		// Arrange
+		string secret = RandomString.Create(16);
+
+		ContentControl host = new()
+		{
+			Content = ClipboardEntryFactory.CreateTextEntry(secret, isSensitive: true),
+			ContentTemplate = (IDataTemplate)Application.Current!.FindResource(EntryTemplateKey)!
+		};
+
+		Window window = new()
+		{
+			Content = host
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		host
+			.GetVisualDescendants()
+			.OfType<ToggleButton>()
+			.Single(static x => x.Name == RevealEyeName)
+			.IsChecked = isRevealed;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		string?[] names =
+		[
+			.. host
+				.GetVisualDescendants()
+				.OfType<Control>()
+				.Select(static x => ControlAutomationPeer
+					.CreatePeerForElement(x)
+					.GetName())
+		];
+
+		// Assert (the secret shows on the screen).
+		string?[] shownTexts = [.. host
+			.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.SelectMany(static x => Interaction.GetBehaviors(x).OfType<SearchHighlightBehavior>())
+			.Select(static x => x.SourceText)];
+
+		shownTexts
+			.Should()
+			.Equal(secret);
+
+		names
+			.Should()
+			.NotContain(x => x != null && x.Contains(secret));
+	}
+
 	/// <summary>
 	/// <c>ClipboardEntryItemTemplate</c>: the tooltip of the entry of an image tells its size.
 	/// </summary>

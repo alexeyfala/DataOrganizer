@@ -21,7 +21,10 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Key, Mode=OneTime}" />
+			<controls:SensitiveTextBlock
+				Classes="NameInFlyoutTextBlockStyle"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				Text="{Binding Key, Mode=OneTime}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}"
@@ -62,7 +65,10 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Value, Mode=OneTime}" />
+			<controls:SensitiveTextBlock
+				Classes="NameInFlyoutTextBlockStyle"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				Text="{Binding Value, Mode=OneTime}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}"
@@ -101,7 +107,10 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
+			<controls:SensitiveTextBlock
+				Classes="NameInFlyoutTextBlockStyle"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
 				<controls:FlyoutButton

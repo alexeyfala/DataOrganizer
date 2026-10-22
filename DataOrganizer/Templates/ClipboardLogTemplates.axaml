@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -26,8 +27,9 @@
 			HorizontalScrollBarVisibility="Disabled"
 			IsHitTestVisible="False"
 			VerticalScrollBarVisibility="Disabled">
-			<TextBlock
+			<controls:SensitiveTextBlock
 				VerticalAlignment="Center"
+				IsSensitive="{Binding IsSensitive, Mode=OneTime}"
 				TextTrimming="CharacterEllipsis"
 				TextWrapping="Wrap">
 				<Interaction.Behaviors>
@@ -35,7 +37,7 @@
 						Query="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>
-			</TextBlock>
+			</controls:SensitiveTextBlock>
 		</ScrollViewer>
 	</DataTemplate>
 
@@ -99,7 +101,7 @@
 					<ContentControl.Styles>
 						<Style Selector="ContentControl.sensitive:not(.revealed)">
 							<Setter Property="Effect">
-								<BlurEffect Radius="6.0" />
+								<BlurEffect Radius="12.0" />
 							</Setter>
 						</Style>
 					</ContentControl.Styles>
