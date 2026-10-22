@@ -2002,6 +2002,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2077,6 +2081,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2135,6 +2143,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2161,6 +2173,59 @@ internal class EditorViewModelTests
 		await engine
 			.DidNotReceive()
 			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ExecuteFile" />: a read the database could not answer goes to the reporter of database
+	/// failures, as in the editors.
+	/// </summary>
+	[Test]
+	public async Task ExecuteFile_Hands_A_Failed_Read_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.ThrowsAsync(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(failureReporter);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+
+			builder
+				.RegisterType<FileExecutionScenario>()
+				.As<IFileExecutionScenario>();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ExecuteFile(ItemDtoFactory.CreateFileDto());
+
+		// Assert
+		failureReporter
+			.Received(1)
+			.Report(failure, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -2292,6 +2357,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -2372,6 +2441,10 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder.RegisterInstance(engine);
 

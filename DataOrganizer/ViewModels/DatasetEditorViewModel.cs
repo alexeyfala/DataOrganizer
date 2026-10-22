@@ -59,7 +59,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		await LoadAsync().ConfigureAwait(true);
+		if (!await LoadAsync().ConfigureAwait(true))
+		{
+			return;
+		}
 
 		_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 	}
@@ -495,7 +498,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbFailureReporter dbFailureReporter,
 		IDispatcherAccessor dispatcher,
 		IEditorStateStore editorStateStore,
-		IFileContentsReader fileContentsReader,
+		IFileContentsOpener fileContentsOpener,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
@@ -506,7 +509,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ITextInputPrompt textInputPrompt) : base(
 			dbFailureReporter,
 			editorStateStore,
-			fileContentsReader,
+			fileContentsOpener,
 			fileContentsWriter,
 			jsonSerializer,
 			logger,
@@ -796,19 +799,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		if (Records.Count > 0)
 		{
 			// The state reaches the view through a binding, so it is set on the UI thread.
-			ViewState = await ReadEditorStateAsync<DatasetEditorState>().ConfigureAwait(true);
+			ViewState = await ReadEditorStateAsync(new DatasetEditorState
+			{
+				TopRecordIndex = 0,
+				WithinRecordOffset = 0.0
+			}).ConfigureAwait(true);
 		}
-	}
-
-	/// <inheritdoc />
-	protected override void LogUnopenedContents(FileContentsStatus status, string message)
-	{
-		if (status != FileContentsStatus.Damaged)
-		{
-			return;
-		}
-
-		_logger.LogError(message);
 	}
 	#endregion
 

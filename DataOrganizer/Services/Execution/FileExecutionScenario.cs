@@ -1,12 +1,9 @@
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Notifications;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -24,33 +21,27 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 	/// <inheritdoc cref="IExecutingFiles" />
 	private readonly IExecutingFiles _executingFiles;
 
-	/// <inheritdoc cref="IFileContentsReader" />
-	private readonly IFileContentsReader _fileContentsReader;
+	/// <inheritdoc cref="IFileContentsOpener" />
+	private readonly IFileContentsOpener _fileContentsOpener;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
-
-	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public FileExecutionScenario(
 		IConfirmationPrompt confirmationPrompt,
 		IExecutingFiles executingFiles,
-		IFileContentsReader fileContentsReader,
-		ILogger logger,
-		INotificationService notification)
+		IFileContentsOpener fileContentsOpener,
+		ILogger logger)
 	{
 		_confirmationPrompt = confirmationPrompt;
 
 		_executingFiles = executingFiles;
 
-		_fileContentsReader = fileContentsReader;
+		_fileContentsOpener = fileContentsOpener;
 
 		_logger = logger;
-
-		_notification = notification;
 	}
 	#endregion
 
@@ -100,46 +91,15 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 		// The key that opens the contents also encrypts the changes made to them while the file runs.
 		Guid? keeperId = file.FindUnlockedKeeper()?.Id;
 
-		FileContentsReading reading;
-
-		try
+		if (await _fileContentsOpener
+			.OpenAsync(file.Id, keeperId, file.Name, file.Kind)
+			.ConfigureAwait(true) is not { } contents)
 		{
-			reading = await _fileContentsReader
-				.ReadUnlockedAsync(file.Id, keeperId)
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
-
-			return;
-		}
-
-		if (reading.Status == FileContentsStatus.Damaged)
-		{
-			string errorText = $@"{Strings.FailedToLoadFileContents} ""{file.Name}""";
-
-			_notification.ShowErrorSnackbar(errorText);
-
-			_logger.LogError($"{errorText}:{file.GetPropertyValues(
-				true,
-				nameof(FileDto.Id),
-				nameof(FileDto.Kind))}");
-
-			return;
-		}
-
-		if (reading.Status == FileContentsStatus.Closed)
-		{
-			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
 			return;
 		}
 
 		_logger.LogInformation(
-			$"Contents of the {reading.Contents.Length}-byte file loaded from the database:{file.GetPropertyValues(
+			$"Contents of the {contents.Length}-byte file loaded from the database:{file.GetPropertyValues(
 				true,
 				nameof(FileDto.Id),
 				nameof(FileDto.Name),
@@ -148,7 +108,7 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 
 		ExecuteFileParameters parameters = new()
 		{
-			Contents = reading.Contents,
+			Contents = contents,
 			File = file,
 			IsReadOnly = isReadOnly,
 			KeeperId = keeperId,

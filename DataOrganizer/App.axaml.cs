@@ -177,6 +177,7 @@ public sealed class App : Application
 		services.AddTransient<IExchangeFormat, SqliteExchangeFormat>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileContentsOpener, FileContentsOpener>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
 		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();

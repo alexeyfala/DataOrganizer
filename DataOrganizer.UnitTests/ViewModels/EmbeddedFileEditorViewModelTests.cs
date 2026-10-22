@@ -321,6 +321,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -372,6 +376,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -436,6 +444,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder
@@ -485,6 +497,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -593,6 +609,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -840,6 +860,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -907,6 +931,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder
@@ -960,6 +988,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1329,6 +1361,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -1374,6 +1410,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1423,6 +1463,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1486,6 +1530,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2215,6 +2263,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -2328,6 +2380,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -2425,6 +2481,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2582,6 +2642,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 
@@ -2649,6 +2713,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2947,6 +3015,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(notification);
 
 			builder
@@ -3001,6 +3073,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3673,6 +3749,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -3991,6 +4071,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -4193,6 +4277,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4457,6 +4545,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<FileContentsWriter>()

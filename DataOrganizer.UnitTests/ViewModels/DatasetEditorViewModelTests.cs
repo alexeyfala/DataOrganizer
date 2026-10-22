@@ -662,6 +662,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(jsonSerializer);
 		});
 
@@ -728,6 +732,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(jsonSerializer);
@@ -773,6 +781,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -827,6 +839,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(jsonSerializer);
@@ -874,6 +890,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -920,6 +940,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -960,6 +984,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1126,62 +1154,6 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read stays as it is.
-	/// </summary>
-	[Test]
-	public async Task ContainerLoaded_Keeps_An_Unreadable_State()
-	{
-		// Arrange
-		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			// The stored state breaks off after its first character.
-			editorStateStore
-				.ReadAsync(Arg.Any<Guid>())
-				.Returns("{");
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
-			builder
-				.RegisterType<SystemTextJsonSerializer>()
-				.As<IJsonSerializer>();
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		// Act
-		await sut.ContainerLoaded();
-
-		// Assert
-		await editorStateStore
-			.Received(1)
-			.ReadAsync(Arg.Any<Guid>());
-
-		await editorStateStore
-			.DidNotReceiveWithAnyArgs()
-			.WriteAsync(default, default!, default);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read leaves no place to come back
 	/// to, and the editor stays open.
 	/// </summary>
@@ -1266,6 +1238,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1331,6 +1307,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1344,6 +1324,69 @@ internal class DatasetEditorViewModelTests
 		sut.ViewState
 			.Should()
 			.Be(state);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read is replaced by a new one, as
+	/// in the file editor, and in the read-only mode it stays as it is.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Replaces_An_Unreadable_State([Values] bool isReadOnly)
+	{
+		// Arrange
+		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The stored state breaks off after its first character.
+			editorStateStore
+				.ReadAsync(Arg.Any<Guid>())
+				.Returns("{");
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(editorStateStore);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		await editorStateStore
+			.Received(1)
+			.ReadAsync(Arg.Any<Guid>());
+
+		await editorStateStore
+			.ReceivedWithAnyArgs(isReadOnly ? 0 : 1)
+			.WriteAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -1397,6 +1440,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -1504,6 +1551,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1552,6 +1603,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -2607,6 +2662,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			// A move that got through would pulse the record at once.
 			builder
@@ -3882,6 +3941,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()

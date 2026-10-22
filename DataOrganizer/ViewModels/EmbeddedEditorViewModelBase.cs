@@ -9,6 +9,7 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Editor;
+using Entities.Enums;
 using Entities.Models;
 using Serilog;
 using Shared.Common;
@@ -32,6 +33,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// The identifier of the file being edited.
 	/// </summary>
 	public Guid FileId { get; private set; }
+
+	/// <summary>
+	/// Name of the file.
+	/// </summary>
+	public string? FileName { get; private set; }
 
 	/// <summary>
 	/// Editor state to start from.
@@ -77,6 +83,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public Guid? KeeperId { get; private set; }
 
 	/// <summary>
+	/// Kind of the file: a text file or a dataset.
+	/// </summary>
+	public EntityKind Kind { get; private set; }
+
+	/// <summary>
 	/// Callback that reports the editor state.
 	/// </summary>
 	public Action<string>? SetEditorStateCallback { get; private set; }
@@ -120,8 +131,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="IEditorStateStore" />
 	private readonly IEditorStateStore _editorStateStore;
 
-	/// <inheritdoc cref="IFileContentsReader" />
-	private readonly IFileContentsReader _fileContentsReader;
+	/// <inheritdoc cref="IFileContentsOpener" />
+	private readonly IFileContentsOpener _fileContentsOpener;
 
 	/// <inheritdoc cref="IFileContentsWriter" />
 	private readonly IFileContentsWriter _fileContentsWriter;
@@ -143,7 +154,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected EmbeddedEditorViewModelBase(
 		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,
-		IFileContentsReader fileContentsReader,
+		IFileContentsOpener fileContentsOpener,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
@@ -158,7 +169,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_exceptionHandler = exceptionHandler;
 
-		_fileContentsReader = fileContentsReader;
+		_fileContentsOpener = fileContentsOpener;
 
 		_fileContentsWriter = fileContentsWriter;
 
@@ -200,9 +211,13 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	{
 		FileId = setup.FileId;
 
+		FileName = setup.FileName;
+
 		InitialEditorState = setup.InitialEditorState;
 
 		KeeperId = setup.KeeperId;
+
+		Kind = setup.Kind;
 
 		SetEditorStateCallback = setup.SetEditorStateCallback;
 
@@ -240,54 +255,28 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
-	/// Reads the contents and hands the opened ones to <see cref="LoadContentsAsync" />; contents that cannot be read or
-	/// opened close the editor for changes. The loading ends either way.
+	/// Reads the contents and hands the opened ones to <see cref="LoadContentsAsync" />; contents that cannot be read,
+	/// opened or loaded close the editor for changes and give <c>false</c>. The loading ends either way.
 	/// </summary>
-	protected async Task LoadAsync()
+	protected async Task<bool> LoadAsync()
 	{
 		try
 		{
-			FileContentsReading reading;
+			byte[]? contents = await _fileContentsOpener
+				.OpenAsync(FileId, KeeperId, FileName, Kind)
+				.ConfigureAwait(true);
 
-			try
+			if (contents is null)
 			{
-				reading = await _fileContentsReader
-					.ReadUnlockedAsync(FileId, KeeperId)
-					.ConfigureAwait(true);
-			}
-			catch (Exception ex)
-			{
-				// Nothing was read, so the editor stays closed rather than saving over what it does not hold.
+				// Nothing was opened, so the editor stays closed rather than saving over what it does not hold.
 				IsContentUnavailable = true;
 
-				_dbFailureReporter.Report(ex, Strings.FailedToLoadFileContents);
-
-				return;
+				return false;
 			}
 
-			if (reading.Status == FileContentsStatus.Damaged)
-			{
-				IsContentUnavailable = true;
+			await LoadContentsAsync(contents).ConfigureAwait(true);
 
-				_notification.ShowErrorSnackbar(Strings.MissingFileContents);
-
-				LogUnopenedContents(reading.Status, $@"{Strings.MissingFileContents} of file ""{FileId}""");
-
-				return;
-			}
-
-			if (reading.Status == FileContentsStatus.Closed)
-			{
-				IsContentUnavailable = true;
-
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				LogUnopenedContents(reading.Status, $@"{Strings.FailedToProcessContents} of file ""{FileId}""");
-
-				return;
-			}
-
-			await LoadContentsAsync(reading.Contents).ConfigureAwait(true);
+			return true;
 		}
 		catch (Exception ex)
 		{
@@ -296,6 +285,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			_logger.LogException(ex, breakInDebugger: false);
 
 			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+			return false;
 		}
 		finally
 		{
@@ -309,11 +300,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected abstract Task LoadContentsAsync(byte[] contents);
 
 	/// <summary>
-	/// Writes into the log that the contents stayed unopened, under <paramref name="message" />.
-	/// </summary>
-	protected abstract void LogUnopenedContents(FileContentsStatus status, string message);
-
-	/// <summary>
 	/// Queues for saving the changes that still wait for a pause in typing.
 	/// </summary>
 	protected virtual void QueuePendingChanges()
@@ -321,9 +307,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Reads the stored editor state; <c>null</c> when there is none or it cannot be read.
+	/// Reads the stored editor state; <c>null</c> when there is none or it cannot be read, and then
+	/// <paramref name="replacement" /> takes its place unless the read-only mode is on.
 	/// </summary>
-	protected async Task<TState?> ReadEditorStateAsync<TState>(CancellationToken token = default) where TState : struct
+	protected async Task<TState?> ReadEditorStateAsync<TState>(TState replacement, CancellationToken token = default)
+		where TState : struct
 	{
 		string? value = InitialEditorState ?? await _editorStateStore
 			.ReadAsync(FileId, token)
@@ -342,16 +330,16 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 
-			await ReplaceUnreadableEditorStateAsync(token).ConfigureAwait(false);
+			if (!IsReadOnly)
+			{
+				string json = _jsonSerializer.Serialize(replacement, JsonDefaults.Options);
+
+				await SaveEditorStateAsync(json, token).ConfigureAwait(false);
+			}
 
 			return null;
 		}
 	}
-
-	/// <summary>
-	/// Replaces a stored editor state that cannot be read; by default it stays as it is.
-	/// </summary>
-	protected virtual Task ReplaceUnreadableEditorStateAsync(CancellationToken token = default) => Task.CompletedTask;
 
 	/// <summary>
 	/// Saves the contents of the file, encrypted when it is protected, and reports the date of change of an edit;
