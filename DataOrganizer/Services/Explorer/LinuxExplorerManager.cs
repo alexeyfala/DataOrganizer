@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using System.Text;
 
 namespace DataOrganizer.Services.Explorer;
 
@@ -71,6 +70,11 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// EWMH <c>_NET_ACTIVE_WINDOW</c> source indicator: pager / external tool.
 	/// </summary>
 	private const long NetActiveWindowSourcePager = 2;
+
+	/// <summary>
+	/// Length in 32-bit units that reads a window property whole.
+	/// </summary>
+	private const int WholePropertyLength = 0xFFFFFF;
 
 	/// <summary>
 	/// Known file-manager process names compared with <c>/proc/&lt;pid&gt;/comm</c>..
@@ -156,22 +160,26 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 
 			IntPtr atomUtf8 = XInternAtom(display, "UTF8_STRING", false);
 
-			if (!TryGetWindowList(
+			// _NET_CLIENT_LIST holds all top-level windows known to the EWMH-compliant window manager.
+			if (ReadProperty(
 				display,
 				root,
 				atomClientList,
-				out IntPtr[] windows))
+				AtomWindow,
+				WholePropertyLength,
+				ReadLongs) is not { } windows)
 			{
 				return false;
 			}
 
 			foreach (IntPtr window in windows)
 			{
-				if (!TryGetWindowPid(
+				int pid = GetWindowPid(
 					display,
 					window,
-					atomNetWmPid,
-					out int pid))
+					atomNetWmPid);
+
+				if (pid <= 0)
 				{
 					continue;
 				}
@@ -267,6 +275,39 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	}
 
 	/// <summary>
+	/// Reads the data of a 32-bit window property as native longs; null for another format.
+	/// </summary>
+	internal static IntPtr[]? ReadLongs(IntPtr data, int format, int count)
+	{
+		if (format != 32)
+		{
+			return null;
+		}
+
+		IntPtr[] values = new IntPtr[count];
+
+		// X11 returns 32-bit-format properties as native long array
+		// (8 bytes per entry on 64-bit Linux, 4 bytes on 32-bit).
+		Marshal.Copy(
+			data,
+			values,
+			0,
+			count);
+
+		return values;
+	}
+
+	/// <summary>
+	/// Decodes the data of a string window property as UTF-8; null for an empty one.
+	/// </summary>
+	internal static string? ReadUtf8(IntPtr data, int format, int count)
+	{
+		return count == 0
+			? null
+			: Marshal.PtrToStringUTF8(data, count);
+	}
+
+	/// <summary>
 	/// Decides whether a window title belongs to the requested folder.
 	/// </summary>
 	internal static bool TitleMatchesFolderName(string title, string folderName)
@@ -290,6 +331,27 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 
 	#region Helpers
 	/// <summary>
+	/// Reads <c>_NET_WM_PID</c> of the window; zero when it has none.
+	/// </summary>
+	private static int GetWindowPid(
+		IntPtr display,
+		IntPtr window,
+		IntPtr property)
+	{
+		IntPtr[]? values = ReadProperty(
+			display,
+			window,
+			property,
+			AtomCardinal,
+			1,
+			ReadLongs);
+
+		return values is [IntPtr value, ..]
+			? (int)value.ToInt64()
+			: 0;
+	}
+
+	/// <summary>
 	/// Reads window title — prefers UTF-8 <c>_NET_WM_NAME</c>, falls back to <c>WM_NAME</c>.
 	/// </summary>
 	private static string? GetWindowTitle(
@@ -298,22 +360,26 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		IntPtr atomNetWmName,
 		IntPtr atomUtf8)
 	{
-		string? title = ReadStringProperty(
+		string? title = ReadProperty(
 			display,
 			window,
 			atomNetWmName,
-			atomUtf8);
+			atomUtf8,
+			WholePropertyLength,
+			ReadUtf8);
 
 		if (!string.IsNullOrEmpty(title))
 		{
 			return title;
 		}
 
-		return ReadStringProperty(
+		return ReadProperty(
 			display,
 			window,
 			AtomWmName,
-			AtomString);
+			AtomString,
+			WholePropertyLength,
+			ReadUtf8);
 	}
 
 	/// <summary>
@@ -352,13 +418,15 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	}
 
 	/// <summary>
-	/// Reads a string-typed window property and decodes it as UTF-8.
+	/// Reads a window property and parses its data; the default when the window has no such property.
 	/// </summary>
-	private static string? ReadStringProperty(
+	private static T? ReadProperty<T>(
 		IntPtr display,
 		IntPtr window,
 		IntPtr property,
-		IntPtr reqType)
+		IntPtr requestedType,
+		int length,
+		Func<IntPtr, int, int, T?> parse)
 	{
 		IntPtr dataPointer = IntPtr.Zero;
 
@@ -369,35 +437,24 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 				window,
 				property,
 				IntPtr.Zero,
-				0xFFFFFF,
+				length,
 				false,
-				reqType,
+				requestedType,
 				out _,
-				out _,
+				out int actualFormat,
 				out IntPtr nitems,
 				out _,
 				out dataPointer);
 
-			if (status != 0
-				|| dataPointer == IntPtr.Zero
-				|| (long)nitems == 0)
+			if (status != 0 || dataPointer == IntPtr.Zero)
 			{
-				return null;
+				return default;
 			}
 
-			int byteCount = (int)nitems;
-
-			byte[] bytes = new byte[byteCount];
-
-			Marshal.Copy(
+			return parse(
 				dataPointer,
-				bytes,
-				0,
-				byteCount);
-
-			return Encoding
-				.UTF8
-				.GetString(bytes);
+				actualFormat,
+				(int)(long)nitems);
 		}
 		finally
 		{
@@ -407,6 +464,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			}
 		}
 	}
+
 	/// <summary>
 	/// Sends <c>_NET_ACTIVE_WINDOW</c> ClientMessage to the root window — the EWMH-standard way
 	/// to ask the window manager to raise, focus, and de-iconify the target window.
@@ -494,112 +552,6 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		{
 			// Tool not installed or failed to launch — the caller falls back to the next transport.
 			return false;
-		}
-	}
-
-	/// <summary>
-	/// Reads <c>_NET_CLIENT_LIST</c> from the root window — array of all top-level windows
-	/// known to the EWMH-compliant window manager.
-	/// </summary>
-	private static bool TryGetWindowList(
-		IntPtr display,
-		IntPtr root,
-		IntPtr property,
-		out IntPtr[] windows)
-	{
-		windows = [];
-
-		IntPtr dataPointer = IntPtr.Zero;
-
-		try
-		{
-			int status = XGetWindowProperty(
-				display,
-				root,
-				property,
-				IntPtr.Zero,
-				0xFFFFFF,
-				false,
-				AtomWindow,
-				out _,
-				out int actualFormat,
-				out IntPtr nitems,
-				out _,
-				out dataPointer);
-
-			if (status != 0 || dataPointer == IntPtr.Zero || actualFormat != 32)
-			{
-				return false;
-			}
-
-			int count = (int)(long)nitems;
-
-			windows = new IntPtr[count];
-
-			// X11 returns 32-bit-format properties as native long array
-			// (8 bytes per entry on 64-bit Linux, 4 bytes on 32-bit).
-			for (int i = 0; i < count; i++)
-			{
-				windows[i] = Marshal.ReadIntPtr(dataPointer, i * IntPtr.Size);
-			}
-
-			return true;
-		}
-		finally
-		{
-			if (dataPointer != IntPtr.Zero)
-			{
-				_ = XFree(dataPointer);
-			}
-		}
-	}
-
-	/// <summary>
-	/// Reads <c>_NET_WM_PID</c> for the given window.
-	/// </summary>
-	private static bool TryGetWindowPid(
-		IntPtr display,
-		IntPtr window,
-		IntPtr property,
-		out int pid)
-	{
-		pid = 0;
-
-		IntPtr dataPointer = IntPtr.Zero;
-
-		try
-		{
-			int status = XGetWindowProperty(
-				display,
-				window,
-				property,
-				IntPtr.Zero,
-				1,
-				false,
-				AtomCardinal,
-				out _,
-				out int actualFormat,
-				out IntPtr nitems,
-				out _,
-				out dataPointer);
-
-			if (status != 0 || dataPointer == IntPtr.Zero || actualFormat != 32 || (long)nitems < 1)
-			{
-				return false;
-			}
-
-			IntPtr value = Marshal.ReadIntPtr(dataPointer, 0);
-
-			pid = (int)value.ToInt64();
-
-			return pid > 0;
-		}
-		finally
-		{
-			if (dataPointer != IntPtr.Zero)
-			{
-				_ = XFree(dataPointer);
-			}
 		}
 	}
 	#endregion
