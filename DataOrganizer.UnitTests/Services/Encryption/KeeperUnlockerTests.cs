@@ -144,6 +144,10 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<DekRewrapper>()
+				.As<IDekRewrapper>();
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -202,6 +206,10 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<DekRewrapper>()
+				.As<IDekRewrapper>();
 
 			builder.RegisterInstance(dbAccess);
 
@@ -263,6 +271,10 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(passwordPrompt);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<DekRewrapper>()
+				.As<IDekRewrapper>();
 
 			builder
 				.RegisterType<KeeperDekWriter>()
@@ -432,12 +444,16 @@ internal class KeeperUnlockerTests
 				Arg.Any<byte[]>(),
 				Arg.Any<PinnedBuffer>(),
 				Arg.Any<PinnedBuffer>(),
-				Arg.Any<ContentIdentity>())
+				ContentIdentity.Dek)
 			.Returns(rewrapped);
 
 			builder.RegisterInstance(database.Context);
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<DekRewrapper>()
+				.As<IDekRewrapper>();
 
 			builder.RegisterInstance(passwordPrompt);
 

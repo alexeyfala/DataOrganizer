@@ -765,7 +765,7 @@ internal class ClipboardLogStoreTests
 					Arg.Any<byte[]>(),
 					Arg.Any<PinnedBuffer>(),
 					Arg.Any<PinnedBuffer>(),
-					Arg.Any<ContentIdentity>())
+					ContentIdentity.ClipboardDek)
 				.Returns(rewrapped);
 
 			builder.RegisterInstance(appEnvironment);
@@ -775,6 +775,10 @@ internal class ClipboardLogStoreTests
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
+
+			builder
+				.RegisterType<DekRewrapper>()
+				.As<IDekRewrapper>();
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
 			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));

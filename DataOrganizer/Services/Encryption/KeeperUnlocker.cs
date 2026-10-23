@@ -1,7 +1,6 @@
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Serilog;
 using Shared.Extensions;
 using System;
 using System.Runtime.CompilerServices;
@@ -13,6 +12,9 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class KeeperUnlocker : IKeeperUnlocker
 {
 	#region Data
+	/// <inheritdoc cref="IDekRewrapper" />
+	private readonly IDekRewrapper _dekRewrapper;
+
 	/// <inheritdoc cref="IPasswordDekWrapper" />
 	private readonly IPasswordDekWrapper _encryption;
 
@@ -22,26 +24,23 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 	/// <inheritdoc cref="IKeeperDekWriter" />
 	private readonly IKeeperDekWriter _keeperDekWriter;
 
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <inheritdoc cref="IPasswordPrompt" />
 	private readonly IPasswordPrompt _passwordPrompt;
 	#endregion
 
 	#region Constructors
 	public KeeperUnlocker(
+		IDekRewrapper dekRewrapper,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperDekWriter keeperDekWriter,
-		ILogger logger,
 		IPasswordDekWrapper encryption,
 		IPasswordPrompt passwordPrompt)
 	{
+		_dekRewrapper = dekRewrapper;
+
 		_failureReporter = failureReporter;
 
 		_keeperDekWriter = keeperDekWriter;
-
-		_logger = logger;
 
 		_encryption = encryption;
 
@@ -90,52 +89,17 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 			return null;
 		}
 
-		await RewrapAsync(
-			keeper,
-			wrapped,
-			dek,
-			passwordBinary,
-			token).ConfigureAwait(false);
-
-		return dek;
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Writes the wrapper of the DEK at the current derivation cost. The DEK itself does not change,
-	/// so a failure leaves a wrapper the same password still opens.
-	/// </summary>
-	private async Task RewrapAsync(
-		IPasswordKeeper keeper,
-		byte[] wrapped,
-		PinnedBuffer dek,
-		PinnedBuffer password,
-		CancellationToken token)
-	{
-		try
-		{
-			if (_encryption.RewrapIfOutdated(
+		await _dekRewrapper
+			.RewrapAsync(
 				wrapped,
 				dek,
-				password,
-				ContentIdentity.Dek) is not { } rewrapped)
-			{
-				return;
-			}
+				passwordBinary,
+				ContentIdentity.Dek,
+				(rewrapped, writeToken) => _keeperDekWriter.WriteAsync(keeper, rewrapped, writeToken),
+				token)
+			.ConfigureAwait(false);
 
-			await _keeperDekWriter
-				.WriteAsync(keeper, rewrapped, token)
-				.ConfigureAwait(false);
-		}
-		catch (OperationCanceledException)
-		{
-			// The unlock has already succeeded, so an interrupted rewrap is not worth reporting.
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-		}
+		return dek;
 	}
 	#endregion
 }

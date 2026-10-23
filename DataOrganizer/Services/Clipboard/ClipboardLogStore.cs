@@ -59,6 +59,9 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private readonly string _directoryPath;
 
+	/// <inheritdoc cref="IDekRewrapper" />
+	private readonly IDekRewrapper _dekRewrapper;
+
 	/// <inheritdoc cref="IPasswordDekWrapper" />
 	private readonly IPasswordDekWrapper _encryption;
 
@@ -85,11 +88,14 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	#region Constructors
 	public ClipboardLogStore(
 		IAppEnvironment appEnvironment,
+		IDekRewrapper dekRewrapper,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IPasswordDekWrapper encryption,
 		[FromKeyedServices(SessionKeyStoreKey)] ISessionKeyStore sessionKeyStore)
 	{
+		_dekRewrapper = dekRewrapper;
+
 		_fileSystem = fileSystem;
 
 		_logger = logger;
@@ -282,41 +288,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	private void EnsureDirectory() => _fileSystem.CreateDirectory(_directoryPath);
 
 	/// <summary>
-	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change and the
-	/// file is replaced in one step, so a failure leaves a key the same password still opens.
-	/// </summary>
-	private async Task RewrapKeyAsync(
-		byte[] wrappedDek,
-		PinnedBuffer dek,
-		PinnedBuffer password,
-		CancellationToken token)
-	{
-		try
-		{
-			if (_encryption.RewrapIfOutdated(
-				wrappedDek,
-				dek,
-				password,
-				ContentIdentity.ClipboardDek) is not { } rewrapped)
-			{
-				return;
-			}
-
-			await _fileSystem
-				.WriteAllBytesAtomicAsync(_keyFilePath, rewrapped, token)
-				.ConfigureAwait(false);
-		}
-		catch (OperationCanceledException)
-		{
-			// The unlock has already succeeded, so an interrupted rewrap is not worth reporting.
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, breakInDebugger: false);
-		}
-	}
-
-	/// <summary>
 	/// Removes the clipboard history directory if present.
 	/// </summary>
 	private void TryEraseDirectory()
@@ -373,11 +344,16 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			return new(ClipboardLogStatus.Failed, []);
 		}
 
-		await RewrapKeyAsync(
-			wrappedDek,
-			dek,
-			password,
-			token).ConfigureAwait(false);
+		// The file is replaced in one step, so an interrupted write leaves the old key.
+		await _dekRewrapper
+			.RewrapAsync(
+				wrappedDek,
+				dek,
+				password,
+				ContentIdentity.ClipboardDek,
+				(rewrapped, writeToken) => _fileSystem.WriteAllBytesAtomicAsync(_keyFilePath, rewrapped, writeToken),
+				token)
+			.ConfigureAwait(false);
 
 		IReadOnlyList<ClipboardLogEntryBase> entries = await LoadEntriesAsync(token).ConfigureAwait(false);
 
