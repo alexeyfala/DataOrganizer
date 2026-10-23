@@ -449,6 +449,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		UpdateLineEnding();
 
+		// A new text, as a pasted one, may cross the length limit of the highlighting, which the folding follows.
+		UpdateSyntax();
+
 		UpdateFoldings();
 
 		// The change moves the bookmarks of a text replaced whole to its end, so they go back to their line numbers.

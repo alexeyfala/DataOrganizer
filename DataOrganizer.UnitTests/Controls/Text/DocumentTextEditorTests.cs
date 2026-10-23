@@ -62,6 +62,11 @@ internal class DocumentTextEditorTests
 	private static readonly RawInputModifiers CommandModifiers = OperatingSystem.IsMacOS()
 		? RawInputModifiers.Meta
 		: RawInputModifiers.Control;
+
+	/// <summary>
+	/// A text one character past the longest that gets the highlighting.
+	/// </summary>
+	private static readonly string TooLongText = new('x', (5 * 1024 * 1024) + 1);
 	#endregion
 
 	#region Methods
@@ -599,6 +604,28 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: a short text that replaced a text too long for the highlighting folds again.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Folds_A_Short_Text_That_Replaced_A_Too_Long_One()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(TooLongText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = FoldedText;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: the blocks of a text replaced whole, as a file loaded into the empty document or
 	/// read again in another encoding, are found at once, not after the pause in typing.
 	/// </summary>
@@ -619,6 +646,29 @@ internal class DocumentTextEditorTests
 		GetFoldedLines(sut)
 			.Should()
 			.Equal((1, 7), (3, 6));
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a short text that replaced a text too long for the highlighting is highlighted
+	/// again.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Highlights_A_Short_Text_That_Replaced_A_Too_Long_One()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(TooLongText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = PowerShellText;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -673,6 +723,52 @@ internal class DocumentTextEditorTests
 		isColored
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text too long for the highlighting that replaced a highlighted one, as a
+	/// pasted text, stays plain.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Leaves_A_Too_Long_Text_Replaced_Whole_Plain()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = TooLongText;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text too long for the highlighting that replaced a folded one, as a pasted
+	/// text, does not fold.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Leaves_A_Too_Long_Text_Replaced_Whole_Unfolded()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = TooLongText;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -2908,10 +3004,9 @@ internal class DocumentTextEditorTests
 	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Plain()
 	{
 		// Arrange, Act
-		// Past the longest text that gets the highlighting.
 		DocumentTextEditor sut = new()
 		{
-			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			Document = new(TooLongText),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2928,10 +3023,9 @@ internal class DocumentTextEditorTests
 	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Unfolded()
 	{
 		// Arrange, Act
-		// Past the longest text that gets the highlighting.
 		DocumentTextEditor sut = new()
 		{
-			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			Document = new(TooLongText),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
