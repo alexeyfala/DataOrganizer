@@ -16,13 +16,7 @@
 
 	<!--  KeyValueRecordTemplate  -->
 	<DataTemplate x:Key="KeyValueRecordTemplate" x:DataType="dataset:KeyValueRecord">
-		<Grid Classes="PointerOverBackgroundStyle" ColumnDefinitions="Auto,*">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
+		<Grid Classes="PointerOverBackgroundStyle CardFlyoutsStyle" ColumnDefinitions="Auto,*">
 
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
@@ -67,13 +61,7 @@
 
 	<!--  ValueRecordTemplate  -->
 	<DataTemplate x:Key="ValueRecordTemplate" x:DataType="dataset:ValueRecord">
-		<Grid Classes="PointerOverBackgroundStyle">
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
-
+		<Grid Classes="PointerOverBackgroundStyle CardFlyoutsStyle">
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
 			</Grid.ContextFlyout>

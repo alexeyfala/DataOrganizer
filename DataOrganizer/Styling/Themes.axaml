@@ -104,14 +104,7 @@
 
 		<Setter Property="TabMenuTemplate">
 			<DataTemplate x:DataType="system:Object">
-				<StackPanel Orientation="Vertical">
-					<StackPanel.Styles>
-						<Style Selector="Button">
-							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-							<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-						</Style>
-					</StackPanel.Styles>
-
+				<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
 					<controls:FlyoutButton
 						Command="{Binding $parent[controls:DocumentTabControl].CloseCommand}"
 						CommandParameter="{Binding}"

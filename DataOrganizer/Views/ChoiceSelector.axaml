@@ -17,20 +17,13 @@
 		MinHeight="0.0"
 		Padding="8.0,4.0"
 		HorizontalContentAlignment="Left"
+		Classes="CardFlyoutsStyle MaterialFlyoutsStyle"
 		Content="{Binding #View.Caption, Mode=OneWay}"
 		CornerRadius="0.0"
 		Focusable="False"
 		FontWeight="Normal"
 		Foreground="{StaticResource MaterialBodyBrush}"
 		Theme="{StaticResource MaterialFlatButton}">
-
-		<Button.Styles>
-			<Style Selector="FlyoutPresenter">
-				<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				<Setter Property="Cursor" Value="Arrow" />
-				<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
-			</Style>
-		</Button.Styles>
 
 		<Button.Flyout>
 			<Flyout Placement="{Binding #View.FlyoutPlacement, Mode=OneWay}">

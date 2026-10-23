@@ -14,13 +14,10 @@
 
 	<!--  FolderInTreeViewRowTemplate  -->
 	<DataTemplate x:Key="FolderInTreeViewRowTemplate" x:DataType="entities:FolderDto">
-		<Grid Background="Transparent" ColumnDefinitions="Auto,*,Auto">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
+		<Grid
+			Background="Transparent"
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
@@ -56,7 +53,10 @@
 
 	<!--  FileInTreeViewRowTemplate  -->
 	<DataTemplate x:Key="FileInTreeViewRowTemplate" x:DataType="entities:FileDto">
-		<Grid Background="Transparent" ColumnDefinitions="Auto,*">
+		<Grid
+			Background="Transparent"
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*">
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
 			</Grid.ContextFlyout>
@@ -64,12 +64,6 @@
 			<Interaction.Behaviors>
 				<input:ShowContextFlyoutOnDoubleTapBehavior />
 			</Interaction.Behaviors>
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
 
 			<materialIcons:MaterialIcon
 				Grid.Column="0"

@@ -14,14 +14,7 @@
 
 	<!--  KeyValueRecordContextMenuTemplate  -->
 	<DataTemplate x:Key="KeyValueRecordContextMenuTemplate" x:DataType="dataset:KeyValueRecord">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-			</StackPanel.Styles>
-
+		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
 			<controls:SensitiveTextBlock
 				Classes="NameInFlyoutTextBlockStyle"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
@@ -58,14 +51,7 @@
 
 	<!--  ValueRecordContextMenuTemplate  -->
 	<DataTemplate x:Key="ValueRecordContextMenuTemplate" x:DataType="dataset:ValueRecord">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-			</StackPanel.Styles>
-
+		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
 			<controls:SensitiveTextBlock
 				Classes="NameInFlyoutTextBlockStyle"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}">
@@ -103,13 +89,8 @@
 
 	<!--  RecordsGroupContextMenuTemplate  -->
 	<DataTemplate x:Key="RecordsGroupContextMenuTemplate" x:DataType="dataset:RecordsGroup">
-		<StackPanel Orientation="Vertical">
+		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
 			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-
 				<Style Selector="Separator">
 					<Setter Property="Theme" Value="{StaticResource MaterialSeparator}" />
 				</Style>
@@ -251,13 +232,7 @@
 
 	<!--  FolderInTreeViewContextMenuTemplate  -->
 	<DataTemplate x:Key="FolderInTreeViewContextMenuTemplate" x:DataType="entities:FolderDto">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</StackPanel.Styles>
-
+		<StackPanel Classes="FlatButtonsStyle" Orientation="Vertical">
 			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
@@ -345,13 +320,7 @@
 
 	<!--  FileInTreeViewContextMenuTemplate  -->
 	<DataTemplate x:Key="FileInTreeViewContextMenuTemplate" x:DataType="entities:FileDto">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</StackPanel.Styles>
-
+		<StackPanel Classes="FlatButtonsStyle" Orientation="Vertical">
 			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
@@ -467,14 +436,7 @@
 
 	<!--  FileInListContextMenuTemplate  -->
 	<DataTemplate x:Key="FileInListContextMenuTemplate" x:DataType="entities:FileDto">
-		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-				</Style>
-			</StackPanel.Styles>
-
+		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
 			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<!--  A list loses its view model before its rows leave the window, so the path to its command may meet a null.  -->

@@ -14,13 +14,10 @@
 
 	<!--  ExecutingFileTemplate  -->
 	<DataTemplate x:Key="ExecutingFileTemplate" x:DataType="entities:FileDto">
-		<Grid Background="Transparent" ColumnDefinitions="Auto,*,Auto">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
+		<Grid
+			Background="Transparent"
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Interaction.Behaviors>
 				<input:DisableRightClickSelectionBehavior />

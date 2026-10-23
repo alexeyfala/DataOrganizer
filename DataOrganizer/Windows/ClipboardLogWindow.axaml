@@ -21,6 +21,7 @@
 	Background="Transparent"
 	CanMaximize="False"
 	CanMinimize="False"
+	Classes="FlatButtonsStyle"
 	ShowActivated="True"
 	ShowInTaskbar="False"
 	Topmost="True"
@@ -37,10 +38,6 @@
 	</Interaction.Behaviors>
 
 	<Window.Styles>
-		<Style Selector="Button">
-			<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-		</Style>
-
 		<Style Selector="RadioButton.typeChip">
 			<Setter Property="FontFamily" Value="Segoe UI Emoji" />
 			<Setter Property="FontSize" Value="14.0" />

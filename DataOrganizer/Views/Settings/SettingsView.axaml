@@ -18,14 +18,9 @@
 		<StackPanel
 			Grid.Row="0"
 			HorizontalAlignment="Left"
+			Classes="FlatButtonsStyle"
 			Orientation="Horizontal"
 			Spacing="{StaticResource ElementSpacing}">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</StackPanel.Styles>
-
 			<Button
 				Classes="primary"
 				Command="{Binding SaveAndCloseCommand}"
@@ -148,13 +143,10 @@
 			BorderThickness="1.0"
 			CornerRadius="4.0"
 			IsVisible="{Binding IsConfirmingClose, Mode=OneWay}">
-			<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElementSpacing}">
-				<Grid.Styles>
-					<Style Selector="Button">
-						<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-					</Style>
-				</Grid.Styles>
-
+			<Grid
+				Classes="FlatButtonsStyle"
+				ColumnDefinitions="Auto,*,Auto"
+				ColumnSpacing="{StaticResource ElementSpacing}">
 				<materialIcons:MaterialIcon
 					Grid.Column="0"
 					Width="{StaticResource SmallButtonIconSize}"

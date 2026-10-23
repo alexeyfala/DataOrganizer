@@ -18,13 +18,8 @@
 		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
+			Classes="CardFlyoutsStyle"
 			ColumnDefinitions="Auto,Auto,*">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
 
 			<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
 			<Button

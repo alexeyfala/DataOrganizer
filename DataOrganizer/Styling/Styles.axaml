@@ -235,6 +235,37 @@
 		<Setter Property="BorderThickness" Value="1.0" />
 	</Style>
 
+	<!--  The buttons inside an element of this class, the items of its menus included, take the flat look.  -->
+	<Style Selector=".FlatButtonsStyle Button">
+		<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class keep the color of the text.  -->
+	<Style Selector=".BodyColorButtonsStyle Button">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class, the items of its menus included, keep apart.  -->
+	<Style Selector=".SpacedButtonsStyle Button">
+		<Setter Property="Margin" Value="6.0,0.0" />
+	</Style>
+
+	<!--  After SpacedButtonsStyle, so that a menu of this class takes the margin of a toolbar away from its items.  -->
+	<Style Selector=".MarginlessButtonsStyle Button">
+		<Setter Property="Margin" Value="0.0" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class has the background of a card.  -->
+	<Style Selector=".CardFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class takes the Material presenter and the arrow cursor.  -->
+	<Style Selector=".MaterialFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Cursor" Value="Arrow" />
+		<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+	</Style>
+
 	<Style Selector="TextBlock.HeaderTextBlockStyle">
 		<Setter Property="FontSize" Value="16.0" />
 		<Setter Property="FontWeight" Value="Bold" />

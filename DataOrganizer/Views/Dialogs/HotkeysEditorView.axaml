@@ -25,14 +25,9 @@
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
 		<StackPanel
+			Classes="FlatButtonsStyle"
 			Orientation="Horizontal"
 			Spacing="{StaticResource ElementSpacing}">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</StackPanel.Styles>
-
 			<Button
 				Classes="primary"
 				Command="{Binding SaveAndCloseCommand}"
