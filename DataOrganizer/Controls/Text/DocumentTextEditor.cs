@@ -237,9 +237,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	private bool _isDisposed;
 
 	/// <summary>
-	/// <c>True</c> from a change that replaced the whole text until the end of that change.
+	/// Bookmarked lines of a text replaced whole until the end of its change; <c>null</c> while no change replaces it.
 	/// </summary>
-	private bool _isTextReplacedWhole;
+	private int[]? _replacedTextBookmarks;
 
 	/// <inheritdoc cref="Status" />
 	private DocumentStatus _status;
@@ -335,7 +335,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		// The base sets the first document before this constructor runs, so it is followed from here.
 		if (Document is { } document)
 		{
-			TextDocumentWeakEventManager.Changed.AddHandler(document, Document_Changed);
+			TextDocumentWeakEventManager.Changing.AddHandler(document, Document_Changing);
 		}
 
 		TextChanged += DocumentTextEditor_TextChanged;
@@ -387,15 +387,16 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
-	/// <see cref="TextDocument.Changed" /> event handler.
+	/// <see cref="TextDocument.Changing" /> event handler.
 	/// </summary>
-	private void Document_Changed(object? sender, DocumentChangeEventArgs e)
+	private void Document_Changing(object? sender, DocumentChangeEventArgs e)
 	{
 		// A text replaced whole, as a file loaded into the empty document or read again in another encoding, is a new text:
-		// its line endings and blocks are found at the end of the change, while typing still waits for the pause.
-		if (sender is TextDocument document && e.InsertionLength == document.TextLength)
+		// its line endings and blocks are found at the end of the change, while typing still waits for the pause, and its
+		// bookmarks are taken while they still stand on their lines.
+		if (sender is TextDocument document && e.RemovalLength == document.TextLength)
 		{
-			_isTextReplacedWhole = true;
+			_replacedTextBookmarks = Bookmarks.GetLines();
 		}
 	}
 
@@ -407,12 +408,12 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		// A document may outlive the view, so its changes are followed weakly.
 		if (e.OldDocument is { } oldDocument)
 		{
-			TextDocumentWeakEventManager.Changed.RemoveHandler(oldDocument, Document_Changed);
+			TextDocumentWeakEventManager.Changing.RemoveHandler(oldDocument, Document_Changing);
 		}
 
 		if (e.NewDocument is { } newDocument)
 		{
-			TextDocumentWeakEventManager.Changed.AddHandler(newDocument, Document_Changed);
+			TextDocumentWeakEventManager.Changing.AddHandler(newDocument, Document_Changing);
 		}
 
 		// The bookmarks belong to the lines of one document.
@@ -439,16 +440,22 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		};
 
 		// The folding moves its blocks with the change itself, so the blocks of a new text are found only after it.
-		if (!_isTextReplacedWhole)
+		if (_replacedTextBookmarks is not { } bookmarkedLines)
 		{
 			return;
 		}
 
-		_isTextReplacedWhole = false;
+		_replacedTextBookmarks = null;
 
 		UpdateLineEnding();
 
 		UpdateFoldings();
+
+		// The change moves the bookmarks of a text replaced whole to its end, so they go back to their line numbers.
+		if (bookmarkedLines.Length > 0)
+		{
+			Bookmarks.SetLines(bookmarkedLines);
+		}
 	}
 
 	/// <summary>
@@ -514,7 +521,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		if (Document is { } document)
 		{
-			TextDocumentWeakEventManager.Changed.RemoveHandler(document, Document_Changed);
+			TextDocumentWeakEventManager.Changing.RemoveHandler(document, Document_Changing);
 		}
 
 		RemoveHighlighting();

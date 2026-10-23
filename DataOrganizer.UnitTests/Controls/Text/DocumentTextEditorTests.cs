@@ -623,6 +623,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text replaced whole, as a file read again in another encoding, keeps the
+	/// bookmarks on their line numbers, and those past its end go.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("Five\nSix\nSeven\nEight", new[] { 1, 3 })]
+	[TestCase("Five\nSix", new[] { 1 })]
+	public void Document_Keeps_The_Bookmarked_Lines_Of_A_Text_Replaced_Whole(string newText, int[] expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo\nThree\nFour")
+		};
+
+		sut.Bookmarks.Toggle(1);
+
+		sut.Bookmarks.Toggle(3);
+
+		// Act
+		sut.Document.Text = newText;
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: the highlighting moves on to a new document.
 	/// </summary>
 	[AvaloniaTest]
@@ -781,6 +809,30 @@ internal class DocumentTextEditorTests
 			.BeSameAs(sut.Document);
 
 		sut.Bookmarks.GetLines()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text without bookmarks replaced whole, as a file loaded into the empty
+	/// document, sends no change of its bookmarks.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Sends_No_Bookmark_Change_For_A_Text_Without_Bookmarks_Replaced_Whole()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo")
+		};
+
+		List<BookmarksChangedMessage> messages = Capture<BookmarksChangedMessage>(x => x.Bookmarks == sut.Bookmarks);
+
+		// Act
+		sut.Document.Text = "Three\nFour";
+
+		// Assert
+		messages
 			.Should()
 			.BeEmpty();
 	}
@@ -3873,16 +3925,25 @@ internal class DocumentTextEditorTests
 	/// </summary>
 	private static List<FoldingChangedMessage> Capture(DocumentTextEditor editor)
 	{
-		List<FoldingChangedMessage> received = [];
+		return Capture<FoldingChangedMessage>(x => x.Editor == editor);
+	}
+
+	/// <summary>
+	/// Records every message of a kind that the filter takes as one about the object under test.
+	/// </summary>
+	private static List<TMessage> Capture<TMessage>(Func<TMessage, bool> isAboutSut)
+		where TMessage : class
+	{
+		List<TMessage> received = [];
 
 		WeakReferenceMessenger
 			.Default
-			.Register<List<FoldingChangedMessage>, FoldingChangedMessage>(
+			.Register<List<TMessage>, TMessage>(
 				received,
 				(recipient, message) =>
 				{
-					// The messenger is shared, and other tests send messages about their own editors.
-					if (message.Editor != editor)
+					// The messenger is shared, and other tests send messages about their own objects.
+					if (!isAboutSut(message))
 					{
 						return;
 					}
