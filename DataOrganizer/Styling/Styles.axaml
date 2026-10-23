@@ -71,6 +71,14 @@
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.(ToolTip.Tip), Mode=OneWay}" />
 	</Style>
 
+	<!--
+		The arrows, the page buttons and the thumb of a scroll bar stay out of screen readers and UI Automation, as the themes
+		name them in English or not at all; the scroll bar itself stays there with its value.
+	-->
+	<Style Selector="ScrollBar /template/ RepeatButton, ScrollBar /template/ Thumb">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+	</Style>
+
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 	</Style>
