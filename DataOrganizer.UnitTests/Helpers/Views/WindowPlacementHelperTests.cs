@@ -315,6 +315,39 @@ internal class WindowPlacementHelperTests
 	}
 
 	/// <summary>
+	/// <see cref="WindowPlacementHelper.Restore" />: a window without stored settings gets the default placement and keeps
+	/// its own size.
+	/// </summary>
+	[AvaloniaTest]
+	public void Restore_Places_A_Window_Without_Settings_By_Default()
+	{
+		// Arrange
+		List<Window> placedByDefault = [];
+
+		Window window = new()
+		{
+			Height = 300.0,
+			Width = 400.0
+		};
+
+		// Act
+		WindowPlacementHelper.Restore(window, null, placedByDefault.Add);
+
+		// Assert
+		placedByDefault
+			.Should()
+			.Equal(window);
+
+		window.Width
+			.Should()
+			.Be(400.0);
+
+		window.Height
+			.Should()
+			.Be(300.0);
+	}
+
+	/// <summary>
 	/// <see cref="WindowPlacementHelper.Restore" />: a window of the application not shown yet hands the stored size to its
 	/// platform window before it moves to the stored position.
 	/// </summary>

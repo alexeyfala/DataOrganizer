@@ -88,94 +88,6 @@ public class ViewLauncher :
 	}
 	#endregion
 
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="ClipboardLogWindow" />.
-	/// </summary>
-	private void ClipboardLogWindow_Closing(object? sender, WindowClosingEventArgs e)
-	{
-		if (sender is not ClipboardLogWindow window)
-		{
-			return;
-		}
-
-		window.Closing -= ClipboardLogWindow_Closing;
-
-		_logger.LogInformation($@"Closing ""{nameof(ClipboardLogWindow)}"" and saving ""{nameof(ClipboardLogWindowSettings)}""");
-
-		SaveClipboardLogSettings(window);
-
-		window
-			.ViewModel
-			.Dispose();
-	}
-
-	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
-	/// </summary>
-	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
-	{
-		if (sender is not EditorWindow window)
-		{
-			return;
-		}
-
-		window.Closing -= EditorWindow_Closing;
-
-		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
-
-		SaveEditorSettings(window);
-
-		ExitUnlessSwitching(window);
-	}
-
-	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="FavoritesWindow" />.
-	/// </summary>
-	private void FavoritesWindow_Closing(object? sender, WindowClosingEventArgs e)
-	{
-		if (sender is not FavoritesWindow window)
-		{
-			return;
-		}
-
-		window.Closing -= FavoritesWindow_Closing;
-
-		_logger.LogInformation($@"Closing ""{nameof(FavoritesWindow)}"" and saving ""{nameof(FavoritesWindowSettings)}""");
-
-		// The popup is still open here when it is fixed or when a command from inside it closes the window, so its
-		// content is saved before the settings are written.
-		window
-			.ViewModel
-			.SaveContent();
-
-		SaveFavoritesSettings(window);
-
-		ExitUnlessSwitching(window);
-	}
-
-	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="NotepadWindow" />.
-	/// </summary>
-	private void NotepadWindow_Closing(object? sender, WindowClosingEventArgs e)
-	{
-		if (sender is not NotepadWindow window)
-		{
-			return;
-		}
-
-		window.Closing -= NotepadWindow_Closing;
-
-		_logger.LogInformation($@"Closing ""{nameof(NotepadWindow)}"" and saving ""{nameof(NotepadWindowSettings)}""");
-
-		SaveNotepadSettings(window);
-
-		window
-			.ViewModel
-			.Dispose();
-	}
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
 	public void ActivateMainWindow()
@@ -259,30 +171,24 @@ public class ViewLauncher :
 			viewModel.ShowObject(showObjectId);
 		}
 
-		if (_windowSettings.Read<EditorWindowSettings>() is { } windowSettings)
+		EditorWindowSettings? windowSettings = _windowSettings.Read<EditorWindowSettings>();
+
+		// The stored size, when there is one, replaces the default.
+		WindowPlacementHelper.SetDefaultSize(window);
+
+		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
+
+		if (windowSettings is null || windowSettings.NavigationColumnWidth <= default(double))
 		{
-			// The stored size, when there is one, replaces the default.
-			WindowPlacementHelper.SetDefaultSize(window);
-
-			WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
-
-			if (windowSettings.NavigationColumnWidth <= default(double))
-			{
-				viewModel.SetDefaultNavigationColumnWidth(window.Width);
-			}
-
-			viewModel.Initialize(windowSettings);
-		}
-		else
-		{
-			WindowPlacementHelper.SetDefaultSize(window);
-
-			WindowPlacementHelper.SetDefaultLocation(window);
-
 			viewModel.SetDefaultNavigationColumnWidth(window.Width);
 		}
 
-		window.Closing += EditorWindow_Closing;
+		if (windowSettings is not null)
+		{
+			viewModel.Initialize(windowSettings);
+		}
+
+		SaveOnClosing<EditorWindow, EditorWindowSettings>(window, SaveEditorSettings);
 
 		return window;
 	}
@@ -298,22 +204,22 @@ public class ViewLauncher :
 
 		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
 
-		if (_windowSettings.Read<FavoritesWindowSettings>() is { } windowSettings)
-		{
-			WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
+		FavoritesWindowSettings? windowSettings = _windowSettings.Read<FavoritesWindowSettings>();
 
+		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
+
+		if (windowSettings is not null)
+		{
 			viewModel.Initialize(windowSettings, _windowSettings.Read<FavoritesViewSettings>() ?? new());
 		}
 		else
 		{
-			WindowPlacementHelper.SetDefaultLocation(window);
-
 			viewModel.SetDefaultPopupSize();
 
 			viewModel.SetDefaultNavigationColumnWidth();
 		}
 
-		window.Closing += FavoritesWindow_Closing;
+		SaveOnClosing<FavoritesWindow, FavoritesWindowSettings>(window, SaveFavoritesSettings);
 
 		return window;
 	}
@@ -421,20 +327,18 @@ public class ViewLauncher :
 
 		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
 
-		if (_windowSettings.Read<ClipboardLogWindowSettings>() is { } settings)
+		ClipboardLogWindowSettings? settings = _windowSettings.Read<ClipboardLogWindowSettings>();
+
+		if (settings is not null)
 		{
 			viewModel.ActiveFilter = settings.ActiveFilter;
 
 			viewModel.KeepOpen = settings.KeepOpen;
-
-			WindowPlacementHelper.Restore(window, settings, x => WindowPlacementHelper.PositionAtScreenBottomRight(x, owner));
-		}
-		else
-		{
-			WindowPlacementHelper.PositionAtScreenBottomRight(window, owner);
 		}
 
-		window.Closing += ClipboardLogWindow_Closing;
+		WindowPlacementHelper.Restore(window, settings, x => WindowPlacementHelper.PositionAtScreenBottomRight(x, owner));
+
+		SaveOnClosing<ClipboardLogWindow, ClipboardLogWindowSettings>(window, SaveClipboardLogSettings);
 
 		return window;
 	}
@@ -472,16 +376,12 @@ public class ViewLauncher :
 		// The stored size, when there is one, replaces the default.
 		WindowPlacementHelper.SetDefaultSize(window);
 
-		if (_windowSettings.Read<NotepadWindowSettings>() is { } settings)
-		{
-			WindowPlacementHelper.Restore(window, settings, x => WindowPlacementHelper.PositionAtScreenCenter(x, owner));
-		}
-		else
-		{
-			WindowPlacementHelper.PositionAtScreenCenter(window, owner);
-		}
+		WindowPlacementHelper.Restore(
+			window,
+			_windowSettings.Read<NotepadWindowSettings>(),
+			x => WindowPlacementHelper.PositionAtScreenCenter(x, owner));
 
-		window.Closing += NotepadWindow_Closing;
+		SaveOnClosing<NotepadWindow, NotepadWindowSettings>(window, SaveNotepadSettings);
 
 		return window;
 	}
@@ -500,7 +400,7 @@ public class ViewLauncher :
 	}
 
 	/// <summary>
-	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
+	/// Saves <see cref="ClipboardLogWindow" /> settings to the file, then disposes its view model.
 	/// </summary>
 	private void SaveClipboardLogSettings(ClipboardLogWindow window)
 	{
@@ -521,10 +421,16 @@ public class ViewLauncher :
 		{
 			_logger.LogException(ex);
 		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
 	}
 
 	/// <summary>
-	/// Saves <see cref="EditorWindow" /> settings to the file.
+	/// Saves <see cref="EditorWindow" /> settings to the file, then disposes its view model.
 	/// </summary>
 	private void SaveEditorSettings(EditorWindow window)
 	{
@@ -560,10 +466,16 @@ public class ViewLauncher :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FavoritesWindow" /> settings to the file.
+	/// Saves <see cref="FavoritesWindow" /> settings to the file, then disposes its view model.
 	/// </summary>
 	private void SaveFavoritesSettings(FavoritesWindow window)
 	{
+		// The popup is still open here when it is fixed or when a command from inside it closes the window, so its
+		// content is saved before the settings are written.
+		window
+			.ViewModel
+			.SaveContent();
+
 		try
 		{
 			FavoritesWindowSettings settings = new()
@@ -595,7 +507,7 @@ public class ViewLauncher :
 	}
 
 	/// <summary>
-	/// Saves <see cref="NotepadWindow" /> settings to the file.
+	/// Saves <see cref="NotepadWindow" /> settings to the file, then disposes its view model.
 	/// </summary>
 	private void SaveNotepadSettings(NotepadWindow window)
 	{
@@ -616,6 +528,37 @@ public class ViewLauncher :
 		{
 			_logger.LogException(ex);
 		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Saves the settings of <paramref name="window" /> by <paramref name="save" /> once, as the window closes; a main
+	/// window then asks for the exit of the application.
+	/// </summary>
+	private void SaveOnClosing<TWindow, TSettings>(TWindow window, Action<TWindow> save)
+		where TWindow : Window
+	{
+		Observable
+			.FromEventPattern<EventHandler<WindowClosingEventArgs>, WindowClosingEventArgs>(
+				x => window.Closing += x,
+				x => window.Closing -= x)
+			.Take(1)
+			.Subscribe(_ =>
+			{
+				_logger.LogInformation($@"Closing ""{typeof(TWindow).Name}"" and saving ""{typeof(TSettings).Name}""");
+
+				save(window);
+
+				if (window is IMainWindow mainWindow)
+				{
+					ExitUnlessSwitching(mainWindow);
+				}
+			});
 	}
 
 	/// <summary>

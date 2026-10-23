@@ -128,10 +128,18 @@ internal static class WindowPlacementHelper
 
 	/// <summary>
 	/// Gives the window the stored size, state and topmost flag where the settings keep them, and the stored position when
-	/// it lies on a screen; a position off every screen goes to <paramref name="placeByDefault" /> instead.
+	/// it lies on a screen; a window without settings or with a position off every screen goes to
+	/// <paramref name="placeByDefault" /> instead.
 	/// </summary>
-	public static void Restore(Window window, PositionSettings settings, Action<Window> placeByDefault)
+	public static void Restore(Window window, PositionSettings? settings, Action<Window> placeByDefault)
 	{
+		if (settings is null)
+		{
+			placeByDefault(window);
+
+			return;
+		}
+
 		if (settings is PositionSizeSettings { Size: { Width: > 0, Height: > 0 } size })
 		{
 			window.Width = size.Width;

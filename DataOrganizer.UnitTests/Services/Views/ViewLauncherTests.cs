@@ -33,6 +33,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Clipboard;
@@ -1057,6 +1058,51 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the view model of the window is disposed when the window closes.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Disposes_The_View_Model_When_The_Window_Closes()
+	{
+		// Arrange
+		// The editor lives as long as the test, as the window disposes it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// Act
+		window.Close();
+
+		// Assert
+		window.ViewModel.IsDisposed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: a window saved without a size takes the default one, and its
 	/// navigation column a third of it.
 	/// </summary>
@@ -1483,6 +1529,66 @@ internal class ViewLauncherTests
 		window.Position
 			.Should()
 			.Be(new PixelPoint(x, y));
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: a closing window saves its settings before it asks for the exit of the
+	/// application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_Settings_Before_It_Asks_For_The_Exit()
+	{
+		// Arrange
+		List<string> steps = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ExitAppMessage>(this, (_, _) => steps.Add("exit"));
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			windowSettings.Write(Arg.Do<EditorWindowSettings>(_ => steps.Add("save")));
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowSettings);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		// Act
+		window.Close();
+
+		// Assert
+		steps
+			.Should()
+			.Equal("save", "exit");
 	}
 
 	/// <summary>
@@ -2722,6 +2828,73 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: a closing window saves its settings before it asks for the exit of
+	/// the application.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateFavoritesWindow_Saves_Settings_Before_It_Asks_For_The_Exit()
+	{
+		// Arrange
+		List<string> steps = [];
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		messenger.Register<ExitAppMessage>(this, (_, _) => steps.Add("exit"));
+
+		// The favorites live as long as the test, as the window saves them when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ScopeViewFactory>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
+
+			viewFactory
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
+
+			windowSettings.Write(Arg.Do<FavoritesWindowSettings>(_ => steps.Add("save")));
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowSettings);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		FavoritesWindow window = sut.CreateFavoritesWindow();
+
+		// Act
+		window.Close();
+
+		// Assert
+		steps
+			.Should()
+			.Equal("save", "exit");
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: closing the window clears the favorites collections and
 	/// serializes the settings with the current window kind to JSON files.
 	/// </summary>
@@ -3055,6 +3228,67 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the view model of the window is disposed when the window
+	/// closes, so that it no longer listens to the messages.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Disposes_The_View_Model_When_The_Window_Closes()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		await sut.ShowClipboardLogWindowAsync();
+
+		// Act
+		window.Close();
+
+		// Assert
+		messenger.IsRegistered<ClipboardLogEntryCountChangedMessage>(window.ViewModel)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved without a size keeps the size its markup
 	/// gives it.
 	/// </summary>
@@ -3272,6 +3506,75 @@ internal class ViewLauncherTests
 			builder
 				.RegisterType<WindowSettingsStore>()
 				.As<IWindowSettingsStore>();
+
+			builder.RegisterInstance(windowFinder);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync();
+
+		// Assert
+		Screen screen = owner.Screens!.Primary!;
+
+		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
+
+		screen.WorkingArea.Contains(bounds)
+			.Should()
+			.BeTrue();
+
+		bounds.Center.X
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.X);
+
+		bounds.Center.Y
+			.Should()
+			.BeGreaterThan(screen.WorkingArea.Center.Y);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window without saved settings opens in the lower right
+	/// corner of the screen of the main window.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Places_A_Window_Without_Settings_In_The_Corner()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogWindow window = windowMock.Create<ClipboardLogWindow>();
+
+		Window owner = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(owner);
+
+			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(windowFinder);
 		});
@@ -4521,6 +4824,75 @@ internal class ViewLauncherTests
 				X = 30,
 				Y = 40
 			});
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowNotepadWindow" />: a window whose first close is put off saves its settings once, as that
+	/// close begins.
+	/// </summary>
+	[AvaloniaTest]
+	public void ShowNotepadWindow_Saves_The_Settings_Once_When_A_Close_Is_Put_Off()
+	{
+		// Arrange
+		bool isClosePutOff = true;
+
+		IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
+
+		NotepadWindow window = new(new NotepadViewModel(
+			Substitute.For<IConfirmationPrompt>(),
+			Substitute.For<IDocumentEncodingSwitcher>(),
+			new DocumentTextFactory(),
+			Substitute.For<IMainWindowActivator>(),
+			Substitute.For<INotepadSessionState>(),
+			Substitute.For<INotepadStore>(),
+			Substitute.For<INotepadTexts>(),
+			Substitute.For<ISyntaxRegistry>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<ITextInputPrompt>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<NotepadViewModel>()
+				.Returns(window.ViewModel);
+
+			viewFactory
+				.CreateWindow<NotepadWindow>(Arg.Any<object[]>())
+				.Returns(window);
+
+			windowFinder
+				.FindMainWindow()
+				.Returns(new Window());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(windowFinder);
+
+			builder.RegisterInstance(windowSettings);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		sut.ShowNotepadWindow();
+
+		// Something else puts the first close off, as a question about unsaved changes would.
+		window.Closing += (_, e) => e.Cancel = isClosePutOff;
+
+		window.Close();
+
+		isClosePutOff = false;
+
+		// Act
+		window.Close();
+
+		// Assert
+		windowSettings
+			.Received(1)
+			.Write(Arg.Any<NotepadWindowSettings>());
 	}
 
 	/// <summary>
