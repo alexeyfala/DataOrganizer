@@ -1,7 +1,6 @@
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
-using Shared.Extensions;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
