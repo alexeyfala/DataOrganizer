@@ -18,6 +18,7 @@ using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Text;
+using DataOrganizer.UnitTests.Guards;
 using DataOrganizer.ViewModels.Windows;
 using Entities.Models;
 using MapsterMapper;
@@ -30,13 +31,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(App)}"" type")]
-internal class AppTests
+internal partial class AppTests
 {
 	#region Data
 	/// <summary>
@@ -128,6 +130,47 @@ internal class AppTests
 		result
 			.Should()
 			.BeOfType<FileDto>();
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: every view model the view factory builds, which needs no registration of its
+	/// own, finds the dependencies of its constructor, so a missing one is named here instead of when its view opens.
+	/// </summary>
+	[AvaloniaTest]
+	[Guard]
+	public void RegisterServices_Gives_Every_View_Model_Of_The_View_Factory_Its_Dependencies()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		Type[] viewModels =
+		[
+			.. RepositoryFiles
+				.EnumerateProjectCode()
+				.SelectMany(static x => CreatedViewModelRegex().Matches(x.Text))
+				.Select(static x => x.Groups["name"].Value)
+				.Distinct(StringComparer.Ordinal)
+				.Select(static x => typeof(App).Assembly.GetTypes().Single(type => type.Name == x))
+		];
+
+		// Act
+		string[] unsatisfied =
+		[
+			.. viewModels
+				.Select(x => DescribeMissingDependencies(services, x))
+				.Where(static x => x.Length > 0)
+		];
+
+		// Assert
+		viewModels
+			.Should()
+			.NotBeEmpty();
+
+		unsatisfied
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -473,6 +516,12 @@ internal class AppTests
 		return definition == typeof(IEnumerable<>)
 			|| services.Any(x => !x.IsKeyedService && x.ServiceType == definition);
 	}
+
+	/// <summary>
+	/// A view model the code asks the view factory for, by the name of its type.
+	/// </summary>
+	[GeneratedRegex(@"CreateViewModel<(?<name>\w+ViewModel)>")]
+	private static partial Regex CreatedViewModelRegex();
 
 	/// <summary>
 	/// Names the dependencies no constructor of a type can obtain; empty when the type can be built.

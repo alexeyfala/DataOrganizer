@@ -13,15 +13,20 @@ internal static class RepositoryFiles
 {
 	#region Methods
 	/// <summary>
+	/// Reads every C# file of the application project, each paired with its path.
+	/// </summary>
+	public static IEnumerable<(string FilePath, string Text)> EnumerateProjectCode()
+	{
+		return EnumerateProjectFiles("*.cs")
+			.Select(path => (FilePath: path, Text: File.ReadAllText(path)));
+	}
+
+	/// <summary>
 	/// Parses every markup file of the application project with the line of each element, each paired with its path.
 	/// </summary>
 	public static IEnumerable<(string FilePath, XDocument Document)> EnumerateProjectMarkup()
 	{
-		string root = Path.Combine(LocateRoot(), "DataOrganizer");
-
-		return Directory
-			.EnumerateFiles(root, "*.axaml", SearchOption.AllDirectories)
-			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+		return EnumerateProjectFiles("*.axaml")
 			.Select(path => (FilePath: path, Document: XDocument.Load(path, LoadOptions.SetLineInfo)));
 	}
 
@@ -48,6 +53,20 @@ internal static class RepositoryFiles
 	public static string ReadText(string relativePath)
 	{
 		return File.ReadAllText(Path.Combine(LocateRoot(), relativePath));
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Paths of the files of the application project that match the pattern, the generated ones left out.
+	/// </summary>
+	private static IEnumerable<string> EnumerateProjectFiles(string searchPattern)
+	{
+		string root = Path.Combine(LocateRoot(), "DataOrganizer");
+
+		return Directory
+			.EnumerateFiles(root, searchPattern, SearchOption.AllDirectories)
+			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
 	}
 	#endregion
 }

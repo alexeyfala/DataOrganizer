@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
-/// Th view model for returning <see cref="bool" /> value.
+/// The view model for returning <see cref="bool" /> value.
 /// </summary>
-public class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
+public abstract class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 {
 	#region Constructors
-	public BooleanAsyncResultViewModel(
+	protected BooleanAsyncResultViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
 	{
