@@ -227,7 +227,8 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.IsThemeInherited" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
+	/// <see cref="SettingsViewModel.Theme" />: choosing a theme sets the current settings theme and triggers a material theme
+	/// update.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_Theme([Values] ThemeMode theme)
@@ -247,35 +248,23 @@ internal class SettingsViewModelTests
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
-		sut.IsThemeInherited = false;
+		// Another theme first, so that the chosen one is a change.
+		sut.Theme = theme == ThemeMode.Dark
+			? ThemeMode.Light
+			: ThemeMode.Dark;
 
-		sut.IsLightTheme = false;
-
-		sut.IsDarkTheme = false;
+		themeService.ClearReceivedCalls();
 
 		// Act
-		switch (theme)
-		{
-			case ThemeMode.Inherit:
-				sut.IsThemeInherited = true;
-				break;
-
-			case ThemeMode.Light:
-				sut.IsLightTheme = true;
-				break;
-
-			case ThemeMode.Dark:
-				sut.IsDarkTheme = true;
-				break;
-		}
+		sut.Theme = theme;
 
 		// Assert
 		sut.CurrentSettings.Theme
 			.Should()
 			.Be(theme);
 
-		themeService.Received().SetTheme(
-			Arg.Any<ThemeMode>(),
+		themeService.Received(1).SetTheme(
+			theme,
 			Arg.Any<ThemePrimaryColor>(),
 			Arg.Any<ThemeSecondaryColor>());
 	}
