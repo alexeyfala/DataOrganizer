@@ -277,7 +277,6 @@ internal class AppTests
 
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: the copy history is one for the whole application, so every window and the
-
 	/// hotkeys add to the same list, and the list read and stored is that one.
 	/// </summary>
 	[AvaloniaTest]
@@ -387,7 +386,6 @@ internal class AppTests
 
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: the splits of the editors have one store for the whole application, so a file
-
 	/// opened again gets its split back.
 	/// </summary>
 	[AvaloniaTest]

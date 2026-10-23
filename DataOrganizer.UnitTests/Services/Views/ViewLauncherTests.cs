@@ -1750,7 +1750,6 @@ internal class ViewLauncherTests
 
 	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the read-only mode for the next editor.
-
 	/// </summary>
 	[AvaloniaTest]
 	public void CreateEditorWindow_Saves_The_Read_Only_Mode_When_The_Window_Closes()
@@ -3147,7 +3146,6 @@ internal class ViewLauncherTests
 
 	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: a window saved off every screen opens in the lower right
-
 	/// corner of the screen of the owner.
 	/// </summary>
 	[AvaloniaTest]

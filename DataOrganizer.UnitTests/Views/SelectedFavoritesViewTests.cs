@@ -316,7 +316,6 @@ internal class SelectedFavoritesViewTests
 	#region Helpers
 	/// <summary>
 	/// Returns the navigation column of the favorites view a window shows.
-
 	/// </summary>
 	private static ColumnDefinition FindNavigationColumn(Window window)
 	{

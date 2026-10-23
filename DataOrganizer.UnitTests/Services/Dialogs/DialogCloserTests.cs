@@ -308,8 +308,6 @@ internal class DialogCloserTests
 
 	/// <summary>
 	/// <see cref="DialogCloser.FindShownDialog" />: a host that shows no dialog has none to find.
-
-
 	/// </summary>
 	[AvaloniaTest]
 	public void FindShownDialog_Finds_None_While_The_Host_Shows_None()
