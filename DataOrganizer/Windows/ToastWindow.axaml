@@ -26,7 +26,9 @@
 		BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
 		BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 		CornerRadius="8.0">
-		<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+		<Grid
+			ColumnDefinitions="Auto,*"
+			RowDefinitions="Auto,*">
 			<Image
 				Grid.Row="0"
 				Grid.Column="0"

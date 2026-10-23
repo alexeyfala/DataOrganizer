@@ -13,8 +13,12 @@
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!--  KeyValueRecordContextMenuTemplate  -->
-	<DataTemplate x:Key="KeyValueRecordContextMenuTemplate" x:DataType="dataset:KeyValueRecord">
-		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
+	<DataTemplate
+		x:Key="KeyValueRecordContextMenuTemplate"
+		x:DataType="dataset:KeyValueRecord">
+		<StackPanel
+			Classes="FlatButtonsStyle BodyColorButtonsStyle"
+			Orientation="Vertical">
 			<controls:SensitiveTextBlock
 				Classes="NameInFlyoutTextBlockStyle"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
@@ -50,16 +54,24 @@
 	</DataTemplate>
 
 	<!--  ValueRecordContextMenuTemplate  -->
-	<DataTemplate x:Key="ValueRecordContextMenuTemplate" x:DataType="dataset:ValueRecord">
-		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
+	<DataTemplate
+		x:Key="ValueRecordContextMenuTemplate"
+		x:DataType="dataset:ValueRecord">
+		<StackPanel
+			Classes="FlatButtonsStyle BodyColorButtonsStyle"
+			Orientation="Vertical">
 			<controls:SensitiveTextBlock
 				Classes="NameInFlyoutTextBlockStyle"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}">
 				<controls:SensitiveTextBlock.Text>
 					<MultiBinding Converter="{x:Static converters:SecurityConverters.MaskedValue}">
-						<Binding Mode="OneTime" Path="Value" />
+						<Binding
+							Mode="OneTime"
+							Path="Value" />
 
-						<Binding Mode="OneTime" Path="IsHidden" />
+						<Binding
+							Mode="OneTime"
+							Path="IsHidden" />
 					</MultiBinding>
 				</controls:SensitiveTextBlock.Text>
 			</controls:SensitiveTextBlock>
@@ -88,8 +100,12 @@
 	</DataTemplate>
 
 	<!--  RecordsGroupContextMenuTemplate  -->
-	<DataTemplate x:Key="RecordsGroupContextMenuTemplate" x:DataType="dataset:RecordsGroup">
-		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
+	<DataTemplate
+		x:Key="RecordsGroupContextMenuTemplate"
+		x:DataType="dataset:RecordsGroup">
+		<StackPanel
+			Classes="FlatButtonsStyle BodyColorButtonsStyle"
+			Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Separator">
 					<Setter Property="Theme" Value="{StaticResource MaterialSeparator}" />
@@ -118,7 +134,9 @@
 
 			<Separator />
 
-			<controls:FlyoutButton Header="{x:Static prop:Strings.Add}" Icon="Plus">
+			<controls:FlyoutButton
+				Header="{x:Static prop:Strings.Add}"
+				Icon="Plus">
 				<Button.Flyout>
 					<controls:LazyMenuFlyout Placement="Right">
 						<controls:LazyMenuFlyout.MenuTemplate>
@@ -154,7 +172,9 @@
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<controls:FlyoutButton Header="{x:Static prop:Strings.Options}" Icon="CogOutline">
+			<controls:FlyoutButton
+				Header="{x:Static prop:Strings.Options}"
+				Icon="CogOutline">
 				<Button.Flyout>
 					<controls:LazyMenuFlyout Placement="Right">
 						<controls:LazyMenuFlyout.MenuTemplate>
@@ -209,9 +229,13 @@
 	</DataTemplate>
 
 	<!--  ExplorerItemContextMenuHeaderTemplate  -->
-	<DataTemplate x:Key="ExplorerItemContextMenuHeaderTemplate" x:DataType="entities:ExplorerItemDtoBase">
+	<DataTemplate
+		x:Key="ExplorerItemContextMenuHeaderTemplate"
+		x:DataType="entities:ExplorerItemDtoBase">
 		<StackPanel Orientation="Vertical">
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
+			<TextBlock
+				Classes="NameInFlyoutTextBlockStyle"
+				Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
 				<controls:FlyoutButton
@@ -231,9 +255,15 @@
 	</DataTemplate>
 
 	<!--  FolderInTreeViewContextMenuTemplate  -->
-	<DataTemplate x:Key="FolderInTreeViewContextMenuTemplate" x:DataType="entities:FolderDto">
-		<StackPanel Classes="FlatButtonsStyle" Orientation="Vertical">
-			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
+	<DataTemplate
+		x:Key="FolderInTreeViewContextMenuTemplate"
+		x:DataType="entities:FolderDto">
+		<StackPanel
+			Classes="FlatButtonsStyle"
+			Orientation="Vertical">
+			<ContentPresenter
+				Content="{Binding}"
+				ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
 
@@ -259,7 +289,9 @@
 
 			<Separator />
 
-			<controls:FlyoutButton Header="{x:Static prop:Strings.Encryption}" Icon="LockOutline">
+			<controls:FlyoutButton
+				Header="{x:Static prop:Strings.Encryption}"
+				Icon="LockOutline">
 				<Button.Flyout>
 					<controls:LazyMenuFlyout Placement="Right">
 						<controls:LazyMenuFlyout.MenuTemplate>
@@ -319,9 +351,15 @@
 	</DataTemplate>
 
 	<!--  FileInTreeViewContextMenuTemplate  -->
-	<DataTemplate x:Key="FileInTreeViewContextMenuTemplate" x:DataType="entities:FileDto">
-		<StackPanel Classes="FlatButtonsStyle" Orientation="Vertical">
-			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
+	<DataTemplate
+		x:Key="FileInTreeViewContextMenuTemplate"
+		x:DataType="entities:FileDto">
+		<StackPanel
+			Classes="FlatButtonsStyle"
+			Orientation="Vertical">
+			<ContentPresenter
+				Content="{Binding}"
+				ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
 
@@ -435,9 +473,15 @@
 	</DataTemplate>
 
 	<!--  FileInListContextMenuTemplate  -->
-	<DataTemplate x:Key="FileInListContextMenuTemplate" x:DataType="entities:FileDto">
-		<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
+	<DataTemplate
+		x:Key="FileInListContextMenuTemplate"
+		x:DataType="entities:FileDto">
+		<StackPanel
+			Classes="FlatButtonsStyle BodyColorButtonsStyle"
+			Orientation="Vertical">
+			<TextBlock
+				Classes="NameInFlyoutTextBlockStyle"
+				Text="{Binding Name, Mode=OneTime}" />
 
 			<!--  A list loses its view model before its rows leave the window, so the path to its command may meet a null.  -->
 			<controls:FlyoutButton

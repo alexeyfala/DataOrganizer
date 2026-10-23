@@ -14,7 +14,9 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*,Auto">
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="Auto,*,Auto">
 		<TextBlock
 			Grid.Row="0"
 			Grid.Column="0"
@@ -40,7 +42,9 @@
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
 
-				<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
+				<security:SensitiveCopyBehavior
+					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
 		</TextBox>
 

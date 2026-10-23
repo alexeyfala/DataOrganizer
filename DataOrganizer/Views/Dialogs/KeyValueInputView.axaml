@@ -33,7 +33,7 @@
 			UseFloatingPlaceholder="True">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
-				
+
 				<AutoSelectBehavior />
 
 				<input:MoveFocusOnEnterBehavior

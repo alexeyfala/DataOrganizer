@@ -14,7 +14,9 @@
 	x:DataType="dialogs:SettingsViewModel"
 	mc:Ignorable="d">
 
-	<Grid RowDefinitions="Auto,*,Auto" RowSpacing="{StaticResource ElementSpacing}">
+	<Grid
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
 		<StackPanel
 			Grid.Row="0"
 			HorizontalAlignment="Left"
@@ -72,7 +74,9 @@
 					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
 					SelectionMode="AlwaysSelected">
 					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.General}">
-						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="Cog" />
 
 							<TextBlock Text="{x:Static prop:Strings.General}" />
@@ -80,7 +84,9 @@
 					</ListBoxItem>
 
 					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Appearance}">
-						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="Palette" />
 
 							<TextBlock Text="{x:Static prop:Strings.Appearance}" />
@@ -88,7 +94,9 @@
 					</ListBoxItem>
 
 					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Behavior}">
-						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="GestureTapButton" />
 
 							<TextBlock Text="{x:Static prop:Strings.Behavior}" />
@@ -96,7 +104,9 @@
 					</ListBoxItem>
 
 					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Clipboard}">
-						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="ClipboardOutline" />
 
 							<TextBlock Text="{x:Static prop:Strings.Clipboard}" />
@@ -104,7 +114,9 @@
 					</ListBoxItem>
 
 					<ListBoxItem AutomationProperties.Name="{x:Static prop:Strings.Security}">
-						<StackPanel Orientation="Horizontal" Spacing="{StaticResource ElementSpacing}">
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
 							<materialIcons:MaterialIcon Kind="ShieldLockOutline" />
 
 							<TextBlock Text="{x:Static prop:Strings.Security}" />

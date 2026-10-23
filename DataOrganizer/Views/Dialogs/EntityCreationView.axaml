@@ -13,9 +13,13 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<StackPanel Orientation="Vertical" Spacing="{StaticResource ElementSpacing}">
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
 
-		<StackPanel Orientation="Vertical" Spacing="{StaticResource ElementSpacing}">
+		<StackPanel
+			Orientation="Vertical"
+			Spacing="{StaticResource ElementSpacing}">
 
 			<StackPanel.Resources>
 				<Thickness x:Key="FileMargin">12.0,0.0,0.0,0.0</Thickness>
@@ -37,9 +41,13 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<RadioButton AutomationProperties.Name="{x:Static prop:Strings.Folder}" IsChecked="{Binding IsFolderSelected, Mode=TwoWay}">
+			<RadioButton
+				AutomationProperties.Name="{x:Static prop:Strings.Folder}"
+				IsChecked="{Binding IsFolderSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FolderBrush}" Kind="{StaticResource FolderIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FolderBrush}"
+						Kind="{StaticResource FolderIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.Folder}" />
 				</StackPanel>
@@ -50,7 +58,9 @@
 				AutomationProperties.Name="{x:Static prop:Strings.File}"
 				IsChecked="{Binding IsFileSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FileBrush}" Kind="{StaticResource FileIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource FileIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.File}" />
 				</StackPanel>
@@ -61,7 +71,9 @@
 				AutomationProperties.Name="{x:Static prop:Strings.Dataset}"
 				IsChecked="{Binding IsDatasetSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FileBrush}" Kind="{StaticResource DatasetIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource DatasetIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.Dataset}" />
 				</StackPanel>

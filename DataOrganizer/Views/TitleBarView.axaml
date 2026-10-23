@@ -22,7 +22,9 @@
 
 		<Panel>
 			<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-				<Panel Grid.Column="0" Width="{StaticResource TrafficLightsWidth}" />
+				<Panel
+					Grid.Column="0"
+					Width="{StaticResource TrafficLightsWidth}" />
 
 				<StackPanel
 					Grid.Column="4"
@@ -30,8 +32,8 @@
 					Orientation="Horizontal">
 
 					<Button
-						AutomationProperties.Name="{x:Static prop:Strings.Minimize}"
 						chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
+						AutomationProperties.Name="{x:Static prop:Strings.Minimize}"
 						Classes="CaptionButtonStyle"
 						Content="{materialIcons:MaterialIconExt Kind=WindowMinimize,
 						                                        IconSize={StaticResource CaptionIconSize}}">
@@ -44,14 +46,14 @@
 
 					<ToggleButton
 						x:Name="MaximizeButton"
-						AutomationProperties.Name="{x:Static prop:Strings.Maximize}"
 						chrome:WindowDecorationProperties.ElementRole="MaximizeButton"
+						AutomationProperties.Name="{x:Static prop:Strings.Maximize}"
 						Classes="CaptionButtonStyle"
 						IsChecked="{Binding $parent[Window].WindowState, Converter={x:Static converters:AppConverters.WindowStateToBool}, Mode=TwoWay}" />
 
 					<Button
-						AutomationProperties.Name="{x:Static prop:Strings.Close}"
 						chrome:WindowDecorationProperties.ElementRole="CloseButton"
+						AutomationProperties.Name="{x:Static prop:Strings.Close}"
 						Classes="CaptionButtonStyle CloseCaptionButtonStyle"
 						Content="{materialIcons:MaterialIconExt Kind=WindowClose,
 						                                        IconSize={StaticResource CaptionIconSize}}">
@@ -64,7 +66,9 @@
 				</StackPanel>
 
 				<!--  The slot keeps the inherited data context for the button placed in it.  -->
-				<ContentPresenter Grid.Column="2" Content="{Binding #View.ButtonContent, Mode=OneWay}" />
+				<ContentPresenter
+					Grid.Column="2"
+					Content="{Binding #View.ButtonContent, Mode=OneWay}" />
 
 				<ToggleSwitch
 					x:Name="TopmostSwitch"

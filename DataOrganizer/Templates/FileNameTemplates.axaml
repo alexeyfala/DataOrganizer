@@ -8,7 +8,7 @@
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views">
 
-	<!-- FileNameWithIconsTemplate -->
+	<!--  FileNameWithIconsTemplate  -->
 	<DataTemplate
 		x:Key="FileNameWithIconsTemplate"
 		x:DataType="entities:FileDto">
@@ -40,7 +40,7 @@
 							Mode="OneWay"
 							Path="Hotkeys" />
 
-						<!-- The hotkeys change inside the collection, so its count makes the tip follow them. -->
+						<!--  The hotkeys change inside the collection, so its count makes the tip follow them.  -->
 						<Binding
 							Mode="OneWay"
 							Path="Hotkeys.Count" />

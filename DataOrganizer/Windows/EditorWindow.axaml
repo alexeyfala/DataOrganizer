@@ -88,7 +88,9 @@
 					<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Main}}" />
 				</Interaction.Behaviors>
 
-				<materialControls:NavigationDrawer LeftDrawerExpandThresholdWidth="{x:Null}" LeftDrawerOpened="{Binding IsLeftDrawerOpened, Mode=TwoWay}">
+				<materialControls:NavigationDrawer
+					LeftDrawerExpandThresholdWidth="{x:Null}"
+					LeftDrawerOpened="{Binding IsLeftDrawerOpened, Mode=TwoWay}">
 
 					<materialControls:NavigationDrawer.LeftDrawerContent>
 						<StackPanel Orientation="Vertical">
@@ -115,7 +117,9 @@
 									</Style>
 								</Menu.Styles>
 
-								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.FavoritesMode}" Command="{Binding ShowFavoritesCommand}">
+								<MenuItem
+									AutomationProperties.Name="{x:Static prop:Strings.FavoritesMode}"
+									Command="{Binding ShowFavoritesCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -125,7 +129,9 @@
 									</MenuItem.Header>
 								</MenuItem>
 
-								<MenuItem AutomationProperties.Name="{x:Static prop:Strings.Settings}" Command="{Binding ShowSettingsCommand}">
+								<MenuItem
+									AutomationProperties.Name="{x:Static prop:Strings.Settings}"
+									Command="{Binding ShowSettingsCommand}">
 									<MenuItem.Header>
 										<StackPanel>
 											<materialIcons:MaterialIcon Kind="CogOutline" />
@@ -241,7 +247,9 @@
 								</Style>
 							</Grid.Styles>
 
-							<StackPanel Grid.Column="0" Orientation="Horizontal">
+							<StackPanel
+								Grid.Column="0"
+								Orientation="Horizontal">
 								<ToggleButton
 									Classes="primary"
 									Content="{materialIcons:MaterialIconTextExt Kind=Menu,
@@ -310,7 +318,9 @@
 									IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
 									Theme="{StaticResource CustomClipboardButtonTheme}" />
 
-								<Panel Classes="VerticalSeparatorPanelStyle" IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}" />
+								<Panel
+									Classes="VerticalSeparatorPanelStyle"
+									IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}" />
 
 								<ToggleButton
 									Classes="primary"
@@ -332,7 +342,9 @@
 										<controls:LazyMenuFlyout Placement="Bottom">
 											<controls:LazyMenuFlyout.MenuTemplate>
 												<DataTemplate x:DataType="windows:EditorViewModel">
-													<StackPanel Classes="MarginlessButtonsStyle" Orientation="Vertical">
+													<StackPanel
+														Classes="MarginlessButtonsStyle"
+														Orientation="Vertical">
 														<controls:FlyoutButton
 															Command="{Binding ImportCommand}"
 															Header="{x:Static prop:Strings.ImportList}"
@@ -350,7 +362,9 @@
 								</Button>
 							</StackPanel>
 
-							<StackPanel Grid.Column="2" Orientation="Horizontal">
+							<StackPanel
+								Grid.Column="2"
+								Orientation="Horizontal">
 								<Panel>
 									<Button
 										Classes="primary"
@@ -365,7 +379,9 @@
 											                  Linux=Linux}" />
 									</Button>
 
-									<TextBlock Classes="CountTextBlockStyle" Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
+									<TextBlock
+										Classes="CountTextBlockStyle"
+										Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
 								</Panel>
 
 								<Panel>
@@ -377,7 +393,9 @@
 										Theme="{StaticResource MaterialFlatButton}"
 										ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-									<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
+									<TextBlock
+										Classes="CountTextBlockStyle"
+										Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
 								</Panel>
 							</StackPanel>
 						</Grid>
@@ -400,7 +418,9 @@
 								SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
 
 								<TreeView.Styles>
-									<Style x:DataType="nodes:ExplorerNodeViewModelBase" Selector="TreeViewItem">
+									<Style
+										x:DataType="nodes:ExplorerNodeViewModelBase"
+										Selector="TreeViewItem">
 										<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
 										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -459,16 +479,22 @@
 									<!--
 										An Escape that nothing inside the sheet took, such as the open menu of a row, closes it.
 									-->
-									<KeyDownTrigger Key="Escape" EventRoutingStrategy="Bubble">
+									<KeyDownTrigger
+										Key="Escape"
+										EventRoutingStrategy="Bubble">
 										<InvokeCommandAction Command="{Binding CloseRightSideSheetCommand}" />
 									</KeyDownTrigger>
 								</Interaction.Behaviors>
 
 								<materialControls:SideSheet.SideSheetContentTemplate>
 									<selectors:ContentKindTemplateSelector>
-										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
+										<selectors:ContentKindTemplate
+											Kind="{x:Static enums:RightSideSheetContentKind.CopyHistory}"
+											Template="{StaticResource CopyHistoryTemplate}" />
 
-										<selectors:ContentKindTemplate Kind="{x:Static enums:RightSideSheetContentKind.ExecutingFiles}" Template="{StaticResource ExecutingFilesTemplate}" />
+										<selectors:ContentKindTemplate
+											Kind="{x:Static enums:RightSideSheetContentKind.ExecutingFiles}"
+											Template="{StaticResource ExecutingFilesTemplate}" />
 									</selectors:ContentKindTemplateSelector>
 								</materialControls:SideSheet.SideSheetContentTemplate>
 							</materialControls:SideSheet>
@@ -491,14 +517,18 @@
 									Orientation="Horizontal"
 									Spacing="{StaticResource ElementSpacing}">
 
-									<StackPanel IsVisible="{Binding IsReadOnly, Mode=OneWay}" Orientation="Horizontal">
+									<StackPanel
+										IsVisible="{Binding IsReadOnly, Mode=OneWay}"
+										Orientation="Horizontal">
 
 										<materialIcons:MaterialIcon
 											Margin="3.0,0.0"
 											Foreground="{StaticResource WarningBrush}"
 											Kind="PencilOffOutline" />
 
-										<TextBlock Foreground="{StaticResource WarningBrush}" Text="{x:Static prop:Strings.ReadOnlyMode}" />
+										<TextBlock
+											Foreground="{StaticResource WarningBrush}"
+											Text="{x:Static prop:Strings.ReadOnlyMode}" />
 									</StackPanel>
 
 									<Grid

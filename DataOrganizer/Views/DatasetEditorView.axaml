@@ -114,7 +114,9 @@
 					<controls:LazyMenuFlyout Placement="Bottom">
 						<controls:LazyMenuFlyout.MenuTemplate>
 							<DataTemplate x:DataType="vm:DatasetEditorViewModel">
-								<StackPanel Classes="MarginlessButtonsStyle" Orientation="Vertical">
+								<StackPanel
+									Classes="MarginlessButtonsStyle"
+									Orientation="Vertical">
 									<controls:FlyoutButton
 										Command="{Binding SortAscendingDescendingCommand}"
 										CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"

@@ -46,7 +46,9 @@
 			ItemsSource="{Binding Categories, Mode=OneTime}"
 			SelectedItem="{Binding SelectedCategory, Mode=TwoWay}">
 			<ListBox.KeyBindings>
-				<KeyBinding Command="{Binding SwitchToPreviousCommand}" Gesture="Ctrl+Tab" />
+				<KeyBinding
+					Command="{Binding SwitchToPreviousCommand}"
+					Gesture="Ctrl+Tab" />
 			</ListBox.KeyBindings>
 
 			<Interaction.Behaviors>
@@ -58,7 +60,9 @@
 					<Setter Property="(Interaction.Behaviors)">
 						<BehaviorCollectionTemplate>
 							<BehaviorCollection>
-								<dragAndDrop:ItemDragBehavior ItemDraggedCommand="{Binding CategoryDraggedCommand}" Orientation="Vertical" />
+								<dragAndDrop:ItemDragBehavior
+									ItemDraggedCommand="{Binding CategoryDraggedCommand}"
+									Orientation="Vertical" />
 							</BehaviorCollection>
 						</BehaviorCollectionTemplate>
 					</Setter>

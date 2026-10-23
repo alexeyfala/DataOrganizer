@@ -28,7 +28,9 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid DataContext="{Binding #View}" RowDefinitions="*,Auto">
+	<Grid
+		DataContext="{Binding #View}"
+		RowDefinitions="*,Auto">
 
 		<!--  Encrypted  -->
 		<materialIcons:MaterialIcon
@@ -87,7 +89,9 @@
 					<DoubleTappedTrigger MarkAsHandled="True" />
 				</Interaction.Behaviors>
 
-				<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="*,Auto"
+					RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"
@@ -144,7 +148,9 @@
 							<Interaction.Behaviors>
 								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<security:SensitiveCopyBehavior IsSensitive="{Binding IsSensitive, Mode=OneWay}" Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
+								<security:SensitiveCopyBehavior
+									IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+									Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 							</Interaction.Behaviors>
 						</SelectableTextBlock>
 					</ScrollViewer>

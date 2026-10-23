@@ -14,7 +14,7 @@
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
-	<!-- FavoriteCategoryTemplate -->
+	<!--  FavoriteCategoryTemplate  -->
 	<DataTemplate
 		x:Key="FavoriteCategoryTemplate"
 		x:DataType="favorites:FavoriteCategory">
@@ -31,12 +31,14 @@
 				<controls:LazyMenuFlyout>
 					<controls:LazyMenuFlyout.MenuTemplate>
 						<DataTemplate x:DataType="favorites:FavoriteCategory">
-							<StackPanel Classes="FlatButtonsStyle BodyColorButtonsStyle" Orientation="Vertical">
+							<StackPanel
+								Classes="FlatButtonsStyle BodyColorButtonsStyle"
+								Orientation="Vertical">
 								<TextBlock
 									Classes="NameInFlyoutTextBlockStyle"
 									Text="{Binding Name, Mode=OneTime}" />
 
-								<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
+								<!--  A list loses its view model before its rows leave the window, so the paths to its commands may meet a null.  -->
 								<controls:FlyoutButton
 									Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext)?.ShowInEditorCommand}"
 									CommandParameter="{Binding Id}"
@@ -79,7 +81,7 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- SelectedFavoritesViewTemplate -->
+	<!--  SelectedFavoritesViewTemplate  -->
 	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
 		<views:SelectedFavoritesView DataContext="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).SelectedFavorites, Mode=OneWay}" />
 	</DataTemplate>

@@ -19,9 +19,13 @@
 	<Style Selector=":is(Button)">
 		<Setter Property="AutomationProperties.Name">
 			<MultiBinding Converter="{x:Static converters:AppConverters.ToolTipAutomationName}">
-				<Binding Mode="OneWay" Path="$self.Content" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.Content" />
 
-				<Binding Mode="OneWay" Path="$self.(ToolTip.Tip)" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.(ToolTip.Tip)" />
 			</MultiBinding>
 		</Setter>
 	</Style>
@@ -30,9 +34,13 @@
 	<Style Selector=":is(TextBox)">
 		<Setter Property="AutomationProperties.Name">
 			<MultiBinding Converter="{x:Static converters:AppConverters.FieldLabelAutomationName}">
-				<Binding Mode="OneWay" Path="$self.(assists:TextFieldAssist.Label)" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.(assists:TextFieldAssist.Label)" />
 
-				<Binding Mode="OneWay" Path="$self.PlaceholderText" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.PlaceholderText" />
 			</MultiBinding>
 		</Setter>
 	</Style>
@@ -106,7 +114,9 @@
 			<Setter Property="RenderTransform" Value="rotate(0deg)" />
 			<Setter Property="Transitions">
 				<Transitions>
-					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+					<TransformOperationsTransition
+						Property="RenderTransform"
+						Duration="0:0:0.2" />
 				</Transitions>
 			</Setter>
 		</Style>
@@ -309,7 +319,9 @@
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
 					<Border
 						Grid.Row="0"
 						Grid.Column="0"
@@ -317,7 +329,9 @@
 						Padding="5.0,0.0"
 						Background="{StaticResource MaterialPaperBrush}"
 						ZIndex="1">
-						<TextBlock FontWeight="Bold" Text="{TemplateBinding Header}" />
+						<TextBlock
+							FontWeight="Bold"
+							Text="{TemplateBinding Header}" />
 					</Border>
 
 					<Border
@@ -340,7 +354,9 @@
 	<Style Selector="HeaderedContentControl.GroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"

@@ -30,7 +30,7 @@
 			</KeyDownTrigger>
 		</Interaction.Behaviors>
 
-		<!-- A message of any length leaves the buttons on the screen. -->
+		<!--  A message of any length leaves the buttons on the screen.  -->
 		<ScrollViewer
 			MaxHeight="360.0"
 			HorizontalScrollBarVisibility="Disabled"

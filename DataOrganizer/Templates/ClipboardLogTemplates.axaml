@@ -18,7 +18,7 @@
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
-	<!-- ClipboardTextEntryTemplate -->
+	<!--  ClipboardTextEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntryBase">
@@ -41,7 +41,7 @@
 		</ScrollViewer>
 	</DataTemplate>
 
-	<!-- ClipboardImageEntryTemplate -->
+	<!--  ClipboardImageEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardImageEntryTemplate"
 		x:DataType="clipboard:ClipboardImageEntry">
@@ -53,7 +53,7 @@
 			Stretch="Uniform" />
 	</DataTemplate>
 
-	<!-- ClipboardFilesEntryTemplate -->
+	<!--  ClipboardFilesEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardFilesEntryTemplate"
 		x:DataType="clipboard:ClipboardFilesEntry">
@@ -63,7 +63,7 @@
 			TextWrapping="NoWrap" />
 	</DataTemplate>
 
-	<!-- ClipboardEntryItemTemplate -->
+	<!--  ClipboardEntryItemTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardEntryItemTemplate"
 		x:DataType="clipboard:ClipboardLogEntryBase">
@@ -79,7 +79,7 @@
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.ContentToolTip}}">
 
-			<!-- Accent left bar marks the entry currently held in the system clipboard. -->
+			<!--  Accent left bar marks the entry currently held in the system clipboard.  -->
 			<Button.Styles>
 				<Style Selector="Button.active">
 					<Setter Property="BorderBrush" Value="{StaticResource MaterialPrimaryMidBrush}" />
@@ -253,7 +253,7 @@
 
 									<Binding Path="$parent[Button].IsPointerOver" />
 
-									<!-- Hide the eye while the pointer is over the type-glyph badge. -->
+									<!--  Hide the eye while the pointer is over the type-glyph badge.  -->
 									<Binding
 										ElementName="TypeGlyphBadge"
 										Path="!IsPointerOver" />

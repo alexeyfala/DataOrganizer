@@ -32,7 +32,9 @@
 	<Interaction.Behaviors>
 		<windowBehaviors:CloseWindowOnDeactivatedBehavior KeepOpen="{Binding KeepOpen}" />
 
-		<KeyDownTrigger Key="Escape" EventRoutingStrategy="Bubble">
+		<KeyDownTrigger
+			Key="Escape"
+			EventRoutingStrategy="Bubble">
 			<CloseWindowAction />
 		</KeyDownTrigger>
 	</Interaction.Behaviors>
@@ -90,7 +92,9 @@
 			</Interaction.Behaviors>
 
 			<Grid RowDefinitions="Auto,Auto,Auto,*">
-				<Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+				<Grid
+					Grid.Row="0"
+					ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 					<Image
 						Grid.Column="0"
 						Classes="AppImageStyle"
@@ -194,7 +198,9 @@
 					HorizontalScrollBarVisibility="Disabled"
 					Theme="{StaticResource MaterialModernScrollViewer}"
 					VerticalScrollBarVisibility="Auto">
-					<ItemsControl ItemTemplate="{StaticResource ClipboardEntryItemTemplate}" ItemsSource="{Binding VisibleEntries, Mode=OneTime}">
+					<ItemsControl
+						ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
+						ItemsSource="{Binding VisibleEntries, Mode=OneTime}">
 
 						<ItemsControl.Margin>
 							<MultiBinding Converter="{x:Static converters:AppConverters.ScrollGutter}">
@@ -206,7 +212,9 @@
 
 						<ItemsControl.ItemsPanel>
 							<ItemsPanelTemplate>
-								<StackPanel Orientation="Vertical" Spacing="6.0" />
+								<StackPanel
+									Orientation="Vertical"
+									Spacing="6.0" />
 							</ItemsPanelTemplate>
 						</ItemsControl.ItemsPanel>
 					</ItemsControl>
@@ -222,7 +230,9 @@
 			Classes="resizeGrip"
 			Cursor="TopSide">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="North" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="North"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -234,7 +244,9 @@
 			Classes="resizeGrip"
 			Cursor="BottomSide">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="South" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="South"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -246,7 +258,9 @@
 			Classes="resizeGrip"
 			Cursor="LeftSide">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="West" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="West"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -258,7 +272,9 @@
 			Classes="resizeGrip"
 			Cursor="RightSide">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="East" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="East"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -270,7 +286,9 @@
 			Classes="resizeGrip"
 			Cursor="TopLeftCorner">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="NorthWest" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="NorthWest"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -282,7 +300,9 @@
 			Classes="resizeGrip"
 			Cursor="TopRightCorner">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="NorthEast" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="NorthEast"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -294,7 +314,9 @@
 			Classes="resizeGrip"
 			Cursor="BottomLeftCorner">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="SouthWest" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="SouthWest"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -306,7 +328,9 @@
 			Classes="resizeGrip"
 			Cursor="BottomRightCorner">
 			<Interaction.Behaviors>
-				<windowBehaviors:WindowResizeBehavior Edge="SouthEast" Window="{Binding $parent[Window]}" />
+				<windowBehaviors:WindowResizeBehavior
+					Edge="SouthEast"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 	</Panel>

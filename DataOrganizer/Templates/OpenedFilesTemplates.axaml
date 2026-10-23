@@ -13,7 +13,9 @@
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!--  ExecutingFileTemplate  -->
-	<DataTemplate x:Key="ExecutingFileTemplate" x:DataType="entities:FileDto">
+	<DataTemplate
+		x:Key="ExecutingFileTemplate"
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			Classes="CardFlyoutsStyle"
@@ -28,7 +30,9 @@
 					<controls:LazyMenuFlyout.MenuTemplate>
 						<DataTemplate x:DataType="entities:FileDto">
 							<StackPanel Orientation="Vertical">
-								<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneWay}" />
+								<TextBlock
+									Classes="NameInFlyoutTextBlockStyle"
+									Text="{Binding Name, Mode=OneWay}" />
 
 								<controls:FlyoutButton
 									Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
@@ -66,20 +70,26 @@
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
-					<InvokeCommandAction Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}" CommandParameter="{Binding Id}" />
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
+						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Grid>
 	</DataTemplate>
 
 	<!--  EditingFileTabControlHeaderTemplate  -->
-	<DataTemplate x:Key="EditingFileTabControlHeaderTemplate" x:DataType="entities:FileDto">
+	<DataTemplate
+		x:Key="EditingFileTabControlHeaderTemplate"
+		x:DataType="entities:FileDto">
 		<StackPanel
 			Background="Transparent"
 			Orientation="Horizontal"
 			Spacing="4.0">
 
-			<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Name, Mode=OneWay}" />
+			<TextBlock
+				Classes="TabHeaderTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
 
 			<materialIcons:MaterialIcon
 				Background="Transparent"
@@ -91,7 +101,9 @@
 	</DataTemplate>
 
 	<!--  EditingFilesTemplate  -->
-	<DataTemplate x:Key="EditingFilesTemplate" x:DataType="vm:EditingFilesViewModel">
+	<DataTemplate
+		x:Key="EditingFilesTemplate"
+		x:DataType="vm:EditingFilesViewModel">
 		<views:EditingFilesView>
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
