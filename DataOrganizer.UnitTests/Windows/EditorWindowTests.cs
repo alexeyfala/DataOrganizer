@@ -2317,6 +2317,71 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: one show builds the row of an object inside collapsed folders far down the
+	/// tree, brings it into view, selects it and highlights it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowObject_Brings_An_Object_Inside_Collapsed_Folders_Far_Down_Into_View()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		// The tree builds no rows of the top level far from its view, nor the rows inside them.
+		viewModel
+			.Hierarchy
+			.AddRange(ItemDtoFactory.CreateFileDtos(100));
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowObject(file.Id);
+
+		await RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+
+		bool[] states =
+		[
+			sut.FindTreeItem(file) is { IsSelected: true },
+			IsInView(sut, file),
+			IsHighlighted(sut, file, inner)
+		];
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowObject" />: an object far down the tree is brought into view.
 	/// </summary>
 	[AvaloniaTest]
@@ -2542,6 +2607,63 @@ internal class EditorWindowTests
 			.Should()
 			.NotBeSameAs(background);
 	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: a file inside collapsed folders stays selected, as its row is built
+	/// before the selection.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowObject_Selects_A_File_Inside_Collapsed_Folders()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowObject(file.Id);
+
+		// The highlight comes after the selection, so a selection the tree drops is gone by then.
+		await RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+
+		bool[] states =
+		[
+			viewModel.SelectedNode?.Model == file,
+			sut.FindTreeItem(file) is { IsSelected: true }
+		];
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+	}
 	#endregion
 
 	#region Helpers
@@ -2595,6 +2717,29 @@ internal class EditorWindowTests
 			.First()
 			.Parent!)
 			.ColumnDefinitions[0];
+	}
+
+	/// <summary>
+	/// <c>True</c> while the row of an object is highlighted: its background differs from that of the row of another
+	/// object.
+	/// </summary>
+	private static bool IsHighlighted(EditorWindow window, ExplorerItemDtoBase dto, ExplorerItemDtoBase other)
+	{
+		return window.FindTreeItem(dto) is { } item
+			&& window.FindTreeItem(other) is { } otherItem
+			&& !ReferenceEquals(item.Background, otherItem.Background);
+	}
+
+	/// <summary>
+	/// <c>True</c> while the row of an object lies wholly in the visible part of the tree.
+	/// </summary>
+	private static bool IsInView(EditorWindow window, ExplorerItemDtoBase dto)
+	{
+		return window.FindTreeRow(dto) is { } row
+			&& row.FindAncestorOfType<TreeView>() is { } tree
+			&& row.TranslatePoint(default, tree) is { } point
+			&& point.Y >= 0.0
+			&& point.Y + row.Bounds.Height <= tree.Bounds.Height;
 	}
 
 	/// <summary>
