@@ -1125,9 +1125,9 @@ internal class ViewLauncherTests
 		EditorWindow window = sut.CreateEditorWindow();
 
 		// Assert
-		window.ViewModel.IsInitialized
+		(window.ViewModel.IsReadOnly, window.ViewModel.NavigationColumnWidth)
 			.Should()
-			.BeTrue();
+			.Be((settings.IsReadOnly, settings.NavigationColumnWidth));
 	}
 
 	/// <summary>
@@ -2517,9 +2517,9 @@ internal class ViewLauncherTests
 		FavoritesWindow window = sut.CreateFavoritesWindow();
 
 		// Assert
-		window.ViewModel.IsInitialized
+		(window.ViewModel.PopupWidth, window.ViewModel.PopupHeight)
 			.Should()
-			.BeTrue();
+			.Be((settings.PopupWidth, settings.PopupHeight));
 	}
 
 	/// <summary>

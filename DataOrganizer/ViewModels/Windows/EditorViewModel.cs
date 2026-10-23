@@ -679,9 +679,7 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanRename))]
 	private async Task Rename(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedNode?.Model;
-
-		if (toBeRenamed is null)
+		if (dto is null)
 		{
 			return;
 		}
@@ -691,7 +689,7 @@ public sealed partial class EditorViewModel :
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Rename,
-			Key = toBeRenamed.Name,
+			Key = dto.Name,
 			KeyHint = Strings.Name
 		};
 
@@ -703,7 +701,7 @@ public sealed partial class EditorViewModel :
 		}
 
 		await _hierarchyEditor
-			.RenameAsync(toBeRenamed, pair.Key)
+			.RenameAsync(dto, pair.Key)
 			.ConfigureAwait(false);
 	}
 
@@ -1074,8 +1072,6 @@ public sealed partial class EditorViewModel :
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
-
-		IsInitialized = true;
 	}
 
 	/// <inheritdoc />

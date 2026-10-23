@@ -48,26 +48,6 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 
 	#region Methods
 	/// <summary>
-	/// <c>True</c> when any parent satisfies the condition.
-	/// </summary>
-	public bool AnyParent(Predicate<FolderDto> condition)
-	{
-		FolderDto? item = Parent;
-
-		while (item is not null)
-		{
-			if (condition(item))
-			{
-				return true;
-			}
-
-			item = item.Parent;
-		}
-
-		return false;
-	}
-
-	/// <summary>
 	/// Searches parent object by a condition.
 	/// </summary>
 	public FolderDto? FindParent(Predicate<FolderDto> condition)

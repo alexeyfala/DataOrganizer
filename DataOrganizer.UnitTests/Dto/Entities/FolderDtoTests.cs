@@ -54,50 +54,6 @@ internal class FolderDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderDto.AnyFile" />: returns false when only folders match the condition.
-	/// </summary>
-	[Test]
-	public void AnyFile_Returns_False_When_Only_Folders_Match()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
-
-		AddChild(root, ItemDtoFactory.CreateNamedFolderDto("target"));
-
-		// Act
-		bool result = root.AnyFile(file => file.Name == "target");
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="FolderDto.AnyFile" />: returns true when a nested file satisfies the condition.
-	/// </summary>
-	[Test]
-	public void AnyFile_Returns_True_When_A_Nested_File_Matches()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
-
-		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
-
-		AddChild(root, sub);
-
-		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("target"));
-
-		// Act
-		bool result = root.AnyFile(file => file.Name == "target");
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// <see cref="ExplorerItemDtoBase.FindPasswordKeeper" />: a file is never a keeper itself, so the
 	/// search starts at its parent.
 	/// </summary>
@@ -240,44 +196,6 @@ internal class FolderDtoTests
 		result
 			.Should()
 			.Contain([sub, nested, top]);
-	}
-
-	/// <summary>
-	/// <see cref="FolderDto.GetFiles" />: returns only the files matching the condition across the whole subtree.
-	/// </summary>
-	[Test]
-	public void GetFiles_Returns_Only_Matching_Files()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
-
-		FileDto keptTop = ItemDtoFactory.CreateNamedFileDto("keep");
-
-		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
-
-		FileDto keptNested = ItemDtoFactory.CreateNamedFileDto("keep");
-
-		FileDto skipped = ItemDtoFactory.CreateNamedFileDto("skip");
-
-		AddChild(root, keptTop);
-
-		AddChild(root, sub);
-
-		AddChild(sub, keptNested);
-
-		AddChild(sub, skipped);
-
-		// Act
-		List<FileDto> result = [.. root.GetFiles(file => file.Name == "keep")];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(2);
-
-		result
-			.Should()
-			.Contain([keptTop, keptNested]);
 	}
 
 	/// <summary>

@@ -49,34 +49,6 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 		return false;
 	}
 
-	/// <summary>
-	/// <c>True</c> when any child file satisfies the condition.
-	/// </summary>
-	public bool AnyFile(Predicate<FileDto> condition)
-	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file && condition(file))
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
-	}
-
 	/// <inheritdoc />
 	/// <remarks>
 	/// A folder protects its own contents as well, hence the check of the folder itself.
@@ -95,32 +67,6 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 			ExplorerItemDtoBase item = stack.Pop();
 
 			yield return item;
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Filters child objects of <see cref="FolderDto" /> by condition.
-	/// </summary>
-	public IEnumerable<FileDto> GetFiles(Predicate<FileDto> condition)
-	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file && condition(file))
-			{
-				yield return file;
-			}
 
 			if (item is FolderDto folder)
 			{
