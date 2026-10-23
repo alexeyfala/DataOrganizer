@@ -7,6 +7,8 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.Controls;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Factories;
@@ -38,6 +40,51 @@ internal class ContextMenuTemplatesTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <c>FolderInTreeViewContextMenuTemplate</c> and <c>FileInTreeViewContextMenuTemplate</c>: the menu of an object of the
+	/// tree starts with its name and the two buttons that rename and delete it.
+	/// </summary>
+	[AvaloniaTest]
+	public void ExplorerItemContextMenuTemplates_Start_With_The_Name_And_The_Buttons_Of_The_Object(
+		[Values("FolderInTreeViewContextMenuTemplate", "FileInTreeViewContextMenuTemplate")] string templateKey)
+	{
+		// Arrange
+		ExplorerItemDtoBase dto = templateKey == "FileInTreeViewContextMenuTemplate"
+			? ItemDtoFactory.CreateFileDto()
+			: ItemDtoFactory.CreateFolderDto();
+
+		ContentControl menu = new()
+		{
+			Content = dto,
+			ContentTemplate = (IDataTemplate)Application.Current!.FindResource(templateKey)!
+		};
+
+		Window window = new()
+		{
+			Content = menu
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		menu.GetVisualDescendants()
+			.OfType<TextBlock>()
+			.First()
+			.Text
+			.Should()
+			.Be(dto.Name);
+
+		menu.GetVisualDescendants()
+			.OfType<FlyoutButton>()
+			.Take(2)
+			.Select(static x => x.CommandParameter)
+			.Should()
+			.Equal(dto, dto);
+	}
+
 	/// <summary>
 	/// <c>KeyValueRecordContextMenuTemplate</c>, <c>RecordsGroupContextMenuTemplate</c>,
 	/// <c>ValueRecordContextMenuTemplate</c>: the header of a menu of an encrypted dataset gives none of its text to UI

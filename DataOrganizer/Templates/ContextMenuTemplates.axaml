@@ -227,15 +227,9 @@
 		</StackPanel>
 	</DataTemplate>
 
-	<!--  FolderInTreeViewContextMenuTemplate  -->
-	<DataTemplate x:Key="FolderInTreeViewContextMenuTemplate" x:DataType="entities:FolderDto">
+	<!--  ExplorerItemContextMenuHeaderTemplate  -->
+	<DataTemplate x:Key="ExplorerItemContextMenuHeaderTemplate" x:DataType="entities:ExplorerItemDtoBase">
 		<StackPanel Orientation="Vertical">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</StackPanel.Styles>
-
 			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
 
 			<StackPanel Orientation="Horizontal">
@@ -252,6 +246,19 @@
 					Foreground="{StaticResource WarningBrush}"
 					ToolTip.Tip="{x:Static prop:Strings.Delete}" />
 			</StackPanel>
+		</StackPanel>
+	</DataTemplate>
+
+	<!--  FolderInTreeViewContextMenuTemplate  -->
+	<DataTemplate x:Key="FolderInTreeViewContextMenuTemplate" x:DataType="entities:FolderDto">
+		<StackPanel Orientation="Vertical">
+			<StackPanel.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
 
@@ -345,22 +352,7 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<TextBlock Classes="NameInFlyoutTextBlockStyle" Text="{Binding Name, Mode=OneTime}" />
-
-			<StackPanel Orientation="Horizontal">
-				<controls:FlyoutButton
-					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).RenameCommand}"
-					CommandParameter="{Binding}"
-					Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
-					ToolTip.Tip="{x:Static prop:Strings.Rename}" />
-
-				<controls:FlyoutButton
-					Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).DeleteCommand}"
-					CommandParameter="{Binding}"
-					Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
-					Foreground="{StaticResource WarningBrush}"
-					ToolTip.Tip="{x:Static prop:Strings.Delete}" />
-			</StackPanel>
+			<ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ExplorerItemContextMenuHeaderTemplate}" />
 
 			<Separator />
 
