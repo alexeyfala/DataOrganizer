@@ -11,6 +11,29 @@ internal class ImportListSelectorViewModelTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Append result when no option was changed, as
+	/// adding to the list keeps the objects it has.
+	/// </summary>
+	[Test]
+	public async Task ApplyCommand_Sets_Append_Result_By_Default()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ImportListSelectorViewModel sut = mock.Create<ImportListSelectorViewModel>();
+
+		// Act
+		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
+
+		ImportMode result = await sut.GetResultAsync(new TaskCompletionSource().Task);
+
+		// Assert
+		result
+			.Should()
+			.Be(ImportMode.Append);
+	}
+
+	/// <summary>
 	/// <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Append result when AddToList is selected.
 	/// </summary>
 	[Test]
@@ -72,6 +95,8 @@ internal class ImportListSelectorViewModelTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		ImportListSelectorViewModel sut = mock.Create<ImportListSelectorViewModel>();
+
+		sut.AddToList = false;
 
 		sut.Replace = true;
 

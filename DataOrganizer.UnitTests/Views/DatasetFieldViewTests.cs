@@ -242,6 +242,54 @@ internal class DatasetFieldViewTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetFieldView.IsSensitive" />: no element inside a sensitive field gives its text to UI Automation, a
+	/// plain text or a link.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSensitive_Keeps_The_Text_Out_Of_The_Elements_Inside([Values] bool isHyperlink)
+	{
+		// Arrange
+		string text = isHyperlink
+			? $"https://example.com/{RandomString.Create(16)}"
+			: RandomString.Create(16);
+
+		DatasetFieldView sut = new()
+		{
+			IsSensitive = true,
+			Text = text
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		string?[] names =
+		[
+			.. sut
+				.GetVisualDescendants()
+				.OfType<Control>()
+				.Select(static x => ControlAutomationPeer
+					.CreatePeerForElement(x)
+					.GetName())
+		];
+
+		// Assert (the text shows on the screen).
+		sut.DisplayText
+			.Should()
+			.Be(text);
+
+		names
+			.Should()
+			.NotContain(x => x != null && x.Contains(text));
+	}
+
+	/// <summary>
 	/// <see cref="DatasetFieldView.IsSensitive" />: a sensitive field carries none of its text in the name for UI Automation,
 	/// and every sensitive field gets the same one.
 	/// </summary>

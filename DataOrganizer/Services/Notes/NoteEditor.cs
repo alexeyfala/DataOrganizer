@@ -1,5 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Text;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using Repository.Interfaces.Database;
@@ -18,6 +19,9 @@ public sealed class NoteEditor : INoteEditor
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -34,12 +38,15 @@ public sealed class NoteEditor : INoteEditor
 	#region Constructors
 	public NoteEditor(
 		IDbAccess dbAccess,
+		IDbFailureReporter dbFailureReporter,
 		ILogger logger,
 		INoteCipher noteCipher,
 		INotificationService notification,
 		TimeProvider timeProvider)
 	{
 		_dbAccess = dbAccess;
+
+		_dbFailureReporter = dbFailureReporter;
 
 		_logger = logger;
 
@@ -98,9 +105,9 @@ public sealed class NoteEditor : INoteEditor
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, breakInDebugger: false);
+			_dbFailureReporter.Report(ex, Strings.FailedToSaveNote);
 
-			return Fail(item);
+			return false;
 		}
 
 		if (!isSaved)

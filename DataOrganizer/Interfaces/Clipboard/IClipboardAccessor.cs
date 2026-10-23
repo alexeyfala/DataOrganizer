@@ -32,14 +32,15 @@ public interface IClipboardAccessor
 
 	/// <summary>
 	/// Puts files and folders on the clipboard by their paths, leaving out the ones that are gone, marked as put back from
-	/// the clipboard log when they are restored.
+	/// the clipboard log when they are restored; <c>false</c> when none is left or the clipboard refused them.
 	/// </summary>
-	Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored);
+	Task<bool> SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored);
 
 	/// <summary>
-	/// Puts the image of a PNG on the clipboard, marked as put back from the clipboard log when it is restored.
+	/// Puts the image of a PNG on the clipboard, marked as put back from the clipboard log when it is restored;
+	/// <c>false</c> when the clipboard refused it.
 	/// </summary>
-	Task SetImageAsync(byte[] png, bool isRestored);
+	Task<bool> SetImageAsync(byte[] png, bool isRestored);
 
 	/// <summary>
 	/// Puts a text with its HTML and RTF on the clipboard, marked as a secret when it is sensitive and as put back from the

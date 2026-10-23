@@ -25,7 +25,6 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,6 +62,11 @@ internal class DocumentTextEditorTests
 	private static readonly RawInputModifiers CommandModifiers = OperatingSystem.IsMacOS()
 		? RawInputModifiers.Meta
 		: RawInputModifiers.Control;
+
+	/// <summary>
+	/// A text one character past the longest that gets the highlighting.
+	/// </summary>
+	private static readonly string TooLongText = new('x', (5 * 1024 * 1024) + 1);
 	#endregion
 
 	#region Methods
@@ -600,6 +604,102 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: a short text that replaced a text too long for the highlighting folds again.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Folds_A_Short_Text_That_Replaced_A_Too_Long_One()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(TooLongText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = FoldedText;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: the blocks of a text replaced whole, as a file loaded into the empty document or
+	/// read again in another encoding, are found at once, not after the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Folds_The_Blocks_Of_A_Text_Replaced_Whole_At_Once([Values("", "Old")] string oldText)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(oldText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = NestedText;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 7), (3, 6));
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a short text that replaced a text too long for the highlighting is highlighted
+	/// again.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Highlights_A_Short_Text_That_Replaced_A_Too_Long_One()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(TooLongText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = PowerShellText;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text replaced whole, as a file read again in another encoding, keeps the
+	/// bookmarks on their line numbers, and those past its end go.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("Five\nSix\nSeven\nEight", new[] { 1, 3 })]
+	[TestCase("Five\nSix", new[] { 1 })]
+	public void Document_Keeps_The_Bookmarked_Lines_Of_A_Text_Replaced_Whole(string newText, int[] expected)
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo\nThree\nFour")
+		};
+
+		sut.Bookmarks.Toggle(1);
+
+		sut.Bookmarks.Toggle(3);
+
+		// Act
+		sut.Document.Text = newText;
+
+		// Assert
+		sut.Bookmarks.GetLines()
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: the highlighting moves on to a new document.
 	/// </summary>
 	[AvaloniaTest]
@@ -623,6 +723,52 @@ internal class DocumentTextEditorTests
 		isColored
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text too long for the highlighting that replaced a highlighted one, as a
+	/// pasted text, stays plain.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Leaves_A_Too_Long_Text_Replaced_Whole_Plain()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(PowerShellText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = TooLongText;
+
+		// Assert
+		HasHighlighting(sut)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text too long for the highlighting that replaced a folded one, as a pasted
+	/// text, does not fold.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Leaves_A_Too_Long_Text_Replaced_Whole_Unfolded()
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(FoldedText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = TooLongText;
+
+		// Assert
+		HasFolding(sut)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -758,6 +904,30 @@ internal class DocumentTextEditorTests
 			.BeSameAs(sut.Document);
 
 		sut.Bookmarks.GetLines()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="TextEditor.Document" />: a text without bookmarks replaced whole, as a file loaded into the empty
+	/// document, sends no change of its bookmarks.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Sends_No_Bookmark_Change_For_A_Text_Without_Bookmarks_Replaced_Whole()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("One\nTwo")
+		};
+
+		List<BookmarksChangedMessage> messages = Capture<BookmarksChangedMessage>(x => x.Bookmarks == sut.Bookmarks);
+
+		// Act
+		sut.Document.Text = "Three\nFour";
+
+		// Assert
+		messages
 			.Should()
 			.BeEmpty();
 	}
@@ -1988,7 +2158,7 @@ internal class DocumentTextEditorTests
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		ToolTip.GetIsOpen(textView)
@@ -2025,9 +2195,7 @@ internal class DocumentTextEditorTests
 		Raise(textView, TextView.PointerHoverEvent, point);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2068,9 +2236,9 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, button);
+		window.Click(point, button);
 
-		Click(window, point, button);
+		window.Click(point, button);
 
 		// Assert
 		block.IsFolded
@@ -2106,7 +2274,7 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, button);
+		window.Click(point, button);
 
 		// Assert
 		block.IsFolded
@@ -2138,7 +2306,7 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(sut.Document.TextLength - 1);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.TextArea.Caret.Line
@@ -2171,9 +2339,9 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		block.IsFolded
@@ -2371,6 +2539,37 @@ internal class DocumentTextEditorTests
 		HasFolding(sut)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.SetView" />: an editor whose view is not built yet keeps its selection and its caret.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetView_Leaves_An_Editor_Without_A_View_As_It_Is()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond")
+		};
+
+		// Act
+		sut.SetView(
+			selectionStart: 6,
+			selectionLength: 6,
+			caretPosition: new(line: 2, column: 7),
+			blockStarts: [],
+			isFolded: true,
+			scrollOffset: default);
+
+		// Assert
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(1);
 	}
 
 	/// <summary>
@@ -2630,6 +2829,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: a text replaced whole in a document the editor has left is not its new
+	/// text, so an edit of the current document still waits for the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Ignores_A_Document_Left_Behind()
+	{
+		// Arrange
+		TextDocument leftBehind = new("First");
+
+		DocumentTextEditor sut = new()
+		{
+			Document = leftBehind
+		};
+
+		sut.Document = new("First");
+
+		leftBehind.Text = "First\nSecond";
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\r\nSecond");
+
+		// Assert
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.None);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Status" />: the line endings of a new document are found at once.
 	/// </summary>
 	[AvaloniaTest]
@@ -2650,6 +2877,39 @@ internal class DocumentTextEditorTests
 		sut.Status.LineEnding
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: the line endings of a text replaced whole, as a file loaded into the empty
+	/// document or read again in another encoding, are found at once, also in the first document of the editor, while an
+	/// edit waits for the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Reports_The_Line_Ending_Of_A_Text_Replaced_Whole_At_Once([Values(null, "", "Old")] string? oldText)
+	{
+		// Arrange
+		DocumentTextEditor sut = new();
+
+		if (oldText is not null)
+		{
+			sut.Document = new(oldText);
+		}
+
+		// Act
+		sut.Document.Text = "First\r\nSecond\r\n";
+
+		LineEnding replaced = sut.Status.LineEnding;
+
+		sut.Document.Insert(sut.Document.TextLength, "Third\n");
+
+		// Assert
+		replaced
+			.Should()
+			.Be(LineEnding.CrLf);
+
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.CrLf);
 	}
 
 	/// <summary>
@@ -2744,10 +3004,9 @@ internal class DocumentTextEditorTests
 	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Plain()
 	{
 		// Arrange, Act
-		// Past the longest text that gets the highlighting.
 		DocumentTextEditor sut = new()
 		{
-			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			Document = new(TooLongText),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2764,10 +3023,9 @@ internal class DocumentTextEditorTests
 	public void SyntaxLanguage_Leaves_A_Too_Long_Text_Unfolded()
 	{
 		// Arrange, Act
-		// Past the longest text that gets the highlighting.
 		DocumentTextEditor sut = new()
 		{
-			Document = new(new string('x', (5 * 1024 * 1024) + 1)),
+			Document = new(TooLongText),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2922,19 +3180,12 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Func<bool> isFolded = () =>
-		{
-			// The pause ends on a timer, which posts the pass over the lines to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return GetFoldedLines(sut).Length > 0;
-		};
-
 		// Act
 		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
 
 		// Assert
-		bool result = await isFolded.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the pass over the lines to the UI thread.
+		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(() => GetFoldedLines(sut).Length > 0, maxRepeats: 1000);
 
 		result
 			.Should()
@@ -3789,16 +4040,25 @@ internal class DocumentTextEditorTests
 	/// </summary>
 	private static List<FoldingChangedMessage> Capture(DocumentTextEditor editor)
 	{
-		List<FoldingChangedMessage> received = [];
+		return Capture<FoldingChangedMessage>(x => x.Editor == editor);
+	}
+
+	/// <summary>
+	/// Records every message of a kind that the filter takes as one about the object under test.
+	/// </summary>
+	private static List<TMessage> Capture<TMessage>(Func<TMessage, bool> isAboutSut)
+		where TMessage : class
+	{
+		List<TMessage> received = [];
 
 		WeakReferenceMessenger
 			.Default
-			.Register<List<FoldingChangedMessage>, FoldingChangedMessage>(
+			.Register<List<TMessage>, TMessage>(
 				received,
 				(recipient, message) =>
 				{
-					// The messenger is shared, and other tests send messages about their own editors.
-					if (message.Editor != editor)
+					// The messenger is shared, and other tests send messages about their own objects.
+					if (!isAboutSut(message))
 					{
 						return;
 					}
@@ -3807,16 +4067,6 @@ internal class DocumentTextEditorTests
 				});
 
 		return received;
-	}
-
-	/// <summary>
-	/// Presses and releases a button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point, MouseButton button)
-	{
-		window.MouseDown(point, button);
-
-		window.MouseUp(point, button);
 	}
 
 	/// <summary>
@@ -3962,15 +4212,8 @@ internal class DocumentTextEditorTests
 	/// </summary>
 	private static ValueTask<bool> WaitForColors(TextEditor editor, Func<Color[], bool> condition)
 	{
-		Func<bool> isMet = () =>
-		{
-			// The tokenizer posts the redraws of the colored lines to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return condition(GetWordColors(editor));
-		};
-
-		return isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The tokenizer posts the redraws of the colored lines to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(() => condition(GetWordColors(editor)), maxRepeats: 1000);
 	}
 	#endregion
 }

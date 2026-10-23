@@ -18,15 +18,15 @@
 	xmlns:system="using:System">
 
 	<SineEaseInOut x:Key="DataOrganizerSideSheetEasing" />
-	
+
 	<parameters:MarginMultiplyParameter
 		x:Key="DataOrganizerSideSheetLeftMarginParam"
 		LeftMultiplier="-1" />
-	
+
 	<parameters:MarginMultiplyParameter
 		x:Key="DataOrganizerSideSheetRightMarginParam"
 		RightMultiplier="-1" />
-	
+
 	<converters:MarginMultiplyConverter x:Key="DataOrganizerSideSheetMarginCreator" />
 
 	<ControlTheme
@@ -68,8 +68,8 @@
 									DockPanel.Dock="Top">
 									<Button
 										Name="PART_CloseButton"
-										DockPanel.Dock="Right"
 										AutomationProperties.Name="{x:Static prop:Strings.Close}"
+										DockPanel.Dock="Right"
 										IsVisible="{TemplateBinding SideSheetCanClose}"
 										Theme="{StaticResource MaterialIconButton}">
 										<materialControls:MaterialInternalIcon
@@ -149,7 +149,7 @@
 			<Setter Property="DockPanel.Dock" Value="Right" />
 		</Style>
 
-		<!-- Desktop mode should disable the scrim part -->
+		<!--  Desktop mode should disable the scrim part  -->
 		<Style Selector="^:not(:mobile) /template/ Border#PART_Scrim">
 			<Setter Property="IsEnabled" Value="False" />
 			<Setter Property="IsVisible" Value="False" />

@@ -402,6 +402,63 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogService.RequestYesCancelAsync" /> and <see cref="DialogService.RequestYesNoAsync" />: each question
+	/// shows its own second button, «Cancel» or «No».
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesCancelAsync_Shows_Cancel_Where_RequestYesNoAsync_Shows_No([Values] bool isYesCancel)
+	{
+		// Arrange
+		YesNoCancelBoxViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		Window window = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = isYesCancel
+			? sut.RequestYesCancelAsync("Text")
+			: sut.RequestYesNoAsync("Text");
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		window.Close();
+
+		// Assert
+		(viewModel.IsCancelButtonVisible, viewModel.IsNoButtonVisible)
+			.Should()
+			.Be((isYesCancel, !isYesCancel));
+	}
+
+	/// <summary>
 	/// <see cref="DialogService.RequestYesNoAsync" />: an answer closes the dialog in the host it was asked in.
 	/// </summary>
 	[AvaloniaTest]

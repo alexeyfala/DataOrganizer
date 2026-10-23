@@ -20,8 +20,10 @@ public interface IDataExchangeService
 	/// <summary>
 	/// Imports data.
 	/// </summary>
-	Task<ImportDataResult?> ImportDataAsync(
-		IReadOnlyCollection<ExplorerItemDtoBase> hierarchy,
-		CancellationToken token = default);
+	/// <remarks>
+	/// It takes no cancellation: the import changes the database in several steps, a stop between them would leave it half
+	/// changed, and the rollback to the copy has to run to its end.
+	/// </remarks>
+	Task<ImportDataResult?> ImportDataAsync(IReadOnlyCollection<ExplorerItemDtoBase> hierarchy);
 	#endregion
 }

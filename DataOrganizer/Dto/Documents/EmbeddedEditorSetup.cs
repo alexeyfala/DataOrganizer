@@ -1,3 +1,4 @@
+using Entities.Enums;
 using System;
 
 namespace DataOrganizer.Dto.Documents;
@@ -27,6 +28,11 @@ public sealed class EmbeddedEditorSetup
 	/// Identifier of the password keeper holding the key of the file.
 	/// </summary>
 	public required Guid? KeeperId { get; init; }
+
+	/// <summary>
+	/// Kind of the file: a text file or a dataset.
+	/// </summary>
+	public required EntityKind Kind { get; init; }
 
 	/// <summary>
 	/// Callback that reports the editor state.

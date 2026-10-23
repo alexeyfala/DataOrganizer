@@ -3,10 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using System.Linq;
 using System.Windows.Input;
@@ -63,14 +63,12 @@ internal class ExpanderToggledByUserBehaviorTests
 			.OfType<ToggleButton>()
 			.First();
 
-		Point point = header.TranslatePoint(new Rect(header.Bounds.Size).Center, window)!.Value;
+		Point point = window.CenterOf(header);
 
 		window.MouseMove(point);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		window.Close();
 

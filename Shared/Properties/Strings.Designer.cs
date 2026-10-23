@@ -574,6 +574,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decrease.
+        /// </summary>
+        public static string Decrease {
+            get {
+                return ResourceManager.GetString("Decrease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Decrypt Files.
         /// </summary>
         public static string DecryptFiles {
@@ -853,6 +862,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to put the entry back on the clipboard.
+        /// </summary>
+        public static string FailedToRestoreClipboardEntry {
+            get {
+                return ResourceManager.GetString("FailedToRestoreClipboardEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The database could not be restored from the copy.
         /// </summary>
         public static string FailedToRestoreDatabase {
@@ -862,11 +880,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to put the files back on the clipboard: none of them exists any more.
+        /// </summary>
+        public static string FailedToRestoreMissingFiles {
+            get {
+                return ResourceManager.GetString("FailedToRestoreMissingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to save file contents.
         /// </summary>
         public static string FailedToSaveFileContents {
             get {
                 return ResourceManager.GetString("FailedToSaveFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save the hotkeys.
+        /// </summary>
+        public static string FailedToSaveHotkeys {
+            get {
+                return ResourceManager.GetString("FailedToSaveHotkeys", resourceCulture);
             }
         }
         
@@ -930,6 +966,15 @@ namespace Shared.Properties {
         public static string File {
             get {
                 return ResourceManager.GetString("File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file is no longer in the database, the changes are not saved.
+        /// </summary>
+        public static string FileIsMissingChangesNotSaved {
+            get {
+                return ResourceManager.GetString("FileIsMissingChangesNotSaved", resourceCulture);
             }
         }
         
@@ -1177,6 +1222,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Increase.
+        /// </summary>
+        public static string Increase {
+            get {
+                return ResourceManager.GetString("Increase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indents: Spaces To Tabs.
         /// </summary>
         public static string IndentsSpacesToTabs {
@@ -1326,15 +1380,6 @@ namespace Shared.Properties {
         public static string MinutesShortFormat {
             get {
                 return ResourceManager.GetString("MinutesShortFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The file contents are missing.
-        /// </summary>
-        public static string MissingFileContents {
-            get {
-                return ResourceManager.GetString("MissingFileContents", resourceCulture);
             }
         }
         

@@ -54,47 +54,38 @@ internal class FolderDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderDto.AnyFile" />: returns false when only folders match the condition.
+	/// <see cref="FolderDto.AnyChild" />: the walk stops at the first descendant that meets the condition.
 	/// </summary>
 	[Test]
-	public void AnyFile_Returns_False_When_Only_Folders_Match()
+	public void AnyChild_Stops_At_The_First_Match()
 	{
 		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
+		List<ExplorerItemDtoBase> checkedItems = [];
 
-		AddChild(root, ItemDtoFactory.CreateNamedFolderDto("target"));
-
-		// Act
-		bool result = root.AnyFile(file => file.Name == "target");
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="FolderDto.AnyFile" />: returns true when a nested file satisfies the condition.
-	/// </summary>
-	[Test]
-	public void AnyFile_Returns_True_When_A_Nested_File_Matches()
-	{
-		// Arrange
 		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
 
 		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
 
+		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
+
 		AddChild(root, sub);
 
-		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("target"));
+		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("nested"));
+
+		AddChild(root, top);
 
 		// Act
-		bool result = root.AnyFile(file => file.Name == "target");
+		root.AnyChild(x =>
+		{
+			checkedItems.Add(x);
+
+			return x is FileDto;
+		});
 
 		// Assert
-		result
+		checkedItems
 			.Should()
-			.BeTrue();
+			.Equal(top);
 	}
 
 	/// <summary>
@@ -209,6 +200,41 @@ internal class FolderDtoTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderDto.GetAllChildren" />: lists the descendants in the order of the walk, the last child first and
+	/// each folder before its children.
+	/// </summary>
+	[Test]
+	public void GetAllChildren_Lists_The_Descendants_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
+
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
+
+		FileDto nested = ItemDtoFactory.CreateNamedFileDto("nested");
+
+		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
+
+		FileDto last = ItemDtoFactory.CreateNamedFileDto("last");
+
+		AddChild(root, top);
+
+		AddChild(root, sub);
+
+		AddChild(sub, nested);
+
+		AddChild(root, last);
+
+		// Act
+		List<ExplorerItemDtoBase> result = [.. root.GetAllChildren()];
+
+		// Assert
+		result
+			.Should()
+			.Equal(last, sub, nested, top);
+	}
+
+	/// <summary>
 	/// <see cref="FolderDto.GetAllChildren" />: returns every descendant flattened into a single sequence.
 	/// </summary>
 	[Test]
@@ -240,44 +266,6 @@ internal class FolderDtoTests
 		result
 			.Should()
 			.Contain([sub, nested, top]);
-	}
-
-	/// <summary>
-	/// <see cref="FolderDto.GetFiles" />: returns only the files matching the condition across the whole subtree.
-	/// </summary>
-	[Test]
-	public void GetFiles_Returns_Only_Matching_Files()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
-
-		FileDto keptTop = ItemDtoFactory.CreateNamedFileDto("keep");
-
-		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
-
-		FileDto keptNested = ItemDtoFactory.CreateNamedFileDto("keep");
-
-		FileDto skipped = ItemDtoFactory.CreateNamedFileDto("skip");
-
-		AddChild(root, keptTop);
-
-		AddChild(root, sub);
-
-		AddChild(sub, keptNested);
-
-		AddChild(sub, skipped);
-
-		// Act
-		List<FileDto> result = [.. root.GetFiles(file => file.Name == "keep")];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(2);
-
-		result
-			.Should()
-			.Contain([keptTop, keptNested]);
 	}
 
 	/// <summary>

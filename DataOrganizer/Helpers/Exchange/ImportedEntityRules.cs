@@ -29,16 +29,16 @@ internal static class ImportedEntityRules
 		int startIndex = hierarchy.Max(x => x.Index) + 1;
 
 		folders
-		   .OfType<ExplorerItemBase>()
-		   .Concat(files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = startIndex;
+			.OfType<ExplorerItemBase>()
+			.Concat(files)
+			.Where(x => x.ParentId is null)
+			.OrderBy(x => x.Index)
+			.ForEach(x =>
+			{
+				x.Index = startIndex;
 
-			   startIndex++;
-		   });
+				startIndex++;
+			});
 	}
 
 	/// <summary>

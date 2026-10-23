@@ -32,6 +32,8 @@
 
 				<ResourceInclude Source="/Templates/FileListTemplates.axaml" />
 
+				<ResourceInclude Source="/Templates/FileNameTemplates.axaml" />
+
 				<ResourceInclude Source="/Templates/NotificationTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
@@ -49,22 +51,22 @@
 		<!--#endregion-->
 	</Application.Resources>
 
-	<!-- Registered here because Material's SnackbarHost resolves its content by type, not by resource key. -->
+	<!--  Registered here because Material's SnackbarHost resolves its content by type, not by resource key.  -->
 	<Application.DataTemplates>
 		<StaticResource ResourceKey="SnackbarMessageTemplate" />
 	</Application.DataTemplates>
 
 	<Application.Styles>
-		<!-- Nuget: Material.Avalonia -->
-		<!-- https://github.com/AvaloniaCommunity/Material.Avalonia -->
+		<!--  Nuget: Material.Avalonia  -->
+		<!--  https://github.com/AvaloniaCommunity/Material.Avalonia  -->
 		<themes:MaterialTheme />
 
-		<!-- Nuget: DialogHost.Avalonia -->
-		<!-- https://github.com/AvaloniaUtils/DialogHost.Avalonia -->
+		<!--  Nuget: DialogHost.Avalonia  -->
+		<!--  https://github.com/AvaloniaUtils/DialogHost.Avalonia  -->
 		<dialogHostAvalonia:DialogHostStyles />
 
-		<!-- Nuget: Material.Icons.Avalonia -->
-		<!-- https://github.com/SKProCH/Material.Icons -->
+		<!--  Nuget: Material.Icons.Avalonia  -->
+		<!--  https://github.com/SKProCH/Material.Icons  -->
 		<materialIcons:MaterialIconStyles />
 
 		<StyleInclude Source="/Styling/Styles.axaml" />

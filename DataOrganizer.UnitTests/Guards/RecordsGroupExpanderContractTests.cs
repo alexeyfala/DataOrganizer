@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -13,6 +12,7 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
 using DataOrganizer.Behaviors.Styling;
+using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
@@ -131,14 +131,14 @@ internal class RecordsGroupExpanderContractTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeader(sut));
+		Point point = window.CenterOf(GetHeader(sut));
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		if (isDoubleClick)
 		{
-			Click(window, point);
+			window.Click(point);
 		}
 
 		// Assert
@@ -149,28 +149,6 @@ internal class RecordsGroupExpanderContractTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point)
-	{
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Creates an expander set up as the one of a records group: the style and the cursor behavior on the expander, and
 	/// the double click behavior on a header that a template builds from data.

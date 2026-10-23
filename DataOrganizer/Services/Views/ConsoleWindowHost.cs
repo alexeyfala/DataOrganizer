@@ -62,18 +62,16 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 		// The stored size, when there is one, replaces the default.
 		WindowPlacementHelper.SetDefaultSize(window);
 
-		if (_windowSettings.Read<ConsoleWindowSettings>() is { } settings)
-		{
-			_viewModel.FontSize = settings.FontSize;
+		ConsoleWindowSettings? storedSettings = _windowSettings.Read<ConsoleWindowSettings>();
 
-			_viewModel.WordWrap = settings.WordWrap;
-
-			WindowPlacementHelper.Restore(window, settings, WindowPlacementHelper.SetDefaultLocation);
-		}
-		else
+		if (storedSettings is not null)
 		{
-			WindowPlacementHelper.SetDefaultLocation(window);
+			_viewModel.FontSize = storedSettings.FontSize;
+
+			_viewModel.WordWrap = storedSettings.WordWrap;
 		}
+
+		WindowPlacementHelper.Restore(window, storedSettings, WindowPlacementHelper.SetDefaultLocation);
 
 		window.Closing += delegate
 		{

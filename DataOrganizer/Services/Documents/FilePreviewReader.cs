@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using Serilog;
@@ -63,26 +63,14 @@ public sealed class FilePreviewReader : IFilePreviewReader
 			return null;
 		}
 
-		switch (reading.Status)
+		if (!FileTextStatusRules.HoldsText(
+			reading.Status,
+			() => _logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}"""),
+			// A preview is rendered on demand, so contents that are not text only reach the log.
+			() => _logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}"""),
+			() => _notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""")))
 		{
-			case FileTextStatus.Damaged:
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-				return null;
-
-			case FileTextStatus.NotText:
-				// A preview is rendered on demand, so contents that are not text only reach the log.
-				_logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
-
-				return null;
-
-			case FileTextStatus.Empty:
-				_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-				return null;
-
-			case FileTextStatus.Closed:
-				return null;
+			return null;
 		}
 
 		_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");

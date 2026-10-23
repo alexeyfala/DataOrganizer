@@ -1,13 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.Behaviors.Input;
 
@@ -54,7 +53,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 		sut.Attach(target);
 
 		// Act
-		Click(window);
+		window.Click(Inside);
 
 		// Assert
 		flyout.IsOpen
@@ -96,9 +95,9 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 		sut.Detach();
 
 		// Act
-		Click(window);
+		window.Click(Inside);
 
-		Click(window);
+		window.Click(Inside);
 
 		// Assert
 		flyout.IsOpen
@@ -138,9 +137,9 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 		sut.Attach(target);
 
 		// Act
-		Click(window);
+		window.Click(Inside);
 
-		Click(window);
+		window.Click(Inside);
 
 		// Assert
 		flyout.IsOpen
@@ -150,16 +149,6 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Presses and releases the left button of the mouse over the target.
-	/// </summary>
-	private static void Click(Window window)
-	{
-		window.MouseDown(Inside, MouseButton.Left);
-
-		window.MouseUp(Inside, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Shows the content in a window of a fixed size and lets the layout settle.
 	/// </summary>

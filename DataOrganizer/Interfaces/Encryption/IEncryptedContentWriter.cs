@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Encryption;
 
 /// <summary>
-/// Persists processed contents and notes, restoring the database from the backup when a step fails.
+/// Persists processed contents and notes, and tells when they could not be written.
 /// </summary>
 public interface IEncryptedContentWriter
 {

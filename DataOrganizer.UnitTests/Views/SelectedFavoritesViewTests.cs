@@ -2,9 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -17,10 +15,10 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
-using Shared.Extensions;
 using System;
 using System.Linq;
 using System.Threading;
@@ -66,7 +64,15 @@ internal class SelectedFavoritesViewTests
 		// Arrange
 		string search = RandomString.Create(8);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(Application.Current!);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -148,7 +154,7 @@ internal class SelectedFavoritesViewTests
 
 		window.Show();
 
-		await RunJobsUntilAsync(() => FindItem(window, file) is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => FindItem(window, file) is not null);
 
 		ListBoxItem item = FindItem(window, file)!;
 
@@ -164,11 +170,9 @@ internal class SelectedFavoritesViewTests
 			.Value;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
+		window.Click(point);
 
-		window.MouseUp(point, MouseButton.Left);
-
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -190,7 +194,15 @@ internal class SelectedFavoritesViewTests
 		// Arrange
 		string search = RandomString.Create(8);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(Application.Current!);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -316,7 +328,6 @@ internal class SelectedFavoritesViewTests
 	#region Helpers
 	/// <summary>
 	/// Returns the navigation column of the favorites view a window shows.
-
 	/// </summary>
 	private static ColumnDefinition FindNavigationColumn(Window window)
 	{
@@ -339,21 +350,6 @@ internal class SelectedFavoritesViewTests
 			.GetVisualDescendants()
 			.OfType<ListBoxItem>()
 			.FirstOrDefault(x => x.DataContext == file);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 
 	/// <summary>

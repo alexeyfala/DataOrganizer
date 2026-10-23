@@ -221,50 +221,6 @@ public sealed class DbAccess :
 	}
 
 	/// <inheritdoc />
-	public async Task<HotkeyEntity[]> AddHotkeysAsync(
-		Guid fileId,
-		KeyStroke[] hotkeys,
-		CancellationToken token = default)
-	{
-		ThrowIfWriteRefused();
-
-		await _semaphore
-			.WaitAsync(token)
-			.ConfigureAwait(false);
-
-		try
-		{
-			HotkeyEntity[] entities = [.. ToHotkeyEntities(hotkeys, fileId)];
-
-			foreach (HotkeyEntity item in entities)
-			{
-				await _hotkeysRepository
-					.AddAsync(item, token)
-					.ConfigureAwait(false);
-			}
-
-			await _dbContextService
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return entities;
-		}
-		finally
-		{
-			_dbContextService.ClearTracking();
-
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task ClearDatabaseAsync(CancellationToken token = default)
 	{
 		ThrowIfWriteRefused();
@@ -804,6 +760,57 @@ public sealed class DbAccess :
 			builder
 				.SetProperty(x => x.Name, name)
 				.SetProperty(x => x.UpdatedAt, updatedAt);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<HotkeyEntity[]> ReplaceHotkeysAsync(
+		Guid fileId,
+		KeyStroke[] hotkeys,
+		CancellationToken token = default)
+	{
+		ThrowIfWriteRefused();
+
+		await _semaphore
+			.WaitAsync(token)
+			.ConfigureAwait(false);
+
+		try
+		{
+			HotkeyEntity[] entities = [.. ToHotkeyEntities(hotkeys, fileId)];
+
+			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
+			{
+				await _hotkeysRepository
+					.RemoveRangeByOwnerIdAsync(fileId, innerToken)
+					.ConfigureAwait(false);
+
+				foreach (HotkeyEntity item in entities)
+				{
+					await _hotkeysRepository
+						.AddAsync(item, innerToken)
+						.ConfigureAwait(false);
+				}
+
+				await _dbContextService
+					.SaveChangesAsync(innerToken)
+					.ConfigureAwait(false);
+			}, token).ConfigureAwait(false);
+
+			return entities;
+		}
+		finally
+		{
+			_dbContextService.ClearTracking();
+
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
 		}
 	}
 

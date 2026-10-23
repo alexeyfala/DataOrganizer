@@ -260,6 +260,40 @@ internal class BackgroundServicesTests
 			.Received(1)
 			.Stop();
 	}
+
+	/// <summary>
+	/// <see cref="BackgroundServices.StopAsync" />: a running hotkey tracking is stopped.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Stops_A_Running_Hotkey_Tracking()
+	{
+		// Arrange
+		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			hook
+				.IsRunning
+				.Returns(true);
+
+			// The hook is a lazy singleton that has already been used.
+			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
+
+			_ = lazyHook.Value;
+
+			builder.RegisterInstance(lazyHook);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		await sut.StopAsync();
+
+		// Assert
+		await hook
+			.Received(1)
+			.StopTrackingAsync(Arg.Any<CancellationToken>());
+	}
 	#endregion
 
 }

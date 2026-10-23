@@ -3,8 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
-using Shared.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using Shared.Properties;
 using System.Threading.Tasks;
 
@@ -67,31 +66,19 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IAppEnvironment" />
-	private readonly IAppEnvironment _appEnvironment;
-
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
+	/// <inheritdoc cref="IWindowSettingsStore" />
+	private readonly IWindowSettingsStore _windowSettings;
 	#endregion
 
 	#region Constructors
 	public EntityCreationViewModel(
-		IAppEnvironment appEnvironment,
 		IDialogCloser dialogCloser,
-		IFileSystem fileSystem,
-		IJsonSerializer jsonSerializer,
-		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
+		ITaskExceptionHandler exceptionHandler,
+		IWindowSettingsStore windowSettings) : base(dialogCloser, exceptionHandler)
 	{
-		_appEnvironment = appEnvironment;
+		_windowSettings = windowSettings;
 
-		_fileSystem = fileSystem;
-
-		_jsonSerializer = jsonSerializer;
-
-		LoadFromFile();
+		LoadSettings();
 	}
 	#endregion
 
@@ -109,10 +96,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 			Name = Name
 		};
 
-		_fileSystem.SerializeToJsonFile(
-			settings,
-			_appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
-			false);
+		_windowSettings.Write(settings);
 	}
 	#endregion
 
@@ -123,13 +107,11 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
 	/// <summary>
-	/// Initializes the settings from a file.
+	/// Initializes the settings from the stored ones.
 	/// </summary>
-	private void LoadFromFile()
+	private void LoadSettings()
 	{
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings));
-
-		EntityCreationViewSettings settings = _jsonSerializer.DeserializeFromFile<EntityCreationViewSettings>(filePath);
+		EntityCreationViewSettings settings = _windowSettings.Read<EntityCreationViewSettings>();
 
 		IsFolderSelected = settings.IsFolderSelected;
 

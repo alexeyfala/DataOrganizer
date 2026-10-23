@@ -13,11 +13,11 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Views;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
-using Shared.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -203,7 +203,11 @@ internal class DialogCloserTests
 
 		bool isClosedAtOnce = closing.IsCompleted;
 
-		await RunJobsUntilAsync(() => closing.IsCompleted);
+		// The wait runs out before the fallback timeout of a stalled fade would end it.
+		await Dispatcher.UIThread.RunJobsUntilAsync(
+			() => closing.IsCompleted,
+			millisecondsDelay: 20,
+			maxRepeats: 25);
 
 		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
 		window.Close();
@@ -308,8 +312,6 @@ internal class DialogCloserTests
 
 	/// <summary>
 	/// <see cref="DialogCloser.FindShownDialog" />: a host that shows no dialog has none to find.
-
-
 	/// </summary>
 	[AvaloniaTest]
 	public void FindShownDialog_Finds_None_While_The_Host_Shows_None()
@@ -466,7 +468,11 @@ internal class DialogCloserTests
 
 		Task hiding = shown.WaitUntilHiddenAsync();
 
-		await RunJobsUntilAsync(() => hiding.IsCompleted);
+		// The wait runs out before the fallback timeout of a stalled fade would end it.
+		await Dispatcher.UIThread.RunJobsUntilAsync(
+			() => hiding.IsCompleted,
+			millisecondsDelay: 20,
+			maxRepeats: 25);
 
 		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
 		window.Close();
@@ -475,24 +481,6 @@ internal class DialogCloserTests
 		hiding.IsCompleted
 			.Should()
 			.BeTrue();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out, before the fallback
-	/// timeout of a stalled fade would end it.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 20, maxRepeats: 25);
 	}
 	#endregion
 }

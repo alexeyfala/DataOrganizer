@@ -213,6 +213,39 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetRecordTree.Flatten" />: lists the records in the order of the walk, the last record first, each
+	/// group before its records and the last of them first.
+	/// </summary>
+	[Test]
+	public void Flatten_Lists_The_Records_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		ValueRecord first = new() { Value = RandomString.Create(5) };
+
+		ValueRecord nested = new() { Value = RandomString.Create(5) };
+
+		ValueRecord last = new() { Value = RandomString.Create(5) };
+
+		ValueRecord inGroup = new() { Value = RandomString.Create(5) };
+
+		RecordsGroup group = new() { Name = RandomString.Create(5) };
+
+		group.Children.Add(inGroup);
+
+		group.Children.Add(nested);
+
+		DatasetRecordBase[] records = [first, group, last];
+
+		// Act
+		DatasetRecordBase[] result = [.. DatasetRecordTree.Flatten(records)];
+
+		// Assert
+		result
+			.Should()
+			.Equal(last, group, nested, inGroup, first);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetRecordTree.Flatten" />: returns every record including nested group children.
 	/// </summary>
 	[Test]
@@ -598,9 +631,10 @@ internal class DatasetRecordTreeTests
 
 		RecordsGroup groupB = new() { Name = "B" };
 
-		KeyValueRecord kvX = new() { Key = "X", Value = "1" };
+		// The values go the other way than the keys, which the records follow.
+		KeyValueRecord kvX = new() { Key = "X", Value = "2" };
 
-		KeyValueRecord kvY = new() { Key = "Y", Value = "2" };
+		KeyValueRecord kvY = new() { Key = "Y", Value = "1" };
 
 		ValueRecord vP = new() { Value = "P" };
 

@@ -43,7 +43,9 @@
 			<WindowDragMoveBehavior />
 		</Interaction.Behaviors>
 
-		<Grid Background="{StaticResource MaterialPrimaryMidBrush}" RowDefinitions="Auto,Auto,*">
+		<Grid
+			Background="{StaticResource MaterialPrimaryMidBrush}"
+			RowDefinitions="Auto,Auto,*">
 			<Grid
 				Grid.Row="0"
 				Margin="0.0,0.0,0.0,3.0"
@@ -60,7 +62,9 @@
 					Background="{StaticResource MaterialPaperBrush}"
 					CornerRadius="{StaticResource CornerRadius}">
 
-					<Image Classes="AppImageStyle" RenderOptions.BitmapInterpolationMode="HighQuality" />
+					<Image
+						Classes="AppImageStyle"
+						RenderOptions.BitmapInterpolationMode="HighQuality" />
 				</Border>
 
 				<TextBlock
@@ -98,7 +102,9 @@
 					ToolTip.Tip="{x:Static prop:Strings.Fix}">
 
 					<Interaction.Behaviors>
-						<input:PointerHoverCommandBehavior Command="{Binding ShowPopupOnHoverCommand}" Delay="300" />
+						<input:PointerHoverCommandBehavior
+							Command="{Binding ShowPopupOnHoverCommand}"
+							Delay="300" />
 
 						<!--
 							A double click stays on the switch, since the header switches to the editor on a double click.
@@ -141,12 +147,16 @@
 				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 				VerticalOffset="-2.0">
 
-				<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="Auto,*,Auto"
+					RowDefinitions="Auto,*">
 
 					<Grid.Resources>
 						<system:Double x:Key="ThumbSize">4.0</system:Double>
 
-						<ControlTheme x:Key="ThumbTheme" TargetType="Thumb">
+						<ControlTheme
+							x:Key="ThumbTheme"
+							TargetType="Thumb">
 							<Setter Property="Template">
 								<ControlTemplate>
 									<Border
@@ -171,7 +181,9 @@
 						BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
 						BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
-						<Border Background="{StaticResource MaterialPaperBrush}" CornerRadius="{StaticResource CornerRadius}">
+						<Border
+							Background="{StaticResource MaterialPaperBrush}"
+							CornerRadius="{StaticResource CornerRadius}">
 							<dialogHost:DialogHost
 								dialogHost:DialogHostStyle.CornerRadius="6.0"
 								CloseOnClickAway="True"
@@ -187,14 +199,20 @@
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
 											<selectors:ContentKindTemplateSelector>
-												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.CopyHistory}" Template="{StaticResource CopyHistoryTemplate}" />
+												<selectors:ContentKindTemplate
+													Kind="{x:Static enums:FavoritesPopupContentKind.CopyHistory}"
+													Template="{StaticResource CopyHistoryTemplate}" />
 
-												<selectors:ContentKindTemplate Kind="{x:Static enums:FavoritesPopupContentKind.Favorites}" Template="{StaticResource SelectedFavoritesViewTemplate}" />
+												<selectors:ContentKindTemplate
+													Kind="{x:Static enums:FavoritesPopupContentKind.Favorites}"
+													Template="{StaticResource SelectedFavoritesViewTemplate}" />
 											</selectors:ContentKindTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>
-											<KeyBinding Command="{Binding ClosePopupByEscCommand}" Gesture="Escape" />
+											<KeyBinding
+												Command="{Binding ClosePopupByEscCommand}"
+												Gesture="Escape" />
 										</ContentControl.KeyBindings>
 									</ContentControl>
 								</materialControls:SnackbarHost>
@@ -210,7 +228,9 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth, Mode=TwoWay}" Edge="West" />
+							<windowBehaviors:ThumbResizeBehavior
+								Width="{Binding PopupWidth, Mode=TwoWay}"
+								Edge="West" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -238,7 +258,9 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Height="{Binding PopupHeight, Mode=TwoWay}" Edge="North" />
+							<windowBehaviors:ThumbResizeBehavior
+								Height="{Binding PopupHeight, Mode=TwoWay}"
+								Edge="North" />
 						</Interaction.Behaviors>
 					</Thumb>
 
@@ -266,7 +288,9 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windowBehaviors:ThumbResizeBehavior Width="{Binding PopupWidth, Mode=TwoWay}" Edge="East" />
+							<windowBehaviors:ThumbResizeBehavior
+								Width="{Binding PopupWidth, Mode=TwoWay}"
+								Edge="East" />
 						</Interaction.Behaviors>
 					</Thumb>
 				</Grid>
@@ -312,7 +336,9 @@
 							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-						<TextBlock Classes="CountTextBlockStyle" Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
+						<TextBlock
+							Classes="CountTextBlockStyle"
+							Text="{Binding CopyHistoryItemIds.Count, Mode=OneWay}" />
 					</Panel>
 				</StackPanel>
 			</Border>

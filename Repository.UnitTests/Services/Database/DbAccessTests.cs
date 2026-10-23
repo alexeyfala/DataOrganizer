@@ -416,91 +416,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per key stroke owned by the given file, saves changes and
-	/// clears the tracking.
-	/// </summary>
-	[Test]
-	public async Task AddHotkeysAsync_Adds_Hotkeys_To_Database_And_Returns_Created_Models()
-	{
-		// Arrange
-		Guid fileId = Guid.NewGuid();
-
-		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
-
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(dbContextService);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		HotkeyEntity[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(keyStrokes.Length);
-
-		result
-			.Should()
-			.OnlyContain(x => x.OwnerId == fileId);
-
-		await repository
-			.Received(keyStrokes.Length)
-			.AddAsync(Arg.Any<HotkeyEntity>());
-
-		await dbContextService
-			.Received(1)
-			.SaveChangesAsync();
-
-		dbContextService
-			.Received(1)
-			.ClearTracking();
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.AddHotkeysAsync" />: a failed save leaves no hotkey tracked for the next save to write.
-	/// </summary>
-	[Test]
-	public async Task AddHotkeysAsync_Clears_The_Tracking_When_The_Save_Fails()
-	{
-		// Arrange
-		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
-
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbContextService
-				.SaveChangesAsync(Arg.Any<CancellationToken>())
-				.ThrowsAsync(new InvalidOperationException());
-
-			builder.RegisterInstance(dbContextService);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Func<Task> act = () => sut.AddHotkeysAsync(Guid.NewGuid(), keyStrokes);
-
-		// Assert
-		await act
-			.Should()
-			.ThrowAsync<InvalidOperationException>();
-
-		dbContextService
-			.Received(1)
-			.ClearTracking();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.ClearDatabaseAsync" />: deletes the database and recreates it via migrations or creation depending on migration support.
 	/// </summary>
 	[Test]
@@ -740,8 +655,6 @@ internal class DbAccessTests
 
 		await AssertRefusedAsync(() => sut.AddFoldersAsync([]));
 
-		await AssertRefusedAsync(() => sut.AddHotkeysAsync(Guid.NewGuid(), []));
-
 		await AssertRefusedAsync(() => sut.ClearDatabaseAsync());
 
 		await AssertRefusedAsync(() => sut.DeleteAsync(EntityKind.File, Guid.NewGuid()));
@@ -751,6 +664,8 @@ internal class DbAccessTests
 		await AssertRefusedAsync(() => sut.DeleteHotkeysAsync(Guid.NewGuid()));
 
 		await AssertRefusedAsync(() => sut.RenameAsync(EntityKind.File, Guid.NewGuid(), RandomString.Create(10), default));
+
+		await AssertRefusedAsync(() => sut.ReplaceHotkeysAsync(Guid.NewGuid(), []));
 
 		await AssertRefusedAsync(() => sut.RestoreFromBackupAsync(RandomString.Create(10)));
 
@@ -1589,6 +1504,146 @@ internal class DbAccessTests
 				Name = name,
 				UpdatedAt = updatedAt
 			});
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ReplaceHotkeysAsync" />: a failed save leaves no hotkey tracked for the next save to write.
+	/// </summary>
+	[Test]
+	public async Task ReplaceHotkeysAsync_Clears_The_Tracking_When_The_Save_Fails()
+	{
+		// Arrange
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			dbContextService
+				.SaveChangesAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		Func<Task> act = () => sut.ReplaceHotkeysAsync(Guid.NewGuid(), keyStrokes);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<InvalidOperationException>();
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ReplaceHotkeysAsync" />: the old hotkeys of the file are deleted and one new hotkey per key
+	/// stroke is added and saved, and the new ones come back.
+	/// </summary>
+	[Test]
+	public async Task ReplaceHotkeysAsync_Replaces_The_Hotkeys_Of_The_File()
+	{
+		// Arrange
+		Guid fileId = Guid.NewGuid();
+
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The stub runs the body of the transaction instead of a database.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		HotkeyEntity[] result = await sut.ReplaceHotkeysAsync(fileId, keyStrokes);
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(keyStrokes.Length)
+			.And
+			.OnlyContain(x => x.OwnerId == fileId);
+
+		await repository
+			.Received(1)
+			.RemoveRangeByOwnerIdAsync(fileId, Arg.Any<CancellationToken>());
+
+		await repository
+			.Received(keyStrokes.Length)
+			.AddAsync(Arg.Any<HotkeyEntity>(), Arg.Any<CancellationToken>());
+
+		await dbContextService
+			.Received(1)
+			.SaveChangesAsync(Arg.Any<CancellationToken>());
+
+		dbContextService
+			.Received(1)
+			.ClearTracking();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ReplaceHotkeysAsync" />: the deletion, the addition and the save all happen inside the
+	/// transaction, so a failure of any of them leaves the old hotkeys.
+	/// </summary>
+	[Test]
+	public async Task ReplaceHotkeysAsync_Writes_Nothing_Outside_The_Transaction()
+	{
+		// Arrange
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The transaction never runs its body, though that is also the default answer.
+			dbContextService
+				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+				.Returns(Task.CompletedTask);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		await sut.ReplaceHotkeysAsync(Guid.NewGuid(), [.. KeyStrokeFactory.CreateKeyStrokes(2)]);
+
+		// Assert
+		await repository
+			.DidNotReceive()
+			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
+		await repository
+			.DidNotReceive()
+			.AddAsync(Arg.Any<HotkeyEntity>(), Arg.Any<CancellationToken>());
+
+		await dbContextService
+			.DidNotReceive()
+			.SaveChangesAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

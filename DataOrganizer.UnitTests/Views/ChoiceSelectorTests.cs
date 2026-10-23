@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Text;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using System.Linq;
 using System.Text;
@@ -118,7 +119,7 @@ internal class ChoiceSelectorTests
 		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.Unicode.WebName);
 
 		// Act
-		Click(window, row);
+		window.Click(row);
 
 		// Assert
 		taken
@@ -157,7 +158,7 @@ internal class ChoiceSelectorTests
 		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.Unicode.WebName);
 
 		// Act
-		Click(window, row);
+		window.Click(row);
 
 		// Assert
 		taken
@@ -513,7 +514,7 @@ internal class ChoiceSelectorTests
 		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), "bat");
 
 		// Act
-		Click(window, row);
+		window.Click(row);
 
 		// Assert
 		sut.SelectedChoice
@@ -939,7 +940,7 @@ internal class ChoiceSelectorTests
 		Control row = GetRow(sut.GetControl<ListBox>(ChoicesListName), Encoding.UTF32.WebName);
 
 		// Act
-		Click(window, row);
+		window.Click(row);
 
 		// Assert
 		sut.SelectedChoice
@@ -1193,32 +1194,6 @@ internal class ChoiceSelectorTests
 
 	#region Helpers
 	/// <summary>
-	/// Returns the middle of a control in the coordinates of the window.
-	/// </summary>
-	private static Point Center(Window window, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			window) ?? default;
-	}
-
-	/// <summary>
-	/// Clicks the middle of a control with the left button.
-	/// </summary>
-	private static void Click(Window window, Visual target)
-	{
-		Point point = Center(window, target);
-
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-
-		Dispatcher.UIThread.RunJobs();
-	}
-
-	/// <summary>
 	/// Returns the names of the items in the list.
 	/// </summary>
 	private static string[] GetNames(ListBox list) => [.. list.Items.Cast<SelectorChoice>().Select(static x => x.Name)];
@@ -1253,7 +1228,7 @@ internal class ChoiceSelectorTests
 	/// </summary>
 	private static void Hover(Window window, Visual target)
 	{
-		window.MouseMove(Center(window, target));
+		window.MouseMove(window.CenterOf(target));
 
 		Dispatcher.UIThread.RunJobs();
 	}
@@ -1266,7 +1241,7 @@ internal class ChoiceSelectorTests
 	/// <summary>
 	/// Opens the list with a click on the button.
 	/// </summary>
-	private static void Open(Window window, ChoiceSelector selector) => Click(window, selector.GetControl<Button>(CurrentChoiceName));
+	private static void Open(Window window, ChoiceSelector selector) => window.Click(selector.GetControl<Button>(CurrentChoiceName));
 
 	/// <summary>
 	/// Presses and releases a key.

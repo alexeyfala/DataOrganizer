@@ -20,27 +20,9 @@ internal static class HierarchyExtensions
 		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (!condition(item))
-			{
-				return false;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return true;
+		return hierarchy
+			.Flatten()
+			.All(x => condition(x));
 	}
 
 	/// <summary>
@@ -50,27 +32,9 @@ internal static class HierarchyExtensions
 		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (condition(item))
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
+		return hierarchy
+			.Flatten()
+			.Any(x => condition(x));
 	}
 
 	/// <summary>
@@ -80,27 +44,9 @@ internal static class HierarchyExtensions
 		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Predicate<FileDto> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file && condition(file))
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
+		return hierarchy
+			.GetFiles()
+			.Any(x => condition(x));
 	}
 
 	/// <summary>
@@ -108,27 +54,9 @@ internal static class HierarchyExtensions
 	/// </summary>
 	public static bool ContainsId(this IEnumerable<ExplorerItemDtoBase> hierarchy, Guid id)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item.Id == id)
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
+		return hierarchy
+			.Flatten()
+			.Any(x => x.Id == id);
 	}
 
 	/// <summary>
@@ -139,25 +67,9 @@ internal static class HierarchyExtensions
 		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (condition(item))
-			{
-				yield return item;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
+		return hierarchy
+			.Flatten()
+			.Where(x => condition(x));
 	}
 
 	/// <summary>
@@ -186,27 +98,9 @@ internal static class HierarchyExtensions
 		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (condition(item))
-			{
-				return item;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return null;
+		return hierarchy
+			.Flatten()
+			.FirstOrDefault(x => condition(x));
 	}
 
 	/// <summary>
@@ -237,29 +131,22 @@ internal static class HierarchyExtensions
 	}
 
 	/// <summary>
+	/// Lists every object of the hierarchy in the order of <see cref="EnumerableExtensions.Flatten{T}" />.
+	/// </summary>
+	public static IEnumerable<ExplorerItemDtoBase> Flatten(this IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		return hierarchy.Flatten(GetChildren);
+	}
+
+	/// <summary>
 	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FileDto" />.
 	/// </summary>
 	/// <returns>Flat list <see cref="FileDto" />.</returns>
 	public static IEnumerable<FileDto> GetFiles(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file)
-			{
-				yield return file;
-			}
-			else if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
+		return hierarchy
+			.Flatten()
+			.OfType<FileDto>();
 	}
 
 	/// <summary>
@@ -279,22 +166,9 @@ internal static class HierarchyExtensions
 	/// <returns>Flat sequence <see cref="FolderDto" />.</returns>
 	public static IEnumerable<FolderDto> GetFolders(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FolderDto folder)
-			{
-				yield return folder;
-
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
+		return hierarchy
+			.Flatten()
+			.OfType<FolderDto>();
 	}
 
 	/// <summary>
@@ -392,7 +266,17 @@ internal static class HierarchyExtensions
 
 		uint folders = default;
 
-		CountObjects(hierarchy, ref files, ref folders);
+		foreach (ExplorerItemDtoBase item in hierarchy.Flatten())
+		{
+			if (item.Kind == EntityKind.File || item.Kind == EntityKind.Dataset)
+			{
+				files++;
+			}
+			else if (item.Kind == EntityKind.Folder)
+			{
+				folders++;
+			}
+		}
 
 		return new()
 		{
@@ -404,32 +288,16 @@ internal static class HierarchyExtensions
 
 	#region Helpers
 	/// <summary>
-	/// Counts files and folders.
+	/// Returns the children of <paramref name="item" />: those of a folder, none of a file.
 	/// </summary>
-	private static void CountObjects(
-		IEnumerable<ExplorerItemDtoBase> hierarchy,
-		ref uint files,
-		ref uint folders)
+	private static IEnumerable<ExplorerItemDtoBase> GetChildren(ExplorerItemDtoBase item)
 	{
-		foreach (ExplorerItemDtoBase item in hierarchy)
+		if (item is FolderDto folder)
 		{
-			if (item.Kind == EntityKind.File || item.Kind == EntityKind.Dataset)
-			{
-				files++;
-
-				continue;
-			}
-
-			if (item.Kind == EntityKind.Folder)
-			{
-				folders++;
-
-				if (item is FolderDto folder)
-				{
-					CountObjects(folder.Children, ref files, ref folders);
-				}
-			}
+			return folder.Children;
 		}
+
+		return [];
 	}
 	#endregion
 }

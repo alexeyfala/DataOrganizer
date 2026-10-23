@@ -11,16 +11,11 @@
 	mc:Ignorable="d">
 
 	<Grid
+		Classes="FlatButtonsStyle"
 		ColumnDefinitions="*,Auto,Auto,Auto"
 		ColumnSpacing="{StaticResource ElementSpacing}"
 		RowDefinitions="Auto,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
-
-		<Grid.Styles>
-			<Style Selector="Button">
-				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-			</Style>
-		</Grid.Styles>
 
 		<TextBlock
 			Grid.Row="0"

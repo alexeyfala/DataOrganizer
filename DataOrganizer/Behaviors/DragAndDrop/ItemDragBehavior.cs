@@ -352,10 +352,10 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 			return;
 		}
 
+		// The loss is raised directly on the element that held the capture and on each of its ancestors, never tunnelled.
 		AssociatedObject.AddHandler(
 			InputElement.PointerCaptureLostEvent,
-			AssociatedObject_PointerCaptureLost,
-			RoutingStrategies.Tunnel);
+			AssociatedObject_PointerCaptureLost);
 
 		AssociatedObject.AddHandler(
 			InputElement.PointerMovedEvent,

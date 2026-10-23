@@ -152,9 +152,9 @@ public sealed partial class EditorViewModel :
 	public partial ExplorerNodeViewModelBase? SelectedNode { get; set; }
 
 	/// <summary>
-	/// Rows for the tree to bring into view, select and highlight.
+	/// Paths of the rows for the tree to bring into view, select and highlight, from the top of the tree to the row.
 	/// </summary>
-	public IObservable<ExplorerNodeViewModelBase> ShowSignal => _showSignal;
+	public IObservable<IReadOnlyList<ExplorerNodeViewModelBase>> ShowSignal => _showSignal;
 
 	/// <summary>
 	/// The current width of the window.
@@ -679,9 +679,7 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanRename))]
 	private async Task Rename(ExplorerItemDtoBase? dto)
 	{
-		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedNode?.Model;
-
-		if (toBeRenamed is null)
+		if (dto is null)
 		{
 			return;
 		}
@@ -691,7 +689,7 @@ public sealed partial class EditorViewModel :
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Rename,
-			Key = toBeRenamed.Name,
+			Key = dto.Name,
 			KeyHint = Strings.Name
 		};
 
@@ -703,7 +701,7 @@ public sealed partial class EditorViewModel :
 		}
 
 		await _hierarchyEditor
-			.RenameAsync(toBeRenamed, pair.Key)
+			.RenameAsync(dto, pair.Key)
 			.ConfigureAwait(false);
 	}
 
@@ -923,7 +921,7 @@ public sealed partial class EditorViewModel :
 	private readonly ISettingsCommit _settingsCommit;
 
 	/// <inheritdoc cref="ShowSignal" />
-	private readonly Subject<ExplorerNodeViewModelBase> _showSignal = new();
+	private readonly Subject<IReadOnlyList<ExplorerNodeViewModelBase>> _showSignal = new();
 	/// <inheritdoc cref="ITextInputPrompt" />
 	private readonly ITextInputPrompt _textInputPrompt;
 
@@ -1074,8 +1072,6 @@ public sealed partial class EditorViewModel :
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
-
-		IsInitialized = true;
 	}
 
 	/// <inheritdoc />
@@ -1217,7 +1213,7 @@ public sealed partial class EditorViewModel :
 	internal void ShowObject(Guid id)
 	{
 		if (Hierarchy.FindById(id) is not { } found
-			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, ExplorerNodeViewModelBase node])
+			|| Nodes.FindPath(found) is not [.. ExplorerNodeViewModelBase[] folders, _] path)
 		{
 			return;
 		}
@@ -1227,7 +1223,7 @@ public sealed partial class EditorViewModel :
 			folder.IsExpanded = true;
 		}
 
-		_showSignal.OnNext(node);
+		_showSignal.OnNext(path);
 	}
 	#endregion
 

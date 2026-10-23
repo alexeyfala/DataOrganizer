@@ -10,9 +10,11 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Models.Dataset;
@@ -660,6 +662,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(jsonSerializer);
 		});
 
@@ -726,6 +732,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(jsonSerializer);
@@ -771,6 +781,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -825,6 +839,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(jsonSerializer);
@@ -872,6 +890,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -918,6 +940,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -958,6 +984,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1124,62 +1154,6 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read stays as it is.
-	/// </summary>
-	[Test]
-	public async Task ContainerLoaded_Keeps_An_Unreadable_State()
-	{
-		// Arrange
-		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			// The stored state breaks off after its first character.
-			editorStateStore
-				.ReadAsync(Arg.Any<Guid>())
-				.Returns("{");
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
-			builder
-				.RegisterType<SystemTextJsonSerializer>()
-				.As<IJsonSerializer>();
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		// Act
-		await sut.ContainerLoaded();
-
-		// Assert
-		await editorStateStore
-			.Received(1)
-			.ReadAsync(Arg.Any<Guid>());
-
-		await editorStateStore
-			.DidNotReceiveWithAnyArgs()
-			.WriteAsync(default, default!, default);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read leaves no place to come back
 	/// to, and the editor stays open.
 	/// </summary>
@@ -1264,6 +1238,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1329,6 +1307,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1342,6 +1324,69 @@ internal class DatasetEditorViewModelTests
 		sut.ViewState
 			.Should()
 			.Be(state);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: a stored state that cannot be read is replaced by a new one, as
+	/// in the file editor, and in the read-only mode it stays as it is.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Replaces_An_Unreadable_State([Values] bool isReadOnly)
+	{
+		// Arrange
+		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents contents = new()
+			{
+				Contents = new SystemTextJsonSerializer().SerializeToUtf8Bytes(DatasetRecordFactory.CreateValueRecords(RecordCount)),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(contents);
+
+			// The stored state breaks off after its first character.
+			editorStateStore
+				.ReadAsync(Arg.Any<Guid>())
+				.Returns("{");
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(editorStateStore);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		await sut.ContainerLoaded();
+
+		// Assert
+		await editorStateStore
+			.Received(1)
+			.ReadAsync(Arg.Any<Guid>());
+
+		await editorStateStore
+			.ReceivedWithAnyArgs(isReadOnly ? 0 : 1)
+			.WriteAsync(default, default!, default);
 	}
 
 	/// <summary>
@@ -1395,6 +1440,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -1502,6 +1551,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1550,6 +1603,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -2606,6 +2663,10 @@ internal class DatasetEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			// A move that got through would pulse the record at once.
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -2920,6 +2981,60 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: records the database could not write go to
+	/// the reporter of database failures at each attempt and stay unsaved.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Hands_A_Failed_Write_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ThrowsAsyncForAnyArgs(failure);
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(failureReporter);
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		failureReporter
+			.Received(2)
+			.Report(failure, Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush writes nothing,
 	/// not even records whose save failed.
 	/// </summary>
@@ -3040,6 +3155,62 @@ internal class DatasetEditorViewModelTests
 		await dbAccess
 			.ReceivedWithAnyArgs(2)
 			.UpdateFileContentsAsync(default, default!, default, default);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: records the database did not take, as the key
+	/// of the session refused them or the file is gone, stay unsaved, and each attempt shows an error.
+	/// </summary>
+	[Test]
+	public async Task Receive_Flush_Tells_Of_Records_The_Database_Did_Not_Take(
+		[Values(FileContentsWriteStatus.Closed, FileContentsWriteStatus.Missing)] FileContentsWriteStatus status)
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = status
+				});
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(_ => RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		await sut.AddGroupAsync(RandomString.Create(10), null);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		notification
+			.Received(2)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -3339,6 +3510,59 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAscendingCommand" />: sorts the records of a group only once the user agrees.
+	/// </summary>
+	[Test]
+	public async Task SortAscendingCommand_Sorts_The_Group_Once_Confirmed([Values] bool isConfirmed)
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		RecordsGroup group = CreateGroup("B", "A");
+
+		sut.Records.Add(group);
+
+		// Act
+		await sut.SortAscendingCommand.ExecuteAsync(group);
+
+		// Assert
+		group.Children
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal(isConfirmed ? ["A", "B"] : ["B", "A"]);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAscendingDescendingCommand" />: sorts the whole list in the chosen direction.
+	/// </summary>
+	[TestCase(ListSortDirection.Ascending, new[] { "A", "B", "C" })]
+	[TestCase(ListSortDirection.Descending, new[] { "C", "B", "A" })]
+	public async Task SortAscendingDescendingCommand_Sorts_The_List_In_The_Direction(
+		ListSortDirection direction,
+		string[] expected)
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed: true);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.Records.AddRange([.. CreateGroup("B", "A", "C").Children]);
+
+		// Act
+		await sut.SortAscendingDescendingCommand.ExecuteAsync(direction);
+
+		// Assert
+		sut.Records
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.SortAsync" />: a read-only dataset is never written back. The check
 	/// lives in the save path, so it holds for every change that persists the records.
 	/// </summary>
@@ -3568,6 +3792,33 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortDescendingCommand" />: sorts the records of a group descending once the user
+	/// agrees.
+	/// </summary>
+	[Test]
+	public async Task SortDescendingCommand_Sorts_The_Group_Descending()
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed: true);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		RecordsGroup group = CreateGroup("A", "B");
+
+		sut.Records.Add(group);
+
+		// Act
+		await sut.SortDescendingCommand.ExecuteAsync(group);
+
+		// Assert
+		group.Children
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal("B", "A");
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ViewState" />: a place that comes back to the one saved last, after a change that
 	/// the read-only mode kept unsaved, is not saved again.
 	/// </summary>
@@ -3772,6 +4023,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -3942,6 +4197,56 @@ internal class DatasetEditorViewModelTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Creates a group of value records with the values in their order.
+	/// </summary>
+	private static RecordsGroup CreateGroup(params string[] values)
+	{
+		RecordsGroup group = new();
+
+		group.Children.AddRange(values.Select(static x => new ValueRecord
+		{
+			Value = x
+		}));
+
+		return group;
+	}
+
+	/// <summary>
+	/// Creates a mock whose dataset can be sorted and saved, and whose user answers the question of a sort.
+	/// </summary>
+	private static AutoMock CreateSortMock(bool isConfirmed)
+	{
+		return AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(isConfirmed);
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+	}
+
 	/// <summary>
 	/// The commands that change the records, each case named after its command.
 	/// </summary>

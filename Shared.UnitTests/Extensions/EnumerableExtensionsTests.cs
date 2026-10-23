@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,63 @@ internal class EnumerableExtensionsTests
 		result
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.Flatten{T}" />: the children of an item are asked for only when the walk goes on past
+	/// it, so a consumer that stops early asks for none.
+	/// </summary>
+	[Test]
+	public void Flatten_Asks_For_The_Children_Of_An_Item_Only_When_The_Walk_Goes_On()
+	{
+		// Arrange
+		List<int> asked = [];
+
+		int[] roots = [1, 2];
+
+		// Act
+		int[] result = [.. roots
+			.Flatten(x =>
+			{
+				asked.Add(x);
+
+				return [x * 10];
+			})
+			.Take(1)];
+
+		// Assert
+		result
+			.Should()
+			.Equal(2);
+
+		asked
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.Flatten{T}" />: lists the items in the order of the walk, the last root first, every
+	/// item before its children and the last child first.
+	/// </summary>
+	[Test]
+	public void Flatten_Lists_The_Items_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		Dictionary<int, int[]> children = new()
+		{
+			[1] = [3, 4],
+			[4] = [5]
+		};
+
+		int[] roots = [1, 2];
+
+		// Act
+		int[] result = [.. roots.Flatten(x => children.TryGetValue(x, out int[]? found) ? found : [])];
+
+		// Assert
+		result
+			.Should()
+			.Equal(2, 1, 4, 5, 3);
 	}
 
 	/// <summary>

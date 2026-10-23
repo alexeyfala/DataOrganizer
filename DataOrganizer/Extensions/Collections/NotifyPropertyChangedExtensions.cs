@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Hierarchy;
 using DynamicData.Binding;
 using System;
@@ -11,11 +12,13 @@ internal static class NotifyPropertyChangedExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Creates a predicate for filtering.
+	/// Creates a predicate for filtering, which follows a changed search after a pause counted by
+	/// <paramref name="timeProvider" />.
 	/// </summary>
 	public static IObservable<Func<INamed, bool>> FilterPredicate<T>(
 		this T target,
-		Expression<Func<T, string?>> whenValueChanged) where T : INotifyPropertyChanged
+		Expression<Func<T, string?>> whenValueChanged,
+		TimeProvider timeProvider) where T : INotifyPropertyChanged
 	{
 		return target
 			.WhenValueChanged(whenValueChanged)
@@ -23,7 +26,9 @@ internal static class NotifyPropertyChangedExtensions
 			{
 				return stream
 					.Take(1)
-					.Merge(stream.Skip(1).Throttle(TimeSpan.FromMilliseconds(500L)));
+					.Merge(stream.Skip(1).Throttle(
+						TimeSpan.FromMilliseconds(500L),
+						new TimeProviderScheduler(timeProvider)));
 			}).Select(Predicate);
 
 		static Func<INamed, bool> Predicate(string? value) =>

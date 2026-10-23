@@ -12,7 +12,6 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Text;
 using DynamicData.Binding;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -36,11 +35,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// gives is its default one.
 	/// </summary>
 	public DocumentEditorViewModel Editor { get; }
-
-	/// <summary>
-	/// Name of the file, whose extension gives the language of its text.
-	/// </summary>
-	public string? FileName { get; private set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -99,7 +93,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IDocumentTextFactory documentTextFactory,
 		IEditorSplitStore editorSplits,
 		IEditorStateStore editorStateStore,
-		IFileContentsReader fileContentsReader,
+		IFileContentsOpener fileContentsOpener,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
@@ -111,7 +105,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		ITypingPauseFactory typingPauseFactory) : base(
 			dbFailureReporter,
 			editorStateStore,
-			fileContentsReader,
+			fileContentsOpener,
 			fileContentsWriter,
 			jsonSerializer,
 			logger,
@@ -176,14 +170,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Methods
 	/// <inheritdoc />
-	public override void Initialize(EmbeddedEditorSetup setup)
-	{
-		base.Initialize(setup);
-
-		FileName = setup.FileName;
-	}
-
-	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		// No pause in typing comes after the close, so an edit still waiting for one is queued now.
@@ -223,7 +209,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		try
 		{
 			// The state comes before the text, as it holds the encoding chosen for the text.
-			FileEditorState? state = await ReadEditorStateAsync<FileEditorState>().ConfigureAwait(true);
+			FileEditorState? state = await ReadEditorStateAsync(CreateEditorState()).ConfigureAwait(true);
 
 			// Contents that are not text, or that their encoding would not write back the same, would overwrite the file.
 			if (Editor.Codec.Read(contents, state?.Encoding) is not { } text)
@@ -266,12 +252,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <inheritdoc />
-	protected override void LogUnopenedContents(FileContentsStatus status, string message)
-	{
-		_logger.LogError(message, breakInDebugger: false);
-	}
-
-	/// <inheritdoc />
 	protected override void QueuePendingChanges()
 	{
 		// While the contents are loading the document is still empty, and queuing its text would overwrite the file.
@@ -281,17 +261,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		EnqueueSave();
-	}
-
-	/// <inheritdoc />
-	protected override Task ReplaceUnreadableEditorStateAsync(CancellationToken token = default)
-	{
-		if (IsReadOnly)
-		{
-			return Task.CompletedTask;
-		}
-
-		return SaveEditorStateAsync(_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options), token);
 	}
 	#endregion
 
@@ -412,27 +381,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Writes the contents of the text as an edit; <c>false</c> when they did not reach the database.
 	/// </summary>
-	private async Task<bool> WriteContentsAsync(byte[] contents)
-	{
-		try
-		{
-			FileContentsWriteStatus status = await SaveContentsAsync(contents, FileContentsChange.Edit)
-				.ConfigureAwait(false);
-
-			if (status == FileContentsWriteStatus.Closed)
-			{
-				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
-			}
-
-			return status == FileContentsWriteStatus.Written;
-		}
-		catch (Exception ex)
-		{
-			// The queue has to survive a failed save: the editor keeps the text and marks it unsaved.
-			_logger.LogException(ex, breakInDebugger: false);
-
-			return false;
-		}
-	}
+	private Task<bool> WriteContentsAsync(byte[] contents) => SaveContentsAsync(contents, FileContentsChange.Edit);
 	#endregion
 }

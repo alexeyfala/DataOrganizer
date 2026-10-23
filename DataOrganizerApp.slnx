@@ -109,5 +109,6 @@
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
     <Project Path="TestSupport/TestSupport.csproj" />
   </Folder>
+  <Project Path="AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
   <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>

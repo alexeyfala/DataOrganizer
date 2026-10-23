@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
@@ -360,9 +361,15 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnceAsync_After_A_Restore_Rebaselines_The_Marked_Files()
 	{
 		// Arrange
+		ClipboardFilesEntry restored = ClipboardEntryFactory.CreateFilesEntry();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetFilesAsync(restored.FileSystemEntries, isRestored: true)
+				.Returns(true);
 
 			// The restored files come back marked, under a hash of their own.
 			clipboard
@@ -385,8 +392,6 @@ internal class ClipboardLogServiceTests
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardFilesEntry restored = ClipboardEntryFactory.CreateFilesEntry();
 
 		sut.Entries.Add(restored);
 
@@ -412,9 +417,15 @@ internal class ClipboardLogServiceTests
 	public async Task PollOnceAsync_After_A_Restore_Rebaselines_The_Marked_Image()
 	{
 		// Arrange
+		ClipboardImageEntry restored = ClipboardEntryFactory.CreateImageEntry(ImageFactory.CreatePng());
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetImageAsync(restored.OriginalPng!, isRestored: true)
+				.Returns(true);
 
 			// The restored image comes back marked, under a hash of its own.
 			clipboard
@@ -437,8 +448,6 @@ internal class ClipboardLogServiceTests
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		ClipboardImageEntry restored = ClipboardEntryFactory.CreateImageEntry(ImageFactory.CreatePng());
 
 		sut.Entries.Add(restored);
 
@@ -467,6 +476,10 @@ internal class ClipboardLogServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("restored", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
 
 			// The restored text comes back marked, under a hash of its own.
 			clipboard
@@ -1416,6 +1429,69 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: an entry the clipboard refused stays where it was, and the payload
+	/// left on the clipboard with a restore marker is taken as a new entry, not as the echo of the refused one.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Leaves_A_Refused_Entry_In_Place()
+	{
+		// Arrange
+		const string leftText = "left";
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The clipboard refuses the entry and keeps an earlier restored text with its marker.
+			clipboard
+				.SetTextAsync("target", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(false);
+
+			clipboard
+				.ContainsRestoreMarkerAsync()
+				.Returns(true);
+
+			clipboard
+				.TryReadTextAsync()
+				.Returns(leftText);
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry other = ClipboardEntryFactory.CreateTextEntry("other", [1]);
+
+		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
+
+		sut.Entries.Add(other);
+
+		sut.Entries.Add(target);
+
+		// Act
+		await sut.RestoreAsync(target);
+
+		await sut.PollOnceAsync();
+
+		// Assert
+		target.IsActive
+			.Should()
+			.BeFalse();
+
+		sut.Entries.Select(static x => ((ClipboardTextEntryBase)x).Text)
+			.Should()
+			.Equal(leftText, "other", "target");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RestoreAsync" />: a sensitive text goes back to the clipboard marked as a secret.
 	/// </summary>
 	[Test]
@@ -1455,6 +1531,12 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("target", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
+
 			builder
 				.RegisterType<ClipboardHistory>()
 				.As<IClipboardHistory>();
@@ -1462,6 +1544,8 @@ internal class ClipboardLogServiceTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -1498,6 +1582,12 @@ internal class ClipboardLogServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("target", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
+
 			builder
 				.RegisterType<ClipboardHistory>()
 				.As<IClipboardHistory>();
@@ -1505,6 +1595,8 @@ internal class ClipboardLogServiceTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
 
 			builder.RegisterInstance(messenger);
 		});
@@ -1543,6 +1635,12 @@ internal class ClipboardLogServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("top", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
+
 			builder
 				.RegisterType<ClipboardHistory>()
 				.As<IClipboardHistory>();
@@ -1550,6 +1648,8 @@ internal class ClipboardLogServiceTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
 
 			builder.RegisterInstance(messenger);
 		});
@@ -1705,6 +1805,76 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: an entry of any kind the clipboard did not take stays unmarked, and
+	/// a toast tells of it, the files that are gone apart from a refusal.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Shows_A_Toast_For_An_Unwritten_Entry()
+	{
+		// Arrange
+		List<string> toasts = [];
+
+		ClipboardLogEntryBase[] entries =
+		[
+			ClipboardEntryFactory.CreateTextEntry("text", [1]),
+			ClipboardEntryFactory.CreateImageEntry(ImageFactory.CreatePng(), [2]),
+			ClipboardEntryFactory.CreateFilesEntry()
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The clipboard takes no write: a substitute answers false.
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			IToastNotifier toastNotifier = Substitute.For<IToastNotifier>();
+
+			toastNotifier.ShowToast(Arg.Do<string>(toasts.Add));
+
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(toastNotifier);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		foreach (ClipboardLogEntryBase entry in entries)
+		{
+			sut.Entries.Add(entry);
+		}
+
+		// Act
+		foreach (ClipboardLogEntryBase entry in entries)
+		{
+			await sut.RestoreAsync(entry);
+		}
+
+		// Assert
+		entries
+			.Should()
+			.OnlyContain(static x => !x.IsActive);
+
+		toasts
+			.Should()
+			.HaveCount(3);
+
+		toasts[1]
+			.Should()
+			.Be(toasts[0]);
+
+		toasts[2]
+			.Should()
+			.NotBe(toasts[0]);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RestoreAsync" />: keeping the position only highlights the entry, it does not move.
 	/// </summary>
 	[Test]
@@ -1713,6 +1883,12 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("target", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
+
 			builder
 				.RegisterType<ClipboardHistory>()
 				.As<IClipboardHistory>();
@@ -1720,6 +1896,8 @@ internal class ClipboardLogServiceTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();

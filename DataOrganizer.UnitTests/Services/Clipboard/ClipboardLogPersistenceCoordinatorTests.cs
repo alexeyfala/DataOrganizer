@@ -160,7 +160,6 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 	/// <summary>
 	/// <see cref="ClipboardLogPersistenceCoordinator.DisposeAsync" />: it unsubscribes, so a later
-
 	/// change raises no further save (the only save is the dispose-time flush).
 	/// </summary>
 	[Test]

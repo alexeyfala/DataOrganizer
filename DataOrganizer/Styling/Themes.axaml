@@ -25,7 +25,9 @@
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clipboard}" />
 	</ControlTheme>
 
-	<ControlTheme x:Key="DialogTheme" TargetType="UserControl">
+	<ControlTheme
+		x:Key="DialogTheme"
+		TargetType="UserControl">
 		<Setter Property="MinWidth" Value="300.0" />
 		<Setter Property="Padding" Value="{StaticResource DialogIndent}" />
 	</ControlTheme>
@@ -43,6 +45,33 @@
 		</Style>
 	</ControlTheme>
 
+	<!--  The main button and the button that cancels, at the bottom of a dialog.  -->
+	<ControlTheme
+		x:Key="{x:Type controls:DialogButtons}"
+		TargetType="controls:DialogButtons">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<UniformGrid
+					ColumnSpacing="{StaticResource ElementSpacing}"
+					Columns="2">
+					<Button
+						Classes="primary"
+						Command="{TemplateBinding Command}"
+						Content="{TemplateBinding Text}"
+						IsDefault="True"
+						Theme="{StaticResource MaterialFlatButton}" />
+
+					<Button
+						Classes="primary"
+						Command="{TemplateBinding CancelCommand}"
+						Content="{x:Static prop:Strings.Cancel}"
+						IsCancel="True"
+						Theme="{StaticResource MaterialFlatButton}" />
+				</UniformGrid>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+
 	<ControlTheme
 		x:Key="{x:Type controls:DocumentTabControl}"
 		BasedOn="{StaticResource ScrollableTabControl}"
@@ -52,7 +81,9 @@
 
 		<Setter Property="ItemsPanel">
 			<ItemsPanelTemplate>
-				<StackPanel HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}" Orientation="Horizontal" />
+				<StackPanel
+					HorizontalAlignment="{TemplateBinding assists:TabControlAssist.TabHeaderHorizontalAlignment}"
+					Orientation="Horizontal" />
 			</ItemsPanelTemplate>
 		</Setter>
 
@@ -62,7 +93,9 @@
 					Background="Transparent"
 					Orientation="Horizontal"
 					Spacing="4.0">
-					<ContentPresenter Content="{Binding Mode=OneWay}" ContentTemplate="{Binding $parent[controls:DocumentTabControl].ItemTemplate, Mode=OneWay}" />
+					<ContentPresenter
+						Content="{Binding Mode=OneWay}"
+						ContentTemplate="{Binding $parent[controls:DocumentTabControl].ItemTemplate, Mode=OneWay}" />
 
 					<Button
 						Margin="0.0"
@@ -81,14 +114,9 @@
 
 		<Setter Property="TabMenuTemplate">
 			<DataTemplate x:DataType="system:Object">
-				<StackPanel Orientation="Vertical">
-					<StackPanel.Styles>
-						<Style Selector="Button">
-							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-							<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-						</Style>
-					</StackPanel.Styles>
-
+				<StackPanel
+					Classes="FlatButtonsStyle BodyColorButtonsStyle"
+					Orientation="Vertical">
 					<controls:FlyoutButton
 						Command="{Binding $parent[controls:DocumentTabControl].CloseCommand}"
 						CommandParameter="{Binding}"
@@ -109,10 +137,14 @@
 						Icon="CloseBoxMultiple"
 						IconForeground="{StaticResource WarningBrush}" />
 
-					<StackPanel IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}" Orientation="Vertical">
+					<StackPanel
+						IsVisible="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
+						Orientation="Vertical">
 						<Separator />
 
-						<ContentPresenter Content="{Binding Mode=OneWay}" ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}" />
+						<ContentPresenter
+							Content="{Binding Mode=OneWay}"
+							ContentTemplate="{Binding $parent[controls:DocumentTabControl].AdditionalMenuItemsTemplate, Mode=OneWay}" />
 					</StackPanel>
 				</StackPanel>
 			</DataTemplate>
@@ -132,13 +164,17 @@
 								A left-aligned grid gives the tabs only the width they need, so the add button follows the last tab,
 								and the star column keeps the button in sight at the right edge when the tabs overflow.
 							-->
-							<Grid HorizontalAlignment="Left" ColumnDefinitions="*,Auto">
+							<Grid
+								HorizontalAlignment="Left"
+								ColumnDefinitions="*,Auto">
 								<materialControls:Scroller
 									Name="PART_ScrollViewer"
 									Grid.Column="0"
 									Theme="{StaticResource TabControlScroller}">
 									<materialControls:Scroller.Content>
-										<ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+										<ItemsPresenter
+											Name="PART_ItemsPresenter"
+											ItemsPanel="{TemplateBinding ItemsPanel}" />
 									</materialControls:Scroller.Content>
 								</materialControls:Scroller>
 
@@ -178,7 +214,9 @@
 	<!--
 		A hairline in a wider hit area, with a grip that shows on hover.
 	-->
-	<ControlTheme x:Key="SingleLineGridSplitterTheme" TargetType="GridSplitter">
+	<ControlTheme
+		x:Key="SingleLineGridSplitterTheme"
+		TargetType="GridSplitter">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="Focusable" Value="True" />
 		<Setter Property="MinHeight" Value="8.0" />
@@ -193,7 +231,9 @@
 						Background="{StaticResource MaterialDividerBrush}">
 						<Border.Transitions>
 							<Transitions>
-								<BrushTransition Property="Background" Duration="0:0:0.15" />
+								<BrushTransition
+									Property="Background"
+									Duration="0:0:0.15" />
 							</Transitions>
 						</Border.Transitions>
 					</Border>
@@ -207,9 +247,13 @@
 						Opacity="0.0">
 						<Border.Transitions>
 							<Transitions>
-								<BrushTransition Property="Background" Duration="0:0:0.15" />
+								<BrushTransition
+									Property="Background"
+									Duration="0:0:0.15" />
 
-								<DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+								<DoubleTransition
+									Property="Opacity"
+									Duration="0:0:0.15" />
 							</Transitions>
 						</Border.Transitions>
 					</Border>
@@ -265,7 +309,9 @@
 						BorderThickness="1.0,0.0">
 						<Border.Transitions>
 							<Transitions>
-								<BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+								<BrushTransition
+									Property="BorderBrush"
+									Duration="0:0:0.15" />
 							</Transitions>
 						</Border.Transitions>
 					</Border>
@@ -279,9 +325,13 @@
 						Opacity="0.0">
 						<Border.Transitions>
 							<Transitions>
-								<BrushTransition Property="Background" Duration="0:0:0.15" />
+								<BrushTransition
+									Property="Background"
+									Duration="0:0:0.15" />
 
-								<DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+								<DoubleTransition
+									Property="Opacity"
+									Duration="0:0:0.15" />
 							</Transitions>
 						</Border.Transitions>
 					</Border>

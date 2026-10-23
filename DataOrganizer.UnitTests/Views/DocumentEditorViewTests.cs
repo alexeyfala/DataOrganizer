@@ -25,8 +25,8 @@ using DataOrganizer.Extensions.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
-using Shared.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -357,19 +357,14 @@ internal class DocumentEditorViewTests
 			.AllFoldings
 			.ElementAt(1);
 
-		Func<bool> isReported = () =>
-		{
-			// The pause ends on a timer, which posts the capture to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset;
-		};
-
 		// Act
 		block.IsFolded = true;
 
 		// Assert
-		bool result = await isReported.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the capture to the UI thread.
+		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(
+			() => sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset,
+			maxRepeats: 1000);
 
 		result
 			.Should()
@@ -801,12 +796,10 @@ internal class DocumentEditorViewTests
 			.Cast<SelectorChoice>()
 			.Single(static x => x.Id == nameof(LineEnding.Lf));
 
-		Point point = Center(window, list.ContainerFromItem(unix)!);
+		Point point = window.CenterOf(list.ContainerFromItem(unix)!);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -925,7 +918,7 @@ internal class DocumentEditorViewTests
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		// Act
-		window.MouseWheel(Center(window, editor), new(0.0, 1.0), RawInputModifiers.Control);
+		window.MouseWheel(window.CenterOf(editor), new(0.0, 1.0), RawInputModifiers.Control);
 
 		// Assert
 		sut.DocumentFontSize
@@ -1829,7 +1822,7 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(start.Y + 100.0);
 
@@ -2096,7 +2089,7 @@ internal class DocumentEditorViewTests
 		ToolTip.SetShowDelay(block, 0);
 
 		// Act
-		window.MouseMove(Center(window, block));
+		window.MouseMove(window.CenterOf(block));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -3122,18 +3115,6 @@ internal class DocumentEditorViewTests
 	private static void CaptureViewState(DocumentEditorView view) => GetViewStateBehavior(view).CaptureViewState();
 
 	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
 	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
 	/// the numbered line to the end of the block.
 	/// </summary>
@@ -3286,19 +3267,14 @@ internal class DocumentEditorViewTests
 	/// </summary>
 	private static ValueTask<bool> WaitForFirstFocus(DocumentEditorView editor)
 	{
-		Func<bool> isFocused = () =>
-		{
-			// The focus comes on a timer, which posts it to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return editor
+		// The focus comes on a timer, which posts it to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(
+			() => editor
 				.GetControl<SplitDocumentEditor>(EditorName)
 				.PrimaryEditor
 				.TextArea
-				.IsFocused;
-		};
-
-		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+				.IsFocused,
+			maxRepeats: 1000);
 	}
 	#endregion
 }

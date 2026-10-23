@@ -2,8 +2,10 @@
 	x:Class="DataOrganizer.Views.Settings.SettingsAppearanceView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
+	xmlns:enums="using:DataOrganizer.Enums.Settings"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -28,17 +30,17 @@
 					<RadioButton
 						Classes="accent"
 						Content="{x:Static prop:Strings.System}"
-						IsChecked="{Binding IsThemeInherited, Mode=TwoWay}" />
+						IsChecked="{Binding Theme, Mode=TwoWay, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ThemeMode.Inherit}}" />
 
 					<RadioButton
 						Classes="accent"
 						Content="{x:Static prop:Strings.Light}"
-						IsChecked="{Binding IsLightTheme, Mode=TwoWay}" />
+						IsChecked="{Binding Theme, Mode=TwoWay, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ThemeMode.Light}}" />
 
 					<RadioButton
 						Classes="accent"
 						Content="{x:Static prop:Strings.Dark}"
-						IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
+						IsChecked="{Binding Theme, Mode=TwoWay, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ThemeMode.Dark}}" />
 				</UniformGrid>
 			</materialControls:Card>
 		</HeaderedContentControl>

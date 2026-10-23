@@ -7,6 +7,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
@@ -104,7 +105,7 @@ internal class DoubleLineGridSplitterThemeTests
 		Window window = Show(sut);
 
 		// Act
-		window.MouseMove(Center(window, sut));
+		window.MouseMove(window.CenterOf(sut));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -156,7 +157,7 @@ internal class DoubleLineGridSplitterThemeTests
 		Window window = Show(sut);
 
 		// Act
-		window.MouseDown(Center(window, sut), MouseButton.Left);
+		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -232,7 +233,7 @@ internal class DoubleLineGridSplitterThemeTests
 		Window window = Show(sut);
 
 		// Act
-		window.MouseDown(Center(window, sut), MouseButton.Left);
+		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -246,18 +247,6 @@ internal class DoubleLineGridSplitterThemeTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Returns the part of the template of the splitter with the name.
 	/// </summary>

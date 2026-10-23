@@ -3,13 +3,13 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Extensions.Hotkeys;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using MapsterMapper;
 using Repository.Dto;
 using Repository.Interfaces.Database;
-using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -26,8 +26,8 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
+	/// <inheritdoc cref="IDbFailureReporter" />
+	private readonly IDbFailureReporter _dbFailureReporter;
 
 	/// <inheritdoc cref="IMapper" />
 	private readonly IMapper _mapper;
@@ -39,13 +39,13 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	#region Constructors
 	public FileHotkeyEditor(
 		IDbAccess dbAccess,
-		ILogger logger,
+		IDbFailureReporter dbFailureReporter,
 		IMapper mapper,
 		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
-		_logger = logger;
+		_dbFailureReporter = dbFailureReporter;
 
 		_mapper = mapper;
 
@@ -83,51 +83,33 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 			return OverwriteHotkeysOutcome.AlreadyInUse;
 		}
 
+		HotkeyEntity[] createdHotkeys;
+
 		try
 		{
-			if (dto.Hotkeys.Count > 0)
-			{
-				dto
-					.Hotkeys
-					.Clear();
-
-				await _dbAccess
-					.DeleteHotkeysAsync(dto.Id, token)
-					.ConfigureAwait(false);
-			}
-
-			if (newHotkeys.IsEmpty())
-			{
-				return OverwriteHotkeysOutcome.EmptySequence;
-			}
-
-			try
-			{
-				HotkeyEntity[] createdHotkeys = await _dbAccess
-					.AddHotkeysAsync(dto.Id, newHotkeys, token)
-					.ConfigureAwait(false);
-
-				HotkeyDto[] mapped = _mapper.Map<HotkeyEntity[], HotkeyDto[]>(createdHotkeys);
-
-				dto
-					.Hotkeys
-					.AddRange(mapped);
-
-				return OverwriteHotkeysOutcome.Rewritten;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				return OverwriteHotkeysOutcome.ExceptionThrown;
-			}
+			createdHotkeys = await _dbAccess
+				.ReplaceHotkeysAsync(dto.Id, newHotkeys, token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, breakInDebugger: false);
+			// The database keeps the old hotkeys, so the session keeps them too.
+			_dbFailureReporter.Report(ex, Strings.FailedToSaveHotkeys);
 
 			return OverwriteHotkeysOutcome.ExceptionThrown;
 		}
+
+		dto
+			.Hotkeys
+			.Clear();
+
+		dto
+			.Hotkeys
+			.AddRange(_mapper.Map<HotkeyEntity[], HotkeyDto[]>(createdHotkeys));
+
+		return newHotkeys.IsEmpty()
+			? OverwriteHotkeysOutcome.EmptySequence
+			: OverwriteHotkeysOutcome.Rewritten;
 	}
 	#endregion
 }

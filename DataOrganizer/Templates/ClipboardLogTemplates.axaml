@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
@@ -17,7 +18,7 @@
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
-	<!-- ClipboardTextEntryTemplate -->
+	<!--  ClipboardTextEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntryBase">
@@ -26,8 +27,9 @@
 			HorizontalScrollBarVisibility="Disabled"
 			IsHitTestVisible="False"
 			VerticalScrollBarVisibility="Disabled">
-			<TextBlock
+			<controls:SensitiveTextBlock
 				VerticalAlignment="Center"
+				IsSensitive="{Binding IsSensitive, Mode=OneTime}"
 				TextTrimming="CharacterEllipsis"
 				TextWrapping="Wrap">
 				<Interaction.Behaviors>
@@ -35,11 +37,11 @@
 						Query="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>
-			</TextBlock>
+			</controls:SensitiveTextBlock>
 		</ScrollViewer>
 	</DataTemplate>
 
-	<!-- ClipboardImageEntryTemplate -->
+	<!--  ClipboardImageEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardImageEntryTemplate"
 		x:DataType="clipboard:ClipboardImageEntry">
@@ -51,7 +53,7 @@
 			Stretch="Uniform" />
 	</DataTemplate>
 
-	<!-- ClipboardFilesEntryTemplate -->
+	<!--  ClipboardFilesEntryTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardFilesEntryTemplate"
 		x:DataType="clipboard:ClipboardFilesEntry">
@@ -61,7 +63,7 @@
 			TextWrapping="NoWrap" />
 	</DataTemplate>
 
-	<!-- ClipboardEntryItemTemplate -->
+	<!--  ClipboardEntryItemTemplate  -->
 	<DataTemplate
 		x:Key="ClipboardEntryItemTemplate"
 		x:DataType="clipboard:ClipboardLogEntryBase">
@@ -77,7 +79,7 @@
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding Mode=OneWay, Converter={x:Static converters:ClipboardLogConverters.ContentToolTip}}">
 
-			<!-- Accent left bar marks the entry currently held in the system clipboard. -->
+			<!--  Accent left bar marks the entry currently held in the system clipboard.  -->
 			<Button.Styles>
 				<Style Selector="Button.active">
 					<Setter Property="BorderBrush" Value="{StaticResource MaterialPrimaryMidBrush}" />
@@ -99,7 +101,7 @@
 					<ContentControl.Styles>
 						<Style Selector="ContentControl.sensitive:not(.revealed)">
 							<Setter Property="Effect">
-								<BlurEffect Radius="6.0" />
+								<BlurEffect Radius="12.0" />
 							</Setter>
 						</Style>
 					</ContentControl.Styles>
@@ -251,7 +253,7 @@
 
 									<Binding Path="$parent[Button].IsPointerOver" />
 
-									<!-- Hide the eye while the pointer is over the type-glyph badge. -->
+									<!--  Hide the eye while the pointer is over the type-glyph badge.  -->
 									<Binding
 										ElementName="TypeGlyphBadge"
 										Path="!IsPointerOver" />

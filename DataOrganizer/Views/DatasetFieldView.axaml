@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:markup="using:DataOrganizer.Markup"
@@ -24,9 +25,13 @@
 		<Style Selector="views|DatasetFieldView">
 			<Setter Property="AutomationProperties.Name">
 				<MultiBinding Converter="{x:Static converters:AppConverters.SensitiveAutomationName}">
-					<Binding Mode="OneWay" Path="$self.DisplayText" />
+					<Binding
+						Mode="OneWay"
+						Path="$self.DisplayText" />
 
-					<Binding Mode="OneWay" Path="$self.IsSensitive" />
+					<Binding
+						Mode="OneWay"
+						Path="$self.IsSensitive" />
 				</MultiBinding>
 			</Setter>
 		</Style>
@@ -38,7 +43,9 @@
 		<Thickness x:Key="ButtonPadding">4.0,2.0</Thickness>
 	</UserControl.Resources>
 
-	<Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" DataContext="{Binding #View}">
+	<Grid
+		ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+		DataContext="{Binding #View}">
 
 		<!--  Text  -->
 		<Grid
@@ -50,8 +57,9 @@
 			<Grid Background="{Binding AreaBrush, Mode=OneWay}">
 
 				<!--  Plain Text  -->
-				<TextBlock
+				<controls:SensitiveTextBlock
 					Foreground="{StaticResource MaterialBodyBrush}"
+					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					IsVisible="{Binding !IsHyperlink, Mode=OneWay}"
 					Text="{Binding DisplayText, Mode=OneWay}">
 
@@ -59,36 +67,51 @@
 						<text:TextBlockAutoToolTipBehavior>
 							<text:TextBlockAutoToolTipBehavior.IsEnabled>
 								<MultiBinding Converter="{x:Static BoolConverters.And}">
-									<Binding Mode="OneWay" Path="!IsHidden" />
+									<Binding
+										Mode="OneWay"
+										Path="!IsHidden" />
 
-									<Binding Mode="OneWay" Path="!IsSensitive" />
+									<Binding
+										Mode="OneWay"
+										Path="!IsSensitive" />
 								</MultiBinding>
 							</text:TextBlockAutoToolTipBehavior.IsEnabled>
 						</text:TextBlockAutoToolTipBehavior>
 					</Interaction.Behaviors>
-				</TextBlock>
+				</controls:SensitiveTextBlock>
 
 				<!--  Hyperlink  -->
-				<HyperlinkButton IsVisible="{Binding IsHyperlink, Mode=OneWay}" NavigateUri="{Binding Text, Mode=OneWay}">
-					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
+				<HyperlinkButton
+					AutomationProperties.Name="{Binding #View.(AutomationProperties.Name), Mode=OneWay}"
+					IsVisible="{Binding IsHyperlink, Mode=OneWay}"
+					NavigateUri="{Binding Text, Mode=OneWay}">
+					<controls:SensitiveTextBlock
+						IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+						Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
 							<text:TextBlockAutoToolTipBehavior>
 								<text:TextBlockAutoToolTipBehavior.IsEnabled>
 									<MultiBinding Converter="{x:Static BoolConverters.And}">
-										<Binding Mode="OneWay" Path="!IsHidden" />
+										<Binding
+											Mode="OneWay"
+											Path="!IsHidden" />
 
-										<Binding Mode="OneWay" Path="!IsSensitive" />
+										<Binding
+											Mode="OneWay"
+											Path="!IsSensitive" />
 									</MultiBinding>
 								</text:TextBlockAutoToolTipBehavior.IsEnabled>
 							</text:TextBlockAutoToolTipBehavior>
 						</Interaction.Behaviors>
-					</TextBlock>
+					</controls:SensitiveTextBlock>
 				</HyperlinkButton>
 			</Grid>
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
-					<InvokeCommandAction Command="{Binding TextBlockDoubleTappedCommand}" CommandParameter="{Binding DataContext}" />
+					<InvokeCommandAction
+						Command="{Binding TextBlockDoubleTappedCommand}"
+						CommandParameter="{Binding DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Grid>
@@ -110,13 +133,19 @@
 
 			<Border IsVisible="{Binding !IsHidden, Mode=OneWay}">
 				<Border.Background>
-					<ImageBrush Source="/Assets/Background.jpg" Stretch="UniformToFill" />
+					<ImageBrush
+						Source="/Assets/Background.jpg"
+						Stretch="UniformToFill" />
 				</Border.Background>
 			</Border>
 
-			<Rectangle Fill="{Binding ColorSampleBrush, Mode=OneWay}" IsVisible="{Binding !IsHidden, Mode=OneWay}">
+			<Rectangle
+				Fill="{Binding ColorSampleBrush, Mode=OneWay}"
+				IsVisible="{Binding !IsHidden, Mode=OneWay}">
 				<ToolTip.Tip>
-					<ToolTip Padding="0.0" Background="Transparent">
+					<ToolTip
+						Padding="0.0"
+						Background="Transparent">
 						<Rectangle
 							Width="128.0"
 							Height="64.0"

@@ -59,7 +59,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		await LoadAsync().ConfigureAwait(true);
+		if (!await LoadAsync().ConfigureAwait(true))
+		{
+			return;
+		}
 
 		_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 	}
@@ -417,56 +420,19 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private async Task SortAscending(RecordsGroup? group)
-	{
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(Strings.SortAscending + "?")
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(group, ListSortDirection.Ascending).ConfigureAwait(false);
-	}
+	private Task SortAscending(RecordsGroup? group) => ConfirmAndSortAsync(group, ListSortDirection.Ascending);
 
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasRecords))]
-	private async Task SortAscendingDescending(ListSortDirection direction)
-	{
-		string text = string.Concat(direction switch
-		{
-			ListSortDirection.Ascending => Strings.SortAscending,
-			ListSortDirection.Descending => Strings.SortDescending,
-			_ => throw new NotImplementedException()
-		}, "?");
-
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(text)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(null, direction).ConfigureAwait(false);
-	}
+	private Task SortAscendingDescending(ListSortDirection direction) => ConfirmAndSortAsync(null, direction);
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Descending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private async Task SortDescending(RecordsGroup? group)
-	{
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(Strings.SortDescending + "?")
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(group, ListSortDirection.Descending).ConfigureAwait(false);
-	}
+	private Task SortDescending(RecordsGroup? group) => ConfirmAndSortAsync(group, ListSortDirection.Descending);
 	#endregion
 
 	#region Data
@@ -495,7 +461,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbFailureReporter dbFailureReporter,
 		IDispatcherAccessor dispatcher,
 		IEditorStateStore editorStateStore,
-		IFileContentsReader fileContentsReader,
+		IFileContentsOpener fileContentsOpener,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
@@ -506,7 +472,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ITextInputPrompt textInputPrompt) : base(
 			dbFailureReporter,
 			editorStateStore,
-			fileContentsReader,
+			fileContentsOpener,
 			fileContentsWriter,
 			jsonSerializer,
 			logger,
@@ -796,23 +762,38 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		if (Records.Count > 0)
 		{
 			// The state reaches the view through a binding, so it is set on the UI thread.
-			ViewState = await ReadEditorStateAsync<DatasetEditorState>().ConfigureAwait(true);
+			ViewState = await ReadEditorStateAsync(new DatasetEditorState
+			{
+				TopRecordIndex = 0,
+				WithinRecordOffset = 0.0
+			}).ConfigureAwait(true);
 		}
-	}
-
-	/// <inheritdoc />
-	protected override void LogUnopenedContents(FileContentsStatus status, string message)
-	{
-		if (status != FileContentsStatus.Damaged)
-		{
-			return;
-		}
-
-		_logger.LogError(message);
 	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Sorts the records of a group, or the whole list without one, in a direction once the user agrees.
+	/// </summary>
+	private async Task ConfirmAndSortAsync(RecordsGroup? group, ListSortDirection direction)
+	{
+		string question = string.Concat(direction switch
+		{
+			ListSortDirection.Ascending => Strings.SortAscending,
+			ListSortDirection.Descending => Strings.SortDescending,
+			_ => throw new NotImplementedException()
+		}, "?");
+
+		if (!await _confirmationPrompt
+			.RequestYesNoAsync(question)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		await SortAsync(group, direction).ConfigureAwait(false);
+	}
+
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
@@ -870,24 +851,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			FileContentsWriteStatus status = await SaveContentsAsync(contents, change, token).ConfigureAwait(false);
+			bool isWritten = await SaveContentsAsync(contents, change, token).ConfigureAwait(false);
 
-			if (status == FileContentsWriteStatus.Closed)
-			{
-				_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
-			}
+			_unsavedChange = isWritten ? null : change;
 
-			_unsavedChange = status == FileContentsWriteStatus.Written ? null : change;
-
-			return status == FileContentsWriteStatus.Written;
-		}
-		catch (Exception ex)
-		{
-			_dbFailureReporter.Report(ex, Strings.FailedToSaveFileContents);
-
-			_unsavedChange = change;
-
-			return false;
+			return isWritten;
 		}
 		finally
 		{

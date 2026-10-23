@@ -4,11 +4,13 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hotkeys;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
 using MapsterMapper;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Shared.Extensions;
@@ -37,7 +39,13 @@ internal class FileHotkeyEditorTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A substitute maps the empty result into an empty list, where a Moq fake gives null.
+			builder.RegisterInstance(Substitute.For<IMapper>());
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
 
@@ -55,7 +63,59 @@ internal class FileHotkeyEditorTests
 
 		await dbAccess
 			.Received(1)
-			.DeleteHotkeysAsync(Arg.Any<Guid>());
+			.ReplaceHotkeysAsync(dto.Id, Arg.Is<KeyStroke[]>(x => x.Length == 0));
+	}
+
+	/// <summary>
+	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: a write the database fails leaves the hotkeys of the file in the
+	/// session as they were, and the failure goes to the reporter of database failures.
+	/// </summary>
+	[Test]
+	public async Task OverwriteAsync_Keeps_The_Hotkeys_When_The_Database_Fails()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		HotkeyDto[] oldHotkeys = [.. HotkeyFactory.CreateHotkeyDtos(2)];
+
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto
+			.Hotkeys
+			.AddRange(oldHotkeys);
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ReplaceHotkeysAsync(dto.Id, Arg.Any<KeyStroke[]>())
+				.ThrowsAsync(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(failureReporter);
+		});
+
+		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
+
+		// Act
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, [.. KeyStrokeFactory.CreateKeyStrokes(3)], []);
+
+		// Assert
+		result
+			.Should()
+			.Be(OverwriteHotkeysOutcome.ExceptionThrown);
+
+		dto.Hotkeys
+			.Should()
+			.Equal(oldHotkeys);
+
+		failureReporter
+			.Received(1)
+			.Report(failure, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -130,7 +190,7 @@ internal class FileHotkeyEditorTests
 
 		await dbAccess
 			.Received(1)
-			.AddHotkeysAsync(Arg.Any<Guid>(), Arg.Any<KeyStroke[]>());
+			.ReplaceHotkeysAsync(dto.Id, newHotkeys);
 	}
 
 	/// <summary>

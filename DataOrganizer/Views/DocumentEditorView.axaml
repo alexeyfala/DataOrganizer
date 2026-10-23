@@ -21,7 +21,9 @@
 		Bound by name, not by $parent: an ancestor binding is lost while the control is detached, which resets the editor.
 	-->
 	<Grid RowDefinitions="Auto,*,Auto">
-		<StackPanel Grid.Row="0" Orientation="Horizontal">
+		<StackPanel
+			Grid.Row="0"
+			Orientation="Horizontal">
 			<StackPanel.Styles>
 				<Style Selector="ToggleButton">
 					<Setter Property="Margin" Value="0.0,4.0" />
@@ -104,14 +106,18 @@
 
 					<Interaction.Behaviors>
 						<EventTriggerBehavior EventName="Spin">
-							<InvokeCommandAction Command="{Binding #Editor.ActiveEditor.SpinCommand}" PassEventArgsToCommand="True" />
+							<InvokeCommandAction
+								Command="{Binding #Editor.ActiveEditor.SpinCommand}"
+								PassEventArgsToCommand="True" />
 						</EventTriggerBehavior>
 					</Interaction.Behaviors>
 
 					<TextBlock Text="{Binding DocumentFontSize, Mode=OneWay}" />
 				</ButtonSpinner>
 
-				<Panel Classes="VerticalSeparatorPanelStyle" IsVisible="{Binding ToolBarContent, Converter={x:Static ObjectConverters.IsNotNull}}" />
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					IsVisible="{Binding ToolBarContent, Converter={x:Static ObjectConverters.IsNotNull}}" />
 			</StackPanel>
 
 			<!--  The slot keeps the inherited data context for the buttons placed in it.  -->
@@ -121,6 +127,7 @@
 		<textControls:SplitDocumentEditor
 			x:Name="Editor"
 			Grid.Row="1"
+			Classes="CardFlyoutsStyle MaterialFlyoutsStyle"
 			DataContext="{Binding #View}"
 			Document="{Binding Document, Mode=OneWay}"
 			FontSize="{Binding DocumentFontSize, Mode=TwoWay}"
@@ -140,12 +147,6 @@
 			</Interaction.Behaviors>
 
 			<textControls:SplitDocumentEditor.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-					<Setter Property="Cursor" Value="Arrow" />
-					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
-				</Style>
-
 				<!--  The folding markers keep the gray of the line numbers, while their fill and their hover follow the theme.  -->
 				<Style Selector="folding|FoldingMargin">
 					<Setter Property="FoldingMarkerBackgroundBrush" Value="Transparent" />
@@ -160,14 +161,9 @@
 					<controls:LazyMenuFlyout.MenuTemplate>
 						<!--  A template has names of its own, so the items reach the editor as the ancestor the menu is shown at.  -->
 						<DataTemplate>
-							<StackPanel Orientation="Vertical">
-								<StackPanel.Styles>
-									<Style Selector="Button">
-										<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-										<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
-									</Style>
-								</StackPanel.Styles>
-
+							<StackPanel
+								Classes="FlatButtonsStyle BodyColorButtonsStyle"
+								Orientation="Vertical">
 								<!--  The commands used most stand in one row of icons, which keeps the menu short.  -->
 								<StackPanel Orientation="Horizontal">
 									<controls:FlyoutButton
@@ -215,7 +211,9 @@
 
 								<Separator />
 
-								<controls:FlyoutButton Header="{x:Static prop:Strings.Transform}" Icon="FormatLetterCase">
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Transform}"
+									Icon="FormatLetterCase">
 									<Button.Flyout>
 										<controls:LazyMenuFlyout Placement="Right">
 											<controls:LazyMenuFlyout.MenuTemplate>
@@ -292,7 +290,9 @@
 									Header="{x:Static prop:Strings.Find}"
 									Icon="Magnify" />
 
-								<controls:FlyoutButton Header="{x:Static prop:Strings.Bookmarks}" Icon="BookmarkMultipleOutline">
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Bookmarks}"
+									Icon="BookmarkMultipleOutline">
 									<Button.Flyout>
 										<controls:LazyMenuFlyout Placement="Right">
 											<controls:LazyMenuFlyout.MenuTemplate>
@@ -377,8 +377,12 @@
 			Grid.Row="2"
 			BorderBrush="{StaticResource MaterialDividerBrush}"
 			BorderThickness="0.0,1.0,0.0,0.0">
-			<DockPanel LastChildFill="False" TextBlock.TextTrimming="CharacterEllipsis">
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
+			<DockPanel
+				LastChildFill="False"
+				TextBlock.TextTrimming="CharacterEllipsis">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="EncodingBlock"
 						Caption="{Binding #View.EncodingName, Mode=OneWay}"
@@ -404,7 +408,9 @@
 					A choice converts the text of the active half, and the selected item follows the status, as the ids are the
 					names of the styles. A text without line breaks hides the block with its separator.
 				-->
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
 					<views:ChoiceSelector
 						x:Name="LineEndingBlock"
 						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:DocumentConverters.LineEndingToCaption}}"
@@ -430,7 +436,9 @@
 					The numbers of the length and of the caret sit in DockPanels: unlike a StackPanel, a DockPanel gives
 					its children only the width there is, so a number cut by a narrow window ends with an ellipsis.
 				-->
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
 					<DockPanel
 						x:Name="LengthBlock"
 						Margin="8.0,4.0"
@@ -442,9 +450,13 @@
 					</DockPanel>
 				</Border>
 
-				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right" />
 
-				<Border ClipToBounds="True" DockPanel.Dock="Right">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
 					<DockPanel
 						x:Name="CaretBlock"
 						Margin="8.0,4.0"
@@ -458,9 +470,13 @@
 					</DockPanel>
 				</Border>
 
-				<Panel Classes="VerticalSeparatorPanelStyle" DockPanel.Dock="Right" />
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right" />
 
-				<Border ClipToBounds="True" DockPanel.Dock="Left">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Left">
 					<views:ChoiceSelector
 						x:Name="LanguageBlock"
 						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SyntaxLanguageToName}}"

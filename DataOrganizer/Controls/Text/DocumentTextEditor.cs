@@ -236,6 +236,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// </summary>
 	private bool _isDisposed;
 
+	/// <summary>
+	/// Bookmarked lines of a text replaced whole until the end of its change; <c>null</c> while no change replaces it.
+	/// </summary>
+	private int[]? _replacedTextBookmarks;
+
 	/// <inheritdoc cref="Status" />
 	private DocumentStatus _status;
 	#endregion
@@ -327,6 +332,12 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		DocumentChanged += DocumentTextEditor_DocumentChanged;
 
+		// The base sets the first document before this constructor runs, so it is followed from here.
+		if (Document is { } document)
+		{
+			TextDocumentWeakEventManager.Changing.AddHandler(document, Document_Changing);
+		}
+
 		TextChanged += DocumentTextEditor_TextChanged;
 
 		// The line endings and the blocks take a pass over all lines, so a run of edits is followed by a single pass.
@@ -376,10 +387,35 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	}
 
 	/// <summary>
+	/// <see cref="TextDocument.Changing" /> event handler.
+	/// </summary>
+	private void Document_Changing(object? sender, DocumentChangeEventArgs e)
+	{
+		// A text replaced whole, as a file loaded into the empty document or read again in another encoding, is a new text:
+		// its line endings and blocks are found at the end of the change, while typing still waits for the pause, and its
+		// bookmarks are taken while they still stand on their lines.
+		if (sender is TextDocument document && e.RemovalLength == document.TextLength)
+		{
+			_replacedTextBookmarks = Bookmarks.GetLines();
+		}
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.DocumentChanged" /> event handler.
 	/// </summary>
 	private void DocumentTextEditor_DocumentChanged(object? sender, DocumentChangedEventArgs e)
 	{
+		// A document may outlive the view, so its changes are followed weakly.
+		if (e.OldDocument is { } oldDocument)
+		{
+			TextDocumentWeakEventManager.Changing.RemoveHandler(oldDocument, Document_Changing);
+		}
+
+		if (e.NewDocument is { } newDocument)
+		{
+			TextDocumentWeakEventManager.Changing.AddHandler(newDocument, Document_Changing);
+		}
+
 		// The bookmarks belong to the lines of one document.
 		Bookmarks = GetBookmarks(Document);
 
@@ -402,6 +438,27 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 			LineCount = LineCount,
 			TextLength = Document?.TextLength ?? 0
 		};
+
+		// The folding moves its blocks with the change itself, so the blocks of a new text are found only after it.
+		if (_replacedTextBookmarks is not { } bookmarkedLines)
+		{
+			return;
+		}
+
+		_replacedTextBookmarks = null;
+
+		UpdateLineEnding();
+
+		// A new text, as a pasted one, may cross the length limit of the highlighting, which the folding follows.
+		UpdateSyntax();
+
+		UpdateFoldings();
+
+		// The change moves the bookmarks of a text replaced whole to its end, so they go back to their line numbers.
+		if (bookmarkedLines.Length > 0)
+		{
+			Bookmarks.SetLines(bookmarkedLines);
+		}
 	}
 
 	/// <summary>
@@ -465,6 +522,11 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	{
 		_isDisposed = true;
 
+		if (Document is { } document)
+		{
+			TextDocumentWeakEventManager.Changing.RemoveHandler(document, Document_Changing);
+		}
+
 		RemoveHighlighting();
 
 		RemoveFolding();
@@ -480,6 +542,33 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	/// block starts is skipped.
 	/// </summary>
 	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded) => _folding.SetBlocksFolded(starts, isFolded);
+
+	/// <summary>
+	/// Puts the selection, the caret, the folded blocks and the scroll offset in place; nothing before the view is built.
+	/// </summary>
+	public void SetView(
+		int selectionStart,
+		int selectionLength,
+		TextViewPosition caretPosition,
+		IEnumerable<int> blockStarts,
+		bool isFolded,
+		Vector scrollOffset)
+	{
+		if (ScrollViewer is not { } scrollViewer)
+		{
+			return;
+		}
+
+		Select(selectionStart, selectionLength);
+
+		TextArea.Caret.Position = caretPosition;
+
+		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
+		// folded text.
+		SetBlocksFolded(blockStarts, isFolded);
+
+		scrollViewer.Offset = scrollOffset;
+	}
 
 	/// <summary>
 	/// Finds the blocks that fold with a pass over all lines.

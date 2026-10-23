@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -57,9 +58,7 @@ internal class TextEditorBaseTests
 			window) ?? default;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -115,9 +114,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Right);
-
-			window.MouseUp(point, MouseButton.Right);
+			window.Click(point, MouseButton.Right);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -147,9 +144,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Left);
-
-			window.MouseUp(point, MouseButton.Left);
+			window.Click(point);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -185,9 +180,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Left);
-
-			window.MouseUp(point, MouseButton.Left);
+			window.Click(point);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -229,6 +222,44 @@ internal class TextEditorBaseTests
 		sut.SelectionStart
 			.Should()
 			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase.FindCommand" />: every button of the search panel, also one that shows a glyph alone, has
+	/// a name for UI Automation instead of the name of its content type.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindCommand_Opens_A_Search_Panel_With_A_Name_On_Every_Button()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Show(sut);
+
+		// Act
+		sut.FindCommand.Execute(null);
+
+		// The panel builds its buttons in the layout pass.
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SearchPanel
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Select(static x => ControlAutomationPeer
+				.CreatePeerForElement(x)
+				.GetName())
+			.Should()
+			.NotBeEmpty()
+			.And
+			.AllSatisfy(static x => x
+				.Should()
+				.NotBeNullOrEmpty()
+				.And
+				.NotStartWith("Avalonia."));
 	}
 
 	/// <summary>
@@ -274,7 +305,7 @@ internal class TextEditorBaseTests
 			: RawInputModifiers.None;
 
 		// Act
-		window.MouseWheel(Center(window, sut), new(0.0, 1.0), modifiers);
+		window.MouseWheel(window.CenterOf(sut), new(0.0, 1.0), modifiers);
 
 		// Assert
 		sut.FontSize
@@ -327,9 +358,7 @@ internal class TextEditorBaseTests
 			window) ?? default;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		LineNumberMargin lineNumbers = sut
@@ -699,18 +728,6 @@ internal class TextEditorBaseTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Creates a document of numbered lines of the same length.
 	/// </summary>

@@ -43,12 +43,6 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsClipboardHistoryEnabled { get; set; }
-
-	/// <summary>
-	/// <c>True</c> when initialization has completed.
-	/// </summary>
-	public bool IsInitialized { get; protected set; }
-
 	#endregion
 
 	#region Auto-Generated Commands

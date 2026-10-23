@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		Builds the Russian satellite of AvaloniaEdit, ru/AvaloniaEdit.resources.dll, whose package ships English and
+		Chinese texts of the search panel only. The runtime finds a satellite by its name and culture, so the satellite
+		needs neither the version nor the public key of AvaloniaEdit.dll; the empty main assembly goes nowhere.
+	-->
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+	</PropertyGroup>
+
+	<!--
+		The SDK names a satellite after its project, and a project named AvaloniaEdit makes Visual Studio take the
+		package assembly for user code; hence the texts reach the satellite through the target below instead.
+	-->
+	<ItemGroup>
+		<EmbeddedResource Remove="SR.ru.resx" />
+		<None Include="SR.ru.resx" />
+		<UpToDateCheckInput Include="SR.ru.resx" />
+	</ItemGroup>
+
+	<!-- Only the satellite reaches the projects that reference this one, which take it as a file to copy. -->
+	<ItemGroup>
+		<None Include="$(IntermediateOutputPath)ru\AvaloniaEdit.resources.dll" Link="ru\AvaloniaEdit.resources.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+	</ItemGroup>
+
+	<!-- The resource manager of AvaloniaEdit looks in the satellite for AvaloniaEdit.SR.ru.resources. -->
+	<Target Name="BuildAvaloniaEditSatellite" AfterTargets="CreateSatelliteAssemblies" Inputs="SR.ru.resx;$(MSBuildProjectFullPath)" Outputs="$(IntermediateOutputPath)ru\AvaloniaEdit.resources.dll">
+		<PropertyGroup>
+			<SatelliteDirectory>$(IntermediateOutputPath)ru\</SatelliteDirectory>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<SatelliteAttribute Include="System.Reflection.AssemblyCultureAttribute">
+				<_Parameter1>ru</_Parameter1>
+			</SatelliteAttribute>
+			<SatelliteReference Include="@(ReferencePath)" Condition="'%(Filename)' == 'System.Runtime'" />
+		</ItemGroup>
+
+		<MakeDir Directories="$(SatelliteDirectory)" />
+
+		<GenerateResource Sources="SR.ru.resx" OutputResources="$(SatelliteDirectory)AvaloniaEdit.SR.ru.resources" UsePreserializedResources="$(GenerateResourceUsePreserializedResources)" ExecuteAsTool="false">
+			<Output TaskParameter="FilesWritten" ItemName="FileWrites" />
+		</GenerateResource>
+
+		<WriteCodeFragment AssemblyAttributes="@(SatelliteAttribute)" Language="C#" OutputFile="$(SatelliteDirectory)AvaloniaEdit.resources.cs">
+			<Output TaskParameter="OutputFile" ItemName="FileWrites" />
+		</WriteCodeFragment>
+
+		<Csc Sources="$(SatelliteDirectory)AvaloniaEdit.resources.cs" Resources="$(SatelliteDirectory)AvaloniaEdit.SR.ru.resources" References="@(SatelliteReference)" OutputAssembly="$(SatelliteDirectory)AvaloniaEdit.resources.dll" TargetType="Library" NoConfig="true" NoStandardLib="true" Deterministic="true">
+			<Output TaskParameter="OutputAssembly" ItemName="FileWrites" />
+		</Csc>
+	</Target>
+
+</Project>

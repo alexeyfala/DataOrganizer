@@ -58,7 +58,6 @@ public sealed partial class HotkeysEditorViewModel :
 	[RelayCommand]
 	internal void Clear() => Buffer.Clear();
 
-
 	/// <summary>
 	/// Saves hotkeys and closes the view.
 	/// </summary>

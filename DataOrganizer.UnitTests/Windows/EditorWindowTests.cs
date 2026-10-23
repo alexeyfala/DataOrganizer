@@ -166,7 +166,7 @@ internal class EditorWindowTests
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
 
 		// Act
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -236,7 +236,7 @@ internal class EditorWindowTests
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowExecutingFilesCommand));
 
 		// Act
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -345,10 +345,10 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -715,7 +715,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Click(sut, Center(sut, sut.FindTreeRow(file)!));
+		sut.Click(sut.CenterOf(sut.FindTreeRow(file)!));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -848,12 +848,12 @@ internal class EditorWindowTests
 
 		Grid item = sut.FindTreeRow(file)!;
 
-		Point point = Center(sut, item);
+		Point point = sut.CenterOf(item);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		bool isOpen = item.ContextFlyout is { IsOpen: true };
 
@@ -893,12 +893,12 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -989,7 +989,7 @@ internal class EditorWindowTests
 			.OfType<Button>()
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
 
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1716,7 +1716,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.Receive(new ShowInEditorMessage(file.Id));
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -2306,7 +2306,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowInListCommand.Execute(file.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -2314,6 +2314,71 @@ internal class EditorWindowTests
 		viewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(file);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: one show builds the row of an object inside collapsed folders far down the
+	/// tree, brings it into view, selects it and highlights it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowObject_Brings_An_Object_Inside_Collapsed_Folders_Far_Down_Into_View()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		// The tree builds no rows of the top level far from its view, nor the rows inside them.
+		viewModel
+			.Hierarchy
+			.AddRange(ItemDtoFactory.CreateFileDtos(100));
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowObject(file.Id);
+
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+
+		bool[] states =
+		[
+			sut.FindTreeItem(file) is { IsSelected: true },
+			IsInView(sut, file),
+			IsHighlighted(sut, file, inner)
+		];
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
 	}
 
 	/// <summary>
@@ -2350,7 +2415,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(shown.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2488,7 +2553,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -2531,7 +2596,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -2542,31 +2607,66 @@ internal class EditorWindowTests
 			.Should()
 			.NotBeSameAs(background);
 	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: a file inside collapsed folders stays selected, as its row is built
+	/// before the selection.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowObject_Selects_A_File_Inside_Collapsed_Folders()
+	{
+		// Arrange
+		FolderDto outer = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto inner = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		inner.Parent = outer;
+
+		outer.Children.Add(inner);
+
+		file.Parent = inner;
+
+		inner.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel.Hierarchy.Add(outer);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel.ShowObject(file.Id);
+
+		// The highlight comes after the selection, so a selection the tree drops is gone by then.
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+
+		bool[] states =
+		[
+			viewModel.SelectedNode?.Model == file,
+			sut.FindTreeItem(file) is { IsSelected: true }
+		];
+
+		sut.Close();
+
+		// Assert
+		states
+			.Should()
+			.OnlyContain(static x => x);
+	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point)
-	{
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Returns the settings of an editor window with a navigation column of a width.
 	/// </summary>
@@ -2598,18 +2698,26 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
+	/// <c>True</c> while the row of an object is highlighted: its background differs from that of the row of another
+	/// object.
 	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
+	private static bool IsHighlighted(EditorWindow window, ExplorerItemDtoBase dto, ExplorerItemDtoBase other)
 	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
+		return window.FindTreeItem(dto) is { } item
+			&& window.FindTreeItem(other) is { } otherItem
+			&& !ReferenceEquals(item.Background, otherItem.Background);
+	}
 
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
+	/// <summary>
+	/// <c>True</c> while the row of an object lies wholly in the visible part of the tree.
+	/// </summary>
+	private static bool IsInView(EditorWindow window, ExplorerItemDtoBase dto)
+	{
+		return window.FindTreeRow(dto) is { } row
+			&& row.FindAncestorOfType<TreeView>() is { } tree
+			&& row.TranslatePoint(default, tree) is { } point
+			&& point.Y >= 0.0
+			&& point.Y + row.Bounds.Height <= tree.Bounds.Height;
 	}
 	#endregion
 }

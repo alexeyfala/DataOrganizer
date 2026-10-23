@@ -14,9 +14,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
@@ -194,72 +192,36 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	public SelectedFavoritesViewModel(
 		IContentCopier contentCopier,
 		IMessenger messenger,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider) : base(
 			contentCopier,
 			messenger,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(
-			this.FilterPredicate(x => x.CategorySearch),
+			this.FilterPredicate(
+				x => x.CategorySearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
 		_favoritesFilter = new(
-			this.FilterPredicate(x => x.FavoriteSearch),
+			this.FilterPredicate(
+				x => x.FavoriteSearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
-		if (_categoriesFilter.Visible is INotifyCollectionChanged categoriesNotifier)
-		{
-			categoriesNotifier.CollectionChanged += CategoriesNotifier_CollectionChanged;
+		// The category and the favorite chosen last come back when the search shows them again while nothing is chosen.
+		_categoriesFilter
+			.WhenShown(() => _previousSelectedCategory)
+			.Where(_ => SelectedCategory is null)
+			.Subscribe(x => SelectedCategory = x)
+			.DisposeWith(_disposables);
 
-			Disposable
-				.Create(() => categoriesNotifier.CollectionChanged -= CategoriesNotifier_CollectionChanged)
-				.DisposeWith(_disposables);
-		}
-
-		if (_favoritesFilter.Visible is INotifyCollectionChanged favoritesNotifier)
-		{
-			favoritesNotifier.CollectionChanged += FavoritesNotifier_CollectionChanged;
-
-			Disposable
-				.Create(() => favoritesNotifier.CollectionChanged -= FavoritesNotifier_CollectionChanged)
-				.DisposeWith(_disposables);
-		}
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
-	/// </summary>
-	private void CategoriesNotifier_CollectionChanged(
-		object? sender,
-		NotifyCollectionChangedEventArgs e)
-	{
-		if (SelectedCategory is not null
-			|| _previousSelectedCategory is null
-			|| !_categoriesFilter.Visible.Contains(_previousSelectedCategory))
-		{
-			return;
-		}
-
-		SelectedCategory = _previousSelectedCategory;
-	}
-
-	/// <summary>
-	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
-	/// </summary>
-	private void FavoritesNotifier_CollectionChanged(
-		object? sender,
-		NotifyCollectionChangedEventArgs e)
-	{
-		if (SelectedFavorite is not null
-			|| _previousSelectedFavorite is null
-			|| !_favoritesFilter.Visible.Contains(_previousSelectedFavorite))
-		{
-			return;
-		}
-
-		SelectedFavorite = _previousSelectedFavorite;
+		_favoritesFilter
+			.WhenShown(() => _previousSelectedFavorite)
+			.Where(_ => SelectedFavorite is null)
+			.Subscribe(x => SelectedFavorite = x)
+			.DisposeWith(_disposables);
 	}
 	#endregion
 

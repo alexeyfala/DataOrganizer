@@ -302,7 +302,7 @@ internal sealed class DocumentViewStateBehavior :
 		// The upper half takes the state, and a lower half, when there is one, follows it.
 		if (_pendingViewState is not { } state
 			|| AssociatedObject is not { } splitEditor
-			|| splitEditor.PrimaryEditor is not { ScrollViewer: { } scrollViewer, Document: { } document } editor)
+			|| splitEditor.PrimaryEditor is not { ScrollViewer: not null, Document: { } document } editor)
 		{
 			return;
 		}
@@ -319,26 +319,15 @@ internal sealed class DocumentViewStateBehavior :
 			0,
 			document.TextLength - start);
 
-		editor.Select(start, length);
-
-		editor
-			.TextArea
-			.Caret
-			.Position = ToTextViewPosition(state.CaretPosition);
-
-		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
-		// folded text.
-		if (state.UnfoldedBlocks is { } unfoldedBlocks)
-		{
-			editor.SetBlocksFolded(unfoldedBlocks, isFolded: false);
-		}
-		else
-		{
-			editor.SetBlocksFolded(state.FoldedBlocks ?? [], isFolded: true);
-		}
-
-		// The offset, not the caret line, brings the view back the way it was left.
-		scrollViewer.Offset = new(state.ScrollOffset.X, state.ScrollOffset.Y);
+		// The state keeps the shorter list of blocks, the unfolded or the folded ones, and the offset, not the caret line,
+		// brings the view back the way it was left.
+		editor.SetView(
+			selectionStart: start,
+			selectionLength: length,
+			caretPosition: ToTextViewPosition(state.CaretPosition),
+			blockStarts: state.UnfoldedBlocks ?? state.FoldedBlocks ?? [],
+			isFolded: state.UnfoldedBlocks is null,
+			scrollOffset: new(state.ScrollOffset.X, state.ScrollOffset.Y));
 
 		editor
 			.Bookmarks

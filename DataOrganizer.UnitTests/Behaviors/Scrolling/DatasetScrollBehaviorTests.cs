@@ -15,12 +15,11 @@ using DataOrganizer.Behaviors.Scrolling;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Behaviors.Scrolling;
 
@@ -28,6 +27,11 @@ namespace DataOrganizer.UnitTests.Behaviors.Scrolling;
 internal class DatasetScrollBehaviorTests
 {
 	#region Data
+	/// <summary>
+	/// Shift of the list off its top that the first layout of the records makes in the app.
+	/// </summary>
+	private const double LayoutShift = 40.0;
+
 	/// <summary>
 	/// Number of the records in the list.
 	/// </summary>
@@ -49,6 +53,11 @@ internal class DatasetScrollBehaviorTests
 	private const double WithinRecordOffset = 10.0;
 
 	/// <summary>
+	/// Time longer than the pause after which a scroll is reported, and than the rest of a move.
+	/// </summary>
+	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
+
+	/// <summary>
 	/// Template that shows every record at <see cref="RecordHeight" />, with a background the pointer can hit.
 	/// </summary>
 	private static readonly FuncDataTemplate<DatasetRecordBase> RecordTemplate = new((_, _) => new Border
@@ -64,10 +73,12 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="DatasetScrollBehavior.ViewState" /> leaves the list on its way, since a click is not a scroll.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Click_On_A_Record_Leaves_The_Scroll_Back_Going()
+	public void Click_On_A_Record_Leaves_The_Scroll_Back_Going()
 	{
 		// Arrange
 		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		FakeTimeProvider time = new();
 
 		ScrollViewer scrollViewer = new()
 		{
@@ -80,6 +91,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -96,16 +108,14 @@ internal class DatasetScrollBehaviorTests
 		sut.IsEnabled = true;
 
 		// Past its first screen the list is on its way back to the stored record.
-		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+		time.RunJobsUntil(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
 
 		Point point = scrollViewer.TranslatePoint(new Rect(scrollViewer.Viewport).Center, window)!.Value;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
+		window.Click(point);
 
-		window.MouseUp(point, MouseButton.Left);
-
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
+		time.RunJobsUntil(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
 
 		// Assert
 		window.InputHitTest(point)
@@ -122,9 +132,11 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the click leaves it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Click_On_The_Track_Stops_The_Scroll_Back()
+	public void Click_On_The_Track_Stops_The_Scroll_Back()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -136,6 +148,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -152,7 +165,7 @@ internal class DatasetScrollBehaviorTests
 		sut.IsEnabled = true;
 
 		// Past its first screen the list is on its way back to the stored record.
-		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+		time.RunJobsUntil(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
 
 		// The part of the track below the thumb.
 		Button track = scrollViewer
@@ -161,17 +174,15 @@ internal class DatasetScrollBehaviorTests
 			.Single(static x => x.Orientation == Orientation.Vertical)
 			.IncreaseButton!;
 
-		Point point = track.TranslatePoint(new Rect(track.Bounds.Size).Center, window)!.Value;
+		Point point = window.CenterOf(track);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Vector place = scrollViewer.Offset;
 
 		// Longer than the rest of the scroll back would take.
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -183,9 +194,11 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="StyledElementBehavior.Detach" />: a behavior taken off the list no longer reports its scroll.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Detach_Stops_Reporting_The_Scroll()
+	public void Detach_Stops_Reporting_The_Scroll()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -195,7 +208,10 @@ internal class DatasetScrollBehaviorTests
 			}
 		};
 
-		DatasetScrollBehavior sut = new();
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time
+		};
 
 		Interaction
 			.GetBehaviors(scrollViewer)
@@ -205,7 +221,7 @@ internal class DatasetScrollBehaviorTests
 
 		sut.IsEnabled = true;
 
-		await RunJobsAsync(repeats: 10);
+		time.RunJobsFor(PastThePause);
 
 		// Act
 		Interaction
@@ -214,7 +230,7 @@ internal class DatasetScrollBehaviorTests
 
 		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
 
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		sut.ViewState
@@ -227,9 +243,11 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the drag leaves it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Drag_Of_The_Thumb_Stops_The_Scroll_Back()
+	public void Drag_Of_The_Thumb_Stops_The_Scroll_Back()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -241,6 +259,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -257,7 +276,7 @@ internal class DatasetScrollBehaviorTests
 		sut.IsEnabled = true;
 
 		// Past its first screen the list is on its way back to the stored record.
-		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+		time.RunJobsUntil(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
 
 		Thumb thumb = scrollViewer
 			.GetVisualDescendants()
@@ -265,7 +284,7 @@ internal class DatasetScrollBehaviorTests
 			.Single(static x => x.Orientation == Orientation.Vertical)
 			.Thumb!;
 
-		Point from = thumb.TranslatePoint(new Rect(thumb.Bounds.Size).Center, window)!.Value;
+		Point from = window.CenterOf(thumb);
 
 		Point to = from + new Point(0.0, 20.0);
 
@@ -279,7 +298,7 @@ internal class DatasetScrollBehaviorTests
 		Vector place = scrollViewer.Offset;
 
 		// Longer than the rest of the scroll back would take.
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -292,10 +311,12 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="DatasetScrollBehavior.ViewState" /> back to the top, scrolled as far into it as it was.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Brings_Back_The_View_State()
+	public void IsEnabled_Brings_Back_The_View_State()
 	{
 		// Arrange
 		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		FakeTimeProvider time = new();
 
 		ScrollViewer scrollViewer = new()
 		{
@@ -308,6 +329,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -324,7 +346,58 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		sut.IsEnabled = true;
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
+		time.RunJobsUntil(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(offset, 0.5);
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: enabled as the records come, before a layout pass has realized
+	/// them, the behavior brings <see cref="DatasetScrollBehavior.ViewState" /> back as soon as they are laid out.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsEnabled_Brings_Back_The_View_State_Once_The_Records_Are_Laid_Out()
+	{
+		// Arrange
+		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		FakeTimeProvider time = new();
+
+		ItemsRepeater recordsHost = new()
+		{
+			ItemTemplate = RecordTemplate
+		};
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = recordsHost
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time,
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		// Act
+		recordsHost.ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount);
+
+		sut.IsEnabled = true;
+
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -337,12 +410,14 @@ internal class DatasetScrollBehaviorTests
 	/// behavior still follows the scroll afterwards.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Ends_The_Move_When_The_Record_Is_Gone()
+	public void IsEnabled_Ends_The_Move_When_The_Record_Is_Gone()
 	{
 		// Arrange
 		const int keptCount = 20;
 
 		ObservableCollection<DatasetRecordBase> records = [.. DatasetRecordFactory.CreateValueRecords(RecordCount)];
+
+		FakeTimeProvider time = new();
 
 		ScrollViewer scrollViewer = new()
 		{
@@ -355,6 +430,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -384,11 +460,11 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		sut.IsEnabled = true;
 
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		scrollViewer.Offset = new Vector(0.0, RecordHeight + WithinRecordOffset);
 
-		await RunJobsUntilAsync(() => sut.ViewState is { TopRecordIndex: not TopRecordIndex });
+		time.RunJobsUntil(() => sut.ViewState is { TopRecordIndex: not TopRecordIndex });
 
 		// Assert
 		sut.ViewState
@@ -405,9 +481,11 @@ internal class DatasetScrollBehaviorTests
 	/// behavior follows the scroll.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Follows_The_Scroll_After_A_Record_Before_The_List()
+	public void IsEnabled_Follows_The_Scroll_After_A_Record_Before_The_List()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -419,6 +497,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = -1,
@@ -435,11 +514,11 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		sut.IsEnabled = true;
 
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
 
-		await RunJobsUntilAsync(() => sut.ViewState is { TopRecordIndex: >= 0 });
+		time.RunJobsUntil(() => sut.ViewState is { TopRecordIndex: >= 0 });
 
 		// Assert
 		sut.ViewState
@@ -456,9 +535,11 @@ internal class DatasetScrollBehaviorTests
 	/// end, and the behavior follows the scroll afterwards.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Follows_The_Scroll_After_A_Record_Near_The_End()
+	public void IsEnabled_Follows_The_Scroll_After_A_Record_Near_The_End()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -470,6 +551,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = RecordCount - 2,
@@ -491,14 +573,14 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		sut.IsEnabled = true;
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
+		time.RunJobsUntil(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
 
 		// The move ends one step after the list reaches its end.
-		await RunJobsAsync(repeats: 10);
+		time.RunJobsFor(PastThePause);
 
 		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
 
-		await RunJobsUntilAsync(() => sut.ViewState is { TopRecordIndex: TopRecordIndex });
+		time.RunJobsUntil(() => sut.ViewState is { TopRecordIndex: TopRecordIndex });
 
 		// Assert
 		sut.ViewState
@@ -514,47 +596,11 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="StyledElementBehavior.IsEnabled" />: until it is enabled, the behavior does not report the scroll.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Is_Off_Until_It_Is_Set()
+	public void IsEnabled_Is_Off_Until_It_Is_Set()
 	{
 		// Arrange
-		ScrollViewer scrollViewer = new()
-		{
-			Content = new ItemsRepeater
-			{
-				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
-				ItemTemplate = RecordTemplate
-			}
-		};
+		FakeTimeProvider time = new();
 
-		DatasetScrollBehavior sut = new();
-
-		Interaction
-			.GetBehaviors(scrollViewer)
-			.Add(sut);
-
-		Show(scrollViewer);
-
-		await RunJobsAsync(repeats: 10);
-
-		// Act
-		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
-
-		await OutlastThePauseAsync();
-
-		// Assert
-		sut.ViewState
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="StyledElementBehavior.IsEnabled" />: a record beyond the end of the list leaves the list on its first
-	/// records.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task IsEnabled_Leaves_The_List_For_A_Record_Beyond_It()
-	{
-		// Arrange
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -566,6 +612,50 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		time.RunJobsFor(PastThePause);
+
+		// Act
+		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
+
+		time.RunJobsFor(PastThePause);
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a record beyond the end of the list leaves the list at its very top,
+	/// though the first layout of the records has moved it off.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsEnabled_Leaves_The_List_For_A_Record_Beyond_It()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = RecordCount,
@@ -579,15 +669,17 @@ internal class DatasetScrollBehaviorTests
 
 		Show(scrollViewer);
 
+		scrollViewer.Offset = new Vector(0.0, LayoutShift);
+
 		// Act
 		sut.IsEnabled = true;
 
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		scrollViewer.Offset.Y
 			.Should()
-			.BeLessThan(scrollViewer.Viewport.Height);
+			.Be(0.0);
 	}
 
 	/// <summary>
@@ -595,7 +687,7 @@ internal class DatasetScrollBehaviorTests
 	/// end, and <see cref="DatasetScrollBehavior.ViewState" /> stays as it was, since nobody scrolled the list.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Leaves_The_View_State_Of_A_Record_Near_The_End()
+	public void IsEnabled_Leaves_The_View_State_Of_A_Record_Near_The_End()
 	{
 		// Arrange
 		DatasetEditorState state = new()
@@ -603,6 +695,8 @@ internal class DatasetScrollBehaviorTests
 			TopRecordIndex = RecordCount - 2,
 			WithinRecordOffset = 0.0
 		};
+
+		FakeTimeProvider time = new();
 
 		ScrollViewer scrollViewer = new()
 		{
@@ -615,6 +709,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = state
 		};
 
@@ -632,9 +727,9 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		sut.IsEnabled = true;
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
+		time.RunJobsUntil(() => Math.Abs(scrollViewer.Offset.Y - End()) < 0.5);
 
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		sut.ViewState
@@ -646,52 +741,10 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="StyledElementBehavior.IsEnabled" />: turned off, the behavior no longer reports the scroll.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task IsEnabled_Off_Stops_Reporting_The_Scroll()
+	public void IsEnabled_Off_Stops_Reporting_The_Scroll()
 	{
 		// Arrange
-		ScrollViewer scrollViewer = new()
-		{
-			Content = new ItemsRepeater
-			{
-				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
-				ItemTemplate = RecordTemplate
-			}
-		};
-
-		DatasetScrollBehavior sut = new();
-
-		Interaction
-			.GetBehaviors(scrollViewer)
-			.Add(sut);
-
-		Show(scrollViewer);
-
-		sut.IsEnabled = true;
-
-		await RunJobsAsync(repeats: 10);
-
-		// Act
-		sut.IsEnabled = false;
-
-		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
-
-		await OutlastThePauseAsync();
-
-		// Assert
-		sut.ViewState
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="StyledElementBehavior.IsEnabled" />: enabled before the list is shown, the behavior brings
-	/// <see cref="DatasetScrollBehavior.ViewState" /> back once it is.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task IsEnabled_Waits_Until_The_List_Is_Shown()
-	{
-		// Arrange
-		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+		FakeTimeProvider time = new();
 
 		ScrollViewer scrollViewer = new()
 		{
@@ -704,6 +757,162 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		sut.IsEnabled = true;
+
+		time.RunJobsFor(PastThePause);
+
+		// Act
+		sut.IsEnabled = false;
+
+		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
+
+		time.RunJobsFor(PastThePause);
+
+		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a list without <see cref="DatasetScrollBehavior.ViewState" /> starts
+	/// at its very top, though the first layout of the records has moved it off, and no place is reported for it.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsEnabled_Puts_A_List_Without_A_View_State_At_Its_Top()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		scrollViewer.Offset = new Vector(0.0, LayoutShift);
+
+		// Act
+		sut.IsEnabled = true;
+
+		time.RunJobsFor(PastThePause);
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.Be(0.0);
+
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a layout pass that realizes no records does not end the wait for
+	/// them, so the behavior brings <see cref="DatasetScrollBehavior.ViewState" /> back once the records are laid out.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsEnabled_Waits_Until_A_Layout_Pass_Realizes_The_Records()
+	{
+		// Arrange
+		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		FakeTimeProvider time = new();
+
+		ItemsRepeater recordsHost = new()
+		{
+			// A hidden list lays out no records.
+			IsVisible = false,
+			ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+			ItemTemplate = RecordTemplate
+		};
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = recordsHost
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time,
+			ViewState = new DatasetEditorState
+			{
+				TopRecordIndex = TopRecordIndex,
+				WithinRecordOffset = WithinRecordOffset
+			}
+		};
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Window window = Show(scrollViewer);
+
+		sut.IsEnabled = true;
+
+		// A pass of the layout of the window that the hidden list takes no part in.
+		window.Width += 10.0;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		recordsHost.IsVisible = true;
+
+		time.RunJobsFor(PastThePause);
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.BeApproximately(offset, 0.5);
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: enabled before the list is shown, the behavior brings
+	/// <see cref="DatasetScrollBehavior.ViewState" /> back once it is.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsEnabled_Waits_Until_The_List_Is_Shown()
+	{
+		// Arrange
+		const double offset = (TopRecordIndex * RecordHeight) + WithinRecordOffset;
+
+		FakeTimeProvider time = new();
+
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -720,7 +929,7 @@ internal class DatasetScrollBehaviorTests
 		// Act
 		Show(scrollViewer);
 
-		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
+		time.RunJobsUntil(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -733,9 +942,11 @@ internal class DatasetScrollBehaviorTests
 	/// <see cref="DatasetScrollBehavior.ViewState" /> stops the list where the key leaves it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Page_Key_Stops_The_Scroll_Back([Values(PhysicalKey.PageUp, PhysicalKey.PageDown)] PhysicalKey key)
+	public void Page_Key_Stops_The_Scroll_Back([Values(PhysicalKey.PageUp, PhysicalKey.PageDown)] PhysicalKey key)
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -749,6 +960,7 @@ internal class DatasetScrollBehaviorTests
 
 		DatasetScrollBehavior sut = new()
 		{
+			TimeProvider = time,
 			ViewState = new DatasetEditorState
 			{
 				TopRecordIndex = TopRecordIndex,
@@ -767,7 +979,7 @@ internal class DatasetScrollBehaviorTests
 		sut.IsEnabled = true;
 
 		// Past its first screen the list is on its way back to the stored record.
-		await RunJobsUntilAsync(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
+		time.RunJobsUntil(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
 
 		// Act
 		window.KeyPressQwerty(key, RawInputModifiers.None);
@@ -775,7 +987,7 @@ internal class DatasetScrollBehaviorTests
 		Vector place = scrollViewer.Offset;
 
 		// Longer than the rest of the scroll back would take.
-		await OutlastThePauseAsync();
+		time.RunJobsFor(PastThePause);
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -788,9 +1000,11 @@ internal class DatasetScrollBehaviorTests
 	/// into it as it is.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Scroll_Reports_The_Record_At_The_Top()
+	public void Scroll_Reports_The_Record_At_The_Top()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		ScrollViewer scrollViewer = new()
 		{
 			Content = new ItemsRepeater
@@ -800,7 +1014,10 @@ internal class DatasetScrollBehaviorTests
 			}
 		};
 
-		DatasetScrollBehavior sut = new();
+		DatasetScrollBehavior sut = new()
+		{
+			TimeProvider = time
+		};
 
 		Interaction
 			.GetBehaviors(scrollViewer)
@@ -810,12 +1027,12 @@ internal class DatasetScrollBehaviorTests
 
 		sut.IsEnabled = true;
 
-		await RunJobsAsync(repeats: 10);
+		time.RunJobsFor(PastThePause);
 
 		// Act
 		scrollViewer.Offset = new Vector(0.0, (TopRecordIndex * RecordHeight) + WithinRecordOffset);
 
-		await RunJobsUntilAsync(() => sut.ViewState is not null);
+		time.RunJobsUntil(() => sut.ViewState is not null);
 
 		// Assert
 		sut.ViewState
@@ -829,41 +1046,6 @@ internal class DatasetScrollBehaviorTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Runs the jobs of the UI thread for longer than the pause after which a scroll is reported.
-	/// </summary>
-	private static Task OutlastThePauseAsync() => RunJobsAsync(repeats: 100);
-
-	/// <summary>
-	/// Runs the jobs of the UI thread <paramref name="repeats" /> times, with a short wait between the runs.
-	/// </summary>
-	private static async Task RunJobsAsync(int repeats)
-	{
-		Func<bool> never = static () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return false;
-		};
-
-		await never.WaitAsync(millisecondsDelay: 10, maxRepeats: repeats);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 500);
-	}
-
 	/// <summary>
 	/// Shows <paramref name="scrollViewer" /> in a window too short to hold all the records, and lets it load.
 	/// </summary>

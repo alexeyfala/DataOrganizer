@@ -1387,6 +1387,34 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: a stop gives the lock back, so the next stop is not left waiting.
+	/// </summary>
+	[Test]
+	public async Task StopTrackingAsync_Gives_The_Lock_Back()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
+
+		await sut.StopTrackingAsync();
+
+		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(2));
+
+		// Act
+		Func<Task> stopAgain = () => sut.StopTrackingAsync(timeout.Token);
+
+		// Assert
+		await stopAgain
+			.Should()
+			.NotThrowAsync();
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the tracked hierarchy and input stack are cleared.
 	/// </summary>
 	[Test]

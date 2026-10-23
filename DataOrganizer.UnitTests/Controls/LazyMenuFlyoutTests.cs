@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.Controls;
 
@@ -56,6 +57,62 @@ internal class LazyMenuFlyoutTests
 	}
 
 	/// <summary>
+	/// <see cref="LazyMenuFlyout" />: Esc in a submenu closes the submenu alone, and the next Esc closes the menu it was
+	/// opened from, as in the menus of Windows.
+	/// </summary>
+	[AvaloniaTest]
+	public void Escape_After_A_Submenu_Closes_The_Menu()
+	{
+		// Arrange
+		LazyMenuFlyout submenu = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new FlyoutButton())
+		};
+
+		FlyoutButton opener = new()
+		{
+			Flyout = submenu
+		};
+
+		LazyMenuFlyout sut = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => opener)
+		};
+
+		Border target = new();
+
+		Window window = Show(target);
+
+		sut.ShowAt(target);
+
+		Dispatcher.UIThread.RunJobs();
+
+		submenu.ShowAt(opener);
+
+		Dispatcher.UIThread.RunJobs();
+
+		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool[] afterFirst = [submenu.IsOpen, sut.IsOpen];
+
+		// Act
+		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		afterFirst
+			.Should()
+			.Equal(false, true);
+
+		sut.IsOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FlyoutBase.Hide" />: the menu built from <see cref="LazyMenuFlyout.MenuTemplate" /> goes away with the
 	/// flyout.
 	/// </summary>
@@ -83,6 +140,49 @@ internal class LazyMenuFlyoutTests
 		sut.Content
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FlyoutBase.Hide" />: a menu opened from the window, not from another menu, gives the focus to nobody.
+	/// </summary>
+	[AvaloniaTest]
+	public void Hide_Gives_The_Target_Outside_A_Menu_No_Focus()
+	{
+		// Arrange
+		LazyMenuFlyout sut = new()
+		{
+			MenuTemplate = new FuncDataTemplate<object>((_, _) => new TextBlock())
+		};
+
+		TextBox input = new();
+
+		Button target = new();
+
+		Window window = Show(new StackPanel
+		{
+			Children =
+			{
+				input,
+				target
+			},
+			Orientation = Orientation.Vertical
+		});
+
+		input.Focus();
+
+		sut.ShowAt(target);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.Hide();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		window.FocusManager?.GetFocusedElement()
+			.Should()
+			.NotBeSameAs(target);
 	}
 
 	/// <summary>
@@ -241,12 +341,10 @@ internal class LazyMenuFlyoutTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, under);
+		Point point = window.CenterOf(under);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		presses
@@ -256,18 +354,6 @@ internal class LazyMenuFlyoutTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Shows the content in a window of a fixed size and lets the layout settle.
 	/// </summary>

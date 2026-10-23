@@ -1,6 +1,8 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions.Text;
+using DataOrganizer.Extensions.Threading;
 using DataOrganizer.Helpers.Execution;
+using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
@@ -95,21 +97,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return;
 		}
 
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			// ObjectDisposedException — service was disposed concurrently.
-			// OperationCanceledException — caller cancelled the token.
-			if (ex is not ObjectDisposedException and not OperationCanceledException)
-			{
-				_logger.LogException(ex);
-			}
+		using SemaphoreLock held = await TryLockAsync(token).ConfigureAwait(false);
 
+		if (!held.IsHeld)
+		{
 			return;
 		}
 
@@ -170,17 +161,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently.
-			}
 		}
 	}
 
@@ -315,21 +295,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return false;
 		}
 
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			// ObjectDisposedException — service was disposed concurrently.
-			// OperationCanceledException — caller cancelled the token.
-			if (ex is not ObjectDisposedException and not OperationCanceledException)
-			{
-				_logger.LogException(ex);
-			}
+		using SemaphoreLock held = await TryLockAsync(token).ConfigureAwait(false);
 
+		if (!held.IsHeld)
+		{
 			return false;
 		}
 
@@ -407,17 +376,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 			_notification.ShowErrorSnackbar($@"{Strings.FailedToOpenInOS} ""{parameters.File.Name}""");
 
 			return false;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently.
-			}
 		}
 
 		void LogDuplicateEntry(Guid fileId)
@@ -637,6 +595,31 @@ public sealed class ExecutionEngine : IExecutionEngine
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Waits for the semaphore; a lock that holds nothing when the engine has been disposed meanwhile or the wait was
+	/// cancelled.
+	/// </summary>
+	private async Task<SemaphoreLock> TryLockAsync(CancellationToken token)
+	{
+		try
+		{
+			return await _semaphore
+				.LockAsync(token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// ObjectDisposedException — service was disposed concurrently.
+			// OperationCanceledException — caller cancelled the token.
+			if (ex is not ObjectDisposedException and not OperationCanceledException)
+			{
+				_logger.LogException(ex);
+			}
+
+			return default;
 		}
 	}
 	#endregion

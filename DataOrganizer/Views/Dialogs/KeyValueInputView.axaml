@@ -4,12 +4,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	x:DataType="dialogs:KeyValueInputViewModel"
 	Theme="{StaticResource DialogTheme}"
@@ -25,7 +25,7 @@
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
 
-		<TextBox
+		<controls:SecretTextBox
 			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsKeyMasked, Mode=OneWay}"
 			Classes.revealPasswordButton="{Binding IsKeyMasked, Mode=OneWay}"
@@ -33,7 +33,7 @@
 			UseFloatingPlaceholder="True">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
-				
+
 				<AutoSelectBehavior />
 
 				<input:MoveFocusOnEnterBehavior
@@ -44,9 +44,9 @@
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
-		</TextBox>
+		</controls:SecretTextBox>
 
-		<TextBox
+		<controls:SecretTextBox
 			x:Name="ValueInput"
 			assists:TextFieldAssist.Label="{Binding ValueHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsValueMasked, Mode=OneWay}"
@@ -59,29 +59,12 @@
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					Writer="{markup:Resolve {x:Type clipboard:IClipboardTextWriter}}" />
 			</Interaction.Behaviors>
-		</TextBox>
+		</controls:SecretTextBox>
 
-		<UniformGrid
+		<controls:DialogButtons
 			HorizontalAlignment="Right"
-			ColumnSpacing="{StaticResource ElementSpacing}"
-			Columns="2">
-			<UniformGrid.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</UniformGrid.Styles>
-
-			<Button
-				Classes="primary"
-				Command="{Binding ConfirmCommand}"
-				Content="{Binding DefaultButtonText, Mode=OneWay}"
-				IsDefault="True" />
-
-			<Button
-				Classes="primary"
-				Command="{Binding CancelCommand}"
-				Content="{x:Static prop:Strings.Cancel}"
-				IsCancel="True" />
-		</UniformGrid>
+			CancelCommand="{Binding CancelCommand}"
+			Command="{Binding ConfirmCommand}"
+			Text="{Binding DefaultButtonText, Mode=OneWay}" />
 	</StackPanel>
 </UserControl>

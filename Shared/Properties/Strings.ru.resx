@@ -204,6 +204,12 @@
   <data name="FontSize" xml:space="preserve">
     <value>Размер шрифта</value>
   </data>
+  <data name="Increase" xml:space="preserve">
+    <value>Увеличить</value>
+  </data>
+  <data name="Decrease" xml:space="preserve">
+    <value>Уменьшить</value>
+  </data>
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
   </data>
@@ -242,6 +248,9 @@
   </data>
   <data name="File" xml:space="preserve">
     <value>Файл</value>
+  </data>
+  <data name="FileIsMissingChangesNotSaved" xml:space="preserve">
+    <value>Файла больше нет в базе, изменения не сохранены</value>
   </data>
   <data name="NameAndExtension" xml:space="preserve">
     <value>Название и расширение</value>
@@ -687,8 +696,14 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>Не удалось прочитать базу данных</value>
   </data>
+  <data name="FailedToRestoreClipboardEntry" xml:space="preserve">
+    <value>Не удалось вернуть запись в буфер обмена</value>
+  </data>
   <data name="FailedToRestoreDatabase" xml:space="preserve">
     <value>Не удалось восстановить базу данных из копии</value>
+  </data>
+  <data name="FailedToRestoreMissingFiles" xml:space="preserve">
+    <value>Не удалось вернуть файлы в буфер обмена: их больше нет</value>
   </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Не удалось прочитать горячие клавиши файлов</value>
@@ -708,14 +723,14 @@
   <data name="FailedToSaveFileContents" xml:space="preserve">
     <value>Не удалось сохранить содержимое файла</value>
   </data>
+  <data name="FailedToSaveHotkeys" xml:space="preserve">
+    <value>Не удалось сохранить горячие клавиши</value>
+  </data>
   <data name="FailedToChangePassword" xml:space="preserve">
     <value>Не удалось сменить пароль</value>
   </data>
   <data name="FailedToChangeFavorite" xml:space="preserve">
     <value>Не удалось изменить отметку избранного</value>
-  </data>
-  <data name="MissingFileContents" xml:space="preserve">
-    <value>Содержимое файла отсутствует</value>
   </data>
   <data name="NonTextFileContents" xml:space="preserve">
     <value>Содержимое файла не является текстом</value>

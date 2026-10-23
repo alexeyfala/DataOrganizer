@@ -14,6 +14,7 @@ using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
@@ -69,12 +70,10 @@ internal class SplitDocumentEditorTests
 			.OfType<ScrollMarkMargin>()
 			.Single();
 
-		Point point = Center(window, scrollMarks);
+		Point point = window.CenterOf(scrollMarks);
 
 		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -98,12 +97,10 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, sut.SecondaryEditor!);
+		Point point = window.CenterOf(sut.SecondaryEditor!);
 
 		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -187,7 +184,7 @@ internal class SplitDocumentEditorTests
 			.TextArea
 			.Focus();
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(start.Y + 50.0);
 
@@ -285,12 +282,10 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, sut.SecondaryEditor!);
+		Point point = window.CenterOf(sut.SecondaryEditor!);
 
 		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -323,12 +318,10 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point point = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		// Act
-		window.MouseDown(point, MouseButton.Right);
-
-		window.MouseUp(point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -410,7 +403,7 @@ internal class SplitDocumentEditorTests
 		Window window = Show(sut);
 
 		// Act
-		window.MouseWheel(Center(window, sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
+		window.MouseWheel(window.CenterOf(sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
 
 		// Assert
 		sut.FontSize
@@ -438,7 +431,7 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		window.MouseWheel(Center(window, sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
+		window.MouseWheel(window.CenterOf(sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
 
 		// Act
 		sut.FontSize = 20.0;
@@ -591,7 +584,7 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(isUpward ? -100.0 : window.Height + 100.0);
 
@@ -1079,7 +1072,7 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(start.Y + 100.0);
 
@@ -1261,7 +1254,7 @@ internal class SplitDocumentEditorTests
 
 		Window window = Show(sut);
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(start.Y + 100.0);
 
@@ -1381,18 +1374,6 @@ internal class SplitDocumentEditorTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
 	/// the numbered line to the end of the block.

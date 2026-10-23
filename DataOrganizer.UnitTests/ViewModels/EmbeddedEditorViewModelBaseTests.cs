@@ -202,12 +202,12 @@ internal class EmbeddedEditorViewModelBaseTests
 			setUpdatedAtCallback: x => reported = x));
 
 		// Act
-		FileContentsWriteStatus status = await sut.InvokeSaveContentsAsync(contents, FileContentsChange.Edit);
+		bool isWritten = await sut.InvokeSaveContentsAsync(contents, FileContentsChange.Edit);
 
 		// Assert
-		status
+		isWritten
 			.Should()
-			.Be(FileContentsWriteStatus.Written);
+			.BeTrue();
 
 		reported
 			.Should()
@@ -220,9 +220,64 @@ internal class EmbeddedEditorViewModelBaseTests
 			FileContentsChange.Edit,
 			Arg.Any<CancellationToken>());
 	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />: a file gone from the database is told apart from contents
+	/// the key of the session refused, and neither is saved.
+	/// </summary>
+	[Test]
+	public async Task SaveContentsAsync_Tells_A_Missing_File_Apart_From_Refused_Contents()
+	{
+		// Arrange
+		List<string> errors = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsWriter writer = Substitute.For<IFileContentsWriter>();
+
+			INotificationService notification = Substitute.For<INotificationService>();
+
+			writer
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(
+					new FileContentsWriting
+					{
+						Status = FileContentsWriteStatus.Closed
+					},
+					new FileContentsWriting
+					{
+						Status = FileContentsWriteStatus.Missing
+					});
+
+			notification.ShowErrorSnackbar(Arg.Do<string>(errors.Add), Arg.Any<string>());
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(writer);
+		});
+
+		TestEditor sut = mock.Create<TestEditor>();
+
+		// Act
+		bool[] written =
+		[
+			await sut.InvokeSaveContentsAsync(RandomValues.CreateBytes(10), FileContentsChange.Edit),
+			await sut.InvokeSaveContentsAsync(RandomValues.CreateBytes(10), FileContentsChange.Edit)
+		];
+
+		// Assert
+		written
+			.Should()
+			.Equal(false, false);
+
+		errors
+			.Should()
+			.HaveCount(2)
+			.And
+			.OnlyHaveUniqueItems();
+	}
 	#endregion
 }
-
 
 // TestEditor is a top-level internal type so the CommunityToolkit messenger source generator
 // (IMessengerRegisterAllGenerator), which emits a RegisterAll for every IRecipient<T> recipient,
@@ -236,7 +291,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	public TestEditor(
 		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,
-		IFileContentsReader fileContentsReader,
+		IFileContentsOpener fileContentsOpener,
 		IFileContentsWriter fileContentsWriter,
 		IJsonSerializer jsonSerializer,
 		ILogger logger,
@@ -246,7 +301,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		ITaskExceptionHandler exceptionHandler) : base(
 			dbFailureReporter,
 			editorStateStore,
-			fileContentsReader,
+			fileContentsOpener,
 			fileContentsWriter,
 			jsonSerializer,
 			logger,
@@ -262,7 +317,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	/// </summary>
 	public List<bool> QueuedWhileReadOnly { get; } = [];
 
-	public Task<FileContentsWriteStatus> InvokeSaveContentsAsync(byte[] contents, FileContentsChange change)
+	public Task<bool> InvokeSaveContentsAsync(byte[] contents, FileContentsChange change)
 	{
 		return SaveContentsAsync(contents, change);
 	}
@@ -271,11 +326,6 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc />
 	protected override Task LoadContentsAsync(byte[] contents) => Task.CompletedTask;
-
-	/// <inheritdoc />
-	protected override void LogUnopenedContents(FileContentsStatus status, string message)
-	{
-	}
 
 	/// <inheritdoc />
 	protected override void QueuePendingChanges() => QueuedWhileReadOnly.Add(IsReadOnly);

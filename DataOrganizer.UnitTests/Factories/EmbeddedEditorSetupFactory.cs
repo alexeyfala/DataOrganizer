@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Documents;
+using Entities.Enums;
 using System;
 
 namespace DataOrganizer.UnitTests.Factories;
@@ -17,6 +18,7 @@ public static class EmbeddedEditorSetupFactory
 		string? fileName = null,
 		string? initialEditorState = null,
 		Guid? keeperId = null,
+		EntityKind kind = EntityKind.File,
 		Action<string>? setEditorStateCallback = null,
 		Action<DateTime>? setUpdatedAtCallback = null)
 	{
@@ -26,6 +28,7 @@ public static class EmbeddedEditorSetupFactory
 			FileName = fileName,
 			InitialEditorState = initialEditorState,
 			KeeperId = keeperId,
+			Kind = kind,
 			SetEditorStateCallback = setEditorStateCallback,
 			SetUpdatedAtCallback = setUpdatedAtCallback
 		};

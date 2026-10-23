@@ -511,24 +511,18 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	/// </summary>
 	private static void CopyView(DocumentTextEditor source, DocumentTextEditor target)
 	{
-		if (source.ScrollViewer is not { } sourceScrollViewer
-			|| target.ScrollViewer is not { } targetScrollViewer)
+		if (source.ScrollViewer is not { } sourceScrollViewer)
 		{
 			return;
 		}
 
-		target.Select(source.SelectionStart, source.SelectionLength);
-
-		target
-			.TextArea
-			.Caret
-			.Position = source.TextArea.Caret.Position;
-
-		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
-		// folded text.
-		target.SetBlocksFolded(source.GetBlockStarts(isFolded: true), isFolded: true);
-
-		targetScrollViewer.Offset = sourceScrollViewer.Offset;
+		target.SetView(
+			selectionStart: source.SelectionStart,
+			selectionLength: source.SelectionLength,
+			caretPosition: source.TextArea.Caret.Position,
+			blockStarts: source.GetBlockStarts(isFolded: true),
+			isFolded: true,
+			scrollOffset: sourceScrollViewer.Offset);
 	}
 
 	/// <summary>

@@ -78,7 +78,9 @@
 					PreviousItem="{Binding PreviousTab, Mode=TwoWay}"
 					SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
 					<controls:DocumentTabControl.Styles>
-						<Style x:DataType="vm:NotepadTabViewModel" Selector="TabItem">
+						<Style
+							x:DataType="vm:NotepadTabViewModel"
+							Selector="TabItem">
 							<Setter Property="AutomationProperties.Name" Value="{Binding Header, Mode=OneWay}" />
 						</Style>
 					</controls:DocumentTabControl.Styles>
@@ -95,7 +97,9 @@
 
 					<controls:DocumentTabControl.ItemTemplate>
 						<DataTemplate x:DataType="vm:NotepadTabViewModel">
-							<TextBlock Classes="TabHeaderTextBlockStyle" Text="{Binding Header, Mode=OneWay}" />
+							<TextBlock
+								Classes="TabHeaderTextBlockStyle"
+								Text="{Binding Header, Mode=OneWay}" />
 						</DataTemplate>
 					</controls:DocumentTabControl.ItemTemplate>
 				</controls:DocumentTabControl>

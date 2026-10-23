@@ -32,7 +32,6 @@ using Material.Icons;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Common;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,10 +93,10 @@ internal class NotepadWindowTests
 		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
 		await WaitForFirstFocus(GetShownTextArea(sut));
 
-		Point point = Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[1].Header));
+		Point point = sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[1].Header));
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -132,10 +131,10 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header));
+		Point point = sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header));
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.ViewModel.SelectedTab
@@ -177,7 +176,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Click(sut, Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+		sut.Click(sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -186,10 +185,10 @@ internal class NotepadWindowTests
 			.OfType<FlyoutButton>()
 			.Single(x => x.Icon == MaterialIconKind.CloseBoxMultiple);
 
-		Point point = Center(sut, item);
+		Point point = sut.CenterOf(item);
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		await confirmationPrompt.Received(1).RequestYesNoAsync(
@@ -218,10 +217,10 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, GetAddButton(sut.Tabs));
+		Point point = sut.CenterOf(GetAddButton(sut.Tabs));
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.Tabs.ItemCount
@@ -258,10 +257,10 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, GetCloseButton(sut.Tabs, 0));
+		Point point = sut.CenterOf(GetCloseButton(sut.Tabs, 0));
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.ViewModel.Tabs.Select(x => x.Number)
@@ -318,10 +317,10 @@ internal class NotepadWindowTests
 			.When(x => x.Remove(closed))
 			.Do(_ => selected = sut.Tabs.SelectedItem);
 
-		Point point = Center(sut, GetCloseButton(sut.Tabs, 1));
+		Point point = sut.CenterOf(GetCloseButton(sut.Tabs, 1));
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		selected
@@ -354,10 +353,10 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.HomeButton);
+		Point point = sut.CenterOf(sut.HomeButton);
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		mainWindowActivator
@@ -400,7 +399,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Click(sut, Center(sut, GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+		sut.Click(sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -409,10 +408,10 @@ internal class NotepadWindowTests
 			.OfType<FlyoutButton>()
 			.Single(x => x.Icon == MaterialIconKind.FormTextbox);
 
-		Point point = Center(sut, item);
+		Point point = sut.CenterOf(item);
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.ViewModel.Tabs.Select(x => x.Name)
@@ -642,12 +641,12 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.HomeButton);
+		Point point = sut.CenterOf(sut.HomeButton);
 
 		// Act
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
-		Click(sut, point, MouseButton.Left);
+		sut.Click(point, MouseButton.Left);
 
 		// Assert
 		mainWindowActivator
@@ -697,12 +696,12 @@ internal class NotepadWindowTests
 
 		NotepadTabViewModel[] tabs = [.. sut.ViewModel.Tabs];
 
-		Point from = Center(sut, GetHeaderText(sut.Tabs, tabs[0].Header));
+		Point from = sut.CenterOf(GetHeaderText(sut.Tabs, tabs[0].Header));
 
-		Point to = Center(sut, GetHeaderText(sut.Tabs, tabs[1].Header));
+		Point to = sut.CenterOf(GetHeaderText(sut.Tabs, tabs[1].Header));
 
 		// Act
-		Drag(sut, from, to);
+		sut.Drag(from, to);
 
 		// Assert
 		sut.ViewModel.Tabs
@@ -1092,40 +1091,6 @@ internal class NotepadWindowTests
 
 	#region Helpers
 	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases a button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point, MouseButton button)
-	{
-		window.MouseDown(point, button);
-
-		window.MouseUp(point, button);
-	}
-
-	/// <summary>
-	/// Presses the left button of the mouse at one point of a window, moves the mouse to another and releases it there.
-	/// </summary>
-	private static void Drag(Window window, Point from, Point to)
-	{
-		window.MouseDown(from, MouseButton.Left);
-
-		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
-
-		window.MouseUp(to, MouseButton.Left);
-	}
-
-	/// <summary>
 	/// Returns the button that adds a tab.
 	/// </summary>
 	private static Button GetAddButton(DocumentTabControl control)
@@ -1192,15 +1157,8 @@ internal class NotepadWindowTests
 	/// </summary>
 	private static ValueTask<bool> WaitForFirstFocus(TextArea area)
 	{
-		Func<bool> isFocused = () =>
-		{
-			// The focus comes on a timer, which posts it to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return area.IsFocused;
-		};
-
-		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The focus comes on a timer, which posts it to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(() => area.IsFocused, maxRepeats: 1000);
 	}
 	#endregion
 }

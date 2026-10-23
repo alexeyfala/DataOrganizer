@@ -8,11 +8,6 @@ public sealed record UpdateDatabaseParameters
 {
 	#region Properties
 	/// <summary>
-	/// Database backup file path.
-	/// </summary>
-	public required string BackupFilePath { get; init; }
-
-	/// <summary>
 	/// The sequence of contents.
 	/// </summary>
 	public required ValidatedContents[] Contents { get; init; }

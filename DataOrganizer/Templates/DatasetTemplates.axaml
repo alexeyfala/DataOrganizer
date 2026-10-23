@@ -15,14 +15,12 @@
 	<Thickness x:Key="RecordPadding">4.0</Thickness>
 
 	<!--  KeyValueRecordTemplate  -->
-	<DataTemplate x:Key="KeyValueRecordTemplate" x:DataType="dataset:KeyValueRecord">
-		<Grid Classes="PointerOverBackgroundStyle" ColumnDefinitions="Auto,*">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
+	<DataTemplate
+		x:Key="KeyValueRecordTemplate"
+		x:DataType="dataset:KeyValueRecord">
+		<Grid
+			Classes="PointerOverBackgroundStyle CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*">
 
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
@@ -43,7 +41,9 @@
 				Text="{Binding Key, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Key, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Key, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 
@@ -59,21 +59,19 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Value, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
 	<!--  ValueRecordTemplate  -->
-	<DataTemplate x:Key="ValueRecordTemplate" x:DataType="dataset:ValueRecord">
-		<Grid Classes="PointerOverBackgroundStyle">
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
-
+	<DataTemplate
+		x:Key="ValueRecordTemplate"
+		x:DataType="dataset:ValueRecord">
+		<Grid Classes="PointerOverBackgroundStyle CardFlyoutsStyle">
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
 			</Grid.ContextFlyout>
@@ -95,14 +93,18 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}">
 				<Interaction.Behaviors>
-					<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Value, Mode=OneWay}" />
+					<dragAndDrop:DatasetRecordDragBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
 			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
 	<!--  RecordsGroupTemplate  -->
-	<DataTemplate x:Key="RecordsGroupTemplate" x:DataType="dataset:RecordsGroup">
+	<DataTemplate
+		x:Key="RecordsGroupTemplate"
+		x:DataType="dataset:RecordsGroup">
 		<!--  BorderBrush="{StaticResource MaterialDividerBrush}"  -->
 		<Border
 			Padding="4.0"
@@ -123,9 +125,13 @@
 				-->
 				<AutomationProperties.Name>
 					<MultiBinding Converter="{x:Static converters:AppConverters.SensitiveAutomationName}">
-						<Binding Mode="OneWay" Path="Name" />
+						<Binding
+							Mode="OneWay"
+							Path="Name" />
 
-						<Binding Mode="OneWay" Path="$parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted" />
+						<Binding
+							Mode="OneWay"
+							Path="$parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted" />
 					</MultiBinding>
 				</AutomationProperties.Name>
 
@@ -142,7 +148,9 @@
 
 				<Expander.HeaderTemplate>
 					<DataTemplate x:DataType="dataset:RecordsGroup">
-						<Grid Classes="PointerOverBackgroundStyle" ColumnDefinitions="Auto,*">
+						<Grid
+							Classes="PointerOverBackgroundStyle"
+							ColumnDefinitions="Auto,*">
 
 							<Interaction.Behaviors>
 								<input:ExpanderDoubleClickToggleBehavior />
@@ -178,7 +186,9 @@
 								NoteName="{Binding Name, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}">
 								<Interaction.Behaviors>
-									<dragAndDrop:DatasetRecordDragBehavior Record="{Binding Mode=OneWay}" Text="{Binding Name, Mode=OneWay}" />
+									<dragAndDrop:DatasetRecordDragBehavior
+										Record="{Binding Mode=OneWay}"
+										Text="{Binding Name, Mode=OneWay}" />
 								</Interaction.Behaviors>
 							</views:DatasetFieldView>
 						</Grid>

@@ -39,6 +39,7 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 			FileName = file.Name,
 			InitialEditorState = file.EditorState,
 			KeeperId = file.FindUnlockedKeeper()?.Id,
+			Kind = file.Kind,
 			SetEditorStateCallback = state => file.EditorState = state,
 			SetUpdatedAtCallback = updatedAt => file.UpdatedAt = updatedAt
 		});

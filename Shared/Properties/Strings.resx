@@ -184,6 +184,12 @@
   <data name="FontSize" xml:space="preserve">
     <value>Font Size</value>
   </data>
+  <data name="Increase" xml:space="preserve">
+    <value>Increase</value>
+  </data>
+  <data name="Decrease" xml:space="preserve">
+    <value>Decrease</value>
+  </data>
   <data name="Copy" xml:space="preserve">
     <value>Copy</value>
   </data>
@@ -222,6 +228,9 @@
   </data>
   <data name="File" xml:space="preserve">
     <value>File</value>
+  </data>
+  <data name="FileIsMissingChangesNotSaved" xml:space="preserve">
+    <value>The file is no longer in the database, the changes are not saved</value>
   </data>
   <data name="NameAndExtension" xml:space="preserve">
     <value>Name And Extension</value>
@@ -667,8 +676,14 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>The database could not be read</value>
   </data>
+  <data name="FailedToRestoreClipboardEntry" xml:space="preserve">
+    <value>Failed to put the entry back on the clipboard</value>
+  </data>
   <data name="FailedToRestoreDatabase" xml:space="preserve">
     <value>The database could not be restored from the copy</value>
+  </data>
+  <data name="FailedToRestoreMissingFiles" xml:space="preserve">
+    <value>Failed to put the files back on the clipboard: none of them exists any more</value>
   </data>
   <data name="FailedToReadHotkeys" xml:space="preserve">
     <value>Hotkeys could not be read for the files</value>
@@ -688,14 +703,14 @@
   <data name="FailedToSaveFileContents" xml:space="preserve">
     <value>Failed to save file contents</value>
   </data>
+  <data name="FailedToSaveHotkeys" xml:space="preserve">
+    <value>Failed to save the hotkeys</value>
+  </data>
   <data name="FailedToChangePassword" xml:space="preserve">
     <value>Failed to change the password</value>
   </data>
   <data name="FailedToChangeFavorite" xml:space="preserve">
     <value>Failed to change the favorite mark</value>
-  </data>
-  <data name="MissingFileContents" xml:space="preserve">
-    <value>The file contents are missing</value>
   </data>
   <data name="NonTextFileContents" xml:space="preserve">
     <value>The file contents are not text</value>

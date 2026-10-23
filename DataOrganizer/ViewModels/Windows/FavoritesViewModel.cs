@@ -308,8 +308,6 @@ public sealed partial class FavoritesViewModel :
 		FavoritesSettings.SelectedPairs = favoritesSettings.SelectedPairs;
 
 		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
-
-		IsInitialized = true;
 	}
 
 	/// <summary>

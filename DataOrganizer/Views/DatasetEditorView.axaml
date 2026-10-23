@@ -17,20 +17,8 @@
 	<Grid RowDefinitions="Auto,*">
 		<StackPanel
 			Grid.Row="0"
+			Classes="FlatButtonsStyle SpacedButtonsStyle CardFlyoutsStyle MaterialFlyoutsStyle"
 			Orientation="Horizontal">
-			<StackPanel.Styles>
-				<Style Selector="Button">
-					<Setter Property="Margin" Value="6.0,0.0" />
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-					<Setter Property="Cursor" Value="Arrow" />
-					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
-				</Style>
-			</StackPanel.Styles>
-
 			<Button
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=Plus,
@@ -126,13 +114,9 @@
 					<controls:LazyMenuFlyout Placement="Bottom">
 						<controls:LazyMenuFlyout.MenuTemplate>
 							<DataTemplate x:DataType="vm:DatasetEditorViewModel">
-								<StackPanel Orientation="Vertical">
-									<StackPanel.Styles>
-										<Style Selector="Button">
-											<Setter Property="Margin" Value="0.0" />
-										</Style>
-									</StackPanel.Styles>
-
+								<StackPanel
+									Classes="MarginlessButtonsStyle"
+									Orientation="Vertical">
 									<controls:FlyoutButton
 										Command="{Binding SortAscendingDescendingCommand}"
 										CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"

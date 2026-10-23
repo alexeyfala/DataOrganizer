@@ -11,72 +11,6 @@ internal class ExplorerItemDtoBaseTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.AnyParent" />: returns false when no ancestor satisfies the condition.
-	/// </summary>
-	[Test]
-	public void AnyParent_Returns_False_When_No_Parent_Matches()
-	{
-		// Arrange
-		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
-
-		FileDto child = ItemDtoFactory.CreateNamedFileDto("child");
-
-		child.Parent = parent;
-
-		// Act
-		bool result = child.AnyParent(x => x.Name == "missing");
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.AnyParent" />: returns false when there is no parent at all.
-	/// </summary>
-	[Test]
-	public void AnyParent_Returns_False_When_There_Is_No_Parent()
-	{
-		// Arrange
-		FileDto orphan = ItemDtoFactory.CreateNamedFileDto("orphan");
-
-		// Act
-		bool result = orphan.AnyParent(_ => true);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="ExplorerItemDtoBase.AnyParent" />: returns true when an ancestor satisfies the condition.
-	/// </summary>
-	[Test]
-	public void AnyParent_Returns_True_When_A_Parent_Matches()
-	{
-		// Arrange
-		FolderDto grandparent = ItemDtoFactory.CreateNamedFolderDto("grandparent");
-
-		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
-
-		parent.Parent = grandparent;
-
-		FileDto child = ItemDtoFactory.CreateNamedFileDto("child");
-
-		child.Parent = parent;
-
-		// Act
-		bool result = child.AnyParent(x => x.Name == "grandparent");
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// <see cref="ExplorerItemDtoBase.FindParent" />: returns the nearest matching ancestor when walking up.
 	/// </summary>
 	[Test]
@@ -122,6 +56,39 @@ internal class ExplorerItemDtoBaseTests
 		result
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.FindParent" />: the walk up stops at the nearest ancestor that meets the condition.
+	/// </summary>
+	[Test]
+	public void FindParent_Stops_At_The_Nearest_Match()
+	{
+		// Arrange
+		List<FolderDto> checkedParents = [];
+
+		FolderDto grandparent = ItemDtoFactory.CreateNamedFolderDto("grandparent");
+
+		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
+
+		parent.Parent = grandparent;
+
+		FileDto child = ItemDtoFactory.CreateNamedFileDto("child");
+
+		child.Parent = parent;
+
+		// Act
+		child.FindParent(x =>
+		{
+			checkedParents.Add(x);
+
+			return true;
+		});
+
+		// Assert
+		checkedParents
+			.Should()
+			.Equal(parent);
 	}
 
 	/// <summary>

@@ -9,11 +9,11 @@ using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Extensions.Views;
-using Shared.Extensions;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +27,11 @@ namespace DataOrganizer.Behaviors.Scrolling;
 internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer>
 {
 	#region Properties
+	/// <summary>
+	/// Clock of the pause after a scroll, of the steps of a move and of the wait for the records.
+	/// </summary>
+	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
+
 	/// <summary>
 	/// The record at the top of the list and how far the list is scrolled into it.
 	/// </summary>
@@ -58,6 +63,11 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Time the wait for the realized records lasts at most.
+	/// </summary>
+	private static readonly TimeSpan RealizationTimeout = TimeSpan.FromSeconds(4.0);
+
 	/// <summary>
 	/// Subscription to <see cref="ScrollViewer.ScrollChanged" /> while the list is shown.
 	/// </summary>
@@ -180,7 +190,11 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	/// Smoothly scrolls <paramref name="scrollViewer" /> to the absolute top
 	/// (<paramref name="toEnd" /> <c>False</c>) or bottom (<c>True</c>).
 	/// </summary>
-	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd, CancellationToken token)
+	private static Task SmoothScrollAsync(
+		ScrollViewer scrollViewer,
+		bool toEnd,
+		TimeProvider timeProvider,
+		CancellationToken token)
 	{
 		return StepOffsetUntilDoneAsync(scrollViewer, () =>
 		{
@@ -189,7 +203,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			double targetY = toEnd ? maxY : 0;
 
 			return targetY - scrollViewer.Offset.Y;
-		}, token);
+		}, timeProvider, token);
 	}
 
 	/// <summary>
@@ -203,6 +217,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 		int topRecordIndex,
 		int totalRecords,
 		double withinRecordOffset,
+		TimeProvider timeProvider,
 		CancellationToken token)
 	{
 		if (totalRecords <= 0)
@@ -220,7 +235,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 				maxY);
 
 			return targetY - scrollViewer.Offset.Y;
-		}, token).ConfigureAwait(true);
+		}, timeProvider, token).ConfigureAwait(true);
 
 		double targetViewportY = -withinRecordOffset;
 
@@ -247,7 +262,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			}
 
 			return pointInViewport.Y - targetViewportY;
-		}, token).ConfigureAwait(true);
+		}, timeProvider, token).ConfigureAwait(true);
 	}
 
 	/// <summary>
@@ -258,6 +273,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	private static async Task StepOffsetUntilDoneAsync(
 		ScrollViewer scrollViewer,
 		Func<double> getRemainingDelta,
+		TimeProvider timeProvider,
 		CancellationToken token)
 	{
 		// Pixels moved per step. Smaller = more reliable realization, slower travel.
@@ -294,7 +310,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
 			await Task
-				.Delay(delayMs, token)
+				.Delay(TimeSpan.FromMilliseconds(delayMs), timeProvider, token)
 				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
 		}
 	}
@@ -340,21 +356,27 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	}
 
 	/// <summary>
-	/// Waits until <paramref name="container" /> has realized at least one child.
+	/// Waits until <paramref name="container" /> has realized at least one child, for
+	/// <see cref="RealizationTimeout" /> at most.
 	/// </summary>
-	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(ItemsRepeater container)
+	private static async Task WaitForItemsRepeaterRealizedAsync(ItemsRepeater container, TimeProvider timeProvider)
 	{
-		Func<bool> condition = () => container
-			.Children
-			.Count > 0;
+		if (container.Children.Count > 0)
+		{
+			return;
+		}
 
-		await condition
-			.WaitAsync(400, 10)
-			.ConfigureAwait(true);
+		using CancellationTokenSource timeout = new(RealizationTimeout, timeProvider);
 
-		return container
-			.Children
-			.Count > 0;
+		// The children come with a layout pass.
+		Task realized = Observable
+			.FromEventPattern(
+				x => container.LayoutUpdated += x,
+				x => container.LayoutUpdated -= x)
+			.FirstAsync(_ => container.Children.Count > 0)
+			.ToTask(timeout.Token);
+
+		await realized.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
 	}
 
 	/// <summary>
@@ -428,11 +450,14 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			return;
 		}
 
-		await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
+		await WaitForItemsRepeaterRealizedAsync(container, TimeProvider).ConfigureAwait(true);
 
-		// A record that the list does not have is not looked for.
+		// A record that the list does not have is not looked for, and the list starts at its top, which the first layout of
+		// the records may have moved off.
 		if (ViewState is not { } state || state.TopRecordIndex < 0 || state.TopRecordIndex >= records.Count)
 		{
+			scrollViewer.Offset = scrollViewer.Offset.WithY(0.0);
+
 			return;
 		}
 
@@ -442,6 +467,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 			state.TopRecordIndex,
 			records.Count,
 			state.WithinRecordOffset,
+			TimeProvider,
 			token).ConfigureAwait(true);
 	}
 
@@ -458,7 +484,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 
 		_scrollBack?.Cancel();
 
-		return SmoothScrollAsync(scrollViewer, toEnd, token);
+		return SmoothScrollAsync(scrollViewer, toEnd, TimeProvider, token);
 	}
 
 	/// <summary>
@@ -524,7 +550,7 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 				}
 
 				_scrollSubscription.Disposable = isScrolled
-					.SetDelay(TimeSpan.FromSeconds(0.5))
+					.SetDelay(TimeSpan.FromSeconds(0.5), TimeProvider)
 					.Where(static x => x)
 					.Subscribe(_ => ReportTopRecord());
 			}, DispatcherPriority.Loaded);

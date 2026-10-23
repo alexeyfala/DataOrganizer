@@ -9,6 +9,7 @@
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Styling"
 	xmlns:text="using:DataOrganizer.Behaviors.Text">
 
 	<!--
@@ -18,9 +19,13 @@
 	<Style Selector=":is(Button)">
 		<Setter Property="AutomationProperties.Name">
 			<MultiBinding Converter="{x:Static converters:AppConverters.ToolTipAutomationName}">
-				<Binding Mode="OneWay" Path="$self.Content" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.Content" />
 
-				<Binding Mode="OneWay" Path="$self.(ToolTip.Tip)" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.(ToolTip.Tip)" />
 			</MultiBinding>
 		</Setter>
 	</Style>
@@ -29,9 +34,13 @@
 	<Style Selector=":is(TextBox)">
 		<Setter Property="AutomationProperties.Name">
 			<MultiBinding Converter="{x:Static converters:AppConverters.FieldLabelAutomationName}">
-				<Binding Mode="OneWay" Path="$self.(assists:TextFieldAssist.Label)" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.(assists:TextFieldAssist.Label)" />
 
-				<Binding Mode="OneWay" Path="$self.PlaceholderText" />
+				<Binding
+					Mode="OneWay"
+					Path="$self.PlaceholderText" />
 			</MultiBinding>
 		</Setter>
 	</Style>
@@ -52,6 +61,21 @@
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
 	</Style>
 
+	<!--
+		The arrows of a button spinner get tips, and through them names, instead of the type names of their icons.
+		The spinner keeps its buttons private and finds them by these template names alone, so only the names tell them apart.
+	-->
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_IncreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Increase}" />
+	</Style>
+
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_DecreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Decrease}" />
+	</Style>
+
+	<!--  The close button of the search panel of the text editors gets a tip, and through it a name.  -->
+	<styling:SearchPanelStyles />
+
 	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
 	<Style Selector=":is(ListBoxItem), :is(TabItem)">
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
@@ -65,6 +89,14 @@
 		<Setter Property="AutomationProperties.AccessibilityView" Value="Control" />
 		<Setter Property="AutomationProperties.ControlTypeOverride" Value="Image" />
 		<Setter Property="AutomationProperties.Name" Value="{Binding $self.(ToolTip.Tip), Mode=OneWay}" />
+	</Style>
+
+	<!--
+		The arrows, the page buttons and the thumb of a scroll bar stay out of screen readers and UI Automation, as the themes
+		name them in English or not at all; the scroll bar itself stays there with its value.
+	-->
+	<Style Selector="ScrollBar /template/ RepeatButton, ScrollBar /template/ Thumb">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
 	</Style>
 
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
@@ -94,7 +126,9 @@
 			<Setter Property="RenderTransform" Value="rotate(0deg)" />
 			<Setter Property="Transitions">
 				<Transitions>
-					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+					<TransformOperationsTransition
+						Property="RenderTransform"
+						Duration="0:0:0.2" />
 				</Transitions>
 			</Setter>
 		</Style>
@@ -231,6 +265,37 @@
 		<Setter Property="BorderThickness" Value="1.0" />
 	</Style>
 
+	<!--  The buttons inside an element of this class, the items of its menus included, take the flat look.  -->
+	<Style Selector=".FlatButtonsStyle Button">
+		<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class keep the color of the text.  -->
+	<Style Selector=".BodyColorButtonsStyle Button">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class, the items of its menus included, keep apart.  -->
+	<Style Selector=".SpacedButtonsStyle Button">
+		<Setter Property="Margin" Value="6.0,0.0" />
+	</Style>
+
+	<!--  After SpacedButtonsStyle, so that a menu of this class takes the margin of a toolbar away from its items.  -->
+	<Style Selector=".MarginlessButtonsStyle Button">
+		<Setter Property="Margin" Value="0.0" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class has the background of a card.  -->
+	<Style Selector=".CardFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class takes the Material presenter and the arrow cursor.  -->
+	<Style Selector=".MaterialFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Cursor" Value="Arrow" />
+		<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+	</Style>
+
 	<Style Selector="TextBlock.HeaderTextBlockStyle">
 		<Setter Property="FontSize" Value="16.0" />
 		<Setter Property="FontWeight" Value="Bold" />
@@ -266,7 +331,9 @@
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
 					<Border
 						Grid.Row="0"
 						Grid.Column="0"
@@ -274,7 +341,9 @@
 						Padding="5.0,0.0"
 						Background="{StaticResource MaterialPaperBrush}"
 						ZIndex="1">
-						<TextBlock FontWeight="Bold" Text="{TemplateBinding Header}" />
+						<TextBlock
+							FontWeight="Bold"
+							Text="{TemplateBinding Header}" />
 					</Border>
 
 					<Border
@@ -297,7 +366,9 @@
 	<Style Selector="HeaderedContentControl.GroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
 					<TextBlock
 						Grid.Row="0"
 						Grid.Column="0"

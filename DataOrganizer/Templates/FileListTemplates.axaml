@@ -2,34 +2,26 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:documents="using:DataOrganizer.Interfaces.Documents"
 	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
-	<!-- FileInListTemplate -->
+	<!--  FileInListTemplate  -->
 	<DataTemplate
 		x:Key="FileInListTemplate"
 		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,Auto,*,Auto">
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,Auto,*">
 
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
-
-			<!-- A list loses its view model before its rows leave the window, so the paths to its commands may meet a null. -->
+			<!--  A list loses its view model before its rows leave the window, so the paths to its commands may meet a null.  -->
 			<Button
 				Grid.Column="0"
 				Classes="primary"
@@ -73,40 +65,10 @@
 				</Interaction.Behaviors>
 			</materialIcons:MaterialIcon>
 
-			<TextBlock
+			<ContentPresenter
 				Grid.Column="2"
-				Classes="DtoNameTextBlockStyle"
-				Text="{Binding Name, Mode=OneWay}">
-				<Interaction.Behaviors>
-					<text:TextBlockAutoToolTipBehavior />
-				</Interaction.Behaviors>
-			</TextBlock>
-
-			<views:IconsBlock
-				Grid.Column="3"
-				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
-				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
-				IsEditing="{Binding IsEditing, Mode=OneWay}"
-				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
-				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
-				NoteItem="{Binding Mode=OneWay}"
-				NoteName="{Binding Name, Mode=OneWay}"
-				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}">
-				<views:IconsBlock.HotkeysToolTip>
-					<MultiBinding
-						Converter="{x:Static converters:ExplorerConverters.HotkeysToToolTip}"
-						Mode="OneWay">
-						<Binding
-							Mode="OneWay"
-							Path="Hotkeys" />
-
-						<!-- The hotkeys change inside the collection, so its count makes the tip follow them. -->
-						<Binding
-							Mode="OneWay"
-							Path="Hotkeys.Count" />
-					</MultiBinding>
-				</views:IconsBlock.HotkeysToolTip>
-			</views:IconsBlock>
+				Content="{Binding Mode=OneWay}"
+				ContentTemplate="{StaticResource FileNameWithIconsTemplate}" />
 
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FileInListContextMenuTemplate}" />
@@ -124,7 +86,7 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- CopyHistoryTemplate -->
+	<!--  CopyHistoryTemplate  -->
 	<DataTemplate x:Key="CopyHistoryTemplate">
 		<views:CopyHistoryView DataContext="{Binding $parent[Window].((vm:ViewModelBase)DataContext).CopyHistoryList, Mode=OneWay}" />
 	</DataTemplate>

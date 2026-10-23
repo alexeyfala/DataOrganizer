@@ -54,32 +54,14 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial bool IsConfirmingClose { get; set; }
 
-	/// <summary>
-	/// Specifies that the <see cref="ThemeMode.Dark" /> theme is used.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsDarkTheme { get; set; }
-
 	/// <inheritdoc cref="ISettingsDraft.IsDirty" />
 	public bool IsDirty => _settingsDraft.IsDirty;
 
 	/// <inheritdoc cref="ISettingsDraft.IsDiscarded" />
 	public bool IsDiscarded => _settingsDraft.IsDiscarded;
 
-	/// <summary>
-	/// Specifies that the <see cref="ThemeMode.Light" /> theme is used.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsLightTheme { get; set; }
-
 	/// <inheritdoc cref="ISettingsDraft.IsSaved" />
 	public bool IsSaved => _settingsDraft.IsSaved;
-
-	/// <summary>
-	/// Specifies that the <see cref="ThemeMode.Inherit" /> theme is used.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsThemeInherited { get; set; }
 
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
@@ -106,6 +88,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <inheritdoc cref="AppSettings.ShowFavoritesOnHover" />
 	[ObservableProperty]
 	public partial bool ShowFavoritesOnHover { get; set; }
+
+	/// <inheritdoc cref="AppSettings.Theme" />
+	[ObservableProperty]
+	public partial ThemeMode Theme { get; set; }
 
 	/// <inheritdoc cref="AppSettings.TrackClipboardHistory" />
 	[ObservableProperty]
@@ -135,72 +121,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 		CurrentSettings.CheckForUpdates = value;
 
 		NotifyCommandsCanExecuteChanged();
-	}
-
-	/// <summary>
-	/// Called when <see cref="IsDarkTheme" /> changes.
-	/// </summary>
-	partial void OnIsDarkThemeChanged(bool value)
-	{
-		if (!value)
-		{
-			return;
-		}
-
-		const ThemeMode theme = ThemeMode.Dark;
-
-		CurrentSettings.Theme = theme;
-
-		NotifyCommandsCanExecuteChanged();
-
-		_settingsDraft.PreviewTheme(
-			theme,
-			PrimaryColor,
-			SecondaryColor);
-	}
-
-	/// <summary>
-	/// Called when <see cref="IsLightTheme" /> changes.
-	/// </summary>
-	partial void OnIsLightThemeChanged(bool value)
-	{
-		if (!value)
-		{
-			return;
-		}
-
-		const ThemeMode theme = ThemeMode.Light;
-
-		CurrentSettings.Theme = theme;
-
-		NotifyCommandsCanExecuteChanged();
-
-		_settingsDraft.PreviewTheme(
-			theme,
-			PrimaryColor,
-			SecondaryColor);
-	}
-
-	/// <summary>
-	/// Called when <see cref="IsThemeInherited" /> changes.
-	/// </summary>
-	partial void OnIsThemeInheritedChanged(bool value)
-	{
-		if (!value)
-		{
-			return;
-		}
-
-		const ThemeMode theme = ThemeMode.Inherit;
-
-		CurrentSettings.Theme = theme;
-
-		NotifyCommandsCanExecuteChanged();
-
-		_settingsDraft.PreviewTheme(
-			theme,
-			PrimaryColor,
-			SecondaryColor);
 	}
 
 	/// <summary>
@@ -274,6 +194,21 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="Theme" /> changes.
+	/// </summary>
+	partial void OnThemeChanged(ThemeMode value)
+	{
+		CurrentSettings.Theme = value;
+
+		NotifyCommandsCanExecuteChanged();
+
+		_settingsDraft.PreviewTheme(
+			value,
+			PrimaryColor,
+			SecondaryColor);
+	}
+
+	/// <summary>
 	/// Called when <see cref="TrackClipboardHistory" /> changes.
 	/// </summary>
 	partial void OnTrackClipboardHistoryChanged(bool value)
@@ -320,32 +255,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[RelayCommand(CanExecute = nameof(CanRestoreDefaultSettings))]
 	internal void RestoreDefaultSettings()
 	{
-		AppSettings defaults = CreateDefaults();
-
-		CheckForUpdates = defaults.CheckForUpdates;
-
-		AutoLockMinutes = defaults.AutoLockMinutes;
-
-		TrackClipboardHistory = defaults.TrackClipboardHistory;
-
-		PersistClipboardHistory = defaults.PersistClipboardHistory;
-
-		TrackHotkeys = defaults.TrackHotkeys;
-
-		ShowFavoritesOnHover = defaults.ShowFavoritesOnHover;
-
-		SecondaryColor = defaults.SecondaryColor;
-
-		PrimaryColor = defaults.PrimaryColor;
-
-		Language = new(defaults.Language);
-
-		// A handler of a theme flag acts on the selected one only, so the order of the assignments does not matter.
-		IsLightTheme = defaults.Theme == ThemeMode.Light;
-
-		IsThemeInherited = defaults.Theme == ThemeMode.Inherit;
-
-		IsDarkTheme = defaults.Theme == ThemeMode.Dark;
+		ApplySettings(CreateDefaults());
 	}
 
 	/// <summary>
@@ -395,33 +305,37 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings = settingsDraft.Begin();
 
-		CheckForUpdates = CurrentSettings.CheckForUpdates;
-
-		AutoLockMinutes = CurrentSettings.AutoLockMinutes;
-
-		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
-
-		PersistClipboardHistory = CurrentSettings.PersistClipboardHistory;
-
-		TrackHotkeys = CurrentSettings.TrackHotkeys;
-
-		ShowFavoritesOnHover = CurrentSettings.ShowFavoritesOnHover;
-
-		SecondaryColor = CurrentSettings.SecondaryColor;
-
-		PrimaryColor = CurrentSettings.PrimaryColor;
-
-		Language = new(CurrentSettings.Language);
-
-		IsLightTheme = CurrentSettings.Theme == ThemeMode.Light;
-
-		IsThemeInherited = CurrentSettings.Theme == ThemeMode.Inherit;
-
-		IsDarkTheme = CurrentSettings.Theme == ThemeMode.Dark;
+		ApplySettings(CurrentSettings);
 	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Shows the values of the settings in the properties of the view.
+	/// </summary>
+	private void ApplySettings(AppSettings settings)
+	{
+		CheckForUpdates = settings.CheckForUpdates;
+
+		AutoLockMinutes = settings.AutoLockMinutes;
+
+		TrackClipboardHistory = settings.TrackClipboardHistory;
+
+		PersistClipboardHistory = settings.PersistClipboardHistory;
+
+		TrackHotkeys = settings.TrackHotkeys;
+
+		ShowFavoritesOnHover = settings.ShowFavoritesOnHover;
+
+		SecondaryColor = settings.SecondaryColor;
+
+		PrimaryColor = settings.PrimaryColor;
+
+		Language = new(settings.Language);
+
+		Theme = settings.Theme;
+	}
+
 	/// <summary>
 	/// Validates <see cref="RestoreDefaultSettingsCommand" />.
 	/// </summary>

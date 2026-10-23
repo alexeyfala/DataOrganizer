@@ -21,6 +21,27 @@ public static class EnumerableExtensions
 	public static T[] AsNotNull<T>(this T[]? sequence) => sequence ?? [];
 
 	/// <summary>
+	/// Walks the trees under <paramref name="roots" /> depth first: the last root first, every item before its children
+	/// and the last child first; the children of an item are taken when the walk reaches it.
+	/// </summary>
+	public static IEnumerable<T> Flatten<T>(this IEnumerable<T> roots, Func<T, IEnumerable<T>> getChildren)
+	{
+		Stack<T> stack = new(roots);
+
+		while (stack.Count > 0)
+		{
+			T item = stack.Pop();
+
+			yield return item;
+
+			foreach (T child in getChildren(item))
+			{
+				stack.Push(child);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Performs the specified action on each element of the sequence.
 	/// </summary>
 	public static IEnumerable<T> ForEach<T>(this IEnumerable<T> sequence, Action<T> action)

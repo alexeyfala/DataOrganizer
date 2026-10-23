@@ -1,12 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers.Views;
-using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -25,10 +26,14 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 {
 	#region Data
 	/// <summary>
-	/// Pause between the selection of a shown object and its highlight, and between the checks whether the window has
-	/// loaded.
+	/// Pause between the selection of a shown object and its highlight.
 	/// </summary>
 	private const int ShowDelay = 200;
+
+	/// <summary>
+	/// Time the wait for the window to load lasts at most.
+	/// </summary>
+	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
 
 	/// <summary>
 	/// Stops the waits of the shows once the behavior is detached.
@@ -61,13 +66,19 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
-	/// Objects to bring into view, select and highlight, once the window has loaded.
+	/// Paths from the top of the hierarchy to the objects to bring into view, select and highlight once the window has
+	/// loaded; the last item of a path is the object.
 	/// </summary>
-	public IObservable<object>? ShowSignal
+	public IObservable<IReadOnlyList<object>>? ShowSignal
 	{
 		get => GetValue(ShowSignalProperty);
 		set => SetValue(ShowSignalProperty, value);
 	}
+
+	/// <summary>
+	/// Clock of the wait for the window to load.
+	/// </summary>
+	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 	#endregion
 
 	#region Styled Properties
@@ -80,8 +91,8 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		.Register<ExplorerItemSignalsBehavior, ICommand?>(nameof(SelectCommand));
 
 	/// <inheritdoc cref="ShowSignal" />
-	public static readonly StyledProperty<IObservable<object>?> ShowSignalProperty = AvaloniaProperty
-		.Register<ExplorerItemSignalsBehavior, IObservable<object>?>(nameof(ShowSignal));
+	public static readonly StyledProperty<IObservable<IReadOnlyList<object>>?> ShowSignalProperty = AvaloniaProperty
+		.Register<ExplorerItemSignalsBehavior, IObservable<IReadOnlyList<object>>?>(nameof(ShowSignal));
 	#endregion
 
 	#region Methods
@@ -99,7 +110,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 
 		this
 			.GetObservable(ShowSignalProperty)
-			.Select(static x => x ?? Observable.Never<object>())
+			.Select(static x => x ?? Observable.Never<IReadOnlyList<object>>())
 			.Switch()
 			.Subscribe(x => _ = ShowAsync(x, _cancellation.Token))
 			.DisposeWith(_subscriptions);
@@ -119,6 +130,41 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Brings the row of an item of a list or of a tree into view and returns it; <c>null</c> while it has none.
+	/// </summary>
+	private static TemplatedControl? BringIntoView(ItemsControl owner, object item)
+	{
+		owner.ScrollIntoView(item);
+
+		// The pass builds the row, and the rows inside a folder expanded just now.
+		owner.UpdateLayout();
+
+		return owner.ContainerFromItem(item) as TemplatedControl;
+	}
+
+	/// <summary>
+	/// Brings the rows of a path into view one level after another and returns the row of its last item; <c>null</c>
+	/// when a row is missing.
+	/// </summary>
+	private static TemplatedControl? BringPathIntoView(ItemsControl items, IReadOnlyList<object> path)
+	{
+		// A row exists only once the row of its folder is built, so each level is laid out before the next one.
+		ItemsControl owner = items;
+
+		foreach (object folder in path.SkipLast(1))
+		{
+			if (BringIntoView(owner, folder) is not ItemsControl row)
+			{
+				return null;
+			}
+
+			owner = row;
+		}
+
+		return BringIntoView(owner, path[^1]);
+	}
+
 	/// <summary>
 	/// Returns the container that shows an item, at any depth of a tree; <c>null</c> while it shows none.
 	/// </summary>
@@ -146,37 +192,34 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
-	/// Brings an item into view, selects it and highlights it once the window has loaded.
+	/// Brings the object at the end of a path into view, selects it and highlights it once the window has loaded.
 	/// </summary>
-	private async Task ShowAsync(object item, CancellationToken token)
+	private async Task ShowAsync(IReadOnlyList<object> path, CancellationToken token)
 	{
-		if (AssociatedObject is not { } items)
+		// The window is found by the logical tree, as the list joins the visual tree only once the window is shown.
+		if (AssociatedObject is not { } items
+			|| path is []
+			|| items.FindLogicalAncestorOfType<TopLevel>() is not { } topLevel)
 		{
 			return;
 		}
 
 		// A selection made before the window has loaded would not be saved.
-		Func<bool> isLoaded = () => TopLevel.GetTopLevel(items) is { IsLoaded: true };
+		bool isLoaded = await WaitUntilLoadedAsync(
+			topLevel,
+			token).ConfigureAwait(true);
 
-		if (!await isLoaded
-			.WaitAsync(ShowDelay, 10, token)
-			.ConfigureAwait(true))
+		if (!isLoaded)
 		{
 			return;
 		}
 
-		items.ScrollIntoView(item);
+		// A tree keeps the selection of a row only while the row is built.
+		TemplatedControl? container = BringPathIntoView(items, path);
 
-		if (items.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
-		{
-			scrollViewer.Offset = new(
-				int.MaxValue,
-				scrollViewer.Offset.Y);
-		}
+		SelectCommand?.Execute(path[^1]);
 
-		SelectCommand?.Execute(item);
-
-		if (FindContainer(item) is not { } container)
+		if (container is null)
 		{
 			return;
 		}
@@ -188,6 +231,40 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		await BrushAnimations.ApplyHighlightAnimationAsync(
 			() => container.Background as Brush,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Waits until <paramref name="topLevel" /> has loaded, at most <see cref="LoadTimeout" />; <c>false</c> when it has
+	/// not loaded in time.
+	/// </summary>
+	private async Task<bool> WaitUntilLoadedAsync(TopLevel topLevel, CancellationToken token)
+	{
+		if (topLevel.IsLoaded)
+		{
+			return true;
+		}
+
+		TaskCompletionSource loaded = new();
+
+		// Disposed after the wait, back on the UI thread, which owns the events of the window.
+		using IDisposable subscription = Observable
+			.FromEventPattern<RoutedEventArgs>(
+				x => topLevel.Loaded += x,
+				x => topLevel.Loaded -= x)
+			.Subscribe(_ => loaded.TrySetResult());
+
+		// The show goes on as a job of its own, not inside the event of the window.
+		await loaded
+			.Task
+			.WaitAsync(
+				LoadTimeout,
+				TimeProvider,
+				token)
+			.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding | ConfigureAwaitOptions.SuppressThrowing);
+
+		token.ThrowIfCancellationRequested();
+
+		return loaded.Task.IsCompleted;
 	}
 	#endregion
 }

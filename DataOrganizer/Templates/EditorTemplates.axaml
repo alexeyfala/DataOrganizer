@@ -5,7 +5,7 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
-	<!-- RightSideSheetHeaderTemplate -->
+	<!--  RightSideSheetHeaderTemplate  -->
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
 			<ToggleButton

@@ -3,6 +3,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Hierarchy;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.UnitTests.Factories;
+using Entities.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +39,29 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.AllBy" />: a folder that fails the condition makes the answer false, though every
+	/// file meets it.
+	/// </summary>
+	[Test]
+	public void AllBy_Returns_False_When_A_Folder_Fails_The_Condition()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		ExplorerItemDtoBase[] hierarchy = [folder];
+
+		// Act
+		bool result = hierarchy.AllBy(x => x is FileDto);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.AllBy" />: returns true when every item in the hierarchy satisfies the condition.
 	/// </summary>
 	[Test]
@@ -62,6 +86,37 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.AllBy" />: the walk stops at the first object that fails the condition.
+	/// </summary>
+	[Test]
+	public void AllBy_Stops_At_The_First_Object_That_Fails()
+	{
+		// Arrange
+		List<ExplorerItemDtoBase> checkedItems = [];
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		ExplorerItemDtoBase[] hierarchy = [folder, file];
+
+		// Act
+		hierarchy.AllBy(x =>
+		{
+			checkedItems.Add(x);
+
+			return x is FolderDto;
+		});
+
+		// Assert
+		checkedItems
+			.Should()
+			.Equal(file);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.ContainsBy" />: returns false when no item in the hierarchy matches the predicate.
 	/// </summary>
 	[Test]
@@ -77,6 +132,37 @@ internal class HierarchyExtensionsTests
 		result
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.ContainsBy" />: the walk stops at the first object that meets the condition.
+	/// </summary>
+	[Test]
+	public void ContainsBy_Stops_At_The_First_Match()
+	{
+		// Arrange
+		List<ExplorerItemDtoBase> checkedItems = [];
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		ExplorerItemDtoBase[] hierarchy = [folder, file];
+
+		// Act
+		hierarchy.ContainsBy(x =>
+		{
+			checkedItems.Add(x);
+
+			return x is FolderDto;
+		});
+
+		// Assert
+		checkedItems
+			.Should()
+			.Equal(file, folder);
 	}
 
 	/// <summary>
@@ -105,6 +191,41 @@ internal class HierarchyExtensionsTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.ContainsFileBy" />: the walk stops at the first file that meets the condition.
+	/// </summary>
+	[Test]
+	public void ContainsFileBy_Stops_At_The_First_Matching_File()
+	{
+		// Arrange
+		List<FileDto> checkedFiles = [];
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(first);
+
+		folder.Children.Add(second);
+
+		ExplorerItemDtoBase[] hierarchy = [folder];
+
+		// Act
+		hierarchy.ContainsFileBy(x =>
+		{
+			checkedFiles.Add(x);
+
+			return true;
+		});
+
+		// Assert
+		checkedFiles
+			.Should()
+			.Equal(second);
 	}
 
 	/// <summary>
@@ -147,6 +268,41 @@ internal class HierarchyExtensionsTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.FilterBy" />: lists the objects in the order of the walk, the last top object first,
+	/// each folder before its children and the last child first.
+	/// </summary>
+	[Test]
+	public void FilterBy_Lists_The_Objects_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FileDto folderFile = ItemDtoFactory.CreateFileDto();
+
+		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
+
+		nested.Children.Add(nestedFile);
+
+		folder.Children.Add(folderFile);
+
+		folder.Children.Add(nested);
+
+		ExplorerItemDtoBase[] hierarchy = [folder, file];
+
+		// Act
+		ExplorerItemDtoBase[] result = [.. hierarchy.FilterBy(_ => true)];
+
+		// Assert
+		result
+			.Should()
+			.Equal(file, folder, nested, nestedFile, folderFile);
 	}
 
 	/// <summary>
@@ -258,6 +414,65 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.FindBy" />: of several matches, returns the one the walk meets first.
+	/// </summary>
+	[Test]
+	public void FindBy_Returns_The_Match_The_Walk_Meets_First()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(first);
+
+		folder.Children.Add(second);
+
+		ExplorerItemDtoBase[] hierarchy = [folder];
+
+		// Act
+		ExplorerItemDtoBase? result = hierarchy.FindBy(x => x is FileDto);
+
+		// Assert
+		result
+			.Should()
+			.Be(second);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.FindBy" />: the walk stops at the first object that meets the condition.
+	/// </summary>
+	[Test]
+	public void FindBy_Stops_At_The_First_Match()
+	{
+		// Arrange
+		List<ExplorerItemDtoBase> checkedItems = [];
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		ExplorerItemDtoBase[] hierarchy = [folder, file];
+
+		// Act
+		hierarchy.FindBy(x =>
+		{
+			checkedItems.Add(x);
+
+			return x is FolderDto;
+		});
+
+		// Assert
+		checkedItems
+			.Should()
+			.Equal(file, folder);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.FindById" />: finds an item by its id via the underlying FindBy lookup.
 	/// </summary>
 	[Test]
@@ -332,6 +547,32 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.GetCount(IEnumerable{ExplorerItemDtoBase})" />: a dataset counts as a file.
+	/// </summary>
+	[Test]
+	public void GetCount_Counts_A_Dataset_As_A_File()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto(kind: EntityKind.Dataset));
+
+		ExplorerItemDtoBase[] hierarchy = [folder];
+
+		// Act
+		HierarchyCounts result = hierarchy.GetCount();
+
+		// Assert
+		result.Files
+			.Should()
+			.Be(1);
+
+		result.Folders
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.GetCount(IEnumerable{ExplorerItemDtoBase})" />: counts files and folders across the hierarchy separately.
 	/// </summary>
 	[Test]
@@ -363,6 +604,40 @@ internal class HierarchyExtensionsTests
 		result.Folders
 			.Should()
 			.Be(2);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.GetFiles" />: lists the files in the order of the walk.
+	/// </summary>
+	[Test]
+	public void GetFiles_Lists_The_Files_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FileDto folderFile = ItemDtoFactory.CreateFileDto();
+
+		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
+
+		nested.Children.Add(nestedFile);
+
+		folder.Children.Add(folderFile);
+
+		folder.Children.Add(nested);
+
+		ExplorerItemDtoBase[] hierarchy = [folder, file];
+
+		// Act
+		FileDto[] result = [.. hierarchy.GetFiles()];
+
+		// Assert
+		result
+			.Should()
+			.Equal(file, nestedFile, folderFile);
 	}
 
 	/// <summary>
@@ -430,6 +705,32 @@ internal class HierarchyExtensionsTests
 			.Which
 			.Should()
 			.Be(editing);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.GetFolders" />: lists the folders in the order of the walk.
+	/// </summary>
+	[Test]
+	public void GetFolders_Lists_The_Folders_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		FolderDto first = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto second = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
+
+		first.Children.Add(nested);
+
+		ExplorerItemDtoBase[] hierarchy = [first, second];
+
+		// Act
+		FolderDto[] result = [.. hierarchy.GetFolders()];
+
+		// Assert
+		result
+			.Should()
+			.Equal(second, first, nested);
 	}
 
 	/// <summary>

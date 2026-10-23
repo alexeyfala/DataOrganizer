@@ -392,10 +392,11 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetFilesAsync" />: a clipboard that refuses the files raises no error.
+	/// <see cref="ClipboardAccessor.SetFilesAsync" />: a clipboard that refuses the files raises no error and answers
+	/// <c>false</c>.
 	/// </summary>
 	[Test]
-	public async Task SetFilesAsync_Ignores_A_Refused_Write()
+	public async Task SetFilesAsync_Answers_False_When_The_Clipboard_Refuses()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -425,12 +426,12 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		Func<Task> act = () => sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)], isRestored: false);
+		bool isWritten = await sut.SetFilesAsync([new ClipboardFileSystemEntry(FilePath, IsFolder: false)], isRestored: false);
 
 		// Assert
-		await act
+		isWritten
 			.Should()
-			.NotThrowAsync();
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -487,7 +488,8 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetFilesAsync" />: a list whose files are all gone leaves the clipboard alone.
+	/// <see cref="ClipboardAccessor.SetFilesAsync" />: a list whose files are all gone leaves the clipboard alone and answers
+	/// <c>false</c>.
 	/// </summary>
 	[Test]
 	public async Task SetFilesAsync_Leaves_The_Clipboard_When_No_File_Is_Found()
@@ -512,9 +514,13 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetFilesAsync([new ClipboardFileSystemEntry(TestPath.Combine("file.txt"), IsFolder: false)], isRestored: false);
+		bool isWritten = await sut.SetFilesAsync([new ClipboardFileSystemEntry(TestPath.Combine("file.txt"), IsFolder: false)], isRestored: false);
 
 		// Assert
+		isWritten
+			.Should()
+			.BeFalse();
+
 		await clipboard
 			.DidNotReceive()
 			.SetDataAsync(Arg.Any<DataTransfer>());
@@ -565,7 +571,7 @@ internal class ClipboardAccessorTests
 
 	/// <summary>
 	/// <see cref="ClipboardAccessor.SetFilesAsync" />: the files and folders that are still there go to the clipboard, and
-	/// the missing ones are left out.
+	/// the missing ones are left out; the write answers <c>true</c>.
 	/// </summary>
 	[Test]
 	public async Task SetFilesAsync_Puts_The_Found_Files_On_The_Clipboard()
@@ -613,7 +619,7 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetFilesAsync(
+		bool isWritten = await sut.SetFilesAsync(
 		[
 			new ClipboardFileSystemEntry(FilePath, IsFolder: false),
 			new ClipboardFileSystemEntry(SubfolderPath, IsFolder: true),
@@ -621,16 +627,21 @@ internal class ClipboardAccessorTests
 		], isRestored: false);
 
 		// Assert
+		isWritten
+			.Should()
+			.BeTrue();
+
 		placed!.TryGetFiles()
 			.Should()
 			.Equal(file, folder);
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetImageAsync" />: a clipboard that refuses the picture raises no error.
+	/// <see cref="ClipboardAccessor.SetImageAsync" />: a clipboard that refuses the picture raises no error and answers
+	/// <c>false</c>.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SetImageAsync_Ignores_A_Refused_Write()
+	public async Task SetImageAsync_Answers_False_When_The_Clipboard_Refuses()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -647,12 +658,12 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		Func<Task> act = () => sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
+		bool isWritten = await sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
 
 		// Assert
-		await act
+		isWritten
 			.Should()
-			.NotThrowAsync();
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -678,7 +689,8 @@ internal class ClipboardAccessorTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardAccessor.SetImageAsync" />: the picture of the PNG goes to the clipboard, without markers.
+	/// <see cref="ClipboardAccessor.SetImageAsync" />: the picture of the PNG goes to the clipboard, without markers, and
+	/// the write answers <c>true</c>.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task SetImageAsync_Puts_The_Picture_Of_The_Png_On_The_Clipboard()
@@ -691,9 +703,13 @@ internal class ClipboardAccessorTests
 		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
 
 		// Act
-		await sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
+		bool isWritten = await sut.SetImageAsync(ImageFactory.CreatePng(), isRestored: false);
 
 		// Assert
+		isWritten
+			.Should()
+			.BeTrue();
+
 		await clipboard
 			.Received(1)
 			.SetDataAsync(Arg.Is<DataTransfer>(x => x.TryGetBitmap() != null && x.Formats.Count == 1));

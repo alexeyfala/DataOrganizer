@@ -137,7 +137,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
-	public async Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored)
+	public async Task<bool> SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries, bool isRestored)
 	{
 		try
 		{
@@ -169,7 +169,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 
 			if (resolved.Count == 0)
 			{
-				return;
+				return false;
 			}
 
 			// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
@@ -200,15 +200,19 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			await _clipboard
 				.SetDataAsync(transfer)
 				.ConfigureAwait(false);
+
+			return true;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);
+
+			return false;
 		}
 	}
 
 	/// <inheritdoc />
-	public async Task SetImageAsync(byte[] png, bool isRestored)
+	public async Task<bool> SetImageAsync(byte[] png, bool isRestored)
 	{
 		try
 		{
@@ -235,10 +239,14 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			await _clipboard
 				.SetDataAsync(transfer)
 				.ConfigureAwait(false);
+
+			return true;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);
+
+			return false;
 		}
 	}
 

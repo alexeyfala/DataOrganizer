@@ -1,5 +1,4 @@
 using DataOrganizer.Extensions.Text;
-using Shared.Extensions;
 using System;
 using System.Security.Cryptography;
 using System.Threading;
@@ -19,9 +18,19 @@ internal sealed class ContentsWriteQueue
 	/// <c>True</c> when the last contents processed did not reach the file.
 	/// </summary>
 	public bool HasFailed => Volatile.Read(ref _lastWriteFailed);
+
+	/// <summary>
+	/// Clock of the wait for the queued contents.
+	/// </summary>
+	internal TimeProvider TimeProvider { get; init; } = TimeProvider.System;
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Time the wait for the queued contents lasts at most.
+	/// </summary>
+	private static readonly TimeSpan ProcessingTimeout = TimeSpan.FromSeconds(5);
+
 	/// <summary>
 	/// Channel of the contents waiting to be written.
 	/// </summary>
@@ -30,6 +39,11 @@ internal sealed class ContentsWriteQueue
 		SingleReader = true,
 		SingleWriter = true
 	});
+
+	/// <summary>
+	/// Guards the number of pending contents together with the signal of their end.
+	/// </summary>
+	private readonly Lock _pendingGate = new();
 
 	/// <summary>
 	/// Writes the contents and answers <c>false</c>, rather than throwing, when they did not reach the file.
@@ -45,6 +59,11 @@ internal sealed class ContentsWriteQueue
 	/// Number of queued contents that are not processed yet.
 	/// </summary>
 	private int _pendingCount;
+
+	/// <summary>
+	/// Completes once the pending contents are processed; <c>null</c> while nothing is pending.
+	/// </summary>
+	private TaskCompletionSource? _processed;
 
 	/// <summary>
 	/// SHA-256 of the contents the file holds, so that the same contents are not written again.
@@ -67,13 +86,19 @@ internal sealed class ContentsWriteQueue
 	/// </summary>
 	public void Enqueue(byte[] contents)
 	{
-		if (_channel
-			.Writer
-			.TryWrite(contents))
+		lock (_pendingGate)
 		{
-			Interlocked.Increment(ref _pendingCount);
+			if (_channel
+				.Writer
+				.TryWrite(contents))
+			{
+				if (_pendingCount++ == 0)
+				{
+					_processed = new();
+				}
 
-			return;
+				return;
+			}
 		}
 
 		contents.ZeroMemory();
@@ -140,7 +165,7 @@ internal sealed class ContentsWriteQueue
 			}
 			finally
 			{
-				Interlocked.Add(ref _pendingCount, -takenCount);
+				EndPending(takenCount);
 			}
 		}
 	}
@@ -153,11 +178,56 @@ internal sealed class ContentsWriteQueue
 	/// <summary>
 	/// Waits until every queued contents is processed; <c>false</c> when that takes too long.
 	/// </summary>
-	public ValueTask<bool> WaitUntilProcessedAsync(CancellationToken token = default)
+	public async ValueTask<bool> WaitUntilProcessedAsync(CancellationToken token = default)
 	{
-		Func<bool> isProcessed = () => Volatile.Read(ref _pendingCount) == 0;
+		Task? processed;
 
-		return isProcessed.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token);
+		lock (_pendingGate)
+		{
+			processed = _processed?.Task;
+		}
+
+		if (processed is null)
+		{
+			return true;
+		}
+
+		try
+		{
+			await processed
+				.WaitAsync(ProcessingTimeout, TimeProvider, token)
+				.ConfigureAwait(false);
+
+			return true;
+		}
+		catch (TimeoutException)
+		{
+			return false;
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Counts the taken contents as processed and signals the end once none is pending.
+	/// </summary>
+	private void EndPending(int takenCount)
+	{
+		TaskCompletionSource? processed = null;
+
+		lock (_pendingGate)
+		{
+			_pendingCount -= takenCount;
+
+			if (_pendingCount == 0)
+			{
+				processed = _processed;
+
+				_processed = null;
+			}
+		}
+
+		processed?.TrySetResult();
 	}
 	#endregion
 }

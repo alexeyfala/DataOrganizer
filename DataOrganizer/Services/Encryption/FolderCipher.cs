@@ -6,13 +6,13 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Storage;
 using Repository.Dto;
-using Repository.Interfaces.Database;
-using Repository.Services.Database;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +22,9 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class FolderCipher : IFolderCipher
 {
 	#region Data
+	/// <inheritdoc cref="IBackedUpWriter" />
+	private readonly IBackedUpWriter _backedUpWriter;
+
 	/// <inheritdoc cref="IContentKeys" />
 	private readonly IContentKeys _contentKeys;
 
@@ -30,9 +33,6 @@ public sealed class FolderCipher : IFolderCipher
 
 	/// <inheritdoc cref="IFolderContentsConverter" />
 	private readonly IFolderContentsConverter _converter;
-
-	/// <inheritdoc cref="IDbBackupService" />
-	private readonly IDbBackupService _dbBackupService;
 
 	/// <inheritdoc cref="IDbFailureReporter" />
 	private readonly IDbFailureReporter _dbFailureReporter;
@@ -52,23 +52,23 @@ public sealed class FolderCipher : IFolderCipher
 
 	#region Constructors
 	public FolderCipher(
+		IBackedUpWriter backedUpWriter,
 		IContentKeys contentKeys,
 		IEncryptedContentWriter contentWriter,
 		IFolderContentsConverter converter,
-		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,
 		IPasswordDekWrapper encryption,
 		IEncryptionFailureReporter encryptionFailureReporter,
 		IKeeperDekWriter keeperDekWriter,
 		INotificationService notification)
 	{
+		_backedUpWriter = backedUpWriter;
+
 		_contentKeys = contentKeys;
 
 		_contentWriter = contentWriter;
 
 		_converter = converter;
-
-		_dbBackupService = dbBackupService;
 
 		_dbFailureReporter = dbFailureReporter;
 
@@ -108,13 +108,9 @@ public sealed class FolderCipher : IFolderCipher
 
 			_notification.ShowInformationSnackbar(Strings.PasswordChanged);
 		}
-		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
-		{
-			_encryptionFailureReporter.Report(ex);
-		}
 		catch (Exception ex)
 		{
-			_dbFailureReporter.Report(ex, Strings.FailedToChangePassword);
+			ReportFailure(ex, Strings.FailedToChangePassword);
 		}
 	}
 
@@ -147,20 +143,8 @@ public sealed class FolderCipher : IFolderCipher
 				return;
 			}
 
-			using DatabaseBackup? backup = await _dbBackupService
-				.CreateBackupAsync(token)
-				.ConfigureAwait(false);
-
-			if (backup is null)
-			{
-				_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
-
-				return;
-			}
-
 			UpdateDatabaseParameters parameters = new()
 			{
-				BackupFilePath = backup.FilePath,
 				Contents = conversion.Converted,
 				EncryptedDek = null,
 				Files = files,
@@ -169,9 +153,9 @@ public sealed class FolderCipher : IFolderCipher
 				Notes = conversion.Notes
 			};
 
-			if (await _contentWriter
-				.UpdateDatabaseAsync(parameters, token)
-				.ConfigureAwait(false) is not UpdateDatabaseOutcome.Saved)
+			if (!await _backedUpWriter
+				.WriteAsync(() => SaveAsync(parameters, token), token)
+				.ConfigureAwait(false))
 			{
 				return;
 			}
@@ -180,13 +164,9 @@ public sealed class FolderCipher : IFolderCipher
 
 			areNotesHandedOver = true;
 		}
-		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
-		{
-			_encryptionFailureReporter.Report(ex);
-		}
 		catch (Exception ex)
 		{
-			_dbFailureReporter.Report(ex, Strings.FailedToProcessContents);
+			ReportFailure(ex, Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -237,22 +217,8 @@ public sealed class FolderCipher : IFolderCipher
 					passwordBinary,
 					ContentIdentity.Dek);
 
-				// The copy insures the one irreversible operation against a bug in the conversion,
-				// and holds the contents in plain text until the operation ends.
-				using DatabaseBackup? backup = await _dbBackupService
-					.CreateBackupAsync(token)
-					.ConfigureAwait(false);
-
-				if (backup is null)
-				{
-					_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
-
-					return;
-				}
-
 				UpdateDatabaseParameters parameters = new()
 				{
-					BackupFilePath = backup.FilePath,
 					Contents = conversion.Converted,
 					EncryptedDek = encryptedDek,
 					Files = files,
@@ -261,8 +227,10 @@ public sealed class FolderCipher : IFolderCipher
 					Notes = conversion.Notes
 				};
 
-				await _contentWriter
-					.UpdateDatabaseAsync(parameters, token)
+				// The copy insures the one irreversible operation against a bug in the conversion,
+				// and holds the contents in plain text until the operation ends.
+				_ = await _backedUpWriter
+					.WriteAsync(() => SaveAsync(parameters, token), token)
 					.ConfigureAwait(false);
 			}
 			finally
@@ -270,13 +238,9 @@ public sealed class FolderCipher : IFolderCipher
 				WipeContents(conversion.Loaded);
 			}
 		}
-		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
-		{
-			_encryptionFailureReporter.Report(ex);
-		}
 		catch (Exception ex)
 		{
-			_dbFailureReporter.Report(ex, Strings.FailedToProcessContents);
+			ReportFailure(ex, Strings.FailedToProcessContents);
 		}
 	}
 	#endregion
@@ -294,5 +258,35 @@ public sealed class FolderCipher : IFolderCipher
 	/// Overwrites the buffers of the given notes.
 	/// </summary>
 	private static void WipeNotes(IEnumerable<NoteUpdate> notes) => notes.ForEach(x => x.Note.ZeroMemory());
+
+	/// <summary>
+	/// Reports a failure: a cryptographic one to its own reporter, any other as a database failure under
+	/// <paramref name="text" />.
+	/// </summary>
+	private void ReportFailure(
+		Exception exception,
+		string text,
+		[CallerMemberName] string callerName = "")
+	{
+		if (EncryptionFailures.IsCryptographic(exception))
+		{
+			// The log names the operation that failed, not this helper.
+			_encryptionFailureReporter.Report(exception, callerName);
+
+			return;
+		}
+
+		_dbFailureReporter.Report(exception, text);
+	}
+
+	/// <summary>
+	/// Writes the converted contents; <c>true</c> when they are saved.
+	/// </summary>
+	private async Task<bool> SaveAsync(UpdateDatabaseParameters parameters, CancellationToken token)
+	{
+		return await _contentWriter
+			.UpdateDatabaseAsync(parameters, token)
+			.ConfigureAwait(false) is UpdateDatabaseOutcome.Saved;
+	}
 	#endregion
 }

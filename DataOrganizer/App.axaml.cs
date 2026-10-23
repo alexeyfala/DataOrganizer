@@ -52,12 +52,6 @@ using DataOrganizer.Services.Updates;
 using DataOrganizer.Services.Views;
 using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.ViewModels.Windows;
-using DataOrganizer.Views;
-using DataOrganizer.Views.Dialogs;
-using DataOrganizer.Views.Settings;
-using DataOrganizer.Windows;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.Extensions;
@@ -143,6 +137,7 @@ public sealed class App : Application
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
+		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
 		services.AddTransient<IBackgroundServiceControl, BackgroundServices>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
@@ -156,6 +151,7 @@ public sealed class App : Application
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDekCipher, EncryptionService>();
+		services.AddTransient<IDekRewrapper, DekRewrapper>();
 		services.AddTransient<IDeletionScenario, DeletionScenario>();
 		services.AddTransient<IDialogCloser, DialogCloser>();
 		services.AddTransient<IDialogHostFinder, DesktopAccessor>();
@@ -177,6 +173,7 @@ public sealed class App : Application
 		services.AddTransient<IExchangeFormat, SqliteExchangeFormat>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileContentsOpener, FileContentsOpener>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
 		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();
@@ -298,6 +295,7 @@ public sealed class App : Application
 		services.AddSingleton<ISettingsDraft>(static x => x.GetRequiredService<SettingsSession>());
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<ISyntaxRegistry>(static _ => SyntaxRegistry.Instance);
+		services.AddSingleton<IToastNotifier>(static x => x.GetRequiredService<INotificationService>());
 		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		services.AddSingleton<ClipboardLogService>();
@@ -309,49 +307,9 @@ public sealed class App : Application
 		#endregion
 
 		#region ViewModels
-		services.AddTransient<AppPickerViewModel>();
-		services.AddTransient<BooleanAsyncResultViewModel>();
-		services.AddTransient<ClipboardLogViewModel>();
-		services.AddTransient<CopyHistoryViewModel>();
-		services.AddTransient<DatasetEditorViewModel>();
+		// The view factory builds view models and views without registrations; only a view model that another
+		// constructor takes is registered.
 		services.AddTransient<EditingFilesViewModel>();
-		services.AddTransient<EditorViewModel>();
-		services.AddTransient<EmbeddedFileEditorViewModel>();
-		services.AddTransient<EntityCreationViewModel>();
-		services.AddTransient<FavoritesViewModel>();
-		services.AddTransient<HotkeysEditorViewModel>();
-		services.AddTransient<ImportListSelectorViewModel>();
-		services.AddTransient<KeyValueInputViewModel>();
-		services.AddTransient<MultilineTextEditViewModel>();
-		services.AddTransient<NotepadViewModel>();
-		services.AddTransient<PasswordBoxViewModel>();
-		services.AddTransient<PropertiesViewModel>();
-		services.AddTransient<SelectedFavoritesViewModel>();
-		services.AddTransient<SettingsViewModel>();
-		services.AddTransient<ToastViewModel>();
-		services.AddTransient<YesNoCancelBoxViewModel>();
-		#endregion
-
-		#region Views
-		services.AddTransient<AppPickerView>();
-		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<ClipboardLogWindow>();
-		services.AddTransient<DatasetEditorView>();
-		services.AddTransient<EditorWindow>();
-		services.AddTransient<EmbeddedFileEditorView>();
-		services.AddTransient<EntityCreationView>();
-		services.AddTransient<FavoritesWindow>();
-		services.AddTransient<HotkeysEditorView>();
-		services.AddTransient<ImportListSelectorView>();
-		services.AddTransient<KeyValueInputView>();
-		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<NotepadTabView>();
-		services.AddTransient<NotepadWindow>();
-		services.AddTransient<PasswordBoxView>();
-		services.AddTransient<PropertiesView>();
-		services.AddTransient<SettingsView>();
-		services.AddTransient<ToastWindow>();
-		services.AddTransient<YesNoCancelBoxView>();
 		#endregion
 	}
 	#endregion

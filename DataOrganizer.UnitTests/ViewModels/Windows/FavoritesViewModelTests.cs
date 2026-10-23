@@ -300,7 +300,6 @@ internal class FavoritesViewModelTests
 
 	/// <summary>
 	/// <see cref="FavoritesViewModel.FavoritesSettings" />: a new favorites window gathers the favorite files of the tree of
-
 	/// the work session into categories.
 	/// </summary>
 	[Test]
@@ -611,7 +610,6 @@ internal class FavoritesViewModelTests
 
 	/// <summary>
 	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
-
 	/// </summary>
 	[Test]
 	public void IsShowOnHoverEnabled_Is_Initialized_From_The_Settings()

@@ -1,8 +1,12 @@
 using Autofac.Extras.Moq;
+using AvaloniaEdit;
 using AwesomeAssertions;
 using DataOrganizer.Services.Settings;
 using Shared.Properties;
+using System.Collections;
 using System.Globalization;
+using System.Linq;
+using System.Resources;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
@@ -20,6 +24,9 @@ internal class UiCultureServiceTests
 	/// Culture state captured before a test to be restored afterwards.
 	/// </summary>
 	private CultureInfo? _resourceCulture;
+
+	/// <inheritdoc cref="_resourceCulture" />
+	private CultureInfo? _searchPanelCulture;
 	#endregion
 
 	#region Methods
@@ -43,6 +50,33 @@ internal class UiCultureServiceTests
 			.Name
 			.Should()
 			.Be("ru-RU");
+	}
+
+	/// <summary>
+	/// <see cref="UiCultureService.Apply" />: Russian leaves no text of the search panel of the editors in English, as the
+	/// package brings no Russian texts of its own.
+	/// </summary>
+	[Test]
+	public void Apply_Leaves_No_Text_Of_The_Search_Panel_In_English()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
+
+		ResourceManager texts = SR.ResourceManager;
+
+		// Act
+		sut.Apply("ru-ru");
+
+		// Assert
+		texts
+			.GetResourceSet(CultureInfo.InvariantCulture, createIfNotExists: true, tryParents: false)!
+			.Cast<DictionaryEntry>()
+			.Select(static x => (string)x.Key)
+			.Where(x => texts.GetString(x, SR.Culture) == texts.GetString(x, CultureInfo.InvariantCulture))
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -86,6 +120,26 @@ internal class UiCultureServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="UiCultureService.Apply" />: the search panel of the editors reads its texts in the applied culture.
+	/// </summary>
+	[Test]
+	public void Apply_Sets_Culture_For_The_Search_Panel()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
+
+		// Act
+		sut.Apply("ru-ru");
+
+		// Assert
+		SR.Culture
+			.Should()
+			.BeSameAs(sut.Current);
+	}
+
+	/// <summary>
 	/// <see cref="UiCultureService.Current" />: falls back to the ambient UI culture until applied.
 	/// </summary>
 	[Test]
@@ -108,6 +162,8 @@ internal class UiCultureServiceTests
 	{
 		_resourceCulture = Strings.Culture;
 
+		_searchPanelCulture = SR.Culture;
+
 		_defaultThreadCulture = CultureInfo.DefaultThreadCurrentUICulture;
 
 		_currentThreadCulture = CultureInfo.CurrentUICulture;
@@ -117,6 +173,8 @@ internal class UiCultureServiceTests
 	public void TearDown()
 	{
 		Strings.Culture = _resourceCulture;
+
+		SR.Culture = _searchPanelCulture;
 
 		CultureInfo.DefaultThreadCurrentUICulture = _defaultThreadCulture;
 

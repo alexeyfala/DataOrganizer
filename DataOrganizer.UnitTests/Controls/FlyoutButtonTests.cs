@@ -2,14 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.UnitTests.Factories;
 using Material.Icons;
 using System.Linq;
 
@@ -44,10 +43,10 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		menu.IsOpen
@@ -83,10 +82,10 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		menu.IsOpen
@@ -130,14 +129,14 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Click(window, Center(window, opener));
+		window.Click(window.CenterOf(opener));
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		submenu.IsOpen
@@ -178,10 +177,10 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		popup.IsOpen
@@ -221,10 +220,10 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		menu.IsOpen
@@ -266,10 +265,10 @@ internal class FlyoutButtonTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, sut);
+		Point point = window.CenterOf(sut);
 
 		// Act
-		Click(window, point);
+		window.Click(point);
 
 		// Assert
 		submenu.IsOpen
@@ -342,28 +341,6 @@ internal class FlyoutButtonTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point)
-	{
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Returns the right edge of the keys of a button in its own coordinates.
 	/// </summary>

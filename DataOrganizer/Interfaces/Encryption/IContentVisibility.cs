@@ -12,7 +12,6 @@ public interface IContentVisibility
 {
 	#region Methods
 	/// <summary>
-
 	/// Hides contents of the whole hierarchy.
 	/// </summary>
 	void HideAllContents(IEnumerable<ExplorerItemDtoBase> hierarchy);

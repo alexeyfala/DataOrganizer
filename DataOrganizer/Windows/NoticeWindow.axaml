@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Windows.NoticeWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -18,6 +19,7 @@
 
 	<StackPanel
 		Margin="16.0"
+		Classes="FlatButtonsStyle"
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
 
@@ -29,13 +31,7 @@
 			</KeyDownTrigger>
 		</Interaction.Behaviors>
 
-		<StackPanel.Styles>
-			<Style Selector="Button">
-				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-			</Style>
-		</StackPanel.Styles>
-
-		<!-- A message of any length leaves the buttons on the screen. -->
+		<!--  A message of any length leaves the buttons on the screen.  -->
 		<ScrollViewer
 			MaxHeight="360.0"
 			HorizontalScrollBarVisibility="Disabled"
@@ -47,9 +43,9 @@
 					Text="{Binding Message, Mode=OneWay}"
 					TextWrapping="Wrap" />
 
-				<SelectableTextBlock
+				<controls:SelectablePathTextBlock
 					IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-					Text="{Binding FilePath, Mode=OneWay}"
+					Path="{Binding FilePath, Mode=OneWay}"
 					TextWrapping="Wrap" />
 			</StackPanel>
 		</ScrollViewer>

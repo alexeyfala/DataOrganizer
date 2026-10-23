@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
 using DataOrganizer.UnitTests.Factories;
@@ -9,6 +10,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Interfaces.Database;
@@ -100,6 +102,68 @@ internal class NoteEditorTests
 			.Note
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="NoteEditor.EditAsync" />: a write the database fails goes to the reporter of database failures, and the
+	/// note is not applied.
+	/// </summary>
+	[Test]
+	public async Task EditAsync_Hands_A_Failed_Write_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			byte[] encoded = RandomValues.CreateBytes(10);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			INoteCipher noteCipher = Substitute.For<INoteCipher>();
+
+			noteCipher
+				.Encode(file, Arg.Any<string>())
+				.Returns(encoded);
+
+			dbAccess
+				.UpdateNoteAsync(file.Kind, file.Id, encoded, Arg.Any<DateTime>())
+				.ThrowsAsync(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(failureReporter);
+
+			builder.RegisterInstance(noteCipher);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		NoteEditor sut = mock.Create<NoteEditor>();
+
+		// Act
+		bool result = await sut.EditAsync(
+			file,
+			RandomString.Create(20));
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		file.Note
+			.Should()
+			.BeNull();
+
+		failureReporter
+			.Received(1)
+			.Report(failure, Arg.Any<string>());
 	}
 
 	/// <summary>

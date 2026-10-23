@@ -33,7 +33,6 @@ using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
 using Shared.Common;
-using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
@@ -321,6 +320,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -372,6 +375,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -436,6 +443,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder
@@ -485,6 +496,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -593,6 +608,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -840,6 +859,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -907,6 +930,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(contentCipher);
 
 			builder
@@ -960,6 +987,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1099,7 +1130,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TypingPause.Delay / 2.0);
 
-		await RunJobsUntilAsync(() => saved.Count > 0);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved.Count > 0);
 
 		// Assert
 		savedWhileTyping
@@ -1329,6 +1360,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -1374,6 +1409,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1423,6 +1462,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1486,6 +1529,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2110,7 +2157,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TimeSpan.FromMilliseconds(1));
 
-		await RunJobsUntilAsync(() => saved is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null);
 
 		// Assert
 		savedInPause
@@ -2213,6 +2260,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2328,6 +2379,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -2425,6 +2480,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -2531,7 +2590,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TypingPause.Delay);
 
-		await RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
 
 		// Assert
 		saved
@@ -2581,6 +2640,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
@@ -2649,6 +2712,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2947,6 +3014,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(notification);
 
 			builder
@@ -3001,6 +3072,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 		});
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
@@ -3416,6 +3491,79 @@ internal class EmbeddedFileEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text the database could not write goes to
+	/// the reporter of database failures and stays unsaved.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Hands_A_Failed_Write_To_The_Failure_Reporter()
+	{
+		// Arrange
+		InvalidOperationException failure = new();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ThrowsAsyncForAnyArgs(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(failureReporter);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		failureReporter
+			.Received(1)
+			.Report(failure, Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: in read-only mode a flush leaves
 	/// a change made in the mode unsaved, as the mode saves nothing after it turned on.
 	/// </summary>
@@ -3598,6 +3746,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3918,6 +4070,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -4120,6 +4276,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4386,6 +4546,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -4427,6 +4591,81 @@ internal class EmbeddedFileEditorViewModelTests
 		responses
 			.Should()
 			.Equal(true);
+	}
+
+	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.Receive(FlushEditorsMessage)" />: a text the database did not take, as the key
+	/// of the session refused it or the file is gone, stays unsaved and shows an error.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_Flush_Tells_Of_A_Text_The_Database_Did_Not_Take(
+		[Values(FileContentsWriteStatus.Closed, FileContentsWriteStatus.Missing)] FileContentsWriteStatus status)
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
+
+			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(fileContents);
+
+			fileContentsWriter
+				.WriteAsync(default, default, default!, default, default)
+				.ReturnsForAnyArgs(new FileContentsWriting
+				{
+					Status = status
+				});
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FileContentsReader>()
+				.As<IFileContentsReader>();
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(notification);
+
+			// An edit starts a pause in typing, which the test does not wait for.
+			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
+
+		await sut.EditorLoaded();
+
+		sut.Editor.Document.AsTextDocument().Text = RandomString.Create(10);
+
+		FlushEditorsMessage flush = new();
+
+		// Act
+		sut.Receive(flush);
+
+		IReadOnlyCollection<bool> responses = await flush.GetResponsesAsync();
+
+		// Assert
+		responses
+			.Should()
+			.Equal(false);
+
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -5626,29 +5865,11 @@ internal class EmbeddedFileEditorViewModelTests
 	/// </summary>
 	private static async Task RunJobsAsync(int repeats)
 	{
-		Func<bool> never = static () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return false;
-		};
-
-		await never.WaitAsync(millisecondsDelay: 10, maxRepeats: repeats);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
+		_ = await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(
+				static () => false,
+				maxRepeats: repeats);
 	}
 
 	/// <summary>

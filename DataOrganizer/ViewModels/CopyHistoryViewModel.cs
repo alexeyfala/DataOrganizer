@@ -10,9 +10,8 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Clipboard;
 using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.ViewModels;
 
@@ -91,7 +90,8 @@ public sealed partial class CopyHistoryViewModel :
 		ICopyHistory copyHistory,
 		IMessenger messenger,
 		ISessionHierarchy sessionHierarchy,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider) : base(
 			contentCopier,
 			messenger,
 			exceptionHandler)
@@ -101,7 +101,9 @@ public sealed partial class CopyHistoryViewModel :
 		_messenger = messenger;
 
 		_filter = new(
-			this.FilterPredicate(x => x.HistorySearch),
+			this.FilterPredicate(
+				x => x.HistorySearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
 		_filter.AddRange(sessionHierarchy.Hierarchy.FilterFilesById(copyHistory.ItemIds));
@@ -112,35 +114,12 @@ public sealed partial class CopyHistoryViewModel :
 
 		messenger.RegisterAll(this);
 
-		if (_filter.Visible is not INotifyCollectionChanged notifier)
-		{
-			return;
-		}
-
-		notifier.CollectionChanged += Filter_CollectionChanged;
-
-		Disposable
-			.Create(() => notifier.CollectionChanged -= Filter_CollectionChanged)
+		// The item chosen last comes back when the search shows it again while nothing is chosen.
+		_filter
+			.WhenShown(() => _previousSelectedItem)
+			.Where(_ => SelectedItem is null)
+			.Subscribe(x => SelectedItem = x)
 			.DisposeWith(_disposables);
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler.
-	/// </summary>
-	private void Filter_CollectionChanged(
-		object? sender,
-		NotifyCollectionChangedEventArgs e)
-	{
-		if (SelectedItem is not null
-			|| _previousSelectedItem is null
-			|| !_filter.Visible.Contains(_previousSelectedItem))
-		{
-			return;
-		}
-
-		SelectedItem = _previousSelectedItem;
 	}
 	#endregion
 

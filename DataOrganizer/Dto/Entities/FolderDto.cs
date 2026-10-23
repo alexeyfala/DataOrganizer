@@ -26,55 +26,9 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 	/// </summary>
 	public bool AnyChild(Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (condition(item))
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/// <summary>
-	/// <c>True</c> when any child file satisfies the condition.
-	/// </summary>
-	public bool AnyFile(Predicate<FileDto> condition)
-	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file && condition(file))
-			{
-				return true;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-
-		return false;
+		return Children
+			.Flatten()
+			.Any(x => condition(x));
 	}
 
 	/// <inheritdoc />
@@ -86,51 +40,7 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
-	public IEnumerable<ExplorerItemDtoBase> GetAllChildren()
-	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			yield return item;
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-	}
-
-	/// <summary>
-	/// Filters child objects of <see cref="FolderDto" /> by condition.
-	/// </summary>
-	public IEnumerable<FileDto> GetFiles(Predicate<FileDto> condition)
-	{
-		Stack<ExplorerItemDtoBase> stack = new(Children);
-
-		while (stack.Count > 0)
-		{
-			ExplorerItemDtoBase item = stack.Pop();
-
-			if (item is FileDto file && condition(file))
-			{
-				yield return file;
-			}
-
-			if (item is FolderDto folder)
-			{
-				foreach (ExplorerItemDtoBase child in folder.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
-	}
+	public IEnumerable<ExplorerItemDtoBase> GetAllChildren() => Children.Flatten();
 
 	/// <summary>
 	/// <c>True</c> when <see cref="EncryptedDek" /> has a value.

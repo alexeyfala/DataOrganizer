@@ -15,6 +15,7 @@ using DataOrganizer.Behaviors.DragAndDrop;
 using DataOrganizer.Interfaces.Dataset;
 using DataOrganizer.Messages.Dataset;
 using DataOrganizer.Models.Dataset;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Common;
 using System.Collections.Generic;
 
@@ -699,9 +700,7 @@ internal class DatasetRecordDragBehaviorTests
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
-		window.MouseDown(Start, MouseButton.Left);
-
-		window.MouseUp(Start, MouseButton.Left);
+		window.Click(Start);
 
 		// Act
 		window.MouseMove(Start + Far, RawInputModifiers.LeftMouseButton);

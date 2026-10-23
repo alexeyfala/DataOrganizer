@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -111,9 +110,9 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, file);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
-		await RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
 
 		window.Close();
 
@@ -205,9 +204,9 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, file);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -278,7 +277,7 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, files[1]);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -423,9 +422,9 @@ internal class CopyHistoryViewTests
 			.Reader = reader;
 
 		// Act
-		window.MouseMove(icon.TranslatePoint(new Rect(icon.Bounds.Size).Center, window)!.Value);
+		window.MouseMove(window.CenterOf(icon));
 
-		await RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
 
 		object? tip = ToolTip.GetTip(icon);
 
@@ -442,18 +441,6 @@ internal class CopyHistoryViewTests
 
 	#region Helpers
 	/// <summary>
-	/// Presses and releases the left button of the mouse in the middle of a button.
-	/// </summary>
-	private static void Click(Window window, Button button)
-	{
-		Point point = button.TranslatePoint(new Rect(button.Bounds.Size).Center, window)!.Value;
-
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
-	/// <summary>
 	/// Returns the copy button of a file in the list.
 	/// </summary>
 	private static Button FindCopyButton(Window window, FileListViewModelBase viewModel, FileDto file)
@@ -462,21 +449,6 @@ internal class CopyHistoryViewTests
 			.GetVisualDescendants()
 			.OfType<Button>()
 			.First(x => x.DataContext == file && x.Command == viewModel.CopyContentCommand);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 	#endregion
 }

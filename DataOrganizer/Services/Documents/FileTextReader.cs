@@ -15,6 +15,9 @@ namespace DataOrganizer.Services.Documents;
 public sealed class FileTextReader : IFileTextReader
 {
 	#region Data
+	/// <inheritdoc cref="IEditorStateStore" />
+	private readonly IEditorStateStore _editorStateStore;
+
 	/// <inheritdoc cref="IFileContentsReader" />
 	private readonly IFileContentsReader _fileContentsReader;
 
@@ -23,8 +26,13 @@ public sealed class FileTextReader : IFileTextReader
 	#endregion
 
 	#region Constructors
-	public FileTextReader(IFileContentsReader fileContentsReader, IJsonSerializer jsonSerializer)
+	public FileTextReader(
+		IEditorStateStore editorStateStore,
+		IFileContentsReader fileContentsReader,
+		IJsonSerializer jsonSerializer)
 	{
+		_editorStateStore = editorStateStore;
+
 		_fileContentsReader = fileContentsReader;
 
 		_jsonSerializer = jsonSerializer;
@@ -42,7 +50,7 @@ public sealed class FileTextReader : IFileTextReader
 			.ReadAsync(file, header, token)
 			.ConfigureAwait(false);
 
-		return Decode(file, reading);
+		return await DecodeAsync(file, reading, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -52,7 +60,7 @@ public sealed class FileTextReader : IFileTextReader
 			.ReadUnlockedAsync(file, token)
 			.ConfigureAwait(false);
 
-		return Decode(file, reading);
+		return await DecodeAsync(file, reading, token).ConfigureAwait(false);
 	}
 	#endregion
 
@@ -60,7 +68,10 @@ public sealed class FileTextReader : IFileTextReader
 	/// <summary>
 	/// Reads the text of the contents of a file once they are opened, then wipes them if they were decrypted.
 	/// </summary>
-	private FileTextReading Decode(FileDto file, FileContentsReading reading)
+	private async Task<FileTextReading> DecodeAsync(
+		FileDto file,
+		FileContentsReading reading,
+		CancellationToken token)
 	{
 		if (reading.Status == FileContentsStatus.Damaged)
 		{
@@ -82,7 +93,9 @@ public sealed class FileTextReader : IFileTextReader
 
 		try
 		{
-			if (FileTextCodec.TryRead(contents, FindChosenEncoding(file)) is not { Text: var text })
+			string? encoding = await FindChosenEncodingAsync(file, token).ConfigureAwait(false);
+
+			if (FileTextCodec.TryRead(contents, encoding) is not { Text: var text })
 			{
 				return new()
 				{
@@ -108,12 +121,17 @@ public sealed class FileTextReader : IFileTextReader
 	}
 
 	/// <summary>
-	/// Returns the web name of the encoding chosen for the text of a file; <c>null</c> when the text takes the one found
-	/// from the contents.
+	/// Returns the web name of the encoding chosen for the text of a file, from its state or, for a file not opened yet,
+	/// from the stored one; <c>null</c> when the text takes the encoding found from the contents.
 	/// </summary>
-	private string? FindChosenEncoding(FileDto file)
+	private async Task<string?> FindChosenEncodingAsync(FileDto file, CancellationToken token)
 	{
-		if (file.EditorState is not { } json)
+		// The tree carries no editor states, so a file not opened in the session has its own read on demand.
+		string? json = file.EditorState ?? await _editorStateStore
+			.ReadAsync(file.Id, token)
+			.ConfigureAwait(false);
+
+		if (json is null)
 		{
 			return null;
 		}

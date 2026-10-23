@@ -1,6 +1,8 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Globalization;
 
@@ -122,6 +124,52 @@ internal class SecurityConvertersTests
 	{
 		// Act
 		object? result = Convert(SecurityConverters.AutoLockRemaining, null);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SecurityConverters.MaskedValue" />: a hidden value shows the mask of the field, and an open one shows
+	/// itself.
+	/// </summary>
+	[Test]
+	public void MaskedValue_Shows_The_Mask_Of_A_Hidden_Value([Values] bool isHidden)
+	{
+		// Arrange
+		const string value = "Secret";
+
+		// Act
+		object? result = SecurityConverters.MaskedValue.Convert(
+			[value, isHidden],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
+
+		// Assert
+		result
+			.Should()
+			.Be(SecretMask.Apply(value, isHidden));
+
+		(result as string == value)
+			.Should()
+			.Be(!isHidden);
+	}
+
+	/// <summary>
+	/// <see cref="SecurityConverters.MaskedValue" />: nothing is shown until the value and its hidden state are known.
+	/// </summary>
+	[Test]
+	public void MaskedValue_Without_The_Hidden_State_Is_Empty()
+	{
+		// Act
+		object? result = SecurityConverters.MaskedValue.Convert(
+			["Secret", AvaloniaProperty.UnsetValue],
+			typeof(object),
+			null,
+			CultureInfo.CurrentCulture);
 
 		// Assert
 		result

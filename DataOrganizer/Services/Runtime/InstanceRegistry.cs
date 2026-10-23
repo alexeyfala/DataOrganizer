@@ -36,7 +36,6 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	private readonly FileStream? _lock;
 	#endregion
 
-
 	#region Constructors
 	public InstanceRegistry(IFileSystem fileSystem)
 	{

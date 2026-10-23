@@ -3,6 +3,7 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.LogicalTree;
 using System.ComponentModel;
 
 namespace DataOrganizer.Controls;
@@ -62,6 +63,13 @@ internal sealed class LazyMenuFlyout : Flyout
 		}
 
 		base.OnClosed();
+
+		// A submenu takes the focus when it opens and gives it back to nobody, so the menu it came from would miss the next
+		// Esc; the button of that menu that opened the submenu gets the focus back.
+		if (Target?.FindLogicalAncestorOfType<FlyoutPresenter>() is not null)
+		{
+			Target.Focus();
+		}
 	}
 
 	/// <inheritdoc />

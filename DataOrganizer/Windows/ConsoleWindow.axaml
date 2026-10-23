@@ -20,9 +20,13 @@
 			<styling:FluentThemeBehavior />
 		</Interaction.Behaviors>
 
-		<Separator Grid.Row="0" Margin="0.0" />
+		<Separator
+			Grid.Row="0"
+			Margin="0.0" />
 
-		<StackPanel Grid.Row="1" Orientation="Horizontal">
+		<StackPanel
+			Grid.Row="1"
+			Orientation="Horizontal">
 			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Margin" Value="6.0,4.0" />
@@ -69,12 +73,18 @@
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />
 
-			<Button Content="{materialIcons:MaterialIconTextExt Kind=FolderOutline}" ToolTip.Tip="{x:Static prop:Strings.Folders}">
+			<Button
+				Content="{materialIcons:MaterialIconTextExt Kind=FolderOutline}"
+				ToolTip.Tip="{x:Static prop:Strings.Folders}">
 				<Button.Flyout>
 					<MenuFlyout>
-						<MenuItem Command="{Binding OpenAppDataDirectoryCommand}" Header="{x:Static prop:Strings.ApplicationData}" />
+						<MenuItem
+							Command="{Binding OpenAppDataDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationData}" />
 
-						<MenuItem Command="{Binding OpenAppDirectoryCommand}" Header="{x:Static prop:Strings.ApplicationFile}" />
+						<MenuItem
+							Command="{Binding OpenAppDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationFile}" />
 					</MenuFlyout>
 				</Button.Flyout>
 			</Button>
@@ -90,7 +100,9 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="Spin">
-						<InvokeCommandAction Command="{Binding #Editor.SpinCommand}" PassEventArgsToCommand="True" />
+						<InvokeCommandAction
+							Command="{Binding #Editor.SpinCommand}"
+							PassEventArgsToCommand="True" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 
@@ -98,7 +110,9 @@
 			</ButtonSpinner>
 		</StackPanel>
 
-		<Separator Grid.Row="2" Margin="0.0" />
+		<Separator
+			Grid.Row="2"
+			Margin="0.0" />
 
 		<textControls:ConsoleLogViewer
 			x:Name="Editor"

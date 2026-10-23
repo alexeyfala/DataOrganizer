@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -12,9 +13,13 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<StackPanel Orientation="Vertical" Spacing="{StaticResource ElementSpacing}">
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
 
-		<StackPanel Orientation="Vertical" Spacing="{StaticResource ElementSpacing}">
+		<StackPanel
+			Orientation="Vertical"
+			Spacing="{StaticResource ElementSpacing}">
 
 			<StackPanel.Resources>
 				<Thickness x:Key="FileMargin">12.0,0.0,0.0,0.0</Thickness>
@@ -36,9 +41,13 @@
 				</Style>
 			</StackPanel.Styles>
 
-			<RadioButton AutomationProperties.Name="{x:Static prop:Strings.Folder}" IsChecked="{Binding IsFolderSelected, Mode=TwoWay}">
+			<RadioButton
+				AutomationProperties.Name="{x:Static prop:Strings.Folder}"
+				IsChecked="{Binding IsFolderSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FolderBrush}" Kind="{StaticResource FolderIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FolderBrush}"
+						Kind="{StaticResource FolderIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.Folder}" />
 				</StackPanel>
@@ -49,7 +58,9 @@
 				AutomationProperties.Name="{x:Static prop:Strings.File}"
 				IsChecked="{Binding IsFileSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FileBrush}" Kind="{StaticResource FileIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource FileIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.File}" />
 				</StackPanel>
@@ -60,7 +71,9 @@
 				AutomationProperties.Name="{x:Static prop:Strings.Dataset}"
 				IsChecked="{Binding IsDatasetSelected, Mode=TwoWay}">
 				<StackPanel>
-					<materialIcons:MaterialIcon Foreground="{StaticResource FileBrush}" Kind="{StaticResource DatasetIconKind}" />
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource DatasetIconKind}" />
 
 					<TextBlock Text="{x:Static prop:Strings.Dataset}" />
 				</StackPanel>
@@ -78,27 +91,10 @@
 			</Interaction.Behaviors>
 		</TextBox>
 
-		<UniformGrid
+		<controls:DialogButtons
 			HorizontalAlignment="Right"
-			ColumnSpacing="{StaticResource ElementSpacing}"
-			Columns="2">
-			<UniformGrid.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</UniformGrid.Styles>
-
-			<Button
-				Classes="primary"
-				Command="{Binding SaveCommand}"
-				Content="{x:Static prop:Strings.Add}"
-				IsDefault="True" />
-
-			<Button
-				Classes="primary"
-				Command="{Binding CancelCommand}"
-				Content="{x:Static prop:Strings.Cancel}"
-				IsCancel="True" />
-		</UniformGrid>
+			CancelCommand="{Binding CancelCommand}"
+			Command="{Binding SaveCommand}"
+			Text="{x:Static prop:Strings.Add}" />
 	</StackPanel>
 </UserControl>

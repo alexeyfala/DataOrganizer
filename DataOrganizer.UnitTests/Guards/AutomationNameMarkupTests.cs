@@ -69,6 +69,15 @@ internal partial class AutomationNameMarkupTests
 	};
 
 	/// <summary>
+	/// Kinds of text boxes, which a label, a placeholder or an automation name names.
+	/// </summary>
+	private static readonly HashSet<string> TextBoxKinds = new(StringComparer.Ordinal)
+	{
+		"SecretTextBox",
+		"TextBox"
+	};
+
+	/// <summary>
 	/// Attributes and setters that name a text box: a label, a placeholder or the name itself.
 	/// </summary>
 	private static readonly HashSet<string> TextBoxNamers = new(StringComparer.Ordinal)
@@ -201,7 +210,7 @@ internal partial class AutomationNameMarkupTests
 
 		HashSet<string> namingClasses = [.. markup.SelectMany(x => FindNamingClasses(x.Document))];
 
-		(string FilePath, XElement Element)[] textBoxes = [.. FindElements(["TextBox"])];
+		(string FilePath, XElement Element)[] textBoxes = [.. FindElements(TextBoxKinds)];
 
 		// Act
 		string[] unnamed = [.. textBoxes

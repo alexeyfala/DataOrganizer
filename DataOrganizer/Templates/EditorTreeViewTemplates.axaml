@@ -13,14 +13,13 @@
 	xmlns:views="using:DataOrganizer.Views">
 
 	<!--  FolderInTreeViewRowTemplate  -->
-	<DataTemplate x:Key="FolderInTreeViewRowTemplate" x:DataType="entities:FolderDto">
-		<Grid Background="Transparent" ColumnDefinitions="Auto,*,Auto">
-
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
+	<DataTemplate
+		x:Key="FolderInTreeViewRowTemplate"
+		x:DataType="entities:FolderDto">
+		<Grid
+			Background="Transparent"
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
@@ -55,8 +54,13 @@
 	</DataTemplate>
 
 	<!--  FileInTreeViewRowTemplate  -->
-	<DataTemplate x:Key="FileInTreeViewRowTemplate" x:DataType="entities:FileDto">
-		<Grid Background="Transparent" ColumnDefinitions="Auto,*,Auto">
+	<DataTemplate
+		x:Key="FileInTreeViewRowTemplate"
+		x:DataType="entities:FileDto">
+		<Grid
+			Background="Transparent"
+			Classes="CardFlyoutsStyle"
+			ColumnDefinitions="Auto,*">
 			<Grid.ContextFlyout>
 				<controls:LazyMenuFlyout MenuTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
 			</Grid.ContextFlyout>
@@ -65,12 +69,6 @@
 				<input:ShowContextFlyoutOnDoubleTapBehavior />
 			</Interaction.Behaviors>
 
-			<Grid.Styles>
-				<Style Selector="FlyoutPresenter">
-					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
-				</Style>
-			</Grid.Styles>
-
 			<materialIcons:MaterialIcon
 				Grid.Column="0"
 				Width="{StaticResource EntityKindIconSize}"
@@ -78,34 +76,10 @@
 				Foreground="{StaticResource FileBrush}"
 				Kind="{Binding Kind, Mode=OneWay, Converter={x:Static converters:ExplorerConverters.EntityKindToIconKind}}" />
 
-			<TextBlock
+			<ContentPresenter
 				Grid.Column="1"
-				Classes="DtoNameTextBlockStyle"
-				Text="{Binding Name, Mode=OneWay}">
-				<Interaction.Behaviors>
-					<text:TextBlockAutoToolTipBehavior />
-				</Interaction.Behaviors>
-			</TextBlock>
-
-			<views:IconsBlock
-				Grid.Column="2"
-				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
-				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
-				IsEditing="{Binding IsEditing, Mode=OneWay}"
-				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
-				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
-				NoteItem="{Binding Mode=OneWay}"
-				NoteName="{Binding Name, Mode=OneWay}"
-				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}">
-				<views:IconsBlock.HotkeysToolTip>
-					<MultiBinding Converter="{x:Static converters:ExplorerConverters.HotkeysToToolTip}" Mode="OneWay">
-						<Binding Mode="OneWay" Path="Hotkeys" />
-
-						<!--  The hotkeys change inside the collection, so its count makes the tip follow them.  -->
-						<Binding Mode="OneWay" Path="Hotkeys.Count" />
-					</MultiBinding>
-				</views:IconsBlock.HotkeysToolTip>
-			</views:IconsBlock>
+				Content="{Binding Mode=OneWay}"
+				ContentTemplate="{StaticResource FileNameWithIconsTemplate}" />
 		</Grid>
 	</DataTemplate>
 
@@ -115,12 +89,18 @@
 		x:DataType="nodes:FolderNodeViewModel"
 		ItemsSource="{Binding Children, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
 		<!--  The row shows the folder itself, so its menu works with the folder.  -->
-		<ContentControl Content="{Binding Model, Mode=OneWay}" ContentTemplate="{StaticResource FolderInTreeViewRowTemplate}" />
+		<ContentControl
+			Content="{Binding Model, Mode=OneWay}"
+			ContentTemplate="{StaticResource FolderInTreeViewRowTemplate}" />
 	</TreeDataTemplate>
 
 	<!--  FileInTreeViewTemplate  -->
-	<DataTemplate x:Key="FileInTreeViewTemplate" x:DataType="nodes:FileNodeViewModel">
+	<DataTemplate
+		x:Key="FileInTreeViewTemplate"
+		x:DataType="nodes:FileNodeViewModel">
 		<!--  The row shows the file itself, so its menu works with the file.  -->
-		<ContentControl Content="{Binding Model, Mode=OneWay}" ContentTemplate="{StaticResource FileInTreeViewRowTemplate}" />
+		<ContentControl
+			Content="{Binding Model, Mode=OneWay}"
+			ContentTemplate="{StaticResource FileInTreeViewRowTemplate}" />
 	</DataTemplate>
 </ResourceDictionary>

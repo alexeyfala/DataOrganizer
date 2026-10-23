@@ -18,7 +18,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	/// <c>True</c> when the imported objects are appended to the list instead of replacing it.
 	/// </summary>
 	[ObservableProperty]
-	public partial bool AddToList { get; set; }
+	public partial bool AddToList { get; set; } = true;
 
 	/// <summary>
 	/// Text shown above the import options.
@@ -30,7 +30,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	/// <c>True</c> when the imported entries replace the current list.
 	/// </summary>
 	[ObservableProperty]
-	public partial bool Replace { get; set; } = true;
+	public partial bool Replace { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

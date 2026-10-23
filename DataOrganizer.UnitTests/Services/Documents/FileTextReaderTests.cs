@@ -72,7 +72,7 @@ internal class FileTextReaderTests
 
 	/// <summary>
 	/// <see cref="FileTextReader.ReadAsync" />: the text is read in the encoding chosen for the file rather than in the one
-	/// found from its contents.
+	/// found from its contents, and the state the file carries spares a read of the stored one.
 	/// </summary>
 	[Test]
 	public async Task ReadAsync_Reads_The_Text_In_The_Chosen_Encoding()
@@ -85,6 +85,8 @@ internal class FileTextReaderTests
 			Encoding = "cp866"
 		}));
 
+		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
@@ -96,6 +98,65 @@ internal class FileTextReaderTests
 					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
 					Status = FileContentsStatus.Opened
 				});
+
+			builder.RegisterInstance(editorStateStore);
+
+			builder.RegisterInstance(fileContentsReader);
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		FileTextReader sut = mock.Create<FileTextReader>();
+
+		// Act
+		FileTextReading result = await sut.ReadAsync(file, Header);
+
+		// Assert
+		result.Text
+			.Should()
+			.Be(text);
+
+		await editorStateStore
+			.DidNotReceiveWithAnyArgs()
+			.ReadAsync(default);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextReader.ReadAsync" />: the text of a file not opened in the session, which carries no editor state,
+	/// is read in the encoding stored for it in the database.
+	/// </summary>
+	[Test]
+	public async Task ReadAsync_Reads_The_Text_In_The_Stored_Encoding_Of_A_File_Not_Opened()
+	{
+		// Arrange
+		const string text = "Привет, мир";
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
+
+			IFileContentsReader fileContentsReader = Substitute.For<IFileContentsReader>();
+
+			editorStateStore
+				.ReadAsync(file.Id)
+				.Returns(new SystemTextJsonSerializer().Serialize(new FileEditorState
+				{
+					Encoding = "cp866"
+				}));
+
+			fileContentsReader
+				.ReadAsync(file, Header)
+				.Returns(new FileContentsReading
+				{
+					Contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(text),
+					Status = FileContentsStatus.Opened
+				});
+
+			builder.RegisterInstance(editorStateStore);
 
 			builder.RegisterInstance(fileContentsReader);
 

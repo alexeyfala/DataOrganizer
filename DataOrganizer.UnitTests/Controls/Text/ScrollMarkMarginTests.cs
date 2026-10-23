@@ -5,7 +5,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -20,8 +19,7 @@ using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
-using Shared.Extensions;
-using System;
+using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -64,16 +62,10 @@ internal class ScrollMarkMarginTests
 		ScrollViewer scrollViewer = GetScrollViewer(editor);
 
 		// The middle of the margin is the middle of the scroll bar track.
-		Point point = sut.TranslatePoint(
-			new(
-				sut.Bounds.Width / 2.0,
-				sut.Bounds.Height / 2.0),
-			window) ?? default;
+		Point point = window.CenterOf(sut);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1100,15 +1092,10 @@ internal class ScrollMarkMarginTests
 	/// </summary>
 	private static ValueTask<bool> WaitForMarks(ScrollMarkMargin margin, int count)
 	{
-		Func<bool> isMarked = () =>
-		{
-			// The pause ends on a timer, which posts the pass over the document to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count;
-		};
-
-		return isMarked.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the pass over the document to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(
+			() => GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count,
+			maxRepeats: 1000);
 	}
 	#endregion
 
