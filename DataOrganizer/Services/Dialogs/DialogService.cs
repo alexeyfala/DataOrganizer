@@ -107,9 +107,7 @@ public sealed class DialogService :
 			.Candidates
 			.AddRange(candidates);
 
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<AppPickerView>(viewModel),
-			DialogHostIdentifiers.Main);
+		Task dialogClosed = ShowDialog<AppPickerView>(viewModel);
 
 		return await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -127,9 +125,7 @@ public sealed class DialogService :
 
 		viewModel.DialogHostIdentifier = parameters.DialogHostIdentifier;
 
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<KeyValueInputView>(viewModel),
-			parameters.DialogHostIdentifier);
+		Task dialogClosed = ShowDialog<KeyValueInputView>(viewModel, parameters.DialogHostIdentifier);
 
 		if (!await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -156,9 +152,7 @@ public sealed class DialogService :
 
 		viewModel.Text = text;
 
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel),
-			DialogHostIdentifiers.Main);
+		Task dialogClosed = ShowDialog<MultilineTextEditView>(viewModel);
 
 		if (!await viewModel
 			.GetResultAsync(dialogClosed, token)
@@ -223,44 +217,26 @@ public sealed class DialogService :
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default)
+	public Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default)
 	{
-		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
-
-		viewModel.Text = text;
-
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
-			DialogHostIdentifiers.Main);
-
-		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesCancel, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelAnswer.Yes;
+		return RequestYesAsync(
+			text,
+			YesNoCancelButtons.YesCancel,
+			DialogHostIdentifiers.Main,
+			token);
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestYesNoAsync(
+	public Task<bool> RequestYesNoAsync(
 		string text,
 		string dialogHostIdentifier = DialogHostIdentifiers.Main,
 		CancellationToken token = default)
 	{
-		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
-
-		viewModel.Text = text;
-
-		viewModel.DialogHostIdentifier = dialogHostIdentifier;
-
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel),
-			dialogHostIdentifier);
-
-		YesNoCancelAnswer result = await viewModel
-			.GetResultAsync(dialogClosed, YesNoCancelButtons.YesNo, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelAnswer.Yes;
+		return RequestYesAsync(
+			text,
+			YesNoCancelButtons.YesNo,
+			dialogHostIdentifier,
+			token);
 	}
 
 	/// <inheritdoc />
@@ -270,9 +246,7 @@ public sealed class DialogService :
 
 		viewModel.Header = Strings.ImportList;
 
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel),
-			DialogHostIdentifiers.Main);
+		Task dialogClosed = ShowDialog<ImportListSelectorView>(viewModel);
 
 		return viewModel.GetResultAsync(dialogClosed, token);
 	}
@@ -282,9 +256,7 @@ public sealed class DialogService :
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
 
-		Task dialogClosed = DialogHost.Show(
-			_viewFactory.CreateUserControl<EntityCreationView>(viewModel),
-			DialogHostIdentifiers.Main);
+		Task dialogClosed = ShowDialog<EntityCreationView>(viewModel);
 
 		try
 		{
@@ -320,9 +292,7 @@ public sealed class DialogService :
 			.Properties
 			.AddRange(properties);
 
-		DialogHost.Show(
-			_viewFactory.CreateUserControl<PropertiesView>(viewModel),
-			DialogHostIdentifiers.Main);
+		ShowDialog<PropertiesView>(viewModel);
 	}
 
 	/// <inheritdoc />
@@ -389,6 +359,44 @@ public sealed class DialogService :
 
 			target.Text = null;
 		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Asks a question with the buttons in a dialog host; <c>True</c> when the answer is
+	/// <see cref="YesNoCancelAnswer.Yes" />.
+	/// </summary>
+	private async Task<bool> RequestYesAsync(
+		string text,
+		YesNoCancelButtons buttons,
+		string dialogHostIdentifier,
+		CancellationToken token)
+	{
+		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
+
+		viewModel.Text = text;
+
+		viewModel.DialogHostIdentifier = dialogHostIdentifier;
+
+		Task dialogClosed = ShowDialog<YesNoCancelBoxView>(viewModel, dialogHostIdentifier);
+
+		YesNoCancelAnswer result = await viewModel
+			.GetResultAsync(dialogClosed, buttons, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelAnswer.Yes;
+	}
+
+	/// <summary>
+	/// Shows the view of a view model in a dialog host; the task ends with the result of the dialog when it closes.
+	/// </summary>
+	private Task<object?> ShowDialog<TView>(object viewModel, string dialogHostIdentifier = DialogHostIdentifiers.Main)
+		where TView : UserControl
+	{
+		return DialogHost.Show(
+			_viewFactory.CreateUserControl<TView>(viewModel),
+			dialogHostIdentifier);
 	}
 	#endregion
 }
