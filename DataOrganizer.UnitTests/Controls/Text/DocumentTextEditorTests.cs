@@ -25,7 +25,6 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3087,19 +3086,12 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Func<bool> isFolded = () =>
-		{
-			// The pause ends on a timer, which posts the pass over the lines to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return GetFoldedLines(sut).Length > 0;
-		};
-
 		// Act
 		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
 
 		// Assert
-		bool result = await isFolded.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the pass over the lines to the UI thread.
+		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(() => GetFoldedLines(sut).Length > 0, maxRepeats: 1000);
 
 		result
 			.Should()
@@ -4126,15 +4118,8 @@ internal class DocumentTextEditorTests
 	/// </summary>
 	private static ValueTask<bool> WaitForColors(TextEditor editor, Func<Color[], bool> condition)
 	{
-		Func<bool> isMet = () =>
-		{
-			// The tokenizer posts the redraws of the colored lines to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return condition(GetWordColors(editor));
-		};
-
-		return isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The tokenizer posts the redraws of the colored lines to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(() => condition(GetWordColors(editor)), maxRepeats: 1000);
 	}
 	#endregion
 }

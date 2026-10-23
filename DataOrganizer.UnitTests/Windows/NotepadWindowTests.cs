@@ -32,7 +32,6 @@ using Material.Icons;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Common;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1158,15 +1157,8 @@ internal class NotepadWindowTests
 	/// </summary>
 	private static ValueTask<bool> WaitForFirstFocus(TextArea area)
 	{
-		Func<bool> isFocused = () =>
-		{
-			// The focus comes on a timer, which posts it to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return area.IsFocused;
-		};
-
-		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The focus comes on a timer, which posts it to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(() => area.IsFocused, maxRepeats: 1000);
 	}
 	#endregion
 }

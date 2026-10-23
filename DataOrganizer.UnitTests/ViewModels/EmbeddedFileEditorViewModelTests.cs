@@ -1131,7 +1131,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TypingPause.Delay / 2.0);
 
-		await RunJobsUntilAsync(() => saved.Count > 0);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved.Count > 0);
 
 		// Assert
 		savedWhileTyping
@@ -2158,7 +2158,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TimeSpan.FromMilliseconds(1));
 
-		await RunJobsUntilAsync(() => saved is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null);
 
 		// Assert
 		savedInPause
@@ -2591,7 +2591,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TypingPause.Delay);
 
-		await RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
 
 		// Assert
 		saved
@@ -5874,21 +5874,6 @@ internal class EmbeddedFileEditorViewModelTests
 		};
 
 		await never.WaitAsync(millisecondsDelay: 10, maxRepeats: repeats);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 
 	/// <summary>

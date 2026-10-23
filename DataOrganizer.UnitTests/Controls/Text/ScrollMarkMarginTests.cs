@@ -20,8 +20,6 @@ using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
-using Shared.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1094,15 +1092,10 @@ internal class ScrollMarkMarginTests
 	/// </summary>
 	private static ValueTask<bool> WaitForMarks(ScrollMarkMargin margin, int count)
 	{
-		Func<bool> isMarked = () =>
-		{
-			// The pause ends on a timer, which posts the pass over the document to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count;
-		};
-
-		return isMarked.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the pass over the document to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(
+			() => GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count,
+			maxRepeats: 1000);
 	}
 	#endregion
 

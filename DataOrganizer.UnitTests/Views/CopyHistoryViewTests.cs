@@ -112,7 +112,7 @@ internal class CopyHistoryViewTests
 		// Act
 		window.Click(button);
 
-		await RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
 
 		window.Close();
 
@@ -206,7 +206,7 @@ internal class CopyHistoryViewTests
 		// Act
 		window.Click(button);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -424,7 +424,7 @@ internal class CopyHistoryViewTests
 		// Act
 		window.MouseMove(window.CenterOf(icon));
 
-		await RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
 
 		object? tip = ToolTip.GetTip(icon);
 
@@ -449,21 +449,6 @@ internal class CopyHistoryViewTests
 			.GetVisualDescendants()
 			.OfType<Button>()
 			.First(x => x.DataContext == file && x.Command == viewModel.CopyContentCommand);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 	#endregion
 }

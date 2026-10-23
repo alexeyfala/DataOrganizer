@@ -1716,7 +1716,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.Receive(new ShowInEditorMessage(file.Id));
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -2306,7 +2306,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowInListCommand.Execute(file.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -2364,7 +2364,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
 
 		bool[] states =
 		[
@@ -2415,7 +2415,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(shown.Id);
 
-		await RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2553,7 +2553,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -2596,7 +2596,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -2649,7 +2649,7 @@ internal class EditorWindowTests
 		viewModel.ShowObject(file.Id);
 
 		// The highlight comes after the selection, so a selection the tree drops is gone by then.
-		await RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
 
 		bool[] states =
 		[
@@ -2718,21 +2718,6 @@ internal class EditorWindowTests
 			&& row.TranslatePoint(default, tree) is { } point
 			&& point.Y >= 0.0
 			&& point.Y + row.Bounds.Height <= tree.Bounds.Height;
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 	#endregion
 }

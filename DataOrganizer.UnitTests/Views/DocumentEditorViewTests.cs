@@ -27,7 +27,6 @@ using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
-using Shared.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -358,19 +357,14 @@ internal class DocumentEditorViewTests
 			.AllFoldings
 			.ElementAt(1);
 
-		Func<bool> isReported = () =>
-		{
-			// The pause ends on a timer, which posts the capture to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset;
-		};
-
 		// Act
 		block.IsFolded = true;
 
 		// Assert
-		bool result = await isReported.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+		// The pause ends on a timer, which posts the capture to the UI thread.
+		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(
+			() => sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset,
+			maxRepeats: 1000);
 
 		result
 			.Should()
@@ -3273,19 +3267,14 @@ internal class DocumentEditorViewTests
 	/// </summary>
 	private static ValueTask<bool> WaitForFirstFocus(DocumentEditorView editor)
 	{
-		Func<bool> isFocused = () =>
-		{
-			// The focus comes on a timer, which posts it to the UI thread.
-			Dispatcher.UIThread.RunJobs();
-
-			return editor
+		// The focus comes on a timer, which posts it to the UI thread.
+		return Dispatcher.UIThread.RunJobsUntilAsync(
+			() => editor
 				.GetControl<SplitDocumentEditor>(EditorName)
 				.PrimaryEditor
 				.TextArea
-				.IsFocused;
-		};
-
-		return isFocused.WaitAsync(millisecondsDelay: 10, maxRepeats: 1000);
+				.IsFocused,
+			maxRepeats: 1000);
 	}
 	#endregion
 }

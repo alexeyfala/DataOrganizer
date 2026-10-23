@@ -18,7 +18,6 @@ using DataOrganizer.Views;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
-using Shared.Extensions;
 using System;
 using System.Linq;
 using System.Threading;
@@ -146,7 +145,7 @@ internal class SelectedFavoritesViewTests
 
 		window.Show();
 
-		await RunJobsUntilAsync(() => FindItem(window, file) is not null);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => FindItem(window, file) is not null);
 
 		ListBoxItem item = FindItem(window, file)!;
 
@@ -164,7 +163,7 @@ internal class SelectedFavoritesViewTests
 		// Act
 		window.Click(point);
 
-		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -334,21 +333,6 @@ internal class SelectedFavoritesViewTests
 			.GetVisualDescendants()
 			.OfType<ListBoxItem>()
 			.FirstOrDefault(x => x.DataContext == file);
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 
 	/// <summary>

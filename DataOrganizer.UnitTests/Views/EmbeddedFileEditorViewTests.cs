@@ -23,7 +23,6 @@ using DataOrganizer.Views;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
-using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
@@ -502,7 +501,7 @@ internal class EmbeddedFileEditorViewTests
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "cp866");
 
-		await RunJobsUntilAsync(() => sut.Editor.Document?.Text == text);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => sut.Editor.Document?.Text == text);
 
 		// Assert
 		sut.Editor.Document!.Text
@@ -580,7 +579,7 @@ internal class EmbeddedFileEditorViewTests
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
 
-		await RunJobsUntilAsync(() => encodings.SelectedChoice == Encoding.UTF8.WebName);
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => encodings.SelectedChoice == Encoding.UTF8.WebName);
 
 		// Assert
 		encodings.SelectedChoice
@@ -1490,21 +1489,6 @@ internal class EmbeddedFileEditorViewTests
 			.LineTransformers
 			.OfType<TextMateColoringTransformer>()
 			.Any();
-	}
-
-	/// <summary>
-	/// Runs the jobs of the UI thread until <paramref name="condition" /> holds or the wait runs out.
-	/// </summary>
-	private static async Task RunJobsUntilAsync(Func<bool> condition)
-	{
-		Func<bool> isMet = () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return condition();
-		};
-
-		await isMet.WaitAsync(millisecondsDelay: 10, maxRepeats: 300);
 	}
 	#endregion
 }
