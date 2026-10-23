@@ -600,6 +600,29 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditor.Document" />: the blocks of a text replaced whole, as a file loaded into the empty document or
+	/// read again in another encoding, are found at once, not after the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Document_Folds_The_Blocks_Of_A_Text_Replaced_Whole_At_Once([Values("", "Old")] string oldText)
+	{
+		// Arrange
+		using DocumentTextEditor sut = new()
+		{
+			Document = new(oldText),
+			SyntaxLanguage = PowerShellLanguage
+		};
+
+		// Act
+		sut.Document.Text = NestedText;
+
+		// Assert
+		GetFoldedLines(sut)
+			.Should()
+			.Equal((1, 7), (3, 6));
+	}
+
+	/// <summary>
 	/// <see cref="TextEditor.Document" />: the highlighting moves on to a new document.
 	/// </summary>
 	[AvaloniaTest]
@@ -2630,6 +2653,34 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: a text replaced whole in a document the editor has left is not its new
+	/// text, so an edit of the current document still waits for the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Ignores_A_Document_Left_Behind()
+	{
+		// Arrange
+		TextDocument leftBehind = new("First");
+
+		DocumentTextEditor sut = new()
+		{
+			Document = leftBehind
+		};
+
+		sut.Document = new("First");
+
+		leftBehind.Text = "First\nSecond";
+
+		// Act
+		sut.Document.Insert(sut.Document.TextLength, "\r\nSecond");
+
+		// Assert
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.None);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.Status" />: the line endings of a new document are found at once.
 	/// </summary>
 	[AvaloniaTest]
@@ -2650,6 +2701,39 @@ internal class DocumentTextEditorTests
 		sut.Status.LineEnding
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocumentTextEditor.Status" />: the line endings of a text replaced whole, as a file loaded into the empty
+	/// document or read again in another encoding, are found at once, also in the first document of the editor, while an
+	/// edit waits for the pause in typing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Status_Reports_The_Line_Ending_Of_A_Text_Replaced_Whole_At_Once([Values(null, "", "Old")] string? oldText)
+	{
+		// Arrange
+		DocumentTextEditor sut = new();
+
+		if (oldText is not null)
+		{
+			sut.Document = new(oldText);
+		}
+
+		// Act
+		sut.Document.Text = "First\r\nSecond\r\n";
+
+		LineEnding replaced = sut.Status.LineEnding;
+
+		sut.Document.Insert(sut.Document.TextLength, "Third\n");
+
+		// Assert
+		replaced
+			.Should()
+			.Be(LineEnding.CrLf);
+
+		sut.Status.LineEnding
+			.Should()
+			.Be(LineEnding.CrLf);
 	}
 
 	/// <summary>
