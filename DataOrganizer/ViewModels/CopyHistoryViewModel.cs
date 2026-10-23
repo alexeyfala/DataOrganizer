@@ -90,7 +90,8 @@ public sealed partial class CopyHistoryViewModel :
 		ICopyHistory copyHistory,
 		IMessenger messenger,
 		ISessionHierarchy sessionHierarchy,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider) : base(
 			contentCopier,
 			messenger,
 			exceptionHandler)
@@ -100,7 +101,9 @@ public sealed partial class CopyHistoryViewModel :
 		_messenger = messenger;
 
 		_filter = new(
-			this.FilterPredicate(x => x.HistorySearch),
+			this.FilterPredicate(
+				x => x.HistorySearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
 		_filter.AddRange(sessionHierarchy.Hierarchy.FilterFilesById(copyHistory.ItemIds));

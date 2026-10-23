@@ -33,7 +33,6 @@ using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
 using Shared.Common;
-using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
@@ -5866,14 +5865,11 @@ internal class EmbeddedFileEditorViewModelTests
 	/// </summary>
 	private static async Task RunJobsAsync(int repeats)
 	{
-		Func<bool> never = static () =>
-		{
-			Dispatcher.UIThread.RunJobs();
-
-			return false;
-		};
-
-		await never.WaitAsync(millisecondsDelay: 10, maxRepeats: repeats);
+		_ = await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(
+				static () => false,
+				maxRepeats: repeats);
 	}
 
 	/// <summary>

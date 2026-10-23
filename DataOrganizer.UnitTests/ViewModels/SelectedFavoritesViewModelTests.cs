@@ -10,14 +10,13 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -25,17 +24,27 @@ namespace DataOrganizer.UnitTests.ViewModels;
 [TestFixture(Description = $@"Tests of ""{nameof(SelectedFavoritesViewModel)}"" type")]
 internal class SelectedFavoritesViewModelTests
 {
+	#region Data
+	/// <summary>
+	/// Pause after which a typed search takes effect.
+	/// </summary>
+	private static readonly TimeSpan SearchPause = TimeSpan.FromMilliseconds(500);
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="SelectedFavoritesViewModel.CategorySearch" />: the category chosen last comes back once the search shows it
 	/// again while nothing is chosen.
 	/// </summary>
 	[Test]
-	public async Task CategorySearch_Brings_Back_The_Category_Chosen_Last()
+	public void CategorySearch_Brings_Back_The_Category_Chosen_Last()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FakeTimeProvider time = new();
 
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		// Without a context the filter applies the search on this thread, as the pause ends.
 		SynchronizationContext.SetSynchronizationContext(null);
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
@@ -54,18 +63,14 @@ internal class SelectedFavoritesViewModelTests
 		// The search hides the chosen category after its pause, and the list lets the choice go.
 		sut.CategorySearch = Guid.NewGuid().ToString();
 
-		Func<bool> isHidden = () => !sut.Categories.Contains(chosen);
-
-		await isHidden.WaitAsync(20, 100);
+		time.Advance(SearchPause);
 
 		sut.SelectedCategory = null;
 
 		// Act
 		sut.CategorySearch = null;
 
-		Func<bool> isChosenAgain = () => sut.SelectedCategory == chosen;
-
-		await isChosenAgain.WaitAsync(20, 100);
+		time.Advance(SearchPause);
 
 		// Assert
 		sut.SelectedCategory
@@ -78,11 +83,14 @@ internal class SelectedFavoritesViewModelTests
 	/// again while nothing is chosen.
 	/// </summary>
 	[Test]
-	public async Task FavoriteSearch_Brings_Back_The_Favorite_Chosen_Last()
+	public void FavoriteSearch_Brings_Back_The_Favorite_Chosen_Last()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FakeTimeProvider time = new();
 
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		// Without a context the filter applies the search on this thread, as the pause ends.
 		SynchronizationContext.SetSynchronizationContext(null);
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
@@ -105,18 +113,14 @@ internal class SelectedFavoritesViewModelTests
 		// The search hides the chosen favorite after its pause, and the list lets the choice go.
 		sut.FavoriteSearch = Guid.NewGuid().ToString();
 
-		Func<bool> isHidden = () => !sut.Favorites.Contains(chosen);
-
-		await isHidden.WaitAsync(20, 100);
+		time.Advance(SearchPause);
 
 		sut.SelectedFavorite = null;
 
 		// Act
 		sut.FavoriteSearch = null;
 
-		Func<bool> isChosenAgain = () => sut.SelectedFavorite == chosen;
-
-		await isChosenAgain.WaitAsync(20, 100);
+		time.Advance(SearchPause);
 
 		// Assert
 		sut.SelectedFavorite

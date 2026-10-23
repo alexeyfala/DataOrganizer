@@ -22,6 +22,11 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Time a start or a stop of the hook is waited for at most.
+	/// </summary>
+	private static readonly TimeSpan HookTimeout = TimeSpan.FromSeconds(1);
+
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
@@ -37,20 +42,23 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 
 	/// <summary>
-	/// <c>True</c> when the native hook has reported itself as enabled.
+	/// Task of the running hook; it ends once the hook has let go of the native hook.
 	/// </summary>
-	private bool _isHookEnabled;
+	private Task _runTask = Task.CompletedTask;
 
 	/// <summary>
-	/// Task of the running hook.
+	/// Completes once the running hook reports itself as enabled or its run ends; <c>null</c> before the first start.
 	/// </summary>
-	private Task? _runTask;
+	private TaskCompletionSource? _started;
 	#endregion
 
 	#region Constructors
@@ -58,7 +66,8 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 		IGlobalHook hook,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler exceptionHandler)
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider)
 	{
 		_exceptionHandler = exceptionHandler;
 
@@ -68,7 +77,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 		_messenger = messenger;
 
-		hook.HookDisabled += Hook_HookDisabled;
+		_timeProvider = timeProvider;
 
 		hook.HookEnabled += Hook_HookEnabled;
 
@@ -78,14 +87,9 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="GlobalHookBase.HookDisabled" /> event handler.
-	/// </summary>
-	private void Hook_HookDisabled(object? sender, HookEventArgs e) => _isHookEnabled = false;
-
-	/// <summary>
 	/// <see cref="GlobalHookBase.HookEnabled" /> event handler.
 	/// </summary>
-	private void Hook_HookEnabled(object? sender, HookEventArgs e) => _isHookEnabled = true;
+	private void Hook_HookEnabled(object? sender, HookEventArgs e) => _started?.TrySetResult();
 
 	/// <summary>
 	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
@@ -106,8 +110,6 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 		{
 			return;
 		}
-
-		_hook.HookDisabled -= Hook_HookDisabled;
 
 		_hook.HookEnabled -= Hook_HookEnabled;
 
@@ -142,20 +144,33 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 			_logger.LogInformation("Start global keyboard hook");
 
-			_isHookEnabled = false;
+			// The hook reports itself as enabled on its own thread, where the wait must not go on.
+			TaskCompletionSource started = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-			Task runTask = _hook.RunAsync(GlobalHookType.Keyboard);
+			_started = started;
+
+			// RunAsync ends its task before the hook lets go of the native hook; Run returns only after that.
+			Task runTask = Task.Factory.StartNew(
+				() => RunHook(started),
+				CancellationToken.None,
+				TaskCreationOptions.LongRunning,
+				TaskScheduler.Default);
 
 			_runTask = runTask;
 
 			_exceptionHandler.Watch(runTask);
 
 			// The native hook is installed asynchronously.
-			Func<bool> condition = () => _isHookEnabled || runTask.IsCompleted;
+			bool isStarted = await WaitForAsync(
+				started.Task,
+				token).ConfigureAwait(false);
 
-			await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false);
+			if (isStarted)
+			{
+				return;
+			}
+
+			_logger.LogWarning("The global keyboard hook has not reported itself as enabled in time");
 		}
 		catch (Exception ex)
 		{
@@ -173,13 +188,12 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 		try
 		{
 			// Stopping a hook that has not finished starting fails.
-			Task? runTask = _runTask;
-
-			Func<bool> condition = () => _isHookEnabled || runTask is null or { IsCompleted: true };
-
-			await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false);
+			if (_started is { } started)
+			{
+				_ = await WaitForAsync(
+					started.Task,
+					token).ConfigureAwait(false);
+			}
 
 			if (!IsRunning)
 			{
@@ -191,16 +205,57 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 			_hook.Stop();
 
 			// The native hook shuts down asynchronously.
-			condition = () => !IsRunning;
+			bool isStopped = await WaitForAsync(
+				_runTask,
+				token).ConfigureAwait(false);
 
-			await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false);
+			if (isStopped)
+			{
+				return;
+			}
+
+			_logger.LogWarning("The global keyboard hook has not stopped in time");
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Runs the hook on the calling thread until it stops and lets go of the native hook.
+	/// </summary>
+	private void RunHook(TaskCompletionSource started)
+	{
+		try
+		{
+			_hook.Run(GlobalHookType.Keyboard);
+		}
+		finally
+		{
+			// A hook that fails to start never reports itself as enabled.
+			started.TrySetResult();
+		}
+	}
+
+	/// <summary>
+	/// Waits for <paramref name="signal" /> at most <see cref="HookTimeout" />; <c>false</c> when the time runs out.
+	/// </summary>
+	private async Task<bool> WaitForAsync(Task signal, CancellationToken token)
+	{
+		// A failed run is logged where it is watched, so only the end of the signal counts here.
+		await signal
+			.WaitAsync(
+				HookTimeout,
+				_timeProvider,
+				token)
+			.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+		token.ThrowIfCancellationRequested();
+
+		return signal.IsCompleted;
 	}
 	#endregion
 }

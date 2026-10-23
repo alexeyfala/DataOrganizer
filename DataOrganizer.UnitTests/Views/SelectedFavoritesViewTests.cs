@@ -15,6 +15,7 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Common;
@@ -63,7 +64,15 @@ internal class SelectedFavoritesViewTests
 		// Arrange
 		string search = RandomString.Create(8);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(Application.Current!);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -185,7 +194,15 @@ internal class SelectedFavoritesViewTests
 		// Arrange
 		string search = RandomString.Create(8);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(Application.Current!);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 

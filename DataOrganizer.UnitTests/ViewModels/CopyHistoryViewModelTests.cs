@@ -14,6 +14,7 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Shared.Extensions;
@@ -400,6 +401,11 @@ internal class CopyHistoryViewModelTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 
 			builder
 				.RegisterType<WeakReferenceMessenger>()

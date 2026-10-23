@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Serilog;
 using SharpHook;
@@ -11,6 +12,7 @@ using SharpHook.Data;
 using SharpHook.Testing;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
@@ -37,6 +39,62 @@ internal class GlobalHookRunnerTests
 
 		// Assert
 		hook.IsDisposed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StartAsync" />: the wait for a hook that never reports itself as enabled ends at its limit
+	/// on the clock.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_Ends_At_Its_Limit_When_The_Hook_Does_Not_Report_Itself_Enabled()
+	{
+		// Arrange
+		// Without a context the end of the wait runs on this thread, so the start shows at once that it is over.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using ManualResetEventSlim stopped = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+			// The hook runs until it is let go and never reports itself as enabled.
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ => stopped.Wait());
+
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		Task starting = sut.StartAsync();
+
+		// Act
+		time.Advance(TimeSpan.FromSeconds(1) - TimeSpan.FromTicks(1));
+
+		bool isWaitingBeforeTheLimit = !starting.IsCompleted;
+
+		time.Advance(TimeSpan.FromTicks(1));
+
+		bool isOverAtTheLimit = starting.IsCompleted;
+
+		stopped.Set();
+
+		await starting;
+
+		// Assert
+		isWaitingBeforeTheLimit
+			.Should()
+			.BeTrue();
+
+		isOverAtTheLimit
 			.Should()
 			.BeTrue();
 	}
@@ -130,6 +188,64 @@ internal class GlobalHookRunnerTests
 		hook
 			.DidNotReceive()
 			.Stop();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StopAsync" />: the stop ends only once the run of the hook returns, not when the hook
+	/// counts itself stopped.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Ends_Only_After_The_Hook_Run_Returns()
+	{
+		// Arrange
+		using ManualResetEventSlim released = new();
+
+		using ManualResetEventSlim running = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+			hook
+				.IsRunning
+				.Returns(_ => running.IsSet);
+
+			// Like SharpHook, the hook counts itself stopped before its run lets go of the native hook and returns.
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ =>
+				{
+					running.Set();
+
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+
+					released.Wait();
+				});
+
+			hook
+				.When(x => x.Stop())
+				.Do(_ => running.Reset());
+
+			builder.RegisterInstance(hook);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		await sut.StartAsync();
+
+		// Act
+		Task stopping = sut.StopAsync();
+
+		bool isOverBeforeTheRunReturns = stopping.IsCompleted;
+
+		released.Set();
+
+		await stopping;
+
+		// Assert
+		isOverBeforeTheRunReturns
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

@@ -1,10 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers.Views;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,10 +26,14 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 {
 	#region Data
 	/// <summary>
-	/// Pause between the selection of a shown object and its highlight, and between the checks whether the window has
-	/// loaded.
+	/// Pause between the selection of a shown object and its highlight.
 	/// </summary>
 	private const int ShowDelay = 200;
+
+	/// <summary>
+	/// Time the wait for the window to load lasts at most.
+	/// </summary>
+	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
 
 	/// <summary>
 	/// Stops the waits of the shows once the behavior is detached.
@@ -69,6 +74,11 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		get => GetValue(ShowSignalProperty);
 		set => SetValue(ShowSignalProperty, value);
 	}
+
+	/// <summary>
+	/// Clock of the wait for the window to load.
+	/// </summary>
+	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 	#endregion
 
 	#region Styled Properties
@@ -186,17 +196,20 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// </summary>
 	private async Task ShowAsync(IReadOnlyList<object> path, CancellationToken token)
 	{
-		if (AssociatedObject is not { } items || path is [])
+		// The window is found by the logical tree, as the list joins the visual tree only once the window is shown.
+		if (AssociatedObject is not { } items
+			|| path is []
+			|| items.FindLogicalAncestorOfType<TopLevel>() is not { } topLevel)
 		{
 			return;
 		}
 
 		// A selection made before the window has loaded would not be saved.
-		Func<bool> isLoaded = () => TopLevel.GetTopLevel(items) is { IsLoaded: true };
+		bool isLoaded = await WaitUntilLoadedAsync(
+			topLevel,
+			token).ConfigureAwait(true);
 
-		if (!await isLoaded
-			.WaitAsync(ShowDelay, 10, token)
-			.ConfigureAwait(true))
+		if (!isLoaded)
 		{
 			return;
 		}
@@ -218,6 +231,40 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		await BrushAnimations.ApplyHighlightAnimationAsync(
 			() => container.Background as Brush,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Waits until <paramref name="topLevel" /> has loaded, at most <see cref="LoadTimeout" />; <c>false</c> when it has
+	/// not loaded in time.
+	/// </summary>
+	private async Task<bool> WaitUntilLoadedAsync(TopLevel topLevel, CancellationToken token)
+	{
+		if (topLevel.IsLoaded)
+		{
+			return true;
+		}
+
+		TaskCompletionSource loaded = new();
+
+		// Disposed after the wait, back on the UI thread, which owns the events of the window.
+		using IDisposable subscription = Observable
+			.FromEventPattern<RoutedEventArgs>(
+				x => topLevel.Loaded += x,
+				x => topLevel.Loaded -= x)
+			.Subscribe(_ => loaded.TrySetResult());
+
+		// The show goes on as a job of its own, not inside the event of the window.
+		await loaded
+			.Task
+			.WaitAsync(
+				LoadTimeout,
+				TimeProvider,
+				token)
+			.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding | ConfigureAwaitOptions.SuppressThrowing);
+
+		token.ThrowIfCancellationRequested();
+
+		return loaded.Task.IsCompleted;
 	}
 	#endregion
 }

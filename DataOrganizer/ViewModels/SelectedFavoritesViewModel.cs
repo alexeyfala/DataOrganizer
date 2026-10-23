@@ -192,17 +192,22 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	public SelectedFavoritesViewModel(
 		IContentCopier contentCopier,
 		IMessenger messenger,
-		ITaskExceptionHandler exceptionHandler) : base(
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider) : base(
 			contentCopier,
 			messenger,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(
-			this.FilterPredicate(x => x.CategorySearch),
+			this.FilterPredicate(
+				x => x.CategorySearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
 		_favoritesFilter = new(
-			this.FilterPredicate(x => x.FavoriteSearch),
+			this.FilterPredicate(
+				x => x.FavoriteSearch,
+				timeProvider),
 			autoRefreshOn: x => x.Name);
 
 		// The category and the favorite chosen last come back when the search shows them again while nothing is chosen.

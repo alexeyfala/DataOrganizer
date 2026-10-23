@@ -1,5 +1,4 @@
 using Avalonia.Threading;
-using Shared.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -15,20 +14,29 @@ internal static class DispatcherExtensions
 	/// Runs the jobs of <paramref name="dispatcher" /> until <paramref name="condition" /> holds, pausing
 	/// <paramref name="millisecondsDelay" /> between the runs; <c>false</c> after <paramref name="maxRepeats" /> pauses.
 	/// </summary>
-	public static ValueTask<bool> RunJobsUntilAsync(
+	public static async ValueTask<bool> RunJobsUntilAsync(
 		this Dispatcher dispatcher,
 		Func<bool> condition,
 		int millisecondsDelay = 10,
 		int maxRepeats = 300)
 	{
-		Func<bool> isMet = () =>
+		for (int i = 0; ; i++)
 		{
 			dispatcher.RunJobs();
 
-			return condition();
-		};
+			if (condition())
+			{
+				return true;
+			}
 
-		return isMet.WaitAsync(millisecondsDelay, maxRepeats);
+			if (i == maxRepeats)
+			{
+				return false;
+			}
+
+			// A plain await comes back to the UI thread, where the jobs run.
+			await Task.Delay(millisecondsDelay);
+		}
 	}
 	#endregion
 }

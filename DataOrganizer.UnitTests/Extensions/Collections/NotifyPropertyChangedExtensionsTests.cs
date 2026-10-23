@@ -2,7 +2,9 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions.Collections;
 using DataOrganizer.Interfaces.Hierarchy;
+using Microsoft.Extensions.Time.Testing;
 using System;
+using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.Extensions.Collections;
 
@@ -10,6 +12,49 @@ namespace DataOrganizer.UnitTests.Extensions.Collections;
 internal partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: a changed search gives a new predicate only once
+	/// its pause ends on the clock.
+	/// </summary>
+	[Test]
+	public void FilterPredicate_Follows_A_Changed_Search_After_Its_Pause()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		Source source = new();
+
+		List<Func<INamed, bool>> predicates = [];
+
+		using IDisposable subscription = source
+			.FilterPredicate(
+				x => x.Search,
+				time)
+			.Subscribe(predicates.Add);
+
+		source.Search = "hello";
+
+		// Act
+		time.Advance(TimeSpan.FromMilliseconds(500) - TimeSpan.FromTicks(1));
+
+		int countBeforeThePauseEnds = predicates.Count;
+
+		time.Advance(TimeSpan.FromTicks(1));
+
+		// Assert
+		countBeforeThePauseEnds
+			.Should()
+			.Be(1);
+
+		predicates
+			.Should()
+			.HaveCount(2);
+
+		predicates[1](new NameHolder("Other"))
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: with a null search the initial predicate matches every item.
 	/// </summary>
@@ -21,7 +66,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search)
+			.FilterPredicate(
+				x => x.Search,
+				TimeProvider.System)
 			.Subscribe(predicate =>
 			{
 				// Assert
@@ -42,7 +89,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search)
+			.FilterPredicate(
+				x => x.Search,
+				TimeProvider.System)
 			.Subscribe(predicate =>
 			{
 				// Assert

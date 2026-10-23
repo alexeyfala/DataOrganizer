@@ -143,15 +143,6 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc />
 	public async Task StartTrackingAsync(CancellationToken token = default)
 	{
-		Func<bool> condition = () => !IsRunning;
-
-		if (!await condition
-			.WaitAsync(100, 10, token)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
 		using SemaphoreLock held = await _semaphore
 			.LockAsync(token)
 			.ConfigureAwait(false);
