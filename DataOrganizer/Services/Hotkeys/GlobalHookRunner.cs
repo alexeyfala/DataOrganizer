@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Extensions.Threading;
+using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
@@ -127,8 +129,8 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	/// <inheritdoc />
 	public async Task StartAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -159,24 +161,13 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 		{
 			_logger.LogException(ex);
 		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
 	}
 
 	/// <inheritdoc />
 	public async Task StopAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -209,17 +200,6 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 	#endregion

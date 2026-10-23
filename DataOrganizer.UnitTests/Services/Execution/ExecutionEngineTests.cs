@@ -144,6 +144,26 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: a wait for the engine that the caller cancels ends quietly.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Ends_Quietly_When_The_Wait_Is_Cancelled()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		// Act
+		Func<Task> close = () => sut.CloseAsync(Guid.NewGuid(), new CancellationToken(canceled: true));
+
+		// Assert
+		await close
+			.Should()
+			.NotThrowAsync();
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: waits for a locked file to be released before deleting it.
 	/// </summary>
 	[Test]

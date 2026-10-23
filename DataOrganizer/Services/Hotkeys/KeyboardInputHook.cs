@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
+using DataOrganizer.Extensions.Threading;
 using DataOrganizer.Helpers.Hotkeys;
+using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
@@ -150,8 +152,8 @@ public sealed class KeyboardInputHook :
 			return;
 		}
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -173,49 +175,24 @@ public sealed class KeyboardInputHook :
 		{
 			_logger.LogException(ex);
 		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
 	}
 
 	/// <inheritdoc />
 	public async Task StopTrackingAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			_logger.LogInformation("Stop global keyboard input tracking");
+		_logger.LogInformation("Stop global keyboard input tracking");
 
-			Hierarchy = null;
+		Hierarchy = null;
 
-			InputStack.Clear();
+		InputStack.Clear();
 
-			await _hookRunner
-				.StopAsync(token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		await _hookRunner
+			.StopAsync(token)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -226,8 +203,8 @@ public sealed class KeyboardInputHook :
 		KeyCode code,
 		CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -293,17 +270,6 @@ public sealed class KeyboardInputHook :
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 	#endregion
