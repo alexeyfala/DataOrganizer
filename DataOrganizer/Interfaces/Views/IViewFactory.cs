@@ -18,7 +18,6 @@ public interface IViewFactory : IViewModelFactory
 	/// </summary>
 	T CreateUserControl<T>(params object[] args) where T : UserControl;
 
-
 	/// <summary>
 	/// Creates a <see cref="Window" /> resolving constructor parameters from application's
 	/// <see cref="ServiceCollection" />, except the ones supplied explicitly in

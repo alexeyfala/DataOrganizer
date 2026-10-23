@@ -583,7 +583,6 @@ internal class FavoritesWindowTests
 			.ContainSingle()
 			.Which
 			.Should()
-
 			.NotBeNull()
 			.And
 			.BeSameAs(list);

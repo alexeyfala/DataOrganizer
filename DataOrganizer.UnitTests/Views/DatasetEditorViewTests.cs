@@ -1722,7 +1722,6 @@ internal class DatasetEditorViewTests
 
 		viewModel.IsReadOnly = true;
 
-
 		DatasetEditorView sut = new(viewModel);
 
 		ItemsRepeater recordsHost = sut.GetControl<ItemsRepeater>(RecordsHostName);

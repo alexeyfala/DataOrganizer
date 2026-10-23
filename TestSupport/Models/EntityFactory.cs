@@ -74,7 +74,6 @@ public static class EntityFactory
 			UpdatedAt = DateTime.Now
 		};
 
-
 	/// <summary>
 	/// Creates the required number of random <see cref="FolderEntity" /> objects.
 	/// </summary>

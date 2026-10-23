@@ -51,6 +51,9 @@ internal static class WindowPlacementHelper
 		PositionAtScreenCenter(target, owner);
 	}
 
+	/// <summary>
+	/// Returns the position of a window in the lower right corner of a working area, a margin away from its edges.
+	/// </summary>
 	public static PixelPoint GetLowerRightPosition(
 		PixelRect workingArea,
 		PixelSize windowSize,

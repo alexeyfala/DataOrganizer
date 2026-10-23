@@ -279,7 +279,6 @@ internal class EmbeddedEditorViewModelBaseTests
 	#endregion
 }
 
-
 // TestEditor is a top-level internal type so the CommunityToolkit messenger source generator
 // (IMessengerRegisterAllGenerator), which emits a RegisterAll for every IRecipient<T> recipient,
 // can access it — a private nested type would be inaccessible to the generated code.
