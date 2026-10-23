@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -78,27 +79,10 @@
 			</Interaction.Behaviors>
 		</TextBox>
 
-		<UniformGrid
+		<controls:DialogButtons
 			HorizontalAlignment="Right"
-			ColumnSpacing="{StaticResource ElementSpacing}"
-			Columns="2">
-			<UniformGrid.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</UniformGrid.Styles>
-
-			<Button
-				Classes="primary"
-				Command="{Binding SaveCommand}"
-				Content="{x:Static prop:Strings.Add}"
-				IsDefault="True" />
-
-			<Button
-				Classes="primary"
-				Command="{Binding CancelCommand}"
-				Content="{x:Static prop:Strings.Cancel}"
-				IsCancel="True" />
-		</UniformGrid>
+			CancelCommand="{Binding CancelCommand}"
+			Command="{Binding SaveCommand}"
+			Text="{x:Static prop:Strings.Add}" />
 	</StackPanel>
 </UserControl>

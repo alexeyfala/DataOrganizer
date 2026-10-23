@@ -43,6 +43,29 @@
 		</Style>
 	</ControlTheme>
 
+	<!--  The main button and the button that cancels, at the bottom of a dialog.  -->
+	<ControlTheme x:Key="{x:Type controls:DialogButtons}" TargetType="controls:DialogButtons">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<UniformGrid ColumnSpacing="{StaticResource ElementSpacing}" Columns="2">
+					<Button
+						Classes="primary"
+						Command="{TemplateBinding Command}"
+						Content="{TemplateBinding Text}"
+						IsDefault="True"
+						Theme="{StaticResource MaterialFlatButton}" />
+
+					<Button
+						Classes="primary"
+						Command="{TemplateBinding CancelCommand}"
+						Content="{x:Static prop:Strings.Cancel}"
+						IsCancel="True"
+						Theme="{StaticResource MaterialFlatButton}" />
+				</UniformGrid>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+
 	<ControlTheme
 		x:Key="{x:Type controls:DocumentTabControl}"
 		BasedOn="{StaticResource ScrollableTabControl}"
