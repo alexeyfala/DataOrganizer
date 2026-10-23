@@ -1,6 +1,9 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Documents;
+using Microsoft.Extensions.Time.Testing;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
 
@@ -368,6 +371,89 @@ internal class ContentsWriteQueueTests
 			.BeTrue();
 
 		bool isProcessed = await waiting;
+
+		isProcessed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ContentsWriteQueue.WaitUntilProcessedAsync" />: answers <c>false</c> when the queued contents take
+	/// too long.
+	/// </summary>
+	[Test]
+	public async Task WaitUntilProcessedAsync_Answers_False_When_The_Write_Takes_Too_Long()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		TaskCompletionSource<bool> written = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		ContentsWriteQueue sut = new(_ => written.Task)
+		{
+			TimeProvider = time
+		};
+
+		sut.Enqueue(RandomValues.CreateBytes(10));
+
+		Task running = sut.RunAsync();
+
+		ValueTask<bool> waiting = sut.WaitUntilProcessedAsync();
+
+		// Act
+		time.Advance(TimeSpan.FromSeconds(5));
+
+		bool isProcessed = await waiting;
+
+		written.SetResult(true);
+
+		sut.Complete();
+
+		await running;
+
+		// Assert
+		isProcessed
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ContentsWriteQueue.WaitUntilProcessedAsync" />: the wait ends as the queued contents are written, with
+	/// no pause after them.
+	/// </summary>
+	[Test]
+	public async Task WaitUntilProcessedAsync_Ends_As_The_Queued_Contents_Are_Written()
+	{
+		// Arrange
+		// Without a context the end of the write runs on this thread, so the wait shows at once what follows it.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		TaskCompletionSource<bool> written = new();
+
+		ContentsWriteQueue sut = new(_ => written.Task);
+
+		sut.Enqueue(RandomValues.CreateBytes(10));
+
+		// The run takes the queued contents at once and waits for their write.
+		Task running = sut.RunAsync();
+
+		ValueTask<bool> waiting = sut.WaitUntilProcessedAsync();
+
+		// Act
+		written.SetResult(true);
+
+		bool isCompleted = waiting.IsCompleted;
+
+		bool isProcessed = await waiting;
+
+		sut.Complete();
+
+		await running;
+
+		// Assert
+		isCompleted
+			.Should()
+			.BeTrue();
 
 		isProcessed
 			.Should()

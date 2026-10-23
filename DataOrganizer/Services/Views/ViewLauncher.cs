@@ -17,6 +17,8 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Views;
@@ -213,14 +215,17 @@ public class ViewLauncher :
 	{
 		if (_windowFinder.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
 		{
+			// The console may put its closing off, so the wait follows the window rather than the call.
+			Task closed = Observable
+				.FromEventPattern<EventHandler, EventArgs>(
+					x => console.Closed += x,
+					x => console.Closed -= x)
+				.FirstAsync()
+				.ToTask();
+
 			console.Close();
 
-			while (_windowFinder.FindWindow<ConsoleWindow>() is not null)
-			{
-				await Task
-					.Delay(300)
-					.ConfigureAwait(true);
-			}
+			await closed.ConfigureAwait(true);
 		}
 
 		// Closed here, so that it saves its settings while the services are still alive.

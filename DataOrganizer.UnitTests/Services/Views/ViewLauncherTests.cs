@@ -436,6 +436,73 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: the wait for a console that puts its closing off ends as
+	/// the console closes, with no pause after it.
+	/// </summary>
+	[AvaloniaTest]
+	public void CloseSecondaryWindowsAsync_Ends_As_The_Console_Closes()
+	{
+		// Arrange
+		bool canClose = false;
+
+		bool isClosed = false;
+
+		ConsoleWindow console = new(new ConsoleViewModel(
+			Substitute.For<IAppEnvironment>(),
+			new ConsoleLog(),
+			Substitute.For<IDirectoryAccessor>(),
+			new InlineDispatcherAccessor(),
+			new AvaloniaLogText()));
+
+		console.Closing += (_, e) => e.Cancel = !canClose;
+
+		console.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns(_ => isClosed ? [] : [console]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder.RegisterInstance(app).As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		console.Show();
+
+		Task closing = sut.CloseSecondaryWindowsAsync();
+
+		bool wasCompleted = closing.IsCompleted;
+
+		// Act
+		canClose = true;
+
+		console.Close();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		wasCompleted
+			.Should()
+			.BeFalse();
+
+		closing.IsCompleted
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: a console that has saved its log is left to its own closing.
 	/// </summary>
 	[AvaloniaTest]
