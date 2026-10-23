@@ -9,6 +9,7 @@
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Styling"
 	xmlns:text="using:DataOrganizer.Behaviors.Text">
 
 	<!--
@@ -51,6 +52,9 @@
 	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:checked">
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
 	</Style>
+
+	<!--  The close button of the search panel of the text editors gets a tip, and through it a name.  -->
+	<styling:SearchPanelStyles />
 
 	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
 	<Style Selector=":is(ListBoxItem), :is(TabItem)">

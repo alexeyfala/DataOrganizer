@@ -281,6 +281,30 @@ internal class AppConvertersTests
 	}
 
 	/// <summary>
+	/// <see cref="AppConverters.ToolTipAutomationName" />: a tip that is a text block, as in the themes of some packages,
+	/// names a button by its text.
+	/// </summary>
+	[AvaloniaTest]
+	public void ToolTipAutomationName_Names_A_Button_By_The_Text_Of_A_Text_Block_Tip()
+	{
+		// Arrange
+		const string tip = "Next";
+
+		TextBlock block = new()
+		{
+			Text = tip
+		};
+
+		// Act
+		object? result = Convert(AppConverters.ToolTipAutomationName, new object(), block);
+
+		// Assert
+		result
+			.Should()
+			.Be(tip);
+	}
+
+	/// <summary>
 	/// <see cref="AppConverters.ToolTipAutomationName" />: a button that shows a glyph, such as an emoji, is named by its tip.
 	/// </summary>
 	[TestCase(Glyphs.Clipboard)]

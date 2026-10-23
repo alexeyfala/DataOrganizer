@@ -1,3 +1,4 @@
+using AvaloniaEdit;
 using DataOrganizer.Interfaces.Settings;
 using Shared.Properties;
 using System.Globalization;
@@ -19,6 +20,9 @@ public sealed class UiCultureService : IUiCultureService
 
 		// The only writer of the resource culture; must run before any XAML is parsed.
 		Strings.Culture = Current;
+
+		// The search panel of the text editors reads its texts when it opens.
+		SR.Culture = Current;
 
 		// The current thread keeps the culture it was started with, hence both assignments.
 		CultureInfo.CurrentUICulture = Current;

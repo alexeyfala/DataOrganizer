@@ -60,6 +60,10 @@
 
 **Project files** — not part of the tree above.
 
+**`AvaloniaEdit.Localization`**
+
+- ⚙️ [`SR.ru.resx`](../AvaloniaEdit.Localization/SR.ru.resx) — Russian texts of the AvaloniaEdit search panel under the keys of `AvaloniaEdit.SR`. **Edit:** a new AvaloniaEdit version brings a key of its own; `UiCultureServiceTests` names the text left in English.
+
 **`DataOrganizer`**
 
 - 🖼️ `Assets/Logo.ico` — application icon: window, shortcuts, Windows installer.

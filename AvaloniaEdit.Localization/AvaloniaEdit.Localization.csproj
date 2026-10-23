@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		Builds the Russian satellite of AvaloniaEdit, ru/AvaloniaEdit.resources.dll, whose package ships English and
+		Chinese texts of the search panel only. The runtime finds a satellite by its name and culture, so the satellite
+		needs neither the version nor the public key of AvaloniaEdit.dll; the empty main assembly goes nowhere.
+	-->
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<AssemblyName>AvaloniaEdit</AssemblyName>
+		<RootNamespace>AvaloniaEdit</RootNamespace>
+	</PropertyGroup>
+
+	<!-- Only the satellite reaches the projects that reference this one, which take it as a file to copy. -->
+	<ItemGroup>
+		<None Include="$(IntermediateOutputPath)ru\$(AssemblyName).resources.dll" Link="ru\$(AssemblyName).resources.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+	</ItemGroup>
+
+</Project>

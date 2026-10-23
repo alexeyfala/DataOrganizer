@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -229,6 +230,44 @@ internal class TextEditorBaseTests
 		sut.SelectionStart
 			.Should()
 			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="TextEditorBase.FindCommand" />: every button of the search panel, also one that shows a glyph alone, has
+	/// a name for UI Automation instead of the name of its content type.
+	/// </summary>
+	[AvaloniaTest]
+	public void FindCommand_Opens_A_Search_Panel_With_A_Name_On_Every_Button()
+	{
+		// Arrange
+		TestTextEditor sut = new()
+		{
+			Document = CreateDocument(lineCount: 10)
+		};
+
+		Show(sut);
+
+		// Act
+		sut.FindCommand.Execute(null);
+
+		// The panel builds its buttons in the layout pass.
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.SearchPanel
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Select(static x => ControlAutomationPeer
+				.CreatePeerForElement(x)
+				.GetName())
+			.Should()
+			.NotBeEmpty()
+			.And
+			.AllSatisfy(static x => x
+				.Should()
+				.NotBeNullOrEmpty()
+				.And
+				.NotStartWith("Avalonia."));
 	}
 
 	/// <summary>
