@@ -2,10 +2,10 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.ViewModels.Dialogs;
 using NSubstitute;
 using Shared.Common;
-using Shared.Interfaces;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
@@ -53,13 +53,13 @@ internal class EntityCreationViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
 
-			serializer
-				.DeserializeFromFile<EntityCreationViewSettings>(Arg.Any<string>())
+			windowSettings
+				.Read<EntityCreationViewSettings>()
 				.Returns(settings);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(windowSettings);
 		});
 
 		// Act
@@ -100,13 +100,13 @@ internal class EntityCreationViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
 
-			serializer
-				.DeserializeFromFile<EntityCreationViewSettings>(Arg.Any<string>())
+			windowSettings
+				.Read<EntityCreationViewSettings>()
 				.Returns(settings);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(windowSettings);
 		});
 
 		// Act
@@ -119,26 +119,33 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityCreationViewModel.SaveSettingsToFile" />: serializes the settings to a JSON file.
+	/// <see cref="EntityCreationViewModel.SaveSettingsToFile" />: stores the choice and the name the dialog shows.
 	/// </summary>
 	[Test]
 	public void SaveSettingsToFile_Saves_Settings()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(windowSettings));
 
-		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>(TypedParameter.From(fileSystem));
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
+
+		sut.IsFileSelected = true;
+
+		sut.Name = RandomString.Create(10);
 
 		// Act
 		sut.SaveSettingsToFile();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
-			Arg.Any<EntityCreationViewSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+		windowSettings.Received(1).Write(new EntityCreationViewSettings
+		{
+			IsDatasetSelected = sut.IsDatasetSelected,
+			IsFileSelected = true,
+			IsFolderSelected = sut.IsFolderSelected,
+			Name = sut.Name
+		});
 	}
 	#endregion
 }
