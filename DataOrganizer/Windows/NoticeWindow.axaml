@@ -43,7 +43,7 @@
 					Text="{Binding Message, Mode=OneWay}"
 					TextWrapping="Wrap" />
 
-				<controls:PathTextBlock
+				<controls:SelectablePathTextBlock
 					IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 					Path="{Binding FilePath, Mode=OneWay}"
 					TextWrapping="Wrap" />

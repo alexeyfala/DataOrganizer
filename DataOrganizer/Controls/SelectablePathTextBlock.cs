@@ -11,7 +11,7 @@ namespace DataOrganizer.Controls;
 /// <summary>
 /// A selectable path that wraps after its separators instead of inside its names, and copies as it is.
 /// </summary>
-internal sealed class PathTextBlock : SelectableTextBlock
+internal sealed class SelectablePathTextBlock : SelectableTextBlock
 {
 	#region Properties
 	/// <summary>
@@ -32,7 +32,7 @@ internal sealed class PathTextBlock : SelectableTextBlock
 	/// Identifies the <see cref="Path" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> PathProperty = AvaloniaProperty
-		.Register<PathTextBlock, string?>(name: nameof(Path));
+		.Register<SelectablePathTextBlock, string?>(name: nameof(Path));
 	#endregion
 
 	#region Data
@@ -43,21 +43,26 @@ internal sealed class PathTextBlock : SelectableTextBlock
 	#endregion
 
 	#region Constructors
-	public PathTextBlock() => AddHandler(CopyingToClipboardEvent, PathTextBlock_CopyingToClipboard);
+	public SelectablePathTextBlock() => AddHandler(CopyingToClipboardEvent, SelectablePathTextBlock_CopyingToClipboard);
 	#endregion
 
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="SelectableTextBlock.CopyingToClipboardEvent" /> handler of the control.
 	/// </summary>
-	private async void PathTextBlock_CopyingToClipboard(object? sender, RoutedEventArgs e)
+	private async void SelectablePathTextBlock_CopyingToClipboard(object? sender, RoutedEventArgs e)
 	{
 		// The built-in copy would take the marks along, and a pasted path with them leads nowhere.
 		e.Handled = true;
 
-		string path = SelectedText.Replace(BreakMark, string.Empty, StringComparison.Ordinal);
+		string path = SelectedText.Replace(
+			BreakMark,
+			string.Empty,
+			StringComparison.Ordinal);
 
-		if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+		if (TopLevel
+			.GetTopLevel(this)?
+			.Clipboard is not { } clipboard)
 		{
 			return;
 		}
@@ -80,7 +85,7 @@ internal sealed class PathTextBlock : SelectableTextBlock
 
 	#region Methods
 	/// <inheritdoc />
-	protected override AutomationPeer OnCreateAutomationPeer() => new PathTextBlockAutomationPeer(this);
+	protected override AutomationPeer OnCreateAutomationPeer() => new SelectablePathTextBlockAutomationPeer(this);
 
 	/// <inheritdoc />
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -92,7 +97,8 @@ internal sealed class PathTextBlock : SelectableTextBlock
 			return;
 		}
 
-		// Text breaks only at spaces and a few signs, so a path without spaces breaks after its drive and inside a name.
+		// Text breaks only at spaces and a few signs, so a path without spaces breaks after its drive and inside a
+		// name.
 		Text = Path?
 			.Replace("\\", "\\" + BreakMark, StringComparison.Ordinal)
 			.Replace("/", "/" + BreakMark, StringComparison.Ordinal);

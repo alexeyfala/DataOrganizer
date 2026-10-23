@@ -14,8 +14,8 @@ using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PathTextBlock)}"" type")]
-internal class PathTextBlockTests
+[TestFixture(Description = $@"Tests of ""{nameof(SelectablePathTextBlock)}"" type")]
+internal class SelectablePathTextBlockTests
 {
 	#region Data
 	/// <summary>
@@ -46,7 +46,7 @@ internal class PathTextBlockTests
 	public void AutomationPeer_Is_Named_By_The_Path()
 	{
 		// Arrange
-		PathTextBlock sut = new()
+		SelectablePathTextBlock sut = new()
 		{
 			Path = LongPath
 		};
@@ -65,13 +65,14 @@ internal class PathTextBlockTests
 	}
 
 	/// <summary>
-	/// <see cref="SelectableTextBlock.Copy" />: the copied path is the one shown, with nothing the wrapping added to it.
+	/// <see cref="SelectableTextBlock.Copy" />: the copied path is the one shown, with nothing the wrapping added to
+	/// it.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task Copy_Puts_The_Path_On_The_Clipboard_As_It_Is()
 	{
 		// Arrange
-		PathTextBlock sut = new()
+		SelectablePathTextBlock sut = new()
 		{
 			Path = LongPath,
 			TextWrapping = TextWrapping.Wrap,
@@ -99,13 +100,14 @@ internal class PathTextBlockTests
 	}
 
 	/// <summary>
-	/// <see cref="PathTextBlock.Path" />: a path too long for one line breaks after its separators, not inside its names.
+	/// <see cref="SelectablePathTextBlock.Path" />: a path too long for one line breaks after its separators, not inside
+	/// its names.
 	/// </summary>
 	[AvaloniaTest]
 	public void Path_Wraps_After_Its_Separators()
 	{
 		// Arrange
-		PathTextBlock sut = new()
+		SelectablePathTextBlock sut = new()
 		{
 			Path = LongPath,
 			TextWrapping = TextWrapping.Wrap,
@@ -128,7 +130,7 @@ internal class PathTextBlockTests
 	}
 
 	/// <summary>
-	/// <see cref="PathTextBlock" />: the styles of a selectable text block reach it.
+	/// <see cref="SelectablePathTextBlock" />: the styles of a selectable text block reach it.
 	/// </summary>
 	[AvaloniaTest]
 	public void StyleKeyOverride_Lets_The_Styles_Of_A_Selectable_Text_Block_Reach_It()
@@ -136,7 +138,7 @@ internal class PathTextBlockTests
 		// Arrange
 		const double fontSize = 31.0;
 
-		PathTextBlock sut = new()
+		SelectablePathTextBlock sut = new()
 		{
 			Classes =
 			{
