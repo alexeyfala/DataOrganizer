@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Windows.NoticeWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -42,9 +43,9 @@
 					Text="{Binding Message, Mode=OneWay}"
 					TextWrapping="Wrap" />
 
-				<SelectableTextBlock
+				<controls:PathTextBlock
 					IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-					Text="{Binding FilePath, Mode=OneWay}"
+					Path="{Binding FilePath, Mode=OneWay}"
 					TextWrapping="Wrap" />
 			</StackPanel>
 		</ScrollViewer>
