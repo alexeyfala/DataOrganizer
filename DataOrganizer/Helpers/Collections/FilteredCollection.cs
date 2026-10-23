@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 
 namespace DataOrganizer.Helpers.Collections;
@@ -54,6 +55,11 @@ internal sealed class FilteredCollection<TModel> : IDisposable where TModel : IN
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
 
 	/// <summary>
+	/// Changes of <see cref="Visible" />, each once the list has taken it.
+	/// </summary>
+	private readonly IObservable<IChangeSet<TModel>> _visibleChanges;
+
+	/// <summary>
 	/// <c>True</c> once disposed.
 	/// </summary>
 	private bool _isDisposed;
@@ -89,9 +95,13 @@ internal sealed class FilteredCollection<TModel> : IDisposable where TModel : IN
 			observable = observable.ObserveOn(_context);
 		}
 
-		_subscription = observable
+		IConnectableObservable<IChangeSet<TModel>> visibleChanges = observable
 			.Bind(out _visible)
-			.Subscribe();
+			.Publish();
+
+		_visibleChanges = visibleChanges;
+
+		_subscription = visibleChanges.Connect();
 	}
 	#endregion
 
@@ -159,6 +169,17 @@ internal sealed class FilteredCollection<TModel> : IDisposable where TModel : IN
 		{
 			action();
 		}
+	}
+
+	/// <summary>
+	/// Emits the item that <paramref name="item" /> returns each time <see cref="Visible" /> changes and shows it.
+	/// </summary>
+	public IObservable<TModel> WhenShown(Func<TModel?> item)
+	{
+		return _visibleChanges
+			.Select(_ => item())
+			.Where(x => x is not null && _visible.Contains(x))
+			.Select(static x => x!);
 	}
 
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />

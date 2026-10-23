@@ -640,6 +640,55 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="CopyHistoryViewModel.SelectedItem" />: the file chosen last comes back when the list changes and shows it
+	/// while nothing is chosen, and a file chosen since stays.
+	/// </summary>
+	[Test]
+	public void SelectedItem_Comes_Back_When_The_List_Shows_It_With_Nothing_Chosen([Values] bool isAnotherChosen)
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICopyHistory copyHistory = Substitute.For<ICopyHistory>();
+
+			WorkSession session = new();
+
+			copyHistory
+				.ItemIds
+				.Returns(new ReadOnlyObservableCollection<Guid>([.. files.Select(x => x.Id)]));
+
+			session
+				.Hierarchy
+				.AddRange(files);
+
+			builder.RegisterInstance(copyHistory);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		sut.SelectedItem = files[0];
+
+		// The list lets the choice go, as it does while the search hides the file.
+		sut.SelectedItem = isAnotherChosen ? files[1] : null;
+
+		// Act
+		sut.Receive(new CopyHistoryFileAddedMessage(files[2]));
+
+		// Assert
+		sut.SelectedItem
+			.Should()
+			.BeSameAs(isAnotherChosen ? files[1] : files[0]);
+	}
+
+	/// <summary>
 	/// <see cref="CopyHistoryViewModel.SelectedItem" />: the copy history keeps the file chosen in the list, or none.
 	/// </summary>
 	[Test]

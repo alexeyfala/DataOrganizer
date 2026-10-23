@@ -12,10 +12,12 @@ using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Interfaces.Database;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
@@ -24,6 +26,104 @@ namespace DataOrganizer.UnitTests.ViewModels;
 internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.CategorySearch" />: the category chosen last comes back once the search shows it
+	/// again while nothing is chosen.
+	/// </summary>
+	[Test]
+	public async Task CategorySearch_Brings_Back_The_Category_Chosen_Last()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(3)];
+
+		FavoriteCategory chosen = categories[0];
+
+		sut.Initialize(
+			navigationColumnWidth: 100.0,
+			selectedCategoryId: chosen.Id,
+			categories: categories,
+			orderedCategoryIds: [],
+			selectedPairs: []);
+
+		// The search hides the chosen category after its pause, and the list lets the choice go.
+		sut.CategorySearch = Guid.NewGuid().ToString();
+
+		Func<bool> isHidden = () => !sut.Categories.Contains(chosen);
+
+		await isHidden.WaitAsync(20, 100);
+
+		sut.SelectedCategory = null;
+
+		// Act
+		sut.CategorySearch = null;
+
+		Func<bool> isChosenAgain = () => sut.SelectedCategory == chosen;
+
+		await isChosenAgain.WaitAsync(20, 100);
+
+		// Assert
+		sut.SelectedCategory
+			.Should()
+			.BeSameAs(chosen);
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.FavoriteSearch" />: the favorite chosen last comes back once the search shows it
+	/// again while nothing is chosen.
+	/// </summary>
+	[Test]
+	public async Task FavoriteSearch_Brings_Back_The_Favorite_Chosen_Last()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		FavoriteCategory category = FavoriteFactory.CreateFavoriteCategory();
+
+		category.Children.AddRange(ItemDtoFactory.CreateFileDtos(3));
+
+		FileDto chosen = category.Children[0];
+
+		sut.Initialize(
+			navigationColumnWidth: 100.0,
+			selectedCategoryId: category.Id,
+			categories: [category],
+			orderedCategoryIds: [],
+			selectedPairs: []);
+
+		sut.SelectedFavorite = chosen;
+
+		// The search hides the chosen favorite after its pause, and the list lets the choice go.
+		sut.FavoriteSearch = Guid.NewGuid().ToString();
+
+		Func<bool> isHidden = () => !sut.Favorites.Contains(chosen);
+
+		await isHidden.WaitAsync(20, 100);
+
+		sut.SelectedFavorite = null;
+
+		// Act
+		sut.FavoriteSearch = null;
+
+		Func<bool> isChosenAgain = () => sut.SelectedFavorite == chosen;
+
+		await isChosenAgain.WaitAsync(20, 100);
+
+		// Assert
+		sut.SelectedFavorite
+			.Should()
+			.BeSameAs(chosen);
+	}
+
 	/// <summary>
 	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a file copied from the list goes into the copy history,
 	/// and a shown list moves it at its next showing.

@@ -3,8 +3,10 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Collections;
 using DataOrganizer.UnitTests.Factories;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 
 namespace DataOrganizer.UnitTests.Helpers.Collections;
@@ -293,6 +295,49 @@ internal class FilteredCollectionTests
 		result
 			.Should()
 			.BeEquivalentTo(items.Select(x => x.Id));
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.WhenShown" />: emits the item each time the filter shows it, and never while
+	/// it hides it.
+	/// </summary>
+	[Test]
+	public void WhenShown_Emits_The_Item_Once_The_Filter_Shows_It_Again()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using BehaviorSubject<Func<FileDto, bool>> filter = new(static _ => true);
+
+		using FilteredCollection<FileDto> sut = new(filter);
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		sut.AddRange(items);
+
+		FileDto watched = items[1];
+
+		List<FileDto> shown = [];
+
+		using IDisposable subscription = sut
+			.WhenShown(() => watched)
+			.Subscribe(shown.Add);
+
+		filter.OnNext(x => x != watched);
+
+		bool isShownWhileHidden = shown.Count > 0;
+
+		// Act
+		filter.OnNext(static _ => true);
+
+		// Assert
+		isShownWhileHidden
+			.Should()
+			.BeFalse();
+
+		shown
+			.Should()
+			.Equal(watched);
 	}
 	#endregion
 
