@@ -32,6 +32,8 @@
 
 				<ResourceInclude Source="/Templates/FileListTemplates.axaml" />
 
+				<ResourceInclude Source="/Templates/FileNameTemplates.axaml" />
+
 				<ResourceInclude Source="/Templates/NotificationTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
