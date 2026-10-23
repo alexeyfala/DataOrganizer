@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Helpers.Views;
 using Shared.Extensions;
@@ -166,13 +165,6 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		}
 
 		items.ScrollIntoView(item);
-
-		if (items.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
-		{
-			scrollViewer.Offset = new(
-				int.MaxValue,
-				scrollViewer.Offset.Y);
-		}
 
 		SelectCommand?.Execute(item);
 
