@@ -5,7 +5,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -20,6 +19,7 @@ using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -64,16 +64,10 @@ internal class ScrollMarkMarginTests
 		ScrollViewer scrollViewer = GetScrollViewer(editor);
 
 		// The middle of the margin is the middle of the scroll bar track.
-		Point point = sut.TranslatePoint(
-			new(
-				sut.Bounds.Width / 2.0,
-				sut.Bounds.Height / 2.0),
-			window) ?? default;
+		Point point = window.CenterOf(sut);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 

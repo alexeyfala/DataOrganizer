@@ -2,9 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -164,9 +162,7 @@ internal class SelectedFavoritesViewTests
 			.Value;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 

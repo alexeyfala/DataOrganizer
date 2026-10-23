@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -2189,7 +2188,7 @@ internal class DatasetEditorViewTests
 		// Past its first screen the list is on its way back to the stored record.
 		await RunJobsUntilAsync(() => recordsScroller.Offset.Y > recordsScroller.Viewport.Height);
 
-		Point center = recordsScroller.TranslatePoint(new Rect(recordsScroller.Bounds.Size).Center, window)!.Value;
+		Point center = window.CenterOf(recordsScroller);
 
 		// Act
 		window.MouseWheel(center, new Vector(0.0, 1.0));
@@ -2289,7 +2288,7 @@ internal class DatasetEditorViewTests
 			.OfType<Button>()
 			.Single(x => x.Content is MaterialIcon { Kind: var kind } && kind == icon);
 
-		Point center = recordsScroller.TranslatePoint(new Rect(recordsScroller.Bounds.Size).Center, window)!.Value;
+		Point center = window.CenterOf(recordsScroller);
 
 		// The move takes its first step at once and the rest later.
 		Click(button);
@@ -2315,13 +2314,9 @@ internal class DatasetEditorViewTests
 	/// </summary>
 	private static void Click(Button button)
 	{
-		TopLevel topLevel = TopLevel.GetTopLevel(button)!;
-
-		Point center = button.TranslatePoint(new Rect(button.Bounds.Size).Center, topLevel)!.Value;
-
-		topLevel.MouseDown(center, MouseButton.Left);
-
-		topLevel.MouseUp(center, MouseButton.Left);
+		TopLevel
+			.GetTopLevel(button)!
+			.Click(button);
 	}
 
 	/// <summary>

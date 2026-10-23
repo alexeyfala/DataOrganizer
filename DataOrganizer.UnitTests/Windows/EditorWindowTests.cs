@@ -166,7 +166,7 @@ internal class EditorWindowTests
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
 
 		// Act
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -236,7 +236,7 @@ internal class EditorWindowTests
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowExecutingFilesCommand));
 
 		// Act
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -345,10 +345,10 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -715,7 +715,7 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Click(sut, Center(sut, sut.FindTreeRow(file)!));
+		sut.Click(sut.CenterOf(sut.FindTreeRow(file)!));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -848,12 +848,12 @@ internal class EditorWindowTests
 
 		Grid item = sut.FindTreeRow(file)!;
 
-		Point point = Center(sut, item);
+		Point point = sut.CenterOf(item);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		bool isOpen = item.ContextFlyout is { IsOpen: true };
 
@@ -893,12 +893,12 @@ internal class EditorWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -989,7 +989,7 @@ internal class EditorWindowTests
 			.OfType<Button>()
 			.Single(x => ReferenceEquals(x.Command, viewModel.ShowCopyHistoryCommand));
 
-		Click(sut, Center(sut, button));
+		sut.Click(sut.CenterOf(button));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2667,28 +2667,6 @@ internal class EditorWindowTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point)
-	{
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Returns the settings of an editor window with a navigation column of a width.
 	/// </summary>

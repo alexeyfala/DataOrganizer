@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
@@ -268,9 +268,7 @@ internal class PointerHoverCommandBehaviorTests
 		window.MouseMove(Inside);
 
 		// Act
-		window.MouseDown(Inside, MouseButton.Left);
-
-		window.MouseUp(Inside, MouseButton.Left);
+		window.Click(Inside);
 
 		time.Advance(TimeSpan.FromMilliseconds(Delay));
 

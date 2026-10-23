@@ -2,9 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Logging;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
@@ -62,10 +60,10 @@ internal class FavoritesWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -197,12 +195,12 @@ internal class FavoritesWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.FixSwitch);
+		Point point = sut.CenterOf(sut.FixSwitch);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		sut.Close();
 
@@ -242,12 +240,12 @@ internal class FavoritesWindowTests
 			.OfType<TextBlock>()
 			.First(x => x.Text == AppInfo.AppDisplayName);
 
-		Point point = Center(sut, title);
+		Point point = sut.CenterOf(title);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		sut.Close();
 
@@ -283,12 +281,12 @@ internal class FavoritesWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		// Assert
 		secondaryWindowLauncher
@@ -322,12 +320,12 @@ internal class FavoritesWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(sut, sut.NotepadButton);
+		Point point = sut.CenterOf(sut.NotepadButton);
 
 		// Act
-		Click(sut, point);
+		sut.Click(point);
 
-		Click(sut, point);
+		sut.Click(point);
 
 		sut.Close();
 
@@ -636,30 +634,6 @@ internal class FavoritesWindowTests
 			.NotBeNull()
 			.And
 			.BeSameAs(favorites);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases the left button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point)
-	{
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
 	}
 	#endregion
 }

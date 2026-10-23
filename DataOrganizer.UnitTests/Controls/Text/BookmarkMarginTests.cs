@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
@@ -47,9 +48,7 @@ internal class BookmarkMarginTests
 		Point point = GetLinePoint(sut, line: 5, window);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		editor.CaretOffset
@@ -83,9 +82,7 @@ internal class BookmarkMarginTests
 		Point point = GetLinePoint(sut, line: 5, window);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		int[] expected = isBookmarked ? [] : [5];
@@ -122,9 +119,7 @@ internal class BookmarkMarginTests
 			window) ?? default;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no cursor.

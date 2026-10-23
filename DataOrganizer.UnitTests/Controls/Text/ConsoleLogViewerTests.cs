@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
@@ -47,9 +45,7 @@ internal class ConsoleLogViewerTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Left);
-
-			window.MouseUp(point, MouseButton.Left);
+			window.Click(point);
 		}
 
 		Dispatcher.UIThread.RunJobs();

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -7,6 +6,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Services.Notifications;
+using DataOrganizer.UnitTests.Factories;
 using Material.Styles.Controls;
 using System.Linq;
 
@@ -30,7 +30,7 @@ internal class SnackbarPresenterContractTests
 		Card card = ShowMessage(window);
 
 		// Act
-		window.MouseMove(Center(window, card));
+		window.MouseMove(window.CenterOf(card));
 
 		// Assert
 		sut
@@ -121,18 +121,6 @@ internal class SnackbarPresenterContractTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Shows a window with a host the presenter has been given.
 	/// </summary>

@@ -106,9 +106,7 @@ internal class DatasetScrollBehaviorTests
 		Point point = scrollViewer.TranslatePoint(new Rect(scrollViewer.Viewport).Center, window)!.Value;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		await RunJobsUntilAsync(() => Math.Abs(scrollViewer.Offset.Y - offset) < 0.5);
 
@@ -166,12 +164,10 @@ internal class DatasetScrollBehaviorTests
 			.Single(static x => x.Orientation == Orientation.Vertical)
 			.IncreaseButton!;
 
-		Point point = track.TranslatePoint(new Rect(track.Bounds.Size).Center, window)!.Value;
+		Point point = window.CenterOf(track);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Vector place = scrollViewer.Offset;
 
@@ -270,7 +266,7 @@ internal class DatasetScrollBehaviorTests
 			.Single(static x => x.Orientation == Orientation.Vertical)
 			.Thumb!;
 
-		Point from = thumb.TranslatePoint(new Rect(thumb.Bounds.Size).Center, window)!.Value;
+		Point from = window.CenterOf(thumb);
 
 		Point to = from + new Point(0.0, 20.0);
 

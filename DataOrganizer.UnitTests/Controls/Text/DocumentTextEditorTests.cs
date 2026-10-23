@@ -2063,7 +2063,7 @@ internal class DocumentTextEditorTests
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		ToolTip.GetIsOpen(textView)
@@ -2100,9 +2100,7 @@ internal class DocumentTextEditorTests
 		Raise(textView, TextView.PointerHoverEvent, point);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2143,9 +2141,9 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, button);
+		window.Click(point, button);
 
-		Click(window, point, button);
+		window.Click(point, button);
 
 		// Assert
 		block.IsFolded
@@ -2181,7 +2179,7 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, button);
+		window.Click(point, button);
 
 		// Assert
 		block.IsFolded
@@ -2213,7 +2211,7 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(sut.Document.TextLength - 1);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		sut.TextArea.Caret.Line
@@ -2246,9 +2244,9 @@ internal class DocumentTextEditorTests
 		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		block.IsFolded
@@ -3983,16 +3981,6 @@ internal class DocumentTextEditorTests
 				});
 
 		return received;
-	}
-
-	/// <summary>
-	/// Presses and releases a button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point, MouseButton button)
-	{
-		window.MouseDown(point, button);
-
-		window.MouseUp(point, button);
 	}
 
 	/// <summary>

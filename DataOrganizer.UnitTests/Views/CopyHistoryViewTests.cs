@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -111,7 +110,7 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, file);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
 		await RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
 
@@ -205,7 +204,7 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, file);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
 		await RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
@@ -278,7 +277,7 @@ internal class CopyHistoryViewTests
 		Button button = FindCopyButton(window, viewModel, files[1]);
 
 		// Act
-		Click(window, button);
+		window.Click(button);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -423,7 +422,7 @@ internal class CopyHistoryViewTests
 			.Reader = reader;
 
 		// Act
-		window.MouseMove(icon.TranslatePoint(new Rect(icon.Bounds.Size).Center, window)!.Value);
+		window.MouseMove(window.CenterOf(icon));
 
 		await RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
 
@@ -441,18 +440,6 @@ internal class CopyHistoryViewTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Presses and releases the left button of the mouse in the middle of a button.
-	/// </summary>
-	private static void Click(Window window, Button button)
-	{
-		Point point = button.TranslatePoint(new Rect(button.Bounds.Size).Center, window)!.Value;
-
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Returns the copy button of a file in the list.
 	/// </summary>

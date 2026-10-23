@@ -67,16 +67,10 @@ internal class EditingFilesViewTests
 			.OfType<Button>()
 			.Single();
 
-		Point point = closeButton.TranslatePoint(
-			new(
-				closeButton.Bounds.Width / 2.0,
-				closeButton.Bounds.Height / 2.0),
-			window) ?? default;
+		Point point = window.CenterOf(closeButton);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		viewModel.Items
@@ -150,16 +144,10 @@ internal class EditingFilesViewTests
 			.OfType<Button>()
 			.Single();
 
-		Point point = closeButton.TranslatePoint(
-			new(
-				closeButton.Bounds.Width / 2.0,
-				closeButton.Bounds.Height / 2.0),
-			window) ?? default;
+		Point point = window.CenterOf(closeButton);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		selected

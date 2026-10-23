@@ -25,6 +25,7 @@ using DataOrganizer.Extensions.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using Shared.Extensions;
 using System;
@@ -801,12 +802,10 @@ internal class DocumentEditorViewTests
 			.Cast<SelectorChoice>()
 			.Single(static x => x.Id == nameof(LineEnding.Lf));
 
-		Point point = Center(window, list.ContainerFromItem(unix)!);
+		Point point = window.CenterOf(list.ContainerFromItem(unix)!);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -925,7 +924,7 @@ internal class DocumentEditorViewTests
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
 		// Act
-		window.MouseWheel(Center(window, editor), new(0.0, 1.0), RawInputModifiers.Control);
+		window.MouseWheel(window.CenterOf(editor), new(0.0, 1.0), RawInputModifiers.Control);
 
 		// Assert
 		sut.DocumentFontSize
@@ -1829,7 +1828,7 @@ internal class DocumentEditorViewTests
 
 		Window window = Show(sut);
 
-		Point start = Center(window, sut.GetVisualDescendants().OfType<GridSplitter>().Single());
+		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
 		Point end = start.WithY(start.Y + 100.0);
 
@@ -2096,7 +2095,7 @@ internal class DocumentEditorViewTests
 		ToolTip.SetShowDelay(block, 0);
 
 		// Act
-		window.MouseMove(Center(window, block));
+		window.MouseMove(window.CenterOf(block));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -3120,18 +3119,6 @@ internal class DocumentEditorViewTests
 	/// Reports the view state of a view at once, through the behavior of its editor.
 	/// </summary>
 	private static void CaptureViewState(DocumentEditorView view) => GetViewStateBehavior(view).CaptureViewState();
-
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
 
 	/// <summary>
 	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of

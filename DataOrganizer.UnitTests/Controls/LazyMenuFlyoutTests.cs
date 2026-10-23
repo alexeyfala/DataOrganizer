@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.Controls;
 
@@ -340,12 +341,10 @@ internal class LazyMenuFlyoutTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, under);
+		Point point = window.CenterOf(under);
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		presses
@@ -355,18 +354,6 @@ internal class LazyMenuFlyoutTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Shows the content in a window of a fixed size and lets the layout settle.
 	/// </summary>

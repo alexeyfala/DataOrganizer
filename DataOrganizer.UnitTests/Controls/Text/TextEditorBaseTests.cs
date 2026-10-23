@@ -58,9 +58,7 @@ internal class TextEditorBaseTests
 			window) ?? default;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -116,9 +114,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Right);
-
-			window.MouseUp(point, MouseButton.Right);
+			window.Click(point, MouseButton.Right);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -148,9 +144,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Left);
-
-			window.MouseUp(point, MouseButton.Left);
+			window.Click(point);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -186,9 +180,7 @@ internal class TextEditorBaseTests
 		// Act
 		for (int i = 0; i < 2; i++)
 		{
-			window.MouseDown(point, MouseButton.Left);
-
-			window.MouseUp(point, MouseButton.Left);
+			window.Click(point);
 		}
 
 		Dispatcher.UIThread.RunJobs();
@@ -313,7 +305,7 @@ internal class TextEditorBaseTests
 			: RawInputModifiers.None;
 
 		// Act
-		window.MouseWheel(Center(window, sut), new(0.0, 1.0), modifiers);
+		window.MouseWheel(window.CenterOf(sut), new(0.0, 1.0), modifiers);
 
 		// Assert
 		sut.FontSize
@@ -366,9 +358,7 @@ internal class TextEditorBaseTests
 			window) ?? default;
 
 		// Act
-		window.MouseDown(point, MouseButton.Left);
-
-		window.MouseUp(point, MouseButton.Left);
+		window.Click(point);
 
 		// Assert
 		LineNumberMargin lineNumbers = sut
@@ -738,18 +728,6 @@ internal class TextEditorBaseTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
 	/// <summary>
 	/// Creates a document of numbered lines of the same length.
 	/// </summary>

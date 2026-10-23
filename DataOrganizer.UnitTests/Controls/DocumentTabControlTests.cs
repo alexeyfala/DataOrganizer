@@ -11,6 +11,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.UnitTests.Factories;
 using Material.Icons;
 using NSubstitute;
 using System;
@@ -113,10 +114,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// Act
-		Click(window, point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -141,10 +142,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// Act
-		Click(window, point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -178,10 +179,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// Act
-		Click(window, point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -222,14 +223,14 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, GetMenuButtons(window)[index]);
+		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		items
@@ -262,14 +263,14 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, GetMenuButtons(window)[index]);
+		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -297,14 +298,14 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Click(window, Center(window, GetHeaderText(sut, "first")), MouseButton.Right);
+		window.Click(window.CenterOf(GetHeaderText(sut, "first")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, GetMenuButtons(window)[0]);
+		Point point = window.CenterOf(GetMenuButtons(window)[0]);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -337,14 +338,14 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Click(window, Center(window, GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = Center(window, GetMenuButtons(window)[index]);
+		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		group
@@ -377,10 +378,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetAddButton(sut));
+		Point point = window.CenterOf(GetAddButton(sut));
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		command
@@ -409,10 +410,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetCloseButton(sut, 1));
+		Point point = window.CenterOf(GetCloseButton(sut, 1));
 
 		// Act
-		Click(window, point, MouseButton.Left);
+		window.Click(point, MouseButton.Left);
 
 		// Assert
 		command
@@ -468,7 +469,7 @@ internal class DocumentTabControlTests
 
 		sut.SelectedIndex = 1;
 
-		Drag(window, Center(window, GetHeaderText(sut, "second")), Center(window, GetHeaderText(sut, "third")));
+		window.Drag(window.CenterOf(GetHeaderText(sut, "second")), window.CenterOf(GetHeaderText(sut, "third")));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -678,10 +679,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "first"));
+		Point point = window.CenterOf(GetHeaderText(sut, "first"));
 
 		// Act
-		Drag(window, point, point + new Vector(3.0, 0.0));
+		window.Drag(point, point + new Vector(3.0, 0.0));
 
 		// Assert
 		items
@@ -713,12 +714,12 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point from = Center(window, GetCloseButton(sut, 0));
+		Point from = window.CenterOf(GetCloseButton(sut, 0));
 
-		Point to = Center(window, GetHeaderText(sut, "third"));
+		Point to = window.CenterOf(GetHeaderText(sut, "third"));
 
 		// Act
-		Drag(window, from, to);
+		window.Drag(from, to);
 
 		// Assert
 		items
@@ -753,14 +754,14 @@ internal class DocumentTabControlTests
 
 		sut.SelectedItem = dragged;
 
-		Point from = Center(window, GetHeaderText(sut, dragged));
+		Point from = window.CenterOf(GetHeaderText(sut, dragged));
 
-		Point to = Center(window, GetHeaderText(sut, target));
+		Point to = window.CenterOf(GetHeaderText(sut, target));
 
 		built.Clear();
 
 		// Act
-		Drag(window, from, to);
+		window.Drag(from, to);
 
 		// Assert
 		built
@@ -785,9 +786,9 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point from = Center(window, GetHeaderText(sut, "third"));
+		Point from = window.CenterOf(GetHeaderText(sut, "third"));
 
-		Point to = Center(window, GetHeaderText(sut, "second"));
+		Point to = window.CenterOf(GetHeaderText(sut, "second"));
 
 		window.MouseDown(from, MouseButton.Left);
 
@@ -823,14 +824,14 @@ internal class DocumentTabControlTests
 
 		Control container = sut.ContainerFromIndex(0)!;
 
-		Point from = Center(window, GetHeaderText(sut, "first"));
+		Point from = window.CenterOf(GetHeaderText(sut, "first"));
 
-		Point to = Center(window, GetHeaderText(sut, "third"));
+		Point to = window.CenterOf(GetHeaderText(sut, "third"));
 
 		sut.SelectionChanged += (_, e) => selected.AddRange(e.AddedItems.Cast<object?>());
 
 		// Act
-		Drag(window, from, to);
+		window.Drag(from, to);
 
 		// Assert
 		sut.SelectedItem
@@ -874,12 +875,12 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point from = Center(window, GetHeaderText(sut, "first"));
+		Point from = window.CenterOf(GetHeaderText(sut, "first"));
 
-		Point to = Center(window, GetHeaderText(sut, "second"));
+		Point to = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// The neighbour moves across the dragged tab.
-		Drag(window, from, to);
+		window.Drag(from, to);
 
 		// Act
 		items.Remove("second");
@@ -910,12 +911,12 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point from = Center(window, GetHeaderText(sut, dragged));
+		Point from = window.CenterOf(GetHeaderText(sut, dragged));
 
-		Point to = Center(window, GetHeaderText(sut, target));
+		Point to = window.CenterOf(GetHeaderText(sut, target));
 
 		// Act
-		Drag(window, from, to);
+		window.Drag(from, to);
 
 		// Assert
 		items
@@ -1053,10 +1054,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// Act
-		Click(window, point, MouseButton.Middle);
+		window.Click(point, MouseButton.Middle);
 
 		// Assert
 		command
@@ -1090,10 +1091,10 @@ internal class DocumentTabControlTests
 			.OfType<TextBlock>()
 			.Single(x => x.Text == "first" && x.FindAncestorOfType<TabItem>() is null);
 
-		Point point = Center(window, content);
+		Point point = window.CenterOf(content);
 
 		// Act
-		Click(window, point, MouseButton.Middle);
+		window.Click(point, MouseButton.Middle);
 
 		// Assert
 		command
@@ -1170,10 +1171,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
 		// Act
-		Click(window, point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -1210,10 +1211,10 @@ internal class DocumentTabControlTests
 
 		Window window = Show(sut);
 
-		Point point = Center(window, GetHeaderText(sut, "third"));
+		Point point = window.CenterOf(GetHeaderText(sut, "third"));
 
 		// Act
-		Click(window, point, MouseButton.Right);
+		window.Click(point, MouseButton.Right);
 
 		// Assert
 		sut.SelectedIndex
@@ -1388,40 +1389,6 @@ internal class DocumentTabControlTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the point in the middle of the control.
-	/// </summary>
-	private static Point Center(Visual root, Visual target)
-	{
-		return target.TranslatePoint(
-			new(
-				target.Bounds.Width / 2.0,
-				target.Bounds.Height / 2.0),
-			root) ?? default;
-	}
-
-	/// <summary>
-	/// Presses and releases a button of the mouse at a point of a window.
-	/// </summary>
-	private static void Click(Window window, Point point, MouseButton button)
-	{
-		window.MouseDown(point, button);
-
-		window.MouseUp(point, button);
-	}
-
-	/// <summary>
-	/// Presses the left button of the mouse at one point of a window, moves the mouse to another and releases it there.
-	/// </summary>
-	private static void Drag(Window window, Point from, Point to)
-	{
-		window.MouseDown(from, MouseButton.Left);
-
-		window.MouseMove(to, RawInputModifiers.LeftMouseButton);
-
-		window.MouseUp(to, MouseButton.Left);
-	}
-
 	/// <summary>
 	/// Returns the button that adds a tab.
 	/// </summary>
