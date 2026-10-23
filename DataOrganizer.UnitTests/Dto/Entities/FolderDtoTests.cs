@@ -54,6 +54,41 @@ internal class FolderDtoTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderDto.AnyChild" />: the walk stops at the first descendant that meets the condition.
+	/// </summary>
+	[Test]
+	public void AnyChild_Stops_At_The_First_Match()
+	{
+		// Arrange
+		List<ExplorerItemDtoBase> checkedItems = [];
+
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
+
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
+
+		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
+
+		AddChild(root, sub);
+
+		AddChild(sub, ItemDtoFactory.CreateNamedFileDto("nested"));
+
+		AddChild(root, top);
+
+		// Act
+		root.AnyChild(x =>
+		{
+			checkedItems.Add(x);
+
+			return x is FileDto;
+		});
+
+		// Assert
+		checkedItems
+			.Should()
+			.Equal(top);
+	}
+
+	/// <summary>
 	/// <see cref="ExplorerItemDtoBase.FindPasswordKeeper" />: a file is never a keeper itself, so the
 	/// search starts at its parent.
 	/// </summary>
@@ -162,6 +197,41 @@ internal class FolderDtoTests
 		result
 			.Should()
 			.BeSameAs(keeper);
+	}
+
+	/// <summary>
+	/// <see cref="FolderDto.GetAllChildren" />: lists the descendants in the order of the walk, the last child first and
+	/// each folder before its children.
+	/// </summary>
+	[Test]
+	public void GetAllChildren_Lists_The_Descendants_In_The_Order_Of_The_Walk()
+	{
+		// Arrange
+		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
+
+		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
+
+		FileDto nested = ItemDtoFactory.CreateNamedFileDto("nested");
+
+		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
+
+		FileDto last = ItemDtoFactory.CreateNamedFileDto("last");
+
+		AddChild(root, top);
+
+		AddChild(root, sub);
+
+		AddChild(sub, nested);
+
+		AddChild(root, last);
+
+		// Act
+		List<ExplorerItemDtoBase> result = [.. root.GetAllChildren()];
+
+		// Assert
+		result
+			.Should()
+			.Equal(last, sub, nested, top);
 	}
 
 	/// <summary>

@@ -6,6 +6,7 @@ using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace DataOrganizer.Dto.Entities;
 
@@ -52,19 +53,7 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// </summary>
 	public FolderDto? FindParent(Predicate<FolderDto> condition)
 	{
-		FolderDto? item = Parent;
-
-		while (item is not null)
-		{
-			if (condition(item))
-			{
-				return item;
-			}
-
-			item = item.Parent;
-		}
-
-		return null;
+		return GetAllParents().FirstOrDefault(x => condition(x));
 	}
 
 	/// <summary>

@@ -59,6 +59,39 @@ internal class ExplorerItemDtoBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.FindParent" />: the walk up stops at the nearest ancestor that meets the condition.
+	/// </summary>
+	[Test]
+	public void FindParent_Stops_At_The_Nearest_Match()
+	{
+		// Arrange
+		List<FolderDto> checkedParents = [];
+
+		FolderDto grandparent = ItemDtoFactory.CreateNamedFolderDto("grandparent");
+
+		FolderDto parent = ItemDtoFactory.CreateNamedFolderDto("parent");
+
+		parent.Parent = grandparent;
+
+		FileDto child = ItemDtoFactory.CreateNamedFileDto("child");
+
+		child.Parent = parent;
+
+		// Act
+		child.FindParent(x =>
+		{
+			checkedParents.Add(x);
+
+			return true;
+		});
+
+		// Assert
+		checkedParents
+			.Should()
+			.Equal(parent);
+	}
+
+	/// <summary>
 	/// <see cref="ExplorerItemDtoBase.FindUnlockedKeeper" />: an object that is not decrypted gets no keeper, even under
 	/// one.
 	/// </summary>

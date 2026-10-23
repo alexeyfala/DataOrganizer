@@ -89,22 +89,7 @@ internal static class DatasetRecordTree
 	/// </summary>
 	public static IEnumerable<DatasetRecordBase> Flatten(IEnumerable<DatasetRecordBase> records)
 	{
-		Stack<DatasetRecordBase> stack = new(records);
-
-		while (stack.Count > 0)
-		{
-			DatasetRecordBase item = stack.Pop();
-
-			yield return item;
-
-			if (item is RecordsGroup group)
-			{
-				foreach (DatasetRecordBase child in group.Children)
-				{
-					stack.Push(child);
-				}
-			}
-		}
+		return records.Flatten(GetChildren);
 	}
 
 	/// <summary>
@@ -248,6 +233,19 @@ internal static class DatasetRecordTree
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the records of <paramref name="record" />: those of a group, none of a single record.
+	/// </summary>
+	private static IEnumerable<DatasetRecordBase> GetChildren(DatasetRecordBase record)
+	{
+		if (record is RecordsGroup group)
+		{
+			return group.Children;
+		}
+
+		return [];
+	}
+
 	/// <summary>
 	/// Counts <paramref name="records" /> together with the records of every nested group.
 	/// </summary>
