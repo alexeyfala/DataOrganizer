@@ -1,5 +1,6 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
+using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Clipboard;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,30 +30,15 @@ public abstract class ContentCopierBase
 		string header,
 		CancellationToken token)
 	{
-		switch (await _fileTextCopier
+		FileTextStatus status = await _fileTextCopier
 			.CopyAsync(file, header, token)
-			.ConfigureAwait(true))
-		{
-			case FileTextStatus.Damaged:
-				ReportDamaged(file);
+			.ConfigureAwait(true);
 
-				return false;
-
-			case FileTextStatus.NotText:
-				ReportNotText(file);
-
-				return false;
-
-			case FileTextStatus.Empty:
-				ReportEmpty(file);
-
-				return false;
-
-			case FileTextStatus.Closed:
-				return false;
-		}
-
-		return true;
+		return FileTextStatusRules.HoldsText(
+			status,
+			() => ReportDamaged(file),
+			() => ReportNotText(file),
+			() => ReportEmpty(file));
 	}
 
 	/// <summary>
