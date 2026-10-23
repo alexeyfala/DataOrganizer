@@ -159,13 +159,7 @@ public sealed class BackgroundServices : IBackgroundServiceControl, IBackgroundS
 	{
 		_autoLock.Stop();
 
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
+		await PauseHotkeyTrackingAsync(default).ConfigureAwait(true);
 
 		if (!_clipboardLog.IsRunning)
 		{
