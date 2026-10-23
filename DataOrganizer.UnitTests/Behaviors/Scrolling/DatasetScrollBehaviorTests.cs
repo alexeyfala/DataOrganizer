@@ -29,6 +29,11 @@ internal class DatasetScrollBehaviorTests
 {
 	#region Data
 	/// <summary>
+	/// Shift of the list off its top that the first layout of the records makes in the app.
+	/// </summary>
+	private const double LayoutShift = 40.0;
+
+	/// <summary>
 	/// Number of the records in the list.
 	/// </summary>
 	private const int RecordCount = 50;
@@ -548,8 +553,8 @@ internal class DatasetScrollBehaviorTests
 	}
 
 	/// <summary>
-	/// <see cref="StyledElementBehavior.IsEnabled" />: a record beyond the end of the list leaves the list on its first
-	/// records.
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a record beyond the end of the list leaves the list at its very top,
+	/// though the first layout of the records has moved it off.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task IsEnabled_Leaves_The_List_For_A_Record_Beyond_It()
@@ -579,6 +584,8 @@ internal class DatasetScrollBehaviorTests
 
 		Show(scrollViewer);
 
+		scrollViewer.Offset = new Vector(0.0, LayoutShift);
+
 		// Act
 		sut.IsEnabled = true;
 
@@ -587,7 +594,7 @@ internal class DatasetScrollBehaviorTests
 		// Assert
 		scrollViewer.Offset.Y
 			.Should()
-			.BeLessThan(scrollViewer.Viewport.Height);
+			.Be(0.0);
 	}
 
 	/// <summary>
@@ -678,6 +685,48 @@ internal class DatasetScrollBehaviorTests
 		await OutlastThePauseAsync();
 
 		// Assert
+		sut.ViewState
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="StyledElementBehavior.IsEnabled" />: a list without <see cref="DatasetScrollBehavior.ViewState" /> starts
+	/// at its very top, though the first layout of the records has moved it off, and no place is reported for it.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task IsEnabled_Puts_A_List_Without_A_View_State_At_Its_Top()
+	{
+		// Arrange
+		ScrollViewer scrollViewer = new()
+		{
+			Content = new ItemsRepeater
+			{
+				ItemsSource = DatasetRecordFactory.CreateValueRecords(RecordCount),
+				ItemTemplate = RecordTemplate
+			}
+		};
+
+		DatasetScrollBehavior sut = new();
+
+		Interaction
+			.GetBehaviors(scrollViewer)
+			.Add(sut);
+
+		Show(scrollViewer);
+
+		scrollViewer.Offset = new Vector(0.0, LayoutShift);
+
+		// Act
+		sut.IsEnabled = true;
+
+		await OutlastThePauseAsync();
+
+		// Assert
+		scrollViewer.Offset.Y
+			.Should()
+			.Be(0.0);
+
 		sut.ViewState
 			.Should()
 			.BeNull();

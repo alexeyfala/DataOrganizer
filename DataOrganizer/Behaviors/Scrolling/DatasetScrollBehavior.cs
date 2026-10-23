@@ -430,9 +430,12 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 
 		await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
-		// A record that the list does not have is not looked for.
+		// A record that the list does not have is not looked for, and the list starts at its top, which the first layout of
+		// the records may have moved off.
 		if (ViewState is not { } state || state.TopRecordIndex < 0 || state.TopRecordIndex >= records.Count)
 		{
+			scrollViewer.Offset = scrollViewer.Offset.WithY(0.0);
+
 			return;
 		}
 

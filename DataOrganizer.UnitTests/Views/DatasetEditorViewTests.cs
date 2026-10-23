@@ -1344,7 +1344,7 @@ internal class DatasetEditorViewTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorView" />: a stored record beyond the end of the list leaves the list on its first records.
+	/// <see cref="DatasetEditorView" />: a stored record beyond the end of the list leaves the list at its very top.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task Loaded_Shows_The_First_Records_For_A_Stored_Record_Beyond_The_List()
@@ -1413,7 +1413,7 @@ internal class DatasetEditorViewTests
 		// Assert
 		recordsScroller.Offset.Y
 			.Should()
-			.BeLessThan(recordsScroller.Viewport.Height);
+			.Be(0.0);
 	}
 
 	/// <summary>
