@@ -2449,6 +2449,37 @@ internal class DocumentTextEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="DocumentTextEditor.SetView" />: an editor whose view is not built yet keeps its selection and its caret.
+	/// </summary>
+	[AvaloniaTest]
+	public void SetView_Leaves_An_Editor_Without_A_View_As_It_Is()
+	{
+		// Arrange
+		DocumentTextEditor sut = new()
+		{
+			Document = new("First\nSecond")
+		};
+
+		// Act
+		sut.SetView(
+			selectionStart: 6,
+			selectionLength: 6,
+			caretPosition: new(line: 2, column: 7),
+			blockStarts: [],
+			isFolded: true,
+			scrollOffset: default);
+
+		// Assert
+		sut.SelectionLength
+			.Should()
+			.Be(0);
+
+		sut.TextArea.Caret.Line
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="DocumentTextEditor.ShowEndOfLine" />: turns the glyphs of line endings on and off.
 	/// </summary>
 	[AvaloniaTest]

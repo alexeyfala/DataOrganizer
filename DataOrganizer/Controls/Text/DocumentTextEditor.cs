@@ -541,6 +541,33 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	public void SetBlocksFolded(IEnumerable<int> starts, bool isFolded) => _folding.SetBlocksFolded(starts, isFolded);
 
 	/// <summary>
+	/// Puts the selection, the caret, the folded blocks and the scroll offset in place; nothing before the view is built.
+	/// </summary>
+	public void SetView(
+		int selectionStart,
+		int selectionLength,
+		TextViewPosition caretPosition,
+		IEnumerable<int> blockStarts,
+		bool isFolded,
+		Vector scrollOffset)
+	{
+		if (ScrollViewer is not { } scrollViewer)
+		{
+			return;
+		}
+
+		Select(selectionStart, selectionLength);
+
+		TextArea.Caret.Position = caretPosition;
+
+		// After the caret, whose move unfolds a block it lands in, and before the offset, which is measured over the
+		// folded text.
+		SetBlocksFolded(blockStarts, isFolded);
+
+		scrollViewer.Offset = scrollOffset;
+	}
+
+	/// <summary>
 	/// Finds the blocks that fold with a pass over all lines.
 	/// </summary>
 	internal void UpdateFoldings() => _folding.UpdateBlocks();
