@@ -61,6 +61,18 @@
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
 	</Style>
 
+	<!--
+		The arrows of a button spinner get tips, and through them names, instead of the type names of their icons.
+		The spinner keeps its buttons private and finds them by these template names alone, so only the names tell them apart.
+	-->
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_IncreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Increase}" />
+	</Style>
+
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_DecreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Decrease}" />
+	</Style>
+
 	<!--  The close button of the search panel of the text editors gets a tip, and through it a name.  -->
 	<styling:SearchPanelStyles />
 

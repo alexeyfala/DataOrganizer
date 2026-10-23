@@ -574,6 +574,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decrease.
+        /// </summary>
+        public static string Decrease {
+            get {
+                return ResourceManager.GetString("Decrease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Decrypt Files.
         /// </summary>
         public static string DecryptFiles {
@@ -860,7 +869,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToRestoreClipboardEntry", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The database could not be restored from the copy.
         /// </summary>
@@ -869,7 +878,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToRestoreDatabase", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to put the files back on the clipboard: none of them exists any more.
         /// </summary>
@@ -878,7 +887,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToRestoreMissingFiles", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to save file contents.
         /// </summary>
@@ -1209,6 +1218,15 @@ namespace Shared.Properties {
         public static string IncorrectPassword {
             get {
                 return ResourceManager.GetString("IncorrectPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Increase.
+        /// </summary>
+        public static string Increase {
+            get {
+                return ResourceManager.GetString("Increase", resourceCulture);
             }
         }
         

@@ -204,6 +204,12 @@
   <data name="FontSize" xml:space="preserve">
     <value>Размер шрифта</value>
   </data>
+  <data name="Increase" xml:space="preserve">
+    <value>Увеличить</value>
+  </data>
+  <data name="Decrease" xml:space="preserve">
+    <value>Уменьшить</value>
+  </data>
   <data name="Copy" xml:space="preserve">
     <value>Копировать</value>
   </data>

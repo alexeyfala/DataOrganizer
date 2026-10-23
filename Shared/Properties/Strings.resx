@@ -184,6 +184,12 @@
   <data name="FontSize" xml:space="preserve">
     <value>Font Size</value>
   </data>
+  <data name="Increase" xml:space="preserve">
+    <value>Increase</value>
+  </data>
+  <data name="Decrease" xml:space="preserve">
+    <value>Decrease</value>
+  </data>
   <data name="Copy" xml:space="preserve">
     <value>Copy</value>
   </data>
