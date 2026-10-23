@@ -3510,6 +3510,59 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAscendingCommand" />: sorts the records of a group only once the user agrees.
+	/// </summary>
+	[Test]
+	public async Task SortAscendingCommand_Sorts_The_Group_Once_Confirmed([Values] bool isConfirmed)
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		RecordsGroup group = CreateGroup("B", "A");
+
+		sut.Records.Add(group);
+
+		// Act
+		await sut.SortAscendingCommand.ExecuteAsync(group);
+
+		// Assert
+		group.Children
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal(isConfirmed ? ["A", "B"] : ["B", "A"]);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortAscendingDescendingCommand" />: sorts the whole list in the chosen direction.
+	/// </summary>
+	[TestCase(ListSortDirection.Ascending, new[] { "A", "B", "C" })]
+	[TestCase(ListSortDirection.Descending, new[] { "C", "B", "A" })]
+	public async Task SortAscendingDescendingCommand_Sorts_The_List_In_The_Direction(
+		ListSortDirection direction,
+		string[] expected)
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed: true);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.Records.AddRange([.. CreateGroup("B", "A", "C").Children]);
+
+		// Act
+		await sut.SortAscendingDescendingCommand.ExecuteAsync(direction);
+
+		// Assert
+		sut.Records
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.SortAsync" />: a read-only dataset is never written back. The check
 	/// lives in the save path, so it holds for every change that persists the records.
 	/// </summary>
@@ -3736,6 +3789,33 @@ internal class DatasetEditorViewModelTests
 			Arg.Any<Guid>(),
 			Arg.Any<byte[]>(),
 			Arg.Any<DateTime?>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.SortDescendingCommand" />: sorts the records of a group descending once the user
+	/// agrees.
+	/// </summary>
+	[Test]
+	public async Task SortDescendingCommand_Sorts_The_Group_Descending()
+	{
+		// Arrange
+		using AutoMock mock = CreateSortMock(isConfirmed: true);
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		RecordsGroup group = CreateGroup("A", "B");
+
+		sut.Records.Add(group);
+
+		// Act
+		await sut.SortDescendingCommand.ExecuteAsync(group);
+
+		// Assert
+		group.Children
+			.OfType<ValueRecord>()
+			.Select(static x => x.Value)
+			.Should()
+			.Equal("B", "A");
 	}
 
 	/// <summary>
@@ -4117,6 +4197,56 @@ internal class DatasetEditorViewModelTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Creates a group of value records with the values in their order.
+	/// </summary>
+	private static RecordsGroup CreateGroup(params string[] values)
+	{
+		RecordsGroup group = new();
+
+		group.Children.AddRange(values.Select(static x => new ValueRecord
+		{
+			Value = x
+		}));
+
+		return group;
+	}
+
+	/// <summary>
+	/// Creates a mock whose dataset can be sorted and saved, and whose user answers the question of a sort.
+	/// </summary>
+	private static AutoMock CreateSortMock(bool isConfirmed)
+	{
+		return AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(isConfirmed);
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+	}
+
 	/// <summary>
 	/// The commands that change the records, each case named after its command.
 	/// </summary>

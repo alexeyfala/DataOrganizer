@@ -277,6 +277,22 @@ internal static class DatasetRecordTree
 	}
 
 	/// <summary>
+	/// Orders records by a key in a direction.
+	/// </summary>
+	private static IOrderedEnumerable<T> Order<T>(
+		IEnumerable<T> records,
+		Func<T, string?> key,
+		ListSortDirection direction)
+	{
+		return direction switch
+		{
+			ListSortDirection.Ascending => records.OrderBy(key),
+			ListSortDirection.Descending => records.OrderByDescending(key),
+			_ => throw new NotImplementedException()
+		};
+	}
+
+	/// <summary>
 	/// Returns <paramref name="records" /> in the sorted order, groups first, then key and value records, then value records,
 	/// and sorts the records of the groups in place.
 	/// </summary>
@@ -284,26 +300,11 @@ internal static class DatasetRecordTree
 		ICollection<DatasetRecordBase> records,
 		ListSortDirection direction)
 	{
-		RecordsGroup[] groups = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfType<RecordsGroup>().OrderBy(x => x.Name)],
-			ListSortDirection.Descending => [.. records.OfType<RecordsGroup>().OrderByDescending(x => x.Name)],
-			_ => throw new NotImplementedException()
-		};
+		RecordsGroup[] groups = [.. Order(records.OfType<RecordsGroup>(), static x => x.Name, direction)];
 
-		KeyValueRecord[] keyValues = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfType<KeyValueRecord>().OrderBy(x => x.Key)],
-			ListSortDirection.Descending => [.. records.OfType<KeyValueRecord>().OrderByDescending(x => x.Key)],
-			_ => throw new NotImplementedException()
-		};
+		KeyValueRecord[] keyValues = [.. Order(records.OfType<KeyValueRecord>(), static x => x.Key, direction)];
 
-		ValueRecord[] values = direction switch
-		{
-			ListSortDirection.Ascending => [.. records.OfType<ValueRecord>().OrderBy(x => x.Value)],
-			ListSortDirection.Descending => [.. records.OfType<ValueRecord>().OrderByDescending(x => x.Value)],
-			_ => throw new NotImplementedException()
-		};
+		ValueRecord[] values = [.. Order(records.OfType<ValueRecord>(), static x => x.Value, direction)];
 
 		foreach (RecordsGroup group in groups)
 		{

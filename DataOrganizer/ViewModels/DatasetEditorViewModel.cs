@@ -420,56 +420,19 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private async Task SortAscending(RecordsGroup? group)
-	{
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(Strings.SortAscending + "?")
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(group, ListSortDirection.Ascending).ConfigureAwait(false);
-	}
+	private Task SortAscending(RecordsGroup? group) => ConfirmAndSortAsync(group, ListSortDirection.Ascending);
 
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasRecords))]
-	private async Task SortAscendingDescending(ListSortDirection direction)
-	{
-		string text = string.Concat(direction switch
-		{
-			ListSortDirection.Ascending => Strings.SortAscending,
-			ListSortDirection.Descending => Strings.SortDescending,
-			_ => throw new NotImplementedException()
-		}, "?");
-
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(text)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(null, direction).ConfigureAwait(false);
-	}
+	private Task SortAscendingDescending(ListSortDirection direction) => ConfirmAndSortAsync(null, direction);
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Descending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private async Task SortDescending(RecordsGroup? group)
-	{
-		if (!await _confirmationPrompt
-			.RequestYesNoAsync(Strings.SortDescending + "?")
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		await SortAsync(group, ListSortDirection.Descending).ConfigureAwait(false);
-	}
+	private Task SortDescending(RecordsGroup? group) => ConfirmAndSortAsync(group, ListSortDirection.Descending);
 	#endregion
 
 	#region Data
@@ -809,6 +772,28 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Sorts the records of a group, or the whole list without one, in a direction once the user agrees.
+	/// </summary>
+	private async Task ConfirmAndSortAsync(RecordsGroup? group, ListSortDirection direction)
+	{
+		string question = string.Concat(direction switch
+		{
+			ListSortDirection.Ascending => Strings.SortAscending,
+			ListSortDirection.Descending => Strings.SortDescending,
+			_ => throw new NotImplementedException()
+		}, "?");
+
+		if (!await _confirmationPrompt
+			.RequestYesNoAsync(question)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		await SortAsync(group, direction).ConfigureAwait(false);
+	}
+
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>

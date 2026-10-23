@@ -598,9 +598,10 @@ internal class DatasetRecordTreeTests
 
 		RecordsGroup groupB = new() { Name = "B" };
 
-		KeyValueRecord kvX = new() { Key = "X", Value = "1" };
+		// The values go the other way than the keys, which the records follow.
+		KeyValueRecord kvX = new() { Key = "X", Value = "2" };
 
-		KeyValueRecord kvY = new() { Key = "Y", Value = "2" };
+		KeyValueRecord kvY = new() { Key = "Y", Value = "1" };
 
 		ValueRecord vP = new() { Value = "P" };
 
