@@ -36,6 +36,9 @@ jobs:
       - name: Test Hierarchy.UnitTests
         run: dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj --configuration Release
 
+      - name: Test Notifications.UnitTests
+        run: dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj --configuration Release
+
       - name: Test Repository.UnitTests
         run: dotnet test Repository.UnitTests/Repository.UnitTests.csproj --configuration Release
 

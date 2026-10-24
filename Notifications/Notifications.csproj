@@ -17,4 +17,8 @@
 		<ProjectReference Include="..\Threading\Threading.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Notifications.UnitTests" />
+	</ItemGroup>
+
 </Project>
