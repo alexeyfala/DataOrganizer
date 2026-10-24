@@ -10,7 +10,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-		<PackageReference Include="System.Reactive" Version="7.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
