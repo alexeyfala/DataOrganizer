@@ -49,6 +49,7 @@
     <Project Path="Shared/Shared.csproj" />
   </Folder>
   <Folder Name="/Layers/">
+    <Project Path="Diagnostics/Diagnostics.csproj" />
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="Notifications/Notifications.csproj" />
     <Project Path="Threading/Threading.csproj" />
