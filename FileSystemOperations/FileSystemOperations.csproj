@@ -18,4 +18,8 @@
 		<ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="FileSystemOperations.UnitTests" />
+	</ItemGroup>
+
 </Project>
