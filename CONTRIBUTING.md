@@ -41,6 +41,7 @@ dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
 dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
+dotnet test Threading.UnitTests/Threading.UnitTests.csproj
 ```
 
 Two categories mark the tests that read or write outside the process, so a run over the
