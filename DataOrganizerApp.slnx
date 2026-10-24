@@ -48,6 +48,9 @@
     <Project Path="Entities/Entities.csproj" />
     <Project Path="Shared/Shared.csproj" />
   </Folder>
+  <Folder Name="/Layers/">
+    <Project Path="Hierarchy/Hierarchy.csproj" />
+  </Folder>
   <Folder Name="/Platforms/">
     <Project Path="DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
     <Project Path="DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
