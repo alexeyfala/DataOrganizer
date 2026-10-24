@@ -15,7 +15,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Notifications\Notifications.csproj" />
 		<ProjectReference Include="..\Repository\Repository.csproj" />
-		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
