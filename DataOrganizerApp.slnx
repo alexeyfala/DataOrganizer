@@ -50,6 +50,7 @@
   </Folder>
   <Folder Name="/Layers/">
     <Project Path="Hierarchy/Hierarchy.csproj" />
+    <Project Path="Notifications/Notifications.csproj" />
     <Project Path="Threading/Threading.csproj" />
   </Folder>
   <Folder Name="/Platforms/">
