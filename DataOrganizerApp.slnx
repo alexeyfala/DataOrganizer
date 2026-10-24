@@ -49,6 +49,7 @@
     <Project Path="Shared/Shared.csproj" />
   </Folder>
   <Folder Name="/Layers/">
+    <Project Path="DataProtection/DataProtection.csproj" />
     <Project Path="Diagnostics/Diagnostics.csproj" />
     <Project Path="EditorMessages/EditorMessages.csproj" />
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
