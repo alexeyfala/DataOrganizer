@@ -30,6 +30,9 @@ jobs:
       - name: Test DataOrganizer.UnitTests
         run: dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj --configuration Release
 
+      - name: Test DataProtection.UnitTests
+        run: dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj --configuration Release
+
       - name: Test Diagnostics.UnitTests
         run: dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj --configuration Release
 

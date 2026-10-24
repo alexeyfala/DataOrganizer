@@ -18,4 +18,8 @@
 		<ProjectReference Include="..\TextProcessing\TextProcessing.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataProtection.UnitTests" />
+	</ItemGroup>
+
 </Project>

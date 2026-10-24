@@ -113,6 +113,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />
     <Project Path="Diagnostics.UnitTests/Diagnostics.UnitTests.csproj" />
     <Project Path="EditorMessages.UnitTests/EditorMessages.UnitTests.csproj" />
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
