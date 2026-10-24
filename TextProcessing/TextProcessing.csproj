@@ -8,4 +8,8 @@
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="TextProcessing.UnitTests" />
+	</ItemGroup>
+
 </Project>

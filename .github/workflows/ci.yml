@@ -51,5 +51,8 @@ jobs:
       - name: Test Shared.UnitTests
         run: dotnet test Shared.UnitTests/Shared.UnitTests.csproj --configuration Release
 
+      - name: Test TextProcessing.UnitTests
+        run: dotnet test TextProcessing.UnitTests/TextProcessing.UnitTests.csproj --configuration Release
+
       - name: Test Threading.UnitTests
         run: dotnet test Threading.UnitTests/Threading.UnitTests.csproj --configuration Release
