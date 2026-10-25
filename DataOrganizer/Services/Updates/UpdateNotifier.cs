@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Updates;
 
+/// <inheritdoc cref="IUpdateNotifier" />
 public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data

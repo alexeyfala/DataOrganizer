@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Updates;
 
+/// <inheritdoc cref="IUpdateCheckService" />
 public sealed class UpdateCheckService : IUpdateCheckService
 {
 	#region Data
