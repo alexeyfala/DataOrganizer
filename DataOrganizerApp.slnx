@@ -53,6 +53,7 @@
     <Project Path="Diagnostics/Diagnostics.csproj" />
     <Project Path="EditorDocuments/EditorDocuments.csproj" />
     <Project Path="EditorMessages/EditorMessages.csproj" />
+    <Project Path="FileContents/FileContents.csproj" />
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="Notifications/Notifications.csproj" />
