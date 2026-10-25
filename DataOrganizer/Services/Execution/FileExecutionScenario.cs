@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Execution;
 
+/// <inheritdoc cref="IFileExecutionScenario" />
 public sealed class FileExecutionScenario : IFileExecutionScenario
 {
 	#region Data

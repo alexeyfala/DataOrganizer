@@ -3,6 +3,9 @@ using System;
 
 namespace DataOrganizer.Dto.Execution;
 
+/// <summary>
+/// The file of the tree that runs in the operating system and the keeper of its key.
+/// </summary>
 public abstract class ExecuteFileParametersBase
 {
 	#region Properties

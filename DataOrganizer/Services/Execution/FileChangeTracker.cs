@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Execution;
 
+/// <inheritdoc cref="IFileChangeTracker" />
 public class FileChangeTracker : IFileChangeTracker
 {
 	#region Data

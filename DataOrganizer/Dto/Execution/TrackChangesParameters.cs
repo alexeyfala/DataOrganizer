@@ -2,6 +2,9 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Dto.Execution;
 
+/// <summary>
+/// What the tracking of a running file needs: its copy in the sandbox and the hash of its first contents.
+/// </summary>
 public sealed class TrackChangesParameters : ExecuteFileParametersBase
 {
 	#region Properties

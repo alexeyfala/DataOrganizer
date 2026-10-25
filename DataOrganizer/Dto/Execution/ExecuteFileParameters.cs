@@ -1,5 +1,8 @@
 namespace DataOrganizer.Dto.Execution;
 
+/// <summary>
+/// What a file of the tree needs to run in the operating system: its plain contents and its read-only mode.
+/// </summary>
 public sealed class ExecuteFileParameters : ExecuteFileParametersBase
 {
 	#region Properties
