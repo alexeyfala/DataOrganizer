@@ -65,6 +65,7 @@
     <Project Path="Settings/Settings.csproj" />
     <Project Path="TextProcessing/TextProcessing.csproj" />
     <Project Path="Threading/Threading.csproj" />
+    <Project Path="WindowContracts/WindowContracts.csproj" />
   </Folder>
   <Folder Name="/Platforms/">
     <Project Path="DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
