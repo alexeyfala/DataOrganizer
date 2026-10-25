@@ -1,7 +1,7 @@
 using Diagnostics.Interfaces;
 using Hierarchy.Dto;
+using HierarchyNotes.Interfaces;
 using Notifications.Interfaces;
-using ObjectNotes.Interfaces;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TextProcessing.Extensions;
 
-namespace ObjectNotes.Services;
+namespace HierarchyNotes.Services;
 
 /// <inheritdoc cref="INoteEditor" />
 public sealed class NoteEditor : INoteEditor

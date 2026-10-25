@@ -1,6 +1,6 @@
 using Shared.Properties;
 
-namespace ObjectNotes.Helpers;
+namespace HierarchyNotes.Helpers;
 
 /// <summary>
 /// Composes the header shown above a note.

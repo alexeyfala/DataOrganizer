@@ -2,12 +2,12 @@ using DataProtection.Helpers;
 using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
-using ObjectNotes.Interfaces;
+using HierarchyNotes.Interfaces;
 using Shared.Extensions;
 using TextProcessing.Constants;
 using TextProcessing.Extensions;
 
-namespace ObjectNotes.Services;
+namespace HierarchyNotes.Services;
 
 /// <inheritdoc cref="INoteCipher" />
 public sealed class NoteCipher : INoteCipher

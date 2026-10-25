@@ -1,6 +1,6 @@
 using Hierarchy.Dto;
 
-namespace ObjectNotes.Interfaces;
+namespace HierarchyNotes.Interfaces;
 
 /// <summary>
 /// Provides the note of an object as plain text.

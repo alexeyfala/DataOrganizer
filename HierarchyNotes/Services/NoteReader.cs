@@ -1,13 +1,13 @@
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using HierarchyNotes.Interfaces;
 using Notifications.Interfaces;
-using ObjectNotes.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
 
-namespace ObjectNotes.Services;
+namespace HierarchyNotes.Services;
 
 /// <inheritdoc cref="INoteReader" />
 public sealed class NoteReader : INoteReader

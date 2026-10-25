@@ -1,6 +1,6 @@
 using Hierarchy.Dto;
 
-namespace ObjectNotes.Interfaces;
+namespace HierarchyNotes.Interfaces;
 
 /// <summary>
 /// Converts notes between their stored binary form and plain text.

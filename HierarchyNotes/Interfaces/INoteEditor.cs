@@ -2,7 +2,7 @@ using Hierarchy.Dto;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ObjectNotes.Interfaces;
+namespace HierarchyNotes.Interfaces;
 
 /// <summary>
 /// Stores the note of an explorer object in the database and in the hierarchy.
