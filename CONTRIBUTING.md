@@ -38,6 +38,7 @@ Please make sure the test suite passes before opening a pull request:
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
 dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj
 dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj
+dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj
 dotnet test EditorMessages.UnitTests/EditorMessages.UnitTests.csproj
 dotnet test Entities.UnitTests/Entities.UnitTests.csproj
 dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
