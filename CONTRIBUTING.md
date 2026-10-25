@@ -41,6 +41,7 @@ dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj
 dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj
 dotnet test EditorMessages.UnitTests/EditorMessages.UnitTests.csproj
 dotnet test Entities.UnitTests/Entities.UnitTests.csproj
+dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj
 dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
 dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
 dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
