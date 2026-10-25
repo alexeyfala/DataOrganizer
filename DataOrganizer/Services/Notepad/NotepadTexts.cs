@@ -12,6 +12,7 @@ using System.Text;
 
 namespace DataOrganizer.Services.Notepad;
 
+/// <inheritdoc cref="INotepadTexts" />
 public sealed class NotepadTexts : INotepadTexts
 {
 	#region Data
