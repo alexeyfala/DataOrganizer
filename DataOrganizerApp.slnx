@@ -133,6 +133,7 @@
     <Project Path="FileExecution.UnitTests/FileExecution.UnitTests.csproj" />
     <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
     <Project Path="Hierarchy.UnitTests/Hierarchy.UnitTests.csproj" />
+    <Project Path="HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj" />
     <Project Path="Notifications.UnitTests/Notifications.UnitTests.csproj" />
     <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />

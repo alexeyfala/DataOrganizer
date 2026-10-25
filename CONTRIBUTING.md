@@ -48,6 +48,7 @@ dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj
 dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj
 dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
 dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
+dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj
 dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
 dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
