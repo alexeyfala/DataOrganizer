@@ -8,7 +8,6 @@ using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Settings;
@@ -155,7 +154,7 @@ internal class SettingsViewTests
 			new SettingsSession(
 				settingsStore,
 				Substitute.For<IAppThemeService>(),
-				Substitute.For<IBackgroundServiceControl>()),
+				Substitute.For<ISettingsApplier>()),
 			sessionState);
 
 		SettingsView sut = new(viewModel);

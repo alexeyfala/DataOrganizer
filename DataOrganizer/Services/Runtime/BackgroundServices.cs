@@ -18,7 +18,7 @@ namespace DataOrganizer.Services.Runtime;
 /// The one place that starts, adjusts and stops the hotkey tracking, the clipboard history with its saving and the
 /// auto-lock countdown.
 /// </summary>
-public sealed class BackgroundServices : IBackgroundServiceControl, IBackgroundServices
+public sealed class BackgroundServices : IAutoLockControl, IBackgroundServices, IHotkeyTrackingControl, ISettingsApplier
 {
 	#region Data
 	/// <inheritdoc cref="IAutoLockService" />

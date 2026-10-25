@@ -58,6 +58,7 @@
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="Notifications/Notifications.csproj" />
+    <Project Path="Settings/Settings.csproj" />
     <Project Path="TextProcessing/TextProcessing.csproj" />
     <Project Path="Threading/Threading.csproj" />
   </Folder>

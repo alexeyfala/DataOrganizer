@@ -1,7 +1,6 @@
 using Baksteen.Extensions.DeepCopy;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Settings;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using System.Threading;
@@ -30,8 +29,8 @@ public sealed class SettingsSession : ISettingsCloseGuard, ISettingsCommit, ISet
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IBackgroundServiceControl" />
-	private readonly IBackgroundServiceControl _backgroundServiceControl;
+	/// <inheritdoc cref="ISettingsApplier" />
+	private readonly ISettingsApplier _settingsApplier;
 
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
@@ -49,9 +48,9 @@ public sealed class SettingsSession : ISettingsCloseGuard, ISettingsCommit, ISet
 	public SettingsSession(
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
-		IBackgroundServiceControl backgroundServiceControl)
+		ISettingsApplier settingsApplier)
 	{
-		_backgroundServiceControl = backgroundServiceControl;
+		_settingsApplier = settingsApplier;
 
 		_settingsStore = settingsStore;
 
@@ -98,7 +97,7 @@ public sealed class SettingsSession : ISettingsCloseGuard, ISettingsCommit, ISet
 
 		_settingsStore.Save();
 
-		await _backgroundServiceControl
+		await _settingsApplier
 			.ApplySettingsAsync(
 				settings,
 				wasPersistingClipboard,

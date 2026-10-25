@@ -20,8 +20,8 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class ProtectionScenarios : IProtectionScenarios
 {
 	#region Data
-	/// <inheritdoc cref="IBackgroundServiceControl" />
-	private readonly IBackgroundServiceControl _backgroundServiceControl;
+	/// <inheritdoc cref="IAutoLockControl" />
+	private readonly IAutoLockControl _autoLockControl;
 
 	/// <inheritdoc cref="IContentVisibility" />
 	private readonly IContentVisibility _contentVisibility;
@@ -50,7 +50,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 
 	#region Constructors
 	public ProtectionScenarios(
-		IBackgroundServiceControl backgroundServiceControl,
+		IAutoLockControl autoLockControl,
 		IContentVisibility contentVisibility,
 		IFolderProtection folderProtection,
 		ILogger logger,
@@ -60,7 +60,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy)
 	{
-		_backgroundServiceControl = backgroundServiceControl;
+		_autoLockControl = autoLockControl;
 
 		_contentVisibility = contentVisibility;
 
@@ -149,7 +149,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 
 		_contentVisibility.HideAllContents(_sessionHierarchy.Hierarchy);
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		return true;
 	}
@@ -173,7 +173,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 
 		_contentVisibility.HideFileContents(file);
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		return true;
 	}
@@ -197,7 +197,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 
 		_contentVisibility.HideFolderContents(folder);
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		return true;
 	}
@@ -226,7 +226,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 
 		_contentVisibility.HideAllContents(_sessionHierarchy.Hierarchy);
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		_notification.ShowInformationSnackbar(Strings.ContentsHiddenByAutoLock);
 	}
@@ -243,7 +243,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 			return false;
 		}
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		return true;
 	}
@@ -262,7 +262,7 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 			.ShowFolderContentsAsync(folder, token)
 			.ConfigureAwait(true);
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 
 		return true;
 	}

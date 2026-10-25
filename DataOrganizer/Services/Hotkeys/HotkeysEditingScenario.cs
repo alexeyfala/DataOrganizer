@@ -3,7 +3,6 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.Generic;
@@ -14,14 +13,14 @@ namespace DataOrganizer.Services.Hotkeys;
 public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 {
 	#region Data
-	/// <inheritdoc cref="IBackgroundServiceControl" />
-	private readonly IBackgroundServiceControl _backgroundServiceControl;
-
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
 
 	/// <inheritdoc cref="IHotkeysPrompt" />
 	private readonly IHotkeysPrompt _hotkeysPrompt;
+
+	/// <inheritdoc cref="IHotkeyTrackingControl" />
+	private readonly IHotkeyTrackingControl _hotkeyTrackingControl;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -29,16 +28,16 @@ public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 
 	#region Constructors
 	public HotkeysEditingScenario(
-		IBackgroundServiceControl backgroundServiceControl,
 		IFileHotkeyEditor fileHotkeyEditor,
 		IHotkeysPrompt hotkeysPrompt,
+		IHotkeyTrackingControl hotkeyTrackingControl,
 		ILogger logger)
 	{
-		_backgroundServiceControl = backgroundServiceControl;
-
 		_fileHotkeyEditor = fileHotkeyEditor;
 
 		_hotkeysPrompt = hotkeysPrompt;
+
+		_hotkeyTrackingControl = hotkeyTrackingControl;
 
 		_logger = logger;
 	}
@@ -50,7 +49,7 @@ public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 	{
 		_logger.LogInformation("Show hotkeys editor");
 
-		await _backgroundServiceControl
+		await _hotkeyTrackingControl
 			.PauseHotkeyTrackingAsync()
 			.ConfigureAwait(true);
 
@@ -65,7 +64,7 @@ public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 				.ConfigureAwait(false);
 		}
 
-		_backgroundServiceControl.ResumeHotkeyTracking();
+		_hotkeyTrackingControl.ResumeHotkeyTracking();
 	}
 	#endregion
 }

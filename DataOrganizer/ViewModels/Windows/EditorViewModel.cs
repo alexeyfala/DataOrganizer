@@ -709,7 +709,7 @@ public sealed partial class EditorViewModel :
 	/// Starts the auto-lock countdown over from the delay currently in the settings.
 	/// </summary>
 	[RelayCommand]
-	private void RestartAutoLock() => _backgroundServiceControl.RestartAutoLock();
+	private void RestartAutoLock() => _autoLockControl.RestartAutoLock();
 
 	/// <summary>
 	/// Adds entries made up for trying the clipboard history to it.
@@ -836,8 +836,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
-	/// <inheritdoc cref="IBackgroundServiceControl" />
-	private readonly IBackgroundServiceControl _backgroundServiceControl;
+	/// <inheritdoc cref="IAutoLockControl" />
+	private readonly IAutoLockControl _autoLockControl;
 
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
@@ -936,7 +936,7 @@ public sealed partial class EditorViewModel :
 		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
-		IBackgroundServiceControl backgroundServiceControl,
+		IAutoLockControl autoLockControl,
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
@@ -984,7 +984,7 @@ public sealed partial class EditorViewModel :
 
 		_autoLock = autoLock;
 
-		_backgroundServiceControl = backgroundServiceControl;
+		_autoLockControl = autoLockControl;
 
 		_clipboardWriter = clipboardWriter;
 
@@ -1196,7 +1196,7 @@ public sealed partial class EditorViewModel :
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 	}
 
 	/// <summary>

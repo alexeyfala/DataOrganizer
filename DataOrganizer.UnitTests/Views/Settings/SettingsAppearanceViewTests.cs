@@ -5,7 +5,6 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Settings;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Settings;
@@ -40,7 +39,7 @@ internal class SettingsAppearanceViewTests
 			new SettingsSession(
 				settingsStore,
 				Substitute.For<IAppThemeService>(),
-				Substitute.For<IBackgroundServiceControl>()),
+				Substitute.For<ISettingsApplier>()),
 			new SettingsSessionState());
 
 		SettingsAppearanceView sut = new()

@@ -709,7 +709,7 @@ internal class DialogServiceTests
 		SettingsSession session = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
-			Substitute.For<IBackgroundServiceControl>());
+			Substitute.For<ISettingsApplier>());
 
 		SettingsViewModel viewModel = new(
 			Substitute.For<IDialogHostCloser>(),

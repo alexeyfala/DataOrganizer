@@ -136,9 +136,9 @@ public sealed class App : Application
 		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IAutoLockControl, BackgroundServices>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
 		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
-		services.AddTransient<IBackgroundServiceControl, BackgroundServices>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
@@ -190,6 +190,7 @@ public sealed class App : Application
 		services.AddTransient<IHotkeyContentCopier, HotkeyContentCopier>();
 		services.AddTransient<IHotkeysEditingScenario, HotkeysEditingScenario>();
 		services.AddTransient<IHotkeysPrompt, DialogService>();
+		services.AddTransient<IHotkeyTrackingControl, BackgroundServices>();
 		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IImportScenario, ImportScenario>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
@@ -216,6 +217,7 @@ public sealed class App : Application
 		services.AddTransient<ISecondaryWindowLauncher, ViewLauncher>();
 		services.AddTransient<ISeedingScenarios, SeedingScenarios>();
 		services.AddTransient<ISessionDekWrapper, EncryptionService>();
+		services.AddTransient<ISettingsApplier, BackgroundServices>();
 		services.AddTransient<IStartupDataLoader, StartupDataLoader>();
 		services.AddTransient<IStartupInfoLogger, StartupInfoLogger>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();

@@ -2937,11 +2937,11 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Tells_The_Auto_Lock()
 	{
 		// Arrange
-		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(backgroundServiceControl);
+			builder.RegisterInstance(autoLockControl);
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -2968,7 +2968,7 @@ internal class EditorViewModelTests
 		await sut.HideAllFileContents();
 
 		// Assert
-		backgroundServiceControl
+		autoLockControl
 			.Received(1)
 			.RefreshAutoLock();
 	}
@@ -5756,7 +5756,7 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -5766,7 +5766,7 @@ internal class EditorViewModelTests
 				.ShowFileContentsAsync(file, Arg.Any<CancellationToken>())
 				.Returns(isShown);
 
-			builder.RegisterInstance(backgroundServiceControl);
+			builder.RegisterInstance(autoLockControl);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -5788,7 +5788,7 @@ internal class EditorViewModelTests
 			.ExecuteAsync(file);
 
 		// Assert
-		backgroundServiceControl
+		autoLockControl
 			.Received(isShown ? 1 : 0)
 			.RefreshAutoLock();
 	}
