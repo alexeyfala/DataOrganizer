@@ -22,7 +22,9 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// <inheritdoc cref="ExplorerItemBase.CreatedAt" />
 	public required DateTime CreatedAt { get; init; }
 
-	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
+	/// <summary>
+	/// Encryption status of the object.
+	/// </summary>
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
 

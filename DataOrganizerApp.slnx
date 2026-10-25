@@ -56,6 +56,7 @@
     <Project Path="DialogContracts/DialogContracts.csproj" />
     <Project Path="EditorDocuments/EditorDocuments.csproj" />
     <Project Path="EditorMessages/EditorMessages.csproj" />
+    <Project Path="Favorites/Favorites.csproj" />
     <Project Path="FileContents/FileContents.csproj" />
     <Project Path="FileExecution/FileExecution.csproj" />
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />

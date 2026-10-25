@@ -7,6 +7,9 @@ using System.Diagnostics;
 
 namespace DataOrganizer.Dto.Favorites;
 
+/// <summary>
+/// The favorite files of one folder, shown as a category of the favorites window.
+/// </summary>
 [DebuggerDisplay($"{nameof(Id)} = {{{nameof(Id)}}}, {nameof(Name)} = {{{nameof(Name)}}}")]
 [ObservableObject]
 public sealed partial class FavoriteCategory : EntityDtoBase, INamed
@@ -17,7 +20,9 @@ public sealed partial class FavoriteCategory : EntityDtoBase, INamed
 	/// </summary>
 	public required List<FileDto> Children { get; init; }
 
-	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
+	/// <summary>
+	/// Encryption status of the folder the category stands for.
+	/// </summary>
 	public required EncryptionStatus EncryptionStatus { get; init; }
 
 	/// <summary>
