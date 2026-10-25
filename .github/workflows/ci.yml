@@ -57,6 +57,9 @@ jobs:
       - name: Test FileContents.UnitTests
         run: dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj --configuration Release
 
+      - name: Test FileExecution.UnitTests
+        run: dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj --configuration Release
+
       - name: Test FileSystemOperations.UnitTests
         run: dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj --configuration Release
 

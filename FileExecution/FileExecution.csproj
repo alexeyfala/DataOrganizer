@@ -20,4 +20,8 @@
 		<ProjectReference Include="..\FileContents\FileContents.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="FileExecution.UnitTests" />
+	</ItemGroup>
+
 </Project>
