@@ -130,6 +130,7 @@
     <Project Path="EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj" />
     <Project Path="EditorMessages.UnitTests/EditorMessages.UnitTests.csproj" />
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
+    <Project Path="Favorites.UnitTests/Favorites.UnitTests.csproj" />
     <Project Path="FileContents.UnitTests/FileContents.UnitTests.csproj" />
     <Project Path="FileExecution.UnitTests/FileExecution.UnitTests.csproj" />
     <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
