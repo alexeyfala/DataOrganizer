@@ -50,6 +50,7 @@
   </Folder>
   <Folder Name="/Layers/">
     <Project Path="AppInstance/AppInstance.csproj" />
+    <Project Path="Clipboard/Clipboard.csproj" />
     <Project Path="DataProtection/DataProtection.csproj" />
     <Project Path="Diagnostics/Diagnostics.csproj" />
     <Project Path="EditorDocuments/EditorDocuments.csproj" />

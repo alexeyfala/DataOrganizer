@@ -3,7 +3,7 @@ using SystemPath = System.IO.Path;
 namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
-/// One filesystem item captured in a <see cref="Clipboard.ClipboardFilesEntry" />.
+/// One filesystem item captured in a <see cref="ClipboardFilesEntry" />.
 /// </summary>
 /// <param name="Path">Absolute local path as reported by <c>IStorageItem.Path.LocalPath</c>.</param>
 /// <param name="IsFolder"><c>True</c> when the item is a directory.</param>
