@@ -9,6 +9,7 @@ using Shared.Extensions;
 
 namespace DataOrganizer.Services.Notes;
 
+/// <inheritdoc cref="INoteCipher" />
 public sealed class NoteCipher : INoteCipher
 {
 	#region Data

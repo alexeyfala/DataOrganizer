@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Notes;
 
+/// <inheritdoc cref="INoteEditor" />
 public sealed class NoteEditor : INoteEditor
 {
 	#region Data

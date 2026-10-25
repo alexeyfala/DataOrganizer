@@ -9,6 +9,7 @@ using System;
 
 namespace DataOrganizer.Services.Notes;
 
+/// <inheritdoc cref="INoteReader" />
 public sealed class NoteReader : INoteReader
 {
 	#region Data
