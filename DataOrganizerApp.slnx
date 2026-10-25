@@ -130,6 +130,7 @@
     <Project Path="Clipboard.UnitTests/Clipboard.UnitTests.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />
+    <Project Path="DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj" />
     <Project Path="Diagnostics.UnitTests/Diagnostics.UnitTests.csproj" />
     <Project Path="EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj" />
     <Project Path="EditorMessages.UnitTests/EditorMessages.UnitTests.csproj" />
