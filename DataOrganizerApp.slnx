@@ -145,6 +145,7 @@
     <Project Path="Hierarchy.UnitTests/Hierarchy.UnitTests.csproj" />
     <Project Path="HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj" />
     <Project Path="HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj" />
+    <Project Path="NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj" />
     <Project Path="Notifications.UnitTests/Notifications.UnitTests.csproj" />
     <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
