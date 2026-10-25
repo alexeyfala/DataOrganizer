@@ -125,6 +125,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="AppInstance.UnitTests/AppInstance.UnitTests.csproj" />
+    <Project Path="AppUpdates.UnitTests/AppUpdates.UnitTests.csproj" />
     <Project Path="Clipboard.UnitTests/Clipboard.UnitTests.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />

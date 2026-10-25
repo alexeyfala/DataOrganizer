@@ -36,6 +36,7 @@ Please make sure the test suite passes before opening a pull request:
 
 ```bash
 dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj
+dotnet test AppUpdates.UnitTests/AppUpdates.UnitTests.csproj
 dotnet test Clipboard.UnitTests/Clipboard.UnitTests.csproj
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
 dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj
