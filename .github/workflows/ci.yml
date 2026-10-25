@@ -42,6 +42,9 @@ jobs:
       - name: Test Diagnostics.UnitTests
         run: dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj --configuration Release
 
+      - name: Test DialogContracts.UnitTests
+        run: dotnet test DialogContracts.UnitTests/DialogContracts.UnitTests.csproj --configuration Release
+
       - name: Test EditorDocuments.UnitTests
         run: dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj --configuration Release
 
