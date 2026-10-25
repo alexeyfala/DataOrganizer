@@ -30,6 +30,9 @@ jobs:
       - name: Test AppInstance.UnitTests
         run: dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj --configuration Release
 
+      - name: Test Clipboard.UnitTests
+        run: dotnet test Clipboard.UnitTests/Clipboard.UnitTests.csproj --configuration Release
+
       - name: Test DataOrganizer.UnitTests
         run: dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj --configuration Release
 

@@ -13,4 +13,8 @@
 		<ProjectReference Include="..\Settings\Settings.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Clipboard.UnitTests" />
+	</ItemGroup>
+
 </Project>
