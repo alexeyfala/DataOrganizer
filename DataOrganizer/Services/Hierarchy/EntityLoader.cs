@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hierarchy;
 
+/// <inheritdoc cref="IEntityLoader" />
 public sealed class EntityLoader : IEntityLoader
 {
 	#region Data

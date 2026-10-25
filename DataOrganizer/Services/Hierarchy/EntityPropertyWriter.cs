@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hierarchy;
 
+/// <inheritdoc cref="IEntityPropertyWriter" />
 public sealed class EntityPropertyWriter : IEntityPropertyWriter
 {
 	#region Data

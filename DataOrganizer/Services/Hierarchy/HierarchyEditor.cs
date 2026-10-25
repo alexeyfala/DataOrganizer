@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hierarchy;
 
+/// <inheritdoc cref="IHierarchyEditor" />
 public sealed class HierarchyEditor : IHierarchyEditor
 {
 	#region Data
