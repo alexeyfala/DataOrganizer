@@ -2,6 +2,9 @@ using DataOrganizer.Helpers.Views;
 
 namespace DataOrganizer.Dto.Dialogs;
 
+/// <summary>
+/// What a dialog that asks for a key and a value offers.
+/// </summary>
 public sealed class KeyValueInputParameters
 {
 	#region Properties

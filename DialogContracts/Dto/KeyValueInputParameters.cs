@@ -2,6 +2,9 @@ using DialogContracts.Constants;
 
 namespace DialogContracts.Dto;
 
+/// <summary>
+/// What a dialog that asks for a key and a value offers.
+/// </summary>
 public sealed class KeyValueInputParameters
 {
 	#region Properties
