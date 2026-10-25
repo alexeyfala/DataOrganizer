@@ -19,4 +19,8 @@
 		<ProjectReference Include="..\WindowContracts\WindowContracts.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="GlobalHotkeys.UnitTests" />
+	</ItemGroup>
+
 </Project>

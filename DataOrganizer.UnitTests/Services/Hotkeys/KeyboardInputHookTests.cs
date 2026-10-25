@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
@@ -791,7 +790,7 @@ internal class KeyboardInputHookTests
 	/// <summary>
 	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: protected contents are flagged sensitive.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
 	{
 		// Arrange

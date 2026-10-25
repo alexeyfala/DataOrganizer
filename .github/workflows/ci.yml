@@ -63,6 +63,9 @@ jobs:
       - name: Test FileSystemOperations.UnitTests
         run: dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj --configuration Release
 
+      - name: Test GlobalHotkeys.UnitTests
+        run: dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj --configuration Release
+
       - name: Test Hierarchy.UnitTests
         run: dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj --configuration Release
 
