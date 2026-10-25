@@ -115,6 +115,7 @@
     <File Path="tools/gen-third-party-notices.ps1" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="AppInstance.UnitTests/AppInstance.UnitTests.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />
     <Project Path="Diagnostics.UnitTests/Diagnostics.UnitTests.csproj" />

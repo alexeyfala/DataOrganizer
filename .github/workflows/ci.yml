@@ -27,6 +27,9 @@ jobs:
       - name: Build desktop app
         run: dotnet build DataOrganizer.Desktop/DataOrganizer.Desktop.csproj --configuration Release
 
+      - name: Test AppInstance.UnitTests
+        run: dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj --configuration Release
+
       - name: Test DataOrganizer.UnitTests
         run: dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj --configuration Release
 

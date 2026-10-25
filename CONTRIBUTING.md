@@ -35,6 +35,7 @@ See the [README](README.md#build-from-source) for platform-specific notes.
 Please make sure the test suite passes before opening a pull request:
 
 ```bash
+dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
 dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj
 dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj

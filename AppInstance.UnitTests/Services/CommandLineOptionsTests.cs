@@ -1,0 +1,46 @@
+using AppInstance.Extensions;
+using AppInstance.Services;
+using Autofac;
+using Autofac.Extras.Moq;
+using AwesomeAssertions;
+using Serilog.Events;
+using System;
+
+namespace AppInstance.UnitTests.Services;
+
+[TestFixture(Description = $@"Tests of ""{nameof(CommandLineOptions)}"" type")]
+internal class CommandLineOptionsTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="CommandLineOptions" />: the constructor initializes properties from the parsed command-line arguments.
+	/// </summary>
+	[Test]
+	public void Constructor_Initializes_Properties_From_Arguments()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		string[] args = Array.Empty<string>()
+			.AddConsoleArg()
+			.AddDebugArg()
+			.AddHelpArg();
+
+		// Act
+		CommandLineOptions sut = mock.Create<CommandLineOptions>(TypedParameter.From(args));
+
+		// Assert
+		sut.ShowConsole
+			.Should()
+			.BeTrue();
+
+		sut.MinimumLogEventLevel
+			.Should()
+			.Be(LogEventLevel.Debug);
+
+		sut.PrintHelp
+			.Should()
+			.BeTrue();
+	}
+	#endregion
+}
