@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Seeding;
 
+/// <inheritdoc cref="ISeedingScenarios" />
 public sealed class SeedingScenarios : ISeedingScenarios
 {
 	#region Data

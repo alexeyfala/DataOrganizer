@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hierarchy;
 
+/// <inheritdoc cref="ISampleSeeder" />
 public sealed class SampleSeeder : ISampleSeeder
 {
 	#region Data

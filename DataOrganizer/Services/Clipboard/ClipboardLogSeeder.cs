@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IClipboardLogSeeder" />
 public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 {
 	#region Data
