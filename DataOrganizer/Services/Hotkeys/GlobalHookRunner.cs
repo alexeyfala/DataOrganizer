@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hotkeys;
 
+/// <inheritdoc cref="IGlobalHookRunner" />
 public sealed class GlobalHookRunner : IGlobalHookRunner
 {
 	#region Properties

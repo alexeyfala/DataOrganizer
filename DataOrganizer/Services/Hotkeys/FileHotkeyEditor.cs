@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hotkeys;
 
+/// <inheritdoc cref="IFileHotkeyEditor" />
 public sealed class FileHotkeyEditor : IFileHotkeyEditor
 {
 	#region Data

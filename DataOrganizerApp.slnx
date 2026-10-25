@@ -60,6 +60,7 @@
     <Project Path="FileContents/FileContents.csproj" />
     <Project Path="FileExecution/FileExecution.csproj" />
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
+    <Project Path="GlobalHotkeys/GlobalHotkeys.csproj" />
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="HierarchyStorage/HierarchyStorage.csproj" />
     <Project Path="Notifications/Notifications.csproj" />

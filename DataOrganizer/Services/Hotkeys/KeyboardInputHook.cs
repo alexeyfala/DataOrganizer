@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hotkeys;
 
+/// <inheritdoc cref="IKeyboardInputHook" />
 public sealed class KeyboardInputHook :
 	IKeyboardInputHook,
 	IRecipient<GlobalKeyReleasedMessage>

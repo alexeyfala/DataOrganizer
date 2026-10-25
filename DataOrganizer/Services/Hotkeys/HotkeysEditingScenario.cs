@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Hotkeys;
 
+/// <inheritdoc cref="IHotkeysEditingScenario" />
 public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 {
 	#region Data
