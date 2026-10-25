@@ -144,6 +144,7 @@
     <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
     <Project Path="GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj" />
     <Project Path="Hierarchy.UnitTests/Hierarchy.UnitTests.csproj" />
+    <Project Path="HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj" />
     <Project Path="HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj" />
     <Project Path="HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj" />
     <Project Path="NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj" />

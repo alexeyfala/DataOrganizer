@@ -14,4 +14,8 @@
 		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="HierarchyExchange.UnitTests" />
+	</ItemGroup>
+
 </Project>
