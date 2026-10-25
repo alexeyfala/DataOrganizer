@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Exchange;
 
+/// <inheritdoc cref="IDataExchangeService" />
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data

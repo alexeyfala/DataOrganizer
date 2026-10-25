@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Exchange;
 
+/// <inheritdoc cref="IImportScenario" />
 public sealed class ImportScenario : IImportScenario
 {
 	#region Data
