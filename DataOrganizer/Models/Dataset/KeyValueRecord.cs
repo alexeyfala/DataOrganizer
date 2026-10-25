@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace DataOrganizer.Models.Dataset;
 
+/// <summary>
+/// Record of a dataset that holds a key and a value.
+/// </summary>
 [DebuggerDisplay(
 	$"{nameof(Type)} = {{{nameof(Type)}}}, " +
 	$"{nameof(Key)} = {{{nameof(Key)}}}, " +

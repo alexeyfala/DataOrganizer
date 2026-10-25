@@ -1,5 +1,8 @@
 namespace DataOrganizer.Dto.Dataset;
 
+/// <summary>
+/// Scroll position of the record list of a dataset, kept between openings of the file.
+/// </summary>
 public readonly struct DatasetEditorState
 {
 	#region Properties

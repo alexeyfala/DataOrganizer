@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace DataOrganizer.Models.Dataset;
 
+/// <summary>
+/// Base of the records of a dataset, written to JSON together with the kind of each record.
+/// </summary>
 [JsonDerivedType(typeof(KeyValueRecord), "KeyValue")]
 [JsonDerivedType(typeof(RecordsGroup), "Group")]
 [JsonDerivedType(typeof(ValueRecord), "Value")]

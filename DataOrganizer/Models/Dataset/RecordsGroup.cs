@@ -3,6 +3,9 @@ using System.Collections.ObjectModel;
 
 namespace DataOrganizer.Models.Dataset;
 
+/// <summary>
+/// Named group of records of a dataset, which can be collapsed.
+/// </summary>
 public sealed partial class RecordsGroup : DatasetRecordBase
 {
 	#region Properties
