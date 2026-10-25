@@ -129,6 +129,7 @@
     <Project Path="Notifications.UnitTests/Notifications.UnitTests.csproj" />
     <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
+    <Project Path="Settings.UnitTests/Settings.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
     <Project Path="TestSupport/TestSupport.csproj" />
     <Project Path="TextProcessing.UnitTests/TextProcessing.UnitTests.csproj" />

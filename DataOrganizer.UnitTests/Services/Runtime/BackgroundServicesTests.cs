@@ -145,6 +145,41 @@ internal class BackgroundServicesTests
 	}
 
 	/// <summary>
+	/// <see cref="BackgroundServices.Start" />: the hotkey tracking starts with the token of the start.
+	/// </summary>
+	[Test]
+	public void Start_Hands_Its_Token_To_The_Hotkey_Tracking()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
+
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		sut.Start(cancellation.Token);
+
+		// Assert
+		hook
+			.Received(1)
+			.StartTrackingAsync(cancellation.Token);
+	}
+
+	/// <summary>
 	/// <see cref="BackgroundServices.Start" />: the hotkey tracking stays off when the settings turn it off.
 	/// </summary>
 	[Test]

@@ -66,6 +66,9 @@ jobs:
       - name: Test Repository.IntegrationTests
         run: dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj --configuration Release
 
+      - name: Test Settings.UnitTests
+        run: dotnet test Settings.UnitTests/Settings.UnitTests.csproj --configuration Release
+
       - name: Test Shared.UnitTests
         run: dotnet test Shared.UnitTests/Shared.UnitTests.csproj --configuration Release
 

@@ -30,7 +30,7 @@ internal class CopyHistoryViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMessenger, ISessionHierarchy, ITaskExceptionHandler)" />:
+	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMessenger, ISessionHierarchy, ITaskExceptionHandler, TimeProvider)" />:
 	/// the list shows the files of the copy history that the tree holds, in the order of the history, with the chosen one
 	/// selected.
 	/// </summary>

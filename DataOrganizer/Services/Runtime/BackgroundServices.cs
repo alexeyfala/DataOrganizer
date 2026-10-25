@@ -151,7 +151,7 @@ public sealed class BackgroundServices : IAutoLockControl, IBackgroundServices, 
 			return;
 		}
 
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync());
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(token));
 	}
 
 	/// <inheritdoc />
