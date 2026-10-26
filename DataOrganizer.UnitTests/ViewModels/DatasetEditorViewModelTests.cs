@@ -15,13 +15,11 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DynamicData.Binding;
 using Microsoft.Extensions.Time.Testing;
@@ -44,6 +42,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TestSupport.Common;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

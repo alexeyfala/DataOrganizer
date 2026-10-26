@@ -1,14 +1,14 @@
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Views;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Notepad;
 

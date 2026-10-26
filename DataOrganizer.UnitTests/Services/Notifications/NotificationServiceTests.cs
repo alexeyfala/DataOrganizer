@@ -4,14 +4,13 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Notifications;
-using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
+using Threading.Interfaces;
+using Threading.Services;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Notifications;
 

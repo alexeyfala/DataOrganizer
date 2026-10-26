@@ -2,11 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using System;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 

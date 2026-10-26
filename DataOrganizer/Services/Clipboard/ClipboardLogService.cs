@@ -3,7 +3,6 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using Serilog;
@@ -15,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Clipboard;
 

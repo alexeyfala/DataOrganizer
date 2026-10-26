@@ -16,7 +16,6 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using Microsoft.Extensions.Time.Testing;
@@ -27,6 +26,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

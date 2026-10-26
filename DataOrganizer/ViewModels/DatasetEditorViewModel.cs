@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Interfaces.Clipboard;
@@ -13,7 +12,6 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Dataset;
 using Serilog;
 using Shared.Extensions;
@@ -26,6 +24,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

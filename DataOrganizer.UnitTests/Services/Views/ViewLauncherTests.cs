@@ -63,6 +63,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

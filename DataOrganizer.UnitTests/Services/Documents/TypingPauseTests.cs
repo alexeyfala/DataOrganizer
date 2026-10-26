@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
+using Threading.Enums;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 

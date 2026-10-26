@@ -48,6 +48,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

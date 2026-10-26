@@ -12,6 +12,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Hotkeys;
 

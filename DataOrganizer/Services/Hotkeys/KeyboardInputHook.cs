@@ -1,12 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Extensions.Threading;
 using DataOrganizer.Helpers.Hotkeys;
-using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
 using Hierarchy.Dto;
 using Repository.Dto;
@@ -17,6 +14,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Extensions;
+using Threading.Helpers;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Hotkeys;
 

@@ -1,10 +1,10 @@
-using DataOrganizer.Helpers.Threading;
 using DynamicData.Binding;
 using Hierarchy.Interfaces;
 using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
+using Threading.Helpers;
 
 namespace DataOrganizer.Extensions.Collections;
 

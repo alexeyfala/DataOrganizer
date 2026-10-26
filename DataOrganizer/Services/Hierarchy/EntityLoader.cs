@@ -1,4 +1,3 @@
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Models;
 using Hierarchy.Dto;

@@ -1,7 +1,7 @@
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Views;
 using System;
 using System.Threading;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Documents;
 

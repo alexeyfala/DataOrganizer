@@ -1,8 +1,6 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions.Text;
-using DataOrganizer.Extensions.Threading;
 using DataOrganizer.Helpers.Execution;
-using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
@@ -16,6 +14,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Extensions;
+using Threading.Helpers;
 
 namespace DataOrganizer.Services.Execution;
 

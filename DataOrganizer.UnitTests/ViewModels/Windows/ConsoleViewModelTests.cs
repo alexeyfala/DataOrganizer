@@ -2,20 +2,20 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
 using TestSupport.Common;
+using Threading.Enums;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

@@ -2,14 +2,13 @@ using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Notifications;
 

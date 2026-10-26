@@ -18,7 +18,6 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Fakes;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
@@ -39,6 +38,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Dto;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
 

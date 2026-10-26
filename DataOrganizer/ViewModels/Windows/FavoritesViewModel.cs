@@ -21,6 +21,8 @@ using Serilog;
 using Shared.Extensions;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

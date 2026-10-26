@@ -8,18 +8,17 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Threading.Tasks;
+using Threading.Interfaces;
+using Threading.Services;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 

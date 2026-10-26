@@ -4,12 +4,12 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Clipboard;
 

@@ -18,7 +18,6 @@ using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Views;
@@ -39,6 +38,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.UnitTests.Views;
 

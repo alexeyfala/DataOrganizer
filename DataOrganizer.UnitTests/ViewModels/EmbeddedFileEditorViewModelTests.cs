@@ -15,12 +15,10 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Text;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.Extensions.Time.Testing;
@@ -44,6 +42,8 @@ using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Database;
 using TestSupport.Models;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

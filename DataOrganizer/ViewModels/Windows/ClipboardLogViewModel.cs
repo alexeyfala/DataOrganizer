@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DynamicData.Binding;
@@ -17,6 +16,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

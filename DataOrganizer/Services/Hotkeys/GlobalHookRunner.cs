@@ -1,6 +1,4 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions.Threading;
-using DataOrganizer.Helpers.Threading;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
@@ -11,6 +9,8 @@ using SharpHook.Data;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Extensions;
+using Threading.Helpers;
 
 namespace DataOrganizer.Services.Hotkeys;
 

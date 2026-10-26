@@ -16,11 +16,11 @@ using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

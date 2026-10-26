@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Execution;
 using Hierarchy.Dto;
 using Serilog;
@@ -12,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Execution;
 

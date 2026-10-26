@@ -7,7 +7,6 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Views;
@@ -27,6 +26,8 @@ using DialogHostAvalonia;
 using NSubstitute;
 using System;
 using System.Threading.Tasks;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 

@@ -3,14 +3,14 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using System.Text;
 using System.Threading.Tasks;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 

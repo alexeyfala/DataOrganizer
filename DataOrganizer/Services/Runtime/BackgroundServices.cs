@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;

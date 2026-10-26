@@ -4,16 +4,16 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.UnitTests.Fakes;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Execution;
 

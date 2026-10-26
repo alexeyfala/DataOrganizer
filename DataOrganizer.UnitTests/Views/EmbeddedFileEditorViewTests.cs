@@ -13,7 +13,6 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Text;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Text;
 using DataOrganizer.Services.Views;
@@ -29,6 +28,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Threading.Interfaces;
 
 namespace DataOrganizer.UnitTests.Views;
 

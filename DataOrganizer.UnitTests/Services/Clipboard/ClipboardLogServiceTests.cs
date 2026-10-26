@@ -5,12 +5,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -18,6 +16,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 
