@@ -62,6 +62,7 @@
     <Project Path="FileContents/FileContents.csproj" />
     <Project Path="FileExecution/FileExecution.csproj" />
     <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
+    <Project Path="FilteredLists/FilteredLists.csproj" />
     <Project Path="GlobalHotkeys/GlobalHotkeys.csproj" />
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="HierarchyExchange/HierarchyExchange.csproj" />
