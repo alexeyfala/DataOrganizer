@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Clipboard;
+using Diagnostics.Interfaces;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;

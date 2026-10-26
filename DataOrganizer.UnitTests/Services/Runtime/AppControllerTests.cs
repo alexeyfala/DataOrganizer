@@ -15,6 +15,7 @@ using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
+using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;

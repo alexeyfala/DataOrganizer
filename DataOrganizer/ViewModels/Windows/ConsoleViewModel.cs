@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Storage;
+using Diagnostics.Interfaces;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;

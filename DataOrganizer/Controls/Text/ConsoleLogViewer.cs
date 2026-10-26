@@ -1,4 +1,5 @@
 using DataOrganizer.Extensions.Diagnostics;
+using Diagnostics.Extensions;
 using Serilog.Events;
 using System;
 

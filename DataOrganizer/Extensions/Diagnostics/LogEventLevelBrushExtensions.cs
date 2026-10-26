@@ -3,7 +3,7 @@ using Serilog.Events;
 
 namespace DataOrganizer.Extensions.Diagnostics;
 
-internal static class LogEventLevelExtensions
+internal static class LogEventLevelBrushExtensions
 {
 	#region Methods
 	/// <summary>
@@ -17,20 +17,6 @@ internal static class LogEventLevelExtensions
 		LogEventLevel.Warning => Brushes.Orange,
 		LogEventLevel.Error or LogEventLevel.Fatal => Brushes.Red,
 		_ => Brushes.Transparent
-	};
-
-	/// <summary>
-	/// Returns a shortened text value depending on <see cref="LogEventLevel" />.
-	/// </summary>
-	public static string ToShort(this LogEventLevel level) => level switch
-	{
-		LogEventLevel.Verbose => "[VERBOSE]",
-		LogEventLevel.Debug => "[DBG]",
-		LogEventLevel.Information => "[INF]",
-		LogEventLevel.Warning => "[WRN]",
-		LogEventLevel.Error => "[ERR]",
-		LogEventLevel.Fatal => "[FTL]",
-		_ => string.Empty,
 	};
 	#endregion
 }

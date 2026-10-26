@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
+using Diagnostics.Interfaces;
 using Entities.Enums;
 using Notifications.Interfaces;
 using Serilog;

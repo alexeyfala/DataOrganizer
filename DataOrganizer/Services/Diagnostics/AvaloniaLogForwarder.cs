@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Logging;
-using DataOrganizer.Interfaces.Diagnostics;
+using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System;

@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Hotkeys;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Hotkeys;
+using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Repository.Dto;
 using Serilog;

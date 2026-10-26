@@ -1,8 +1,8 @@
 using Comparation;
 using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
+using Diagnostics.Interfaces;
 using Entities.Models;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;

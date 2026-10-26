@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hierarchy;
+using Diagnostics.Interfaces;
 using Entities.Enums;
 using Entities.Models;
 using Hierarchy.Dto;

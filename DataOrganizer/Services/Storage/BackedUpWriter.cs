@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Storage;
+using Diagnostics.Interfaces;
 using Notifications.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;

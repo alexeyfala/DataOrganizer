@@ -5,12 +5,12 @@ using Serilog.Events;
 
 namespace DataOrganizer.UnitTests.Extensions.Diagnostics;
 
-[TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelExtensions)}"" type")]
-internal class LogEventLevelExtensionsTests
+[TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelBrushExtensions)}"" type")]
+internal class LogEventLevelBrushExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="LogEventLevelExtensions.ToBrush" />: each level maps to its expected brush.
+	/// <see cref="LogEventLevelBrushExtensions.ToBrush" />: each level maps to its expected brush.
 	/// </summary>
 	[TestCase(LogEventLevel.Verbose, nameof(Colors.Gray))]
 	[TestCase(LogEventLevel.Debug, nameof(Colors.CadetBlue))]
@@ -28,26 +28,6 @@ internal class LogEventLevelExtensionsTests
 			.Color
 			.Should()
 			.Be(Color.Parse(expected));
-	}
-
-	/// <summary>
-	/// <see cref="LogEventLevelExtensions.ToShort" />: each level maps to its expected short text.
-	/// </summary>
-	[TestCase(LogEventLevel.Verbose, "[VERBOSE]")]
-	[TestCase(LogEventLevel.Debug, "[DBG]")]
-	[TestCase(LogEventLevel.Information, "[INF]")]
-	[TestCase(LogEventLevel.Warning, "[WRN]")]
-	[TestCase(LogEventLevel.Error, "[ERR]")]
-	[TestCase(LogEventLevel.Fatal, "[FTL]")]
-	public void ToShort_Returns_Expected_Short_Text_For_Level(LogEventLevel level, string expected)
-	{
-		// Act
-		string result = level.ToShort();
-
-		// Assert
-		result
-			.Should()
-			.Be(expected);
 	}
 	#endregion
 }

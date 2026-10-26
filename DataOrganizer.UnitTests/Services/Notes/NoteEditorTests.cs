@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
+using Diagnostics.Interfaces;
 using Entities.Enums;
 using Entities.Models;
 using Hierarchy.Dto;

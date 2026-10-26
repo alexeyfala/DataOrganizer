@@ -8,7 +8,7 @@ using DataOrganizer.Extensions.Collections;
 using DataOrganizer.Helpers.Collections;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
+using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Shared.Extensions;
 using System;

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
+using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using SharpHook;

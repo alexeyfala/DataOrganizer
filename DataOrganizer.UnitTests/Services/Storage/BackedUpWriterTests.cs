@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Storage;
+using Diagnostics.Interfaces;
 using Notifications.Interfaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

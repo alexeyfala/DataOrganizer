@@ -6,6 +6,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Runtime;
+using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;

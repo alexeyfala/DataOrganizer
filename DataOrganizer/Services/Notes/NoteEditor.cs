@@ -1,6 +1,6 @@
 using DataOrganizer.Extensions.Text;
-using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notes;
+using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Notifications.Interfaces;
 using Repository.Interfaces.Database;
