@@ -693,7 +693,8 @@ internal class AppControllerTests
 
 		Received.InOrder(() =>
 		{
-			((IAsyncDisposable)serviceProvider).DisposeAsync();
+			// AsTask uses the ValueTask of the call spec (CA2012)
+			((IAsyncDisposable)serviceProvider).DisposeAsync().AsTask();
 
 			processManager.StartProcess(Arg.Any<string>());
 
