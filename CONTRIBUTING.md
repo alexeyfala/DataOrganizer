@@ -49,6 +49,7 @@ dotnet test Favorites.UnitTests/Favorites.UnitTests.csproj
 dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj
 dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj
 dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
+dotnet test FilteredLists.UnitTests/FilteredLists.UnitTests.csproj
 dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj
 dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
 dotnet test HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj
