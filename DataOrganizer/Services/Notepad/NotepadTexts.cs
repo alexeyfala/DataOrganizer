@@ -1,7 +1,7 @@
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Notifications;
+using Notifications.Constants;
+using Notifications.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;

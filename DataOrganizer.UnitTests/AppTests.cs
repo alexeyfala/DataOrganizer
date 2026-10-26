@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Notifications;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Exchange;
@@ -23,6 +21,9 @@ using Entities.Models;
 using Hierarchy.Dto;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using Notifications.Constants;
+using Notifications.Dto;
+using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Services.Database;
 using Serilog;

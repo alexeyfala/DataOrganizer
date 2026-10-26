@@ -1,10 +1,10 @@
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
 using Entities.Models;
 using Hierarchy.Dto;
 using MapsterMapper;
+using Notifications.Interfaces;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;

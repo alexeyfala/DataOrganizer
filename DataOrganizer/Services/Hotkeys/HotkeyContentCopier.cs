@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Services.Clipboard;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

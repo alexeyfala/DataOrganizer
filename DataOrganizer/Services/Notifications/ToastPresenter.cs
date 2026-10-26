@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Platform;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

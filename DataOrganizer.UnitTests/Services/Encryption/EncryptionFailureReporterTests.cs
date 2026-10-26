@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Notifications;
-using DataOrganizer.Enums.Notifications;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
-using DataOrganizer.UnitTests.Fakes;
+using Diagnostics.UnitTests.Fakes;
+using Notifications.Dto;
+using Notifications.Enums;
+using Notifications.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

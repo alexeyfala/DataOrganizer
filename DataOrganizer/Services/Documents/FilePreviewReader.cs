@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Notifications;
 using Hierarchy.Dto;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

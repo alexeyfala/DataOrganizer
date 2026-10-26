@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Notifications;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Diagnostics;
-using DataOrganizer.UnitTests.Fakes;
+using Diagnostics.UnitTests.Fakes;
+using Notifications.Enums;
+using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Exceptions;

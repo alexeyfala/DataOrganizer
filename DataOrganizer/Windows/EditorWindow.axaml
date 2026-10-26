@@ -19,6 +19,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notificationConstants="using:Notifications.Constants"
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
@@ -82,10 +83,10 @@
 			Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
 			<materialControls:SnackbarHost
 				x:Name="SnackbarHost"
-				HostName="{x:Static helpers:SnackbarHostIdentifiers.Main}"
+				HostName="{x:Static notificationConstants:SnackbarHostIdentifiers.Main}"
 				SnackbarHorizontalAlignment="Center">
 				<Interaction.Behaviors>
-					<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Main}}" />
+					<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static notificationConstants:SnackbarHostIdentifiers.Main}}" />
 				</Interaction.Behaviors>
 
 				<materialControls:NavigationDrawer

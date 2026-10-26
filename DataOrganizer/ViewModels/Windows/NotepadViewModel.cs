@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DynamicData;
 using DynamicData.Binding;
+using Notifications.Constants;
 using Shared.Properties;
 using System;
 using System.Collections;

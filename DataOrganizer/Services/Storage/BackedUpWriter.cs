@@ -1,6 +1,6 @@
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Storage;
+using Notifications.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Serilog;

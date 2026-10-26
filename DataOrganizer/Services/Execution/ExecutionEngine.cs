@@ -3,7 +3,7 @@ using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Notifications;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;

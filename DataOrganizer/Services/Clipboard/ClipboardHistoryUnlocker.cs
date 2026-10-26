@@ -3,7 +3,7 @@ using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Notifications;
+using Notifications.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;
 

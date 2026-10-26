@@ -1,5 +1,5 @@
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Notifications;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

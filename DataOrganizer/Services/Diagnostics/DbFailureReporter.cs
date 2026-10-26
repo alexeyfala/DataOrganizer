@@ -1,5 +1,5 @@
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Notifications;
+using Notifications.Interfaces;
 using Repository.Exceptions;
 using Serilog;
 using Shared.Extensions;

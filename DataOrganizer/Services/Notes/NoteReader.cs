@@ -1,7 +1,7 @@
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Interfaces.Notifications;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

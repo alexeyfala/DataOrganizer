@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Notifications.Constants;
+using Notifications.Interfaces;
 using NSubstitute;
 using System.Text;
 using System.Threading.Tasks;
