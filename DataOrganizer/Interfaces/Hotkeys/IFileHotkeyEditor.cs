@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Hotkeys;
+using Hierarchy.Dto;
 using Repository.Dto;
 using System.Collections.Generic;
 using System.Threading;

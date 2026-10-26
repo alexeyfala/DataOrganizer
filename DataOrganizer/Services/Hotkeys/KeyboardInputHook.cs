@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Extensions.Threading;
 using DataOrganizer.Helpers.Hotkeys;
@@ -9,6 +8,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Hotkeys;
+using Hierarchy.Dto;
 using Repository.Dto;
 using Serilog;
 using Shared.Extensions;

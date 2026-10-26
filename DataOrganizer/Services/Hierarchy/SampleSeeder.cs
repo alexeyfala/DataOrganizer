@@ -1,12 +1,12 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Hierarchy;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Text;
 using Entities.Models;
+using Hierarchy.Dto;
+using Hierarchy.Extensions;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces.Database;

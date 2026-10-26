@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
 using Entities.Enums;
+using Hierarchy.Dto;
 using System;
 
 namespace DataOrganizer.Dto.Encryption;

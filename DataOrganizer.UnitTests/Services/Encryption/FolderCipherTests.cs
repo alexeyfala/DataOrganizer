@@ -5,6 +5,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;

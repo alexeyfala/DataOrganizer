@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Execution;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System;

@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Runtime;
+using Hierarchy.Dto;
 using System;
 using System.Collections.ObjectModel;
 

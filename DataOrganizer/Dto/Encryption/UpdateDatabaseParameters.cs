@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using Repository.Dto;
 
 namespace DataOrganizer.Dto.Encryption;

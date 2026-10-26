@@ -1,7 +1,7 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Clipboard;
+using Hierarchy.Dto;
 using System.Threading;
 using System.Threading.Tasks;
 

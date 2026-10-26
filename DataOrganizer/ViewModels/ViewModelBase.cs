@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -9,6 +8,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System;

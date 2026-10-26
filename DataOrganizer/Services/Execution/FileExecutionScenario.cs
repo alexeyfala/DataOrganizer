@@ -1,9 +1,9 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

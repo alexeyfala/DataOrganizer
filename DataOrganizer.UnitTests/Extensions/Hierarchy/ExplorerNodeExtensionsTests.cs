@@ -1,10 +1,10 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
 using DynamicData.Binding;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

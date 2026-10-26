@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Collections;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Helpers.Collections;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Clipboard;
+using Hierarchy.Dto;
+using Hierarchy.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables.Fluent;

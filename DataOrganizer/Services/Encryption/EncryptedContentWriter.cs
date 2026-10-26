@@ -1,9 +1,9 @@
 using DataOrganizer.Dto.Encryption;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using Hierarchy.Dto;
 using Repository.Dto;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;

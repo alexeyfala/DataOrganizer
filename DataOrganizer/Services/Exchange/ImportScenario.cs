@@ -1,12 +1,12 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
+using Hierarchy.Dto;
+using Hierarchy.Extensions;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 

@@ -1,4 +1,5 @@
 using DataOrganizer.Helpers.Security;
+using Hierarchy.Interfaces;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;

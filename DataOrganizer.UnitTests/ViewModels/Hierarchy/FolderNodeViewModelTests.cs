@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.ViewModels.Hierarchy;

@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.UnitTests.Factories;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

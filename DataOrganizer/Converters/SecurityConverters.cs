@@ -2,6 +2,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
+using Hierarchy.Enums;
 using Material.Icons;
 using Shared.Properties;
 using System;

@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
-using DataOrganizer.UnitTests.Factories;
 using Entities.Enums;
 using Entities.Models;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

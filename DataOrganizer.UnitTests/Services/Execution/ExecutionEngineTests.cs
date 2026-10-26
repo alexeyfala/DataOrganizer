@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;

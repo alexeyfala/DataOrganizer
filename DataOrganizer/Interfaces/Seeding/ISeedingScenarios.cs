@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Entities;
+using Hierarchy.Dto;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 

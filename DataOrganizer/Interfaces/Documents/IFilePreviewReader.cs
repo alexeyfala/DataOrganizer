@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Entities;
+using Hierarchy.Dto;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces.Documents;

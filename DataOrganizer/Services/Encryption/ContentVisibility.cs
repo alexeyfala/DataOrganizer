@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Editor;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.Extensions;
 using Shared.Extensions;
 using Shared.Properties;
 using System;

@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Entities;
+using Hierarchy.Dto;
 
 namespace DataOrganizer.Messages.Editor;
 

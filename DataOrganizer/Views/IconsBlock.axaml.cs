@@ -1,15 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Notes;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 
 namespace DataOrganizer.Views;
 
 internal sealed partial class IconsBlock : UserControl
 {
 	#region Properties
-	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
+	/// <inheritdoc cref="Hierarchy.Enums.EncryptionStatus" />
 	public EncryptionStatus EncryptionStatus
 	{
 		get => GetValue(EncryptionStatusProperty);

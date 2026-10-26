@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Models;
+using Hierarchy.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;

@@ -10,7 +10,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages.Execution;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

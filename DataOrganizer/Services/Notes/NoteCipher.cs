@@ -1,10 +1,10 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using Shared.Extensions;
 
 namespace DataOrganizer.Services.Notes;

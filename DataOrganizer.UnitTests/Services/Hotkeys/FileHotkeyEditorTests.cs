@@ -1,13 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Hotkeys;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Services.Hotkeys;
-using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
+using GlobalHotkeys.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using MapsterMapper;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

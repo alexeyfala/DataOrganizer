@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Notifications;
+using Hierarchy.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;

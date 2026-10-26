@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Extensions.Editor;
@@ -13,6 +12,7 @@ using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Storage;
+using Hierarchy.Dto;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;

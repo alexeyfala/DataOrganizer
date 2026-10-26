@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Extensions.Hotkeys;
+using Hierarchy.Dto;
+using Hierarchy.Extensions;
 using Repository.Dto;
 using System.Collections.Generic;
 using System.Linq;

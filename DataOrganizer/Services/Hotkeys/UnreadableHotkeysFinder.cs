@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Hotkeys;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.Generic;

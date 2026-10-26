@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
-using DataOrganizer.Enums.Encryption;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

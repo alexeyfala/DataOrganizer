@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;

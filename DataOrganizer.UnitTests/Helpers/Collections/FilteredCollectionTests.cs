@@ -1,7 +1,7 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Collections;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

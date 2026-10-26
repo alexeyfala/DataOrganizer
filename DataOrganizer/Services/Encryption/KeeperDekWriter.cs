@@ -1,4 +1,5 @@
 using DataOrganizer.Interfaces.Encryption;
+using Hierarchy.Interfaces;
 using Repository.Interfaces.Database;
 using System.Threading;
 using System.Threading.Tasks;

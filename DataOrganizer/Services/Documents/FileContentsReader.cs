@@ -1,10 +1,10 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using Repository.Dto;
 using Repository.Interfaces.Database;
 using Serilog;

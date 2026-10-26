@@ -36,6 +36,12 @@
 		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 	</ItemGroup>
 
+	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
+	<ItemGroup>
+		<Compile Include="..\GlobalHotkeys.UnitTests\Factories\HotkeyFactory.cs" Link="Factories\HotkeyFactory.cs" />
+		<Compile Include="..\Hierarchy.UnitTests\Factories\ItemDtoFactory.cs" Link="Factories\ItemDtoFactory.cs" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Using Include="NUnit.Framework" />
 	</ItemGroup>

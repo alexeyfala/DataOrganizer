@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Extensions.Editor;
 using DataOrganizer.Helpers.Editor;
@@ -7,6 +6,7 @@ using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using Hierarchy.Dto;
 using Shared.Properties;
 using System.Threading;
 using System.Threading.Tasks;

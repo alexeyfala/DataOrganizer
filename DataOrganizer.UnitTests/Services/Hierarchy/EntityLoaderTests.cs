@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Services.Hierarchy;
-using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using MapsterMapper;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

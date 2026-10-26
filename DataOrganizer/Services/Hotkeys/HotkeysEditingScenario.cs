@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System.Collections.Generic;

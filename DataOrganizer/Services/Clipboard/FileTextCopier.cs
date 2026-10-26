@@ -1,9 +1,9 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using System.Threading;
 using System.Threading.Tasks;
 

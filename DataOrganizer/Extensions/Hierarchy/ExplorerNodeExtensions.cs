@@ -1,7 +1,7 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels.Hierarchy;
 using DynamicData;
 using DynamicData.Binding;
+using Hierarchy.Dto;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

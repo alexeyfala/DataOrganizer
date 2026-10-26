@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
+using Hierarchy.Dto;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

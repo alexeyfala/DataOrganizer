@@ -1,8 +1,8 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services.Hotkeys;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using SharpHook.Data;
 using System;
 

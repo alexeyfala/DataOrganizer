@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -7,6 +6,8 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
+using Hierarchy.Enums;
+using Hierarchy.Extensions;
 using Shared.Extensions;
 using System;
 using System.Threading;

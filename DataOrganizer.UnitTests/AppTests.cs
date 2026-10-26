@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Notifications;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
@@ -21,6 +20,7 @@ using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Guards;
 using DataOrganizer.ViewModels.Windows;
 using Entities.Models;
+using Hierarchy.Dto;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;

@@ -1,6 +1,6 @@
 using DataOrganizer.Helpers.Threading;
-using DataOrganizer.Interfaces.Hierarchy;
 using DynamicData.Binding;
+using Hierarchy.Interfaces;
 using System;
 using System.ComponentModel;
 using System.Linq.Expressions;

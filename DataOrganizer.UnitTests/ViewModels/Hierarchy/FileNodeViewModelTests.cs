@@ -2,8 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
+using Hierarchy.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.ViewModels.Hierarchy;
 

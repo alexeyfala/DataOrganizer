@@ -1,6 +1,7 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Hierarchy;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.Extensions;
 
 namespace DataOrganizer.Helpers.Hierarchy;
 

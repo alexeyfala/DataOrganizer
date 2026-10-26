@@ -1,9 +1,9 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
 using Entities.Models;
+using Hierarchy.Dto;
 using MapsterMapper;
 using Repository.Dto;
 using Repository.Interfaces.Database;

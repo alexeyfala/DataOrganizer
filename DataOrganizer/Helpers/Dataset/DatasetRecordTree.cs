@@ -1,5 +1,6 @@
 using DataOrganizer.Enums.Dataset;
 using DataOrganizer.Models.Dataset;
+using Hierarchy.Extensions;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

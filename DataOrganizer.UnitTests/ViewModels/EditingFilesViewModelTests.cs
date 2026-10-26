@@ -2,10 +2,10 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Shared.Extensions;
 
 namespace DataOrganizer.UnitTests.ViewModels;

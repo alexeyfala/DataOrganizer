@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Editor;
 using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Seeding;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System;

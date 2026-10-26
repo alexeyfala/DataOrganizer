@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
+using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;
 using System;

@@ -1,9 +1,9 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Hierarchy;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

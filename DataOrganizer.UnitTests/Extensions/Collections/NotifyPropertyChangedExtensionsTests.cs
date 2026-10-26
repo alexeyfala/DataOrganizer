@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions.Collections;
-using DataOrganizer.Interfaces.Hierarchy;
+using Hierarchy.Interfaces;
 using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Collections.Generic;

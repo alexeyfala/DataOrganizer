@@ -1,12 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.Interfaces;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;

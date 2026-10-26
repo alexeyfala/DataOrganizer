@@ -1,10 +1,10 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
 using Shared.Interfaces;
 using System.Text.Json;
 using System.Threading;

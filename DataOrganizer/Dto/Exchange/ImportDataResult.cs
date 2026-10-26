@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Exchange;
+using Hierarchy.Dto;
 
 namespace DataOrganizer.Dto.Exchange;
 

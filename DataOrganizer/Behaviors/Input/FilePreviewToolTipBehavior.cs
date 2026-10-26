@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Documents;
+using Hierarchy.Dto;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Behaviors.Input;

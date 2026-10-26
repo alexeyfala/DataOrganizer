@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
 using Entities.Models;
+using Hierarchy.Dto;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,8 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.UnitTests.Factories;
+using GlobalHotkeys.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Repository.Dto;
 using SharpHook.Data;
 using System;

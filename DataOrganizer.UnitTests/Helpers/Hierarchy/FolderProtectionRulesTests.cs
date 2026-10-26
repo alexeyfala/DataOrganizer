@@ -1,7 +1,7 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Hierarchy;
-using DataOrganizer.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Helpers.Hierarchy;

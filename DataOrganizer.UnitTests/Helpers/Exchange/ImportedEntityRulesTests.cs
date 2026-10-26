@@ -1,8 +1,8 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers.Exchange;
-using DataOrganizer.UnitTests.Factories;
 using Entities.Models;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using SharpHook.Data;
 using System;
 using TestSupport.Models;
