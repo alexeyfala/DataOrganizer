@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Runtime;
 
+/// <inheritdoc cref="IAppController" />
 public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, IRecipient<RestartAppMessage>
 {
 	#region Data
