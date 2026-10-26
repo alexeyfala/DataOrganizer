@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;

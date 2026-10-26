@@ -1,7 +1,7 @@
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;
 using System.Collections.ObjectModel;

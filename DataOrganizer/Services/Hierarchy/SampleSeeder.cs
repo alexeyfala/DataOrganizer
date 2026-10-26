@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Hierarchy;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Entities.Models;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;

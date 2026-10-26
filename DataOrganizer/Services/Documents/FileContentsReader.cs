@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Repository.Dto;

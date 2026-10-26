@@ -1,8 +1,8 @@
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Dialogs;
+using DataProtection.Enums;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Notifications.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;

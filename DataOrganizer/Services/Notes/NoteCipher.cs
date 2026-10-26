@@ -1,6 +1,6 @@
-using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Shared.Extensions;

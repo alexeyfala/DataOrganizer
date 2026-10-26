@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
+using DataProtection.Helpers;
 using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;

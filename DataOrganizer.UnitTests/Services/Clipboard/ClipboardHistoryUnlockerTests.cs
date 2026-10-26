@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Services.Clipboard;
-using DataOrganizer.UnitTests.Factories;
+using DataProtection.Enums;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
+using DataProtection.UnitTests.Factories;
 using NSubstitute;
 using System.Threading;
 using System.Threading.Tasks;

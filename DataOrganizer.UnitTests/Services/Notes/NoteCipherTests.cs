@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Notes;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;

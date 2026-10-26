@@ -73,7 +73,6 @@
 		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.13" />
-		<PackageReference Include="NSec.Cryptography" Version="26.4.0" />
 		<!-- Raised above the version TextMate asks for, whose native library breaks the build for Intel Macs. -->
 		<PackageReference Include="Onigwrap" Version="1.0.11" />
 		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
@@ -89,11 +88,9 @@
 	<ItemGroup>
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\EditorMessages\EditorMessages.csproj" />
-		<ProjectReference Include="..\FileSystemOperations\FileSystemOperations.csproj" />
+		<ProjectReference Include="..\DataProtection\DataProtection.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
-		<ProjectReference Include="..\TextProcessing\TextProcessing.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

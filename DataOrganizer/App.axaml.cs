@@ -44,6 +44,8 @@ using DataOrganizer.Services.Updates;
 using DataOrganizer.Services.Views;
 using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
+using DataProtection.Interfaces;
+using DataProtection.Services;
 using Diagnostics.Interfaces;
 using Diagnostics.Services;
 using FileSystemOperations.Interfaces;
@@ -142,6 +144,7 @@ public sealed class App : Application
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IAutoLockControl, BackgroundServices>();
+		services.AddTransient<IAutoLockSettings, AutoLockSettings>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
 		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();

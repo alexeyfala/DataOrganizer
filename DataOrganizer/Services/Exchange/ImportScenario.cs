@@ -1,10 +1,10 @@
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
+using DataProtection.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;
 using System.Collections.ObjectModel;

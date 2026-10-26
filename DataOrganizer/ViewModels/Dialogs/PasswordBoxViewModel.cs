@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Dialogs;
+using DataProtection.Enums;
 using Diagnostics.Interfaces;
 using Shared.Properties;
 using System.Globalization;

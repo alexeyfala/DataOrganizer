@@ -1,5 +1,5 @@
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Helpers.Security;
+using DataProtection.Helpers;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
