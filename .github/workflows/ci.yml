@@ -84,6 +84,9 @@ jobs:
       - name: Test HierarchyNotes.UnitTests
         run: dotnet test HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj --configuration Release
 
+      - name: Test HierarchyScenarios.UnitTests
+        run: dotnet test HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj --configuration Release
+
       - name: Test HierarchyStorage.UnitTests
         run: dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj --configuration Release
 

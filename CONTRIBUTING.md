@@ -54,6 +54,7 @@ dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj
 dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
 dotnet test HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj
 dotnet test HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj
+dotnet test HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj
 dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj
 dotnet test NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj
 dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
