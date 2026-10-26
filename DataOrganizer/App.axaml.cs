@@ -48,6 +48,8 @@ using DataProtection.Interfaces;
 using DataProtection.Services;
 using Diagnostics.Interfaces;
 using Diagnostics.Services;
+using EditorDocuments.Interfaces;
+using EditorDocuments.Services;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;
 using Hierarchy.Services;

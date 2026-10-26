@@ -67,7 +67,6 @@
 		<PackageReference Include="Bogus" Version="35.6.5" />
 		<PackageReference Include="Comparation" Version="0.1.7" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.12.3" />
-		<PackageReference Include="Generator.Equals" Version="4.1.0" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.13" />
 		<PackageReference Include="Material.Avalonia" Version="3.21.0" />
 		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
@@ -89,6 +88,7 @@
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\DataProtection\DataProtection.csproj" />
+		<ProjectReference Include="..\EditorDocuments\EditorDocuments.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
 	</ItemGroup>

@@ -24,6 +24,8 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataProtection.Helpers;
 using DataProtection.Interfaces;
+using EditorDocuments.Interfaces;
+using EditorDocuments.Services;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using Microsoft.Extensions.Time.Testing;

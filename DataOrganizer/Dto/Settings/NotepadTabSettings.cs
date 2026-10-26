@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Documents;
+using EditorDocuments.Dto;
 
 namespace DataOrganizer.Dto.Settings;
 

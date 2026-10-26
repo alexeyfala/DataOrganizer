@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Documents;
+using EditorDocuments.Dto;
 using Entities.Enums;
 using System;
 

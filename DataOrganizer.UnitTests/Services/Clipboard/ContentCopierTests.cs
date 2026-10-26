@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
+using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;

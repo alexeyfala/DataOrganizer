@@ -17,6 +17,7 @@ using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
 using Diagnostics.Interfaces;
+using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;

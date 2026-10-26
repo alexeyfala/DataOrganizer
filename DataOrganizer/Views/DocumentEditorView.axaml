@@ -5,7 +5,7 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:documents="using:DataOrganizer.Enums.Documents"
+	xmlns:documents="using:EditorDocuments.Enums"
 	xmlns:folding="using:AvaloniaEdit.Folding"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"

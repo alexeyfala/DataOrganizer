@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Notepad;
+using EditorDocuments.Dto;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;

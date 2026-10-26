@@ -5,6 +5,8 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Documents;
+using EditorDocuments.Dto;
+using EditorDocuments.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;

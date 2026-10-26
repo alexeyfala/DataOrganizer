@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Services.Text;
+using EditorDocuments.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

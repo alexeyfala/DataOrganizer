@@ -7,6 +7,8 @@ using DataOrganizer.Helpers.Diagnostics;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using Diagnostics.Interfaces;
+using EditorDocuments.Dto;
+using EditorDocuments.Interfaces;
 using EditorMessages.Messages;
 using Entities.Enums;
 using Entities.Models;

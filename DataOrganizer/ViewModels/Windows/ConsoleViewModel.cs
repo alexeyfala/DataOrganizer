@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using Diagnostics.Interfaces;
+using EditorDocuments.Dto;
+using EditorDocuments.Interfaces;
 using FileSystemOperations.Interfaces;
 using System;
 using System.Reactive;

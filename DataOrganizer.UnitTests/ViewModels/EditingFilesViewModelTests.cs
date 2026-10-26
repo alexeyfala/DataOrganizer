@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels;
+using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using Shared.Extensions;

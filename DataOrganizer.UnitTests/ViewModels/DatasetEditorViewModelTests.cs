@@ -20,6 +20,8 @@ using DataProtection.Helpers;
 using DataProtection.Interfaces;
 using Diagnostics.Interfaces;
 using DynamicData.Binding;
+using EditorDocuments.Interfaces;
+using EditorDocuments.Services;
 using EditorMessages.Messages;
 using Microsoft.Extensions.Time.Testing;
 using Notifications.Interfaces;

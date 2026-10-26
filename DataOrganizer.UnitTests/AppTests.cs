@@ -16,6 +16,7 @@ using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Guards;
 using DataOrganizer.ViewModels.Windows;
+using EditorDocuments.Interfaces;
 using Entities.Models;
 using Hierarchy.Dto;
 using MapsterMapper;

@@ -9,6 +9,7 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Diagnostics.Interfaces;
+using EditorDocuments.Interfaces;
 using EditorMessages.Messages;
 using Notifications.Interfaces;
 using NSubstitute;

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Runtime;
+using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;

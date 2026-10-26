@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Documents;
+using EditorDocuments.Interfaces;
 
 namespace DataOrganizer.Interfaces.Notepad;
 

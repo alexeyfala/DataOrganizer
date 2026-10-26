@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
+using EditorDocuments.Interfaces;
 using Notifications.Constants;
 using Notifications.Interfaces;
 using Shared.Properties;

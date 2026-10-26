@@ -15,6 +15,8 @@ using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using EditorDocuments.Interfaces;
+using EditorDocuments.Services;
 using Entities.Enums;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;

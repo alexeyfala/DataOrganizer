@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Documents;
 using DataProtection.Interfaces;
+using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
