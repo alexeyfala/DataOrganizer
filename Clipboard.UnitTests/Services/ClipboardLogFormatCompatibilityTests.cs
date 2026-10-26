@@ -7,10 +7,9 @@ using Clipboard.Enums;
 using Clipboard.Helpers;
 using Clipboard.Models;
 using Clipboard.Services;
-using Clipboard.UnitTests.Factories;
-using Clipboard.UnitTests.Fakes;
 using DataProtection.Interfaces;
 using DataProtection.Services;
+using DataProtection.UnitTests.Factories;
 using NSubstitute;
 using Shared.Interfaces;
 using System;
@@ -18,6 +17,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Fakes;
 
 namespace Clipboard.UnitTests.Services;
 

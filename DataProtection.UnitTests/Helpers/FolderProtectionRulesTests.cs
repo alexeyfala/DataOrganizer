@@ -1,7 +1,7 @@
 using DataProtection.Helpers;
-using DataProtection.UnitTests.Factories;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using TestSupport.Common;
 
 namespace DataProtection.UnitTests.Helpers;

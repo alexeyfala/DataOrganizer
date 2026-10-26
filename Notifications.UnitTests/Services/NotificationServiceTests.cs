@@ -6,11 +6,11 @@ using Notifications.Constants;
 using Notifications.Dto;
 using Notifications.Interfaces;
 using Notifications.Services;
-using Notifications.UnitTests.Fakes;
 using NSubstitute;
 using System;
 using Threading.Interfaces;
 using Threading.Services;
+using Threading.UnitTests.Fakes;
 
 namespace Notifications.UnitTests.Services;
 

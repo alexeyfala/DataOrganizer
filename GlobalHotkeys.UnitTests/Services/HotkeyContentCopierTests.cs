@@ -6,15 +6,15 @@ using CommunityToolkit.Mvvm.Messaging;
 using Favorites.Messages;
 using FileContents.Enums;
 using GlobalHotkeys.Services;
-using GlobalHotkeys.UnitTests.Factories;
-using GlobalHotkeys.UnitTests.Fakes;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 using WindowContracts.Interfaces;
 
 namespace GlobalHotkeys.UnitTests.Services;

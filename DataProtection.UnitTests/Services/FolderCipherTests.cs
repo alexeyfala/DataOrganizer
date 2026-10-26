@@ -5,6 +5,7 @@ using DataProtection.Interfaces;
 using DataProtection.Services;
 using DataProtection.UnitTests.Factories;
 using Diagnostics.Interfaces;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;

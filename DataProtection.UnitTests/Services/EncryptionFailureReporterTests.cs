@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataProtection.Services;
-using DataProtection.UnitTests.Fakes;
+using Diagnostics.UnitTests.Fakes;
 using Notifications.Dto;
 using Notifications.Enums;
 using Notifications.Interfaces;

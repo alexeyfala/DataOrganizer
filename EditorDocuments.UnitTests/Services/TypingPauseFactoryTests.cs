@@ -3,10 +3,10 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using EditorDocuments.Interfaces;
 using EditorDocuments.Services;
-using EditorDocuments.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using System;
 using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace EditorDocuments.UnitTests.Services;
 

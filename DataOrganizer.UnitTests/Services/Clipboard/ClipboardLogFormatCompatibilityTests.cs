@@ -11,7 +11,6 @@ using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using Shared.Interfaces;
 using System;
@@ -19,6 +18,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TestSupport.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 

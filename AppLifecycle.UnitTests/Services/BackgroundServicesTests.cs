@@ -1,5 +1,4 @@
 using AppLifecycle.Services;
-using AppLifecycle.UnitTests.Factories;
 using Autofac;
 using Autofac.Extras.Moq;
 using Clipboard.Interfaces;
@@ -7,6 +6,7 @@ using GlobalHotkeys.Interfaces;
 using NSubstitute;
 using Settings.Dto;
 using Settings.Interfaces;
+using Settings.UnitTests.Factories;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

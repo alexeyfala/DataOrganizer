@@ -5,7 +5,6 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Notepad;
-using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
@@ -14,6 +13,7 @@ using System;
 using System.IO;
 using System.Text;
 using TestSupport.Common;
+using TestSupport.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Notepad;
 

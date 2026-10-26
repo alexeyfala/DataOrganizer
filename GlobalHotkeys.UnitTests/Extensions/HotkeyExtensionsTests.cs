@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using GlobalHotkeys.Extensions;
 using GlobalHotkeys.UnitTests.Factories;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Repository.Dto;
 using SharpHook.Data;
 using System;

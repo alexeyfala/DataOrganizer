@@ -2,12 +2,12 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using EditorDocuments.Services;
-using EditorDocuments.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using Threading.Enums;
 using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace EditorDocuments.UnitTests.Services;
 

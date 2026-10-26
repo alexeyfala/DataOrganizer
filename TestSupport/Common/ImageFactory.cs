@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.UnitTests.Factories;
+namespace TestSupport.Common;
 
 /// <summary>
 /// Factory methods that build images.

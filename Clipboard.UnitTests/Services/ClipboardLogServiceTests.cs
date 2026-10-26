@@ -7,7 +7,6 @@ using Clipboard.Messages;
 using Clipboard.Models;
 using Clipboard.Services;
 using Clipboard.UnitTests.Factories;
-using Clipboard.UnitTests.Fakes;
 using CommunityToolkit.Mvvm.Messaging;
 using Notifications.Interfaces;
 using NSubstitute;
@@ -18,6 +17,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace Clipboard.UnitTests.Services;
 

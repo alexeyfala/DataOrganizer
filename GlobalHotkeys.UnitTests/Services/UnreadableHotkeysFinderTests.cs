@@ -1,8 +1,8 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using GlobalHotkeys.Services;
-using GlobalHotkeys.UnitTests.Factories;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using SharpHook.Data;
 using System;
 

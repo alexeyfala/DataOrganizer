@@ -8,6 +8,7 @@ using GlobalHotkeys.Extensions;
 using GlobalHotkeys.Services;
 using GlobalHotkeys.UnitTests.Factories;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using MapsterMapper;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

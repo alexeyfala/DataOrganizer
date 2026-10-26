@@ -1,7 +1,6 @@
 using AppInstance.Interfaces;
 using AppUpdates.Dto;
 using AppUpdates.Services;
-using AppUpdates.UnitTests.Factories;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Settings.Dto;
 using Settings.Interfaces;
+using Settings.UnitTests.Factories;
 using Shared.Interfaces;
 using Shared.Services;
 using System;

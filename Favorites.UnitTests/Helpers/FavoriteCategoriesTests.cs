@@ -1,9 +1,9 @@
 using AwesomeAssertions;
 using Favorites.Dto;
 using Favorites.Helpers;
-using Favorites.UnitTests.Factories;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
+using Hierarchy.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

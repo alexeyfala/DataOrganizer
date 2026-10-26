@@ -4,13 +4,13 @@ using AwesomeAssertions;
 using EditorDocuments.Helpers;
 using EditorDocuments.Interfaces;
 using EditorDocuments.Services;
-using EditorDocuments.UnitTests.Fakes;
 using Notifications.Constants;
 using Notifications.Interfaces;
 using NSubstitute;
 using System.Text;
 using System.Threading.Tasks;
 using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace EditorDocuments.UnitTests.Services;
 

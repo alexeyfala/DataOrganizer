@@ -8,6 +8,7 @@ using DataProtection.UnitTests.Factories;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.Interfaces;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;

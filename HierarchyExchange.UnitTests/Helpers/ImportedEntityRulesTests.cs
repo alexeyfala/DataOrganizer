@@ -1,8 +1,8 @@
 using AwesomeAssertions;
 using Entities.Models;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using HierarchyExchange.Helpers;
-using HierarchyExchange.UnitTests.Factories;
 using SharpHook.Data;
 using System;
 using TestSupport.Models;

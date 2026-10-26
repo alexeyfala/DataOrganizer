@@ -1,6 +1,6 @@
 using AppLifecycle.Services;
-using AppLifecycle.UnitTests.Factories;
 using AwesomeAssertions;
+using Hierarchy.UnitTests.Factories;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

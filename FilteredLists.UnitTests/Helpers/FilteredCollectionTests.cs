@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using FilteredLists.Helpers;
-using FilteredLists.UnitTests.Factories;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

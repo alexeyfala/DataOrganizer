@@ -29,6 +29,11 @@
 		<ProjectReference Include="..\Notifications\Notifications.csproj" />
 	</ItemGroup>
 
+	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
+	<ItemGroup>
+		<Compile Include="..\Threading.UnitTests\Fakes\InlineDispatcherAccessor.cs" Link="Fakes\InlineDispatcherAccessor.cs" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Using Include="NUnit.Framework" />
 	</ItemGroup>

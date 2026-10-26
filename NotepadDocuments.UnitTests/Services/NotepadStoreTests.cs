@@ -4,7 +4,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using EditorDocuments.Dto;
 using NotepadDocuments.Services;
-using NotepadDocuments.UnitTests.Fakes;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Settings.Dto;
@@ -14,6 +13,7 @@ using System;
 using System.IO;
 using System.Text;
 using TestSupport.Common;
+using TestSupport.Fakes;
 
 namespace NotepadDocuments.UnitTests.Services;
 

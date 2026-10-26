@@ -8,6 +8,7 @@ using DataProtection.Services;
 using DataProtection.UnitTests.Factories;
 using Entities.Models;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces;

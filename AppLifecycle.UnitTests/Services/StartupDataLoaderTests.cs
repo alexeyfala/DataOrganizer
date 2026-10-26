@@ -1,11 +1,11 @@
 using AppLifecycle.Services;
-using AppLifecycle.UnitTests.Factories;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using GlobalHotkeys.Interfaces;
 using GlobalHotkeys.Services;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using HierarchyStorage.Interfaces;
 using NSubstitute;
 using Repository.Enums;

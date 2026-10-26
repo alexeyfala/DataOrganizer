@@ -7,6 +7,7 @@ using DataProtection.Interfaces;
 using DataProtection.Services;
 using DataProtection.UnitTests.Factories;
 using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;

@@ -8,13 +8,13 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NotepadDocuments.UnitTests.Fakes;
+namespace TestSupport.Fakes;
 
 /// <summary>
 /// Minimal in-memory <see cref="IFileSystem" /> for unit tests. Only the byte
 /// read / write / erase / exists surface is implemented; unused members throw.
 /// </summary>
-internal sealed class InMemoryFileSystem : IFileSystem
+public sealed class InMemoryFileSystem : IFileSystem
 {
 	#region Properties
 	/// <summary>

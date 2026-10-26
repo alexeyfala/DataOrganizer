@@ -10,7 +10,6 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
-using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Common;
