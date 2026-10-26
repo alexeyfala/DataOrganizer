@@ -9,7 +9,6 @@ using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
@@ -27,6 +26,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Interfaces;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
 

@@ -1,6 +1,6 @@
-using DataOrganizer.Extensions.Text;
 using System;
 using System.Threading;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Helpers.Security;
 

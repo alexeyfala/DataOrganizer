@@ -2,11 +2,9 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Text;
 using Diagnostics.Interfaces;
 using DynamicData.Binding;
 using Notifications.Constants;
@@ -21,6 +19,8 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

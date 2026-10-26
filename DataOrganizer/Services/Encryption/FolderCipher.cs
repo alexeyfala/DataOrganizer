@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Storage;
@@ -16,6 +15,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Encryption;
 

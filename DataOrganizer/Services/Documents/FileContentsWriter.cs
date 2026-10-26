@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Encryption;
@@ -10,6 +9,7 @@ using Shared.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Documents;
 

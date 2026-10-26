@@ -1,9 +1,9 @@
-using DataOrganizer.Extensions.Text;
-using DataOrganizer.Helpers.Text;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using TextProcessing.Constants;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Helpers.Security;
 

@@ -11,9 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions.Documents;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Extensions.Views;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Text;
 using System;
 using System.Collections.Generic;
@@ -21,6 +19,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using TextMateSharp.Themes;
+using TextProcessing.Enums;
+using TextProcessing.Extensions;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.Controls.Text;
 

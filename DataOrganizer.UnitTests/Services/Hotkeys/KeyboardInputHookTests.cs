@@ -6,7 +6,6 @@ using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Seeding;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Hotkeys;
@@ -38,6 +37,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Dto;
+using TextProcessing.Constants;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
 

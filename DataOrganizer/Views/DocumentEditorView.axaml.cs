@@ -14,6 +14,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using TextProcessing.Dto;
 
 namespace DataOrganizer.Views;
 

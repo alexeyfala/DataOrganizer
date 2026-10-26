@@ -1,8 +1,8 @@
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.UnitTests.Helpers.Security;
 

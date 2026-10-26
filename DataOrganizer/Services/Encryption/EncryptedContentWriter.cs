@@ -1,6 +1,5 @@
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Encryption;
 using Hierarchy.Dto;
 using Notifications.Interfaces;
@@ -15,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Encryption;
 

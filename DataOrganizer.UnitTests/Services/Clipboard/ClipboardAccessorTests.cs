@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Models.Clipboard;
@@ -18,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 

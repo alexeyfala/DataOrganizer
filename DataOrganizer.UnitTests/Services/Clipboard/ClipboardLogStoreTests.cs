@@ -5,7 +5,6 @@ using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Clipboard;
@@ -23,6 +22,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using TestSupport.Common;
 using TestSupport.Fakes;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Services.Clipboard;
 

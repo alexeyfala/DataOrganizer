@@ -5,14 +5,14 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers.Text.FoldingStrategies;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TextProcessing.Constants;
+using TextProcessing.Dto;
+using TextProcessing.Enums;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.Controls.Text;
 

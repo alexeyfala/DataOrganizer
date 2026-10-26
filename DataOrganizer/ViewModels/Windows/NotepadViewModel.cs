@@ -6,7 +6,6 @@ using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using Diagnostics.Interfaces;
 using DynamicData;
@@ -21,6 +20,7 @@ using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

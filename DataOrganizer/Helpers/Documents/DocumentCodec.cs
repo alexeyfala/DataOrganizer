@@ -1,8 +1,9 @@
 using DataOrganizer.Dto.Documents;
-using DataOrganizer.Extensions.Text;
-using DataOrganizer.Helpers.Text;
 using System;
 using System.Collections.Generic;
+using TextProcessing.Dto;
+using TextProcessing.Extensions;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.Helpers.Documents;
 

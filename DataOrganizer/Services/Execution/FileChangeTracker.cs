@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages.Execution;
@@ -17,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Execution;
 

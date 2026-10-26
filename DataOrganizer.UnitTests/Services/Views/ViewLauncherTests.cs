@@ -28,7 +28,6 @@ using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Storage;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Messages.Editor;
@@ -63,6 +62,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using TextProcessing.Interfaces;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
 

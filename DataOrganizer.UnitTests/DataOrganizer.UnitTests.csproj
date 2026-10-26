@@ -41,6 +41,7 @@
 		<Compile Include="..\Diagnostics.UnitTests\Fakes\RecordingNotificationService.cs" Link="Fakes\RecordingNotificationService.cs" />
 		<Compile Include="..\GlobalHotkeys.UnitTests\Factories\HotkeyFactory.cs" Link="Factories\HotkeyFactory.cs" />
 		<Compile Include="..\Hierarchy.UnitTests\Factories\ItemDtoFactory.cs" Link="Factories\ItemDtoFactory.cs" />
+		<Compile Include="..\TextProcessing.UnitTests\Fakes\FixedFoldingStrategy.cs" Link="Fakes\FixedFoldingStrategy.cs" />
 		<Compile Include="..\Threading.UnitTests\Fakes\InlineDispatcherAccessor.cs" Link="Fakes\InlineDispatcherAccessor.cs" />
 	</ItemGroup>
 

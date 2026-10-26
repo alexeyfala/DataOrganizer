@@ -1,10 +1,10 @@
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Runtime;
 using Shared.Interfaces;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.Services.Runtime;
 

@@ -22,13 +22,14 @@ using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TextProcessing.Constants;
+using TextProcessing.Enums;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 

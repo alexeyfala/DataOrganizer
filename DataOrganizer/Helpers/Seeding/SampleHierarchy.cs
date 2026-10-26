@@ -1,8 +1,6 @@
 using Bogus;
 using DataOrganizer.Dto.Hierarchy;
 using DataOrganizer.Helpers.Execution;
-using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Entities.Models;
@@ -15,6 +13,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using TextProcessing.Constants;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.Helpers.Seeding;
 

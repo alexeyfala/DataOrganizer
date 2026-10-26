@@ -7,9 +7,7 @@ using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Text;
@@ -26,6 +24,8 @@ using Repository.Interfaces.Database;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TextProcessing.Constants;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.UnitTests.Templates;
 

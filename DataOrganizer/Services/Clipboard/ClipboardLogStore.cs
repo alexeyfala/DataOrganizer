@@ -1,7 +1,6 @@
 using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Clipboard;
@@ -20,6 +19,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Clipboard;
 

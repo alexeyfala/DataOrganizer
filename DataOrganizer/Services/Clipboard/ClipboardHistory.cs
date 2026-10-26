@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Text;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
@@ -12,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.Services.Clipboard;
 

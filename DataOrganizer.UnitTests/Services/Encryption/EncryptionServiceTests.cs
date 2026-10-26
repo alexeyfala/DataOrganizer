@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using NSec.Cryptography;
@@ -13,6 +12,7 @@ using System.Buffers.Binary;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using TestSupport.Common;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

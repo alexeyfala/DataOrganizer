@@ -9,7 +9,6 @@ using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Text;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
@@ -35,6 +34,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TestSupport.Models;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.UnitTests;
 

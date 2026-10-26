@@ -1,4 +1,3 @@
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Interfaces.Notes;
 using Diagnostics.Interfaces;
 using Hierarchy.Dto;
@@ -10,6 +9,7 @@ using Shared.Properties;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Notes;
 

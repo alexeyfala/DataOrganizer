@@ -8,6 +8,7 @@ using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
 using TextMateSharp.Themes;
+using TextProcessing.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Text;
 

@@ -2,12 +2,12 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 

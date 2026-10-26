@@ -1,9 +1,9 @@
-using DataOrganizer.Extensions.Text;
 using System;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Helpers.Documents;
 

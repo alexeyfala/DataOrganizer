@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Execution;
 using Diagnostics.Interfaces;
@@ -14,6 +13,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 using Threading.Extensions;
 using Threading.Helpers;
 

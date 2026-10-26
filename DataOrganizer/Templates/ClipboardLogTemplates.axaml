@@ -4,13 +4,13 @@
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
+	xmlns:textConstants="using:TextProcessing.Constants"
 	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
@@ -224,7 +224,7 @@
 							Background="{StaticResource MaterialCardBackgroundBrush}"
 							Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
 							CommandParameter="{Binding}"
-							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
+							Content="{x:Static textConstants:Glyphs.GlobeShowingAmericas}"
 							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"

@@ -94,6 +94,7 @@
 		<ProjectReference Include="..\Hierarchy\Hierarchy.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
+		<ProjectReference Include="..\TextProcessing\TextProcessing.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

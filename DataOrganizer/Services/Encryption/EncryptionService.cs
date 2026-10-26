@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Encryption;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;
@@ -9,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Security.Cryptography;
+using TextProcessing.Extensions;
 
 namespace DataOrganizer.Services.Encryption;
 

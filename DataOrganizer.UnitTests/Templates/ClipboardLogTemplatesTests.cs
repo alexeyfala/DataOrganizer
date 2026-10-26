@@ -9,13 +9,13 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Text;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.UnitTests.Factories;
 using Shared.Common;
 using System;
 using System.Linq;
 using TestSupport.Common;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Templates;
 

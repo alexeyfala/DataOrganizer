@@ -1,9 +1,9 @@
 using AwesomeAssertions;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Helpers.Documents;
-using DataOrganizer.Helpers.Text;
 using System.Collections.Generic;
 using System.Text;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.UnitTests.Helpers.Documents;
 

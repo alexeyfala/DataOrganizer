@@ -1,7 +1,5 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Documents;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
@@ -9,6 +7,8 @@ using Shared.Interfaces;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.Services.Documents;
 

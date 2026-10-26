@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
 using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
@@ -24,6 +23,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
 using Threading.Enums;
 using Threading.Interfaces;
 

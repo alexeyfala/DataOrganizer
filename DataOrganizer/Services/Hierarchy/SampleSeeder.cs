@@ -3,7 +3,6 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Text;
 using Entities.Models;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;
@@ -14,6 +13,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.Services.Hierarchy;
 

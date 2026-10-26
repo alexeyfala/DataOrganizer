@@ -22,7 +22,6 @@ using DataOrganizer.Controls.Text;
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Enums.Documents;
 using DataOrganizer.Extensions.Documents;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Factories;
@@ -31,6 +30,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using TextProcessing.Dto;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.UnitTests.Views;
 

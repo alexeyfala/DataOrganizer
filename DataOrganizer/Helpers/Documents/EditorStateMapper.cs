@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Documents;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Text;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.Helpers.Documents;
 

@@ -1,8 +1,8 @@
 using Avalonia.Input;
-using DataOrganizer.Helpers.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.Helpers.Clipboard;
 

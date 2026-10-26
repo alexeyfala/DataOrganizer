@@ -1,8 +1,8 @@
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Text;
 using Shared.Common;
 using System;
 using TestSupport.Common;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Factories;
 
