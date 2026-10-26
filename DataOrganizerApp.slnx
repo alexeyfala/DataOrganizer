@@ -67,6 +67,7 @@
     <Project Path="Hierarchy/Hierarchy.csproj" />
     <Project Path="HierarchyExchange/HierarchyExchange.csproj" />
     <Project Path="HierarchyNotes/HierarchyNotes.csproj" />
+    <Project Path="HierarchyScenarios/HierarchyScenarios.csproj" />
     <Project Path="HierarchyStorage/HierarchyStorage.csproj" />
     <Project Path="NotepadDocuments/NotepadDocuments.csproj" />
     <Project Path="Notifications/Notifications.csproj" />
