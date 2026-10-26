@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.Extensions.Editor;
-using DataOrganizer.Helpers.Editor;
 using DataOrganizer.Helpers.Hierarchy;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
+using EditorMessages.Extensions;
+using EditorMessages.Helpers;
 using Hierarchy.Dto;
 using Shared.Properties;
 using System.Threading;

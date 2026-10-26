@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Messages.Editor;
+using EditorMessages.Messages;
 using Hierarchy.Dto;
 using Shared.Properties;
 using System.Collections.Generic;

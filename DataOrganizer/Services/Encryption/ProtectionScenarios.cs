@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions.Editor;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
+using EditorMessages.Extensions;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.Extensions;

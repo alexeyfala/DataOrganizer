@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages.Editor;
 using Diagnostics.Interfaces;
+using EditorMessages.Messages;
 using Hierarchy.Dto;
 using System;
 using System.Reactive.Subjects;
