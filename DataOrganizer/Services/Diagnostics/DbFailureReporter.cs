@@ -9,6 +9,7 @@ using System.Threading;
 
 namespace DataOrganizer.Services.Diagnostics;
 
+/// <inheritdoc cref="IDbFailureReporter" />
 public sealed class DbFailureReporter : IDbFailureReporter
 {
 	#region Data

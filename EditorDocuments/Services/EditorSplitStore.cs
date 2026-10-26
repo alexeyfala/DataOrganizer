@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace EditorDocuments.Services;
 
+/// <inheritdoc cref="IEditorSplitStore" />
 public sealed class EditorSplitStore : IEditorSplitStore
 {
 	#region Data

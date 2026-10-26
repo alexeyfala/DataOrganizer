@@ -18,6 +18,7 @@ using TextProcessing.Extensions;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IEncryptedContentWriter" />
 public sealed class EncryptedContentWriter : IEncryptedContentWriter
 {
 	#region Data

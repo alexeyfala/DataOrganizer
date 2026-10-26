@@ -5,6 +5,7 @@ using System.Threading;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="ITypingPause" />
 public sealed class TypingPause : ITypingPause
 {
 	#region Data

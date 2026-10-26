@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Encryption;
 
+/// <inheritdoc cref="IEncryptedContentWriter" />
 public sealed class EncryptedContentWriter : IEncryptedContentWriter
 {
 	#region Data

@@ -7,6 +7,7 @@ using System;
 
 namespace DataOrganizer.Services.Encryption;
 
+/// <inheritdoc cref="IContentCipher" />
 public sealed class ContentCipher : IContentCipher
 {
 	#region Data

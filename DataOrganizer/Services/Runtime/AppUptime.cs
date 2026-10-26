@@ -3,6 +3,7 @@ using System;
 
 namespace DataOrganizer.Services.Runtime;
 
+/// <inheritdoc cref="IAppUptime" />
 public sealed class AppUptime : IAppUptime
 {
 	#region Properties

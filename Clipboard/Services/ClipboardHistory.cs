@@ -15,6 +15,7 @@ using TextProcessing.Constants;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IClipboardHistory" />
 public sealed class ClipboardHistory : IClipboardHistory
 {
 	#region Properties

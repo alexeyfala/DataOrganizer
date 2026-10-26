@@ -4,6 +4,7 @@ using System.IO;
 
 namespace DataOrganizer.Services.Runtime;
 
+/// <inheritdoc cref="IAppEnvironment" />
 public sealed class AppEnvironment : IAppEnvironment
 {
 	#region Properties

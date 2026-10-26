@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Encryption;
 
+/// <inheritdoc cref="IFolderProtection" />
 public sealed class FolderProtection : IFolderProtection
 {
 	#region Data

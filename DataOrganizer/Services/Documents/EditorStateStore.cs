@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IEditorStateStore" />
 public sealed class EditorStateStore : IEditorStateStore
 {
 	#region Data

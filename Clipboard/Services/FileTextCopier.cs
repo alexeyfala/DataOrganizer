@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IFileTextCopier" />
 public sealed class FileTextCopier : IFileTextCopier
 {
 	#region Data

@@ -11,6 +11,7 @@ using System.Reflection;
 
 namespace FileSystemOperations.Services;
 
+/// <inheritdoc cref="IDirectoryAccessor" />
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {
 	#region Data

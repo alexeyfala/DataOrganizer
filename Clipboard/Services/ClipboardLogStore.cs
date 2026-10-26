@@ -22,6 +22,7 @@ using TextProcessing.Extensions;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IClipboardLogStore" />
 public sealed class ClipboardLogStore : IClipboardLogStore
 {
 	#region Properties

@@ -7,6 +7,10 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace DataOrganizer.Services.Explorer;
 
+/// <summary>
+/// Brings an already opened file manager window to the front through X11 and reveals files through the D-Bus
+/// <c>FileManager1.ShowItems</c> call.
+/// </summary>
 public sealed partial class LinuxExplorerManager : IExplorerManager
 {
 	#region Data

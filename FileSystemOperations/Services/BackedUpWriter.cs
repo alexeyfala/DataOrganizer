@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace FileSystemOperations.Services;
 
+/// <inheritdoc cref="IBackedUpWriter" />
 public sealed class BackedUpWriter : IBackedUpWriter
 {
 	#region Data

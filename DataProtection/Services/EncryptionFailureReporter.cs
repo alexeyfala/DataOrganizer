@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IEncryptionFailureReporter" />
 public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 {
 	#region Data

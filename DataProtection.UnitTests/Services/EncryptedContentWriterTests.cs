@@ -455,52 +455,52 @@ internal class EncryptedContentWriterTests
 
 		folders
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					EncryptedDek = (byte[]?)encryptedDek,
-					Id = keeper.Id,
+					keeper.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				},
 				new
 				{
 					EncryptedDek = (byte[]?)null,
-					Id = subfolder.Id,
+					subfolder.Id,
 					Note = subfolderNote,
 					UpdatedAt = now
 				}
-			});
+			]);
 
 		FileEntity[] files = await dbAccess.GetAllFilesAsync(OptionalFileProperties.Contents);
 
 		files
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					Contents = notedContents,
-					Id = noted.Id,
+					noted.Id,
 					Note = notedNote,
 					UpdatedAt = now
 				},
 				new
 				{
 					Contents = unnotedContents,
-					Id = unnoted.Id,
+					unnoted.Id,
 					Note = oldNote,
 					UpdatedAt = now
 				},
 				new
 				{
 					Contents = oldContents,
-					Id = untouched.Id,
+					untouched.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				}
-			});
+			]);
 	}
 	#endregion
 }

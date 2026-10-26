@@ -10,6 +10,7 @@ using System;
 
 namespace DataOrganizer.Services.Encryption;
 
+/// <inheritdoc cref="IAutoLockService" />
 public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 {
 	#region Properties

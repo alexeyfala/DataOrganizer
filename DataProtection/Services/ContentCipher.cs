@@ -7,6 +7,7 @@ using System;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IContentCipher" />
 public sealed class ContentCipher : IContentCipher
 {
 	#region Data

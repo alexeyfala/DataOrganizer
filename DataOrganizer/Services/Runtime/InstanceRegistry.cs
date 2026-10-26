@@ -8,6 +8,7 @@ using System.IO;
 
 namespace DataOrganizer.Services.Runtime;
 
+/// <inheritdoc cref="IInstanceRegistry" />
 public sealed class InstanceRegistry : IInstanceRegistry
 {
 	#region Properties

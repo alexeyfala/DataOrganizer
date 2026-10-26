@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IDocumentEncodingSwitcher" />
 public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 {
 	#region Data

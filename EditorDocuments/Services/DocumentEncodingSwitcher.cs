@@ -9,6 +9,7 @@ using Threading.Interfaces;
 
 namespace EditorDocuments.Services;
 
+/// <inheritdoc cref="IDocumentEncodingSwitcher" />
 public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 {
 	#region Data

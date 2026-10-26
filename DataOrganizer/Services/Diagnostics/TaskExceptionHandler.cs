@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Diagnostics;
 
+/// <inheritdoc cref="ITaskExceptionHandler" />
 public class TaskExceptionHandler : ITaskExceptionHandler
 {
 	#region Data

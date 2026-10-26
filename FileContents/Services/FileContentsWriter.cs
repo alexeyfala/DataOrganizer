@@ -13,6 +13,7 @@ using TextProcessing.Extensions;
 
 namespace FileContents.Services;
 
+/// <inheritdoc cref="IFileContentsWriter" />
 public sealed class FileContentsWriter : IFileContentsWriter
 {
 	#region Data

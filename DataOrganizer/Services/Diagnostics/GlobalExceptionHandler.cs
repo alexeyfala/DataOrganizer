@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Diagnostics;
 
+/// <inheritdoc cref="IGlobalExceptionHandler" />
 internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 {
 	#region Data

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IClipboardGate" />
 public sealed class ClipboardGate : IClipboardGate, IDisposable
 {
 	#region Data

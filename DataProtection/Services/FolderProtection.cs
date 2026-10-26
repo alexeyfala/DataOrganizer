@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IFolderProtection" />
 public sealed class FolderProtection : IFolderProtection
 {
 	#region Data

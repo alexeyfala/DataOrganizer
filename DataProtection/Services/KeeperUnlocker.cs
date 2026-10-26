@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IKeeperUnlocker" />
 public sealed class KeeperUnlocker : IKeeperUnlocker
 {
 	#region Data

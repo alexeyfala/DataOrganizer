@@ -5,6 +5,7 @@ using System.Threading;
 
 namespace DataOrganizer.Services.Runtime;
 
+/// <inheritdoc cref="IUiTimer" />
 public sealed class UiTimer : IUiTimer
 {
 	#region Data

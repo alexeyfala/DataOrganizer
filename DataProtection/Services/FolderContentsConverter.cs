@@ -16,6 +16,7 @@ using TextProcessing.Extensions;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IFolderContentsConverter" />
 public sealed class FolderContentsConverter : IFolderContentsConverter
 {
 	#region Data

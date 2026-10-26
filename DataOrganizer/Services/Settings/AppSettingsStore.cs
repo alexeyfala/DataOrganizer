@@ -6,6 +6,7 @@ using Shared.Interfaces;
 
 namespace DataOrganizer.Services.Settings;
 
+/// <inheritdoc cref="IAppSettingsStore" />
 public sealed class AppSettingsStore : IAppSettingsStore
 {
 	#region Properties

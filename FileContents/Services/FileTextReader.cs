@@ -14,6 +14,7 @@ using TextProcessing.Helpers;
 
 namespace FileContents.Services;
 
+/// <inheritdoc cref="IFileTextReader" />
 public sealed class FileTextReader : IFileTextReader
 {
 	#region Data

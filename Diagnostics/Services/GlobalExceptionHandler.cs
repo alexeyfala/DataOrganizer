@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Diagnostics.Services;
 
+/// <inheritdoc cref="IGlobalExceptionHandler" />
 public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 {
 	#region Data

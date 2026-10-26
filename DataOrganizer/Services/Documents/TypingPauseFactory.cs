@@ -4,6 +4,7 @@ using System;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="ITypingPauseFactory" />
 public sealed class TypingPauseFactory : ITypingPauseFactory
 {
 	#region Data

@@ -5,6 +5,7 @@ using Threading.Interfaces;
 
 namespace EditorDocuments.Services;
 
+/// <inheritdoc cref="ITypingPause" />
 public sealed class TypingPause : ITypingPause
 {
 	#region Data

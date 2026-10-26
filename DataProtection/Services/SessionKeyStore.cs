@@ -7,6 +7,7 @@ using System.Threading;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="ISessionKeyStore" />
 public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 {
 	#region Data

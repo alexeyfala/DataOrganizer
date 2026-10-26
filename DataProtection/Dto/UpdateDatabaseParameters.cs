@@ -4,6 +4,9 @@ using Repository.Dto;
 
 namespace DataProtection.Dto;
 
+/// <summary>
+/// The processed contents and notes of a folder and its files, with the wrapped key and the new encryption status.
+/// </summary>
 public sealed record UpdateDatabaseParameters
 {
 	#region Properties

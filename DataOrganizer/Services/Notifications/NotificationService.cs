@@ -13,6 +13,7 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Services.Notifications;
 
+/// <inheritdoc cref="INotificationService" />
 public sealed class NotificationService : INotificationService
 {
 	#region Data

@@ -9,6 +9,7 @@ using Threading.Interfaces;
 
 namespace DataProtection.Services;
 
+/// <inheritdoc cref="IAutoLockService" />
 public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 {
 	#region Properties

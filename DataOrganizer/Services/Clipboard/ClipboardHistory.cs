@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IClipboardHistory" />
 public sealed class ClipboardHistory : IClipboardHistory
 {
 	#region Properties

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IFilePreviewReader" />
 public sealed class FilePreviewReader : IFilePreviewReader
 {
 	#region Data

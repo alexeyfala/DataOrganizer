@@ -7,6 +7,7 @@ using System.Threading;
 
 namespace DataOrganizer.Services.Encryption;
 
+/// <inheritdoc cref="ISessionKeyStore" />
 public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 {
 	#region Data

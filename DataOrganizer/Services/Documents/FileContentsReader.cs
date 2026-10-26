@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IFileContentsReader" />
 public sealed class FileContentsReader : IFileContentsReader
 {
 	#region Data

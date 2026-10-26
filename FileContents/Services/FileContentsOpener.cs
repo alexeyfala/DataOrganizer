@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace FileContents.Services;
 
+/// <inheritdoc cref="IFileContentsOpener" />
 public sealed class FileContentsOpener : IFileContentsOpener
 {
 	#region Data

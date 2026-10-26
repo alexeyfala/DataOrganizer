@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace EditorDocuments.Services;
 
+/// <inheritdoc cref="IEditorStateStore" />
 public sealed class EditorStateStore : IEditorStateStore
 {
 	#region Data

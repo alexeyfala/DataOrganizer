@@ -4,6 +4,7 @@ using Shared.Interfaces;
 
 namespace DataOrganizer.Services.Settings;
 
+/// <inheritdoc cref="IWindowSettingsStore" />
 public sealed class WindowSettingsStore : IWindowSettingsStore
 {
 	#region Data

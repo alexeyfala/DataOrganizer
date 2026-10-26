@@ -9,6 +9,7 @@ using System.Threading;
 
 namespace Diagnostics.Services;
 
+/// <inheritdoc cref="IDbFailureReporter" />
 public sealed class DbFailureReporter : IDbFailureReporter
 {
 	#region Data

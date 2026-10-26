@@ -4,6 +4,7 @@ using System.IO;
 
 namespace AppInstance.Services;
 
+/// <inheritdoc cref="IAppEnvironment" />
 public sealed class AppEnvironment : IAppEnvironment
 {
 	#region Properties

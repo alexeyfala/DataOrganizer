@@ -12,6 +12,7 @@ using System.Reflection;
 
 namespace DataOrganizer.Services.Storage;
 
+/// <inheritdoc cref="IDirectoryAccessor" />
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {
 	#region Data

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IClipboardAutoClear" />
 public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 {
 	#region Data

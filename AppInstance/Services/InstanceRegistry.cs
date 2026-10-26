@@ -8,6 +8,7 @@ using TextProcessing.Constants;
 
 namespace AppInstance.Services;
 
+/// <inheritdoc cref="IInstanceRegistry" />
 public sealed class InstanceRegistry : IInstanceRegistry
 {
 	#region Properties

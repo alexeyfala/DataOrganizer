@@ -17,6 +17,7 @@ using Threading.Interfaces;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 public sealed class ClipboardLogPersistenceCoordinator :
 	IClipboardLogPersistenceCoordinator,
 	IRecipient<ClipboardLogChangedMessage>

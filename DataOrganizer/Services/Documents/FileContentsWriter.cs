@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IFileContentsWriter" />
 public sealed class FileContentsWriter : IFileContentsWriter
 {
 	#region Data

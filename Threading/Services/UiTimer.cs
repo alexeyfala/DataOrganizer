@@ -4,6 +4,7 @@ using Threading.Interfaces;
 
 namespace Threading.Services;
 
+/// <inheritdoc cref="IUiTimer" />
 public sealed class UiTimer : IUiTimer
 {
 	#region Data

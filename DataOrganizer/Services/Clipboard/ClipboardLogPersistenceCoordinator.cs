@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 public sealed class ClipboardLogPersistenceCoordinator :
 	IClipboardLogPersistenceCoordinator,
 	IRecipient<ClipboardLogChangedMessage>

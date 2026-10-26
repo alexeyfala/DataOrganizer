@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Clipboard.Services;
 
+/// <inheritdoc cref="IClipboardTextWriter" />
 public sealed class ClipboardTextWriter : IClipboardTextWriter
 {
 	#region Data

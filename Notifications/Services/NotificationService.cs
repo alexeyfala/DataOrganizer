@@ -12,6 +12,7 @@ using Threading.Interfaces;
 
 namespace Notifications.Services;
 
+/// <inheritdoc cref="INotificationService" />
 public sealed class NotificationService : INotificationService
 {
 	#region Data
