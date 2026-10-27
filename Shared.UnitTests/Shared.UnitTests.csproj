@@ -15,6 +15,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageReference Include="NUnit" Version="5.0.0" />
 		<PackageReference Include="NUnit.Analyzers" Version="4.15.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,7 +24,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TestSupport\TestSupport.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 
