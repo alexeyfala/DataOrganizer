@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
 using Hierarchy.Dto;
@@ -16,6 +15,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 

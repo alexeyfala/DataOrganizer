@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Notepad;
 using DataOrganizer.UnitTests.Factories;
@@ -30,6 +29,7 @@ using System.Threading.Tasks;
 using TextProcessing.Interfaces;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

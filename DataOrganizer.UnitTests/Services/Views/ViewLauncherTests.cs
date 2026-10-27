@@ -22,7 +22,6 @@ using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Views;
@@ -69,6 +68,8 @@ using TestSupport.Common;
 using TextProcessing.Interfaces;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Enums;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

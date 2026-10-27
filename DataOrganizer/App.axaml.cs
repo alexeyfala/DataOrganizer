@@ -87,6 +87,7 @@ using TextProcessing.Constants;
 using TextProcessing.Interfaces;
 using Threading.Interfaces;
 using Threading.Services;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer;
 

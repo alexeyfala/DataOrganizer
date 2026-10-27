@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
@@ -41,6 +40,7 @@ using TestSupport.Dto;
 using TextProcessing.Constants;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
 

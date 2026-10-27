@@ -1,7 +1,6 @@
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Views;
 using Hierarchy.Dto;
 using HierarchyStorage.Interfaces;
 using Notifications.Interfaces;
@@ -12,6 +11,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Runtime;
 

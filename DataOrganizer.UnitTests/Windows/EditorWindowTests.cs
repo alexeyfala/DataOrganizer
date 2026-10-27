@@ -17,7 +17,6 @@ using Clipboard.Services;
 using DataOrganizer.Controls;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -49,6 +48,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Windows;
 

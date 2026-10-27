@@ -48,6 +48,7 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

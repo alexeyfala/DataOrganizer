@@ -2,7 +2,6 @@ using Clipboard.Interfaces;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
@@ -13,6 +12,7 @@ using Shared.Properties;
 using System.Threading;
 using System.Threading.Tasks;
 using Threading.Interfaces;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Hotkeys;
 

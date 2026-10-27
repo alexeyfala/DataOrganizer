@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Views;
 using Diagnostics.Interfaces;
 using DialogContracts.Constants;
 using DialogContracts.Dto;
@@ -21,6 +20,7 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using TextProcessing.Interfaces;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

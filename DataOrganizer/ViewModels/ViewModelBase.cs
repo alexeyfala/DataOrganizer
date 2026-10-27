@@ -14,6 +14,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

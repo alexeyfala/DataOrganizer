@@ -53,6 +53,7 @@ using System.Threading.Tasks;
 using TestSupport.Common;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

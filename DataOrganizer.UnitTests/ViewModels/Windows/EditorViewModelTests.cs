@@ -16,7 +16,6 @@ using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Exchange;
@@ -73,6 +72,7 @@ using System.Threading.Tasks;
 using TestSupport.Common;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 

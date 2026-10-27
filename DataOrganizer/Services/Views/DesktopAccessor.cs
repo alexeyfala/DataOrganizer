@@ -10,6 +10,7 @@ using DialogHostAvalonia;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

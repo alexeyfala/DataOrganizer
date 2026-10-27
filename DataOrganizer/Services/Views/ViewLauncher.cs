@@ -5,7 +5,6 @@ using Clipboard.Dto;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Views;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Views;
@@ -22,6 +21,8 @@ using System;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using WindowContracts.Enums;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

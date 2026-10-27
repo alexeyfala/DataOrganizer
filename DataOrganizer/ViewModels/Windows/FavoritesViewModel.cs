@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Threading.Enums;
 using Threading.Interfaces;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

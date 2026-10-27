@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Updates;
-using DataOrganizer.Interfaces.Views;
 using Diagnostics.Interfaces;
 using FileExecution.Interfaces;
 using Serilog;
@@ -14,6 +13,7 @@ using Shared.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Runtime;
 

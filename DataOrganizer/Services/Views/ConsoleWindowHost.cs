@@ -10,6 +10,7 @@ using Shared.Properties;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

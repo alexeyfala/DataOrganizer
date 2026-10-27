@@ -12,7 +12,6 @@ using Clipboard.Interfaces;
 using Clipboard.Services;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -28,6 +27,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Windows;
 

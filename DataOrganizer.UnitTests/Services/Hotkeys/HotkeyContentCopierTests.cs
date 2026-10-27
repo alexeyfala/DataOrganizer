@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Services.Hotkeys;
 using FileContents.Enums;
@@ -16,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Threading.Interfaces;
 using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
 

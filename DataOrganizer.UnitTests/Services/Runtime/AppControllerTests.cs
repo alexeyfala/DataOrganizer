@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Updates;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
 using Diagnostics.Interfaces;
 using FileExecution.Dto;
@@ -26,6 +25,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 

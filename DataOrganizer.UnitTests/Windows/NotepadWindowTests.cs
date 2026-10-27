@@ -41,6 +41,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Threading.Interfaces;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Windows;
 
