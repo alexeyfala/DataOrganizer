@@ -83,6 +83,7 @@
 		<ProjectReference Include="..\AppUpdates\AppUpdates.csproj" />
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\FilteredLists\FilteredLists.csproj" />
 		<ProjectReference Include="..\HierarchyExchange\HierarchyExchange.csproj" />
 		<ProjectReference Include="..\HierarchyNotes\HierarchyNotes.csproj" />
 		<ProjectReference Include="..\NotepadDocuments\NotepadDocuments.csproj" />
