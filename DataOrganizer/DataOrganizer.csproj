@@ -85,9 +85,8 @@
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\DatasetRecords\DatasetRecords.csproj" />
-		<ProjectReference Include="..\GlobalHotkeys\GlobalHotkeys.csproj" />
+		<ProjectReference Include="..\HierarchyExchange\HierarchyExchange.csproj" />
 		<ProjectReference Include="..\HierarchyNotes\HierarchyNotes.csproj" />
-		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 		<ProjectReference Include="..\NotepadDocuments\NotepadDocuments.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
