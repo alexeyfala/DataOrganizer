@@ -236,7 +236,8 @@ internal class FileTextCodecTests
 	/// fallback, with its tabs, line breaks, form feeds, end of file mark and terminal escapes.
 	/// </summary>
 	[TestCase(CyrillicText)]
-	[TestCase("Табуляция\tи строки\r\nстраница\f\vконец \u001B[0m\u001A")]
+	// A fixed name: a test whose name holds ESC or SUB is skipped by a selective run, as in Test Explorer.
+	[TestCase("Табуляция\tи строки\r\nстраница\f\vконец \u001B[0m\u001A", TestName = "{m}(control characters)")]
 	public void Detect_Takes_The_Fallback_For_A_Text_That_Is_Not_UTF8(string text)
 	{
 		// Act
