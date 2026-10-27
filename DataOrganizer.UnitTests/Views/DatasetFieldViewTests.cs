@@ -345,5 +345,71 @@ internal class DatasetFieldViewTests
 			.Should()
 			.Be(firstName);
 	}
+
+	/// <summary>
+	/// <see cref="DatasetFieldView.Note" />: a field without a note builds no note view.
+	/// </summary>
+	[AvaloniaTest]
+	public void Note_Absent_Builds_No_Note_View()
+	{
+		// Arrange
+		DatasetFieldView sut = new()
+		{
+			Text = RandomString.Create(16)
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetVisualDescendants().OfType<NoteView>()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetFieldView.Note" />: a note set on a shown field builds the note view that holds it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Note_Set_Later_Builds_The_Note_View_With_It()
+	{
+		// Arrange
+		string note = RandomString.Create(16);
+
+		DatasetFieldView sut = new()
+		{
+			Text = RandomString.Create(16)
+		};
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.Note = note;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetVisualDescendants().OfType<NoteView>()
+			.Should()
+			.ContainSingle()
+			.Which
+			.Note
+			.Should()
+			.Be(note);
+	}
 	#endregion
 }
