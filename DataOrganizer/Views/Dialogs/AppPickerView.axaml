@@ -6,7 +6,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
-	xmlns:execution="using:DataOrganizer.Dto.Execution"
+	xmlns:execution="using:FileExecution.Dto"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	MinWidth="420.0"

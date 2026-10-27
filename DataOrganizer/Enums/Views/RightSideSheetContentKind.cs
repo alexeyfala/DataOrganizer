@@ -1,4 +1,5 @@
 
+
 namespace DataOrganizer.Enums.Views;
 
 /// <summary>
