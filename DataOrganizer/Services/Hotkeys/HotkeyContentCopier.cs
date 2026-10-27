@@ -2,7 +2,7 @@ using Clipboard.Interfaces;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Messages.Favorites;
+using Favorites.Messages;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Notifications.Interfaces;

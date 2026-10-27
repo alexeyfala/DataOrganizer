@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Favorites;
+using Favorites.Dto;
 using Hierarchy.Enums;
 using Shared.Common;
 using System;

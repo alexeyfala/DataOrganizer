@@ -1,5 +1,5 @@
 using Avalonia.Data.Converters;
-using DataOrganizer.Dto.Favorites;
+using Favorites.Dto;
 using Hierarchy.Dto;
 using System.Linq;
 
