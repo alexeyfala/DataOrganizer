@@ -83,8 +83,10 @@ internal class SnackbarTextColorTests
 		window.Show();
 
 		// Act
+		// No duration: a timed snackbar starts a Material timer that outlives the test
+		// and takes the UI dispatcher from a pool thread.
 		SnackbarHost.Post(
-			new SnackbarModel(new SnackbarContent(text, level), TimeSpan.FromSeconds(5.0)),
+			new SnackbarModel(new SnackbarContent(text, level), TimeSpan.Zero),
 			host.HostName,
 			DispatcherPriority.Normal);
 

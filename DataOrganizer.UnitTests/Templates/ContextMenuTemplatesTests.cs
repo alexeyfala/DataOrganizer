@@ -137,7 +137,7 @@ internal class ContextMenuTemplatesTests
 
 		// Assert
 		names
-			.Count(x => x != null && x.Contains(text))
+			.Count(x => x?.Contains(text) == true)
 			.Should()
 			.Be(isEncrypted ? 0 : 1);
 	}
