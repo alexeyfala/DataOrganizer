@@ -549,10 +549,10 @@ License of vscode-swift:
   * Serilog.Enrichers.Demystifier 1.0.3 - Copyright (c) Serilog Contributors
   * Serilog.Sinks.Async 2.1.0 - Copyright (c) Jezz Santos,Serilog Contributors
   * Serilog.Sinks.FileEx 5.1.8 - Copyright (c) Ashkan Shirian
-  * SQLitePCLRaw.bundle_e_sqlite3 2.1.12 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.core 2.1.12 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.lib.e_sqlite3 2.1.12 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.provider.e_sqlite3 2.1.12 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.bundle_e_sqlite3 2.1.13 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.core 2.1.13 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.lib.e_sqlite3 2.1.13 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.provider.e_sqlite3 2.1.13 - Copyright (c) Eric Sink
 
     These components are licensed under the Apache License, Version 2.0. The full
     text of the Apache License 2.0 is reproduced in the LICENSE file that
@@ -584,7 +584,7 @@ License of vscode-swift:
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
   * Comparation 0.1.7 - Copyright (c) Alexey Pepelev
   * DialogHost.Avalonia 0.12.3 - Copyright (c) SKProCH
-  * DynamicData 9.4.33 - Copyright (c) Roland Pheasant
+  * DynamicData 9.5.0 - Copyright (c) Roland Pheasant
   * Generator.Equals 4.1.0 - Copyright (c) Diego Frata
   * Generator.Equals.Runtime 4.1.0 - Copyright (c) Diego Frata
   * HarfBuzzSharp 8.3.1.3 - Copyright (c) Microsoft
@@ -601,42 +601,42 @@ License of vscode-swift:
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
   * Microsoft.Bcl.HashCode 6.0.0 - Copyright (c) Microsoft
-  * Microsoft.Data.Sqlite.Core 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Analyzers 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Relational 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite.Core 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Memory 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration.Binder 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyModel 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Diagnostics 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Diagnostics.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Http 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging.Abstractions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Options 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Options.ConfigurationExtensions 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Primitives 10.0.12 - Copyright (c) Microsoft
-  * Microsoft.Win32.SystemEvents 10.0.12 - Copyright (c) Microsoft
+  * Microsoft.Data.Sqlite.Core 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Analyzers 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Relational 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite.Core 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Caching.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Caching.Memory 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration.Binder 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyInjection 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyInjection.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyModel 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Diagnostics 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Diagnostics.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Http 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Logging 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Logging.Abstractions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Options 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Options.ConfigurationExtensions 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Primitives 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Win32.SystemEvents 10.0.14 - Copyright (c) Microsoft
   * NSec.Cryptography 26.4.0 - Copyright (c) Klaus Hartke
   * Onigwrap 1.0.11 - Copyright (c) Aikawa Yataro
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
   * ProItemsRepeater 12.0.0 - Copyright (c) Wiesław Šoltés
   * Serilog.Exceptions 8.4.0 - Copyright (c) Muhammad Rehan Saeed (RehanSaeed.com)
-  * SharpHook 8.0.0 - Copyright (c) Tolik Pylypchuk
+  * SharpHook 8.0.1 - Copyright (c) Tolik Pylypchuk
   * SkiaSharp 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Linux 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.macOS 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.WebAssembly 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Win32 3.119.4 - Copyright (c) Microsoft
-  * System.Drawing.Common 10.0.12 - Copyright (c) Microsoft
+  * System.Drawing.Common 10.0.14 - Copyright (c) Microsoft
   * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
   * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) Microsoft
   * TextMateSharp 2.0.3 - Copyright (c) Daniel Peñalba
