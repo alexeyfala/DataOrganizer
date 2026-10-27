@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Interfaces.Notepad;
 using EditorDocuments.Interfaces;
+using NotepadDocuments.Interfaces;
 using Shared.Properties;
 using System.Text;
 

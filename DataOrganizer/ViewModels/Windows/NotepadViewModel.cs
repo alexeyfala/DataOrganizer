@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces.Notepad;
 using Diagnostics.Interfaces;
 using DialogContracts.Constants;
 using DialogContracts.Dto;
@@ -8,6 +7,7 @@ using DialogContracts.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
 using EditorDocuments.Interfaces;
+using NotepadDocuments.Interfaces;
 using Notifications.Constants;
 using Settings.Dto;
 using Shared.Properties;
