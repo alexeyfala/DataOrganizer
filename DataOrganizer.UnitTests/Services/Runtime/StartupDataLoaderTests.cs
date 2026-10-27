@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
+using GlobalHotkeys.Interfaces;
+using GlobalHotkeys.Services;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using HierarchyStorage.Interfaces;

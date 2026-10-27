@@ -1,6 +1,6 @@
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.Interfaces;
 using Hierarchy.Dto;
 using HierarchyStorage.Interfaces;
 using Notifications.Interfaces;

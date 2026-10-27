@@ -1,7 +1,7 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Extensions.Hotkeys;
+using GlobalHotkeys.Extensions;
 using GlobalHotkeys.UnitTests.Factories;
 using Hierarchy.Dto;
 using System.Globalization;

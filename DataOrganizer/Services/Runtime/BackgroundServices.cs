@@ -1,9 +1,9 @@
 using AppInstance.Interfaces;
 using Clipboard.Interfaces;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataProtection.Interfaces;
 using Diagnostics.Interfaces;
+using GlobalHotkeys.Interfaces;
 using Hierarchy.Enums;
 using Hierarchy.Extensions;
 using Settings.Dto;

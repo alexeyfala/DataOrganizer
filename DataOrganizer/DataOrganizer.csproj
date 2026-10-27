@@ -64,7 +64,6 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
 		<PackageReference Include="AvaloniaEdit.TextMate" Version="12.0.0" />
 		<PackageReference Include="Bogus" Version="35.6.5" />
-		<PackageReference Include="Comparation" Version="0.1.7" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.12.3" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.13" />
 		<PackageReference Include="Material.Avalonia" Version="3.21.0" />
@@ -85,13 +84,11 @@
 	<ItemGroup>
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\Clipboard\Clipboard.csproj" />
-		<ProjectReference Include="..\Favorites\Favorites.csproj" />
 		<ProjectReference Include="..\FileExecution\FileExecution.csproj" />
+		<ProjectReference Include="..\GlobalHotkeys\GlobalHotkeys.csproj" />
 		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
-		<ProjectReference Include="..\WindowContracts\WindowContracts.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

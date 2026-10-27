@@ -1,7 +1,7 @@
 using Avalonia.Data.Converters;
-using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Notes;
 using Entities.Enums;
+using GlobalHotkeys.Extensions;
 using Hierarchy.Dto;
 using Material.Icons;
 using Repository.Dto;

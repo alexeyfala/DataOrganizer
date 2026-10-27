@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Dialogs;
 using DialogContracts.Interfaces;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.Interfaces;
+using GlobalHotkeys.Messages;
+using GlobalHotkeys.Services;
 using NSubstitute;
 using Repository.Dto;
 using Shared.Extensions;

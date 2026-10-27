@@ -1,5 +1,5 @@
 using Bogus;
-using DataOrganizer.Extensions.Hotkeys;
+using GlobalHotkeys.Extensions;
 using Repository.Dto;
 using System;
 using System.Collections.Generic;

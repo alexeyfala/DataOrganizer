@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Clipboard.Interfaces;
-using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Services.Runtime;
+using GlobalHotkeys.Interfaces;
 using NSubstitute;
 using Settings.Dto;
 using Settings.Interfaces;

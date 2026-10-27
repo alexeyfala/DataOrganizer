@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Messages.Hotkeys;
 using Diagnostics.Interfaces;
 using DialogContracts.Interfaces;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.Interfaces;
+using GlobalHotkeys.Messages;
 using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
