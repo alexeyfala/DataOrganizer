@@ -1,6 +1,7 @@
 using AppInstance.Interfaces;
 using AppUpdates.Dto;
 using AppUpdates.Services;
+using AppUpdates.UnitTests.Fakes;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
@@ -16,7 +17,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using TestSupport.Http;
 
 namespace AppUpdates.UnitTests.Services;
 

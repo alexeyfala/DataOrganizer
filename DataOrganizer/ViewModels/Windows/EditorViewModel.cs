@@ -1,5 +1,6 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using AppUpdates.Messages;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,7 +15,6 @@ using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Seeding;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Updates;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataProtection.Helpers;
 using DataProtection.Interfaces;

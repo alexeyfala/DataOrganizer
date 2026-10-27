@@ -1,7 +1,7 @@
 using System;
 using System.Net.Http;
 
-namespace TestSupport.Http;
+namespace AppUpdates.UnitTests.Fakes;
 
 /// <summary>
 /// Data of a request received by <see cref="StubHttpMessageHandler" />.

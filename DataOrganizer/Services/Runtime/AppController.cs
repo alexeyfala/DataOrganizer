@@ -1,10 +1,10 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using AppUpdates.Interfaces;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Updates;
 using Diagnostics.Interfaces;
 using FileExecution.Interfaces;
 using Serilog;

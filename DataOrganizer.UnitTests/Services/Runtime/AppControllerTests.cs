@@ -1,5 +1,6 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using AppUpdates.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
@@ -7,7 +8,6 @@ using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Services.Runtime;
 using Diagnostics.Interfaces;
 using FileExecution.Dto;

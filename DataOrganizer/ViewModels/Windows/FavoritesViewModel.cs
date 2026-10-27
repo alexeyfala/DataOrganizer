@@ -1,4 +1,5 @@
 using AppInstance.Interfaces;
+using AppUpdates.Messages;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,7 +7,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Updates;
 using DataProtection.Messages;
 using Diagnostics.Interfaces;
 using DialogContracts.Constants;

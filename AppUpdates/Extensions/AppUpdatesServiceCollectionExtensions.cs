@@ -6,7 +6,7 @@ using System.Net.Http;
 
 namespace AppUpdates.Extensions;
 
-public static class ServiceCollectionExtensions
+public static class AppUpdatesServiceCollectionExtensions
 {
 	#region Methods
 	/// <summary>

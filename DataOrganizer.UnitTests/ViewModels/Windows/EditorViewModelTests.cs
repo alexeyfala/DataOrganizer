@@ -1,4 +1,5 @@
 using AppInstance.Messages;
+using AppUpdates.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
@@ -14,7 +15,6 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Hierarchy;

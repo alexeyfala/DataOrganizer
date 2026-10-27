@@ -1,4 +1,5 @@
 using AppInstance.Interfaces;
+using AppUpdates.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -13,7 +14,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Runtime;

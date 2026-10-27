@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TestSupport.Http;
+namespace AppUpdates.UnitTests.Fakes;
 
 /// <summary>
 /// <see cref="HttpMessageHandler" /> answering requests from the test instead of the network.
