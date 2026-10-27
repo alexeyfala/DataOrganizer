@@ -87,6 +87,7 @@
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\Clipboard\Clipboard.csproj" />
 		<ProjectReference Include="..\FileExecution\FileExecution.csproj" />
+		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
 		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
 	</ItemGroup>

@@ -1,9 +1,9 @@
 using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using Hierarchy.Dto;
+using HierarchyStorage.Interfaces;
 using Notifications.Interfaces;
 using Repository.Enums;
 using Repository.Interfaces.Database;

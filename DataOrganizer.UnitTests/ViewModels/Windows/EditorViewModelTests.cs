@@ -50,6 +50,7 @@ using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.Extensions;
 using Hierarchy.UnitTests.Factories;
+using HierarchyStorage.Interfaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;

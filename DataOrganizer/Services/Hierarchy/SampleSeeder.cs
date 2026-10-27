@@ -6,6 +6,7 @@ using DataProtection.Interfaces;
 using Entities.Models;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;
+using HierarchyStorage.Interfaces;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces.Database;
