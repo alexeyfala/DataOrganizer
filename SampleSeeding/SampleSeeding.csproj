@@ -19,4 +19,8 @@
 		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+	</ItemGroup>
+
 </Project>
