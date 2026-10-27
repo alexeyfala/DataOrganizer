@@ -12,7 +12,7 @@ using TextProcessing.Dto;
 using TextProcessing.Helpers;
 using TextProcessing.Interfaces;
 
-namespace DataOrganizer.Services.Text;
+namespace DataOrganizer.Services;
 
 /// <summary>
 /// Grammars and color themes of the syntax highlighting, read once and shared by all editors.

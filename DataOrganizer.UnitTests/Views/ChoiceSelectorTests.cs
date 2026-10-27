@@ -9,7 +9,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using System.Linq;

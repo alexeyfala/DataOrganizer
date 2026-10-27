@@ -7,7 +7,7 @@ using Avalonia.VisualTree;
 using AvaloniaEdit.Rendering;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages.Documents;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

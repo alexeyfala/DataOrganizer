@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Behaviors.Hierarchy;
+using DataOrganizer.Behaviors;
 using DataOrganizer.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -13,7 +13,7 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DataOrganizer.UnitTests.Behaviors.Hierarchy;
+namespace DataOrganizer.UnitTests.Behaviors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemSignalsBehavior)}"" type")]
 internal class ExplorerItemSignalsBehaviorTests

@@ -1,8 +1,8 @@
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Settings;
+using DataOrganizer.Extensions;
 using Settings.Enums;
 
-namespace DataOrganizer.UnitTests.Extensions.Settings;
+namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MaterialDesignExtensions)}"" type")]
 internal class MaterialDesignExtensionsTests

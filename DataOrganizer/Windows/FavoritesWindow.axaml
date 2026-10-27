@@ -2,20 +2,20 @@
 	x:Class="DataOrganizer.Windows.FavoritesWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogConstants="using:DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
+	xmlns:interfaces="using:DataOrganizer.Interfaces"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
 	xmlns:notificationConstants="using:Notifications.Constants"
-	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
@@ -194,7 +194,7 @@
 									HostName="{x:Static notificationConstants:SnackbarHostIdentifiers.Main}"
 									SnackbarHorizontalAlignment="Center">
 									<Interaction.Behaviors>
-										<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static notificationConstants:SnackbarHostIdentifiers.Main}}" />
+										<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}, Key={x:Static notificationConstants:SnackbarHostIdentifiers.Main}}" />
 									</Interaction.Behaviors>
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">

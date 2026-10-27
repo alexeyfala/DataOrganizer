@@ -11,7 +11,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Scrolling;
+using DataOrganizer.Behaviors;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;

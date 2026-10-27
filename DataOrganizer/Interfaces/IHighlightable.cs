@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces.Dataset;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// A control that can play a one-shot highlight animation on itself.

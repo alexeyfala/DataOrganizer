@@ -3,7 +3,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Views;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -7,7 +7,7 @@ using Avalonia.Media;
 using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Dataset;
+using DataOrganizer.Interfaces;
 using DataProtection.Helpers;
 using Shared.Extensions;
 using System;

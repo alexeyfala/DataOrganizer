@@ -6,7 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using EditorDocuments.Dto;
 using EditorDocuments.Enums;
 using EditorDocuments.Extensions;

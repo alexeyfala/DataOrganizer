@@ -4,7 +4,7 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using System.Linq;
 using TextProcessing.Constants;
 using TextProcessing.Dto;

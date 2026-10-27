@@ -1,7 +1,7 @@
 using AvaloniaEdit.Document;
 using EditorDocuments.Enums;
 
-namespace DataOrganizer.Extensions.Documents;
+namespace DataOrganizer.Extensions;
 
 internal static class TextDocumentExtensions
 {

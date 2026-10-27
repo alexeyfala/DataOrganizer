@@ -17,7 +17,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Behaviors.Scrolling;
+namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Keeps the place of the records in the associated <see cref="ScrollViewer" />: once enabled, brings back

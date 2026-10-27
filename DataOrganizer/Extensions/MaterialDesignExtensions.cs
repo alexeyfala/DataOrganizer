@@ -3,7 +3,7 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using Settings.Enums;
 
-namespace DataOrganizer.Extensions.Settings;
+namespace DataOrganizer.Extensions;
 
 internal static class MaterialDesignExtensions
 {

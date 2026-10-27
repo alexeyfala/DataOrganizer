@@ -9,7 +9,7 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Extensions;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;

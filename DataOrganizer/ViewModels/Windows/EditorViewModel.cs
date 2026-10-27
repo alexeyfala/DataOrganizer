@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
-using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Hierarchy;

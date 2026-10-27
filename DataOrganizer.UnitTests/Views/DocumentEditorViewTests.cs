@@ -20,7 +20,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Text;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using EditorDocuments.Dto;

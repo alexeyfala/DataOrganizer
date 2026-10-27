@@ -1,6 +1,6 @@
 using AppLifecycle.Services;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Hierarchy;
+using DataOrganizer.Extensions;
 using DataOrganizer.ViewModels.Hierarchy;
 using DynamicData.Binding;
 using Hierarchy.Dto;
@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Extensions.Hierarchy;
+namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeExtensions)}"" type")]
 internal class ExplorerNodeExtensionsTests

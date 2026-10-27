@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 
-namespace DataOrganizer.Extensions.Hierarchy;
+namespace DataOrganizer.Extensions;
 
 internal static class ExplorerNodeExtensions
 {

@@ -2,7 +2,7 @@ using Material.Styles.Controls;
 using Notifications.Dto;
 using Notifications.Interfaces;
 
-namespace DataOrganizer.Interfaces.Notifications;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Shows messages in the snackbar host that has been handed over to it.

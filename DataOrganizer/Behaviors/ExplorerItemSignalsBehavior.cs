@@ -16,7 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DataOrganizer.Behaviors.Hierarchy;
+namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Highlights the objects of the hierarchy that the attached tree or list shows, and brings them into view and selects

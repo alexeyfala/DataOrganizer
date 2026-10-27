@@ -1,7 +1,7 @@
 using Avalonia.Data.Converters;
 using AvaloniaEdit.Document;
 using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using EditorDocuments.Dto;
 using EditorDocuments.Enums;
 using EditorDocuments.Extensions;

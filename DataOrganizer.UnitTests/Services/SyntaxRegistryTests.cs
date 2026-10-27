@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using EditorDocuments.Dto;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using TextMateSharp.Registry;
 using TextMateSharp.Themes;
 using TextProcessing.Dto;
 
-namespace DataOrganizer.UnitTests.Services.Text;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SyntaxRegistry)}"" type")]
 internal class SyntaxRegistryTests

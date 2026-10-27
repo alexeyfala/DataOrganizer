@@ -1,9 +1,9 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Documents;
+using DataOrganizer.Extensions;
 using EditorDocuments.Enums;
 
-namespace DataOrganizer.UnitTests.Extensions.Documents;
+namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextDocumentExtensions)}"" type")]
 internal class TextDocumentExtensionsTests

@@ -3,7 +3,7 @@ using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers.Diagnostics;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces.Views;
 using Diagnostics.Interfaces;
 using FileExecution.Interfaces;

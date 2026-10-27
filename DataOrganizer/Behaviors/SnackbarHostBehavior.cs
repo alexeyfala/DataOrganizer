@@ -2,10 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces;
 using Material.Styles.Controls;
 
-namespace DataOrganizer.Behaviors.Notifications;
+namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Hands the associated <see cref="SnackbarHost" /> over to <see cref="Presenter" /> while it is on the screen.

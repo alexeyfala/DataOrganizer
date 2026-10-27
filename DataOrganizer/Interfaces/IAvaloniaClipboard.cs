@@ -4,7 +4,7 @@ using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces.Clipboard;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// The Avalonia clipboard of the application, called on the UI thread.

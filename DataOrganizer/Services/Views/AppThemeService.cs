@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Styling;
-using DataOrganizer.Extensions.Settings;
+using DataOrganizer.Extensions;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using Serilog;

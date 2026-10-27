@@ -2,7 +2,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Interfaces.Text;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Way of finding the blocks of a document that fold.

@@ -1,6 +1,6 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
-using DataOrganizer.Interfaces.Text;
+using DataOrganizer.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using TextProcessing.Helpers;

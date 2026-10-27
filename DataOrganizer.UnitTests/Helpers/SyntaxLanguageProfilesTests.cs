@@ -1,9 +1,9 @@
 using AwesomeAssertions;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
 using System.Linq;
 using TextProcessing.Helpers;
 
-namespace DataOrganizer.UnitTests.Helpers.Text;
+namespace DataOrganizer.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SyntaxLanguageProfiles)}"" type")]
 internal class SyntaxLanguageProfilesTests

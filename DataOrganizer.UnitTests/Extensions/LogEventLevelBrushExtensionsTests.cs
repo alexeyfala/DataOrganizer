@@ -1,9 +1,9 @@
 using Avalonia.Media;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Diagnostics;
+using DataOrganizer.Extensions;
 using Serilog.Events;
 
-namespace DataOrganizer.UnitTests.Extensions.Diagnostics;
+namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelBrushExtensions)}"" type")]
 internal class LogEventLevelBrushExtensionsTests

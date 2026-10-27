@@ -11,7 +11,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Scrolling;
+using DataOrganizer.Behaviors;
 using DataOrganizer.UnitTests.Factories;
 using DatasetRecords.Dto;
 using DatasetRecords.Models;
@@ -21,7 +21,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 
-namespace DataOrganizer.UnitTests.Behaviors.Scrolling;
+namespace DataOrganizer.UnitTests.Behaviors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetScrollBehavior)}"" type")]
 internal class DatasetScrollBehaviorTests

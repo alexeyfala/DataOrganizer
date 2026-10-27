@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces;
 using DialogContracts.Interfaces;
 using DialogHostAvalonia;
 using System.Threading.Tasks;

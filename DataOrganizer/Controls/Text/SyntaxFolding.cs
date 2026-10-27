@@ -5,7 +5,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
-using DataOrganizer.Interfaces.Text;
+using DataOrganizer.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

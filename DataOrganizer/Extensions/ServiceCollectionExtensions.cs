@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace DataOrganizer.Extensions.Runtime;
+namespace DataOrganizer.Extensions;
 
 internal static class ServiceCollectionExtensions
 {

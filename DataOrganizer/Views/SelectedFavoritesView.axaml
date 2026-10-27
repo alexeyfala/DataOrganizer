@@ -2,10 +2,10 @@
 	x:Class="DataOrganizer.Views.SelectedFavoritesView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
-	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:SelectedFavoritesViewModel"
@@ -95,7 +95,7 @@
 			ItemsSource="{Binding Favorites, Mode=OneTime}"
 			SelectedItem="{Binding SelectedFavorite, Mode=TwoWay}">
 			<Interaction.Behaviors>
-				<hierarchy:ExplorerItemSignalsBehavior HighlightSignal="{Binding HighlightSignal, Mode=OneWay}" />
+				<behaviors:ExplorerItemSignalsBehavior HighlightSignal="{Binding HighlightSignal, Mode=OneWay}" />
 			</Interaction.Behaviors>
 		</ListBox>
 	</Grid>

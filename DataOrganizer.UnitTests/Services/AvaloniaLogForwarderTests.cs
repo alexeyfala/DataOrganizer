@@ -2,12 +2,12 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Logging;
 using AwesomeAssertions;
-using DataOrganizer.Services.Diagnostics;
+using DataOrganizer.Services;
 using NSubstitute;
 using Serilog;
 using System;
 
-namespace DataOrganizer.UnitTests.Services.Diagnostics;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AvaloniaLogForwarder)}"" type")]
 internal class AvaloniaLogForwarderTests

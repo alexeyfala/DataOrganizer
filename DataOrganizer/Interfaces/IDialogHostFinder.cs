@@ -1,6 +1,6 @@
 using DialogHostAvalonia;
 
-namespace DataOrganizer.Interfaces.Dialogs;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Finds the dialog hosts of the open windows.

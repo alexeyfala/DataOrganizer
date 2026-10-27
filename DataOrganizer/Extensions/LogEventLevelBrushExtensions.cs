@@ -1,7 +1,7 @@
 using Avalonia.Media;
 using Serilog.Events;
 
-namespace DataOrganizer.Extensions.Diagnostics;
+namespace DataOrganizer.Extensions;
 
 internal static class LogEventLevelBrushExtensions
 {
