@@ -1,4 +1,5 @@
 using DataOrganizer.Enums.Clipboard;
+using Settings.Dto;
 
 namespace DataOrganizer.Dto.Settings;
 

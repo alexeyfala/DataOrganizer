@@ -2,10 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Windows;
+using Settings.Dto;
+using Settings.Enums;
 using System;
 using System.Collections.Generic;
 

@@ -1,13 +1,13 @@
 using AppInstance.Interfaces;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
 using DataProtection.Interfaces;
 using Diagnostics.Interfaces;
 using Hierarchy.Enums;
 using Hierarchy.Extensions;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Extensions;
 using System;
 using System.Threading;

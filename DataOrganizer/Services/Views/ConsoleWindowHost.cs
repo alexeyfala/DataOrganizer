@@ -1,10 +1,10 @@
 using AppInstance.Interfaces;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Common;
 using Shared.Properties;
 using System;

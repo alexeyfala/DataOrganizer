@@ -1,9 +1,9 @@
 using AppInstance.Interfaces;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Dto.Updates;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Serilog;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;

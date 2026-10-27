@@ -1,7 +1,7 @@
 using AppInstance.Interfaces;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Notepad;
 using Serilog;
+using Settings.Dto;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;

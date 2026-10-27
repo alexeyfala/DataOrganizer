@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Settings;
 using Diagnostics.Interfaces;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;
 

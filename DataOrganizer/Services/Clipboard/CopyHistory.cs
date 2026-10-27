@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Clipboard;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

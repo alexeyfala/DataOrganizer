@@ -5,7 +5,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
-	xmlns:enums="using:DataOrganizer.Enums.Settings"
+	xmlns:enums="using:Settings.Enums"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"

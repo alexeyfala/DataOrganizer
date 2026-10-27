@@ -1,6 +1,6 @@
-using DataOrganizer.Dto.Settings;
 using EditorDocuments.Helpers;
 using EditorDocuments.Interfaces;
+using Settings.Dto;
 using System.Collections.Generic;
 using System.Linq;
 using TextProcessing.Interfaces;

@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Interfaces;
+using Settings.UnitTests.Factories;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

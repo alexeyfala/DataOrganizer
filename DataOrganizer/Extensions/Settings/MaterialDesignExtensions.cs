@@ -1,7 +1,7 @@
 using Avalonia.Media;
-using DataOrganizer.Enums.Settings;
 using Material.Colors;
 using Material.Styles.Themes.Base;
+using Settings.Enums;
 
 namespace DataOrganizer.Extensions.Settings;
 

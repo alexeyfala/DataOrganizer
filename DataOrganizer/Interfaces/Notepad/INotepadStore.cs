@@ -1,4 +1,4 @@
-using DataOrganizer.Dto.Settings;
+using Settings.Dto;
 
 namespace DataOrganizer.Interfaces.Notepad;
 

@@ -1,8 +1,8 @@
 using AppInstance.Interfaces;
 using Cysharp.Text;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Settings;
 using Serilog;
+using Settings.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using System;

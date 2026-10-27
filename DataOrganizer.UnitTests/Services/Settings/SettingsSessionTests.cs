@@ -1,19 +1,17 @@
 using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
-using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
-using DataOrganizer.Services.Settings;
-using DataOrganizer.UnitTests.Factories;
 using DataProtection.Interfaces;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Interfaces;
+using Settings.Services;
+using Settings.UnitTests.Factories;
 using Shared.Extensions;
 using System;
 using System.Threading;
@@ -25,44 +23,6 @@ namespace DataOrganizer.UnitTests.Services.Settings;
 internal class SettingsSessionTests
 {
 	#region Methods
-	/// <summary>
-	/// <see cref="SettingsSession.Begin" />: a new session starts neither saved nor discarded, whatever the last one ended
-	/// with.
-	/// </summary>
-	[Test]
-	public void Begin_Starts_Neither_Saved_Nor_Discarded()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings());
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		SettingsSession sut = mock.Create<SettingsSession>();
-
-		sut.Begin();
-
-		sut.Save();
-
-		sut.Discard();
-
-		// Act
-		sut.Begin();
-
-		// Assert
-		bool[] flags = [sut.IsSaved, sut.IsDiscarded];
-
-		flags
-			.Should()
-			.OnlyContain(static x => !x);
-	}
-
 	/// <summary>
 	/// <see cref="SettingsSession.EndAsync" />: a changed auto-lock delay restarts the countdown at once.
 	/// </summary>
@@ -393,52 +353,6 @@ internal class SettingsSessionTests
 		await clipboardLog
 			.Received(1)
 			.ClearEntriesAsync();
-	}
-
-	/// <summary>
-	/// <see cref="SettingsSession.ShouldConfirmClose" />: edits that are neither saved nor discarded ask for a confirmation,
-	/// saved or discarded ones and unchanged settings do not.
-	/// </summary>
-	[Test]
-	[TestCase(true, false, false, ExpectedResult = true)]
-	[TestCase(true, true, false, ExpectedResult = false)]
-	[TestCase(true, false, true, ExpectedResult = false)]
-	[TestCase(false, false, false, ExpectedResult = false)]
-	public bool ShouldConfirmClose_Asks_Only_For_Pending_Edits(bool isEdited, bool isSaved, bool isDiscarded)
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings());
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		SettingsSession sut = mock.Create<SettingsSession>();
-
-		AppSettings draft = sut.Begin();
-
-		if (isEdited)
-		{
-			draft.CheckForUpdates = !draft.CheckForUpdates;
-		}
-
-		if (isSaved)
-		{
-			sut.Save();
-		}
-
-		if (isDiscarded)
-		{
-			sut.Discard();
-		}
-
-		// Act
-		return sut.ShouldConfirmClose;
 	}
 	#endregion
 }

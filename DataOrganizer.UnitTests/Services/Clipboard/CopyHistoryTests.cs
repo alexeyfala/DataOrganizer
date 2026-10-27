@@ -2,13 +2,13 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Interfaces;
 using System;
 using System.Linq;
 

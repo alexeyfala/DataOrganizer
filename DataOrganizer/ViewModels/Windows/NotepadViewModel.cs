@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
@@ -11,6 +10,7 @@ using DynamicData;
 using DynamicData.Binding;
 using EditorDocuments.Interfaces;
 using Notifications.Constants;
+using Settings.Dto;
 using Shared.Properties;
 using System;
 using System.Collections;

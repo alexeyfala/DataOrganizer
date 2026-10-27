@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces.Settings;
 using DataProtection.Interfaces;
+using Settings.Interfaces;
 
 namespace DataOrganizer.Services.Settings;
 

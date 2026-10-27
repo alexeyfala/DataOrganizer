@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
-using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Interfaces;
+using Settings.UnitTests.Factories;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
