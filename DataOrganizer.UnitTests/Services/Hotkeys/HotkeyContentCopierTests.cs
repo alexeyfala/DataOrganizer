@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Services.Hotkeys;

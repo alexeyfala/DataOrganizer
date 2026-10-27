@@ -1,3 +1,4 @@
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -7,7 +8,6 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions.Collections;
 using DataOrganizer.Helpers.Collections;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
 using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Shared.Extensions;

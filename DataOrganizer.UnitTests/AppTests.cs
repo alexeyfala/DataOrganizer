@@ -3,7 +3,7 @@ using AppInstance.Interfaces;
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;

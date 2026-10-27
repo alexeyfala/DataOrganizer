@@ -1,6 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Services.Runtime;
 using NSubstitute;

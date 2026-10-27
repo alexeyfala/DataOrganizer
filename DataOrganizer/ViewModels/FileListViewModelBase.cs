@@ -1,6 +1,6 @@
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Clipboard;
 using Diagnostics.Interfaces;
 using EditorMessages.Messages;
 using Hierarchy.Dto;

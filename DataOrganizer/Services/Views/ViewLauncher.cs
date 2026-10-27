@@ -1,13 +1,14 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
 using Avalonia.Controls;
+using Clipboard.Dto;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Views;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;

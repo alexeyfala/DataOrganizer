@@ -6,6 +6,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using Clipboard.Interfaces;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Runtime;
 using DataOrganizer.Interfaces.Clipboard;

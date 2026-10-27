@@ -1,10 +1,12 @@
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using Clipboard.Helpers;
+using Clipboard.Interfaces;
+using Clipboard.Models;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Storage;
-using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;

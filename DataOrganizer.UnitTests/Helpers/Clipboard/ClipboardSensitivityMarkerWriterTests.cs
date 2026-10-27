@@ -1,5 +1,6 @@
 using Avalonia.Input;
 using AwesomeAssertions;
+using Clipboard.Helpers;
 using DataOrganizer.Helpers.Clipboard;
 using Shared.Common;
 using System;

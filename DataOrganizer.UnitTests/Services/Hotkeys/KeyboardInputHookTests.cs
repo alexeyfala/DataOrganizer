@@ -1,15 +1,15 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using Clipboard.Interfaces;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Hotkeys;
 using DataOrganizer.Helpers.Seeding;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
 using DataOrganizer.Messages.Hotkeys;
-using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.Services.Runtime;
 using Diagnostics.Interfaces;

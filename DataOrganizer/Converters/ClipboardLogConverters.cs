@@ -1,6 +1,6 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
-using DataOrganizer.Models.Clipboard;
+using Clipboard.Models;
 using Shared.Properties;
 using System;
 using System.Buffers.Binary;

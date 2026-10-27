@@ -1,9 +1,9 @@
+using Clipboard.Interfaces;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Favorites;
-using DataOrganizer.Services.Clipboard;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Notifications.Interfaces;

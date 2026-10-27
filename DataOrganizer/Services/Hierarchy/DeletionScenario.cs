@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataProtection.Interfaces;

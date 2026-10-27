@@ -1,5 +1,6 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,7 +9,6 @@ using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Hierarchy;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Exchange;

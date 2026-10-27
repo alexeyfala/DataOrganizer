@@ -1,11 +1,13 @@
 using Bogus;
+using Clipboard.Enums;
+using Clipboard.Helpers;
+using Clipboard.Interfaces;
+using Clipboard.Messages;
+using Clipboard.Models;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Seeding;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages.Clipboard;
-using DataOrganizer.Models.Clipboard;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;

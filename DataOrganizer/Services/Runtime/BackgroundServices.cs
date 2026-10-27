@@ -1,5 +1,5 @@
 using AppInstance.Interfaces;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Runtime;
 using DataProtection.Interfaces;

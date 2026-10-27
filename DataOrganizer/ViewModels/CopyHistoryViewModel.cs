@@ -1,10 +1,10 @@
 using AppInstance.Interfaces;
+using Clipboard.Interfaces;
+using Clipboard.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Collections;
 using DataOrganizer.Helpers.Collections;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages.Clipboard;
 using Diagnostics.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.Extensions;

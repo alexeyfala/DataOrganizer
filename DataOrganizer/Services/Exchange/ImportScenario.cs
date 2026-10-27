@@ -1,7 +1,7 @@
 using AppInstance.Interfaces;
+using Clipboard.Interfaces;
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataProtection.Interfaces;

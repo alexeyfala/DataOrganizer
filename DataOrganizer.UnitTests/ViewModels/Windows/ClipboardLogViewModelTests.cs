@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Enums;
+using Clipboard.Interfaces;
+using Clipboard.Models;
+using Clipboard.UnitTests.Factories;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Models.Clipboard;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;

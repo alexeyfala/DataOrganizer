@@ -5,7 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using DataOrganizer.Views;
 using NSubstitute;
 using Shared.Common;

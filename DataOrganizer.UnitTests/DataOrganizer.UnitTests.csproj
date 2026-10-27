@@ -38,6 +38,7 @@
 
 	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
 	<ItemGroup>
+		<Compile Include="..\Clipboard.UnitTests\Factories\ClipboardEntryFactory.cs" Link="Factories\ClipboardEntryFactory.cs" />
 		<Compile Include="..\DataProtection.UnitTests\Factories\Argon2SettingsFactory.cs" Link="Factories\Argon2SettingsFactory.cs" />
 		<Compile Include="..\DataProtection.UnitTests\Factories\SecretFactory.cs" Link="Factories\SecretFactory.cs" />
 		<Compile Include="..\GlobalHotkeys.UnitTests\Factories\HotkeyFactory.cs" Link="Factories\HotkeyFactory.cs" />

@@ -1,11 +1,11 @@
+using Clipboard.Enums;
+using Clipboard.Interfaces;
+using Clipboard.Messages;
+using Clipboard.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Messages.Clipboard;
-using DataOrganizer.Models.Clipboard;
 using DynamicData.Binding;
 using Serilog;
 using Shared.Extensions;

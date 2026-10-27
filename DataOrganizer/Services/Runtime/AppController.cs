@@ -1,7 +1,7 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
