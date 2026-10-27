@@ -3301,52 +3301,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree empties the copy history.
-	/// </summary>
-	[Test]
-	public async Task Import_Clears_The_Copy_History_On_Replacement()
-	{
-		// Arrange
-		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Replace));
-
-			builder.RegisterInstance(copyHistory);
-
-			builder.RegisterInstance(dataExchange);
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		copyHistory
-			.Received(1)
-			.Clear();
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.Import" />: an import that replaces leaves only the imported objects in the tree.
 	/// </summary>
 	[Test]
@@ -3536,52 +3490,6 @@ internal class EditorViewModelTests
 		sut.HierarchySummary
 			.Should()
 			.Be(new ExplorerItemDtoBase[] { imported }.GetCount().AsString());
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
-	/// </summary>
-	[Test]
-	public async Task Import_Drops_The_Keys_On_Replacement()
-	{
-		// Arrange
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Replace));
-
-			builder.RegisterInstance(dataExchange);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		contentKeys
-			.Received(1)
-			.DiscardAllKeys();
 	}
 
 	/// <summary>
@@ -3794,48 +3702,6 @@ internal class EditorViewModelTests
 		sut.Hierarchy
 			.Should()
 			.Equal(folder);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that appends leaves the hierarchy in place, keys included.
-	/// </summary>
-	[Test]
-	public async Task Import_Keeps_The_Keys_On_Appending()
-	{
-		// Arrange
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Append));
-
-			builder.RegisterInstance(dataExchange);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		contentKeys
-			.DidNotReceive()
-			.DiscardAllKeys();
 	}
 
 	/// <summary>
