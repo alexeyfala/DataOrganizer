@@ -7,7 +7,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
-using DataOrganizer.Interfaces.Documents;
+using FileContents.Interfaces;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;

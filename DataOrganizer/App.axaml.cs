@@ -50,6 +50,8 @@ using Diagnostics.Interfaces;
 using Diagnostics.Services;
 using EditorDocuments.Interfaces;
 using EditorDocuments.Services;
+using FileContents.Interfaces;
+using FileContents.Services;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;
 using Hierarchy.Services;

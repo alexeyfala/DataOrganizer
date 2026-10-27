@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Interfaces.Documents;
+using FileContents.Interfaces;
 using Hierarchy.Dto;
 using System.Threading.Tasks;
 

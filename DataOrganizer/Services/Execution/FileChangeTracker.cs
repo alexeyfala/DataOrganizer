@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages.Execution;
 using Diagnostics.Interfaces;
+using FileContents.Dto;
+using FileContents.Enums;
+using FileContents.Interfaces;
 using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;

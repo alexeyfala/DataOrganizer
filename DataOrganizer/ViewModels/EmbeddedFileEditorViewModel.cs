@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Runtime;
 using Diagnostics.Interfaces;
 using DynamicData.Binding;
 using EditorDocuments.Dto;
 using EditorDocuments.Helpers;
 using EditorDocuments.Interfaces;
+using FileContents.Enums;
+using FileContents.Interfaces;
 using Notifications.Constants;
 using Notifications.Interfaces;
 using Serilog;

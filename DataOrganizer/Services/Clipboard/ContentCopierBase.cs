@@ -1,6 +1,6 @@
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Helpers.Documents;
 using DataOrganizer.Interfaces.Clipboard;
+using FileContents.Enums;
+using FileContents.Helpers;
 using Hierarchy.Dto;
 using System.Threading;
 using System.Threading.Tasks;

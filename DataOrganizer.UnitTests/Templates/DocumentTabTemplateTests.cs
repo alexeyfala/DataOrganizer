@@ -18,6 +18,8 @@ using DataOrganizer.Views;
 using EditorDocuments.Interfaces;
 using EditorDocuments.Services;
 using Entities.Enums;
+using FileContents.Interfaces;
+using FileContents.Services;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;

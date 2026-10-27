@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Execution;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Execution;
+using FileContents.Interfaces;
 using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;

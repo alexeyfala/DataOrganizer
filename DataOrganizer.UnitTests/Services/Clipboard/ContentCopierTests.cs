@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Enums.Documents;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Clipboard;
-using DataOrganizer.Services.Documents;
 using EditorDocuments.Dto;
+using FileContents.Dto;
+using FileContents.Enums;
+using FileContents.Interfaces;
+using FileContents.Services;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
