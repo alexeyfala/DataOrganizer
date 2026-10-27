@@ -4,7 +4,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:entities="using:Hierarchy.Dto"
 	xmlns:markup="using:DataOrganizer.Markup"
-	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
+	xmlns:notes="using:HierarchyNotes.Interfaces"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views">
 

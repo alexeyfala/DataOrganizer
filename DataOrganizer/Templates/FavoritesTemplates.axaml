@@ -7,7 +7,7 @@
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
+	xmlns:notes="using:HierarchyNotes.Interfaces"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"

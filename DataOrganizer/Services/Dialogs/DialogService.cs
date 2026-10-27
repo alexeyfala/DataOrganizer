@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using DataOrganizer.Enums.Exchange;
-using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Dialogs;
@@ -17,6 +16,7 @@ using DialogHostAvalonia;
 using Entities.Enums;
 using FileExecution.Dto;
 using FileExecution.Interfaces;
+using HierarchyNotes.Helpers;
 using Repository.Dto;
 using Serilog;
 using Settings.Interfaces;
