@@ -11,7 +11,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
-using DataOrganizer.Enums.Views;
+using DataOrganizer.Enums;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;

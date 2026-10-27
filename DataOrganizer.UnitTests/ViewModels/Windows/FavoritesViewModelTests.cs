@@ -12,7 +12,7 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums.Views;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Views;

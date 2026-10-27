@@ -16,7 +16,7 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
 using DataOrganizer.Controls;
-using DataOrganizer.Enums.Views;
+using DataOrganizer.Enums;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;

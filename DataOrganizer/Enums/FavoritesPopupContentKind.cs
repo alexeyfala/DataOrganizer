@@ -1,5 +1,5 @@
 
-namespace DataOrganizer.Enums.Views;
+namespace DataOrganizer.Enums;
 
 /// <summary>
 /// The content of the popup in the favorites window.

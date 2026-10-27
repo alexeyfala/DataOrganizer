@@ -4,7 +4,7 @@ using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums.Views;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Views;
 using DataProtection.Messages;
 using Diagnostics.Interfaces;

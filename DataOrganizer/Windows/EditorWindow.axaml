@@ -9,7 +9,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogConstants="using:DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:enums="using:DataOrganizer.Enums.Views"
+	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:local="using:DataOrganizer.Windows"

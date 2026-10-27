@@ -1,6 +1,6 @@
 
 
-namespace DataOrganizer.Enums.Views;
+namespace DataOrganizer.Enums;
 
 /// <summary>
 /// The content in the right side sheet of the editor.
