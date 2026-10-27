@@ -1,10 +1,10 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;

@@ -1,8 +1,8 @@
+using AppInstance.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Diagnostics;
-using DataOrganizer.Interfaces.Runtime;
 using Diagnostics.Interfaces;
 using EditorDocuments.Dto;
 using EditorDocuments.Interfaces;

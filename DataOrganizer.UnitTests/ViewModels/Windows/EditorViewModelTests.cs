@@ -1,3 +1,4 @@
+using AppInstance.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
@@ -22,7 +23,6 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Messages.Updates;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;

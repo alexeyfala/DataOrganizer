@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Runtime;
+using AppInstance.Interfaces;
 
 namespace DataOrganizer.Dto.Settings;
 

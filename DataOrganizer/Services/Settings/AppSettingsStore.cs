@@ -1,5 +1,5 @@
+using AppInstance.Interfaces;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using Shared.Extensions;
 using Shared.Interfaces;

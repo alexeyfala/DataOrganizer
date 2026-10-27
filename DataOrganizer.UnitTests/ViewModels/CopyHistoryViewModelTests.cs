@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
@@ -5,7 +6,6 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Runtime;

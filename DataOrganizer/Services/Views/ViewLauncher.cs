@@ -1,3 +1,5 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Dialogs;
@@ -6,10 +8,8 @@ using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Views;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Serilog;

@@ -1,6 +1,6 @@
+using AppInstance.Interfaces;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Dto.Updates;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Serilog;

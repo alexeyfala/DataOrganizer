@@ -1,9 +1,9 @@
+using AppInstance.Interfaces;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.LogicalTree;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Windows;
 using DialogHostAvalonia;

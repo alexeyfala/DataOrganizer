@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -10,7 +11,6 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;

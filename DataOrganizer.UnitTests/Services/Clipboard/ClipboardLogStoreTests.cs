@@ -1,10 +1,10 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Factories;

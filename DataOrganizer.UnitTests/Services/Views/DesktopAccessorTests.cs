@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -6,7 +7,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Fakes;
 using DialogHostAvalonia;

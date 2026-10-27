@@ -1,8 +1,8 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.ViewModels.Windows;
 using Diagnostics.Interfaces;

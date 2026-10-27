@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Hotkeys;

@@ -1,8 +1,8 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Diagnostics.Interfaces;

@@ -1,6 +1,6 @@
+using AppInstance.Interfaces;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Runtime;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

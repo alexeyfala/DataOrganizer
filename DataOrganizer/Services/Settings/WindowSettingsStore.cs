@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Runtime;
+using AppInstance.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using Shared.Interfaces;
 

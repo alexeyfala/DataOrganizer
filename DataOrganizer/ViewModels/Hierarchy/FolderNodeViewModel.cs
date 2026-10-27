@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Runtime;
+using AppInstance.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
 using Hierarchy.Dto;

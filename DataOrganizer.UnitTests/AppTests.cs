@@ -1,3 +1,5 @@
+using AppInstance.Extensions;
+using AppInstance.Interfaces;
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
@@ -6,12 +8,10 @@ using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Guards;
 using DataOrganizer.ViewModels.Windows;
@@ -91,7 +91,7 @@ internal partial class AppTests
 		// Arrange
 		ServiceCollection services = [];
 
-		((App)Application.Current!).RegisterServices(services, [CommandLineOptions.ConsoleArg]);
+		((App)Application.Current!).RegisterServices(services, Array.Empty<string>().AddConsoleArg());
 
 		// The environment of the test keeps the folders of the application untouched.
 		services.AddSingleton(Substitute.For<IAppEnvironment>());

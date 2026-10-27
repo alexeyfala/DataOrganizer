@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -8,7 +9,6 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;

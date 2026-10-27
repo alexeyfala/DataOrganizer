@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces.Runtime;
+using AppInstance.Interfaces;
 using EditorDocuments.Dto;
 using Hierarchy.Dto;
 using System;

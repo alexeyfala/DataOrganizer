@@ -1,3 +1,6 @@
+using AppInstance.Extensions;
+using AppInstance.Interfaces;
+using AppInstance.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;

@@ -1,3 +1,5 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
@@ -11,7 +13,6 @@ using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;

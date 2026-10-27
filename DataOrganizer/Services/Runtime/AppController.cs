@@ -1,3 +1,5 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
@@ -5,7 +7,6 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Runtime;
 using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;

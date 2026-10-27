@@ -1,3 +1,5 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -24,11 +26,9 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Clipboard;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Execution;

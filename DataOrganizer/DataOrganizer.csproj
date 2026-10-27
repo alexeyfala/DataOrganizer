@@ -85,6 +85,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\AppInstance\AppInstance.csproj" />
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\FileContents\FileContents.csproj" />

@@ -1,6 +1,6 @@
+using AppInstance.Interfaces;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels.Windows;

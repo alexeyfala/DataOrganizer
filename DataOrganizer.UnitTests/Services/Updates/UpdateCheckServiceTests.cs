@@ -1,9 +1,9 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Dto.Updates;
-using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Updates;
 using DataOrganizer.UnitTests.Factories;
