@@ -168,7 +168,7 @@ internal class GenericExtensionsTests
 		Target target = new() { Name = "untouched", Number = -1, Comment = "untouched" };
 
 		// Act
-		source.CopyPropertiesTo<Source, Target>(target);
+		source.CopyPropertiesTo(target);
 
 		// Assert
 		target.Name

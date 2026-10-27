@@ -98,7 +98,7 @@ internal static class WindowPlacementHelper
 		// 16 device-independent pixels of padding from the screen edge.
 		const int marginDip = 16;
 
-		target.Position = WindowPlacementHelper.GetLowerRightPosition(
+		target.Position = GetLowerRightPosition(
 			screen.WorkingArea,
 			new PixelSize((int)(target.Width * screen.Scaling), (int)(target.Height * screen.Scaling)),
 			(int)(marginDip * screen.Scaling));
@@ -117,7 +117,7 @@ internal static class WindowPlacementHelper
 
 		// A shown window knows its outer size, a new one only the size it asks for.
 		PixelSize size = PixelSize.FromSize(
-			target.FrameSize ?? new Avalonia.Size(target.Width, target.Height),
+			target.FrameSize ?? new Size(target.Width, target.Height),
 			screen.Scaling);
 
 		target.Position = screen

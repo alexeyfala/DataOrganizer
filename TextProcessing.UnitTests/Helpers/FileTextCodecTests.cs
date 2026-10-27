@@ -148,7 +148,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: a byte order mark tells the Unicode
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: a byte order mark tells the Unicode
 	/// encoding of the bytes, and the mark of UTF-32 LE is not taken for that of UTF-16 LE.
 	/// </summary>
 	[TestCase(new byte[] { 0xEF, 0xBB, 0xBF, 0x41 }, 65001)]
@@ -172,7 +172,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark whose zero bytes
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: bytes without a mark whose zero bytes
 	/// are all high bytes of Latin letters are UTF-16 in that byte order, with Cyrillic letters among them too.
 	/// </summary>
 	[TestCase("Hi", 1200)]
@@ -195,7 +195,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes that are not UTF-8 and hold
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: bytes that are not UTF-8 and hold
 	/// a control character that no text has are not text, although the fallback would read them.
 	/// </summary>
 	[TestCase(new byte[] { 0xCF, 0xF0, 0x07 })]
@@ -212,7 +212,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that hold a zero
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that hold a zero
 	/// byte are not text unless UTF-16 explains it: the start of a PNG image, UTF-32 without its mark, an odd length
 	/// and a bell.
 	/// </summary>
@@ -232,7 +232,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: a text that is not UTF-8 takes the
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: a text that is not UTF-8 takes the
 	/// fallback, with its tabs, line breaks, form feeds, end of file mark and terminal escapes.
 	/// </summary>
 	[TestCase(CyrillicText)]
@@ -254,7 +254,7 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
-	/// <see cref="FileTextCodec.Detect(System.ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that are UTF-8 take
+	/// <see cref="FileTextCodec.Detect(ReadOnlySpan{byte}, Encoding)" />: bytes without a mark that are UTF-8 take
 	/// UTF-8, an empty file and control characters included.
 	/// </summary>
 	[TestCase("")]
