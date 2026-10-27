@@ -7,9 +7,9 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogConstants="using:DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:enums="using:DataOrganizer.Enums.Views"
-	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:hierarchy="using:DataOrganizer.Behaviors.Hierarchy"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:local="using:DataOrganizer.Windows"
@@ -80,7 +80,7 @@
 		<dialogHost:DialogHost
 			dialogHost:DialogHostStyle.CornerRadius="6.0"
 			CloseOnClickAway="True"
-			Identifier="{x:Static helpers:DialogHostIdentifiers.Main}">
+			Identifier="{x:Static dialogConstants:DialogHostIdentifiers.Main}">
 			<materialControls:SnackbarHost
 				x:Name="SnackbarHost"
 				HostName="{x:Static notificationConstants:SnackbarHostIdentifiers.Main}"

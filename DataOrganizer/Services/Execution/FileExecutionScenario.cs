@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Execution;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
+using DialogContracts.Interfaces;
 using FileContents.Interfaces;
 using Hierarchy.Dto;
 using Serilog;

@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
+using DialogContracts.Interfaces;
 using EditorMessages.Messages;
 using Hierarchy.Dto;
 using Shared.Properties;

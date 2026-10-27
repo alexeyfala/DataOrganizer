@@ -5,8 +5,8 @@
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogConstants="using:DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers.Views"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
@@ -61,7 +61,7 @@
 		<dialogHost:DialogHost
 			dialogHost:DialogHostStyle.CornerRadius="6.0"
 			CloseOnClickAway="True"
-			Identifier="{x:Static helpers:DialogHostIdentifiers.Notepad}">
+			Identifier="{x:Static dialogConstants:DialogHostIdentifiers.Notepad}">
 			<materialControls:SnackbarHost
 				x:Name="SnackbarHost"
 				HostName="{x:Static notificationConstants:SnackbarHostIdentifiers.Notepad}"

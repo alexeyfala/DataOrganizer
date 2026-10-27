@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Dialogs;
 using Diagnostics.Interfaces;
+using DialogContracts.Constants;
+using DialogContracts.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -1,7 +1,7 @@
-using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Hotkeys;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using Hierarchy.Dto;
 using Serilog;
 using Shared.Extensions;

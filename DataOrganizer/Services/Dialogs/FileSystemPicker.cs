@@ -1,7 +1,7 @@
 using Avalonia.Platform.Storage;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Extensions.Hotkeys;
@@ -8,6 +7,8 @@ using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Exchange;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Hotkeys;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using EditorMessages.Extensions;
 using EditorMessages.Helpers;
 using FileSystemOperations.Interfaces;

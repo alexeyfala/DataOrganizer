@@ -1,5 +1,5 @@
 using Avalonia;
-using DataOrganizer.Interfaces.Dialogs;
+using DialogContracts.Interfaces;
 using DialogHostAvalonia;
 using System;
 using System.Threading.Tasks;

@@ -52,6 +52,7 @@ using DataProtection.Interfaces;
 using DataProtection.Services;
 using Diagnostics.Interfaces;
 using Diagnostics.Services;
+using DialogContracts.Interfaces;
 using EditorDocuments.Interfaces;
 using EditorDocuments.Services;
 using FileContents.Interfaces;

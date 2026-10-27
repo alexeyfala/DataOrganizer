@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Exchange;
 using DataOrganizer.Enums.Exchange;
 using DataOrganizer.Interfaces.Dialogs;
@@ -11,6 +10,8 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Services.Exchange;
 using DataOrganizer.Services.Hierarchy;
 using DataOrganizer.Services.Hotkeys;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using Entities.Models;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;

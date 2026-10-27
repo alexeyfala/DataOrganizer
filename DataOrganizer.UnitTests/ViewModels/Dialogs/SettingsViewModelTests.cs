@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.ViewModels.Dialogs;
+using DialogContracts.Interfaces;
 using Material.Colors;
 using NSubstitute;
 using Settings.Dto;

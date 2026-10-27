@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Notepad;
 using DataOrganizer.Interfaces.Views;
 using Diagnostics.Interfaces;
+using DialogContracts.Constants;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
 using EditorDocuments.Interfaces;

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces.Dialogs;
 using Diagnostics.Interfaces;
+using DialogContracts.Interfaces;
 using Settings.Dto;
 using Settings.Interfaces;
 using Shared.Properties;

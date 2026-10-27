@@ -1,5 +1,5 @@
 using Avalonia.Platform.Storage;
-using DataOrganizer.Dto.Dialogs;
+using DialogContracts.Dto;
 using System.Linq;
 
 namespace DataOrganizer.Services.Dialogs;
