@@ -1,4 +1,5 @@
 using AppInstance.Interfaces;
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
@@ -8,7 +9,6 @@ using Clipboard.Interfaces;
 using Clipboard.Messages;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels;
 using Diagnostics.Interfaces;
 using FileContents.Enums;

@@ -70,7 +70,6 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
 		<!-- Raised above the version TextMate asks for, whose native library breaks the build for Intel Macs. -->
 		<PackageReference Include="Onigwrap" Version="1.0.11" />
-		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
 		<PackageReference Include="ProItemsRepeater" Version="12.0.0" />
 		<PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
 		<PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
@@ -80,7 +79,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AppUpdates\AppUpdates.csproj" />
+		<ProjectReference Include="..\AppLifecycle\AppLifecycle.csproj" />
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\FilteredLists\FilteredLists.csproj" />

@@ -1,4 +1,5 @@
 using AppInstance.Messages;
+using AppLifecycle.Services;
 using AppUpdates.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
@@ -9,7 +10,6 @@ using Clipboard.Interfaces;
 using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions.Hierarchy;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;

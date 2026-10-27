@@ -1,3 +1,4 @@
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -11,7 +12,6 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;

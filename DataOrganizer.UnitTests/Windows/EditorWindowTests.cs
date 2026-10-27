@@ -1,3 +1,4 @@
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -16,7 +17,6 @@ using Clipboard.Interfaces;
 using Clipboard.Services;
 using DataOrganizer.Controls;
 using DataOrganizer.Enums.Views;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;

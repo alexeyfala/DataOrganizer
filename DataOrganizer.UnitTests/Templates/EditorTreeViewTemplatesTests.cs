@@ -1,3 +1,4 @@
+using AppLifecycle.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -5,7 +6,6 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Views;
 using GlobalHotkeys.Extensions;

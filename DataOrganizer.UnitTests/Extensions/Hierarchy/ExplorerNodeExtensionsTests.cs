@@ -1,6 +1,6 @@
+using AppLifecycle.Services;
 using AwesomeAssertions;
 using DataOrganizer.Extensions.Hierarchy;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.ViewModels.Hierarchy;
 using DynamicData.Binding;
 using Hierarchy.Dto;

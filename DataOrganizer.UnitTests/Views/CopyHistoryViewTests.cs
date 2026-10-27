@@ -1,3 +1,4 @@
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -12,7 +13,6 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
 using DataOrganizer.Behaviors.Input;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;

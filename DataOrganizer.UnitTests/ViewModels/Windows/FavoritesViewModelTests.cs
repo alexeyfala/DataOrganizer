@@ -1,4 +1,5 @@
 using AppInstance.Interfaces;
+using AppLifecycle.Services;
 using AppUpdates.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
@@ -14,7 +15,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;

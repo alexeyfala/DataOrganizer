@@ -1,5 +1,6 @@
 using AppInstance.Interfaces;
 using AppInstance.Messages;
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -23,7 +24,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.Services.Runtime;
 using DataOrganizer.Services.Views;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
