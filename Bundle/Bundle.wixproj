@@ -1,4 +1,4 @@
-﻿<Project Sdk="WixToolset.Sdk/7.0.0" InitialTargets="BuildSetupDependency">
+﻿<Project Sdk="WixToolset.Sdk/7.0.1" InitialTargets="BuildSetupDependency">
   <PropertyGroup>
 	<AcceptEula>wix7</AcceptEula>
 	<DotNetVersion>10.0.13</DotNetVersion>
