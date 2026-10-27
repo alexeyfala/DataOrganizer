@@ -60,6 +60,7 @@
     <Project Path="Repository/Repository.csproj" />
   </Folder>
   <Folder Name="/Layers/Documents/">
+    <Project Path="AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
     <Project Path="DatasetRecords/DatasetRecords.csproj" />
     <Project Path="EditorDocuments/EditorDocuments.csproj" />
     <Project Path="EditorMessages/EditorMessages.csproj" />
@@ -188,6 +189,5 @@
     <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
     <Project Path="GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj" />
   </Folder>
-  <Project Path="AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
   <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>
