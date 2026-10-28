@@ -23,7 +23,7 @@
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file. **Edit:** a non-code file appeared in or left the solution — otherwise `SolutionFilesReferenceTests` fails the test run: it checks this reference against `.slnx` and against the contents of `Docs/`.
 - 📁 **`Solution Items/`**
   - 📁 **`.config/`**
-    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef` and `dotnet-stryker`. Restored with `dotnet tool restore`. **Update:** `dotnet-ef` together with EF Core — the tool version stays at or above the package version. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
+    - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local tools: `dotnet-ef` and `dotnet-stryker`. Restored with `dotnet tool restore`. **Update:** `dotnet-ef` together with EF Core — the tool version equals the package version, a guard test fails otherwise. Migration commands are in [Database/Migrations.md](Database/Migrations.md).
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
       - ⚙️ [`bug_report.yml`](../.github/ISSUE_TEMPLATE/bug_report.yml) — bug report form, label `bug`.
