@@ -58,7 +58,8 @@ At the end the script prints a table, one line per project:
 - **Without flips** — the same score without the flips of `ConfigureAwait` (see *What is noise*). This
   is the number to compare between runs.
 
-Below the table come the methods Stryker dropped in safe mode (see *Methods Stryker drops*).
+Below the table come the methods Stryker dropped in safe mode (see *Methods Stryker drops*), and the
+path of the report of all projects.
 
 ## Projects Stryker cannot run
 
@@ -92,9 +93,12 @@ stayed behind.
 
 ## Reading the report
 
-Reports land in `StrykerOutput/<time>/<Project>/reports/` (kept out of git): `mutation-report.html` to
-read, `mutation-report.json` if something has to be parsed. The html shows the source with every mutant
-on its own line.
+The script joins the reports of all projects in `StrykerOutput/<time>/mutation-report.html` (kept out
+of git): every project is a folder of one tree, with its score next to it, and the html shows the source
+with every mutant on its own line. In this report the flips of `ConfigureAwait` are Ignored, with the
+reason given, so its scores are the *Without flips* column. `mutation-report.json` next to it is the
+same report for parsing. The reports Stryker writes for each project lie in
+`StrykerOutput/<time>/<Project>/reports/`, with the flips as they are.
 
 Statuses, in the order they are worth looking at:
 

@@ -12,8 +12,9 @@
     and take every test project that depends on the project, whatever the command line says.
     The settings shared by all runs come from stryker-config.json.
 
-    Reports land in StrykerOutput/<time>/<Project>/reports. At the end a table shows the counts and
-    the scores of each project, followed by the methods Stryker dropped in safe mode.
+    The reports of each project land in StrykerOutput/<time>/<Project>/reports. At the end a table
+    shows the counts and the scores of each project, followed by the methods Stryker dropped in safe
+    mode, and StrykerOutput/<time>/mutation-report.html joins the reports of all projects in one.
 
     Pairs with Docs/Stryker_Mutation_Testing.md.
 
@@ -92,7 +93,13 @@ if ($Project) {
 
 # --- Read a report: the counts by status and the flips of the ConfigureAwait flag --
 # A flip of ConfigureAwait(false) to (true) changes nothing a test can see, so the second
-# score leaves the flips out.
+# score and the joined report leave the flips out.
+function Test-IsFlip($mutant, [string[]]$lines) {
+    $line = $lines[$mutant.location.start.line - 1]
+    $before = $line.Substring(0, [Math]::Min($mutant.location.start.column - 1, $line.Length))
+    $mutant.mutatorName -like '*Boolean*' -and $before.TrimEnd().EndsWith('ConfigureAwait(')
+}
+
 function Read-Report([string]$reportFile) {
     $report = Get-Content $reportFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $counts = @{}
@@ -101,14 +108,12 @@ function Read-Report([string]$reportFile) {
         $lines = $file.Value.source -split "`n"
         foreach ($mutant in $file.Value.mutants) {
             $counts[$mutant.status] = 1 + $counts[$mutant.status]
-            $line = $lines[$mutant.location.start.line - 1]
-            $before = $line.Substring(0, [Math]::Min($mutant.location.start.column - 1, $line.Length))
-            if ($mutant.mutatorName -like '*Boolean*' -and $before.TrimEnd().EndsWith('ConfigureAwait(')) {
+            if (Test-IsFlip $mutant $lines) {
                 $flips[$mutant.status] = 1 + $flips[$mutant.status]
             }
         }
     }
-    [pscustomobject]@{ Counts = $counts; Flips = $flips }
+    [pscustomobject]@{ Data = $report; Counts = $counts; Flips = $flips }
 }
 
 function Get-Score([hashtable]$counts) {
@@ -133,9 +138,57 @@ function Get-DroppedMethods([object[]]$output) {
     }
 }
 
+# --- One report of all projects -------------------------------------------------------
+# The html of Stryker carries its report as "app.report = <json>;", so the html of one
+# project with the files of all projects shows them as folders of one tree.
+function Write-JoinedReport([object[]]$reports, [string]$htmlTemplateFile, [string]$folder) {
+    $template = Get-Content $htmlTemplateFile -Raw -Encoding UTF8
+    $marker = 'app.report = '
+    $start = $template.IndexOf($marker)
+    $end = $template.LastIndexOf(';', [Math]::Max(0, $template.LastIndexOf('function updateTheme')))
+    if ($start -lt 0 -or $end -lt $start) {
+        Write-Warning "The html of Stryker no longer carries its report as '$marker...;'; no joined report."
+        return
+    }
+
+    $files = [ordered]@{}
+    $testFiles = [ordered]@{}
+    foreach ($report in $reports) {
+        foreach ($file in $report.files.PSObject.Properties) {
+            $lines = $file.Value.source -split "`n"
+            foreach ($mutant in $file.Value.mutants) {
+                if ($mutant.status -in 'Killed', 'Timeout', 'Survived', 'NoCoverage' -and (Test-IsFlip $mutant $lines)) {
+                    $mutant.status = 'Ignored'
+                    $mutant | Add-Member -NotePropertyName statusReason -NotePropertyValue 'A flip of ConfigureAwait, invisible to any test' -Force
+                }
+            }
+            $files[$file.Name] = $file.Value
+        }
+        if ($report.testFiles) {
+            foreach ($file in $report.testFiles.PSObject.Properties) {
+                $testFiles[$file.Name] = $file.Value
+            }
+        }
+    }
+    $joined = [ordered]@{
+        files         = $files
+        projectRoot   = $repoRoot
+        schemaVersion = $reports[0].schemaVersion
+        testFiles     = $testFiles
+        thresholds    = $reports[0].thresholds
+    }
+    # ConvertTo-Json escapes < and >, so no source text can close the script element.
+    $json = $joined | ConvertTo-Json -Depth 20 -Compress
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText((Join-Path $folder 'mutation-report.json'), $json, $utf8)
+    $html = $template.Substring(0, $start + $marker.Length) + $json + $template.Substring($end)
+    [System.IO.File]::WriteAllText((Join-Path $folder 'mutation-report.html'), $html, $utf8)
+}
+
 # --- Run ----------------------------------------------------------------------------
 $runFolder = Join-Path $repoRoot ('StrykerOutput\' + (Get-Date -Format 'yyyy-MM-dd.HH-mm-ss'))
 $results = @()
+$reports = @()
 $dropped = @()
 $failed = @()
 foreach ($pair in $pairs) {
@@ -162,6 +215,7 @@ foreach ($pair in $pairs) {
         continue
     }
     $report = Read-Report $reportFile
+    $reports += $report.Data
     $withoutFlips = @{}
     foreach ($status in $report.Counts.Keys) {
         $withoutFlips[$status] = $report.Counts[$status] - $report.Flips[$status]
@@ -186,7 +240,11 @@ if ($dropped) {
     Write-Host 'Methods dropped in safe mode, to be checked by hand:'
     $dropped | ForEach-Object { Write-Host "  $_" }
 }
-Write-Host "Reports: $runFolder"
+if ($reports) {
+    $htmlTemplateFile = Join-Path $runFolder "$($results[0].Project)\reports\mutation-report.html"
+    Write-JoinedReport $reports $htmlTemplateFile $runFolder
+    Write-Host "Report of all projects: $(Join-Path $runFolder 'mutation-report.html')"
+}
 if ($failed) {
     Write-Host "No report, see the output above: $($failed -join ', ')" -ForegroundColor Red
     exit 1
