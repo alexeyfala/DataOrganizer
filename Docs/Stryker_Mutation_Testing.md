@@ -19,8 +19,9 @@ A survivor is a candidate for a new test, not a defect by itself.
     dotnet tool restore
 
 `stryker-config.json` at the solution root holds what every run shares: the calls left out as
-unobservable and the reports to write. Which project is mutated and which tests have to catch the
-mutations is decided by `tools/run-stryker.ps1`.
+unobservable, the extra time the tests of a mutant get (see *Timeout* below) and the reports to write.
+Which project is mutated and which tests have to catch the mutations is decided by
+`tools/run-stryker.ps1`.
 
 ## Running it
 
@@ -46,7 +47,7 @@ to solution mode and takes every test project that depends on the project, whate
 Stryker runs as many test sessions as half of the logical processors. `-Concurrency N` changes that;
 more sessions than processors do not make the run faster (see *Timeout* below).
 
-A run of every project takes about 22 minutes on 32 logical processors and changes nothing in the
+A run of every project takes about 24 minutes on 32 logical processors and changes nothing in the
 repository.
 
 At the end the script prints a table, one line per project:
@@ -106,8 +107,10 @@ Statuses, in the order they are worth looking at:
 - **NoCoverage** — no test runs that line at all. Not a weak test but a missing one.
 - **Killed** — the suite noticed.
 - **Timeout** — the tests did not finish in time, which Stryker counts as noticed. Usually the change
-  made a loop endless or left a task waiting forever. Too many test sessions for the processor give
-  timeouts too: a mutant that times out only with a high `-Concurrency` is a false one.
+  made a loop endless or left a task waiting forever. A busy processor gives timeouts too: with the
+  five seconds Stryker adds by default, the parallel sessions turned some mutants into Timeout that pass
+  or fail with fewer sessions. The config gives twenty (`additional-timeout`), and two runs then agree
+  mutant by mutant. A mutant that times out only with a high `-Concurrency` is still a false one.
 - **Ignored** — left out by the config, or skipped because a mutant that removes the whole block
   already covers it.
 - **CompileError** — the mutant did not build, or its whole method was dropped (see *Methods Stryker

@@ -5,17 +5,18 @@ using System.IO;
 namespace Repository.IntegrationTests;
 
 /// <summary>
-/// Removes the folder of the temporary databases after the run, together with what an interrupted run left in it.
+/// Removes the folder of the temporary databases of this run after it, together with what finished or interrupted runs left.
 /// </summary>
 [SetUpFixture]
 internal sealed class TempSqliteCleanup
 {
 	#region Methods
 	/// <summary>
-	/// Deletes <see cref="TempSqliteFile.RootDirectoryPath" /> once every test of the assembly has run.
+	/// Deletes <see cref="TempSqliteFile.RunDirectoryPath" /> once every test of the assembly has run,
+	/// and the folders of the runs whose process is gone.
 	/// </summary>
 	[OneTimeTearDown]
-	public void DeleteRootDirectory()
+	public void DeleteRunDirectories()
 	{
 		// A connection left in a pool keeps its file open, and Windows does not delete an open file.
 		SqliteConnection.ClearAllPools();
@@ -25,7 +26,12 @@ internal sealed class TempSqliteCleanup
 			return;
 		}
 
-		Directory.Delete(TempSqliteFile.RootDirectoryPath, recursive: true);
+		if (Directory.Exists(TempSqliteFile.RunDirectoryPath))
+		{
+			Directory.Delete(TempSqliteFile.RunDirectoryPath, recursive: true);
+		}
+
+		TempSqliteFile.DeleteFoldersOfFinishedRuns(TempSqliteFile.RootDirectoryPath);
 	}
 	#endregion
 }

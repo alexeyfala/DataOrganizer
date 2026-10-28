@@ -1,6 +1,7 @@
 {
 	"stryker-config": {
 		"ignore-methods": [ "_logger.*", "LogDuplicateEntry", "LogInvalidContents" ],
+		"additional-timeout": 20000,
 		"reporters": [ "progress", "html", "json" ]
 	}
 }
