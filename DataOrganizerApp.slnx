@@ -24,10 +24,10 @@
     <File Path="Docs/Debugging_Tests.md" />
     <File Path="Docs/Encryption_Format.md" />
     <File Path="Docs/GitHub_Release.md" />
-    <File Path="Docs/Mutation_Testing.md" />
     <File Path="Docs/Publish.md" />
     <File Path="Docs/release-notes.template.md" />
     <File Path="Docs/Solution_Files.md" />
+    <File Path="Docs/Stryker_Mutation_Testing.md" />
   </Folder>
   <Folder Name="/Docs/Database/">
     <File Path="Docs/Database/Migrations.md" />
@@ -141,6 +141,7 @@
     <File Path="tools/gen-license-rtf.ps1" />
     <File Path="tools/gen-release-notes.ps1" />
     <File Path="tools/gen-third-party-notices.ps1" />
+    <File Path="tools/run-stryker.ps1" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />

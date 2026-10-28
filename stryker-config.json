@@ -1,14 +1,6 @@
 {
 	"stryker-config": {
-		"project": "Repository.csproj",
-		"test-projects": [
-			"Repository.UnitTests/Repository.UnitTests.csproj",
-			"Repository.IntegrationTests/Repository.IntegrationTests.csproj"
-		],
-		"mutate": [ "**/Services/**/*.cs" ],
-		"ignore-mutations": [ "string", "regex" ],
-		"ignore-methods": [ "*Log*", "ConfigureAwait" ],
-		"reporters": [ "progress", "html", "json" ],
-		"concurrency": 8
+		"ignore-methods": [ "_logger.*", "LogDuplicateEntry", "LogInvalidContents" ],
+		"reporters": [ "progress", "html", "json" ]
 	}
 }
