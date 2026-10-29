@@ -206,6 +206,8 @@ internal class UpdateCheckServiceTests
 	[TestCase("0.1.0", "v0.2.0-beta", true)]
 	[TestCase("0.1.0", "v0.1.0", false)]
 	[TestCase("0.1.0", "v0.0.9", false)]
+	[TestCase("0.1.0", "+99.0", false)]
+	[TestCase("", "v0.2.0", false)]
 	public async Task CheckAsync_Reports_Update_Only_When_Remote_Is_Newer(
 		string currentVersion,
 		string tag,
