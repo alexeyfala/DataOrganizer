@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Time.Testing;
 using Notifications.Constants;
 using Notifications.Dto;
+using Notifications.Enums;
 using Notifications.Interfaces;
 using Notifications.Services;
 using NSubstitute;
@@ -30,6 +31,43 @@ internal class NotificationServiceTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="NotificationService.ShowErrorSnackbar" />: an error is posted at its level.
+	/// </summary>
+	[Test]
+	public void ShowErrorSnackbar_Posts_An_Error()
+	{
+		// Arrange
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		// Act
+		sut.ShowErrorSnackbar("failure");
+
+		// Assert
+		presenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Level == SnackbarMessageLevel.Error));
+	}
+
 	/// <summary>
 	/// <see cref="NotificationService.ShowInformationSnackbar" />: messages on top of the limit are dropped instead of piling up.
 	/// </summary>
@@ -280,6 +318,8 @@ internal class NotificationServiceTests
 		// Arrange
 		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			presenter
@@ -295,6 +335,8 @@ internal class NotificationServiceTests
 				.As<TimeProvider>();
 
 			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance(uiTimer);
 		});
 
 		NotificationService sut = mock.Create<NotificationService>();
@@ -306,6 +348,10 @@ internal class NotificationServiceTests
 		presenter
 			.Received(1)
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
+
+		uiTimer
+			.Received(1)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
@@ -416,6 +462,8 @@ internal class NotificationServiceTests
 		// Arrange
 		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
 
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			presenter
@@ -431,6 +479,8 @@ internal class NotificationServiceTests
 				.As<TimeProvider>();
 
 			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance(uiTimer);
 		});
 
 		NotificationService sut = mock.Create<NotificationService>();
@@ -442,6 +492,54 @@ internal class NotificationServiceTests
 		presenter
 			.DidNotReceive()
 			.Post(Arg.Any<SnackbarContent>());
+
+		uiTimer
+			.DidNotReceiveWithAnyArgs()
+			.Run(default!, default);
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.ShowInformationSnackbar" />: the loop starts once for the messages that come while it
+	/// runs.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Starts_The_Loop_Once_While_It_Runs()
+	{
+		// Arrange
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance(uiTimer);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		// Act
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second");
+
+		// Assert
+		uiTimer
+			.Received(1)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
@@ -549,6 +647,13 @@ internal class NotificationServiceTests
 			.Should()
 			.BeFalse();
 
+		// The host comes back, and the dropped message stays dropped.
+		presenter
+			.CanShow
+			.Returns(true);
+
+		PassTurn(sut, time);
+
 		presenter
 			.DidNotReceive()
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
@@ -603,6 +708,56 @@ internal class NotificationServiceTests
 		presenter
 			.DidNotReceive()
 			.Remove();
+
+		presenter
+			.DidNotReceive()
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: after a message goes away the next one waits for the gap, and the loop goes
+	/// on meanwhile.
+	/// </summary>
+	[Test]
+	public void Tick_Holds_The_Next_Message_For_The_Gap()
+	{
+		// Arrange
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second");
+
+		time.Advance(WholeTurn);
+
+		sut.Tick();
+
+		// Act
+		bool keepTicking = sut.Tick();
+
+		// Assert
+		keepTicking
+			.Should()
+			.BeTrue();
 
 		presenter
 			.DidNotReceive()
@@ -702,6 +857,95 @@ internal class NotificationServiceTests
 		presenter
 			.DidNotReceive()
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: a message just shown stays on the screen.
+	/// </summary>
+	[Test]
+	public void Tick_Leaves_A_New_Message_On_The_Screen()
+	{
+		// Arrange
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(presenter);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		// Act
+		sut.Tick();
+
+		// Assert
+		presenter
+			.DidNotReceive()
+			.Remove();
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: a message that comes after the loop stopped starts it again, also in the gap
+	/// after the last message.
+	/// </summary>
+	[Test]
+	public void Tick_Lets_A_Later_Message_Start_The_Loop_Again()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterInstance(uiTimer);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		time.Advance(WholeTurn);
+
+		sut.Tick();
+
+		sut.Tick();
+
+		// Act
+		sut.ShowInformationSnackbar("second");
+
+		// Assert
+		uiTimer
+			.Received(2)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
@@ -836,7 +1080,7 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		// Act
-		sut.Tick();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		mainPresenter
@@ -846,6 +1090,98 @@ internal class NotificationServiceTests
 		notepadPresenter
 			.Received(1)
 			.Remove();
+
+		keepTicking
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: a shown message goes away right when its time is up.
+	/// </summary>
+	[Test]
+	public void Tick_Removes_The_Shown_Message_Right_When_Its_Time_Is_Up()
+	{
+		// Arrange
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		time.Advance(MessageChannelOptions.MessageDuration);
+
+		// Act
+		sut.Tick();
+
+		// Assert
+		presenter
+			.Received(1)
+			.Remove();
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: the next message is shown right when the gap after the last one is over.
+	/// </summary>
+	[Test]
+	public void Tick_Shows_The_Next_Message_Right_After_The_Gap()
+	{
+		// Arrange
+		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			presenter
+				.CanShow
+				.Returns(true);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(presenter);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second");
+
+		time.Advance(WholeTurn);
+
+		sut.Tick();
+
+		time.Advance(MessageChannelOptions.MessageGap);
+
+		// Act
+		sut.Tick();
+
+		// Assert
+		presenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}
 
 	/// <summary>

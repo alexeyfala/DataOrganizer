@@ -62,6 +62,7 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 		{
 			_removeAt = _timeProvider.GetUtcNow() + MessageChannelOptions.MessageDuration;
 
+			// Stryker disable once Boolean : a repeat comes while the loop runs for the shown message
 			return true;
 		}
 
@@ -74,6 +75,7 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 
 		if (_waiting.Count >= MessageChannelOptions.MaxWaitingMessages)
 		{
+			// Stryker disable once Boolean : a full queue comes with a shown message, for which the loop runs anyway
 			return false;
 		}
 

@@ -148,11 +148,13 @@ public sealed class NotificationService : INotificationService
 	{
 		if (!channel.Show(content))
 		{
+			// Stryker disable once Boolean : the answer only tells the log whether the message was shown
 			return false;
 		}
 
 		StartTicking();
 
+		// Stryker disable once Boolean : the answer only tells the log whether the message was shown
 		return true;
 	}
 
