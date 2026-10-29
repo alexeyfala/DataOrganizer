@@ -29,6 +29,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\TestSupport\TestSupport.csproj" />
 		<ProjectReference Include="..\Repository\Repository.csproj" />
+		<ProjectReference Include="..\Repository.Migrations\Repository.Migrations.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

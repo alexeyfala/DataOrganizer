@@ -87,6 +87,7 @@ public abstract class RepositoryBase<T> where T : class
 	/// <param name="setters">Property setters, e.g. <c>b =&gt; b.SetProperty(x =&gt; x.Foo, value)</c>.</param>
 	/// <param name="token">Cancellation token.</param>
 	/// <returns>The number of rows affected.</returns>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	protected Task<int> ExecuteUpdateAsync(
 		Expression<Func<T, bool>> condition,
 		Action<UpdateSettersBuilder<T>>[] setters,

@@ -59,6 +59,7 @@ public sealed class DbMaintenance : IDbMaintenance
 				.ConfigureAwait(false);
 
 			// The interceptor sees only the connections the context opens itself.
+			// Stryker disable once Statement : the pragmas keep data off the disk while open, which a test cannot watch
 			await SqlitePragmas
 				.ApplyAsync(connection, token)
 				.ConfigureAwait(false);

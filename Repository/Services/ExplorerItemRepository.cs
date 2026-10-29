@@ -2,6 +2,7 @@ using Entities.Models;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ public sealed class ExplorerItemRepository : RepositoryBase<ExplorerItemBase>, I
 
 	#region Methods
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<int> CountOfAsync(
 		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)

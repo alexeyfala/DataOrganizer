@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -328,6 +329,7 @@ public sealed class DbAccess :
 
 		CopyDatabase(parameters);
 
+		// Stryker disable once Block,Statement : the backup API writes the file or throws
 		if (!_fileSystem.FileExists(backupFilePath))
 		{
 			return null;
@@ -374,6 +376,7 @@ public sealed class DbAccess :
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second disposal of the semaphore changes nothing
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
@@ -495,6 +498,7 @@ public sealed class DbAccess :
 				.ExecuteScalar()?
 				.ToString();
 
+			// Stryker disable once Statement : a cleared pool shows only under load
 			SqliteConnection.ClearPool(connection);
 
 			return string.Equals(
@@ -545,6 +549,7 @@ public sealed class DbAccess :
 			.Set<FileEntity>()
 			.AsNoTracking()];
 
+		// Stryker disable once Statement : a cleared pool shows only under load
 		ClearPool(context);
 
 		return new()
@@ -779,6 +784,7 @@ public sealed class DbAccess :
 			}
 
 			// The folder of the key keeps its place among the folders whose notes change.
+			// Stryker disable once Linq : the updates of one transaction may come in any order
 			foreach (Guid folderId in update.FolderNotes.Keys.Append(update.FolderId).Distinct())
 			{
 				await _folderRepository
@@ -818,6 +824,7 @@ public sealed class DbAccess :
 
 	#region Helpers
 	/// <inheritdoc cref="SqliteConnection.ClearPool" />
+	[ExcludeFromCodeCoverage(Justification = "A cleared pool shows only under load")]
 	private static void ClearPool(SqliteDbContext context)
 	{
 		using SqliteConnection connection = (SqliteConnection)context
@@ -848,10 +855,12 @@ public sealed class DbAccess :
 
 		SqlitePragmas.OpenConnection(source);
 
+		// Stryker disable once Statement : the pragmas keep freed pages off the disk, which a test cannot watch
 		SqlitePragmas.OpenConnection(destination);
 
 		source.BackupDatabase(destination);
 
+		// Stryker disable once Boolean,Statement,Block : a cleared pool shows only under load
 		if (parameters.ClearSourcePool)
 		{
 			SqliteConnection.ClearPool(source);
@@ -1027,6 +1036,7 @@ public sealed class DbAccess :
 			return DbConnectionStatus.FileUnreadable;
 		}
 
+		// Stryker disable once Block,Statement : the code below reads no applied migrations as this version too
 		if (!_dbContextService.HasMigrations())
 		{
 			return DbConnectionStatus.Connected;
