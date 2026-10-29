@@ -5,6 +5,8 @@ using EditorDocuments.Helpers;
 using EditorDocuments.Interfaces;
 using NotepadDocuments.Interfaces;
 using NotepadDocuments.Services;
+using Notifications.Constants;
+using Notifications.Interfaces;
 using NSubstitute;
 using System;
 using System.Linq;
@@ -12,6 +14,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace NotepadDocuments.UnitTests.Services;
 
@@ -123,6 +127,264 @@ internal class NotepadTextsTests
 		editor
 			.Received()
 			.RefreshEncoding();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTexts.Follow" />: a write that keeps failing is reported once.
+	/// </summary>
+	[Test]
+	public void Follow_Reports_A_Failed_Write_Once()
+	{
+		// Arrange
+		Subject<Unit> changes = new();
+
+		Action? write = null;
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		INotepadTab tab = Substitute.For<INotepadTab>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			DocumentCodec codec = new();
+
+			// A new tab is in UTF-8.
+			codec.Read([], Encoding.UTF8.WebName);
+
+			IDocumentText document = Substitute.For<IDocumentText>();
+
+			IEncodedDocument editor = Substitute.For<IEncodedDocument>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			ITypingPauseFactory typingPauseFactory = Substitute.For<ITypingPauseFactory>();
+
+			document
+				.Changed
+				.Returns(changes);
+
+			document
+				.Text
+				.Returns("Text");
+
+			editor
+				.Codec
+				.Returns(codec);
+
+			editor
+				.Document
+				.Returns(document);
+
+			store
+				.Write(1, Arg.Any<byte[]>())
+				.Returns(false);
+
+			tab
+				.Editor
+				.Returns(editor);
+
+			tab
+				.Number
+				.Returns(1);
+
+			typingPauseFactory
+				.Create(Arg.Do<Action>(x => write = x))
+				.Returns(Substitute.For<ITypingPause>());
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(typingPauseFactory);
+		});
+
+		NotepadTexts sut = mock.Create<NotepadTexts>();
+
+		sut.Follow(tab);
+
+		changes.OnNext(Unit.Default);
+
+		write!();
+
+		// Act
+		write!();
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), SnackbarHostIdentifiers.Notepad);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTexts.Follow" />: a write that fails again after one that succeeded is reported again.
+	/// </summary>
+	[Test]
+	public void Follow_Reports_A_Failure_After_A_Write_That_Succeeded()
+	{
+		// Arrange
+		Subject<Unit> changes = new();
+
+		Action? write = null;
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		INotepadTab tab = Substitute.For<INotepadTab>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			DocumentCodec codec = new();
+
+			// A new tab is in UTF-8.
+			codec.Read([], Encoding.UTF8.WebName);
+
+			IDocumentText document = Substitute.For<IDocumentText>();
+
+			IEncodedDocument editor = Substitute.For<IEncodedDocument>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			ITypingPauseFactory typingPauseFactory = Substitute.For<ITypingPauseFactory>();
+
+			document
+				.Changed
+				.Returns(changes);
+
+			document
+				.Text
+				.Returns("Text");
+
+			editor
+				.Codec
+				.Returns(codec);
+
+			editor
+				.Document
+				.Returns(document);
+
+			store
+				.Write(1, Arg.Any<byte[]>())
+				.Returns(false, true, false);
+
+			tab
+				.Editor
+				.Returns(editor);
+
+			tab
+				.Number
+				.Returns(1);
+
+			typingPauseFactory
+				.Create(Arg.Do<Action>(x => write = x))
+				.Returns(Substitute.For<ITypingPause>());
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(typingPauseFactory);
+		});
+
+		NotepadTexts sut = mock.Create<NotepadTexts>();
+
+		sut.Follow(tab);
+
+		changes.OnNext(Unit.Default);
+
+		write!();
+
+		write!();
+
+		// Act
+		write!();
+
+		// Assert
+		notification
+			.Received(2)
+			.ShowErrorSnackbar(Arg.Any<string>(), SnackbarHostIdentifiers.Notepad);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTexts.Follow" />: a write that succeeds is not reported.
+	/// </summary>
+	[Test]
+	public void Follow_Reports_Nothing_For_A_Write_That_Succeeded()
+	{
+		// Arrange
+		Subject<Unit> changes = new();
+
+		Action? write = null;
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		INotepadTab tab = Substitute.For<INotepadTab>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			DocumentCodec codec = new();
+
+			// A new tab is in UTF-8.
+			codec.Read([], Encoding.UTF8.WebName);
+
+			IDocumentText document = Substitute.For<IDocumentText>();
+
+			IEncodedDocument editor = Substitute.For<IEncodedDocument>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			ITypingPauseFactory typingPauseFactory = Substitute.For<ITypingPauseFactory>();
+
+			document
+				.Changed
+				.Returns(changes);
+
+			document
+				.Text
+				.Returns("Text");
+
+			editor
+				.Codec
+				.Returns(codec);
+
+			editor
+				.Document
+				.Returns(document);
+
+			store
+				.Write(1, Arg.Any<byte[]>())
+				.Returns(true);
+
+			tab
+				.Editor
+				.Returns(editor);
+
+			tab
+				.Number
+				.Returns(1);
+
+			typingPauseFactory
+				.Create(Arg.Do<Action>(x => write = x))
+				.Returns(Substitute.For<ITypingPause>());
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(typingPauseFactory);
+		});
+
+		NotepadTexts sut = mock.Create<NotepadTexts>();
+
+		sut.Follow(tab);
+
+		changes.OnNext(Unit.Default);
+
+		// Act
+		write!();
+
+		// Assert
+		notification
+			.DidNotReceive()
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -254,6 +516,99 @@ internal class NotepadTextsTests
 		typingPause
 			.Received(1)
 			.Dispose();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTexts.Forget" />: the failed write of a tab is forgotten with it, so a tab followed again reports
+	/// its next failure.
+	/// </summary>
+	[Test]
+	public void Forget_Forgets_The_Failed_Write()
+	{
+		// Arrange
+		Subject<Unit> changes = new();
+
+		Action? write = null;
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		INotepadTab tab = Substitute.For<INotepadTab>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			DocumentCodec codec = new();
+
+			// A new tab is in UTF-8.
+			codec.Read([], Encoding.UTF8.WebName);
+
+			IDocumentText document = Substitute.For<IDocumentText>();
+
+			IEncodedDocument editor = Substitute.For<IEncodedDocument>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			ITypingPauseFactory typingPauseFactory = Substitute.For<ITypingPauseFactory>();
+
+			document
+				.Changed
+				.Returns(changes);
+
+			document
+				.Text
+				.Returns("Text");
+
+			editor
+				.Codec
+				.Returns(codec);
+
+			editor
+				.Document
+				.Returns(document);
+
+			store
+				.Write(1, Arg.Any<byte[]>())
+				.Returns(false);
+
+			tab
+				.Editor
+				.Returns(editor);
+
+			tab
+				.Number
+				.Returns(1);
+
+			typingPauseFactory
+				.Create(Arg.Do<Action>(x => write = x))
+				.Returns(Substitute.For<ITypingPause>());
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(store);
+
+			builder.RegisterInstance(typingPauseFactory);
+		});
+
+		NotepadTexts sut = mock.Create<NotepadTexts>();
+
+		sut.Follow(tab);
+
+		changes.OnNext(Unit.Default);
+
+		write!();
+
+		sut.Forget(tab);
+
+		sut.Follow(tab);
+
+		changes.OnNext(Unit.Default);
+
+		// Act
+		write!();
+
+		// Assert
+		notification
+			.Received(2)
+			.ShowErrorSnackbar(Arg.Any<string>(), SnackbarHostIdentifiers.Notepad);
 	}
 
 	/// <summary>
@@ -840,6 +1195,53 @@ internal class NotepadTextsTests
 
 			store.Write(1, Arg.Any<byte[]>());
 		});
+	}
+
+	/// <summary>
+	/// <see cref="NotepadTexts.Load" />: a file that cannot be read is reported once the window takes messages.
+	/// </summary>
+	[Test]
+	public void Load_Reports_A_File_That_Cannot_Be_Read()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		INotepadTab tab = Substitute.For<INotepadTab>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
+
+			INotepadStore store = Substitute.For<INotepadStore>();
+
+			dispatcher
+				.When(x => x.Post(Arg.Any<Action>(), UiPriority.Background))
+				.Do(x => x.Arg<Action>()());
+
+			store
+				.Read(1)
+				.Returns((byte[]?)null);
+
+			tab
+				.Number
+				.Returns(1);
+
+			builder.RegisterInstance(dispatcher);
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(store);
+		});
+
+		NotepadTexts sut = mock.Create<NotepadTexts>();
+
+		// Act
+		sut.Load(tab);
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), SnackbarHostIdentifiers.Notepad);
 	}
 
 	/// <summary>

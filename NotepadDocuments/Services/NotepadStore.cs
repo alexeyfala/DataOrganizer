@@ -115,6 +115,7 @@ public sealed class NotepadStore : INotepadStore
 				? _fileSystem.ReadAllBytes(filePath)
 				: [];
 		}
+		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);
@@ -135,6 +136,7 @@ public sealed class NotepadStore : INotepadStore
 		{
 			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.ReadAllBytes(_settingsFilePath));
 		}
+		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);

@@ -32,9 +32,19 @@ internal class NotepadStoreTests
 	private static readonly string NotepadFolder = TestPath.Combine(NotepadFolderName);
 
 	/// <summary>
+	/// Name of the directory the settings live in.
+	/// </summary>
+	private const string SettingsFolderName = "settings";
+
+	/// <summary>
+	/// Directory the settings live in.
+	/// </summary>
+	private static readonly string SettingsFolder = TestPath.Combine(SettingsFolderName);
+
+	/// <summary>
 	/// Path of the file the settings of the tabs live in.
 	/// </summary>
-	private static readonly string SettingsPath = TestPath.Combine("settings", $"{nameof(NotepadViewSettings)}.json");
+	private static readonly string SettingsPath = TestPath.Combine(SettingsFolderName, $"{nameof(NotepadViewSettings)}.json");
 
 	/// <summary>
 	/// Path of the text of the tab numbered 3.
@@ -48,6 +58,41 @@ internal class NotepadStoreTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="NotepadStore.Erase" />: a tab without a file of its text has nothing to erase.
+	/// </summary>
+	[Test]
+	public void Erase_Leaves_A_Missing_File_Alone()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.NotepadDirectoryPath
+				.Returns(NotepadFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.Erase(2);
+
+		// Assert
+		files.ErasedFiles
+			.Should()
+			.BeEmpty();
+	}
+
 	/// <summary>
 	/// <see cref="NotepadStore.Erase" />: the file of the text of the tab goes away.
 	/// </summary>
@@ -83,6 +128,84 @@ internal class NotepadStoreTests
 		files.Files
 			.Should()
 			.NotContainKey(TabTwoTextPath);
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.FindNumbers" />: a folder that is not there is not searched.
+	/// </summary>
+	[Test]
+	public void FindNumbers_Does_Not_Search_A_Missing_Folder()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.NotepadDirectoryPath
+				.Returns(NotepadFolder);
+
+			fileSystem
+				.DirectoryExists(NotepadFolder)
+				.Returns(false);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.FindNumbers();
+
+		// Assert
+		fileSystem
+			.DidNotReceive()
+			.EnumerateFiles(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.FindNumbers" />: a folder that cannot be searched holds no text.
+	/// </summary>
+	[Test]
+	public void FindNumbers_Returns_Nothing_When_The_Folder_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			appEnvironment
+				.NotepadDirectoryPath
+				.Returns(NotepadFolder);
+
+			fileSystem
+				.DirectoryExists(NotepadFolder)
+				.Returns(true);
+
+			fileSystem
+				.EnumerateFiles(NotepadFolder)
+				.Throws(new IOException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		int[] result = sut.FindNumbers();
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -273,6 +396,43 @@ internal class NotepadStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadStore.ReadSettings" />: a file of the settings that is not there is not read.
+	/// </summary>
+	[Test]
+	public void ReadSettings_Does_Not_Read_A_Missing_File()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(SettingsPath);
+
+			fileSystem
+				.FileExists(SettingsPath)
+				.Returns(false);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.ReadSettings();
+
+		// Assert
+		fileSystem
+			.DidNotReceive()
+			.ReadAllBytes(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="NotepadStore.ReadSettings" />: settings that cannot be read, such as a file cut short, give none.
 	/// </summary>
 	[Test]
@@ -433,6 +593,41 @@ internal class NotepadStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="NotepadStore.Write" />: the first text makes the folder of the texts.
+	/// </summary>
+	[Test]
+	public void Write_Makes_The_Folder_Of_The_Texts()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.NotepadDirectoryPath
+				.Returns(NotepadFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.Write(3, [4, 5, 6]);
+
+		// Assert
+		files.Directories
+			.Should()
+			.Contain(NotepadFolder);
+	}
+
+	/// <summary>
 	/// <see cref="NotepadStore.Write" />: the bytes take the place of the file of the text at once, so a write cut short
 	/// leaves the old text.
 	/// </summary>
@@ -563,6 +758,51 @@ internal class NotepadStoreTests
 		act
 			.Should()
 			.NotThrow();
+	}
+
+	/// <summary>
+	/// <see cref="NotepadStore.WriteSettings" />: the first settings make the folder of the settings.
+	/// </summary>
+	[Test]
+	public void WriteSettings_Makes_The_Folder_Of_The_Settings()
+	{
+		// Arrange
+		NotepadViewSettings settings = new()
+		{
+			SelectedTabNumber = 1,
+			Tabs = []
+		};
+
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.GetSettingsFilePath(nameof(NotepadViewSettings))
+				.Returns(SettingsPath);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
+		});
+
+		NotepadStore sut = mock.Create<NotepadStore>();
+
+		// Act
+		sut.WriteSettings(settings);
+
+		// Assert
+		files.Directories
+			.Should()
+			.Contain(SettingsFolder);
 	}
 
 	/// <summary>
