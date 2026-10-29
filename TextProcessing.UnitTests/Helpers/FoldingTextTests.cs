@@ -30,6 +30,29 @@ internal class FoldingTextTests
 			.Should()
 			.Equal(document.Lines.Select(static x => (x.Offset, x.EndOffset)));
 	}
+
+	/// <summary>
+	/// <see cref="FoldingText.GetLineNumber" />: an offset belongs to the line that starts at it or before it, and the end
+	/// of a line to the line.
+	/// </summary>
+	[TestCase(0, 1)]
+	[TestCase(2, 1)]
+	[TestCase(3, 2)]
+	[TestCase(4, 2)]
+	[TestCase(7, 3)]
+	public void GetLineNumber_Finds_The_Line_Of_An_Offset(int offset, int expected)
+	{
+		// Arrange
+		using FoldingText sut = new("ab\ncd\r\nef");
+
+		// Act
+		int number = sut.GetLineNumber(offset);
+
+		// Assert
+		number
+			.Should()
+			.Be(expected);
+	}
 	#endregion
 
 	#region Helpers
@@ -44,6 +67,8 @@ internal class FoldingTextTests
 		"\n",
 		"a\r\nb",
 		"a\rb",
+		"a\r",
+		"\r",
 		"a\n\rb",
 		"a\r\r\nb\n\nc",
 		"\r\n\r\n",

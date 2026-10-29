@@ -235,6 +235,28 @@ internal partial class CommentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: line comments inside a block comment fold with it only.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Folds_No_Group_Inside_A_Block_Comment()
+	{
+		// Arrange
+		TextDocument document = new("/*\n// a\n// b\n*/");
+
+		using FoldingText text = new(document.Text);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 4));
+	}
+
+	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a block comment of one line has nothing to fold.
 	/// </summary>
 	[Test]
@@ -489,6 +511,29 @@ internal partial class CommentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: one line comment of another indentation after a group makes
+	/// no group, as the lines of the group before it do not count.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Needs_Two_Lines_For_A_Group_Of_Another_Indentation()
+	{
+		// Arrange
+		TextDocument document = new("// a\n// b\n  // c\nx");
+
+		using FoldingText text = new(document.Text);
+
+		CommentFoldingStrategy sut = new(Rules);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2));
+	}
+
+	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: the summary of a documentation comment is read up to the
 	/// end of its last line, where a summary without its end tag stops.
 	/// </summary>
@@ -536,13 +581,13 @@ internal partial class CommentFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a line that opens a block comment is taken for one even
-	/// when the token of a line comment starts it, as in Lua.
+	/// when the token of a line comment starts it, as in Lua, and the line comment after it makes no group with it.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Takes_A_Block_Comment_Before_A_Line_Comment()
 	{
 		// Arrange
-		TextDocument document = new("--[[ a\nb ]]");
+		TextDocument document = new("--[[ a\nb ]]\n-- c");
 
 		using FoldingText text = new(document.Text);
 

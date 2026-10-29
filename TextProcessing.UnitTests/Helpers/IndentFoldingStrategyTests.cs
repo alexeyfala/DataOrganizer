@@ -1,5 +1,6 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -60,13 +61,31 @@ internal partial class IndentFoldingStrategyTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy(SyntaxFoldingRules, int)" />: a tab size below one is refused, as no tab stop could
+	/// follow from it.
+	/// </summary>
+	[Test]
+	[TestCase(0)]
+	[TestCase(-1)]
+	public void Constructor_Refuses_A_Tab_Size_Below_One(int tabSize)
+	{
+		// Act
+		Action act = () => _ = new IndentFoldingStrategy(PlainRules, tabSize);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<ArgumentOutOfRangeException>();
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a tab reaches the next tab stop, in line with the spaces up to it.
 	/// </summary>
 	[Test]
 	public void CreateNewFoldings_Counts_A_Tab_To_The_Next_Tab_Stop()
 	{
 		// Arrange
-		TextDocument document = new("a\n  \tb\n    c");
+		TextDocument document = new("a\n  \tb\n     c\n    d");
 
 		using FoldingText text = new(document.Text);
 
@@ -76,10 +95,11 @@ internal partial class IndentFoldingStrategyTests
 		TextFolding[] foldings = sut.CreateNewFoldings(text);
 
 		// Assert
-		// Two spaces and a tab reach the column of four spaces, so the two lines make one block.
+		// Two spaces and a tab reach the column of four spaces: the line of five folds under them, and the line of four ends
+		// their block.
 		GetLines(document, foldings)
 			.Should()
-			.Equal((1, 3));
+			.Equal((1, 4), (2, 3));
 	}
 
 	/// <summary>
@@ -317,6 +337,34 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a lone opening bracket after a statement starts its block
+	/// itself.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Keeps_A_Lone_Bracket_After_A_Statement()
+	{
+		// Arrange
+		TextDocument document = new("""
+			int a;
+			{
+			    b();
+			}
+			""");
+
+		using FoldingText text = new(document.Text);
+
+		IndentFoldingStrategy sut = new(PlainRules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((2, 4));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a lone opening bracket under a marker that is a directive
 	/// starts its block itself, as the marker heads a block of its own.
 	/// </summary>
@@ -373,6 +421,34 @@ internal partial class IndentFoldingStrategyTests
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 5), (2, 4));
+	}
+
+	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a closing bracket of another kind than the one the first line
+	/// of a block opens stays out of the block.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Leaves_Out_A_Closing_Bracket_Of_Another_Kind()
+	{
+		// Arrange
+		TextDocument document = new("""
+			f(
+			    x
+			}
+			y
+			""");
+
+		using FoldingText text = new(document.Text);
+
+		IndentFoldingStrategy sut = new(PlainRules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2));
 	}
 
 	/// <summary>
@@ -582,6 +658,35 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: the block of a lone opening bracket starts on its head,
+	/// above the blank lines that stand between the two.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Passes_Over_Blank_Lines_Between_A_Head_And_Its_Bracket()
+	{
+		// Arrange
+		TextDocument document = new("""
+			void F()
+
+			{
+			    x();
+			}
+			""");
+
+		using FoldingText text = new(document.Text);
+
+		IndentFoldingStrategy sut = new(PlainRules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 5));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: directives at the start of their lines neither end the
 	/// blocks around them nor start blocks of their own.
 	/// </summary>
@@ -710,6 +815,38 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block marked by directives whose first line goes deeper
+	/// than the next stands for the blocks around it at the least indentation of its lines.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_A_Marked_Block_Of_Directives_At_The_Least_Indentation_Of_Its_Lines()
+	{
+		// Arrange
+		TextDocument document = new("""
+			namespace N
+			{
+			    int a;
+			#region R
+			        int b;
+			    int c;
+			#endregion
+			}
+			""");
+
+		using FoldingText text = new(document.Text);
+
+		IndentFoldingStrategy sut = new(DirectiveRules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 8), (4, 7));
+	}
+
+	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a start marker without an end marker below it is an
 	/// ordinary line.
 	/// </summary>
@@ -795,18 +932,15 @@ internal partial class IndentFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a block that opens a bracket at the end of its first line
-	/// takes in the line of the closing bracket.
+	/// takes in the line of the closing bracket, of each kind.
 	/// </summary>
 	[Test]
-	public void CreateNewFoldings_Takes_The_Closing_Bracket_Into_A_Block()
+	[TestCase("void F() {", "}")]
+	[TestCase("F(", ")")]
+	public void CreateNewFoldings_Takes_The_Closing_Bracket_Into_A_Block(string first, string last)
 	{
 		// Arrange
-		TextDocument document = new("""
-			void F() {
-			    x();
-			}
-			y
-			""");
+		TextDocument document = new($"{first}\n    x();\n{last}\ny");
 
 		using FoldingText text = new(document.Text);
 

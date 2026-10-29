@@ -96,6 +96,29 @@ internal partial class MarkdownFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a heading needs a line to fold under it, and so the last
+	/// line of a text, read as a heading, keeps the section above it to the line before.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Folds_No_Heading_Without_A_Line_Under_It()
+	{
+		// Arrange
+		TextDocument document = new("# A\n# B");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a line underlined with equal signs or dashes is a heading
 	/// of the first or the second level.
 	/// </summary>
@@ -142,6 +165,29 @@ internal partial class MarkdownFoldingStrategyTests
 	}
 
 	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a blank line in a block of code does not close it, so the
+	/// lines after it are no headings.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Keeps_A_Block_Of_Code_Open_Past_A_Blank_Line()
+	{
+		// Arrange
+		TextDocument document = new("```\n\n# B\n```\ntext");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a section holds the deeper headings with their sections.
 	/// </summary>
 	[Test]
@@ -172,6 +218,57 @@ internal partial class MarkdownFoldingStrategyTests
 	{
 		// Arrange
 		TextDocument document = new("# A\n    code\ntext");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 3));
+	}
+
+	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a heading may have six signs or no text, and up to three
+	/// spaces before it.
+	/// </summary>
+	[Test]
+	[TestCase("###### A")]
+	[TestCase("#")]
+	[TestCase("   # A")]
+	public void CreateNewFoldings_Takes_A_Heading_At_The_Limits_Of_Its_Mark(string line)
+	{
+		// Arrange
+		TextDocument document = new($"{line}\ntext");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2));
+	}
+
+	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: an underline makes a heading of text that only starts like
+	/// an item of a list, with too many digits or without the mark after them.
+	/// </summary>
+	[Test]
+	[TestCase("1234567890. a")]
+	[TestCase("1x a")]
+	public void CreateNewFoldings_Takes_An_Underline_Under_Text_That_Only_Starts_Like_An_Item(string line)
+	{
+		// Arrange
+		TextDocument document = new($"{line}\n---\ntext");
 
 		using FoldingText text = new(document.Text);
 
@@ -233,13 +330,15 @@ internal partial class MarkdownFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: the front matter at the start of a text holds no heading,
-	/// though its closing line looks like an underline.
+	/// though its closing line looks like an underline, also when that line ends the text.
 	/// </summary>
 	[Test]
-	public void CreateNewFoldings_Takes_No_Heading_From_The_Front_Matter()
+	[TestCase("---\ntitle: A\n---\ntext")]
+	[TestCase("---\ntitle: A\n---")]
+	public void CreateNewFoldings_Takes_No_Heading_From_The_Front_Matter(string content)
 	{
 		// Arrange
-		TextDocument document = new("---\ntitle: A\n---\ntext");
+		TextDocument document = new(content);
 
 		using FoldingText text = new(document.Text);
 
@@ -280,13 +379,17 @@ internal partial class MarkdownFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: dashes under an item of a list are a rule, not an underline.
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: dashes under a blank line, a fence or a line of code are
+	/// a rule, not an underline.
 	/// </summary>
 	[Test]
-	public void CreateNewFoldings_Takes_No_Underline_Under_An_Item_Of_A_List()
+	[TestCase("x\n\n---\ny")]
+	[TestCase("```\nx\n```\n---\ny")]
+	[TestCase("    x\n---\ny")]
+	public void CreateNewFoldings_Takes_No_Underline_Under_A_Line_That_Is_No_Text(string content)
 	{
 		// Arrange
-		TextDocument document = new("- a\n---\ntext");
+		TextDocument document = new(content);
 
 		using FoldingText text = new(document.Text);
 
@@ -299,6 +402,57 @@ internal partial class MarkdownFoldingStrategyTests
 		foldings
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: dashes under an item of a list, with a bullet or with one
+	/// to nine digits and a mark, are a rule, not an underline.
+	/// </summary>
+	[Test]
+	[TestCase("- a")]
+	[TestCase("1. a")]
+	[TestCase("1) a")]
+	[TestCase("10. a")]
+	[TestCase("123456789. a")]
+	public void CreateNewFoldings_Takes_No_Underline_Under_An_Item_Of_A_List(string item)
+	{
+		// Arrange
+		TextDocument document = new($"{item}\n---\ntext");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		foldings
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: dashes under an underline are a rule, so the heading above
+	/// keeps its section.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Takes_No_Underline_Under_An_Underline()
+	{
+		// Arrange
+		TextDocument document = new("A\n===\n---\ntext");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 4));
 	}
 	#endregion
 

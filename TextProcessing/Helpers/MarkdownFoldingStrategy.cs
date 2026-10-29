@@ -148,6 +148,7 @@ public sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 
 				fenceLength = CountLeading(mark, fence);
 
+				// Stryker disable once Statement : a fence is no heading and no underline either
 				continue;
 			}
 
@@ -155,6 +156,7 @@ public sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 			{
 				headings.Add((number, level));
 
+				// Stryker disable once Statement : a heading is no underline either
 				continue;
 			}
 

@@ -212,6 +212,7 @@ public sealed class IndentFoldingStrategy : ILineFoldingStrategy
 					// The blocks above take the marked block for an ordinary line of its indentation.
 					openBlocks[index] = new OpenFoldingBlock(Indent: blockIndent, EndAbove: number, Line: number);
 
+					// Stryker disable once Statement : the steps below leave the marked block on top as it is
 					continue;
 				}
 			}
@@ -219,6 +220,7 @@ public sealed class IndentFoldingStrategy : ILineFoldingStrategy
 			{
 				openBlocks.Add(new OpenFoldingBlock(Indent: EndMarkerIndent, EndAbove: number, Line: number));
 
+				// Stryker disable once Statement : a line above the end marker ends there either way, and its start marker drops it
 				continue;
 			}
 

@@ -191,6 +191,7 @@ public static class FileTextCodec
 
 			return unreadable;
 		}
+		// Stryker disable once Block,Statement : the wiped copy is not reachable from outside
 		finally
 		{
 			values.ZeroMemory();
@@ -234,6 +235,7 @@ public static class FileTextCodec
 		{
 			return written.AsSpan().SequenceEqual(body) ? text : null;
 		}
+		// Stryker disable once Block,Statement : the wiped copy is not reachable from outside
 		finally
 		{
 			written.ZeroMemory();
@@ -374,6 +376,7 @@ public static class FileTextCodec
 		// The application changes only the language of its interface, so the culture keeps the region of the system.
 		int regionCodePage = CultureInfo.CurrentCulture.TextInfo.ANSICodePage;
 
+		// Stryker disable once all : runs on macOS and Linux only, while the mutation run is on Windows
 		return (regionCodePage > 0 ? provider.GetEncoding(regionCodePage) : null)
 			?? provider.GetEncoding(WesternCodePage)!;
 	}
@@ -407,8 +410,10 @@ public static class FileTextCodec
 		// byte that is not read or not written back comes back as two bytes or more.
 		Encoding marking = (Encoding)encoding.Clone();
 
+		// Stryker disable once String : an empty mark comes back as no byte, which tells the byte apart as well
 		marking.DecoderFallback = new DecoderReplacementFallback("\uFFFF");
 
+		// Stryker disable once String : an empty mark comes back as no byte, which tells the byte apart as well
 		marking.EncoderFallback = new EncoderReplacementFallback("??");
 
 		return [.. Enumerable

@@ -52,6 +52,22 @@ internal class DocCommentBannerTests
 	}
 
 	/// <summary>
+	/// <see cref="DocCommentBanner.Create" />: a banner that grows past the most characters within the value of an
+	/// attribute is cut there as well.
+	/// </summary>
+	[Test]
+	public void Create_Cuts_A_Long_Banner_Within_The_Value_Of_An_Attribute()
+	{
+		// Act
+		string? banner = DocCommentBanner.Create(Token, $"/// <summary>Calls <see cref=\"{new string('a', 90)}\"/>.</summary>");
+
+		// Assert
+		banner
+			.Should()
+			.Be($"/// <summary> Calls {new string('a', 60)} {Glyphs.ThreeDots}");
+	}
+
+	/// <summary>
 	/// <see cref="DocCommentBanner.Create" />: the entities of XML show as the characters they stand for, and a blank among
 	/// them collapses as well.
 	/// </summary>
@@ -123,12 +139,13 @@ internal class DocCommentBannerTests
 	}
 
 	/// <summary>
-	/// <see cref="DocCommentBanner.Create" />: the tags of the elements in the summary and its notes are left out, and the
-	/// text of the elements stays.
+	/// <see cref="DocCommentBanner.Create" />: the tags of the elements in the summary and its notes are left out, also
+	/// those whose names start with an underscore, and the text of the elements stays.
 	/// </summary>
 	[TestCase("/// <summary>For <c>null</c> p.</summary>", "/// <summary> For null p.")]
 	[TestCase("/// <summary>A <see href=\"u\">link</see>.</summary>", "/// <summary> A link.")]
 	[TestCase("/// <summary><para>A</para>\n/// <!-- note -->B</summary>", "/// <summary> A B")]
+	[TestCase("/// <summary>A <_x>B</_x></summary>", "/// <summary> A B")]
 	public void Create_Leaves_The_Tags_Out(string comment, string expected)
 	{
 		// Act
@@ -175,10 +192,12 @@ internal class DocCommentBannerTests
 	}
 
 	/// <summary>
-	/// <see cref="DocCommentBanner.Create" />: a summary without text, or whose start tag stays open, shows the tag alone.
+	/// <see cref="DocCommentBanner.Create" />: a summary without text, or whose start tag stays open, shows the tag alone,
+	/// even with other tags after it.
 	/// </summary>
 	[TestCase("/// <summary></summary>")]
 	[TestCase("/// <summary/>")]
+	[TestCase("/// <summary/>\n/// <remarks>R</remarks>")]
 	[TestCase("/// <summary>\n/// </summary>")]
 	[TestCase("/// <summary\n/// Text")]
 	public void Create_Shows_A_Summary_Without_Text_As_Its_Tag(string comment)
@@ -194,7 +213,7 @@ internal class DocCommentBannerTests
 
 	/// <summary>
 	/// <see cref="DocCommentBanner.Create" />: an empty element, such as a reference, shows as the values of its
-	/// attributes, even over two lines.
+	/// attributes, even over two lines, with a bracket of a value kept in it and no blank added before the first value.
 	/// </summary>
 	[TestCase("/// <summary>Calls <see cref=\"Run\"/>.</summary>", "/// <summary> Calls Run.")]
 	[TestCase("/// <summary>Takes <paramref name=\"p\" />.</summary>", "/// <summary> Takes p.")]
@@ -202,6 +221,8 @@ internal class DocCommentBannerTests
 	[TestCase("/// <summary>A <see\n/// cref=\"X\"/>.</summary>", "/// <summary> A X.")]
 	[TestCase("/// <summary>A <x a=\"1\" b=\"2\"/>.</summary>", "/// <summary> A 1 2.")]
 	[TestCase("/// <summary>A<br/>B</summary>", "/// <summary> AB")]
+	[TestCase("/// <summary>Is <see langword=\"a>b\"/>.</summary>", "/// <summary> Is a>b.")]
+	[TestCase("/// <summary>(<see cref=\"X\"/>)</summary>", "/// <summary> (X)")]
 	public void Create_Shows_The_Values_Of_An_Empty_Element(string comment, string expected)
 	{
 		// Act

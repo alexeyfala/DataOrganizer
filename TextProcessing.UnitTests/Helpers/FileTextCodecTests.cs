@@ -107,6 +107,28 @@ internal class FileTextCodecTests
 	}
 
 	/// <summary>
+	/// <see cref="FileTextCodec.CreateUnreadableLoneBytes" />: every byte value that an encoding is found unable to read
+	/// alone fails to read alone or to write back the same.
+	/// </summary>
+	[Test]
+	public void CreateUnreadableLoneBytes_Takes_In_Only_Bytes_That_Do_Not_Read_Alone()
+	{
+		// Act
+		FrozenDictionary<string, SearchValues<byte>> unreadable = FileTextCodec.CreateUnreadableLoneBytes();
+
+		// Assert
+		string[] wrong = [.. unreadable.SelectMany(static x => Enumerable
+			.Range(0, 256)
+			.Select(static y => (byte)y)
+			.Where(y => x.Value.Contains(y) && FileTextCodec.TryDecode([y], FileTextCodec.Choose([y], x.Key)!) is not null)
+			.Select(y => $"{x.Key} {y:X2}"))];
+
+		wrong
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="FileTextCodec.CreateUnreadableLoneBytes" />: no exception is thrown on the way, as the thousands of
 	/// bytes that the encodings cannot read would freeze the list of encodings under a debugger.
 	/// </summary>
@@ -332,18 +354,22 @@ internal class FileTextCodecTests
 
 	/// <summary>
 	/// <see cref="FileTextCodec.EncodingChoices" />: the encodings after Unicode are sorted by description, whatever its
-	/// case.
+	/// case, and the ones of one description by web name, as two IBM code pages share theirs.
 	/// </summary>
 	[Test]
-	public void EncodingChoices_Sort_The_Others_By_Description()
+	public void EncodingChoices_Sort_The_Others_By_Description_Then_By_Web_Name()
 	{
 		// Act
 		SelectorChoice[] others = [.. FileTextCodec.EncodingChoices.Skip(5)];
 
 		// Assert
+		SelectorChoice[] expected = [.. others
+			.OrderBy(static x => x.Description, StringComparer.OrdinalIgnoreCase)
+			.ThenBy(static x => x.Id, StringComparer.OrdinalIgnoreCase)];
+
 		others
 			.Should()
-			.BeInAscendingOrder(static x => x.Description, StringComparer.OrdinalIgnoreCase);
+			.Equal(expected);
 	}
 
 	/// <summary>
@@ -598,6 +624,30 @@ internal class FileTextCodecTests
 
 		// Assert
 		byte[] expected = Cyrillic.GetBytes(CyrillicText);
+
+		contents
+			.Should()
+			.Equal(expected);
+	}
+
+	/// <summary>
+	/// <see cref="FileTextCodec.TryEncode" />: a file without a byte order mark gets none, though its encoding has one.
+	/// </summary>
+	[Test]
+	public void TryEncode_Writes_No_Byte_Order_Mark_The_File_Lacks()
+	{
+		// Arrange
+		FileEncoding encoding = new()
+		{
+			Encoding = Encoding.UTF8,
+			HasByteOrderMark = false
+		};
+
+		// Act
+		byte[]? contents = FileTextCodec.TryEncode(CyrillicText, encoding, out _);
+
+		// Assert
+		byte[] expected = Encoding.UTF8.GetBytes(CyrillicText);
 
 		contents
 			.Should()

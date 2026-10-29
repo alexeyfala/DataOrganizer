@@ -77,6 +77,7 @@ internal static class DocCommentBanner
 
 			return CreateBanner(token, xml.AsSpan(0, length));
 		}
+		// Stryker disable once Block,Statement : an array kept from the pool cannot be observed
 		finally
 		{
 			ArrayPool<char>.Shared.Return(xml);

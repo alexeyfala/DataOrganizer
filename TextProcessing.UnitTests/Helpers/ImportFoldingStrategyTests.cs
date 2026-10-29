@@ -124,10 +124,11 @@ internal partial class ImportFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: a run folds from the first word of its first line and the
-	/// blanks after it to the end of its last line, so the keyword stays in view.
+	/// blanks after it to the end of its last line, so the keyword stays in view, even when the word fills the line.
 	/// </summary>
 	[Test]
 	[TestCase("import a\nimport b", 7)]
+	[TestCase("import\nimport b", 6)]
 	[TestCase("  import  a\nimport b", 10)]
 	[TestCase("import\ta\nimport b", 7)]
 	[TestCase("import{a}\nimport b", 6)]
@@ -178,13 +179,15 @@ internal partial class ImportFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: a statement goes on over the lines while its brackets stay
-	/// open.
+	/// open, also those after a quote.
 	/// </summary>
 	[Test]
-	public void CreateNewFoldings_Follows_A_Statement_Over_Its_Brackets()
+	[TestCase("import {\n  a,\n  b\n} from 'x'\nimport c\ny")]
+	[TestCase("import 'x' (\n  a,\n  b\n)\nimport c\ny")]
+	public void CreateNewFoldings_Follows_A_Statement_Over_Its_Brackets(string content)
 	{
 		// Arrange
-		TextDocument document = new("import {\n  a,\n  b\n} from 'x'\nimport c\ny");
+		TextDocument document = new(content);
 
 		using FoldingText text = new(document.Text);
 
@@ -306,15 +309,17 @@ internal partial class ImportFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: the brackets in a quote or in a line comment do not carry
-	/// a statement over to the next line.
+	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: the brackets in a quote, also one that stays open to the end
+	/// of the line, or in a line comment do not carry a statement over to the next line.
 	/// </summary>
 	[Test]
 	[TestCase("import a // (")]
 	[TestCase("import '('")]
 	[TestCase("import \"(\"")]
+	[TestCase("import \"((\"")]
 	[TestCase("import `(`")]
 	[TestCase("import \"\\\"(\"")]
+	[TestCase("import \"a (")]
 	public void CreateNewFoldings_Leaves_Out_The_Brackets_Of_Quotes_And_Comments(string first)
 	{
 		// Arrange

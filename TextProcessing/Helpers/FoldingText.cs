@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TextProcessing.Helpers;
 
@@ -74,6 +75,7 @@ public sealed class FoldingText : IDisposable
 	/// <summary>
 	/// Gives the arrays of the bounds back to the pool.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Only gives arrays back to the pool, which cannot be observed")]
 	public void Dispose()
 	{
 		ArrayPool<int>.Shared.Return(_lineEnds);
