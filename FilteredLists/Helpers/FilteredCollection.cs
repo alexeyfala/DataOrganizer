@@ -120,6 +120,7 @@ public sealed class FilteredCollection<TModel> : IDisposable where TModel : INot
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second pass clears and disposes what is gone already
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
@@ -127,8 +128,10 @@ public sealed class FilteredCollection<TModel> : IDisposable where TModel : INot
 
 		_source.Clear();
 
+		// Stryker disable once Statement : the disposed source ends the subscription as well
 		_subscription.Dispose();
 
+		// Stryker disable once Statement : the disposed subscription stops the updates as well
 		_source.Dispose();
 	}
 

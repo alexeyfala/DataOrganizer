@@ -4,6 +4,7 @@ using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -64,6 +65,76 @@ internal class FilteredCollectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FilteredCollection{TModel}(IObservable{Func{TModel, bool}}, System.Linq.Expressions.Expression{Func{TModel, object}})" />:
+	/// the changes reach the visible list through the context of the thread that made the collection.
+	/// </summary>
+	[Test]
+	public void Constructor_Hands_The_Changes_To_The_Context_Of_Its_Thread()
+	{
+		// Arrange
+		QueueingSynchronizationContext context = new();
+
+		SynchronizationContext.SetSynchronizationContext(context);
+
+		try
+		{
+			using FilteredCollection<FileDto> sut = new(Observable.Return<Func<FileDto, bool>>(static _ => true));
+
+			// Act
+			sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
+
+			// Assert
+			int countBeforeTheContextRuns = sut.Visible.Count;
+
+			context.RunPosted();
+
+			countBeforeTheContextRuns
+				.Should()
+				.Be(0);
+
+			sut.Visible
+				.Should()
+				.HaveCount(3);
+		}
+		finally
+		{
+			// No context is left behind for the next test on this thread.
+			SynchronizationContext.SetSynchronizationContext(null);
+		}
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}(IObservable{Func{TModel, bool}}, System.Linq.Expressions.Expression{Func{TModel, object}})" />:
+	/// an item whose watched property changes is filtered again.
+	/// </summary>
+	[Test]
+	public void Constructor_Refilters_An_Item_Whose_Watched_Property_Changes()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		items[0].Name = "x1";
+
+		items[1].Name = "y";
+
+		using FilteredCollection<FileDto> sut = new(
+			Observable.Return<Func<FileDto, bool>>(static x => x.Name.StartsWith('x')),
+			static x => x.Name);
+
+		sut.AddRange(items);
+
+		// Act
+		items[1].Name = "x2";
+
+		// Assert
+		sut.Visible
+			.Should()
+			.BeEquivalentTo(items);
+	}
+
+	/// <summary>
 	/// <see cref="FilteredCollection{TModel}.Contains" />: returns true for an existing item and false for an unknown one.
 	/// </summary>
 	[Test]
@@ -84,6 +155,26 @@ internal class FilteredCollectionTests
 		sut.Contains(ItemDtoFactory.CreateFileDto())
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.Dispose" />: the first disposal empties the visible list.
+	/// </summary>
+	[Test]
+	public void Dispose_Empties_The_Visible_List()
+	{
+		// Arrange
+		FilteredCollection<FileDto> sut = CreateSut();
+
+		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		sut.Visible
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -109,6 +200,10 @@ internal class FilteredCollectionTests
 		act
 			.Should()
 			.NotThrow();
+
+		sut.Visible
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -206,6 +301,33 @@ internal class FilteredCollectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.InsertAndRebuild" />: an item placed at the first visible index goes to the
+	/// start of the source, before the items the filter hides.
+	/// </summary>
+	[Test]
+	public void InsertAndRebuild_Puts_An_Item_At_The_First_Index_Before_The_Hidden_Ones()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		FileDto inserted = ItemDtoFactory.CreateFileDto();
+
+		using FilteredCollection<FileDto> sut = new(Observable.Return<Func<FileDto, bool>>(x => x != items[0]));
+
+		sut.AddRange(items);
+
+		// Act
+		sut.InsertAndRebuild(inserted, 0);
+
+		// Assert
+		sut.SelectFromSource(static x => x)
+			.Should()
+			.Equal(inserted, items[0], items[1], items[2]);
+	}
+
+	/// <summary>
 	/// <see cref="FilteredCollection{TModel}.PostToUi" />: the action runs inline when no synchronization context is set.
 	/// </summary>
 	[Test]
@@ -225,6 +347,46 @@ internal class FilteredCollectionTests
 		executed
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.PostToUi" />: with a context the action is posted to it rather than run at once.
+	/// </summary>
+	[Test]
+	public void PostToUi_Posts_The_Action_To_The_Context()
+	{
+		// Arrange
+		QueueingSynchronizationContext context = new();
+
+		SynchronizationContext.SetSynchronizationContext(context);
+
+		try
+		{
+			using FilteredCollection<FileDto> sut = new(Observable.Return<Func<FileDto, bool>>(static _ => true));
+
+			bool executed = false;
+
+			// Act
+			sut.PostToUi(() => executed = true);
+
+			// Assert
+			bool isExecutedAtOnce = executed;
+
+			context.RunPosted();
+
+			isExecutedAtOnce
+				.Should()
+				.BeFalse();
+
+			executed
+				.Should()
+				.BeTrue();
+		}
+		finally
+		{
+			// No context is left behind for the next test on this thread.
+			SynchronizationContext.SetSynchronizationContext(null);
+		}
 	}
 
 	/// <summary>
@@ -254,6 +416,76 @@ internal class FilteredCollectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.Reorder" />: an absent item moves nothing.
+	/// </summary>
+	[Test]
+	public void Reorder_Does_Nothing_For_An_Absent_Item()
+	{
+		// Arrange
+		using FilteredCollection<FileDto> sut = CreateSut();
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		sut.Reorder(ItemDtoFactory.CreateFileDto(), 0);
+
+		// Assert
+		sut.Visible
+			.Should()
+			.Equal(items);
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.Reorder" />: an item already at its place is left there without a rebuild.
+	/// </summary>
+	[Test]
+	public void Reorder_Leaves_An_Item_At_Its_Place_Alone()
+	{
+		// Arrange
+		using FilteredCollection<FileDto> sut = CreateSut();
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		sut.AddRange(items);
+
+		int changes = 0;
+
+		((INotifyCollectionChanged)sut.Visible).CollectionChanged += (_, _) => changes++;
+
+		// Act
+		sut.Reorder(items[1], 1);
+
+		// Assert
+		changes
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// <see cref="FilteredCollection{TModel}.Reorder" />: an item moved past the last visible index goes to the end.
+	/// </summary>
+	[Test]
+	public void Reorder_Moves_An_Item_Past_The_End_To_The_End()
+	{
+		// Arrange
+		using FilteredCollection<FileDto> sut = CreateSut();
+
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		sut.Reorder(items[1], items.Length);
+
+		// Assert
+		sut.Visible
+			.Should()
+			.Equal(items[0], items[2], items[1]);
+	}
+
+	/// <summary>
 	/// <see cref="FilteredCollection{TModel}.Reorder" />: an item is moved to the specified visible index.
 	/// </summary>
 	[Test]
@@ -270,9 +502,9 @@ internal class FilteredCollectionTests
 		sut.Reorder(items[0], 2);
 
 		// Assert
-		sut.Visible[2]
+		sut.Visible
 			.Should()
-			.Be(items[0]);
+			.Equal(items[1], items[2], items[0]);
 	}
 
 	/// <summary>
@@ -353,6 +585,27 @@ internal class FilteredCollectionTests
 		IObservable<Func<FileDto, bool>> filter = Observable.Return<Func<FileDto, bool>>(_ => true);
 
 		return new FilteredCollection<FileDto>(filter);
+	}
+
+	/// <summary>
+	/// Synchronization context that keeps the posted callbacks until the test runs them.
+	/// </summary>
+	private sealed class QueueingSynchronizationContext : SynchronizationContext
+	{
+		private readonly Queue<(SendOrPostCallback Callback, object? State)> _posted = new();
+
+		public override void Post(SendOrPostCallback d, object? state) => _posted.Enqueue((d, state));
+
+		/// <summary>
+		/// Runs the callbacks posted so far, in their order.
+		/// </summary>
+		public void RunPosted()
+		{
+			while (_posted.TryDequeue(out (SendOrPostCallback Callback, object? State) posted))
+			{
+				posted.Callback(posted.State);
+			}
+		}
 	}
 	#endregion
 }

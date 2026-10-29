@@ -46,6 +46,11 @@ internal partial class NotifyPropertyChangedExtensionsTests
 			.Should()
 			.Be(1);
 
+		// The first predicate is the one of the empty search, given at once.
+		predicates[0](new NameHolder("Other"))
+			.Should()
+			.BeTrue();
+
 		predicates
 			.Should()
 			.HaveCount(2);
