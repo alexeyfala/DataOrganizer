@@ -2,8 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataProtection.Helpers;
+using DataProtection.Interfaces;
 using DataProtection.Services;
 using DataProtection.UnitTests.Factories;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using System;
 using System.Security.Cryptography;
 using TestSupport.Common;
@@ -285,6 +288,43 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="SessionKeyStore.Lock" />: locking the last keeper wipes the session secret.
+	/// </summary>
+	[Test]
+	public void Lock_Wipes_The_Session_Secret_With_The_Last_Keeper()
+	{
+		// Arrange
+		PinnedBuffer? sessionId = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionDekWrapper sessionDekWrapper = Substitute.For<ISessionDekWrapper>();
+
+			sessionDekWrapper
+				.EncryptWithSessionId(Arg.Any<PinnedBuffer>(), Arg.Do<PinnedBuffer>(x => sessionId = x), Arg.Any<ContentIdentity>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(sessionDekWrapper);
+		});
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		sut.Unlock(keeperId, SecretFactory.CreateRandomKey(DekSize));
+
+		// Act
+		sut.Lock(keeperId);
+
+		// Assert
+		Action read = () => sessionId!.AsReadOnlySpan();
+
+		read
+			.Should()
+			.ThrowExactly<ObjectDisposedException>();
+	}
+
+	/// <summary>
 	/// <see cref="SessionKeyStore.LockAll" />: drops the keys of every keeper.
 	/// </summary>
 	[Test]
@@ -314,6 +354,75 @@ internal class SessionKeyStoreTests
 		sut.IsUnlocked(secondKeeperId)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.LockAll" />: wipes the session secret.
+	/// </summary>
+	[Test]
+	public void LockAll_Wipes_The_Session_Secret()
+	{
+		// Arrange
+		PinnedBuffer? sessionId = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionDekWrapper sessionDekWrapper = Substitute.For<ISessionDekWrapper>();
+
+			sessionDekWrapper
+				.EncryptWithSessionId(Arg.Any<PinnedBuffer>(), Arg.Do<PinnedBuffer>(x => sessionId = x), Arg.Any<ContentIdentity>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(sessionDekWrapper);
+		});
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		sut.Unlock(Guid.NewGuid(), SecretFactory.CreateRandomKey(DekSize));
+
+		// Act
+		sut.LockAll();
+
+		// Assert
+		Action read = () => sessionId!.AsReadOnlySpan();
+
+		read
+			.Should()
+			.ThrowExactly<ObjectDisposedException>();
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.Unlock" />: the session secret is drawn at random.
+	/// </summary>
+	[Test]
+	public void Unlock_Draws_A_Random_Session_Secret()
+	{
+		// Arrange
+		byte[] secret = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionDekWrapper sessionDekWrapper = Substitute.For<ISessionDekWrapper>();
+
+			sessionDekWrapper
+				.EncryptWithSessionId(
+					Arg.Any<PinnedBuffer>(),
+					Arg.Do<PinnedBuffer>(x => secret = x.AsReadOnlySpan().ToArray()),
+					Arg.Any<ContentIdentity>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(sessionDekWrapper);
+		});
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		// Act
+		sut.Unlock(Guid.NewGuid(), SecretFactory.CreateRandomKey(DekSize));
+
+		// Assert
+		secret
+			.Should()
+			.Contain(x => x != 0);
 	}
 
 	/// <summary>
@@ -411,6 +520,44 @@ internal class SessionKeyStoreTests
 		sut.Decrypt(keeperId, Identity, encrypted!)
 			.Should()
 			.Equal(contents);
+	}
+
+	/// <summary>
+	/// <see cref="SessionKeyStore.Unlock" />: a session secret made for a key that cannot be wrapped is wiped, as no
+	/// key needs it.
+	/// </summary>
+	[Test]
+	public void Unlock_Wipes_A_New_Session_Secret_When_The_Key_Cannot_Be_Wrapped()
+	{
+		// Arrange
+		PinnedBuffer? sessionId = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionDekWrapper sessionDekWrapper = Substitute.For<ISessionDekWrapper>();
+
+			sessionDekWrapper
+				.EncryptWithSessionId(Arg.Any<PinnedBuffer>(), Arg.Do<PinnedBuffer>(x => sessionId = x), Arg.Any<ContentIdentity>())
+				.Throws(new CryptographicException());
+
+			builder.RegisterInstance(sessionDekWrapper);
+		});
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		// Act
+		Action unlock = () => sut.Unlock(Guid.NewGuid(), SecretFactory.CreateRandomKey(DekSize));
+
+		// Assert
+		unlock
+			.Should()
+			.ThrowExactly<CryptographicException>();
+
+		Action read = () => sessionId!.AsReadOnlySpan();
+
+		read
+			.Should()
+			.ThrowExactly<ObjectDisposedException>();
 	}
 	#endregion
 }

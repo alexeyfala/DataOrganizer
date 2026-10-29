@@ -158,12 +158,20 @@ Noise is marked where it lives, so a renamed or moved file or member keeps its m
 - **A call the whole solution makes by one convention** stays in `ignore-methods`: the calls on
   `_logger`; `.LogWarning` and `.LogException`, as Stryker sees only the name after `?.` in
   `logger?.LogWarning(...)`; `Trace.WriteLine`; the messages of exceptions (`*Exception.ctor`, the
-  `throw` itself is still mutated); and the calls on `_notification`. Marking them in the code would
-  take a comment at every call. The guard test `StrykerIgnoreMethodsConsistencyTests` fails when a
-  pattern there no longer matches any call, so a rename cannot leave it behind.
+  `throw` itself is still mutated); the calls on `_notification` and on the failure reporters
+  (`_failureReporter`, `_dbFailureReporter`, `_encryptionFailureReporter`); and
+  `ArgumentNullException.ThrowIfNull`, as a parameter that does not allow `null` gets one only through
+  `null!`. Marking them in the code would take a comment at every call. The guard test
+  `StrykerIgnoreMethodsConsistencyTests` fails when a pattern there no longer matches any call, so a
+  rename cannot leave it behind.
 
 The calls on `_notification` include those of `DbFailureReporter` and `EncryptionFailureReporter`,
 whose notification is their contract: their own tests still check it, but Stryker no longer does.
+
+A mark covers every mutant of its kind in the statement, so it is not set where a killed mutant of the
+same kind sits next to an equivalent one: such an equivalent mutant stays in the report as a survivor.
+When the only statement of a block is marked, Stryker removes the whole block instead, so the mark goes
+above the `if`, `catch` or `finally` and names `Block` too.
 
 A left-out call takes its arguments with it, so `ignore-methods` never names a call whose arguments do
 real work: `LogSnackbar(text, level, Show(...))` would hide the showing of the message. A pattern such

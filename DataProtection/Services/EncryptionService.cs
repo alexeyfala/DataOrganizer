@@ -352,6 +352,7 @@ public sealed class EncryptionService :
 		}
 		catch
 		{
+			// Stryker disable once Statement : the wiped buffer is not reachable from outside
 			plaintext.Dispose();
 
 			throw;
@@ -416,6 +417,7 @@ public sealed class EncryptionService :
 
 			return ImportKey(blob);
 		}
+		// Stryker disable once Block,Statement : the wiped key bytes are not reachable from outside
 		finally
 		{
 			blob.ZeroMemory();
@@ -471,6 +473,7 @@ public sealed class EncryptionService :
 				plaintext: input,
 				ciphertext: result.AsSpan(format.PrefixSize));
 		}
+		// Stryker disable once all : the sizes are checked above, so the algorithm has nothing else to throw
 		catch (Exception ex) when (ex is not CryptographicException)
 		{
 			throw new CryptographicException($"Encryption of the format {format.Version:X2} failed.", ex);
@@ -487,12 +490,14 @@ public sealed class EncryptionService :
 	{
 		ArgumentNullException.ThrowIfNull(input);
 
+		// Stryker disable once Arithmetic : a shorter blob is refused anyway by the authentication tag
 		if (input.Length < format.PrefixSize + Algorithm.TagSize)
 		{
 			throw new CryptographicException(
 				$"Encrypted data of {input.Length} bytes is too short for the format {format.Version:X2}.");
 		}
 
+		// Stryker disable once Block,Statement : the authenticated data holds the marker, so the tag refuses it anyway
 		if (input[0] != format.Version)
 		{
 			throw new CryptographicException(
@@ -543,6 +548,7 @@ public sealed class EncryptionService :
 	{
 		if (ciphertext.Length < Algorithm.TagSize)
 		{
+			// Stryker disable once Boolean : every caller has checked the length already
 			return false;
 		}
 
@@ -636,6 +642,7 @@ public sealed class EncryptionService :
 			return Argon2Settings.Read(
 				wrapped.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize));
 		}
+		// Stryker disable once Block : an empty block returns the same null
 		catch (CryptographicException)
 		{
 			return null;

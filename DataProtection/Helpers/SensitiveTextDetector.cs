@@ -89,29 +89,11 @@ public static partial class SensitiveTextDetector
 			&& CountStructuralSeparators(candidate) <= MaxStructuralSeparators
 			&& ShannonBitsPerChar(candidate) >= MinShannonBitsPerChar;
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// <c>True</c> when <paramref name="value" /> contains any whitespace character.
-	/// </summary>
-	private static bool ContainsWhitespace(ReadOnlySpan<char> value)
-	{
-		foreach (char c in value)
-		{
-			if (char.IsWhiteSpace(c))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
 
 	/// <summary>
 	/// Counts how many of the four classes (lower / upper / digit / other) occur in <paramref name="value" />.
 	/// </summary>
-	private static int CountCharacterClasses(ReadOnlySpan<char> value)
+	internal static int CountCharacterClasses(ReadOnlySpan<char> value)
 	{
 		bool hasLower = false;
 
@@ -142,6 +124,97 @@ public static partial class SensitiveTextDetector
 		}
 
 		return (hasLower ? 1 : 0) + (hasUpper ? 1 : 0) + (hasDigit ? 1 : 0) + (hasOther ? 1 : 0);
+	}
+
+	/// <summary>
+	/// Length of the longest run of consecutive same-class characters. Words and hex literals have
+	/// long runs; random passwords interleave classes and keep runs short.
+	/// </summary>
+	internal static int LongestSameClassRun(ReadOnlySpan<char> value)
+	{
+		int longest = 0;
+
+		int current = 0;
+
+		// Stryker disable once Unary : the first character starts a run of one whatever the class before it
+		int previousClass = -1;
+
+		foreach (char c in value)
+		{
+			int charClass = GetCharClass(c);
+
+			current = charClass == previousClass ? current + 1 : 1;
+
+			previousClass = charClass;
+
+			if (current > longest)
+			{
+				longest = current;
+			}
+		}
+
+		return longest;
+	}
+
+	/// <summary>
+	/// Shannon entropy of <paramref name="value" /> in bits per character. Length is within <see cref="MaxLength" />.
+	/// </summary>
+	internal static double ShannonBitsPerChar(ReadOnlySpan<char> value)
+	{
+		Span<char> chars = stackalloc char[MaxLength];
+
+		Span<int> counts = stackalloc int[MaxLength];
+
+		int distinct = 0;
+
+		foreach (char c in value)
+		{
+			int index = chars[..distinct].IndexOf(c);
+
+			if (index < 0)
+			{
+				chars[distinct] = c;
+
+				counts[distinct] = 1;
+
+				distinct++;
+			}
+			else
+			{
+				counts[index]++;
+			}
+		}
+
+		double entropy = 0.0;
+
+		double length = value.Length;
+
+		for (int i = 0; i < distinct; i++)
+		{
+			double probability = counts[i] / length;
+
+			entropy -= probability * Math.Log2(probability);
+		}
+
+		return entropy;
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> when <paramref name="value" /> contains any whitespace character.
+	/// </summary>
+	private static bool ContainsWhitespace(ReadOnlySpan<char> value)
+	{
+		foreach (char c in value)
+		{
+			if (char.IsWhiteSpace(c))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -189,6 +262,7 @@ public static partial class SensitiveTextDetector
 			return 1;
 		}
 
+		// Stryker disable once Boolean : swapping digits with the other characters keeps every run the same length
 		if (char.IsDigit(character))
 		{
 			return 2;
@@ -219,82 +293,10 @@ public static partial class SensitiveTextDetector
 	}
 
 	/// <summary>
-	/// Length of the longest run of consecutive same-class characters. Words and hex literals have
-	/// long runs; random passwords interleave classes and keep runs short.
-	/// </summary>
-	private static int LongestSameClassRun(ReadOnlySpan<char> value)
-	{
-		int longest = 0;
-
-		int current = 0;
-
-		int previousClass = -1;
-
-		foreach (char c in value)
-		{
-			int charClass = GetCharClass(c);
-
-			current = charClass == previousClass ? current + 1 : 1;
-
-			previousClass = charClass;
-
-			if (current > longest)
-			{
-				longest = current;
-			}
-		}
-
-		return longest;
-	}
-
-	/// <summary>
 	/// Matches a file-system path root: a drive (<c>C:\</c> / <c>C:/</c>), a UNC prefix (<c>\\</c>)
 	/// or a home shortcut (<c>~/</c> / <c>~\</c>). Backslash paths are also caught by a separate check.
 	/// </summary>
 	[GeneratedRegex(@"^([A-Za-z]:[\\/]|\\\\|~[\\/])", RegexOptions.CultureInvariant)]
 	private static partial Regex PathRootRegex();
-
-	/// <summary>
-	/// Shannon entropy of <paramref name="value" /> in bits per character. Length is within <see cref="MaxLength" />.
-	/// </summary>
-	private static double ShannonBitsPerChar(ReadOnlySpan<char> value)
-	{
-		Span<char> chars = stackalloc char[MaxLength];
-
-		Span<int> counts = stackalloc int[MaxLength];
-
-		int distinct = 0;
-
-		foreach (char c in value)
-		{
-			int index = chars[..distinct].IndexOf(c);
-
-			if (index < 0)
-			{
-				chars[distinct] = c;
-
-				counts[distinct] = 1;
-
-				distinct++;
-			}
-			else
-			{
-				counts[index]++;
-			}
-		}
-
-		double entropy = 0.0;
-
-		double length = value.Length;
-
-		for (int i = 0; i < distinct; i++)
-		{
-			double probability = counts[i] / length;
-
-			entropy -= probability * Math.Log2(probability);
-		}
-
-		return entropy;
-	}
 	#endregion
 }

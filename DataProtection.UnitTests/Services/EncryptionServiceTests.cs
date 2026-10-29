@@ -916,6 +916,31 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />: an empty
+	/// plaintext, the shortest blob of the format, opens again.
+	/// </summary>
+	[Test]
+	public void EncryptWithDek_DecryptWithDek_Round_Trip_Restores_An_Empty_Plaintext()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer dek = sut.CreateRandomDek();
+
+		byte[] encrypted = sut.EncryptWithDek([], dek, Identity);
+
+		// Act
+		byte[] decrypted = sut.DecryptWithDek(encrypted, dek, Identity);
+
+		// Assert
+		decrypted
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />: a DEK round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]

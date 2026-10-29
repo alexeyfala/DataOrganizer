@@ -43,6 +43,25 @@ internal class PasswordPolicyTests
 	}
 
 	/// <summary>
+	/// <see cref="PasswordPolicy.Check" />: a new password not typed yet is not too short.
+	/// </summary>
+	[Test]
+	public void Check_Does_Not_Find_An_Empty_New_Password_Too_Short()
+	{
+		// Act
+		PasswordCheck result = PasswordPolicy.Check(
+			string.Empty,
+			string.Empty,
+			isNewPassword: true,
+			MinimumLength);
+
+		// Assert
+		result.IsPasswordTooShort
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="PasswordPolicy.Check" />: an existing password is neither measured against the minimum length nor
 	/// rated.
 	/// </summary>

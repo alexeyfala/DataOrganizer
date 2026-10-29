@@ -168,6 +168,44 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentCipher.TryEncrypt" />: hands the cipher text of the key store over.
+	/// </summary>
+	[Test]
+	public void TryEncrypt_Hands_The_Cipher_Text_Over()
+	{
+		// Arrange
+		Guid keeperId = Guid.NewGuid();
+
+		byte[] input = RandomValues.CreateBytes(10);
+
+		byte[] encrypted = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Encrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+				.Returns(encrypted);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[]? result = sut.TryEncrypt(
+			keeperId,
+			ContentIdentity.Note,
+			input);
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(encrypted);
+	}
+
+	/// <summary>
 	/// <see cref="ContentCipher.TryEncrypt" />: a locked keeper ends with a refusal instead of an exception.
 	/// </summary>
 	[Test]

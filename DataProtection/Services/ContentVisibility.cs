@@ -189,6 +189,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	{
 		FolderDto? keeper = item.FindPasswordKeeper();
 
+		// Stryker disable once Linq : the search walks the subtree of the keeper anyway
 		if (keeper?
 			.ToEnumerable()
 			.Concat(keeper.GetAllChildren())
@@ -210,6 +211,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	{
 		if (!_sessionKeyStore.Unlock(keeperId, dek))
 		{
+			// Stryker disable once Boolean : the result only decides whether an error is shown
 			return false;
 		}
 
@@ -218,6 +220,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
 
+		// Stryker disable once Boolean : the result only decides whether an error is shown
 		return true;
 	}
 	#endregion

@@ -100,6 +100,7 @@ public sealed class FolderCipher : IFolderCipher
 				newPasswordBinary,
 				ContentIdentity.Dek);
 
+			// Stryker disable once Block,Statement,Boolean : the result only decides whether the change is announced
 			if (!await _keeperDekWriter
 				.WriteAsync(folder, encryptedDek, token)
 				.ConfigureAwait(false))
@@ -139,6 +140,7 @@ public sealed class FolderCipher : IFolderCipher
 				},
 				token).ConfigureAwait(false);
 
+			// Stryker disable once Block,Statement : going on fails at once and only reports the failure
 			if (conversion is null)
 			{
 				return;
@@ -165,6 +167,7 @@ public sealed class FolderCipher : IFolderCipher
 
 			areNotesHandedOver = true;
 		}
+		// Stryker disable once Block,Statement : the block only reports the failure
 		catch (Exception ex)
 		{
 			ReportFailure(ex, Strings.FailedToProcessContents);
@@ -202,6 +205,7 @@ public sealed class FolderCipher : IFolderCipher
 				},
 				token).ConfigureAwait(false);
 
+			// Stryker disable once Block,Statement : going on fails at once and only reports the failure
 			if (conversion is null)
 			{
 				return;
@@ -239,6 +243,7 @@ public sealed class FolderCipher : IFolderCipher
 				WipeContents(conversion.Loaded);
 			}
 		}
+		// Stryker disable once Block,Statement : the block only reports the failure
 		catch (Exception ex)
 		{
 			ReportFailure(ex, Strings.FailedToProcessContents);

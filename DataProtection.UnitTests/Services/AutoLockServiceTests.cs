@@ -67,6 +67,51 @@ internal class AutoLockServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: a countdown armed again after a stop runs the timer again once the timer of
+	/// the stopped one has ended.
+	/// </summary>
+	[Test]
+	public void Arm_After_A_Stop_Runs_The_Timer_Again()
+	{
+		// Arrange
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAutoLockSettings autoLockSettings = Substitute.For<IAutoLockSettings>();
+
+			autoLockSettings
+				.AutoLockMinutes
+				.Returns(1);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(autoLockSettings);
+
+			builder.RegisterInstance(uiTimer);
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		sut.Stop();
+
+		// The timer of the stopped countdown ticks once more and ends.
+		sut.Tick();
+
+		// Act
+		sut.Arm();
+
+		// Assert
+		uiTimer
+			.Received(2)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
 	/// <see cref="AutoLockService.Arm" />: the countdown goes down on its own while time passes.
 	/// </summary>
 	[Test]
@@ -252,6 +297,45 @@ internal class AutoLockServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: a countdown armed again while it runs keeps the one timer it runs on.
+	/// </summary>
+	[Test]
+	public void Arm_Twice_Runs_One_Timer()
+	{
+		// Arrange
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAutoLockSettings autoLockSettings = Substitute.For<IAutoLockSettings>();
+
+			autoLockSettings
+				.AutoLockMinutes
+				.Returns(1);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(autoLockSettings);
+
+			builder.RegisterInstance(uiTimer);
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		// Act
+		sut.Arm();
+
+		// Assert
+		uiTimer
+			.Received(1)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
 	/// <see cref="AutoLockService.Arm" />: the delay of no auto-lock leaves the countdown stopped.
 	/// </summary>
 	[Test]
@@ -290,6 +374,50 @@ internal class AutoLockServiceTests
 		sut.Remaining
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: a delay of no auto-lock stops the countdown that runs.
+	/// </summary>
+	[Test]
+	public void Arm_Without_A_Delay_Stops_A_Running_Countdown()
+	{
+		// Arrange
+		IAutoLockSettings autoLockSettings = Substitute.For<IAutoLockSettings>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			autoLockSettings
+				.AutoLockMinutes
+				.Returns(1);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>();
+
+			builder.RegisterInstance(autoLockSettings);
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		// The auto-lock is switched off in the settings while the countdown runs.
+		autoLockSettings
+			.AutoLockMinutes
+			.Returns(0);
+
+		// Act
+		sut.Arm();
+
+		// Assert
+		sut.IsArmed
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

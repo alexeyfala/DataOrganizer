@@ -326,6 +326,61 @@ internal class EncryptedContentWriterTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: a replaced note is wiped, and an object without a note
+	/// update keeps its note.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Wipes_The_Replaced_Note_And_Keeps_A_Note_Without_An_Update()
+	{
+		// Arrange
+		byte[] replacedNote = RandomValues.CreateBytes(10);
+
+		byte[] keptNote = RandomValues.CreateBytes(10);
+
+		byte[] newNote = RandomValues.CreateBytes(10);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Note = replacedNote;
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.Note = keptNote;
+
+		UpdateDatabaseParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedDek = RandomValues.CreateBytes(10),
+			Files = [file],
+			Folder = folder,
+			NewStatus = EncryptionStatus.Encrypted,
+			Notes = [new NoteUpdate(folder.Id, EntityKind.Folder, newNote)]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FakeTimeProvider>()
+			.As<TimeProvider>());
+
+		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
+
+		// Act
+		await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		folder.Note
+			.Should()
+			.BeSameAs(newNote);
+
+		replacedNote
+			.Should()
+			.OnlyContain(x => x == 0);
+
+		file.Note
+			.Should()
+			.BeSameAs(keptNote);
+	}
+
+	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: the new contents, the notes and the wrapped key reach the
 	/// database, and what changes gets the date of the write. A file note goes in only with the contents of its file.
 	/// </summary>

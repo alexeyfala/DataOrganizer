@@ -35,5 +35,29 @@ internal class FolderProtectionRulesTests
 		// Act
 		return FolderProtectionRules.CanDecrypt(keeper);
 	}
+
+	/// <summary>
+	/// <see cref="FolderProtectionRules.CanEncrypt" />: a folder outside every keeper is refused once one of its objects
+	/// holds protected contents.
+	/// </summary>
+	[Test]
+	[TestCase(EncryptionStatus.None, ExpectedResult = true)]
+	[TestCase(EncryptionStatus.Encrypted, ExpectedResult = false)]
+	public bool CanEncrypt_Refuses_A_Folder_With_Protected_Contents(EncryptionStatus childStatus)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto child = ItemDtoFactory.CreateFileDto(encryptionStatus: childStatus);
+
+		child.Parent = folder;
+
+		folder
+			.Children
+			.Add(child);
+
+		// Act
+		return FolderProtectionRules.CanEncrypt(folder);
+	}
 	#endregion
 }

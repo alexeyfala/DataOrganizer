@@ -35,6 +35,7 @@ public sealed class PinnedBuffer : IDisposable
 	public PinnedBuffer(int length)
 	{
 		// Pinned object heap: the array never moves, so a compacting GC cannot leave a copy behind.
+		// Stryker disable once Boolean : whether the array may move is invisible to a test
 		_buffer = GC.AllocateArray<byte>(length, pinned: true);
 	}
 
@@ -70,6 +71,7 @@ public sealed class PinnedBuffer : IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second wipe of a wiped buffer changes nothing
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;

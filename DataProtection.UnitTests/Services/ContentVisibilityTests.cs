@@ -10,11 +10,13 @@ using Hierarchy.Enums;
 using Hierarchy.Interfaces;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -96,6 +98,119 @@ internal class ContentVisibilityTests
 		sessionKeyStore
 			.DidNotReceive()
 			.Lock(file.Id);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.HideAllContents" />: hides every shown object, leaves the rest as it is and drops
+	/// every held key.
+	/// </summary>
+	[Test]
+	public void HideAllContents_Hides_The_Shown_Objects_And_Locks_Every_Keeper()
+	{
+		// Arrange
+		FileDto shown = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileDto plain = ItemDtoFactory.CreateFileDto();
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.HideAllContents([shown, plain]);
+
+		// Assert
+		shown.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		plain.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.None);
+
+		sessionKeyStore
+			.Received(1)
+			.LockAll();
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.HideFileContents" />: hiding a file keeps the key of its keeper while another file
+	/// of the keeper is still shown.
+	/// </summary>
+	[Test]
+	public void HideFileContents_Keeps_The_Key_While_Another_File_Is_Shown()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto hidden = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileDto shown = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		hidden.Parent = keeper;
+
+		shown.Parent = keeper;
+
+		keeper
+			.Children
+			.AddRange([hidden, shown]);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.HideFileContents(hidden);
+
+		// Assert
+		hidden.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.HideFileContents" />: hiding the last shown file of a keeper drops the key of the
+	/// keeper.
+	/// </summary>
+	[Test]
+	public void HideFileContents_Locks_The_Keeper_Of_The_Last_Shown_File()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		file.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(file);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.HideFileContents(file);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Lock(keeper.Id);
 	}
 
 	/// <summary>
@@ -217,6 +332,152 @@ internal class ContentVisibilityTests
 			sessionKeyStore
 				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(false);
+
+			builder.RegisterInstance(unlocker);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		bool result = await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: a cancelled password prompt leaves the file encrypted and
+	/// turns the call down.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Turns_Down_A_Cancelled_Password()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		bool result = await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		sessionKeyStore
+			.DidNotReceive()
+			.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: a file outside every keeper is turned down without asking
+	/// for a password.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Turns_Down_A_File_Outside_A_Keeper()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(unlocker));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		bool result = await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		await unlocker.DidNotReceive().RequestDekAsync(
+			Arg.Any<IPasswordKeeper>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: a key the store cannot open leaves the file encrypted and
+	/// turns the call down.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Turns_Down_A_Key_That_Cannot_Be_Opened()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(32));
+
+			sessionKeyStore
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
+				.Throws(new CryptographicException());
 
 			builder.RegisterInstance(unlocker);
 

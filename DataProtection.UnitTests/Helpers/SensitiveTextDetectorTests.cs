@@ -8,6 +8,69 @@ internal class SensitiveTextDetectorTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="SensitiveTextDetector.CountCharacterClasses" />: each of lower case, upper case, digit and other
+	/// counts once, and only when it occurs.
+	/// </summary>
+	[TestCase("abc", 1)]
+	[TestCase("ABC", 1)]
+	[TestCase("123", 1)]
+	[TestCase("#$%", 1)]
+	[TestCase("aB", 2)]
+	[TestCase("1#", 2)]
+	[TestCase("aB1", 3)]
+	[TestCase("aB1#", 4)]
+	public void CountCharacterClasses_Counts_The_Classes_In_Use(string text, int expected)
+	{
+		// Act
+		int result = SensitiveTextDetector.CountCharacterClasses(text);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveTextDetector.LongestSameClassRun" />: neighbours of different classes break a run, so each
+	/// class stays apart from the others.
+	/// </summary>
+	[TestCase("abcde", 5)]
+	[TestCase("abcDE", 3)]
+	[TestCase("a#", 1)]
+	[TestCase("B#", 1)]
+	[TestCase("1#", 1)]
+	[TestCase("B1#", 1)]
+	public void LongestSameClassRun_Measures_The_Longest_Run_Of_One_Class(string text, int expected)
+	{
+		// Act
+		int result = SensitiveTextDetector.LongestSameClassRun(text);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: a value that passes every positive signal is still not a
+	/// secret when one negative filter alone catches it (e-mail, hex digest, relative Windows path, home path).
+	/// </summary>
+	[TestCase("jdoe42@web.de")]
+	[TestCase("a1B2c3D4e5F6a7B8c9D0a1B2c3D4e5F6a7B8c9D0")]
+	[TestCase(@"Work\Draft7Kq")]
+	[TestCase("~/Xk7#pQ2!mZ")]
+	public void LooksLikeSecret_Returns_False_For_A_Value_Only_A_Filter_Excludes(string text)
+	{
+		// Act
+		bool result = SensitiveTextDetector.LooksLikeSecret(text);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: values caught by the negative
 	/// filters (GUID, hex hash, e-mail, URL, path, environment variable) are never secrets.
 	/// </summary>
@@ -149,6 +212,26 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: a value right at a limit is a secret — the shortest and the
+	/// longest length, entropy of exactly 3 bits, a run of 4, one separator, and a hash length without hex digits.
+	/// </summary>
+	[TestCase("aB3#kL9!")]
+	[TestCase("aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!")]
+	[TestCase("aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!aB3#kL9!")]
+	[TestCase("abcdB3#kL9")]
+	[TestCase("aB3.kL9!mZ")]
+	public void LooksLikeSecret_Returns_True_At_The_Limits_Of_The_Rules(string text)
+	{
+		// Act
+		bool result = SensitiveTextDetector.LooksLikeSecret(text);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: bare base64 / JWT fragments have
 	/// no separators and no long runs, so they read as random soup. Blurring them is acceptable.
 	/// </summary>
@@ -198,6 +281,23 @@ internal class SensitiveTextDetectorTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveTextDetector.ShannonBitsPerChar" />: the entropy follows how often each character occurs.
+	/// </summary>
+	[TestCase("aaaa", 0.0)]
+	[TestCase("aaaabbbb", 1.0)]
+	[TestCase("abcd", 2.0)]
+	public void ShannonBitsPerChar_Measures_The_Entropy(string text, double expected)
+	{
+		// Act
+		double result = SensitiveTextDetector.ShannonBitsPerChar(text);
+
+		// Assert
+		result
+			.Should()
+			.BeApproximately(expected, 1e-9);
 	}
 	#endregion
 }

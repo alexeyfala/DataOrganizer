@@ -79,6 +79,7 @@ public sealed class PinnedSecret : IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second free of the handle cannot be observed safely
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
@@ -88,6 +89,7 @@ public sealed class PinnedSecret : IDisposable
 			.AsBytes(_buffer.AsSpan())
 			.ZeroMemory();
 
+		// Stryker disable once Statement : a leaked handle is invisible to a test
 		_handle.Free();
 	}
 
@@ -102,6 +104,7 @@ public sealed class PinnedSecret : IDisposable
 
 		// ASCII holds no decomposable character, so it is normalized already and the common
 		// secret never becomes a string.
+		// Stryker disable once Block : the longer way gives the same bytes; only the string it makes is invisible
 		if (Ascii.IsValid(characters))
 		{
 			return Encode(characters);
@@ -117,6 +120,7 @@ public sealed class PinnedSecret : IDisposable
 		{
 			return Encode(normalized);
 		}
+		// Stryker disable once Block,Statement : the wiped strings are not reachable from outside
 		finally
 		{
 			StringWiper.Wipe(normalized);

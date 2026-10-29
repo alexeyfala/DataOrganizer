@@ -26,6 +26,88 @@ internal class FolderContentsConverterTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="FolderContentsConverter.ConvertAsync" />: contents and notes are encrypted for an encryption and
+	/// decrypted for a decryption.
+	/// </summary>
+	[Test]
+	public async Task ConvertAsync_Converts_In_The_Asked_Direction([Values] bool encrypt)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Note = RandomValues.CreateBytes(10);
+
+		FileDto[] files = [ItemDtoFactory.CreateFileDto()];
+
+		ValidatedContents[] encrypted = [.. DatabaseFactory.CreateValidatedContents(files.Length, isValid: true)];
+
+		ValidatedContents[] decrypted = [.. DatabaseFactory.CreateValidatedContents(files.Length, isValid: true)];
+
+		byte[] encryptedNote = RandomValues.CreateBytes(10);
+
+		byte[] decryptedNote = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDekCipher encryption = Substitute.For<IDekCipher>();
+
+			encryption
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
+				.Returns(encrypted);
+
+			encryption
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
+				.Returns(decrypted);
+
+			encryption
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(encryptedNote);
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(decryptedNote);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(DatabaseFactory.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderContentsConverter sut = mock.Create<FolderContentsConverter>();
+
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey(32);
+
+		FolderConversionParameters parameters = new()
+		{
+			Dek = dek,
+			Encrypt = encrypt,
+			Files = files,
+			Folder = folder
+		};
+
+		// Act
+		FolderConversion? result = await sut.ConvertAsync(parameters);
+
+		// Assert
+		result!.Converted
+			.Should()
+			.Equal(encrypt ? encrypted : decrypted);
+
+		result.Notes
+			.Should()
+			.ContainSingle()
+			.Which
+			.Note
+			.Should()
+			.BeSameAs(encrypt ? encryptedNote : decryptedNote);
+	}
+
+	/// <summary>
 	/// <see cref="FolderContentsConverter.ConvertAsync" />: the notes of the folder, of its subfolders
 	/// and of its files are all converted.
 	/// </summary>
@@ -249,6 +331,64 @@ internal class FolderContentsConverterTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderContentsConverter.ConvertAsync" />: one damaged content among readable ones ends it without a
+	/// result.
+	/// </summary>
+	[Test]
+	public async Task ConvertAsync_Refuses_Contents_Of_Which_One_Arrives_Damaged()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		IDekCipher encryption = Substitute.For<IDekCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ValidatedContents[] loaded =
+			[
+				.. DatabaseFactory.CreateValidatedContents(1, isValid: true),
+				.. DatabaseFactory.CreateValidatedContents(1, isValid: false)
+			];
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(loaded.ToAsyncEnumerable());
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderContentsConverter sut = mock.Create<FolderContentsConverter>();
+
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey(32);
+
+		FolderConversionParameters parameters = new()
+		{
+			Dek = dek,
+			Encrypt = false,
+			Files = files,
+			Folder = folder
+		};
+
+		// Act
+		FolderConversion? result = await sut.ConvertAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+
+		encryption
+			.DidNotReceiveWithAnyArgs()
+			.DecryptContents(default!, default!);
+	}
+
+	/// <summary>
 	/// <see cref="FolderContentsConverter.ConvertAsync" />: contents that the database reports as
 	/// unreadable, or that arrive without an identifier, end it without a result.
 	/// </summary>
@@ -310,6 +450,80 @@ internal class FolderContentsConverterTests
 		encryption
 			.DidNotReceiveWithAnyArgs()
 			.DecryptContents(default!, default!);
+	}
+
+	/// <summary>
+	/// <see cref="FolderContentsConverter.ConvertAsync" />: the contents decrypted so far are erased when a note cannot be
+	/// converted.
+	/// </summary>
+	[Test]
+	public async Task ConvertAsync_Wipes_The_Converted_Contents_When_A_Note_Cannot_Be_Converted()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Note = RandomValues.CreateBytes(10);
+
+		FileDto[] files = [ItemDtoFactory.CreateFileDto()];
+
+		ValidatedContents[] decrypted =
+		[
+			new()
+			{
+				Contents = [1, 2, 3, 4],
+				Id = Guid.NewGuid(),
+				IsValid = true
+			}
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDekCipher encryption = Substitute.For<IDekCipher>();
+
+			encryption
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
+				.Returns(decrypted);
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(_ => throw new CryptographicException());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(DatabaseFactory.CreateValidatedContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderContentsConverter sut = mock.Create<FolderContentsConverter>();
+
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey(32);
+
+		FolderConversionParameters parameters = new()
+		{
+			Dek = dek,
+			Encrypt = false,
+			Files = files,
+			Folder = folder
+		};
+
+		// Act
+		Func<Task> act = () => sut.ConvertAsync(parameters);
+
+		// Assert
+		await act
+			.Should()
+			.ThrowExactlyAsync<CryptographicException>();
+
+		decrypted[0].Contents
+			.Should()
+			.AllSatisfy(x => x
+				.Should()
+				.Be(0));
 	}
 
 	/// <summary>

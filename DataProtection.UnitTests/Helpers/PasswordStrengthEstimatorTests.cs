@@ -9,6 +9,67 @@ internal class PasswordStrengthEstimatorTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="PasswordStrengthEstimator.AlphabetSize" />: each class in use adds its pool — 26 per letter case,
+	/// 10 digits, 33 other ASCII characters, 100 beyond ASCII.
+	/// </summary>
+	[TestCase("abc", 26)]
+	[TestCase("ABC", 26)]
+	[TestCase("123", 10)]
+	[TestCase("#$%", 33)]
+	[TestCase("пароль", 100)]
+	[TestCase("aB", 52)]
+	[TestCase("aB1", 62)]
+	[TestCase("aB1#", 95)]
+	[TestCase("aB1#п", 195)]
+	public void AlphabetSize_Adds_The_Pool_Of_Each_Class_In_Use(string password, int expected)
+	{
+		// Act
+		int result = PasswordStrengthEstimator.AlphabetSize(password);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="PasswordStrengthEstimator.EffectiveLength" />: a repeated character counts a quarter, a neighbour of
+	/// the letter or digit before it a half, in either direction, and anything else one.
+	/// </summary>
+	[TestCase("a", 1.0)]
+	[TestCase("aa", 1.25)]
+	[TestCase("ab", 1.5)]
+	[TestCase("ba", 1.5)]
+	[TestCase("9:", 2.0)]
+	[TestCase("a#", 2.0)]
+	public void EffectiveLength_Discounts_Repeats_And_Runs(string password, double expected)
+	{
+		// Act
+		double result = PasswordStrengthEstimator.EffectiveLength(password);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="PasswordStrengthEstimator.Estimate" />: a common word inside a longer password is one guess, so the
+	/// rest of the password still counts.
+	/// </summary>
+	[Test]
+	public void Estimate_Counts_A_Common_Word_As_One_Guess()
+	{
+		// Act
+		PasswordStrength result = PasswordStrengthEstimator.Estimate("xQ8!kP3@password");
+
+		// Assert
+		result
+			.Should()
+			.Be(PasswordStrength.Fair);
+	}
+
+	/// <summary>
 	/// <see cref="PasswordStrengthEstimator.Estimate" />: repeats, runs and a common base word
 	/// cost an attacker less than fresh characters, whatever the length says.
 	/// </summary>

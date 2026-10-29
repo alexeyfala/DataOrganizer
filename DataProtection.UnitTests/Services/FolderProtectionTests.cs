@@ -478,6 +478,11 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(converter);
+
+			// The real cipher is the one that would load the contents through the converter.
+			builder
+				.RegisterType<FolderCipher>()
+				.As<IFolderCipher>();
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();

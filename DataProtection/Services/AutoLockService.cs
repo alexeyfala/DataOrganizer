@@ -99,6 +99,7 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 	/// <inheritdoc />
 	public void Stop()
 	{
+		// Stryker disable once Block,Statement : without a countdown the rest only clears what is clear
 		if (_expiresAt is null)
 		{
 			return;

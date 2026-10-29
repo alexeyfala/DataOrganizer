@@ -117,42 +117,9 @@ internal static class PasswordStrengthEstimator
 
 	#region Methods
 	/// <summary>
-	/// Rates <paramref name="password" />; <see cref="PasswordStrength.None" /> while it is empty.
-	/// </summary>
-	public static PasswordStrength Estimate(ReadOnlySpan<char> password)
-	{
-		if (password.IsWhiteSpace())
-		{
-			return PasswordStrength.None;
-		}
-
-		double bitsPerChar = Math.Log2(AlphabetSize(password));
-
-		double bits = EffectiveLength(password) * bitsPerChar;
-
-		int commonLength = LongestCommonWordLength(password);
-
-		if (commonLength > 0)
-		{
-			// The known part is guessed in one step, so its characters stop paying for themselves.
-			bits = Math.Max(0.0, bits - (commonLength * bitsPerChar)) + CommonWordBits;
-		}
-
-		return bits switch
-		{
-			>= VeryStrongBits => PasswordStrength.VeryStrong,
-			>= StrongBits => PasswordStrength.Strong,
-			>= FairBits => PasswordStrength.Fair,
-			_ => PasswordStrength.Weak
-		};
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
 	/// Number of characters an attacker has to try per position, from the classes in use.
 	/// </summary>
-	private static int AlphabetSize(ReadOnlySpan<char> password)
+	public static int AlphabetSize(ReadOnlySpan<char> password)
 	{
 		bool hasLower = false;
 
@@ -199,7 +166,7 @@ internal static class PasswordStrengthEstimator
 	/// Length <paramref name="password" /> is worth once repeated characters and runs such as
 	/// <c>abcd</c> are discounted, as those cost an attacker far less than a fresh character.
 	/// </summary>
-	private static double EffectiveLength(ReadOnlySpan<char> password)
+	public static double EffectiveLength(ReadOnlySpan<char> password)
 	{
 		double length = 0.0;
 
@@ -230,6 +197,39 @@ internal static class PasswordStrengthEstimator
 		return length;
 	}
 
+	/// <summary>
+	/// Rates <paramref name="password" />; <see cref="PasswordStrength.None" /> while it is empty.
+	/// </summary>
+	public static PasswordStrength Estimate(ReadOnlySpan<char> password)
+	{
+		if (password.IsWhiteSpace())
+		{
+			return PasswordStrength.None;
+		}
+
+		double bitsPerChar = Math.Log2(AlphabetSize(password));
+
+		double bits = EffectiveLength(password) * bitsPerChar;
+
+		int commonLength = LongestCommonWordLength(password);
+
+		if (commonLength > 0)
+		{
+			// The known part is guessed in one step, so its characters stop paying for themselves.
+			bits = Math.Max(0.0, bits - (commonLength * bitsPerChar)) + CommonWordBits;
+		}
+
+		return bits switch
+		{
+			>= VeryStrongBits => PasswordStrength.VeryStrong,
+			>= StrongBits => PasswordStrength.Strong,
+			>= FairBits => PasswordStrength.Fair,
+			_ => PasswordStrength.Weak
+		};
+	}
+	#endregion
+
+	#region Helpers	
 	/// <summary>
 	/// <c>True</c> when the two letters or digits are neighbours in their alphabet.
 	/// </summary>

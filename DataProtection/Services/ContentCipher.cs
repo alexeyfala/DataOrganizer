@@ -56,6 +56,7 @@ public sealed class ContentCipher : IContentCipher
 		{
 			return _sessionKeyStore.Decrypt(keeperId, identity, input);
 		}
+		// Stryker disable once Block : the block only logs and returns what an empty block returns
 		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
 		{
 			// The caller renders or saves content, so the failure only reaches the log.
@@ -72,6 +73,7 @@ public sealed class ContentCipher : IContentCipher
 		{
 			return _sessionKeyStore.Encrypt(keeperId, identity, input);
 		}
+		// Stryker disable once Block : the block only logs and returns what an empty block returns
 		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
 		{
 			// The caller renders or saves content, so the failure only reaches the log.

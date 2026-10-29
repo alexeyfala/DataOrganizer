@@ -120,6 +120,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// </summary>
 	private static void ApplyNotes(ExplorerItemDtoBase[] objects, NoteUpdate[] notes)
 	{
+		// Stryker disable once Block,Statement : without notes the loop below finds nothing to apply
 		if (notes.Length == 0)
 		{
 			return;

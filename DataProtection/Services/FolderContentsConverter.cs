@@ -113,6 +113,7 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 
 				WipeContents(converted);
 
+				// Stryker disable once Statement : the notes are handed over as soon as they exist, so nothing is here yet
 				WipeNotes(notes);
 			}
 		}

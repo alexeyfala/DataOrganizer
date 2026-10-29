@@ -6,7 +6,11 @@
 			".LogException",
 			"Trace.WriteLine",
 			"*Exception.ctor",
-			"_notification.*"
+			"_notification.*",
+			"_failureReporter.*",
+			"_dbFailureReporter.*",
+			"_encryptionFailureReporter.*",
+			"ArgumentNullException.ThrowIfNull"
 		],
 		"additional-timeout": 20000,
 		"reporters": [ "progress", "html", "json" ]

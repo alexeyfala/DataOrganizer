@@ -11,6 +11,34 @@ internal class Argon2SettingsTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="Argon2Settings.Read" />: values right at the supported bounds are read as they are.
+	/// </summary>
+	[TestCase(8192u, 1, Description = "The lowest supported cost")]
+	[TestCase(524288u, 4, Description = "The highest supported cost")]
+	public void Read_Accepts_The_Supported_Bounds(uint memorySize, byte numberOfPasses)
+	{
+		// Arrange
+		byte[] header = new byte[Argon2Settings.HeaderSize];
+
+		BinaryPrimitives.WriteUInt32LittleEndian(header, memorySize);
+
+		header[4] = numberOfPasses;
+
+		header[5] = 1;
+
+		// Act
+		Argon2Settings result = Argon2Settings.Read(header);
+
+		// Assert
+		result
+			.Should()
+			.Be(new Argon2Settings(
+				MemorySize: (int)memorySize,
+				NumberOfPasses: numberOfPasses,
+				DegreeOfParallelism: 1));
+	}
+
+	/// <summary>
 	/// <see cref="Argon2Settings.Read" />: a layout shorter than the written one is refused.
 	/// </summary>
 	[Test]
