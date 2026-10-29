@@ -21,6 +21,43 @@ internal class BackedUpWriterTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="BackedUpWriter.WriteAsync" />: the copy made for the write is erased once the write is over.
+	/// </summary>
+	[Test]
+	public async Task WriteAsync_Erases_The_Copy_After_The_Write()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileSystem);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbBackupService backupService = Substitute.For<IDbBackupService>();
+
+			backupService
+				.CreateBackupAsync(Arg.Any<CancellationToken>())
+				.Returns(backup);
+
+			fileSystem
+				.FileExists(backup.FilePath)
+				.Returns(true);
+
+			builder.RegisterInstance(backupService);
+		});
+
+		BackedUpWriter sut = mock.Create<BackedUpWriter>();
+
+		// Act
+		await sut.WriteAsync(() => Task.FromResult(true));
+
+		// Assert
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(backup.FilePath);
+	}
+
+	/// <summary>
 	/// <see cref="BackedUpWriter.WriteAsync" />: a done write keeps the database as it wrote it.
 	/// </summary>
 	[Test]

@@ -6,6 +6,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 
@@ -69,6 +70,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "Brings forward or starts the file manager of the system")]
 	public void OpenDirectory(string directoryPath)
 	{
 		try
@@ -140,6 +142,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
 	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Runs on macOS only, while the mutation run is on Windows")]
 	private static string? ResolveMacOSBundle()
 	{
 		const string bundleExtension = ".app";
@@ -167,6 +170,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	/// <see cref="Environment.ProcessPath" /> is unreliable here: launching through the shared
 	/// <c>dotnet</c> host points it at the muxer instead of the application.
 	/// </remarks>
+	[ExcludeFromCodeCoverage(Justification = "Runs on Linux only, while the mutation run is on Windows")]
 	private string? ResolveLinuxAppFile()
 	{
 		Assembly? entryAssembly = Assembly.GetEntryAssembly();

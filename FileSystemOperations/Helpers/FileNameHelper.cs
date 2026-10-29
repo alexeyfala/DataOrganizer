@@ -14,6 +14,7 @@ public static class FileNameHelper
 	/// </summary>
 	public static ReadOnlySpan<char> GetExtension(string? name)
 	{
+		// Stryker disable once Block,Statement : the code below gives no extension for no name either
 		if (string.IsNullOrEmpty(name))
 		{
 			return [];

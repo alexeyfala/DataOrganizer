@@ -86,15 +86,18 @@ internal class LinuxExplorerManagerTests
 	}
 
 	/// <summary>
-	/// <see cref="LinuxExplorerManager.TitleMatchesFolderName" />: matches an exact title or a "&lt;name&gt; &lt;suffix&gt;" title, and rejects anything else.
+	/// <see cref="LinuxExplorerManager.TitleMatchesFolderName" />: matches an exact title or a "&lt;name&gt; &lt;suffix&gt;" title, and rejects anything else,
+	/// a title shorter than the name or a name left empty included.
 	/// </summary>
 	[TestCase("Docs", "Docs", ExpectedResult = true)]
 	[TestCase("Docs - Files", "Docs", ExpectedResult = true)]
 	[TestCase("Docs ", "Docs", ExpectedResult = true)]
 	[TestCase("Documents", "Doc", ExpectedResult = false)]
 	[TestCase("Other", "Docs", ExpectedResult = false)]
+	[TestCase("Do", "Docs", ExpectedResult = false)]
 	[TestCase("", "Docs", ExpectedResult = false)]
 	[TestCase("Docs", "", ExpectedResult = false)]
+	[TestCase(" Docs", "", ExpectedResult = false)]
 	public bool TitleMatchesFolderName_Matches_Exact_And_Prefixed_Titles(string title, string folderName)
 	{
 		return LinuxExplorerManager.TitleMatchesFolderName(title, folderName);
