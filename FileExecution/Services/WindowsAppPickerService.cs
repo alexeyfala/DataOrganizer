@@ -5,6 +5,7 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -50,6 +51,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	#endregion
 
 	#region Constructors
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	public WindowsAppPickerService(
 		IAppPickerPrompt appPickerPrompt,
 		ILogger logger)
@@ -62,6 +64,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 	#region Methods
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	public AssociatedAppInfo? CreateFromPath(string appPath)
 	{
 		if (string.IsNullOrEmpty(appPath))
@@ -78,6 +81,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	public async Task<AssociatedAppInfo?> PickAppAsync(string filePath, CancellationToken token = default)
 	{
 		string extension = Path.GetExtension(filePath);
@@ -139,6 +143,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <c>SHLoadIndirectString</c>. Falls back to the registry subkey name when
 	/// neither form is usable.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private static string ResolveFriendlyName(RegistryKey appKey, string subkeyName)
 	{
 		if (appKey.GetValue("FriendlyAppName") is not string friendly || string.IsNullOrEmpty(friendly))
@@ -172,6 +177,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <see cref="IAssocHandler" />. Returns <c>null</c> when the handler is missing
 	/// the executable path (rare, but possible for partially-broken registry entries).
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private static AssociatedAppInfo? TryBuildInfo(IAssocHandler handler)
 	{
 		int hr = handler.GetName(out string? appPath);
@@ -201,6 +207,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// entry. The display name is the executable name without extension; the icon is
 	/// loaded from the resolved exe path.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private static AssociatedAppInfo? TryBuildInfoFromAppPaths(RegistryKey appPathsKey, string subkeyName)
 	{
 		using RegistryKey? appKey = appPathsKey.OpenSubKey(subkeyName);
@@ -225,6 +232,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <c>HKEY_CLASSES_ROOT\Applications\&lt;subkey&gt;</c> entry. Skips apps marked
 	/// with <c>NoOpenWith</c> or missing the <c>shell\open\command</c> value.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private static AssociatedAppInfo? TryBuildInfoFromRegistry(RegistryKey appsKey, string subkeyName)
 	{
 		using RegistryKey? appKey = appsKey.OpenSubKey(subkeyName);
@@ -267,6 +275,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// Loads the large shell icon for <paramref name="appPath" /> as a PNG
 	/// image; <c>null</c> on any failure.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private static byte[]? TryLoadIcon(string appPath)
 	{
 		SHFILEINFO info = default;
@@ -311,6 +320,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// system-wide apps and <c>Registry.CurrentUser</c> for per-user apps). Each
 	/// subkey is an executable name whose <c>(Default)</c> value holds the full path.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private void AddAppPathsTo(
 		List<AssociatedAppInfo> result,
 		HashSet<string> seenPaths,
@@ -344,6 +354,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// with <c>NoOpenWith</c> and ones whose <see cref="AssociatedAppInfo.AppPath" />
 	/// is already in <paramref name="seenPaths" />.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private void AddHkcrApplicationsTo(List<AssociatedAppInfo> result, HashSet<string> seenPaths)
 	{
 		using RegistryKey? appsKey = Registry
@@ -380,6 +391,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <c>App Paths</c> (built-in system apps like Notepad, Calc). Duplicates are
 	/// removed by executable path (case-insensitive).
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private AssociatedAppInfo[] EnumerateAllApplications()
 	{
 		List<AssociatedAppInfo> result = [];
@@ -400,6 +412,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <see cref="AssociatedAppInfo" />. Bad / unreadable entries are logged and skipped
 	/// so a single broken registry record does not crash the picker.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	private AssociatedAppInfo[] EnumerateCandidates(string extension, AssocFilter filter = AssocFilter.None)
 	{
 		IEnumAssocHandlers? enumerator = null;

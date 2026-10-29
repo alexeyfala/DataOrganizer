@@ -3,6 +3,7 @@ using Interop.UIAutomationClient;
 using Shared.Common;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -14,6 +15,7 @@ namespace FileSystemOperations.Services;
 /// and reveals files through the "/select," switch.
 /// </summary>
 [SupportedOSPlatform("windows")]
+[ExcludeFromCodeCoverage(Justification = "Drives Explorer through Shell COM, runs only on Windows")]
 public sealed partial class WindowsExplorerManager : IExplorerManager
 {
 	#region Data

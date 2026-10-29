@@ -10,6 +10,7 @@ namespace FileExecution.Helpers;
 public static class ExecutableFileDetector
 {
 	#region Data
+	// Stryker disable all : a list of extensions; a test per entry would copy it
 	/// <summary>
 	/// Case-insensitive set of file extensions whose double-click / shell-execute
 	/// action runs code on Windows, Linux or macOS. Covers direct executables,
@@ -115,6 +116,7 @@ public static class ExecutableFileDetector
 		".tcl"					// Tcl scripts
 	#endregion
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase).GetAlternateLookup<ReadOnlySpan<char>>();
+	// Stryker restore all
 	#endregion
 
 	#region Methods

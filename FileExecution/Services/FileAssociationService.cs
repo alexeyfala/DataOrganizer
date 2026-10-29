@@ -5,6 +5,7 @@
 
 using FileExecution.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -12,6 +13,7 @@ namespace FileExecution.Services;
 
 /// <inheritdoc cref="IFileAssociationService" />
 [SupportedOSPlatform("windows")]
+[ExcludeFromCodeCoverage(Justification = "Asks the Windows shell for file associations")]
 public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods

@@ -9,6 +9,7 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,6 +83,7 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 
 			if (!AreContentsValid(converted, loaded.Length))
 			{
+				// Stryker disable once Statement : only writes to the log
 				LogInvalidContents(converted);
 
 				_notification.ShowErrorSnackbar(parameters.Encrypt
@@ -144,6 +146,7 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 	/// <summary>
 	/// Writes the identifiers of the contents that could not be converted to the log.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Only writes to the log")]
 	private void LogInvalidContents(ValidatedContents[] contents)
 	{
 		string identifiers = string.Join(", ", contents

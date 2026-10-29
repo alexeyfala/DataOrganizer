@@ -1,6 +1,7 @@
 using Cysharp.Text;
 using Shared.Properties;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Hierarchy.Dto;
 
@@ -8,6 +9,7 @@ namespace Hierarchy.Dto;
 /// The number of files and folders in a hierarchy.
 /// </summary>
 [DebuggerDisplay($"{nameof(Files)} = {{{nameof(Files)}}}, {nameof(Folders)} = {{{nameof(Folders)}}}")]
+[ExcludeFromCodeCoverage(Justification = "Builds a status line from localized words")]
 public readonly struct HierarchyCounts
 {
 	#region Properties

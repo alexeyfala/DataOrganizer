@@ -1,6 +1,13 @@
 {
 	"stryker-config": {
-		"ignore-methods": [ "_logger.*", "LogDuplicateEntry", "LogInvalidContents" ],
+		"ignore-methods": [
+			"_logger.*",
+			".LogWarning",
+			".LogException",
+			"Trace.WriteLine",
+			"*Exception.ctor",
+			"_notification.*"
+		],
 		"additional-timeout": 20000,
 		"reporters": [ "progress", "html", "json" ]
 	}

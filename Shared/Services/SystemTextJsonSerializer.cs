@@ -38,6 +38,7 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 		{
 			return Deserialize<T>(File.ReadAllText(filePath));
 		}
+		// Stryker disable once Block : the block only logs and returns what an empty block returns
 		catch (Exception ex)
 		{
 			logger?.LogException(ex, false);

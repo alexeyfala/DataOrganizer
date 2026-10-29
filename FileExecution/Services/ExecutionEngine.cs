@@ -229,6 +229,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 		finally
 		{
+			// Stryker disable once Block,Statement : a missing release shows only as a deadlock
 			if (semaphoreAcquired)
 			{
 				_semaphore.Release();
@@ -272,6 +273,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		if (_executingFiles.ContainsKey(parameters.File.Id))
 		{
+			// Stryker disable once Statement : only writes to the log
 			LogDuplicateEntry(parameters.File.Id);
 
 			return false;
@@ -311,6 +313,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			if (_executingFiles.ContainsKey(parameters.File.Id))
 			{
+				// Stryker disable once Statement : only writes to the log
 				LogDuplicateEntry(parameters.File.Id);
 
 				return false;
@@ -350,6 +353,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			if (!_executingFiles.TryAdd(parameters.File.Id, info))
 			{
+				// Stryker disable once Statement : only writes to the log
 				LogDuplicateEntry(parameters.File.Id);
 
 				return false;

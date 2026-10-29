@@ -59,6 +59,7 @@ internal static class PasswordStrengthEstimator
 	/// </summary>
 	private const double VeryStrongBits = 80.0;
 
+	// Stryker disable all : a list of words; a test per entry would copy it
 	/// <summary>
 	/// Words every leaked-credential list opens with; they are tried before anything else.
 	/// </summary>
@@ -111,6 +112,7 @@ internal static class PasswordStrengthEstimator
 		"whatever",
 		"zaq12wsx"
 	];
+	// Stryker restore all
 	#endregion
 
 	#region Methods

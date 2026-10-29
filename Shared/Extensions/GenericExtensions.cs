@@ -102,6 +102,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// If property names are not passed, all public properties of the object are used.
 	/// </remarks>
+	[ExcludeFromCodeCoverage(Justification = "A diagnostic dump for the log")]
 	public static string GetPropertyValues<T>(this T source,
 		bool insertNewLine,
 		params string[] propertyNames)
@@ -250,6 +251,7 @@ public static class GenericExtensions
 	/// <summary>
 	/// Adds property data.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A diagnostic dump for the log")]
 	private static void AppendPropertyData<T>(
 		ref Utf16ValueStringBuilder builder,
 		string propertyName,

@@ -515,6 +515,7 @@ public sealed class DbAccess :
 
 				using Stream stream = _fileSystem.OpenRead(filePath);
 
+				// Stryker disable once Equality : no SQLite file is as short as its header
 				if (stream.Length < 16)
 				{
 					return false;
@@ -626,6 +627,7 @@ public sealed class DbAccess :
 
 		DbConnection connection = _dbContextService.GetDbConnection();
 
+		// Stryker disable all : the closed connection and the pool flags show only under pool load
 		if (connection.State != ConnectionState.Closed)
 		{
 			connection.Close();
@@ -638,6 +640,7 @@ public sealed class DbAccess :
 			DestinationFilePath = GetDbFilePath(),
 			SourceFilePath = backupFilePath
 		};
+		// Stryker restore all
 
 		CopyDatabase(parameters);
 	}

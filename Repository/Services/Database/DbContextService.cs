@@ -7,11 +7,13 @@ using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repository.Services.Database;
 
+[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 public sealed class DbContextService : IDbContextService
 {
 	#region Data

@@ -6,6 +6,7 @@ using Settings.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using OSVersion = OSVersionExtension.OSVersion;
@@ -13,6 +14,7 @@ using OSVersion = OSVersionExtension.OSVersion;
 namespace AppLifecycle.Services;
 
 /// <inheritdoc cref="IStartupInfoLogger" />
+[ExcludeFromCodeCoverage(Justification = "Only writes to the log")]
 public sealed class StartupInfoLogger : IStartupInfoLogger
 {
 	#region Data

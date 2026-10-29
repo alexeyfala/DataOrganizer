@@ -1,6 +1,7 @@
 using FileSystemOperations.Interfaces;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -80,6 +81,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// </summary>
 	private const int WholePropertyLength = 0xFFFFFF;
 
+	// Stryker disable all : a list of process names; a test per entry would copy it
 	/// <summary>
 	/// Known file-manager process names compared with <c>/proc/&lt;pid&gt;/comm</c>..
 	/// </summary>
@@ -117,6 +119,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		// Krusader — niche twin-panel KDE manager.
 		"krusader"
 	];
+	// Stryker restore all
 	#endregion
 
 	#region Methods
@@ -124,6 +127,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// <remarks>
 	/// <paramref name="selectItemPath" /> is ignored: X11 cannot select an item inside an already opened window.
 	/// </remarks>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	public bool TryForegroundFolder(string folderPath, string? selectItemPath = null)
 	{
 		IntPtr display = IntPtr.Zero;
@@ -239,6 +243,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	public bool TryRevealFile(string filePath)
 	{
 		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
@@ -337,6 +342,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// <summary>
 	/// Reads <c>_NET_WM_PID</c> of the window; zero when it has none.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static int GetWindowPid(
 		IntPtr display,
 		IntPtr window,
@@ -358,6 +364,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// <summary>
 	/// Reads window title — prefers UTF-8 <c>_NET_WM_NAME</c>, falls back to <c>WM_NAME</c>.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static string? GetWindowTitle(
 		IntPtr display,
 		IntPtr window,
@@ -390,6 +397,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// Checks whether the process owning the window is a known file manager
 	/// (filters out unrelated apps that might happen to have matching titles).
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static bool IsKnownFileManagerProcess(int pid)
 	{
 		try
@@ -424,6 +432,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// <summary>
 	/// Reads a window property and parses its data; the default when the window has no such property.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static T? ReadProperty<T>(
 		IntPtr display,
 		IntPtr window,
@@ -473,6 +482,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// Sends <c>_NET_ACTIVE_WINDOW</c> ClientMessage to the root window — the EWMH-standard way
 	/// to ask the window manager to raise, focus, and de-iconify the target window.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static bool TryActivateWindow(
 		IntPtr display,
 		IntPtr root,
@@ -511,6 +521,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// Invokes <c>FileManager1.ShowItems</c> through the given D-Bus command-line tool;
 	/// returns whether the call completed successfully.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	private static bool TryCallShowItems(string executable, string[] arguments)
 	{
 		try

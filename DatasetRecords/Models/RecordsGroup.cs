@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DatasetRecords.Models;
 
@@ -29,6 +30,7 @@ public sealed partial class RecordsGroup : DatasetRecordBase
 
 	#region Methods
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A diagnostic text of the object")]
 	public override string ToString()
 	{
 		return

@@ -4,11 +4,13 @@ using Shared.Enums;
 using Shared.Extensions;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace FileExecution.Services;
 
 /// <inheritdoc cref="IProcessManager" />
+[ExcludeFromCodeCoverage(Justification = "Starts and stops real processes")]
 public sealed class ProcessManager : IProcessManager
 {
 	#region Methods

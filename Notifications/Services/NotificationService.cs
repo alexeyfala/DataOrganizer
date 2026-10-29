@@ -8,6 +8,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Threading.Interfaces;
 
 namespace Notifications.Services;
@@ -119,6 +120,7 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Writes the message to the log at the level it is shown with.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Only writes to the log")]
 	private void LogSnackbar(string text, SnackbarMessageLevel level, bool isShown)
 	{
 		string message = $"{(isShown ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";

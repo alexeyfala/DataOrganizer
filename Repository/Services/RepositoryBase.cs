@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -42,6 +43,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<bool> ExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context
@@ -51,6 +53,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <inheritdoc cref="DbSet{T}.Remove(T)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public EntityEntry<T> Remove(T entity)
 	{
 		return _context
@@ -59,6 +62,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <inheritdoc cref="DbSet{T}.RemoveRange(IEnumerable{T})" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public void RemoveRange(IEnumerable<T> entities)
 	{
 		_context
@@ -67,6 +71,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	protected Task<int> CountAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context
@@ -107,6 +112,7 @@ public abstract class RepositoryBase<T> where T : class
 	/// <summary>
 	/// Searches for all <typeparamref name="T" /> entities in the database.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	protected IQueryable<T> FindAll(bool trackChanges = false)
 	{
 		return trackChanges
@@ -117,6 +123,7 @@ public abstract class RepositoryBase<T> where T : class
 	/// <summary>
 	/// Searches for a <typeparamref name="T" /> entity in the database according to a specific condition.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	protected IQueryable<T> FindBy(Expression<Func<T, bool>> condition, bool trackChanges = false)
 	{
 		return trackChanges
@@ -127,6 +134,7 @@ public abstract class RepositoryBase<T> where T : class
 	/// <summary>
 	/// Removes entities from the database that meet the condition.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	protected Task<int> RemoveRangeByAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context

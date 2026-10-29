@@ -19,7 +19,8 @@ A survivor is a candidate for a new test, not a defect by itself.
     dotnet tool restore
 
 `stryker-config.json` at the solution root holds what every run shares: the calls left out as
-unobservable, the extra time the tests of a mutant get (see *Timeout* below) and the reports to write.
+unobservable (see *What is noise*), the extra time the tests of a mutant get (see *Timeout* below) and
+the reports to write.
 Which project is mutated and which tests have to catch the mutations is decided by
 `tools/run-stryker.ps1`.
 
@@ -111,8 +112,8 @@ Statuses, in the order they are worth looking at:
   five seconds Stryker adds by default, the parallel sessions turned some mutants into Timeout that pass
   or fail with fewer sessions. The config gives twenty (`additional-timeout`), and two runs then agree
   mutant by mutant. A mutant that times out only with a high `-Concurrency` is still a false one.
-- **Ignored** — left out by the config, or skipped because a mutant that removes the whole block
-  already covers it.
+- **Ignored** — left out as noise (see *What is noise*), or skipped because a mutant that removes the
+  whole block already covers it. The report gives the reason.
 - **CompileError** — the mutant did not build, or its whole method was dropped (see *Methods Stryker
   drops*).
 
@@ -128,23 +129,49 @@ Not every survivor can be killed:
 
 - **Equivalent mutants** — the change cannot alter the result. `digits >= count` and `digits > count`
   behave the same when the equal case computes the same value in both branches.
-- **What we do not test on purpose** — wording of messages, the fact that something was logged,
-  diagnostic dumps of object properties. The config leaves out the calls on `_logger` and the calls of
-  the private methods that only write to the log, named exactly. A new method of that kind shows up as
-  a survivor: add its name to `ignore-methods`. A pattern such as `*Log*` is not used, as it also takes
-  in calls like `Math.Log2` or `LogCallback`.
+- **What we do not test on purpose** — the fact that something was logged or shown as a notification,
+  the wording of messages, diagnostic dumps of object properties, the code that works on the real file
+  system or talks to the operating system, thin wrappers over EF Core, and lists of data where a test
+  per entry would only copy the list.
 - **`ConfigureAwait(false)` turned into `(true)`** — invisible to any test. It is not left out in the
   config: `ignore-methods` drops the whole call chain that ends in `ConfigureAwait`, so the removal of
   an awaited call and every mutant in its arguments would vanish with the flip. The flips stay in the
   report as survivors — Boolean mutations on `ConfigureAwait` — and pull the score of Stryker down; the
   *Without flips* column leaves them out.
 
+Noise is marked where it lives, so a renamed or moved file or member keeps its mark:
+
+- **A type, a method or a property** gets the attribute with the reason. Stryker leaves out its
+  mutants, and so do coverage tools:
+
+      [ExcludeFromCodeCoverage(Justification = "Only writes to the log")]
+
+- **A field or a single statement**, where the attribute cannot go, gets a comment of Stryker with the
+  reason, on a line of its own. `once` covers the next statement or `catch` with everything inside it,
+  so a comment above an `if` also covers the removal of its block; a field sits between `disable all`
+  and `restore all`:
+
+      // Stryker disable once Statement : only writes to the log
+      // Stryker disable all : a list of words; a test per entry would copy it
+      // Stryker restore all
+
+- **A call the whole solution makes by one convention** stays in `ignore-methods`: the calls on
+  `_logger`; `.LogWarning` and `.LogException`, as Stryker sees only the name after `?.` in
+  `logger?.LogWarning(...)`; `Trace.WriteLine`; the messages of exceptions (`*Exception.ctor`, the
+  `throw` itself is still mutated); and the calls on `_notification`. Marking them in the code would
+  take a comment at every call. The guard test `StrykerIgnoreMethodsConsistencyTests` fails when a
+  pattern there no longer matches any call, so a rename cannot leave it behind.
+
+The calls on `_notification` include those of `DbFailureReporter` and `EncryptionFailureReporter`,
+whose notification is their contract: their own tests still check it, but Stryker no longer does.
+
 A left-out call takes its arguments with it, so `ignore-methods` never names a call whose arguments do
-real work.
+real work: `LogSnackbar(text, level, Show(...))` would hide the showing of the message. A pattern such
+as `*Log*` is not used either, as it also takes in calls like `Math.Log2` or `LogCallback`.
 
 String literals are mutated too: in the layer projects a literal is often logic — a line break, a
-marker, a language id. A literal that is only wording, such as the message of an exception, survives
-and is noise.
+marker, a language id. A literal that is only wording, such as the text of a question to the user,
+survives and is noise.
 
 ## Keeping the suite fast
 

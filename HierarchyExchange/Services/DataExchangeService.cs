@@ -200,6 +200,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				return null;
 			}
 		}
+		// Stryker disable once Block : the block only reports the failure and returns what an empty block returns
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);

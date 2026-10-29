@@ -1,6 +1,7 @@
 using FileSystemOperations.Interfaces;
 using Shared.Common;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FileSystemOperations.Services;
 
@@ -8,6 +9,7 @@ namespace FileSystemOperations.Services;
 /// Reveals files through the "open" command. Bringing an already opened Finder window
 /// to the front is not supported.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Starts the open command, runs only on macOS")]
 public sealed class MacOSExplorerManager : IExplorerManager
 {
 	#region Methods
