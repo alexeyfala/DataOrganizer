@@ -24,6 +24,7 @@ public static class GenericExtensions
 		TTarget target,
 		params string[] propertyNames) where TSource : class where TTarget : class
 	{
+		// Stryker disable once Block,Statement : the loop below finds no property among no names either
 		if (propertyNames.Length == 0)
 		{
 			return;
@@ -203,22 +204,6 @@ public static class GenericExtensions
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
 	public static bool IsNotDefault<T>([NotNullWhen(true)] this T value) => !value.IsDefault();
-
-	/// <summary>
-	/// Sets the value of a property via reflection.
-	/// </summary>
-	public static void SetPropertyValue<TTarget, TValue>(
-		this TTarget target,
-		string propertyName,
-		TValue value) where TTarget : notnull
-	{
-		if (target.GetType().GetProperty(propertyName) is not { } property)
-		{
-			return;
-		}
-
-		property.SetValue(target, value);
-	}
 
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
