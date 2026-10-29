@@ -15,6 +15,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Entities\Entities.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />
+		<ProjectReference Include="..\Threading\Threading.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

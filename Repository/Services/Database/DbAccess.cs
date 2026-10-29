@@ -23,6 +23,8 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Threading.Extensions;
+using Threading.Helpers;
 
 namespace Repository.Services.Database;
 
@@ -121,8 +123,8 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -140,15 +142,6 @@ public sealed class DbAccess :
 		finally
 		{
 			_dbContextService.ClearTracking();
-
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 
@@ -157,8 +150,8 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -174,15 +167,6 @@ public sealed class DbAccess :
 		finally
 		{
 			_dbContextService.ClearTracking();
-
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 
@@ -191,8 +175,8 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -208,15 +192,6 @@ public sealed class DbAccess :
 		finally
 		{
 			_dbContextService.ClearTracking();
-
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 
@@ -225,41 +200,27 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			_dbContextService.EnsureDeleted();
+		_dbContextService.EnsureDeleted();
 
-			if (_dbContextService.HasMigrations())
-			{
-				_dbContextService.Migrate();
-			}
-			else
-			{
-				_dbContextService.EnsureCreated();
-			}
-		}
-		finally
+		if (_dbContextService.HasMigrations())
 		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
+			_dbContextService.Migrate();
+		}
+		else
+		{
+			_dbContextService.EnsureCreated();
 		}
 	}
 
 	/// <inheritdoc />
 	public async Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -305,49 +266,24 @@ public sealed class DbAccess :
 
 			return ConnectionStatus;
 		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
 	}
 
 	/// <inheritdoc />
 	public async Task CopyToAsync(string filePath, CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
+		CopyDatabaseParameters parameters = new()
 		{
-			CopyDatabaseParameters parameters = new()
-			{
-				ClearDestinationPool = true,
-				ClearSourcePool = false,
-				DestinationFilePath = filePath,
-				SourceFilePath = GetDbFilePath()
-			};
+			ClearDestinationPool = true,
+			ClearSourcePool = false,
+			DestinationFilePath = filePath,
+			SourceFilePath = GetDbFilePath()
+		};
 
-			CopyDatabase(parameters);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		CopyDatabase(parameters);
 	}
 
 	/// <inheritdoc />
@@ -355,80 +291,52 @@ public sealed class DbAccess :
 		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			return await _explorerItemRepository
-				.CountOfAsync(condition, token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return await _explorerItemRepository
+			.CountOfAsync(condition, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
 	public async Task<DatabaseBackup?> CreateBackupAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
+		string dbFilePath = GetDbFilePath();
+
+		if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 		{
-			string dbFilePath = GetDbFilePath();
-
-			if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
-			{
-				return null;
-			}
-
-			string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
-
-			_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
-
-			CopyDatabaseParameters parameters = new()
-			{
-				ClearDestinationPool = true,
-				ClearSourcePool = false,
-				DestinationFilePath = backupFilePath,
-				SourceFilePath = dbFilePath
-			};
-
-			CopyDatabase(parameters);
-
-			if (!_fileSystem.FileExists(backupFilePath))
-			{
-				return null;
-			}
-
-			return new DatabaseBackup(
-				backupFilePath,
-				_fileSystem,
-				_logger);
+			return null;
 		}
-		finally
+
+		string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
+
+		_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
+
+		CopyDatabaseParameters parameters = new()
 		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
+			ClearDestinationPool = true,
+			ClearSourcePool = false,
+			DestinationFilePath = backupFilePath,
+			SourceFilePath = dbFilePath
+		};
+
+		CopyDatabase(parameters);
+
+		if (!_fileSystem.FileExists(backupFilePath))
+		{
+			return null;
 		}
+
+		return new DatabaseBackup(
+			backupFilePath,
+			_fileSystem,
+			_logger);
 	}
 
 	/// <inheritdoc />
@@ -436,29 +344,15 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			int count = IsFolder(kind)
-				? await DeleteFolderTreeAsync(id, token).ConfigureAwait(false)
-				: await DeleteFileWithHotkeysAsync(id, token).ConfigureAwait(false);
+		int count = IsFolder(kind)
+			? await DeleteFolderTreeAsync(id, token).ConfigureAwait(false)
+			: await DeleteFileWithHotkeysAsync(id, token).ConfigureAwait(false);
 
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return count > 0;
 	}
 
 	/// <inheritdoc />
@@ -466,29 +360,15 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			int count = await _hotkeysRepository
-				.RemoveRangeByOwnerIdAsync(fileId, token)
-				.ConfigureAwait(false);
+		int count = await _hotkeysRepository
+			.RemoveRangeByOwnerIdAsync(fileId, token)
+			.ConfigureAwait(false);
 
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return count > 0;
 	}
 
 	/// <inheritdoc />
@@ -505,27 +385,13 @@ public sealed class DbAccess :
 	/// <inheritdoc />
 	public async Task<bool> ExistsAsync(Guid id, CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			return await _explorerItemRepository
-				.ExistsAsync(x => x.Id == id, token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return await _explorerItemRepository
+			.ExistsAsync(x => x.Id == id, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -533,53 +399,25 @@ public sealed class DbAccess :
 		OptionalFileProperties optionalProperties,
 		CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			return await _fileRepository
-				.GetAllAsync(optionalProperties, token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return await _fileRepository
+			.GetAllAsync(optionalProperties, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
 	public async Task<FolderEntity[]> GetAllFoldersAsync(CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			return await _folderRepository
-				.GetAllAsync(token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return await _folderRepository
+			.GetAllAsync(token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -588,37 +426,23 @@ public sealed class DbAccess :
 	/// <inheritdoc />
 	public async Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
+		if (await _fileRepository
+			.GetContentsAsync(id, token)
+			.ConfigureAwait(false) is not { } contents)
 		{
-			if (await _fileRepository
-				.GetContentsAsync(id, token)
-				.ConfigureAwait(false) is not { } contents)
-			{
-				return new();
-			}
+			return new();
+		}
 
-			return new()
-			{
-				Contents = contents,
-				Id = id,
-				IsValid = true
-			};
-		}
-		finally
+		return new()
 		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+			Contents = contents,
+			Id = id,
+			IsValid = true
+		};
 	}
 
 	/// <inheritdoc />
@@ -635,27 +459,13 @@ public sealed class DbAccess :
 	/// <inheritdoc />
 	public async Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			return await _fileRepository
-				.GetEditorStateAsync(id, token)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return await _fileRepository
+			.GetEditorStateAsync(id, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -771,8 +581,8 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
 		try
@@ -802,15 +612,6 @@ public sealed class DbAccess :
 		finally
 		{
 			_dbContextService.ClearTracking();
-
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
 		}
 	}
 
@@ -819,40 +620,26 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
+		DbConnection connection = _dbContextService.GetDbConnection();
+
+		if (connection.State != ConnectionState.Closed)
 		{
-			DbConnection connection = _dbContextService.GetDbConnection();
-
-			if (connection.State != ConnectionState.Closed)
-			{
-				connection.Close();
-			}
-
-			CopyDatabaseParameters parameters = new()
-			{
-				ClearDestinationPool = false,
-				ClearSourcePool = true,
-				DestinationFilePath = GetDbFilePath(),
-				SourceFilePath = backupFilePath
-			};
-
-			CopyDatabase(parameters);
+			connection.Close();
 		}
-		finally
+
+		CopyDatabaseParameters parameters = new()
 		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+			ClearDestinationPool = false,
+			ClearSourcePool = true,
+			DestinationFilePath = GetDbFilePath(),
+			SourceFilePath = backupFilePath
+		};
+
+		CopyDatabase(parameters);
 	}
 
 	/// <inheritdoc />
@@ -975,41 +762,27 @@ public sealed class DbAccess :
 	{
 		ThrowIfWriteRefused();
 
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
+		await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
 		{
-			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
+			foreach ((Guid fileId, byte[] contents) in update.Contents)
 			{
-				foreach ((Guid fileId, byte[] contents) in update.Contents)
-				{
-					await _fileRepository
-						.UpdatePropertiesAsync(fileId, [x => SetFile(x, fileId, contents)], innerToken)
-						.ConfigureAwait(false);
-				}
+				await _fileRepository
+					.UpdatePropertiesAsync(fileId, [x => SetFile(x, fileId, contents)], innerToken)
+					.ConfigureAwait(false);
+			}
 
-				// The folder of the key keeps its place among the folders whose notes change.
-				foreach (Guid folderId in update.FolderNotes.Keys.Append(update.FolderId).Distinct())
-				{
-					await _folderRepository
-						.UpdatePropertiesAsync(folderId, [x => SetFolder(x, folderId)], innerToken)
-						.ConfigureAwait(false);
-				}
-			}, token).ConfigureAwait(false);
-		}
-		finally
-		{
-			try
+			// The folder of the key keeps its place among the folders whose notes change.
+			foreach (Guid folderId in update.FolderNotes.Keys.Append(update.FolderId).Distinct())
 			{
-				_semaphore.Release();
+				await _folderRepository
+					.UpdatePropertiesAsync(folderId, [x => SetFolder(x, folderId)], innerToken)
+					.ConfigureAwait(false);
 			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		}, token).ConfigureAwait(false);
 
 		void SetFile(UpdateSettersBuilder<FileEntity> builder, Guid fileId, byte[] contents)
 		{
@@ -1352,29 +1125,15 @@ public sealed class DbAccess :
 		Action<UpdateSettersBuilder<FileEntity>> setter,
 		CancellationToken token)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			int count = await _fileRepository
-				.UpdatePropertiesAsync(id, [setter], token)
-				.ConfigureAwait(false);
+		int count = await _fileRepository
+			.UpdatePropertiesAsync(id, [setter], token)
+			.ConfigureAwait(false);
 
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return count > 0;
 	}
 
 	/// <summary>
@@ -1385,29 +1144,15 @@ public sealed class DbAccess :
 		Action<UpdateSettersBuilder<FolderEntity>> setter,
 		CancellationToken token)
 	{
-		await _semaphore
-			.WaitAsync(token)
+		using SemaphoreLock held = await _semaphore
+			.LockAsync(token)
 			.ConfigureAwait(false);
 
-		try
-		{
-			int count = await _folderRepository
-				.UpdatePropertiesAsync(id, [setter], token)
-				.ConfigureAwait(false);
+		int count = await _folderRepository
+			.UpdatePropertiesAsync(id, [setter], token)
+			.ConfigureAwait(false);
 
-			return count > 0;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
+		return count > 0;
 	}
 
 	/// <summary>
