@@ -1,7 +1,9 @@
 using AwesomeAssertions;
+using Entities.Enums;
 using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
+using System;
 using System.Collections.Generic;
 
 namespace Hierarchy.UnitTests.Dto;
@@ -177,6 +179,28 @@ internal class ExplorerItemDtoBaseTests
 		result
 			.Should()
 			.Equal(parent, grandparent);
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerItemDtoBase.Name" />: an object made without a name has an empty one rather than none.
+	/// </summary>
+	[Test]
+	public void Name_Is_Empty_For_An_Object_Made_Without_One()
+	{
+		// Act
+		FileDto result = new()
+		{
+			CreatedAt = DateTime.Now,
+			Id = Guid.NewGuid(),
+			Index = 0,
+			Kind = EntityKind.File,
+			UpdatedAt = DateTime.Now
+		};
+
+		// Assert
+		result.Name
+			.Should()
+			.BeEmpty();
 	}
 	#endregion
 }

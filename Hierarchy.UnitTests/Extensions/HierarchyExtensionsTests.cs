@@ -522,6 +522,28 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.FindFileBy" />: returns nothing when no file matches the condition.
+	/// </summary>
+	[Test]
+	public void FindFileBy_Returns_Null_When_No_File_Matches()
+	{
+		// Arrange
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
+
+		root.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		ExplorerItemDtoBase[] hierarchy = [root];
+
+		// Act
+		FileDto? result = hierarchy.FindFileBy(x => x.IsEditing);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.FindFolderBy" />: returns the first folder matching the condition.
 	/// </summary>
 	[Test]
@@ -543,6 +565,28 @@ internal class HierarchyExtensionsTests
 		result
 			.Should()
 			.Be(target);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.FindFolderBy" />: returns nothing when no folder matches the condition.
+	/// </summary>
+	[Test]
+	public void FindFolderBy_Returns_Null_When_No_Folder_Matches()
+	{
+		// Arrange
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
+
+		root.Children.Add(ItemDtoFactory.CreateFolderDto());
+
+		ExplorerItemDtoBase[] hierarchy = [root];
+
+		// Act
+		FolderDto? result = hierarchy.FindFolderBy(static x => x.Id == Guid.Empty);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -851,6 +895,41 @@ internal class HierarchyExtensionsTests
 		folder.Children
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.SortChildrenByIndexRecursively" />: the children of the subfolders are sorted by their
+	/// index as well.
+	/// </summary>
+	[Test]
+	public void SortChildrenByIndexRecursively_Sorts_The_Children_Of_Subfolders()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto later = ItemDtoFactory.CreateFileDto();
+
+		later.Index = 30;
+
+		FileDto earlier = ItemDtoFactory.CreateFileDto();
+
+		earlier.Index = 10;
+
+		subfolder.Children.Add(later);
+
+		subfolder.Children.Add(earlier);
+
+		folder.Children.Add(subfolder);
+
+		// Act
+		folder.SortChildrenByIndexRecursively();
+
+		// Assert
+		subfolder.Children
+			.Should()
+			.Equal([earlier, later]);
 	}
 
 	/// <summary>

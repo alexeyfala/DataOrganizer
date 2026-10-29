@@ -48,7 +48,7 @@ public sealed class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 	public bool IsPasswordKeeper() => EncryptedDek?.IsNotEmpty() ?? false;
 
 	/// <summary>
-	/// Returns the folder itself and its immediate subfolders as one sequence.
+	/// Returns the folder itself and its subfolders at every depth as one sequence.
 	/// </summary>
 	public IEnumerable<ExplorerItemDtoBase> WithSubfolders()
 	{

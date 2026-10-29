@@ -13,6 +13,7 @@ public sealed class EntityMappingRegister : IRegister
 	/// <inheritdoc />
 	public void Register(TypeAdapterConfig config)
 	{
+		// Stryker disable once Statement : Mapster maps the hotkeys by name without the rule as well
 		config.NewConfig<HotkeyEntity, HotkeyDto>();
 
 		config

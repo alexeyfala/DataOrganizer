@@ -321,6 +321,30 @@ internal class FolderDtoTests
 			.Should()
 			.BeTrue();
 	}
+
+	/// <summary>
+	/// <see cref="FolderDto.WithSubfolders" />: the folder comes first, then its subfolders, without its files.
+	/// </summary>
+	[Test]
+	public void WithSubfolders_Puts_The_Folder_Before_Its_Subfolders()
+	{
+		// Arrange
+		FolderDto sut = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
+
+		sut.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		sut.Children.Add(subfolder);
+
+		// Act
+		List<ExplorerItemDtoBase> result = [.. sut.WithSubfolders()];
+
+		// Assert
+		result
+			.Should()
+			.Equal(sut, subfolder);
+	}
 	#endregion
 
 	#region Helpers
