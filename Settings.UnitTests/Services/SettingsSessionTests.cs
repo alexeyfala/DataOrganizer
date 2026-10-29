@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using NSubstitute;
 using Settings.Dto;
+using Settings.Enums;
 using Settings.Interfaces;
 using Settings.Services;
 using Settings.UnitTests.Factories;
@@ -169,6 +170,31 @@ internal class SettingsSessionTests
 		await settingsApplier
 			.DidNotReceiveWithAnyArgs()
 			.ApplySettingsAsync(default!, default, default);
+	}
+
+	/// <summary>
+	/// <see cref="SettingsSession.PreviewTheme" />: the chosen theme shows at once, before the settings are saved.
+	/// </summary>
+	[Test]
+	public void PreviewTheme_Shows_The_Theme_At_Once()
+	{
+		// Arrange
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(themeService);
+		});
+
+		SettingsSession sut = mock.Create<SettingsSession>();
+
+		// Act
+		sut.PreviewTheme(ThemeMode.Dark, ThemePrimaryColor.Purple, ThemeSecondaryColor.Lime);
+
+		// Assert
+		themeService
+			.Received(1)
+			.SetTheme(ThemeMode.Dark, ThemePrimaryColor.Purple, ThemeSecondaryColor.Lime);
 	}
 
 	/// <summary>

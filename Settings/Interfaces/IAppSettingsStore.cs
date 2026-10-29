@@ -27,6 +27,7 @@ public interface IAppSettingsStore
 	/// <summary>
 	/// Creates default object of <see cref="AppSettings" />.
 	/// </summary>
+	// Stryker disable once Conditional,Equality : the language of the installed system cannot be set in a test
 	public static AppSettings CreateDefaultSettings() => new()
 	{
 		Language = CultureInfo.InstalledUICulture.LCID == 1049 ? Languages[1].Name : Languages[0].Name,

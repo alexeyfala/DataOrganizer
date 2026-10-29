@@ -64,5 +64,31 @@ internal class AppSettingsFormatCompatibilityTests
 				TrackHotkeys = true
 			});
 	}
+
+	/// <summary>
+	/// <see cref="SystemTextJsonSerializer.Deserialize{T}(string)" />: settings written before the check for updates have
+	/// it turned on.
+	/// </summary>
+	[Test]
+	public void Deserialize_Turns_The_Update_Check_On_For_Settings_Without_It()
+	{
+		// Arrange
+		SystemTextJsonSerializer sut = new();
+
+		// Act
+		AppSettings? result = sut.Deserialize<AppSettings>("""
+			{
+			  "Language": "ru-RU",
+			  "PrimaryColor": 33,
+			  "SecondaryColor": 167,
+			  "Theme": 2
+			}
+			""");
+
+		// Assert
+		result!.CheckForUpdates
+			.Should()
+			.BeTrue();
+	}
 	#endregion
 }
