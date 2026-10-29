@@ -97,6 +97,41 @@ internal class TypingPauseTests
 	}
 
 	/// <summary>
+	/// <see cref="TypingPause.Dispose" />: a disposed pause no longer counts, so nothing is handed to the UI thread.
+	/// </summary>
+	[Test]
+	public void Dispose_Stops_The_Count_Of_The_Pause()
+	{
+		// Arrange
+		IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<Action>(static () => { });
+
+			builder.RegisterInstance(dispatcher);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		TypingPause sut = mock.Create<TypingPause>();
+
+		sut.Restart();
+
+		// Act
+		sut.Dispose();
+
+		time.Advance(TypingPause.Delay);
+
+		// Assert
+		dispatcher
+			.DidNotReceive()
+			.Post(Arg.Any<Action>(), Arg.Any<UiPriority>());
+	}
+
+	/// <summary>
 	/// <see cref="TypingPause.Flush" />: nothing runs without a waiting action, also after a pause that has ended.
 	/// </summary>
 	[Test]

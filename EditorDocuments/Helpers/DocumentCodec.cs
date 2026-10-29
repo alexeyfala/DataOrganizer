@@ -84,6 +84,7 @@ public sealed class DocumentCodec
 		{
 			return FileTextCodec.FindUnreadableEncodings(contents);
 		}
+		// Stryker disable once Block,Statement : the bytes never leave the method, so no test sees them wiped
 		finally
 		{
 			contents.ZeroMemory();
@@ -145,6 +146,7 @@ public sealed class DocumentCodec
 				Text = reread
 			};
 		}
+		// Stryker disable once Block,Statement : the bytes never leave the method, so no test sees them wiped
 		finally
 		{
 			contents.ZeroMemory();

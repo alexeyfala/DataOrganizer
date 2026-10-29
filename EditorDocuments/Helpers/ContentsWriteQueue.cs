@@ -34,6 +34,7 @@ public sealed class ContentsWriteQueue
 	/// <summary>
 	/// Channel of the contents waiting to be written.
 	/// </summary>
+	// Stryker disable once Initializer,Boolean : the options only spare the channel its locks for one reader and one writer
 	private readonly Channel<byte[]> _channel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
 	{
 		SingleReader = true,
