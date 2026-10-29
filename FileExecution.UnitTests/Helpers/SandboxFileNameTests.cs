@@ -47,6 +47,25 @@ internal class SandboxFileNameTests
 	}
 
 	/// <summary>
+	/// <see cref="SandboxFileName.Create" />: cuts a long name whose extension alone fills the longest file name as one
+	/// whole, extension and all.
+	/// </summary>
+	[Test]
+	public void Create_Cuts_A_Long_Name_Whose_Extension_Fills_The_Limit()
+	{
+		// Arrange
+		string name = $"a.{new string('x', 254)}";
+
+		// Act
+		string result = SandboxFileName.Create(name);
+
+		// Assert
+		result
+			.Should()
+			.Be($"a.{new string('x', 253)}");
+	}
+
+	/// <summary>
 	/// <see cref="SandboxFileName.Create" />: drops the trailing dots and spaces that Windows drops, and names a file left
 	/// with no name.
 	/// </summary>

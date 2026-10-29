@@ -66,6 +66,70 @@ internal class ExecutionSandboxTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionSandbox.EraseAsync" />: a folder that stays locked is taken ten times, a pause apart, and then
+	/// left.
+	/// </summary>
+	[Test]
+	public async Task EraseAsync_Gives_Up_After_Ten_Attempts_A_Pause_Apart()
+	{
+		// Arrange
+		TimeSpan pause = TimeSpan.FromMilliseconds(300);
+
+		FakeTimeProvider time = new();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.SandboxDirectoryPath
+				.Returns(DirectoryPath);
+
+			fileSystem
+				.DirectoryExists(DirectoryPath)
+				.Returns(true);
+
+			fileSystem
+				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
+				.Throw(new IOException());
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		ExecutionSandbox sut = mock.Create<ExecutionSandbox>();
+
+		// Act
+		Task task = sut.EraseAsync();
+
+		// Assert
+		// The second attempt waits for the pause.
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteDirectory(DirectoryPath);
+
+		for (int i = 0; i < 9; i++)
+		{
+			await Task.Run(() => time.Advance(pause));
+		}
+
+		task.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await task;
+
+		fileSystem
+			.Received(10)
+			.EraseAndDeleteDirectory(DirectoryPath);
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionSandbox.EraseAsync" />: a locked folder is taken again after a pause.
 	/// </summary>
 	[Test]

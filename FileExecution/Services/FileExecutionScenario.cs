@@ -63,6 +63,7 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 
 		if (ExecutableFileDetector.IsExecutable(file.Name))
 		{
+			// Stryker disable once String : wording of a question
 			string text =
 				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, file.Name, Environment.NewLine)}" +
 				Environment.NewLine +

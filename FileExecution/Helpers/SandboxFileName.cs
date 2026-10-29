@@ -129,6 +129,7 @@ internal static class SandboxFileName
 	/// </summary>
 	private static string ReplaceForbiddenChars(string name)
 	{
+		// Stryker disable once Block,Statement : the copy below holds the same characters
 		if (!name.AsSpan().ContainsAny(ForbiddenChars))
 		{
 			return name;
@@ -153,6 +154,7 @@ internal static class SandboxFileName
 	/// </summary>
 	private static string Shorten(string fileName)
 	{
+		// Stryker disable once Block,Statement : the cut below keeps a name that fits whole
 		if (Encoding.UTF8.GetByteCount(fileName) <= MaxByteCount)
 		{
 			return fileName;

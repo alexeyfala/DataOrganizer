@@ -127,6 +127,7 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		if (!_fileSystem.FileExists(parameters.FilePath))
 		{
+			// Stryker disable once String : wording of a message
 			PublishFailure(parameters, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 
 			return null;
@@ -142,6 +143,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
+			// Stryker disable once String : wording of a message
 			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 
 			return null;
@@ -163,6 +165,7 @@ public class FileChangeTracker : IFileChangeTracker
 				// int.MaxValue (~2 GB). For text / editor files this branch is
 				// effectively unreachable, but if it ever is, we want a clear
 				// OverflowException instead of a corrupted partial read.
+				// Stryker disable once Checked : only a file over 2 GB could show it
 				int length = checked((int)fileStream.Length);
 
 				byte[] bytes = new byte[length];

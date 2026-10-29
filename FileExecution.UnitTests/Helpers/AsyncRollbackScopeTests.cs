@@ -76,6 +76,35 @@ internal class AsyncRollbackScopeTests
 	}
 
 	/// <summary>
+	/// <see cref="AsyncRollbackScope.DisposeAsync" />: a disposed scope runs no rollback registered after its disposal.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Runs_Nothing_Registered_After_It()
+	{
+		// Arrange
+		int count = 0;
+
+		AsyncRollbackScope sut = new();
+
+		await sut.DisposeAsync();
+
+		sut.OnRollback(() =>
+		{
+			count++;
+
+			return Task.CompletedTask;
+		});
+
+		// Act
+		await sut.DisposeAsync();
+
+		// Assert
+		count
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
 	/// <see cref="AsyncRollbackScope.DisposeAsync" />: runs the registered rollbacks in LIFO order.
 	/// </summary>
 	[Test]

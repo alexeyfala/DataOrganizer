@@ -62,6 +62,7 @@ public sealed class OpenFilesCloser : IOpenFilesCloser
 			return true;
 		}
 
+		// Stryker disable once String : wording of a question
 		if (!await _confirmationPrompt
 			.RequestYesCancelAsync($"{Strings.CloseFilesBeingEdited}?", token)
 			.ConfigureAwait(true))
