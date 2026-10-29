@@ -105,6 +105,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	/// </summary>
 	private static string GetDescription(string propertyName)
 	{
+		// Stryker disable once String : every option has its description, so the fallback is never shown
 		return typeof(ICommandLineOptions)
 			.GetProperty(propertyName)?
 			.GetCustomAttribute<DescriptionAttribute>()?

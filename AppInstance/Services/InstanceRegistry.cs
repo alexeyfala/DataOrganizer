@@ -2,6 +2,7 @@ using AppInstance.Interfaces;
 using Shared.Interfaces;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using TextProcessing.Constants;
@@ -9,6 +10,7 @@ using TextProcessing.Constants;
 namespace AppInstance.Services;
 
 /// <inheritdoc cref="IInstanceRegistry" />
+[ExcludeFromCodeCoverage(Justification = "Locks files in the data folder of the app, which tests do not touch")]
 public sealed class InstanceRegistry : IInstanceRegistry
 {
 	#region Properties
