@@ -117,6 +117,55 @@ internal class ClipboardAutoClearTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardAutoClear.Arm" />: the clear frees the gate it shares with the log of the clipboard.
+	/// </summary>
+	[Test]
+	public async Task Arm_Frees_The_Gate_After_The_Clear()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		Task? scheduled = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+			clipboard
+				.ContainsOwnershipMarkerAsync()
+				.Returns(true);
+
+			exceptionHandler.Watch(Arg.Do<Task>(task => scheduled = task));
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
+
+		// Act
+		sut.Arm();
+
+		time.Advance(Timeout);
+
+		await scheduled!;
+
+		// Assert
+		gate
+			.Received(1)
+			.Release();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardAutoClear.Arm" />: re-arming restarts the countdown from scratch.
 	/// </summary>
 	[Test]

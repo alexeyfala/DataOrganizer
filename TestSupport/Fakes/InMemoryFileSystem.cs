@@ -23,6 +23,16 @@ public sealed class InMemoryFileSystem : IFileSystem
 	public List<string> AtomicWrites { get; } = [];
 
 	/// <summary>
+	/// Folders created and not deleted since.
+	/// </summary>
+	public HashSet<string> Directories { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// Paths overwritten before their deletion, in the order they were erased.
+	/// </summary>
+	public List<string> ErasedFiles { get; } = [];
+
+	/// <summary>
 	/// Backing store: file path to its bytes.
 	/// </summary>
 	public Dictionary<string, byte[]> Files { get; } = new(StringComparer.Ordinal);
@@ -30,9 +40,7 @@ public sealed class InMemoryFileSystem : IFileSystem
 
 	#region Methods
 	/// <inheritdoc />
-	public void CreateDirectory(string directoryPath)
-	{
-	}
+	public void CreateDirectory(string directoryPath) => Directories.Add(directoryPath);
 
 	/// <inheritdoc />
 	public void DeleteDirectory(string directoryPath, bool recursive = true)
@@ -41,12 +49,15 @@ public sealed class InMemoryFileSystem : IFileSystem
 		{
 			Files.Remove(path);
 		}
+
+		Directories.Remove(directoryPath);
 	}
 
 	/// <inheritdoc />
 	public bool DirectoryExists(string? directoryPath)
 	{
-		return directoryPath is not null && Files.Keys.Any(key => Path.GetDirectoryName(key) == directoryPath);
+		return directoryPath is not null
+			&& (Directories.Contains(directoryPath) || Files.Keys.Any(key => Path.GetDirectoryName(key) == directoryPath));
 	}
 
 	/// <inheritdoc />
@@ -63,6 +74,8 @@ public sealed class InMemoryFileSystem : IFileSystem
 		in int bufferSize = IFileSystem.DefaultBufferSize,
 		in int passCount = IFileSystem.DefaultPassCount)
 	{
+		ErasedFiles.Add(filePath);
+
 		Files.Remove(filePath);
 	}
 

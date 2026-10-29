@@ -118,6 +118,7 @@ public sealed class ClipboardHistory : IClipboardHistory
 					RebaselineRestored(restored, entryFactory());
 				}
 
+				// Stryker disable once Statement : equivalent: IsEchoOrUnchanged returns on the hash stored above
 				return;
 			}
 		}
@@ -414,6 +415,7 @@ public sealed class ClipboardHistory : IClipboardHistory
 			{
 				InsertAtTop(entry);
 
+				// Stryker disable once Statement : equivalent: the move that follows throws on the missing index and is caught
 				return;
 			}
 

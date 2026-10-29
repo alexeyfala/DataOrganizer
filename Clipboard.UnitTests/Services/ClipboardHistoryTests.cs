@@ -799,6 +799,34 @@ internal class ClipboardHistoryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistory.MarkRestored" />: an entry gone from the log meanwhile comes back on top, active.
+	/// </summary>
+	[Test]
+	public void MarkRestored_Puts_An_Entry_Missing_From_The_Log_On_Top()
+	{
+		// Arrange
+		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [2]);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
+
+		// Act
+		sut.MarkRestored(restored, keepPosition: false);
+
+		// Assert
+		sut.Entries[0]
+			.Should()
+			.Be(restored);
+
+		restored.IsActive
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistory.Merge" />: appends below current, dedupes by hash, no message.
 	/// </summary>
 	[Test]
@@ -859,6 +887,30 @@ internal class ClipboardHistoryTests
 		sut.Entries.Cast<ClipboardTextEntry>()
 			.Should()
 			.NotContain(x => x.Text == "overflow");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistory.Merge" />: a current entry saved unpinned stays unpinned.
+	/// </summary>
+	[Test]
+	public void Merge_Leaves_An_Unpinned_Duplicate_Unpinned()
+	{
+		// Arrange
+		ClipboardTextEntry current = ClipboardEntryFactory.CreateTextEntry("a", [1]);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		sut.Entries.Add(current);
+
+		// Act
+		sut.Merge([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
+
+		// Assert
+		current.IsPinned
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -954,6 +1006,30 @@ internal class ClipboardHistoryTests
 			.Which
 			.Should()
 			.Be(copiedAgain);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistory.TogglePin" />: an entry that is not in the log is not pinned.
+	/// </summary>
+	[Test]
+	public void TogglePin_Leaves_An_Entry_Outside_The_Log_Unpinned()
+	{
+		// Arrange
+		ClipboardTextEntry outside = ClipboardEntryFactory.CreateTextEntry("b", [2]);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ClipboardHistory sut = mock.Create<ClipboardHistory>();
+
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+
+		// Act
+		sut.TogglePin(outside);
+
+		// Assert
+		outside.IsPinned
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

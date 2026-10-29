@@ -12,10 +12,12 @@ using Hierarchy.Dto;
 using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -461,6 +463,68 @@ internal class ContentCopierTests
 				.DidNotReceive()
 				.SetTextAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string?>(), isSensitive: true, isRestored: false);
 		}
+	}
+
+	/// <summary>
+	/// <see cref="ContentCopier.CopyAsync" />: a copy given up on reports that nothing was copied.
+	/// </summary>
+	[Test]
+	public async Task CopyAsync_Gives_Up_A_Cancelled_Copy()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.ThrowsAsync(new OperationCanceledException());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		ContentCopier sut = mock.Create<ContentCopier>();
+
+		// Act
+		bool result = await sut.CopyAsync(file, showAtOnce: false);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ContentCopier.CopyAsync" />: a failed check of the file reports that nothing was copied.
+	/// </summary>
+	[Test]
+	public async Task CopyAsync_Gives_Up_When_The_Check_Fails()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		ContentCopier sut = mock.Create<ContentCopier>();
+
+		// Act
+		bool result = await sut.CopyAsync(file, showAtOnce: false);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

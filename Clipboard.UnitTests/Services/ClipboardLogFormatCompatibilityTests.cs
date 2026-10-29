@@ -114,6 +114,43 @@ internal class ClipboardLogFormatCompatibilityTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="ClipboardHistory.ComputeTextEntryHash" />: a text gets the hash an earlier build saved with it, so a
+	/// later copy of the same text finds its saved entry.
+	/// </summary>
+	[TestCase(null, null, ExpectedResult = "62E62D1A96C0061EF8125D740BB0A2C5E51B45EC9B3FE74657BDD74AE11FF512")]
+	[TestCase("<b>Golden text</b>", null, ExpectedResult = "562A650BF305F7AB1E8BBFD8BD4AB56890CD7E25BD51F3568F7E6617B4045BE2")]
+	[TestCase(null, @"{\rtf1 Golden text}", ExpectedResult = "B80643A44E89E557C666E3B7F52E5CF377B699AE5FFB806DF1FCE15C49C91743")]
+	public string ComputeTextEntryHash_Gives_The_Hash_Of_A_Saved_Entry(string? html, string? rtf)
+	{
+		// Act
+		byte[] hash = ClipboardHistory.ComputeTextEntryHash("Golden text", html, rtf);
+
+		// Assert
+		return Convert.ToHexString(hash);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistory.HashFiles" />: a list of files gets the hash an earlier build saved with it, so a later
+	/// copy of the same files finds its saved entry.
+	/// </summary>
+	[Test]
+	public void HashFiles_Gives_The_Hash_Of_A_Saved_Entry()
+	{
+		// Act
+		byte[] hash = ClipboardHistory.HashFiles(
+		[
+			new(@"C:\golden\file.txt", IsFolder: false),
+			new(@"C:\golden\folder", IsFolder: true)
+		]);
+
+		// Assert
+		Convert
+			.ToHexString(hash)
+			.Should()
+			.Be("D23F395FA0CA23AE0EFF402F352EDC59DCC380E3331E49F38B5BB624A07958DC");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogMapper.ToDomain" />: the persisted schema of the journal is what an
 	/// earlier build wrote, down to the type discriminators and the names of the properties.
 	/// </summary>

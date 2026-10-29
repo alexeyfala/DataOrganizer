@@ -32,6 +32,11 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Time between two reads of the clipboard.
+	/// </summary>
+	internal static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
+
 	/// <inheritdoc cref="IClipboardAutoClear" />
 	private readonly IClipboardAutoClear _autoClear;
 
@@ -55,6 +60,9 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 
 	/// <inheritdoc cref="IToastNotifier" />
 	private readonly IToastNotifier _toastNotifier;
@@ -91,7 +99,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger,
-		IToastNotifier toastNotifier)
+		IToastNotifier toastNotifier,
+		TimeProvider timeProvider)
 	{
 		_clipboard = clipboard;
 
@@ -108,6 +117,8 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		_messenger = messenger;
 
 		_toastNotifier = toastNotifier;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -133,6 +144,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
 	{
+		// Stryker disable once Block,Statement : equivalent: a second dispose finds nothing to stop or wait for
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
@@ -177,17 +189,10 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 
 		try
 		{
-			bool removed = false;
-
-			bool wasActive = false;
-
 			// Touching Entries (and reading IsActive) must happen on the UI thread.
-			await _dispatcher.PostAsync(() =>
-			{
-				wasActive = entry.IsActive;
-
-				removed = _history.Remove(entry);
-			}).ConfigureAwait(false);
+			(bool wasActive, bool removed) = await _dispatcher
+				.PostAsync(() => (entry.IsActive, _history.Remove(entry)))
+				.ConfigureAwait(false);
 
 			if (!removed)
 			{
@@ -338,6 +343,7 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		{
 			// Already disposed — nothing to do.
 		}
+		// Stryker disable once Block,Statement : equivalent: a source without a timer frees nothing a test can see
 		finally
 		{
 			cancellation.Dispose();
@@ -503,17 +509,15 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	{
 		CancellationToken token = cancellation.Token;
 
-		TimeSpan pollInterval = TimeSpan.FromMilliseconds(750.0);
-
 		_logger.LogInformation(
-			$"{nameof(ClipboardLogService)} loop started (interval = {pollInterval.TotalMilliseconds:F0} ms, limit = {ClipboardHistory.LogLimit}).");
+			$"{nameof(ClipboardLogService)} loop started (interval = {PollInterval.TotalMilliseconds:F0} ms, limit = {ClipboardHistory.LogLimit}).");
 
 		try
 		{
 			while (IsActive(token))
 			{
 				await Task
-					.Delay(pollInterval, token)
+					.Delay(PollInterval, _timeProvider, token)
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
 				if (!IsActive(token))
@@ -528,8 +532,10 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 		{
 			Interlocked.Exchange(ref _isLoopRunning, false);
 
+			// Stryker disable once Statement : equivalent: Stop and StartAsync tolerate a disposed source left behind
 			Interlocked.CompareExchange(ref _stopCts, null, cancellation);
 
+			// Stryker disable once Statement : equivalent: a source without a timer frees nothing a test can see
 			cancellation.Dispose();
 
 			_logger.LogInformation($"{nameof(ClipboardLogService)} loop stopped.");

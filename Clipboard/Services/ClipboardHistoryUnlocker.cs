@@ -48,6 +48,7 @@ public sealed class ClipboardHistoryUnlocker : IClipboardHistoryUnlocker
 			// The first password of the history is created here, every later one is only checked.
 			bool hasPassword = _clipboardLogPersistence.HasPassword;
 
+			// Stryker disable once all : the wording of the prompt
 			label ??= hasPassword
 				? Strings.Password
 				: Strings.NewPassword;
@@ -73,6 +74,7 @@ public sealed class ClipboardHistoryUnlocker : IClipboardHistoryUnlocker
 				.TryUnlockAndMergeAsync(passwordBytes)
 				.ConfigureAwait(true);
 
+			// Stryker disable once Block,Statement : only an error message follows
 			if (status == ClipboardLogStatus.Unlocked)
 			{
 				return;
@@ -81,6 +83,7 @@ public sealed class ClipboardHistoryUnlocker : IClipboardHistoryUnlocker
 			// Only a wrong password is worth asking again; the rest no password can fix.
 			if (status != ClipboardLogStatus.WrongPassword)
 			{
+				// Stryker disable once all : the wording of the message
 				string text = status == ClipboardLogStatus.Damaged
 					? Strings.EncryptedDataIsDamaged
 					: Strings.FailedToUnlockClipboardHistory;
@@ -90,6 +93,7 @@ public sealed class ClipboardHistoryUnlocker : IClipboardHistoryUnlocker
 				return;
 			}
 
+			// Stryker disable once all : the wording of the prompt
 			label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
 		}
 	}

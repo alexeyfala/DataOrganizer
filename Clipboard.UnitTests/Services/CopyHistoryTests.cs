@@ -43,6 +43,32 @@ internal class CopyHistoryTests
 	}
 
 	/// <summary>
+	/// <see cref="CopyHistory.Add" />: a file copied again while on top stays there without a second entry.
+	/// </summary>
+	[Test]
+	public void Add_Keeps_One_Copy_Of_The_File_On_Top()
+	{
+		// Arrange
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		CopyHistory sut = mock.Create<CopyHistory>();
+
+		sut.Add(files[1], showAtOnce: false);
+
+		sut.Add(files[0], showAtOnce: false);
+
+		// Act
+		sut.Add(files[0], showAtOnce: false);
+
+		// Assert
+		sut.ItemIds
+			.Should()
+			.Equal(files[0].Id, files[1].Id);
+	}
+
+	/// <summary>
 	/// <see cref="CopyHistory.Add" />: a file already in the history moves to its top without a second entry.
 	/// </summary>
 	[Test]

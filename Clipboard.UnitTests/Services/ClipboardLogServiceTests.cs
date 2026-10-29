@@ -8,6 +8,7 @@ using Clipboard.Models;
 using Clipboard.Services;
 using Clipboard.UnitTests.Factories;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Time.Testing;
 using Notifications.Interfaces;
 using NSubstitute;
 using System;
@@ -38,6 +39,30 @@ internal class ClipboardLogServiceTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: a disposed service leaves the system clipboard alone.
+	/// </summary>
+	[Test]
+	public async Task ClearAllAsync_After_DisposeAsync_Leaves_The_Clipboard()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		await sut.DisposeAsync();
+
+		// Act
+		await sut.ClearAllAsync();
+
+		// Assert
+		await clipboard
+			.DidNotReceive()
+			.ClearAsync();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.ClearAllAsync" />: the active highlight is cleared from a surviving pin.
 	/// </summary>
 	[Test]
@@ -46,6 +71,12 @@ internal class ClipboardLogServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.SetTextAsync("p", html: null, rtf: null, isSensitive: false, isRestored: true)
+				.Returns(true);
+
 			builder
 				.RegisterType<ClipboardHistory>()
 				.As<IClipboardHistory>();
@@ -53,6 +84,8 @@ internal class ClipboardLogServiceTests
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
 				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
 		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
@@ -163,6 +196,43 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: the change of the entry count is raised.
+	/// </summary>
+	[Test]
+	public async Task ClearAllAsync_Raises_A_Count_Change()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+
+		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+
+		// Act
+		await sut.ClearAllAsync();
+
+		// Assert
+		received
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.ClearAllAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
@@ -201,6 +271,48 @@ internal class ClipboardLogServiceTests
 		received
 			.Should()
 			.Equal(ClipboardLogChangeKind.ClearedByUser);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: the clear waits while another operation holds the gate, and
+	/// frees the gate when it is done.
+	/// </summary>
+	[Test]
+	public async Task ClearAllAsync_Runs_While_It_Holds_The_Gate()
+	{
+		// Arrange
+		TaskCompletionSource held = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			gate
+				.WaitAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		Task clearing = sut.ClearAllAsync();
+
+		bool wasDoneWhileHeld = clearing.IsCompleted;
+
+		held.SetResult();
+
+		await clearing;
+
+		// Assert
+		wasDoneWhileHeld
+			.Should()
+			.BeFalse();
+
+		gate
+			.Received(1)
+			.Release();
 	}
 
 	/// <summary>
@@ -278,6 +390,37 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.ClearEntriesAsync" />: stopping removes the pinned entries too.
+	/// </summary>
+	[Test]
+	public async Task ClearEntriesAsync_Removes_Pinned_Entries()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		sut.Entries.Add(ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]));
+
+		// Act
+		await sut.ClearEntriesAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.DisposeAsync" />: disposing twice is safe.
 	/// </summary>
 	[Test]
@@ -299,6 +442,48 @@ internal class ClipboardLogServiceTests
 		await act
 			.Should()
 			.NotThrowAsync();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.DisposeAsync" />: disposing waits for an operation that holds the gate, and frees
+	/// the gate when it is done.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Waits_For_A_Running_Operation()
+	{
+		// Arrange
+		TaskCompletionSource held = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			gate
+				.WaitAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		ValueTask disposing = sut.DisposeAsync();
+
+		bool wasDoneWhileHeld = disposing.IsCompleted;
+
+		held.SetResult();
+
+		await disposing;
+
+		// Assert
+		wasDoneWhileHeld
+			.Should()
+			.BeFalse();
+
+		gate
+			.Received(1)
+			.Release();
 	}
 
 	/// <summary>
@@ -712,7 +897,8 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.PollOnceAsync" />: an image is captured with its PNG and the hash of the PNG.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: an image is captured with its PNG and the hash of the PNG, as
+	/// the active entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnceAsync_Captures_An_Image()
@@ -760,10 +946,14 @@ internal class ClipboardLogServiceTests
 		entry.Hash
 			.Should()
 			.Equal(SHA256.HashData(png));
+
+		entry.IsActive
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.PollOnceAsync" />: plain text is captured as a text entry.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: plain text is captured as the active text entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnceAsync_Captures_Text_Entry()
@@ -794,21 +984,26 @@ internal class ClipboardLogServiceTests
 		await sut.PollOnceAsync();
 
 		// Assert
-		sut.Entries
+		ClipboardTextEntry entry = sut.Entries
 			.Should()
 			.ContainSingle()
 			.Which
 			.Should()
 			.BeOfType<ClipboardTextEntry>()
-			.Which
-			.Text
+			.Subject;
+
+		entry.Text
 			.Should()
 			.Be("hello");
+
+		entry.IsActive
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
 	/// <see cref="ClipboardLogService.PollOnceAsync" />: files and folders are captured in the order the clipboard gives
-	/// them, with the hash of the list.
+	/// them, with the hash of the list, as the active entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnceAsync_Captures_The_Files()
@@ -860,6 +1055,10 @@ internal class ClipboardLogServiceTests
 		entry.Hash
 			.Should()
 			.Equal(ClipboardHistory.HashFiles(entries));
+
+		entry.IsActive
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -961,6 +1160,48 @@ internal class ClipboardLogServiceTests
 		entry.IsActive
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: the poll tick waits while another operation holds the gate, and
+	/// frees the gate when it is done.
+	/// </summary>
+	[Test]
+	public async Task PollOnceAsync_Runs_While_It_Holds_The_Gate()
+	{
+		// Arrange
+		TaskCompletionSource held = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			gate
+				.WaitAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		Task polling = sut.PollOnceAsync();
+
+		bool wasDoneWhileHeld = polling.IsCompleted;
+
+		held.SetResult();
+
+		await polling;
+
+		// Assert
+		wasDoneWhileHeld
+			.Should()
+			.BeFalse();
+
+		gate
+			.Received(1)
+			.Release();
 	}
 
 	/// <summary>
@@ -1084,6 +1325,41 @@ internal class ClipboardLogServiceTests
 		sut.Entries
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RemoveAsync" />: a disposed service keeps the entry.
+	/// </summary>
+	[Test]
+	public async Task RemoveAsync_After_DisposeAsync_Keeps_The_Entry()
+	{
+		// Arrange
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		sut.Entries.Add(entry);
+
+		await sut.DisposeAsync();
+
+		// Act
+		await sut.RemoveAsync(entry);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.Equal(entry);
 	}
 
 	/// <summary>
@@ -1261,6 +1537,45 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RemoveAsync" />: the change of the entry count is raised.
+	/// </summary>
+	[Test]
+	public async Task RemoveAsync_Raises_A_Count_Change()
+	{
+		// Arrange
+		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		sut.Entries.Add(entry);
+
+		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+
+		// Act
+		await sut.RemoveAsync(entry);
+
+		// Assert
+		received
+			.Should()
+			.ContainSingle();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RemoveAsync" />: a pinned entry is removed and Updated is raised.
 	/// </summary>
 	[Test]
@@ -1307,6 +1622,75 @@ internal class ClipboardLogServiceTests
 		received
 			.Should()
 			.Contain(ClipboardLogChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RemoveAsync" />: the removal waits while another operation holds the gate, and
+	/// frees the gate when it is done.
+	/// </summary>
+	[Test]
+	public async Task RemoveAsync_Runs_While_It_Holds_The_Gate()
+	{
+		// Arrange
+		TaskCompletionSource held = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			gate
+				.WaitAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		Task removing = sut.RemoveAsync(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+
+		bool wasDoneWhileHeld = removing.IsCompleted;
+
+		held.SetResult();
+
+		await removing;
+
+		// Assert
+		wasDoneWhileHeld
+			.Should()
+			.BeFalse();
+
+		gate
+			.Received(1)
+			.Release();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: a disposed service leaves the system clipboard alone.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_After_DisposeAsync_Leaves_The_Clipboard()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		await sut.DisposeAsync();
+
+		// Act
+		await sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+
+		// Assert
+		await clipboard.DidNotReceive().SetTextAsync(
+			Arg.Any<string>(),
+			Arg.Any<string?>(),
+			Arg.Any<string?>(),
+			Arg.Any<bool>(),
+			Arg.Any<bool>());
 	}
 
 	/// <summary>
@@ -1625,6 +2009,39 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: a files entry without files writes nothing, so it is not marked.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Of_A_Files_Entry_Without_Files_Marks_Nothing()
+	{
+		// Arrange
+		ClipboardFilesEntry entry = ClipboardEntryFactory.CreateFilesEntry(entries: []);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ClipboardHistory>()
+				.As<IClipboardHistory>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		sut.Entries.Add(entry);
+
+		// Act
+		await sut.RestoreAsync(entry);
+
+		// Assert
+		entry.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring the top entry raises no notification.
 	/// </summary>
 	[Test]
@@ -1805,6 +2222,48 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: the restore waits while another operation holds the gate, and
+	/// frees the gate when it is done.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Runs_While_It_Holds_The_Gate()
+	{
+		// Arrange
+		TaskCompletionSource held = new();
+
+		IClipboardGate gate = Substitute.For<IClipboardGate>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			gate
+				.WaitAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(gate);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		Task restoring = sut.RestoreAsync(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+
+		bool wasDoneWhileHeld = restoring.IsCompleted;
+
+		held.SetResult();
+
+		await restoring;
+
+		// Assert
+		wasDoneWhileHeld
+			.Should()
+			.BeFalse();
+
+		gate
+			.Received(1)
+			.Release();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RestoreAsync" />: an entry of any kind the clipboard did not take stays unmarked, and
 	/// a toast tells of it, the files that are gone apart from a refusal.
 	/// </summary>
@@ -1948,6 +2407,109 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.StartAsync" />: the loop reads the clipboard once per interval.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_Polls_The_Clipboard_On_Each_Interval()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		await using ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		// Act
+		await sut.StartAsync();
+
+		await PassPollIntervalAsync(time);
+
+		await PassPollIntervalAsync(time);
+
+		// Assert
+		await clipboard
+			.Received(2)
+			.ContainsSensitivityMarkerAsync();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.StartAsync" />: a second start while the loop runs starts no second loop.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_Twice_Runs_One_Loop()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		await using ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		await sut.StartAsync();
+
+		// Act
+		await sut.StartAsync();
+
+		await PassPollIntervalAsync(time);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.ContainsSensitivityMarkerAsync();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.Stop" />: the loop ends at once and reads the clipboard no more.
+	/// </summary>
+	[Test]
+	public async Task Stop_Ends_The_Loop()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		await using ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		await sut.StartAsync();
+
+		// Act
+		await Task.Run(sut.Stop);
+
+		await PassPollIntervalAsync(time);
+
+		// Assert
+		sut.IsRunning
+			.Should()
+			.BeFalse();
+
+		await clipboard
+			.DidNotReceive()
+			.ContainsSensitivityMarkerAsync();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.Stop" />: stopping without a running loop is a no-op.
 	/// </summary>
 	[Test]
@@ -2008,5 +2570,24 @@ internal class ClipboardLogServiceTests
 
 		return received;
 	}
+
+	/// <summary>
+	/// Records every <see cref="ClipboardLogEntryCountChangedMessage" /> sent on <paramref name="messenger" />.
+	/// </summary>
+	private static List<ClipboardLogEntryCountChangedMessage> CaptureCountChanges(IMessenger messenger)
+	{
+		List<ClipboardLogEntryCountChangedMessage> received = [];
+
+		messenger.Register<ClipboardLogEntryCountChangedMessage>(
+			received,
+			static (recipient, message) => ((List<ClipboardLogEntryCountChangedMessage>)recipient).Add(message));
+
+		return received;
+	}
+
+	/// <summary>
+	/// Moves <paramref name="time" /> one poll interval on a pool thread, so the woken loop finishes its tick first.
+	/// </summary>
+	private static Task PassPollIntervalAsync(FakeTimeProvider time) => Task.Run(() => time.Advance(ClipboardLogService.PollInterval));
 	#endregion
 }

@@ -29,13 +29,14 @@ internal class SearchHighlightTests
 	}
 
 	/// <summary>
-	/// <see cref="SearchHighlight.SplitSegments" />: empty text yields no segments.
+	/// <see cref="SearchHighlight.SplitSegments" />: empty text yields no segments, with or without a query.
 	/// </summary>
-	[Test]
-	public void SplitSegments_Empty_Text_Yields_Nothing()
+	[TestCase("x")]
+	[TestCase("")]
+	public void SplitSegments_Empty_Text_Yields_Nothing(string query)
 	{
 		// Act
-		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments(string.Empty, "x");
+		IReadOnlyList<SearchHighlightSegment> result = SearchHighlight.SplitSegments(string.Empty, query);
 
 		// Assert
 		result

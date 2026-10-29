@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Clipboard.Dto;
 
 /// <summary>
@@ -20,6 +22,7 @@ public sealed class PersistedTextEntry : PersistedClipboardEntryBase
 	/// <summary>
 	/// Plain text content.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A default for the serializer; every saved text entry has its text")]
 	public string Text { get; set; } = string.Empty;
 	#endregion
 }

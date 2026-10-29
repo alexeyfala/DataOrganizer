@@ -149,7 +149,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		CancelPendingSave();
 
-		await FlushAsync().ConfigureAwait(false);
+		await SaveSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
@@ -242,19 +242,6 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	}
 
 	/// <summary>
-	/// Forces an immediate save of the current entries when persistence is unlocked.
-	/// </summary>
-	private async Task FlushAsync()
-	{
-		if (!_store.IsUnlocked)
-		{
-			return;
-		}
-
-		await SaveSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
-	}
-
-	/// <summary>
 	/// Runs the debounce delay, then saves; cancellation (a newer change or clear) drops the save.
 	/// </summary>
 	private async Task RunDebouncedSaveAsync(CancellationTokenSource cancellation)
@@ -280,6 +267,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 		}
+		// Stryker disable once Block,Statement : equivalent: a source without a timer frees nothing, and one left behind is cancelled under the catch of ObjectDisposedException
 		finally
 		{
 			Interlocked.CompareExchange(ref _pendingSaveCts, null, cancellation);

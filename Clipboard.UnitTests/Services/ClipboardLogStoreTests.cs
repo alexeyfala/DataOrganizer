@@ -106,6 +106,55 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.EraseAll" />: the journal and the key are overwritten before they go, not only deleted.
+	/// </summary>
+	[Test]
+	public async Task EraseAll_Overwrites_Both_Files()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
+
+			builder
+				.RegisterType<EncryptionService>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
+
+		// Act
+		sut.EraseAll();
+
+		// Assert
+		files.ErasedFiles
+			.Should()
+			.Equal(BinPath, KeyPath);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.EraseAll" />: removes both journal and key files and locks the store.
 	/// </summary>
 	[Test]
@@ -160,6 +209,53 @@ internal class ClipboardLogStoreTests
 		files.Files
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.EraseAll" />: the folder of the history goes too.
+	/// </summary>
+	[Test]
+	public async Task EraseAll_Removes_The_Folder()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
+
+			builder
+				.RegisterType<EncryptionService>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		// Act
+		sut.EraseAll();
+
+		// Assert
+		files.Directories
+			.Should()
+			.NotContain(HistoryFolder);
 	}
 
 	/// <summary>
@@ -220,6 +316,54 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.LoadEntriesAsync" />: the decrypted journal is wiped once it is read.
+	/// </summary>
+	[Test]
+	public async Task LoadEntriesAsync_Wipes_The_Plaintext()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardLog());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			sessionKeyStore
+				.Decrypt(default, default, default!)
+				.ReturnsForAnyArgs(plaintext);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// The key store is faked, so the stored bytes are never read as a real ciphertext.
+		files.Files[BinPath] = [1, 2, 3];
+
+		// Act
+		await sut.LoadEntriesAsync(default);
+
+		// Assert
+		plaintext
+			.Should()
+			.OnlyContain(static x => x == 0);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
 	/// </summary>
 	[Test]
@@ -274,6 +418,56 @@ internal class ClipboardLogStoreTests
 		result
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.SaveAsync" />: a folder that went missing after the unlock is made again.
+	/// </summary>
+	[Test]
+	public async Task SaveAsync_Creates_A_Missing_Folder()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
+
+			builder
+				.RegisterType<EncryptionService>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		// The folder disappears behind the back of the store.
+		files.Directories.Clear();
+
+		// Act
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
+
+		// Assert
+		files.Directories
+			.Should()
+			.Contain(HistoryFolder);
 	}
 
 	/// <summary>
@@ -568,6 +762,51 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.SaveAsync" />: the serialized journal is wiped once it is encrypted.
+	/// </summary>
+	[Test]
+	public async Task SaveAsync_Wipes_The_Plaintext()
+	{
+		// Arrange
+		byte[]? plaintext = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			sessionKeyStore
+				.IsUnlocked(Arg.Any<Guid>())
+				.Returns(true);
+
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => plaintext = x))
+				.Returns([1, 2, 3]);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// Act
+		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
+
+		// Assert
+		plaintext
+			.Should()
+			.NotBeEmpty()
+			.And
+			.OnlyContain(static x => x == 0);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
@@ -728,6 +967,51 @@ internal class ClipboardLogStoreTests
 		files.AtomicWrites
 			.Should()
 			.Contain(KeyPath);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: the first unlock makes the folder the new key goes into.
+	/// </summary>
+	[Test]
+	public async Task TryUnlockAsync_Creates_The_Folder_Of_A_New_Key()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
+
+			builder
+				.RegisterType<EncryptionService>()
+				.AsImplementedInterfaces();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// Act
+		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		// Assert
+		files.Directories
+			.Should()
+			.Contain(HistoryFolder);
 	}
 
 	/// <summary>
@@ -1051,6 +1335,61 @@ internal class ClipboardLogStoreTests
 		result.Entries
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: an existing key the key store refuses yields Failed and no
+	/// entries.
+	/// </summary>
+	[Test]
+	public async Task TryUnlockAsync_When_The_Key_Store_Refuses_The_Key_Returns_Failed()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		// The bytes of the key reach the substituted encryption below, which answers for them.
+		files.Files[KeyPath] = [1, 2, 3];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			IPasswordDekWrapper encryption = Substitute.For<IPasswordDekWrapper>();
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns(_ => SecretFactory.CreateRandomKey());
+
+			sessionKeyStore
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
+				.Returns(false);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Failed);
 	}
 
 	/// <summary>

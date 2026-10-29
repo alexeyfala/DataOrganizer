@@ -186,5 +186,48 @@ internal class ClipboardHistoryUnlockerTests
 			Arg.Any<PasswordPromptMode>(),
 			Arg.Any<CancellationToken>());
 	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryUnlocker.UnlockIfRequiredAsync" />: a cancelled prompt tries no unlock, so no history
+	/// key is made with an empty password.
+	/// </summary>
+	[Test]
+	public async Task UnlockIfRequiredAsync_Tries_No_Unlock_When_The_Prompt_Is_Cancelled()
+	{
+		// Arrange
+		IClipboardLogPersistenceCoordinator persistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
+
+			persistence
+				.RequiresUnlock
+				.Returns(true);
+
+			// The history has no password yet, so an unlock would create its key.
+			persistence
+				.HasPassword
+				.Returns(false);
+
+			passwordPrompt
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
+
+			builder.RegisterInstance(persistence);
+
+			builder.RegisterInstance(passwordPrompt);
+		});
+
+		ClipboardHistoryUnlocker sut = mock.Create<ClipboardHistoryUnlocker>();
+
+		// Act
+		await sut.UnlockIfRequiredAsync();
+
+		// Assert
+		await persistence
+			.DidNotReceive()
+			.TryUnlockAndMergeAsync(Arg.Any<PinnedBuffer>(), Arg.Any<CancellationToken>());
+	}
 	#endregion
 }

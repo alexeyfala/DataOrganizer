@@ -21,6 +21,12 @@ public sealed record ClipboardFileSystemEntry(string Path, bool IsFolder)
 				SystemPath.DirectorySeparatorChar,
 				SystemPath.AltDirectorySeparatorChar);
 
+			// The root of a Unix file system trims down to nothing, so it keeps its own path.
+			if (trimmed.Length == 0)
+			{
+				return Path;
+			}
+
 			string fileName = SystemPath.GetFileName(trimmed);
 
 			return string.IsNullOrEmpty(fileName) ? trimmed : fileName;

@@ -96,6 +96,7 @@ public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 			// Already disposed by a concurrent arm — nothing to do.
 		}
 
+		// Stryker disable once Statement : equivalent: a source without a timer frees nothing a test can see
 		cancellation.Dispose();
 	}
 

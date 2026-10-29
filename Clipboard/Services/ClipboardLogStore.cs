@@ -134,6 +134,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task SaveAsync(IReadOnlyList<ClipboardLogEntryBase> entries, CancellationToken token = default)
 	{
+		// Stryker disable once Block,Statement : equivalent: a locked key store refuses to encrypt, so nothing is written
 		if (!IsUnlocked)
 		{
 			return;
@@ -294,6 +295,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
+			// Stryker disable once Block,Statement : equivalent: deleting a missing folder only adds a log line
 			if (!_fileSystem.DirectoryExists(_directoryPath))
 			{
 				return;
