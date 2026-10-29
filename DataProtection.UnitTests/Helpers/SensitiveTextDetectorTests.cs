@@ -16,6 +16,7 @@ internal class SensitiveTextDetectorTests
 	[TestCase("123", 1)]
 	[TestCase("#$%", 1)]
 	[TestCase("aB", 2)]
+	[TestCase("aaB", 2)]
 	[TestCase("1#", 2)]
 	[TestCase("aB1", 3)]
 	[TestCase("aB1#", 4)]

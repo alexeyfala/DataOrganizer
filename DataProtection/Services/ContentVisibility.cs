@@ -189,10 +189,9 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	{
 		FolderDto? keeper = item.FindPasswordKeeper();
 
-		// Stryker disable once Linq : the search walks the subtree of the keeper anyway
+		// The search walks the whole subtree of the keeper.
 		if (keeper?
 			.ToEnumerable()
-			.Concat(keeper.GetAllChildren())
 			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted) != false)
 		{
 			return;

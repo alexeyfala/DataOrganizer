@@ -11,6 +11,11 @@ public static partial class SensitiveTextDetector
 {
 	#region Data
 	/// <summary>
+	/// Number of the classes <see cref="GetCharClass" /> tells apart.
+	/// </summary>
+	private const int CharacterClassCount = 4;
+
+	/// <summary>
 	/// Upper bound on a credential length; longer strings are treated as free text.
 	/// </summary>
 	private const int MaxLength = 64;
@@ -95,35 +100,14 @@ public static partial class SensitiveTextDetector
 	/// </summary>
 	internal static int CountCharacterClasses(ReadOnlySpan<char> value)
 	{
-		bool hasLower = false;
-
-		bool hasUpper = false;
-
-		bool hasDigit = false;
-
-		bool hasOther = false;
+		Span<bool> isInUse = stackalloc bool[CharacterClassCount];
 
 		foreach (char c in value)
 		{
-			if (char.IsLower(c))
-			{
-				hasLower = true;
-			}
-			else if (char.IsUpper(c))
-			{
-				hasUpper = true;
-			}
-			else if (char.IsDigit(c))
-			{
-				hasDigit = true;
-			}
-			else
-			{
-				hasOther = true;
-			}
+			isInUse[GetCharClass(c)] = true;
 		}
 
-		return (hasLower ? 1 : 0) + (hasUpper ? 1 : 0) + (hasDigit ? 1 : 0) + (hasOther ? 1 : 0);
+		return isInUse.Count(true);
 	}
 
 	/// <summary>
