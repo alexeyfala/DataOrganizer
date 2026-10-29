@@ -73,6 +73,7 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 			await ActivateWindowAsync().ConfigureAwait(false);
 		}
 
+		// Stryker disable once String : wording of the description
 		if (!await CopyTextAsync(file, $"{Strings.CopyContent}: {file.Name}", token).ConfigureAwait(false))
 		{
 			return;

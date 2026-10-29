@@ -112,6 +112,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 			return;
 		}
 
+		// Stryker disable once Assignment : the handler only completes a start that is over by then
 		_hook.HookEnabled -= Hook_HookEnabled;
 
 		_hook.KeyReleased -= Hook_KeyReleased;
@@ -166,6 +167,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 				started.Task,
 				token).ConfigureAwait(false);
 
+			// Stryker disable once Boolean,Block,Statement : the branch only keeps a warning out of the log
 			if (isStarted)
 			{
 				return;
@@ -210,6 +212,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 				_runTask,
 				token).ConfigureAwait(false);
 
+			// Stryker disable once Boolean,Block,Statement : the branch only keeps a warning out of the log
 			if (isStopped)
 			{
 				return;

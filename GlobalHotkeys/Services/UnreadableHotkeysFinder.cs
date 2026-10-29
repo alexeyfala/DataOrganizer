@@ -25,6 +25,7 @@ public sealed class UnreadableHotkeysFinder : IUnreadableHotkeysFinder
 	{
 		FileDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
 
+		// Stryker disable once Statement : only writes to the log
 		unreadable.ForEach(x =>
 		{
 			_logger.LogError(

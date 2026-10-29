@@ -173,7 +173,8 @@ internal class HotkeyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeyExtensions.GetUnreadableHotkeysPresentation" />: counts the files left out when there are more than three.
+	/// <see cref="HotkeyExtensions.GetUnreadableHotkeysPresentation" />: counts the files left out when there are more than three,
+	/// on a line of its own after the three names.
 	/// </summary>
 	[Test]
 	public void GetUnreadableHotkeysPresentation_Counts_The_Rest()
@@ -193,15 +194,22 @@ internal class HotkeyExtensionsTests
 			.Should()
 			.NotContain($@"""{files[3].Name}""");
 
-		result
-			.Split(Environment.NewLine)
-			.Last()
+		string[] lines = result.Split(Environment.NewLine);
+
+		lines
 			.Should()
-			.Contain("2");
+			.HaveCount(5);
+
+		lines[^1]
+			.Should()
+			.Contain("2")
+			.And
+			.NotStartWith(@"""");
 	}
 
 	/// <summary>
-	/// <see cref="HotkeyExtensions.GetUnreadableHotkeysPresentation" />: names every file when there are no more than three.
+	/// <see cref="HotkeyExtensions.GetUnreadableHotkeysPresentation" />: names every file under the header when there are no
+	/// more than three, and counts no rest.
 	/// </summary>
 	[Test]
 	public void GetUnreadableHotkeysPresentation_Names_Every_File()
@@ -215,7 +223,11 @@ internal class HotkeyExtensionsTests
 		// Assert
 		result
 			.Should()
-			.StartWith("header");
+			.StartWith($"header:{Environment.NewLine}");
+
+		result.Split(Environment.NewLine)
+			.Should()
+			.HaveCount(4);
 
 		foreach (FileDto file in files)
 		{

@@ -119,6 +119,7 @@ public sealed class KeyboardInputHook :
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second pass disposes and clears what is gone already
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;

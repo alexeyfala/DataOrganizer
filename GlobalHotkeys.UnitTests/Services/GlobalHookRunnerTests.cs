@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using Diagnostics.Interfaces;
 using GlobalHotkeys.Messages;
 using GlobalHotkeys.Services;
 using Microsoft.Extensions.Time.Testing;
@@ -41,6 +42,98 @@ internal class GlobalHookRunnerTests
 		hook.IsDisposed
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.Dispose" />: a second disposal disposes the hook no more.
+	/// </summary>
+	[Test]
+	public void Dispose_Disposes_The_Hook_Once()
+	{
+		// Arrange
+		IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(hook));
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		// Act
+		sut.Dispose();
+
+		sut.Dispose();
+
+		// Assert
+		hook
+			.Received(1)
+			.Dispose();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.Dispose" />: a disposed runner refuses to start.
+	/// </summary>
+	[Test]
+	public async Task Dispose_Refuses_A_Later_Start()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Substitute.For<IGlobalHook>()));
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		Func<Task> start = () => sut.StartAsync();
+
+		await start
+			.Should()
+			.ThrowAsync<ObjectDisposedException>();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.Dispose" />: a disposed runner sends no released keys of the hook any more.
+	/// </summary>
+	[Test]
+	public void Dispose_Stops_Sending_The_Released_Keys()
+	{
+		// Arrange
+		IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+		StrongReferenceMessenger messenger = new();
+
+		List<GlobalKeyReleasedMessage> received = [];
+
+		messenger.Register<GlobalKeyReleasedMessage>(
+			received,
+			static (recipient, message) => ((List<GlobalKeyReleasedMessage>)recipient).Add(message));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance<IMessenger>(messenger);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		UioHookEvent released = new()
+		{
+			Keyboard = new KeyboardEventData
+			{
+				KeyCode = KeyCode.VcA
+			},
+			Type = EventType.KeyReleased
+		};
+
+		hook.KeyReleased += Raise.EventWith(new KeyboardHookEventArgs(released));
+
+		received
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -100,15 +193,55 @@ internal class GlobalHookRunnerTests
 	}
 
 	/// <summary>
+	/// <see cref="GlobalHookRunner.StartAsync" />: a hook that fails to run ends the start at once, as it will never report
+	/// itself as enabled.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_Ends_At_Once_When_The_Hook_Cannot_Run()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Throw(new InvalidOperationException());
+
+			builder.RegisterInstance(hook);
+
+			// The clock never moves, so only the failed run can end the wait.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		// Act
+		Task starting = sut.StartAsync();
+
+		// Assert
+		await starting.WaitAsync(TimeSpan.FromSeconds(5));
+	}
+
+	/// <summary>
 	/// <see cref="GlobalHookRunner.StartAsync" />: runs the hook and does nothing on a second call.
 	/// </summary>
 	[Test]
 	public async Task StartAsync_Runs_Hook_Once()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<TestGlobalHook>()
-			.As<IGlobalHook>());
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<TestGlobalHook>()
+				.As<IGlobalHook>();
+
+			builder.RegisterInstance(exceptionHandler);
+		});
 
 		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
@@ -121,6 +254,11 @@ internal class GlobalHookRunnerTests
 		sut.IsRunning
 			.Should()
 			.BeTrue();
+
+		// One run of the hook, whose failure the handler sees.
+		exceptionHandler
+			.Received(1)
+			.Watch(Arg.Any<Task>());
 	}
 
 	/// <summary>
@@ -287,6 +425,64 @@ internal class GlobalHookRunnerTests
 		logger
 			.Received(1)
 			.Error(Arg.Any<HookException>(), Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StopAsync" />: a stop whose wait for an unfinished start is cancelled stops nothing.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Stops_Nothing_When_The_Wait_For_The_Start_Is_Cancelled()
+	{
+		// Arrange
+		// Without a context the end of the wait runs on this thread, so the start is over when the clock has moved.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using ManualResetEventSlim stopped = new();
+
+		IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The hook runs until it is let go and never reports itself as enabled.
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ => stopped.Wait());
+
+			// Not running when the start asks, running when the stop would ask.
+			hook
+				.IsRunning
+				.Returns(false, true);
+
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		Task starting = sut.StartAsync();
+
+		time.Advance(TimeSpan.FromSeconds(1));
+
+		await starting;
+
+		using CancellationTokenSource cancellation = new();
+
+		// Act
+		Task stopping = sut.StopAsync(cancellation.Token);
+
+		await cancellation.CancelAsync();
+
+		await stopping;
+
+		stopped.Set();
+
+		// Assert
+		hook
+			.DidNotReceive()
+			.Stop();
 	}
 
 	/// <summary>

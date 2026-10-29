@@ -109,6 +109,33 @@ internal class HotkeyMatcherTests
 	}
 
 	/// <summary>
+	/// <see cref="HotkeyMatcher.FindFile" />: a file without hotkeys matches no typed keys.
+	/// </summary>
+	[Test]
+	public void FindFile_Passes_Over_A_File_Without_Hotkeys()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		KeyStroke[] typed =
+		[
+			new()
+			{
+				Code = KeyCode.VcA,
+				Mask = EventMask.LeftCtrl
+			}
+		];
+
+		// Act
+		FileDto? result = HotkeyMatcher.FindFile([file], typed);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="HotkeyMatcher.FindFile" />: keys that end no hotkey find no file.
 	/// </summary>
 	[Test]

@@ -56,6 +56,36 @@ internal class KeyboardInputHookTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="KeyboardInputHook(IDispatcherAccessor, IGlobalHookRunner, IHotkeyContentCopier, Serilog.ILogger, IMessenger, ISessionHierarchy, ITaskExceptionHandler, TimeProvider)" />:
+	/// the hook listens for the released keys that the messenger carries.
+	/// </summary>
+	[Test]
+	public void Constructor_Listens_For_The_Released_Keys()
+	{
+		// Arrange
+		StrongReferenceMessenger messenger = new();
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		_ = mock.Create<KeyboardInputHook>();
+
+		// Act
+		messenger.Send(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
+
+		// Assert
+		exceptionHandler
+			.Received(1)
+			.Watch(Arg.Any<Task>());
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.Dispose" />: the tracked hierarchy and input stack are cleared and the shared hook stays alive.
 	/// </summary>
 	[Test]
@@ -90,6 +120,59 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.Dispose" />: a disposed hook refuses to start tracking.
+	/// </summary>
+	[Test]
+	public async Task Dispose_Refuses_A_Later_Start()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		Func<Task> start = () => sut.StartTrackingAsync();
+
+		await start
+			.Should()
+			.ThrowAsync<ObjectDisposedException>();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.Dispose" />: a disposed hook no longer listens for the released keys.
+	/// </summary>
+	[Test]
+	public void Dispose_Stops_Listening_For_The_Released_Keys()
+	{
+		// Arrange
+		StrongReferenceMessenger messenger = new();
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		messenger.Send(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
+
+		exceptionHandler
+			.DidNotReceive()
+			.Watch(Arg.Any<Task>());
 	}
 
 	/// <summary>
@@ -880,6 +963,52 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: the input keeps the latest keys up to the longest hotkey,
+	/// and the oldest key gives way to a new one.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Keeps_Only_The_Latest_Strokes()
+	{
+		// Arrange
+		KeyCode[] codes =
+		[
+			.. new[]
+			{
+				KeyCode.VcA,
+				KeyCode.VcB,
+				KeyCode.VcC,
+				KeyCode.VcD,
+				KeyCode.VcE,
+				KeyCode.VcF,
+				KeyCode.VcG,
+				KeyCode.VcH,
+				KeyCode.VcI,
+				KeyCode.VcJ
+			}.Take(IKeyboardInputHook.MaxHotkeys + 1)
+		];
+
+		// The clock stands still, so no pause breaks the input.
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FakeTimeProvider>()
+			.As<TimeProvider>());
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut.Hierarchy = [ItemDtoFactory.CreateFileDto()];
+
+		// Act
+		foreach (KeyCode code in codes)
+		{
+			await sut.HandleKeyReleasedAsync(EventMask.LeftCtrl, code);
+		}
+
+		// Assert
+		sut.InputStack.Select(static x => x.Code)
+			.Should()
+			.Equal(codes[1..]);
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a file whose text is not copied stays out of the copy
 	/// history.
 	/// </summary>
@@ -1399,6 +1528,36 @@ internal class KeyboardInputHookTests
 		sut.Hierarchy
 			.Should()
 			.BeSameAs(hierarchy);
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.StartTrackingAsync" />: a hook that did not start leaves the tree of the work session
+	/// untracked.
+	/// </summary>
+	[Test]
+	public async Task StartTrackingAsync_Tracks_No_Tree_When_The_Hook_Does_Not_Run()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionHierarchy sessionHierarchy = Substitute.For<ISessionHierarchy>();
+
+			sessionHierarchy
+				.Hierarchy
+				.Returns([]);
+
+			builder.RegisterInstance(sessionHierarchy);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+		await sut.StartTrackingAsync();
+
+		// Assert
+		sut.Hierarchy
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
