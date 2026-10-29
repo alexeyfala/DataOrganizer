@@ -11,8 +11,11 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
 using Repository.Interfaces.Database;
+using Shared.Extensions;
+using SharpHook.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -222,5 +225,57 @@ internal class EntityLoaderTests
 			.Should()
 			.Be(EncryptionStatus.None);
 	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.Map" />: the hotkeys of a file come back in the order of their indexes, which a store or an
+	/// import may break.
+	/// </summary>
+	[Test]
+	public void Map_Puts_The_Hotkeys_Of_A_File_In_Their_Order()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.Hotkeys.AddRange([CreateHotkey(file.Id, 2), CreateHotkey(file.Id, 0), CreateHotkey(file.Id, 1)]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMapper mapper = Substitute.For<IMapper>();
+
+			mapper
+				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
+				.Returns([file]);
+
+			mapper
+				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
+				.Returns([]);
+
+			builder.RegisterInstance(mapper);
+		});
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		sut.Map([], []);
+
+		// Assert
+		file.Hotkeys.Select(static x => x.Index)
+			.Should()
+			.Equal(0, 1, 2);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a hotkey of a file at the given index.
+	/// </summary>
+	private static HotkeyDto CreateHotkey(Guid ownerId, int index) => new()
+	{
+		Code = KeyCode.VcA,
+		Id = Guid.NewGuid(),
+		Index = index,
+		Mask = EventMask.LeftCtrl,
+		OwnerId = ownerId
+	};
 	#endregion
 }

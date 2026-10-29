@@ -72,6 +72,7 @@ public sealed class EntityLoader : IEntityLoader
 			// A cancelled load is the caller giving up, not a database that cannot be read.
 			throw;
 		}
+		// Stryker disable once Block : the block only logs and returns what an empty block returns
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, breakInDebugger: false);
@@ -87,6 +88,7 @@ public sealed class EntityLoader : IEntityLoader
 
 		fileDtos.ForEach(file =>
 		{
+			// Stryker disable once Block,Statement : ordering no hotkeys changes nothing
 			if (file
 				.Hotkeys
 				.Count == 0)

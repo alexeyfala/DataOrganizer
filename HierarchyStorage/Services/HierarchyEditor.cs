@@ -88,6 +88,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			ParentId = parent?.Id
 		};
 
+		// Stryker disable once String : wording of a message
 		string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
 		ExplorerItemBase entity;
@@ -125,6 +126,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			GetCollectionToAdd(parent, hierarchy).Add(dto);
 
+			// Stryker disable once String : wording of a message
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
 			_notification.ShowInformationSnackbar(successText);
@@ -147,6 +149,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
+		// Stryker disable once String : wording of a message
 		string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
 
 		bool result;
@@ -175,6 +178,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		GetCollectionToDelete(dto, hierarchy).Remove(dto);
 
+		// Stryker disable once String : wording of a message
 		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
 
 		_notification.ShowInformationSnackbar(text);
@@ -192,6 +196,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	{
 		if (newName.Equals(dto.Name, StringComparison.Ordinal))
 		{
+			// Stryker disable once String : wording of a message
 			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
 
 			_notification.ShowWarningSnackbar(warningText);
@@ -205,6 +210,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			.GetLocalNow()
 			.LocalDateTime;
 
+		// Stryker disable once String : wording of a message
 		string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
 		bool result;
@@ -231,6 +237,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			return false;
 		}
 
+		// Stryker disable once String : wording of a message
 		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
 
 		_notification.ShowInformationSnackbar(successText);

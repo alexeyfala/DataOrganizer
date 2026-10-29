@@ -4,11 +4,13 @@ using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
 using Hierarchy.Dto;
+using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
 using HierarchyStorage.Services;
 using MapsterMapper;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces;
@@ -16,9 +18,11 @@ using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
 using Shared.Common;
+using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Database;
 using TestSupport.Models;
@@ -29,6 +33,74 @@ namespace HierarchyStorage.UnitTests.Services;
 internal class HierarchyEditorTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="HierarchyEditor.AddAsync" />: an object added to a folder takes the encryption status of the folder.
+	/// </summary>
+	[Test]
+	public async Task AddAsync_Gives_The_Object_The_Encryption_Status_Of_Its_Folder()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IMapper mapper = Substitute.For<IMapper>();
+
+			dbAccess
+				.AddEntityAsync(Arg.Any<AddEntityParameters>())
+				.Returns(EntityFactory.CreateFile());
+
+			mapper
+				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
+				.Returns(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(mapper);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		ExplorerItemDtoBase? result = await sut.AddAsync(RandomString.Create(10), EntityKind.File, keeper, []);
+
+		// Assert
+		result!.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.AddAsync" />: an object added to a folder is placed after the children of the folder,
+	/// whatever the size of the tree.
+	/// </summary>
+	[Test]
+	public async Task AddAsync_Places_The_Object_After_The_Children_Of_Its_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Children.AddRange(ItemDtoFactory.CreateFileDtos(2));
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbAccess));
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		await sut.AddAsync(RandomString.Create(10), EntityKind.File, folder, hierarchy);
+
+		// Assert
+		await dbAccess
+			.Received(1)
+			.AddEntityAsync(Arg.Is<AddEntityParameters>(x => x.Index == 2));
+	}
+
 	/// <summary>
 	/// <see cref="HierarchyEditor.AddAsync" />: a new entity is created and, when a parent is given, linked to it.
 	/// </summary>
@@ -322,6 +394,43 @@ internal class HierarchyEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteAsync" />: an object whose delete the database refuses stays in the hierarchy.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Keeps_The_Entity_When_The_Database_Throws()
+	{
+		// Arrange
+		ExplorerItemDtoBase entity = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [entity];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.DeleteAsync(Arg.Any<EntityKind>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		bool result = await sut.DeleteAsync(entity, hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		hierarchy
+			.Should()
+			.Contain(entity);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyEditor.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
 	/// </summary>
 	[Test]
@@ -353,6 +462,89 @@ internal class HierarchyEditorTests
 		toBeRenamed.UpdatedAt
 			.Should()
 			.Be(updatedAt);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.RenameAsync" />: an object the database does not have keeps its name.
+	/// </summary>
+	[Test]
+	public async Task RenameAsync_Keeps_The_Name_When_The_Database_Has_No_Such_Object()
+	{
+		// Arrange
+		ExplorerItemDtoBase dto = ItemDtoFactory.CreateFileDto();
+
+		string name = dto.Name;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			// The database finds no such object.
+			dbAccess
+				.RenameAsync(Arg.Any<EntityKind>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		bool result = await sut.RenameAsync(dto, RandomString.Create(10));
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		dto.Name
+			.Should()
+			.Be(name);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.RenameAsync" />: an object whose rename the database refuses keeps its name.
+	/// </summary>
+	[Test]
+	public async Task RenameAsync_Keeps_The_Name_When_The_Database_Throws()
+	{
+		// Arrange
+		ExplorerItemDtoBase dto = ItemDtoFactory.CreateFileDto();
+
+		string name = dto.Name;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.RenameAsync(Arg.Any<EntityKind>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		bool result = await sut.RenameAsync(dto, RandomString.Create(10));
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		dto.Name
+			.Should()
+			.Be(name);
 	}
 
 	/// <summary>
