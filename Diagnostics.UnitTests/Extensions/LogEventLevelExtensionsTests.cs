@@ -9,7 +9,8 @@ internal class LogEventLevelExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="LogEventLevelExtensions.ToShort" />: each level maps to its expected short text.
+	/// <see cref="LogEventLevelExtensions.ToShort" />: each level maps to its expected short text, and a value that is no
+	/// level to none.
 	/// </summary>
 	[TestCase(LogEventLevel.Verbose, "[VERBOSE]")]
 	[TestCase(LogEventLevel.Debug, "[DBG]")]
@@ -17,6 +18,7 @@ internal class LogEventLevelExtensionsTests
 	[TestCase(LogEventLevel.Warning, "[WRN]")]
 	[TestCase(LogEventLevel.Error, "[ERR]")]
 	[TestCase(LogEventLevel.Fatal, "[FTL]")]
+	[TestCase((LogEventLevel)99, "")]
 	public void ToShort_Returns_Expected_Short_Text_For_Level(LogEventLevel level, string expected)
 	{
 		// Act

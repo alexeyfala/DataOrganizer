@@ -4,6 +4,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Threading;
@@ -43,6 +44,7 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// <summary>
 	/// Handles <see cref="AppDomain.UnhandledException" />.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Raising the event would end the test process")]
 	private void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 	{
 		HandleException((Exception)e.ExceptionObject);
@@ -53,8 +55,10 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// </summary>
 	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
+		// Stryker disable once Statement : the flag changes nothing without the policy that ends the process
 		e.SetObserved();
 
+		// Stryker disable once Block,Statement,Logical : reached on Linux only, while the mutation run is on Windows
 		if (OperatingSystem.IsLinux() && IsBenignDBusAccentColorFailure(e.Exception))
 		{
 			// Known Avalonia bug: DBusPlatformSettings reads the FreeDesktop appearance portal's
@@ -73,6 +77,7 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// Stryker disable once Block,Statement : a second pass disposes and clears what is gone already
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
@@ -80,18 +85,21 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 
 		_disposables.Dispose();
 
+		// Stryker disable once Statement : the set goes with the handler, which hears nothing any more
 		_handledExceptions.Clear();
 	}
 
 	/// <inheritdoc />
 	public void StartMonitoring()
 	{
+		// Stryker disable once Assignment : raising the event would end the test process
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 		Disposable.Create(() =>
 		{
+			// Stryker disable once Assignment : raising the event would end the test process
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 		}).DisposeWith(_disposables);
@@ -161,6 +169,7 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// <c>True</c> when the aggregated exception is exclusively composed of Avalonia's accent-color
 	/// read failures from the FreeDesktop appearance portal on Linux.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Runs on Linux only, while the mutation run is on Windows")]
 	private static bool IsBenignDBusAccentColorFailure(AggregateException aggregate)
 	{
 		return AreAllLeaves(aggregate, x => IsPlatformSettingsFailure(x.StackTrace));

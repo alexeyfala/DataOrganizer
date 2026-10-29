@@ -6,6 +6,8 @@ using NSubstitute;
 using Serilog;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Diagnostics.UnitTests.Services;
 
@@ -70,6 +72,33 @@ internal class GlobalExceptionHandlerTests
 		result
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.Dispose" />: a disposed handler logs no exception of a task nobody awaited.
+	/// </summary>
+	[Test]
+	public void Dispose_Stops_The_Monitoring()
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
+
+		sut.StartMonitoring();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		DropFaultedTask(Guid.NewGuid().ToString());
+
+		logger
+			.ReceivedCalls()
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -168,6 +197,56 @@ internal class GlobalExceptionHandlerTests
 	{
 		// Act
 		return GlobalExceptionHandler.IsPlatformSettingsFailure(stackTrace);
+	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.StartMonitoring" />: an exception of a task nobody awaited is logged.
+	/// </summary>
+	[Test]
+	public void StartMonitoring_Logs_An_Exception_Nobody_Observed()
+	{
+		// Arrange
+		string message = Guid.NewGuid().ToString();
+
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
+
+		// Act
+		sut.StartMonitoring();
+
+		DropFaultedTask(message);
+
+		// Assert
+		logger.ReceivedCalls().SelectMany(static x => x.GetArguments()).OfType<Exception>().Select(static x => x.GetBaseException().Message)
+			.Should()
+			.Contain(message);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a faulted task in a frame of its own, so that nothing keeps it alive after the call.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private static void CreateFaultedTask(string message)
+	{
+		_ = Task.FromException(new InvalidOperationException(message));
+	}
+
+	/// <summary>
+	/// Leaves a faulted task that nobody awaits and lets the collector finalize it, which reports its exception as
+	/// unobserved.
+	/// </summary>
+	private static void DropFaultedTask(string message)
+	{
+		CreateFaultedTask(message);
+
+		GC.Collect();
+
+		GC.WaitForPendingFinalizers();
 	}
 	#endregion
 }

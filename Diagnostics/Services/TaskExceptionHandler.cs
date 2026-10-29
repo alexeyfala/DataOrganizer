@@ -23,6 +23,7 @@ public class TaskExceptionHandler : ITaskExceptionHandler
 	{
 		task.ContinueWith(x =>
 		{
+			// Stryker disable once Block,Statement : a faulted task always carries its exception
 			if (x.Exception is null)
 			{
 				return;
