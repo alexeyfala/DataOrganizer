@@ -1,6 +1,4 @@
-using Cysharp.Text;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -72,43 +70,6 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 	public byte[] SerializeToUtf8Bytes<T>(T value, JsonSerializerOptions? options = null)
 	{
 		return JsonSerializer.SerializeToUtf8Bytes(value, options);
-	}
-
-	/// <inheritdoc />
-	public string ToReadableJson<T>(T? value)
-	{
-		Type type = typeof(T);
-
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		if (type.GetTypeKind() is { } typeKind)
-		{
-			builder.Append(typeKind);
-		}
-
-		builder.Append(' ');
-
-		if (value is not null)
-		{
-			if (type.FullName is { } typeName)
-			{
-				builder.Append(typeName);
-
-				builder.Append(' ');
-
-				builder.AppendLine("to Json");
-			}
-
-			builder.Append(Serialize(value, JsonDefaults.Options));
-		}
-		else if (type.FullName is { } typeName)
-		{
-			builder.Append(typeName);
-
-			builder.Append(" = null");
-		}
-
-		return builder.ToString();
 	}
 	#endregion
 }

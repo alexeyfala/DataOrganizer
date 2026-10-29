@@ -188,31 +188,6 @@ public static class GenericExtensions
 	}
 
 	/// <summary>
-	/// Returns a .Net representation of the type.
-	/// </summary>
-	public static string? GetTypeKind(this Type type)
-	{
-		if (type.IsClass)
-		{
-			return "class";
-		}
-
-		if (type.IsValueType)
-		{
-			return "struct";
-		}
-
-		if (type.IsInterface)
-		{
-			return "interface";
-		}
-
-		return type.IsEnum
-			? "enum"
-			: null;
-	}
-
-	/// <summary>
 	/// <c>True</c> when the value is the default value for its type.
 	/// </summary>
 	/// <remarks>
