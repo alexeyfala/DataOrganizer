@@ -5,10 +5,11 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Shared.Extensions;
 using System.Linq;
 

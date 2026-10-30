@@ -7,8 +7,10 @@ After cloning the repository, restore it from the solution root:
 
     dotnet tool restore
 
-> Keep the `dotnet-ef` version `>=` the `Microsoft.EntityFrameworkCore.*` package version.
+> Keep the `dotnet-ef` version equal to the `Microsoft.EntityFrameworkCore.*` package version;
+> a guard test fails otherwise.
 > When you upgrade EF Core, bump the tool too: `dotnet tool update dotnet-ef --version <version>`.
+> The NuGet package manager of Visual Studio leaves the tool manifest alone.
 > An older tool within the same major only warns; a different major fails.
 
 > All commands below are run from the solution root (if run from the `Repository.Migrations`

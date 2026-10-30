@@ -14,7 +14,6 @@ using AvaloniaEdit.Rendering;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Converters;
 using DataOrganizer.Extensions.Views;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using Shared.Properties;
 using System;
@@ -23,6 +22,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.Controls.Text;
 

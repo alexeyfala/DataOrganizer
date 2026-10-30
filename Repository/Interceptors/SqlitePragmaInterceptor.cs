@@ -16,6 +16,7 @@ public sealed class SqlitePragmaInterceptor : DbConnectionInterceptor
 	{
 		SqlitePragmas.Apply(connection);
 
+		// Stryker disable once Statement : the base method does nothing
 		base.ConnectionOpened(connection, eventData);
 	}
 
@@ -29,6 +30,7 @@ public sealed class SqlitePragmaInterceptor : DbConnectionInterceptor
 			.ApplyAsync(connection, cancellationToken)
 			.ConfigureAwait(false);
 
+		// Stryker disable once Statement : the base method does nothing
 		await base
 			.ConnectionOpenedAsync(connection, eventData, cancellationToken)
 			.ConfigureAwait(false);

@@ -1,31 +1,32 @@
+using AppInstance.Extensions;
+using AppInstance.Interfaces;
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Notifications;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Exchange;
-using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Text;
+using Clipboard.Interfaces;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.Services.Exchange;
-using DataOrganizer.Services.Execution;
-using DataOrganizer.Services.Runtime;
-using DataOrganizer.Services.Text;
 using DataOrganizer.UnitTests.Guards;
 using DataOrganizer.ViewModels.Windows;
+using EditorDocuments.Interfaces;
 using Entities.Models;
+using FileContents.Interfaces;
+using FileExecution.Interfaces;
+using FileExecution.Services;
+using Hierarchy.Dto;
+using HierarchyExchange.Interfaces;
+using HierarchyExchange.Services;
+using HierarchyNotes.Interfaces;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using Notifications.Constants;
+using Notifications.Dto;
+using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Services.Database;
 using Serilog;
+using Settings.Interfaces;
 using Shared.Services;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TestSupport.Models;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.UnitTests;
 
@@ -89,7 +91,7 @@ internal partial class AppTests
 		// Arrange
 		ServiceCollection services = [];
 
-		((App)Application.Current!).RegisterServices(services, [CommandLineOptions.ConsoleArg]);
+		((App)Application.Current!).RegisterServices(services, Array.Empty<string>().AddConsoleArg());
 
 		// The environment of the test keeps the folders of the application untouched.
 		services.AddSingleton(Substitute.For<IAppEnvironment>());

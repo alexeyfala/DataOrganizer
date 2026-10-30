@@ -1,0 +1,101 @@
+using System;
+using System.Buffers.Binary;
+using System.Security.Cryptography;
+
+namespace DataProtection.Helpers;
+
+/// <summary>
+/// Cost of the password based key derivation, recorded within the blob it produced,
+/// so a later change of the cost leaves earlier blobs readable.
+/// </summary>
+/// <param name="MemorySize">Memory of a single derivation, in kibibytes.</param>
+/// <param name="NumberOfPasses">Number of passes over that memory.</param>
+/// <param name="DegreeOfParallelism">Number of lanes the derivation runs in.</param>
+public readonly record struct Argon2Settings(
+	int MemorySize,
+	int NumberOfPasses,
+	int DegreeOfParallelism)
+{
+	#region Properties
+	/// <summary>
+	/// Cost every new blob is written with: the moderate level of libsodium.
+	/// </summary>
+	public static Argon2Settings Current => new(
+		MemorySize: 262144,
+		NumberOfPasses: 3,
+		DegreeOfParallelism: 1);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Size of the layout the values occupy: <c>[memory:4][passes:1][parallelism:1]</c>.
+	/// </summary>
+	public const int HeaderSize = 6;
+
+	/// <summary>
+	/// Upper bound of <see cref="DegreeOfParallelism" />: libsodium fixes the number of lanes at one,
+	/// so any other value is refused here instead of failing inside the derivation.
+	/// </summary>
+	private const int MaxDegreeOfParallelism = 1;
+
+	/// <summary>
+	/// Upper bound of <see cref="MemorySize" />: half a gibibyte. The bound caps the allocation a blob
+	/// can ask for, and lowering it below a value already written would make that blob unreadable.
+	/// </summary>
+	private const int MaxMemorySize = 524288;
+
+	/// <summary>
+	/// Upper bound of <see cref="NumberOfPasses" />: together with <see cref="MaxMemorySize" />
+	/// it bounds the work a single derivation can cost.
+	/// </summary>
+	private const int MaxNumberOfPasses = 4;
+
+	/// <summary>
+	/// Lower bound of <see cref="MemorySize" />: eight mebibytes.
+	/// </summary>
+	private const int MinMemorySize = 8192;
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Reads the values a blob was written with.
+	/// </summary>
+	/// <exception cref="CryptographicException">The layout is too short or holds unsupported values.</exception>
+	public static Argon2Settings Read(ReadOnlySpan<byte> header)
+	{
+		if (header.Length < HeaderSize)
+		{
+			throw new CryptographicException(
+				$"A key derivation layout of {header.Length} bytes is too short.");
+		}
+
+		Argon2Settings result = new(
+			MemorySize: (int)Math.Min(BinaryPrimitives.ReadUInt32LittleEndian(header), int.MaxValue),
+			NumberOfPasses: header[4],
+			DegreeOfParallelism: header[5]);
+
+		// The values steer an allocation, so they are bounded before they reach the algorithm.
+		if (result.MemorySize is < MinMemorySize or > MaxMemorySize
+			|| result.NumberOfPasses is < 1 or > MaxNumberOfPasses
+			|| result.DegreeOfParallelism is < 1 or > MaxDegreeOfParallelism)
+		{
+			throw new CryptographicException(
+				$"The key derivation cost {result} is not supported.");
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Writes the values into the layout of a blob.
+	/// </summary>
+	public void Write(Span<byte> header)
+	{
+		BinaryPrimitives.WriteUInt32LittleEndian(header, (uint)MemorySize);
+
+		header[4] = (byte)NumberOfPasses;
+
+		header[5] = (byte)DegreeOfParallelism;
+	}
+	#endregion
+}

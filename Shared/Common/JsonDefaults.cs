@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@ public static class JsonDefaults
 	/// <summary>
 	/// Json serialization options.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Settings of the format, which a test would only copy")]
 	public static JsonSerializerOptions Options { get; } = new()
 	{
 		WriteIndented = true,

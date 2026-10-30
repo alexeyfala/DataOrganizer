@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Clipboard;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Models.Clipboard;
-using DataOrganizer.UnitTests.Factories;
+using Clipboard.Enums;
+using Clipboard.Interfaces;
+using Clipboard.Models;
+using Clipboard.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
+using FileExecution.Interfaces;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;

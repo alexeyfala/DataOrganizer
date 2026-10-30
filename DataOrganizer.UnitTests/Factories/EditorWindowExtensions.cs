@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using DataOrganizer.Controls;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Windows;
+using Hierarchy.Dto;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Factories;

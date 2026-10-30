@@ -1,5 +1,5 @@
 using AvaloniaEdit;
-using DataOrganizer.Interfaces.Settings;
+using Settings.Interfaces;
 using Shared.Properties;
 using System.Globalization;
 

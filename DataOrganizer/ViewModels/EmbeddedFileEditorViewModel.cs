@@ -1,16 +1,15 @@
+using AppInstance.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Text;
-using DataOrganizer.Helpers.Documents;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Text;
+using Diagnostics.Interfaces;
 using DynamicData.Binding;
+using EditorDocuments.Dto;
+using EditorDocuments.Helpers;
+using EditorDocuments.Interfaces;
+using FileContents.Enums;
+using FileContents.Interfaces;
+using Notifications.Constants;
+using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -21,6 +20,8 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TextProcessing.Extensions;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

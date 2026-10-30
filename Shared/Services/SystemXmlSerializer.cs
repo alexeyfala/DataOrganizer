@@ -25,6 +25,7 @@ public sealed class SystemXmlSerializer : IXmlSerializer
 	{
 		XmlSerializer serializer = new(typeof(T));
 
+		// Stryker disable once Initializer,Boolean : the settings spell out the defaults of the reader
 		using XmlReader xmlReader = XmlReader.Create(stream, new XmlReaderSettings
 		{
 			DtdProcessing = DtdProcessing.Prohibit,
@@ -42,6 +43,7 @@ public sealed class SystemXmlSerializer : IXmlSerializer
 
 		using XmlReader documentReader = document.CreateReader();
 
+		// Stryker disable once Initializer,Boolean : the settings spell out the defaults of the reader
 		using XmlReader xmlReader = XmlReader.Create(documentReader, new XmlReaderSettings
 		{
 			DtdProcessing = DtdProcessing.Prohibit,
@@ -97,6 +99,7 @@ public sealed class SystemXmlSerializer : IXmlSerializer
 	{
 		XmlSerializer serializer = new(typeof(T));
 
+		// Stryker disable once Initializer : the settings spell out the defaults of the reader
 		using XmlReader xmlReader = XmlReader.Create(reader, new XmlReaderSettings
 		{
 			DtdProcessing = DtdProcessing.Prohibit,

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 
 namespace DataOrganizer.Behaviors.Security;
 

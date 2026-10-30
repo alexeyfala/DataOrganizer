@@ -1,19 +1,19 @@
+using AppInstance.Interfaces;
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using Clipboard.Interfaces;
+using Clipboard.Messages;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Messages.Clipboard;
-using DataOrganizer.Services.Clipboard;
-using DataOrganizer.Services.Runtime;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using Diagnostics.Interfaces;
+using FileContents.Enums;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
@@ -30,7 +30,7 @@ internal class CopyHistoryViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMessenger, ISessionHierarchy, ITaskExceptionHandler)" />:
+	/// <see cref="CopyHistoryViewModel(IContentCopier, ICopyHistory, IMessenger, ISessionHierarchy, ITaskExceptionHandler, TimeProvider)" />:
 	/// the list shows the files of the copy history that the tree holds, in the order of the history, with the chosen one
 	/// selected.
 	/// </summary>

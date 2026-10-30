@@ -5,6 +5,7 @@ using Repository.DbContexts;
 using Repository.Enums;
 using Repository.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,7 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default)
 	{
 		return FindBy(x => x.Id == id)
@@ -101,6 +103,7 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default)
 	{
 		return FindBy(x => x.Id == id)
@@ -109,6 +112,7 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
 	{
 		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
@@ -117,12 +121,14 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<int> RemoveAsync(Guid id, CancellationToken token = default)
 	{
 		return RemoveRangeByAsync(x => x.Id == id, token);
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
 	{
 		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);

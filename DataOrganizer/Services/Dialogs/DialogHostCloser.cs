@@ -1,5 +1,5 @@
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Dialogs;
+using DialogContracts.Constants;
+using DialogContracts.Interfaces;
 using DialogHostAvalonia;
 
 namespace DataOrganizer.Services.Dialogs;

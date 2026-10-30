@@ -1,5 +1,6 @@
 using Shared.Extensions;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -8,6 +9,7 @@ namespace Shared.Common;
 /// <summary>
 /// Facts about the running application.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Depends on the entry assembly and the build configuration")]
 public static class AppInfo
 {
 	#region Properties

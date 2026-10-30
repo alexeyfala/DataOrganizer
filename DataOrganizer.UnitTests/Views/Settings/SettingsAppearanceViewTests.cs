@@ -3,16 +3,14 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Settings;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Settings;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Settings;
+using DialogContracts.Interfaces;
 using NSubstitute;
+using Settings.Enums;
+using Settings.Interfaces;
+using Settings.Services;
+using Settings.UnitTests.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Settings;
@@ -40,7 +38,7 @@ internal class SettingsAppearanceViewTests
 			new SettingsSession(
 				settingsStore,
 				Substitute.For<IAppThemeService>(),
-				Substitute.For<IBackgroundServiceControl>()),
+				Substitute.For<ISettingsApplier>()),
 			new SettingsSessionState());
 
 		SettingsAppearanceView sut = new()

@@ -3,14 +3,14 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Diagnostics.Interfaces;
+using Diagnostics.Services;
+using EditorDocuments.Interfaces;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Windows;
 

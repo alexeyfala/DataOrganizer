@@ -8,11 +8,12 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Helpers.Security;
-using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
+using DataProtection.Helpers;
+using DatasetRecords.Models;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using Shared.Common;
 using System;
 using System.Linq;
@@ -136,7 +137,7 @@ internal class ContextMenuTemplatesTests
 
 		// Assert
 		names
-			.Count(x => x != null && x.Contains(text))
+			.Count(x => x?.Contains(text) == true)
 			.Should()
 			.Be(isEncrypted ? 0 : 1);
 	}

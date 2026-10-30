@@ -1,8 +1,8 @@
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using Entities.Enums;
+using Hierarchy.Dto;
 
 namespace DataOrganizer.Services.Documents;
 

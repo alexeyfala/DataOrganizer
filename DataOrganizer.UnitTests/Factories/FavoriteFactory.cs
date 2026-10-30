@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Favorites;
-using DataOrganizer.Enums.Encryption;
+using Favorites.Dto;
+using Hierarchy.Enums;
 using Shared.Common;
 using System;
 using System.Collections.Generic;

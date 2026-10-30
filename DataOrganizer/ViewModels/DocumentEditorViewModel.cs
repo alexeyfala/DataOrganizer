@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Helpers.Documents;
-using DataOrganizer.Interfaces.Documents;
+using EditorDocuments.Dto;
+using EditorDocuments.Helpers;
+using EditorDocuments.Interfaces;
 using System.Collections.Generic;
 
 namespace DataOrganizer.ViewModels;

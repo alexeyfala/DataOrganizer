@@ -7,10 +7,10 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
+using Diagnostics.Interfaces;
+using DialogContracts.Interfaces;
 using NSubstitute;
 using System.Linq;
 

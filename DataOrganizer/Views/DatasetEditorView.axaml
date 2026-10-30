@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Views.DatasetEditorView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:componentModel="using:System.ComponentModel"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -9,7 +10,6 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:scrolling="using:DataOrganizer.Behaviors.Scrolling"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:DatasetEditorViewModel"
 	mc:Ignorable="d">
@@ -157,7 +157,7 @@
 			<Interaction.Behaviors>
 				<dragAndDrop:DatasetAutoScrollOnDragBehavior />
 
-				<scrolling:DatasetScrollBehavior
+				<behaviors:DatasetScrollBehavior
 					x:Name="RecordsScrolling"
 					IsEnabled="{Binding IsInitialized, Mode=OneWay}"
 					ViewState="{Binding ViewState, Mode=TwoWay}" />

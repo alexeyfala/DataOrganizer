@@ -2,8 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using AwesomeAssertions;
+using Clipboard.Interfaces;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Interfaces.Clipboard;
 using NSubstitute;
 using Shared.Common;
 

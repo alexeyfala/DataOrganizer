@@ -1,9 +1,9 @@
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers.Documents;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Text;
+using EditorDocuments.Helpers;
+using EditorDocuments.Interfaces;
+using Settings.Dto;
 using System.Collections.Generic;
 using System.Linq;
+using TextProcessing.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

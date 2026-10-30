@@ -50,6 +50,10 @@ internal class DbMaintenanceTests
 		// Assert
 		fileSystem
 			.DidNotReceive()
+			.EnumerateFiles(Arg.Any<string>());
+
+		fileSystem
+			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 

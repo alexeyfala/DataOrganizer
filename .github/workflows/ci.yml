@@ -27,11 +27,77 @@ jobs:
       - name: Build desktop app
         run: dotnet build DataOrganizer.Desktop/DataOrganizer.Desktop.csproj --configuration Release
 
+      - name: Test AppInstance.UnitTests
+        run: dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj --configuration Release
+
+      - name: Test AppLifecycle.UnitTests
+        run: dotnet test AppLifecycle.UnitTests/AppLifecycle.UnitTests.csproj --configuration Release
+
+      - name: Test AppUpdates.UnitTests
+        run: dotnet test AppUpdates.UnitTests/AppUpdates.UnitTests.csproj --configuration Release
+
+      - name: Test Clipboard.UnitTests
+        run: dotnet test Clipboard.UnitTests/Clipboard.UnitTests.csproj --configuration Release
+
       - name: Test DataOrganizer.UnitTests
         run: dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj --configuration Release
 
+      - name: Test DataProtection.UnitTests
+        run: dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj --configuration Release
+
+      - name: Test DatasetRecords.UnitTests
+        run: dotnet test DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj --configuration Release
+
+      - name: Test Diagnostics.UnitTests
+        run: dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj --configuration Release
+
+      - name: Test EditorDocuments.UnitTests
+        run: dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj --configuration Release
+
+      - name: Test EditorMessages.UnitTests
+        run: dotnet test EditorMessages.UnitTests/EditorMessages.UnitTests.csproj --configuration Release
+
       - name: Test Entities.UnitTests
         run: dotnet test Entities.UnitTests/Entities.UnitTests.csproj --configuration Release
+
+      - name: Test Favorites.UnitTests
+        run: dotnet test Favorites.UnitTests/Favorites.UnitTests.csproj --configuration Release
+
+      - name: Test FileContents.UnitTests
+        run: dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj --configuration Release
+
+      - name: Test FileExecution.UnitTests
+        run: dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj --configuration Release
+
+      - name: Test FileSystemOperations.UnitTests
+        run: dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj --configuration Release
+
+      - name: Test FilteredLists.UnitTests
+        run: dotnet test FilteredLists.UnitTests/FilteredLists.UnitTests.csproj --configuration Release
+
+      - name: Test GlobalHotkeys.UnitTests
+        run: dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj --configuration Release
+
+      - name: Test Hierarchy.UnitTests
+        run: dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj --configuration Release
+
+      - name: Test HierarchyExchange.UnitTests
+        run: dotnet test HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj --configuration Release
+
+      - name: Test HierarchyNotes.UnitTests
+        run: dotnet test HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj --configuration Release
+
+      - name: Test HierarchyScenarios.UnitTests
+        run: dotnet test HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj --configuration Release
+
+      - name: Test HierarchyStorage.UnitTests
+        run: dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj --configuration Release
+
+      - name: Test NotepadDocuments.UnitTests
+        run: dotnet test NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj --configuration Release
+
+      - name: Test Notifications.UnitTests
+        run: dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj --configuration Release
 
       - name: Test Repository.UnitTests
         run: dotnet test Repository.UnitTests/Repository.UnitTests.csproj --configuration Release
@@ -39,5 +105,14 @@ jobs:
       - name: Test Repository.IntegrationTests
         run: dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj --configuration Release
 
+      - name: Test Settings.UnitTests
+        run: dotnet test Settings.UnitTests/Settings.UnitTests.csproj --configuration Release
+
       - name: Test Shared.UnitTests
         run: dotnet test Shared.UnitTests/Shared.UnitTests.csproj --configuration Release
+
+      - name: Test TextProcessing.UnitTests
+        run: dotnet test TextProcessing.UnitTests/TextProcessing.UnitTests.csproj --configuration Release
+
+      - name: Test Threading.UnitTests
+        run: dotnet test Threading.UnitTests/Threading.UnitTests.csproj --configuration Release

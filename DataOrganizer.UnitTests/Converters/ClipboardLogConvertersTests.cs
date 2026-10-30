@@ -2,15 +2,15 @@ using Avalonia.Data.Converters;
 using Avalonia.Headless.NUnit;
 using Avalonia.Media.Imaging;
 using AwesomeAssertions;
+using Clipboard.Models;
+using Clipboard.UnitTests.Factories;
 using DataOrganizer.Converters;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Models.Clipboard;
-using DataOrganizer.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using TestSupport.Common;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Converters;
 

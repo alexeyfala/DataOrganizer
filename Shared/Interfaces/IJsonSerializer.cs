@@ -56,13 +56,5 @@ public interface IJsonSerializer
 	/// of an intermediate string in memory.
 	/// </summary>
 	byte[] SerializeToUtf8Bytes<T>(T value, JsonSerializerOptions? options = null);
-
-	/// <summary>
-	/// Returns a human-readable Json representation of the object with the type, with indentation.
-	/// </summary>
-	/// <remarks>
-	/// The method cannot be used for serialization.
-	/// </remarks>
-	string ToReadableJson<T>(T? value);
 	#endregion
 }

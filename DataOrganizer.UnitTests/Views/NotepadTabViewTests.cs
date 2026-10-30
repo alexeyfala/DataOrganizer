@@ -1,11 +1,11 @@
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Documents;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using EditorDocuments.Dto;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.Views;

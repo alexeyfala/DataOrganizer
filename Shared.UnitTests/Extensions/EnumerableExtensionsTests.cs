@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using Shared.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,24 @@ namespace Shared.UnitTests.Extensions;
 internal class EnumerableExtensionsTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EnumerableExtensions.AsNotNull{T}(T[])" />: an array that is there is handed on as it is.
+	/// </summary>
+	[Test]
+	public void AsNotNull_Hands_On_An_Array_That_Is_There()
+	{
+		// Arrange
+		int[] source = [1, 2];
+
+		// Act
+		int[] result = source.AsNotNull();
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(source);
+	}
+
 	/// <summary>
 	/// <see cref="EnumerableExtensions.AsNotNull{T}(T[])" />: a null array is handed on as an empty one.
 	/// </summary>
@@ -88,6 +107,26 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="EnumerableExtensions.ForEach{T}" />: the action runs on each item, in the order of the sequence.
+	/// </summary>
+	[Test]
+	public void ForEach_Runs_The_Action_On_Each_Item()
+	{
+		// Arrange
+		List<int> seen = [];
+
+		int[] source = [1, 2, 3];
+
+		// Act
+		source.ForEach(seen.Add);
+
+		// Assert
+		seen
+			.Should()
+			.Equal(1, 2, 3);
+	}
+
+	/// <summary>
 	/// <see cref="EnumerableExtensions.ForEachAsync{T}(IEnumerable{T}, Action{T}, int, CancellationToken)" />:
 	/// a degree of parallelism that is not positive is refused instead of reaching the loop.
 	/// </summary>
@@ -104,6 +143,52 @@ internal class EnumerableExtensionsTests
 		await act
 			.Should()
 			.ThrowAsync<ArgumentOutOfRangeException>();
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.ForEachAsync{T}(IEnumerable{T}, Func{T, Task})" />: the action runs on each item.
+	/// </summary>
+	[Test]
+	public async Task ForEachAsync_Runs_The_Action_On_Each_Item()
+	{
+		// Arrange
+		ConcurrentBag<int> seen = [];
+
+		int[] source = [1, 2, 3];
+
+		// Act
+		await source.ForEachAsync(x =>
+		{
+			seen.Add(x);
+
+			return Task.CompletedTask;
+		});
+
+		// Assert
+		seen
+			.Should()
+			.BeEquivalentTo([1, 2, 3]);
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.ForEachAsync{T}(IEnumerable{T}, Action{T}, int, CancellationToken)" />: the action
+	/// runs on each item within the degree of parallelism.
+	/// </summary>
+	[Test]
+	public async Task ForEachAsync_Runs_The_Action_On_Each_Item_Within_The_Degree_Of_Parallelism()
+	{
+		// Arrange
+		ConcurrentBag<int> seen = [];
+
+		int[] source = [1, 2, 3];
+
+		// Act
+		await source.ForEachAsync(seen.Add, maxDegreeOfParallelism: 2);
+
+		// Assert
+		seen
+			.Should()
+			.BeEquivalentTo([1, 2, 3]);
 	}
 
 	/// <summary>

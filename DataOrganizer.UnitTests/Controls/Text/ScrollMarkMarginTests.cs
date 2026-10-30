@@ -17,12 +17,12 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Helpers.Views;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 

@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces.Dialogs;
+using DialogContracts.Interfaces;
 using Repository.Dto;
 using System.Collections.ObjectModel;
 

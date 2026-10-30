@@ -33,6 +33,7 @@ public static class CollectionExtensions
 	/// </summary>
 	public static void SortBy<TSource, TKey>(this ICollection<TSource> collection, Func<TSource, TKey> keySelector)
 	{
+		// Stryker disable once Block,Statement : an empty collection sorts to itself
 		if (collection.Count == 0)
 		{
 			return;

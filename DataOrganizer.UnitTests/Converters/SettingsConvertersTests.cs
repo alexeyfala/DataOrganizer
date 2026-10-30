@@ -2,7 +2,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Enums.Settings;
+using Settings.Enums;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;

@@ -1,0 +1,81 @@
+using AppInstance.Interfaces;
+using Shared.Common;
+using System.IO;
+
+namespace AppInstance.Services;
+
+/// <inheritdoc cref="IAppEnvironment" />
+public sealed class AppEnvironment : IAppEnvironment
+{
+	#region Properties
+	/// <inheritdoc />
+	public string AppDataDirectoryPath { get; }
+
+	/// <inheritdoc />
+	public string ClipboardHistoryDirectoryPath { get; }
+
+	/// <inheritdoc />
+	public string DatabaseDirectoryPath { get; }
+
+	/// <inheritdoc />
+	public string NotepadDirectoryPath { get; }
+
+	/// <inheritdoc />
+	public string SandboxDirectoryPath { get; }
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// The number of running application instances.
+	/// </summary>
+	private readonly int _appCount;
+	#endregion
+
+	#region Constructors
+	public AppEnvironment(IInstanceRegistry instanceRegistry)
+	{
+		const string directoryName = "Instance";
+
+		_appCount = instanceRegistry.InstanceNumber;
+
+		AppDataDirectoryPath = Path.Combine(
+			IAppEnvironment.GetAppDataDirectoryPath(),
+			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
+
+		ClipboardHistoryDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"ClipboardHistory");
+
+		DatabaseDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Database");
+
+		NotepadDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Notepad");
+
+		SandboxDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Sandbox");
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public string GetAppInstanceName()
+	{
+		return _appCount == 1
+			? AppInfo.AppDisplayName
+			: $"{AppInfo.AppDisplayName} ({_appCount})";
+	}
+
+	/// <inheritdoc />
+	public string GetSettingsFilePath(string fileName)
+	{
+		return Path.Combine(
+			AppDataDirectoryPath,
+			"Settings",
+			fileName + ".json");
+	}
+	#endregion
+}

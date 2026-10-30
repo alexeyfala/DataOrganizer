@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository.DbContexts;
 using SharpHook.Data;
 using System;
@@ -163,6 +164,60 @@ internal class SqliteDbContextTests
 		mask
 			.Should()
 			.Be("LeftCtrl");
+	}
+
+	/// <summary>
+	/// <see cref="SqliteDbContext.OnModelCreating" />: the dates of the objects are stored cut to whole seconds.
+	/// </summary>
+	[TestCase(nameof(ExplorerItemBase.CreatedAt))]
+	[TestCase(nameof(ExplorerItemBase.UpdatedAt))]
+	public void OnModelCreating_Cuts_The_Dates_To_Whole_Seconds(string propertyName)
+	{
+		// Arrange
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite("DataSource=:memory:")
+			// The model is built for this test rather than taken from the cache of the process.
+			.EnableServiceProviderCaching(false)
+			.Options;
+
+		using SqliteDbContext sut = new(options);
+
+		// Act
+		ValueConverter converter = sut
+			.Model
+			.FindEntityType(typeof(FolderEntity))!
+			.FindProperty(propertyName)!
+			.GetValueConverter()!;
+
+		// Assert
+		converter.ConvertToProvider(new DateTime(2026, 10, 30, 1, 2, 3, 456, DateTimeKind.Local))
+			.Should()
+			.Be(new DateTime(2026, 10, 30, 1, 2, 3, DateTimeKind.Local));
+	}
+
+	/// <summary>
+	/// <see cref="SqliteDbContext.OnModelCreating" />: the model holds no change that the latest migration lacks, so every
+	/// change of the schema ships with its migration.
+	/// </summary>
+	[Test]
+	public void OnModelCreating_Matches_The_Latest_Migration()
+	{
+		// Arrange
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite("DataSource=:memory:", static x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName))
+			// The model is built for this test rather than taken from the cache of the process.
+			.EnableServiceProviderCaching(false)
+			.Options;
+
+		using SqliteDbContext sut = new(options);
+
+		// Act
+		bool hasChanges = sut.Database.HasPendingModelChanges();
+
+		// Assert
+		hasChanges
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 

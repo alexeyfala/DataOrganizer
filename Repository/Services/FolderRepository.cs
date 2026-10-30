@@ -5,6 +5,7 @@ using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -50,6 +51,7 @@ public sealed class FolderRepository : RepositoryBase<FolderEntity>, IFolderRepo
 	}
 
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
 	{
 		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);

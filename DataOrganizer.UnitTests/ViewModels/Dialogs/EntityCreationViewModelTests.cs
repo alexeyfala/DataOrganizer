@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.ViewModels.Dialogs;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Common;
 using System.Threading.Tasks;
 

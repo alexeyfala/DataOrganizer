@@ -4,12 +4,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:enums="using:DataOrganizer.Enums.Clipboard"
-	xmlns:helpers="using:DataOrganizer.Helpers.Views"
+	xmlns:enums="using:Clipboard.Enums"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:textConstants="using:TextProcessing.Constants"
 	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="360.0"
@@ -144,35 +144,35 @@
 					Spacing="4.0">
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.Clipboard}"
+						Content="{x:Static textConstants:Glyphs.Clipboard}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.All}}"
 						ToolTip.Tip="{x:Static prop:Strings.All}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.Memo}"
+						Content="{x:Static textConstants:Glyphs.Memo}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Text}}"
 						ToolTip.Tip="{x:Static prop:Strings.Text}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.Link}"
+						Content="{x:Static textConstants:Glyphs.Link}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Url}}"
 						ToolTip.Tip="{x:Static prop:Strings.Hyperlink}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.FramedPicture}"
+						Content="{x:Static textConstants:Glyphs.FramedPicture}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Image}}"
 						ToolTip.Tip="{x:Static prop:Strings.Image}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.CardIndexDividers}"
+						Content="{x:Static textConstants:Glyphs.CardIndexDividers}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Files}}"
 						ToolTip.Tip="{x:Static prop:Strings.Files}" />

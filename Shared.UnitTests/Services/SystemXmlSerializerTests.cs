@@ -60,6 +60,38 @@ internal class SystemXmlSerializerTests
 	}
 
 	/// <summary>
+	/// <see cref="SystemXmlSerializer.Deserialize{T}(Stream)" />: reads an object from a stream.
+	/// </summary>
+	[Test]
+	public void Deserialize_Reads_A_Stream()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
+
+		XmlSample sample = new()
+		{
+			Name = "name",
+			Number = 42
+		};
+
+		using MemoryStream stream = new();
+
+		sut.Serialize(stream, sample);
+
+		stream.Position = 0;
+
+		// Act
+		XmlSample? result = sut.Deserialize<XmlSample>(stream);
+
+		// Assert
+		result
+			.Should()
+			.BeEquivalentTo(sample);
+	}
+
+	/// <summary>
 	/// <see cref="SystemXmlSerializer.Deserialize{T}(string)" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]

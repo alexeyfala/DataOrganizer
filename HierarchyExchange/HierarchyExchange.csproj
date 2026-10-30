@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<WarningsAsErrors>nullable</WarningsAsErrors>
+		<FileVersion>$(AppVersion)</FileVersion>
+		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\FileExecution\FileExecution.csproj" />
+		<ProjectReference Include="..\GlobalHotkeys\GlobalHotkeys.csproj" />
+		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="HierarchyExchange.UnitTests" />
+	</ItemGroup>
+
+</Project>

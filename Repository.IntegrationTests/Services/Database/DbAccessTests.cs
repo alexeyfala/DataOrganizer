@@ -1,9 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using Entities.Enums;
+using Entities.Models;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Repository.DbContexts;
+using Repository.Dto;
 using Repository.Enums;
 using Repository.IntegrationTests.Fixtures;
 using Repository.Interfaces.Database;
@@ -12,6 +17,7 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +27,69 @@ namespace Repository.IntegrationTests.Services.Database;
 internal class DbAccessTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a database with only the migrations this version knows connects and is
+	/// brought up to date.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Connects_To_A_Database_Of_This_Version()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		const string known = "20260907183944_InitialCreate";
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbContextService
+				.CanConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			dbContextService
+				.GetDbFilePath()
+				.Returns(file.FilePath);
+
+			dbContextService
+				.HasMigrations()
+				.Returns(true);
+
+			dbContextService
+				.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
+				.Returns([known]);
+
+			dbContextService
+				.GetKnownMigrations()
+				.Returns([known]);
+
+			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.Connected);
+
+		await dbContextService
+			.Received(1)
+			.MigrateAsync(Arg.Any<CancellationToken>());
+	}
+
 	/// <summary>
 	/// <see cref="DbAccess.ConnectAsync" />: a migration applied by a newer version is seen before the schema is touched.
 	/// </summary>
@@ -253,6 +322,88 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a file that starts like a database and holds nothing else of one is
+	/// refused.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Refuses_A_File_That_Only_Starts_Like_A_Database()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		File.WriteAllBytes(file.FilePath, [.. "SQLite format 3\0"u8, .. new byte[84].AsSpan()]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FileSystem>()
+			.As<IFileSystem>());
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = sut.IsValidSqliteDatabase(file.FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a missing file is refused and not made, as SQLite would make one.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Refuses_A_Missing_File()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FileSystem>()
+			.As<IFileSystem>());
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = sut.IsValidSqliteDatabase(file.FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		File.Exists(file.FilePath)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: an empty file is refused, though SQLite opens one as an empty
+	/// database.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Refuses_An_Empty_File()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		File.WriteAllBytes(file.FilePath, []);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<FileSystem>()
+			.As<IFileSystem>());
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = sut.IsValidSqliteDatabase(file.FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a real database is accepted and a file that only
 	/// carries the name of one is refused, which is what keeps an import from opening anything at all.
 	/// </summary>
@@ -287,6 +438,62 @@ internal class DbAccessTests
 			.IsValidSqliteDatabase(foreignFilePath)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.LoadEntities" />: reads the folders and the files of a database file other than the one in use.
+	/// </summary>
+	[Test]
+	public async Task LoadEntities_Reads_The_Folders_And_Files_Of_A_Database_File()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		Guid folderId = Guid.NewGuid();
+
+		Guid fileId = Guid.NewGuid();
+
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite(file.ConnectionString)
+			.Options;
+
+		await using (SqliteDbContext context = new(options))
+		{
+			await context.Database.EnsureCreatedAsync();
+
+			context.Add(new FolderEntity
+			{
+				Id = folderId,
+				Kind = EntityKind.Folder,
+				Name = "Folder"
+			});
+
+			context.Add(new FileEntity
+			{
+				Id = fileId,
+				Kind = EntityKind.File,
+				Name = "File",
+				ParentId = folderId
+			});
+
+			await context.SaveChangesAsync();
+		}
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		LoadedEntities result = sut.LoadEntities(file.FilePath);
+
+		// Assert
+		result.Folders.Select(static x => x.Id)
+			.Should()
+			.Equal(folderId);
+
+		result.Files.Select(static x => x.Id)
+			.Should()
+			.Equal(fileId);
 	}
 
 	/// <summary>

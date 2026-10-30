@@ -1,7 +1,7 @@
-﻿<Project Sdk="WixToolset.Sdk/7.0.0" InitialTargets="BuildSetupDependency">
+﻿<Project Sdk="WixToolset.Sdk/7.0.1" InitialTargets="BuildSetupDependency">
   <PropertyGroup>
 	<AcceptEula>wix7</AcceptEula>
-	<DotNetVersion>10.0.13</DotNetVersion>
+	<DotNetVersion>10.0.14</DotNetVersion>
 	<OutputName>$(MsiOutputName)-bundle</OutputName>
 	<OutputPath>..\Publish</OutputPath>
 	<OutputType>Bundle</OutputType>
@@ -27,11 +27,12 @@
 	<Content Include="Themes\HyperlinkTheme.xml" />
   </ItemGroup>
   <ItemGroup>
-	<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.0" />
-	<PackageReference Include="WixToolset.Netfx.wixext" Version="7.0.0" />
+	<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.1" />
+	<PackageReference Include="WixToolset.Netfx.wixext" Version="7.0.1" />
   </ItemGroup>
   <ItemGroup>
 	<None Include="Resources\dotnet-runtime-$(DotNetVersion)-win-x64.exe" />
+	<None Include="Resources\dotnet-runtime-10.0.14-win-x64.exe" />
   </ItemGroup>
   <!--
 		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the

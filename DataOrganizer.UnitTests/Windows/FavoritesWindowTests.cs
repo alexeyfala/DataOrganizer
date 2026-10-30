@@ -1,3 +1,4 @@
+using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -8,25 +9,25 @@ using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Favorites;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Clipboard;
-using DataOrganizer.Services.Runtime;
+using Clipboard.Interfaces;
+using Clipboard.Services;
+using DataOrganizer.Enums;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using Favorites.Dto;
+using Hierarchy.Dto;
+using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Windows;
 

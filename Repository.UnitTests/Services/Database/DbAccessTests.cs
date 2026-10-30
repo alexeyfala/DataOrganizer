@@ -527,7 +527,99 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a file that is not a database is not migrated.
+	/// <see cref="DbAccess.ConnectAsync" />: the copies of the database that an interrupted session left behind are
+	/// erased.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Erases_The_Pending_Backups()
+	{
+		// Arrange
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		await sut.ConnectAsync();
+
+		// Assert
+		dbMaintenance
+			.Received(1)
+			.ErasePendingBackups();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a schema update that the token cancelled leaves the database closed for
+	/// writing.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Leaves_The_Database_Closed_After_A_Cancelled_Schema_Update()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new OperationCanceledException());
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.FileUnreadable);
+
+		sut.IsWritable
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a failure on the way, before the schema is touched, leaves the database
+	/// closed as unreadable.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_A_Failure_On_The_Way_As_Unreadable()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Throws(new IOException());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.FileUnreadable);
+
+		sut.ConnectionStatus
+			.Should()
+			.Be(DbConnectionStatus.FileUnreadable);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a file that is not a database is not migrated, even when a connection to it
+	/// opens, as SQLite opens any file.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Reports_A_File_It_Cannot_Open()
@@ -538,6 +630,10 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			dbContextService
+				.CanConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
 
 			dbContextService
 				.HasMigrations()
@@ -572,12 +668,15 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created is reported as unreadable.
+	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created is reported as unreadable, and its free
+	/// pages are left alone.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
 	{
 		// Arrange
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
@@ -587,6 +686,8 @@ internal class DbAccessTests
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(dbMaintenance);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -598,6 +699,10 @@ internal class DbAccessTests
 		result
 			.Should()
 			.Be(DbConnectionStatus.FileUnreadable);
+
+		await dbMaintenance
+			.DidNotReceive()
+			.EraseFreePagesOnceAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -1152,6 +1257,28 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.Dispose" />: a disposed object refuses the calls that come after it.
+	/// </summary>
+	[Test]
+	public async Task Dispose_Refuses_The_Calls_After_It()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		Func<Task> act = () => sut.ExistsAsync(Guid.NewGuid());
+
+		await act
+			.Should()
+			.ThrowAsync<ObjectDisposedException>();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.ExistsAsync" />: reports a wait the token cancelled and stays usable afterwards.
 	/// </summary>
 	[Test]
@@ -1191,7 +1318,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id.
+	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id, and asks for that id alone.
 	/// </summary>
 	[Test]
 	public async Task ExistsAsync_Returns_True_When_Entity_Exists()
@@ -1199,12 +1326,14 @@ internal class DbAccessTests
 		// Arrange
 		Guid id = Guid.NewGuid();
 
+		Expression<Func<ExplorerItemBase, bool>>? condition = null;
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
 
 			repository
-				.ExistsAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
+				.ExistsAsync(Arg.Do<Expression<Func<ExplorerItemBase, bool>>>(x => condition = x))
 				.Returns(true);
 
 			builder.RegisterInstance(repository);
@@ -1219,6 +1348,16 @@ internal class DbAccessTests
 		result
 			.Should()
 			.BeTrue();
+
+		Func<ExplorerItemBase, bool> matches = condition!.Compile();
+
+		matches(EntityFactory.CreateFolder(id: id))
+			.Should()
+			.BeTrue();
+
+		matches(EntityFactory.CreateFolder())
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

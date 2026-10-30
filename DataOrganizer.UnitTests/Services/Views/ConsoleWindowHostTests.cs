@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -5,22 +6,21 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Diagnostics;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
-using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using Diagnostics.Services;
+using FileSystemOperations.Interfaces;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Enums;
+using Settings.Interfaces;
+using Settings.Services;
 using Shared.Interfaces;
+using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

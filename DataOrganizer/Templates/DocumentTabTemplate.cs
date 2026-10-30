@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using Hierarchy.Dto;
 using System;
 using System.Collections.Generic;
 

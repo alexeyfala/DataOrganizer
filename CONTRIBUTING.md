@@ -35,11 +35,36 @@ See the [README](README.md#build-from-source) for platform-specific notes.
 Please make sure the test suite passes before opening a pull request:
 
 ```bash
+dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj
+dotnet test AppLifecycle.UnitTests/AppLifecycle.UnitTests.csproj
+dotnet test AppUpdates.UnitTests/AppUpdates.UnitTests.csproj
+dotnet test Clipboard.UnitTests/Clipboard.UnitTests.csproj
 dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
+dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj
+dotnet test DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj
+dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj
+dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj
+dotnet test EditorMessages.UnitTests/EditorMessages.UnitTests.csproj
 dotnet test Entities.UnitTests/Entities.UnitTests.csproj
+dotnet test Favorites.UnitTests/Favorites.UnitTests.csproj
+dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj
+dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj
+dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
+dotnet test FilteredLists.UnitTests/FilteredLists.UnitTests.csproj
+dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj
+dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
+dotnet test HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj
+dotnet test HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj
+dotnet test HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj
+dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj
+dotnet test NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj
+dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
 dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
+dotnet test Settings.UnitTests/Settings.UnitTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
+dotnet test TextProcessing.UnitTests/TextProcessing.UnitTests.csproj
+dotnet test Threading.UnitTests/Threading.UnitTests.csproj
 ```
 
 Two categories mark the tests that read or write outside the process, so a run over the

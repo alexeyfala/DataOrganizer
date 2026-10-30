@@ -58,6 +58,7 @@ public sealed class DatabaseBackup : IDisposable
 	/// </summary>
 	public static string CreateFilePath(string databaseFilePath)
 	{
+		// Stryker disable once String : any format of the guid makes a unique name
 		return Path.Combine(
 			GetDirectoryPath(databaseFilePath),
 			Guid.NewGuid().ToString("N") + KnownFileExtensions.Sqlite);
@@ -99,6 +100,7 @@ public sealed class DatabaseBackup : IDisposable
 	/// </summary>
 	private static string GetDatabaseDirectoryPath(string databaseFilePath)
 	{
+		// Stryker disable once String : only a root, which no database file is, has no folder
 		return Path.GetDirectoryName(databaseFilePath) ?? string.Empty;
 	}
 	#endregion

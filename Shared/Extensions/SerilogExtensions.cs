@@ -3,6 +3,7 @@ using Serilog.Events;
 using Shared.Common;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace Shared.Extensions;
 
+[ExcludeFromCodeCoverage(Justification = "Writes to the log, which tests do not check")]
 public static partial class SerilogExtensions
 {
 	#region Data

@@ -2,7 +2,7 @@
 	x:Class="DataOrganizer.Views.DatasetFieldView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
+	xmlns:clipboard="using:Clipboard.Interfaces"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -155,14 +155,20 @@
 			</Rectangle>
 		</Grid>
 
-		<!--  Note  -->
-		<views:NoteView
+		<!--  Note: built from the template on the first note shown, as a hidden control is never measured.  -->
+		<TemplatedControl
 			Grid.Column="2"
 			Margin="{StaticResource ElementMargin}"
-			IsSensitive="{Binding IsSensitive, Mode=OneWay}"
-			IsVisible="{Binding IsNoteVisible, Mode=OneWay}"
-			Note="{Binding Note, Mode=OneWay}"
-			NoteName="{Binding NoteName, Mode=OneWay}" />
+			IsVisible="{Binding IsNoteVisible, Mode=OneWay}">
+			<TemplatedControl.Template>
+				<ControlTemplate x:DataType="views:DatasetFieldView">
+					<views:NoteView
+						IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+						Note="{Binding Note, Mode=OneWay}"
+						NoteName="{Binding NoteName, Mode=OneWay}" />
+				</ControlTemplate>
+			</TemplatedControl.Template>
+		</TemplatedControl>
 
 		<Button
 			Grid.Column="3"

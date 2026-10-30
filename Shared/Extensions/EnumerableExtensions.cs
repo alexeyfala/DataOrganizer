@@ -158,6 +158,7 @@ public static class EnumerableExtensions
 
 		foreach (TOrdered orderedItem in ordered)
 		{
+			// Stryker disable once Block,Statement : the lookup gives no items for a key it lacks either
 			if (!lookup.Contains(orderedItem))
 			{
 				continue;

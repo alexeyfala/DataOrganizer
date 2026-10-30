@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Execution;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Execution;
+using Diagnostics.Interfaces;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
+using FileExecution.Dto;
+using FileExecution.Interfaces;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;

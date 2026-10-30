@@ -2,6 +2,8 @@ using Microsoft.Data.Sqlite;
 using Repository.Interceptors;
 using System;
 using System.Data.Common;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 
 namespace Repository.IntegrationTests.Fixtures;
@@ -21,7 +23,7 @@ internal sealed class TempSqliteFile : IDisposable
 	#region Constructors
 	public TempSqliteFile()
 	{
-		_directoryPath = Path.Combine(RootDirectoryPath, Guid.NewGuid().ToString("N"));
+		_directoryPath = Path.Combine(RunDirectoryPath, Guid.NewGuid().ToString("N"));
 
 		Directory.CreateDirectory(_directoryPath);
 
@@ -48,12 +50,43 @@ internal sealed class TempSqliteFile : IDisposable
 	public string FilePath { get; }
 
 	/// <summary>
-	/// Folder that holds the folders of all temporary databases.
+	/// Folder that holds the folders of the test processes, one per process.
 	/// </summary>
 	public static string RootDirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "DataOrganizerTests");
+
+	/// <summary>
+	/// Folder of the temporary databases of this test process, named after its id.
+	/// </summary>
+	public static string RunDirectoryPath { get; } = Path.Combine(
+		RootDirectoryPath,
+		Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Deletes the folders under <paramref name="rootDirectoryPath" /> that no running test process owns.
+	/// </summary>
+	public static void DeleteFoldersOfFinishedRuns(string rootDirectoryPath)
+	{
+		foreach (string directoryPath in Directory.GetDirectories(rootDirectoryPath))
+		{
+			if (int.TryParse(Path.GetFileName(directoryPath), NumberStyles.None, CultureInfo.InvariantCulture, out int processId)
+				&& IsRunning(processId))
+			{
+				continue;
+			}
+
+			try
+			{
+				Directory.Delete(directoryPath, recursive: true);
+			}
+			catch (DirectoryNotFoundException)
+			{
+				// The cleanup of another process that ended at the same time got there first.
+			}
+		}
+	}
+
 	/// <summary>
 	/// Executes a statement that returns nothing.
 	/// </summary>
@@ -97,6 +130,25 @@ internal sealed class TempSqliteFile : IDisposable
 		SqlitePragmas.OpenConnection(connection);
 
 		return connection;
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// <c>True</c> while a process with <paramref name="processId" /> runs.
+	/// </summary>
+	private static bool IsRunning(int processId)
+	{
+		try
+		{
+			using Process process = Process.GetProcessById(processId);
+
+			return true;
+		}
+		catch (ArgumentException)
+		{
+			return false;
+		}
 	}
 	#endregion
 }
