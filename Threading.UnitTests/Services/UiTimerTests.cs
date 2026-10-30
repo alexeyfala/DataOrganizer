@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
+using System.Threading;
 using Threading.Enums;
 using Threading.Interfaces;
 using Threading.Services;
@@ -108,6 +109,45 @@ internal class UiTimerTests
 		ticks
 			.Should()
 			.Be(3);
+	}
+
+	/// <summary>
+	/// <see cref="UiTimer.Run" />: the timer of a run whose tick answers <c>false</c> is released.
+	/// </summary>
+	[Test]
+	public void Run_Releases_The_Timer_Once_The_Tick_Answers_False()
+	{
+		// Arrange
+		TimerCallback? callback = null;
+
+		ITimer timer = Substitute.For<ITimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			TimeProvider timeProvider = Substitute.For<TimeProvider>();
+
+			timeProvider
+				.CreateTimer(Arg.Do<TimerCallback>(x => callback = x), Arg.Any<object?>(), Interval, Timeout.InfiniteTimeSpan)
+				.Returns(timer);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(timeProvider);
+		});
+
+		UiTimer sut = mock.Create<UiTimer>();
+
+		sut.Run(static () => false, Interval);
+
+		// Act
+		callback!(null);
+
+		// Assert
+		timer
+			.Received(1)
+			.Dispose();
 	}
 
 	/// <summary>
