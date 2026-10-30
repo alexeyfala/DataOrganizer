@@ -873,6 +873,58 @@ internal class ProtectionScenariosTests
 	}
 
 	/// <summary>
+	/// <see cref="ProtectionScenarios.LockAsync" />: the editors are asked to save before the open files close.
+	/// </summary>
+	[Test]
+	public async Task LockAsync_Asks_The_Editors_To_Save_Before_The_Files_Close()
+	{
+		// Arrange
+		List<string> steps = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMessenger messenger = new StrongReferenceMessenger();
+
+			IOpenFilesCloser openFilesCloser = Substitute.For<IOpenFilesCloser>();
+
+			ISessionHierarchy sessionHierarchy = Substitute.For<ISessionHierarchy>();
+
+			messenger.Register<FlushEditorsMessage>(
+				new object(),
+				(_, message) =>
+				{
+					steps.Add("save");
+
+					message.Reply(true);
+				});
+
+			openFilesCloser
+				.When(x => x.Close(Arg.Any<IReadOnlyCollection<FileDto>>()))
+				.Do(_ => steps.Add("close"));
+
+			sessionHierarchy
+				.Hierarchy
+				.Returns([]);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(openFilesCloser);
+
+			builder.RegisterInstance(sessionHierarchy);
+		});
+
+		ProtectionScenarios sut = mock.Create<ProtectionScenarios>();
+
+		// Act
+		await sut.LockAsync();
+
+		// Assert
+		steps
+			.Should()
+			.Equal("save", "close");
+	}
+
+	/// <summary>
 	/// <see cref="ProtectionScenarios.LockAsync" />: every open file is closed without a question, decrypted or not.
 	/// </summary>
 	[Test]
