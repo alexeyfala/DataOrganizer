@@ -17,6 +17,7 @@ using HierarchyExchange.Services;
 using HierarchyStorage.Interfaces;
 using HierarchyStorage.Services;
 using Microsoft.Extensions.Time.Testing;
+using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Enums;
@@ -43,6 +44,38 @@ namespace HierarchyExchange.UnitTests.Services;
 internal class DataExchangeServiceTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportDataAsync" />: the file picker asks before a file is written over.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Asks_Before_Overwriting_A_File()
+	{
+		// Arrange
+		FileSaveParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			// The picker is closed, so the export stops at the choice.
+			picker
+				.SaveFileAsync(Arg.Do<FileSaveParameters>(x => parameters = x))
+				.Returns((string?)null);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		parameters!.ShowOverwritePrompt
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="DataExchangeService.ExportDataAsync" />: every folder and file of the database, with contents and editor
 	/// state, is written to the chosen JSON file.
@@ -279,6 +312,81 @@ internal class DataExchangeServiceTests
 		parameters.DefaultExtension
 			.Should()
 			.Be("json");
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportDataAsync" />: an export that fails is reported as an error.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Reports_A_Failed_Export()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			// No format writes a text file, so the export fails.
+			picker
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Txt));
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportDataAsync" />: a finished export is reported.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Reports_The_Finished_Export()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExchangeFormat format = Substitute.For<IExchangeFormat>();
+
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			format
+				.Extension
+				.Returns(KnownFileExtensions.Json);
+
+			picker
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Json));
+
+			builder.RegisterInstance(format);
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowInformationSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -634,6 +742,35 @@ internal class DataExchangeServiceTests
 		hierarchy
 			.Should()
 			.ContainSingle();
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: the file picker takes one file.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Asks_For_One_File()
+	{
+		// Arrange
+		FileOpenParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker.SelectFilesAsync(Arg.Do<FileOpenParameters>(x => parameters = x));
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ImportDataAsync([]);
+
+		// Assert
+		parameters!.AllowMultiple
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1298,6 +1435,43 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: a closed file picker imports nothing.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_Nothing_When_No_File_Is_Chosen()
+	{
+		// Arrange
+		IBackedUpWriter backedUpWriter = Substitute.For<IBackedUpWriter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
+				.Returns([]);
+
+			builder.RegisterInstance(backedUpWriter);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		ImportDataResult? result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+
+		await backedUpWriter
+			.DidNotReceiveWithAnyArgs()
+			.WriteAsync(default!);
+	}
+
+	/// <summary>
 	/// <see cref="DataExchangeService.ImportDataAsync" />: with objects already in the tree, nothing is imported when the
 	/// user chooses no mode.
 	/// </summary>
@@ -1385,6 +1559,93 @@ internal class DataExchangeServiceTests
 		fileSystem
 			.DidNotReceive()
 			.OpenSequentialRead(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read and could not be removed stay with
+	/// their file, as in the database.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Keeps_The_Unreadable_Hotkeys_That_Cannot_Be_Removed()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcUndefined,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
+
+			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+			dbBackupService
+				.CreateBackupAsync()
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			dbAccess
+				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			IDbImporter dbImporter = Substitute.For<IDbImporter>();
+
+			dbImporter
+				.IsValidSqliteDatabase(Arg.Any<string>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
+				.Returns(ItemDtoFactory.CreateLoadedHierarchy([file]));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(dbImporter);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(picker);
+
+			builder
+				.RegisterType<SqliteExchangeFormat>()
+				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<UnreadableHotkeysFinder>()
+				.As<IUnreadableHotkeysFinder>();
+
+			builder
+				.RegisterType<BackedUpWriter>()
+				.As<IBackedUpWriter>();
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ImportDataAsync([]);
+
+		// Assert
+		file.Hotkeys
+			.Should()
+			.ContainSingle();
 	}
 
 	/// <summary>

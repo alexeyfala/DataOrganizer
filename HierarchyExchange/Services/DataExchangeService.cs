@@ -193,6 +193,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		try
 		{
 			// The database goes back to its copy when the import fails at any step.
+			// Stryker disable once Block : a failed write leaves the result unset, so the method returns null as well
 			if (!await _backedUpWriter
 				.WriteAsync(ImportAsync)
 				.ConfigureAwait(false))
@@ -366,6 +367,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		string extension = Path.GetExtension(filePath);
 
+		// Stryker disable once Linq : First throws for an unknown extension as well, and every caller catches the failure
 		return _formats.FirstOrDefault(x => x.Extension == extension)
 			?? throw new NotSupportedException($@"No exchange format reads ""{extension}"" files.");
 	}
