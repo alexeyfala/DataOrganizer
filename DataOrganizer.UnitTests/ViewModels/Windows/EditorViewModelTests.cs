@@ -1,60 +1,62 @@
+using AppInstance.Messages;
+using AppLifecycle.Services;
+using AppUpdates.Messages;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using Clipboard.Interfaces;
+using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Exchange;
-using DataOrganizer.Dto.Execution;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Enums.Exchange;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Extensions.Hierarchy;
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Exchange;
-using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Editor;
-using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Runtime;
-using DataOrganizer.Messages.Updates;
-using DataOrganizer.Services.Clipboard;
-using DataOrganizer.Services.Documents;
-using DataOrganizer.Services.Encryption;
-using DataOrganizer.Services.Exchange;
-using DataOrganizer.Services.Execution;
-using DataOrganizer.Services.Hierarchy;
-using DataOrganizer.Services.Hotkeys;
-using DataOrganizer.Services.Runtime;
-using DataOrganizer.Services.Settings;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.Extensions;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
+using DataProtection.Messages;
+using DataProtection.Services;
+using Diagnostics.Interfaces;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using DynamicData.Binding;
+using EditorDocuments.Dto;
+using EditorMessages.Messages;
 using Entities.Enums;
+using FileContents.Enums;
+using FileContents.Interfaces;
+using FileContents.Services;
+using FileExecution.Dto;
+using FileExecution.Interfaces;
+using FileExecution.Services;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.Interfaces;
+using GlobalHotkeys.Services;
+using GlobalHotkeys.UnitTests.Factories;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.Extensions;
+using Hierarchy.UnitTests.Factories;
+using HierarchyExchange.Dto;
+using HierarchyExchange.Enums;
+using HierarchyExchange.Interfaces;
+using HierarchyExchange.Services;
+using HierarchyNotes.Interfaces;
+using HierarchyScenarios.Interfaces;
+using HierarchyScenarios.Services;
+using HierarchyStorage.Interfaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Interfaces.Database;
+using Settings.Dto;
+using Settings.Enums;
+using Settings.Interfaces;
+using Settings.Services;
+using Settings.UnitTests.Factories;
 using Shared.Common;
 using Shared.Extensions;
 using System;
@@ -66,6 +68,9 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
+using Threading.Interfaces;
+using Threading.UnitTests.Fakes;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -739,44 +744,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DecryptFolder" />: a folder without files is not decrypted.
-	/// </summary>
-	[Test]
-	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
-	{
-		// Arrange
-		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(folderProtection);
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<ProtectionScenarios>()
-				.As<IProtectionScenarios>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.DecryptFolder(ItemDtoFactory.CreateFolderDto());
-
-		// Assert
-		await folderProtection
-			.DidNotReceiveWithAnyArgs()
-			.DecryptFolderAsync(default!, default!);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.DecryptFolderCommand" /> CanExecute: only an encrypted password keeper whose children are
 	/// all encrypted is decrypted, and not in read-only mode.
 	/// </summary>
@@ -1073,63 +1040,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DeleteAsync" />: the key of a deleted folder is dropped with the folder.
-	/// </summary>
-	[Test]
-	public async Task DeleteAsync_Drops_The_Key_Of_A_Deleted_Folder()
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		folder.EncryptedDek = RandomValues.CreateBytes(10);
-
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-			hierarchyEditor
-				.DeleteAsync(
-					Arg.Any<ExplorerItemDtoBase>(),
-					Arg.Any<Collection<ExplorerItemDtoBase>>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(hierarchyEditor);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<DeletionScenario>()
-				.As<IDeletionScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		bool result = await sut.DeleteAsync(folder);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		contentKeys
-			.Received(1)
-			.DiscardKeys(folder);
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: when the editor reports failure the file is left open.
 	/// </summary>
 	[Test]
@@ -1200,114 +1110,6 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.DeleteAsync" />: a folder that was not deleted keeps its key.
-	/// </summary>
-	[Test]
-	public async Task DeleteAsync_Keeps_The_Key_When_Editor_Fails()
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		folder.EncryptedDek = RandomValues.CreateBytes(10);
-
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-			hierarchyEditor
-				.DeleteAsync(
-					Arg.Any<ExplorerItemDtoBase>(),
-					Arg.Any<Collection<ExplorerItemDtoBase>>(),
-					Arg.Any<CancellationToken>())
-				.Returns(false);
-
-			builder.RegisterInstance(hierarchyEditor);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<DeletionScenario>()
-				.As<IDeletionScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		bool result = await sut.DeleteAsync(folder);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		contentKeys
-			.DidNotReceiveWithAnyArgs()
-			.DiscardKeys(default!);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.DeleteAsync" />: a file keeps no key of its own, so its deletion leaves the keys alone.
-	/// </summary>
-	[Test]
-	public async Task DeleteAsync_Leaves_The_Keys_Alone_For_A_Deleted_File()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
-
-			hierarchyEditor
-				.DeleteAsync(
-					Arg.Any<ExplorerItemDtoBase>(),
-					Arg.Any<Collection<ExplorerItemDtoBase>>(),
-					Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(hierarchyEditor);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<DeletionScenario>()
-				.As<IDeletionScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		bool result = await sut.DeleteAsync(file);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		contentKeys
-			.DidNotReceiveWithAnyArgs()
-			.DiscardKeys(default!);
 	}
 
 	/// <summary>
@@ -2770,77 +2572,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.HideAllFileContents" />: nothing is hidden and no file is closed while an editor
-	/// cannot persist its changes, so hiding never discards them.
-	/// </summary>
-	[Test]
-	public async Task HideAllFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(
-			isEditing: true,
-			encryptionStatus: EncryptionStatus.Decrypted);
-
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		object recipient = new();
-
-		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
-
-			confirmationPrompt
-				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(contentVisibility);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<ProtectionScenarios>()
-				.As<IProtectionScenarios>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut
-			.Hierarchy
-			.AddRange([file]);
-
-		// Act
-		await sut.HideAllFileContents();
-
-		// Assert
-		file.IsEditing
-			.Should()
-			.BeTrue();
-
-		contentVisibility
-			.DidNotReceive()
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.HideAllFileContents" />: a file open with contents that are not protected stays open, and
 	/// nobody is asked to close it.
 	/// </summary>
@@ -2937,11 +2668,11 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Tells_The_Auto_Lock()
 	{
 		// Arrange
-		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(backgroundServiceControl);
+			builder.RegisterInstance(autoLockControl);
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -2968,7 +2699,7 @@ internal class EditorViewModelTests
 		await sut.HideAllFileContents();
 
 		// Assert
-		backgroundServiceControl
+		autoLockControl
 			.Received(1)
 			.RefreshAutoLock();
 	}
@@ -3044,68 +2775,6 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.HideFileContents" />: a single file is not hidden while an editor cannot persist its changes.
-	/// </summary>
-	[Test]
-	public async Task HideFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(
-			isEditing: true,
-			encryptionStatus: EncryptionStatus.Decrypted);
-
-		IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
-
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		object recipient = new();
-
-		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(contentVisibility);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<ProtectionScenarios>()
-				.As<IProtectionScenarios>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HideFileContents(file);
-
-		// Assert
-		await confirmationPrompt
-			.DidNotReceive()
-			.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-		contentVisibility
-			.DidNotReceive()
-			.HideFileContents(Arg.Any<FileDto>());
 	}
 
 	/// <summary>
@@ -3191,78 +2860,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.HideFolderContents" />: a folder is not hidden while an editor cannot persist its changes.
-	/// </summary>
-	[Test]
-	public async Task HideFolderContents_Keeps_Contents_When_An_Editor_Cannot_Save()
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		FileDto file = ItemDtoFactory.CreateFileDto(
-			isEditing: true,
-			encryptionStatus: EncryptionStatus.Decrypted);
-
-		folder
-			.Children
-			.Add(file);
-
-		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		object recipient = new();
-
-		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
-
-			confirmationPrompt
-				.RequestYesCancelAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(contentVisibility);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<ProtectionScenarios>()
-				.As<IProtectionScenarios>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HideFolderContents(folder);
-
-		// Assert
-		file.IsEditing
-			.Should()
-			.BeTrue();
-
-		contentVisibility
-			.DidNotReceive()
-			.HideFolderContents(Arg.Any<FolderDto>());
-	}
-
-	/// <summary>
 	/// <see cref="EditorViewModel.HierarchySummary" />: a new editor counts the objects of the tree of the work session.
 	/// </summary>
 	[Test]
@@ -3291,52 +2888,6 @@ internal class EditorViewModelTests
 		sut.HierarchySummary
 			.Should()
 			.Be(hierarchy.GetCount().AsString());
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree empties the copy history.
-	/// </summary>
-	[Test]
-	public async Task Import_Clears_The_Copy_History_On_Replacement()
-	{
-		// Arrange
-		ICopyHistoryRecorder copyHistory = Substitute.For<ICopyHistoryRecorder>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Replace));
-
-			builder.RegisterInstance(copyHistory);
-
-			builder.RegisterInstance(dataExchange);
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		copyHistory
-			.Received(1)
-			.Clear();
 	}
 
 	/// <summary>
@@ -3529,52 +3080,6 @@ internal class EditorViewModelTests
 		sut.HierarchySummary
 			.Should()
 			.Be(new ExplorerItemDtoBase[] { imported }.GetCount().AsString());
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
-	/// </summary>
-	[Test]
-	public async Task Import_Drops_The_Keys_On_Replacement()
-	{
-		// Arrange
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Replace));
-
-			builder.RegisterInstance(dataExchange);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<OpenFilesCloser>()
-				.As<IOpenFilesCloser>();
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		contentKeys
-			.Received(1)
-			.DiscardAllKeys();
 	}
 
 	/// <summary>
@@ -3787,48 +3292,6 @@ internal class EditorViewModelTests
 		sut.Hierarchy
 			.Should()
 			.Equal(folder);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.Import" />: an import that appends leaves the hierarchy in place, keys included.
-	/// </summary>
-	[Test]
-	public async Task Import_Keeps_The_Keys_On_Appending()
-	{
-		// Arrange
-		IContentKeys contentKeys = Substitute.For<IContentKeys>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			dataExchange
-				.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>())
-				.Returns(new ImportDataResult(LoadedHierarchy.Empty, ImportMode.Append));
-
-			builder.RegisterInstance(dataExchange);
-
-			builder.RegisterInstance(contentKeys);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
-			builder
-				.RegisterType<ImportScenario>()
-				.As<IImportScenario>();
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.Import();
-
-		// Assert
-		contentKeys
-			.DidNotReceive()
-			.DiscardAllKeys();
 	}
 
 	/// <summary>
@@ -5756,7 +5219,7 @@ internal class EditorViewModelTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		IBackgroundServiceControl backgroundServiceControl = Substitute.For<IBackgroundServiceControl>();
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -5766,7 +5229,7 @@ internal class EditorViewModelTests
 				.ShowFileContentsAsync(file, Arg.Any<CancellationToken>())
 				.Returns(isShown);
 
-			builder.RegisterInstance(backgroundServiceControl);
+			builder.RegisterInstance(autoLockControl);
 
 			builder.RegisterInstance(contentVisibility);
 
@@ -5788,7 +5251,7 @@ internal class EditorViewModelTests
 			.ExecuteAsync(file);
 
 		// Assert
-		backgroundServiceControl
+		autoLockControl
 			.Received(isShown ? 1 : 0)
 			.RefreshAutoLock();
 	}

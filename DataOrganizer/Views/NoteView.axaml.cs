@@ -3,8 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces.Notes;
+using Hierarchy.Dto;
+using HierarchyNotes.Interfaces;
 using System.ComponentModel;
 
 namespace DataOrganizer.Views;

@@ -26,5 +26,24 @@ internal class CollectionExtensionsTests
 			.Should()
 			.Equal(4, 5);
 	}
+
+	/// <summary>
+	/// <see cref="Shared.Extensions.CollectionExtensions.SortBy{TSource, TKey}" />: the collection itself is sorted by the
+	/// key, ascending.
+	/// </summary>
+	[Test]
+	public void SortBy_Sorts_The_Collection_In_Place()
+	{
+		// Arrange
+		List<string> collection = ["ccc", "a", "bb"];
+
+		// Act
+		collection.SortBy(static x => x.Length);
+
+		// Assert
+		collection
+			.Should()
+			.Equal("a", "bb", "ccc");
+	}
 	#endregion
 }

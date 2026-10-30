@@ -1,3 +1,4 @@
+using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -6,27 +7,27 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Helpers.Notes;
-using DataOrganizer.Helpers.Security;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Dialogs;
-using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Views;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Views.Settings;
+using DataProtection.Helpers;
+using Diagnostics.Interfaces;
+using DialogContracts.Constants;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using DialogHostAvalonia;
+using HierarchyNotes.Helpers;
 using NSubstitute;
+using Settings.Interfaces;
+using Settings.Services;
+using Settings.UnitTests.Factories;
 using System;
 using System.Threading.Tasks;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 
@@ -709,7 +710,7 @@ internal class DialogServiceTests
 		SettingsSession session = new(
 			settingsStore,
 			Substitute.For<IAppThemeService>(),
-			Substitute.For<IBackgroundServiceControl>());
+			Substitute.For<ISettingsApplier>());
 
 		SettingsViewModel viewModel = new(
 			Substitute.For<IDialogHostCloser>(),

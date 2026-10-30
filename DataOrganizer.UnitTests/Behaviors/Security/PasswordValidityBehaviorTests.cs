@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Enums.Encryption;
+using DataProtection.Enums;
 
 namespace DataOrganizer.UnitTests.Behaviors.Security;
 

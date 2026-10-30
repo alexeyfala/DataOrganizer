@@ -1,40 +1,42 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
+using AppUpdates.Messages;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Enums.Exchange;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Extensions.Hierarchy;
-using DataOrganizer.Helpers.Hierarchy;
+using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Interfaces.Exchange;
-using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Interfaces.Hierarchy;
-using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Seeding;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Editor;
-using DataOrganizer.Messages.Encryption;
-using DataOrganizer.Messages.Runtime;
-using DataOrganizer.Messages.Updates;
 using DataOrganizer.ViewModels.Hierarchy;
+using DataProtection.Helpers;
+using DataProtection.Interfaces;
+using DataProtection.Messages;
+using Diagnostics.Interfaces;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
+using EditorMessages.Messages;
 using Entities.Enums;
 using Entities.Models;
+using FileExecution.Interfaces;
+using GlobalHotkeys.Interfaces;
+using Hierarchy.Dto;
+using Hierarchy.Enums;
+using Hierarchy.Extensions;
+using HierarchyExchange.Enums;
+using HierarchyExchange.Interfaces;
+using HierarchyNotes.Interfaces;
+using HierarchyScenarios.Interfaces;
+using HierarchyStorage.Interfaces;
+using Notifications.Interfaces;
 using Repository.Dto;
+using SampleSeeding.Interfaces;
 using Serilog;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -45,6 +47,7 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 
@@ -709,7 +712,7 @@ public sealed partial class EditorViewModel :
 	/// Starts the auto-lock countdown over from the delay currently in the settings.
 	/// </summary>
 	[RelayCommand]
-	private void RestartAutoLock() => _backgroundServiceControl.RestartAutoLock();
+	private void RestartAutoLock() => _autoLockControl.RestartAutoLock();
 
 	/// <summary>
 	/// Adds entries made up for trying the clipboard history to it.
@@ -836,8 +839,8 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IAutoLockService" />
 	private readonly IAutoLockService _autoLock;
 
-	/// <inheritdoc cref="IBackgroundServiceControl" />
-	private readonly IBackgroundServiceControl _backgroundServiceControl;
+	/// <inheritdoc cref="IAutoLockControl" />
+	private readonly IAutoLockControl _autoLockControl;
 
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
@@ -936,7 +939,7 @@ public sealed partial class EditorViewModel :
 		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
-		IBackgroundServiceControl backgroundServiceControl,
+		IAutoLockControl autoLockControl,
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
@@ -984,7 +987,7 @@ public sealed partial class EditorViewModel :
 
 		_autoLock = autoLock;
 
-		_backgroundServiceControl = backgroundServiceControl;
+		_autoLockControl = autoLockControl;
 
 		_clipboardWriter = clipboardWriter;
 
@@ -1196,7 +1199,7 @@ public sealed partial class EditorViewModel :
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
-		_backgroundServiceControl.RefreshAutoLock();
+		_autoLockControl.RefreshAutoLock();
 	}
 
 	/// <summary>

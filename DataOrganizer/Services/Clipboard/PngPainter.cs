@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using DataOrganizer.Interfaces.Clipboard;
+using Clipboard.Interfaces;
 using System;
 using System.Buffers.Binary;
 using System.IO;

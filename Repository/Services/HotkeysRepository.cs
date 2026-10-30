@@ -2,11 +2,13 @@ using Entities.Models;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repository.Services;
 
+[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 public sealed class HotkeysRepository : RepositoryBase<HotkeyEntity>, IHotkeysRepository
 {
 	#region Constructors

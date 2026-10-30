@@ -5,14 +5,15 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:documents="using:DataOrganizer.Enums.Documents"
+	xmlns:documents="using:EditorDocuments.Enums"
 	xmlns:folding="using:AvaloniaEdit.Folding"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:text="using:DataOrganizer.Helpers.Text"
+	xmlns:text="using:TextProcessing.Helpers"
 	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
 	xmlns:textControls="using:DataOrganizer.Controls.Text"
+	xmlns:textEnums="using:TextProcessing.Enums"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="View"
 	mc:Ignorable="d">
@@ -221,7 +222,7 @@
 													<StackPanel Orientation="Vertical">
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.UpperCase}"
+															CommandParameter="{x:Static textEnums:TextTransform.UpperCase}"
 															Gesture="{OnPlatform Default='Ctrl+Shift+U',
 															                     macOS='⌘+Shift+U'}"
 															Header="{x:Static prop:Strings.Uppercase}"
@@ -229,7 +230,7 @@
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.LowerCase}"
+															CommandParameter="{x:Static textEnums:TextTransform.LowerCase}"
 															Gesture="{OnPlatform Default='Ctrl+U',
 															                     macOS='⌘+U'}"
 															Header="{x:Static prop:Strings.Lowercase}"
@@ -237,13 +238,13 @@
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.TitleCase}"
+															CommandParameter="{x:Static textEnums:TextTransform.TitleCase}"
 															Header="{x:Static prop:Strings.TitleCase}"
 															Icon="FormatLetterStartsWith" />
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.InvertCase}"
+															CommandParameter="{x:Static textEnums:TextTransform.InvertCase}"
 															Header="{x:Static prop:Strings.InvertCase}"
 															Icon="SwapVertical" />
 
@@ -251,13 +252,13 @@
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.RemoveTrailingWhitespace}"
+															CommandParameter="{x:Static textEnums:TextTransform.RemoveTrailingWhitespace}"
 															Header="{x:Static prop:Strings.RemoveTrailingSpaces}"
 															Icon="Eraser" />
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.RemoveLeadingWhitespace}"
+															CommandParameter="{x:Static textEnums:TextTransform.RemoveLeadingWhitespace}"
 															Header="{x:Static prop:Strings.RemoveLeadingSpaces}"
 															Icon="FormatIndentDecrease" />
 
@@ -265,13 +266,13 @@
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.LeadingTabsToSpaces}"
+															CommandParameter="{x:Static textEnums:TextTransform.LeadingTabsToSpaces}"
 															Header="{x:Static prop:Strings.IndentsTabsToSpaces}"
 															Icon="KeyboardSpace" />
 
 														<controls:FlyoutButton
 															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
-															CommandParameter="{x:Static documents:TextTransform.LeadingSpacesToTabs}"
+															CommandParameter="{x:Static textEnums:TextTransform.LeadingSpacesToTabs}"
 															Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
 															Icon="KeyboardTab" />
 													</StackPanel>

@@ -1,9 +1,9 @@
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Messages.Editor;
+using Diagnostics.Interfaces;
+using EditorMessages.Messages;
+using Hierarchy.Dto;
 using System;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;

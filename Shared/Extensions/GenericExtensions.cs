@@ -24,6 +24,7 @@ public static class GenericExtensions
 		TTarget target,
 		params string[] propertyNames) where TSource : class where TTarget : class
 	{
+		// Stryker disable once Block,Statement : the loop below finds no property among no names either
 		if (propertyNames.Length == 0)
 		{
 			return;
@@ -102,6 +103,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// If property names are not passed, all public properties of the object are used.
 	/// </remarks>
+	[ExcludeFromCodeCoverage(Justification = "A diagnostic dump for the log")]
 	public static string GetPropertyValues<T>(this T source,
 		bool insertNewLine,
 		params string[] propertyNames)
@@ -188,31 +190,6 @@ public static class GenericExtensions
 	}
 
 	/// <summary>
-	/// Returns a .Net representation of the type.
-	/// </summary>
-	public static string? GetTypeKind(this Type type)
-	{
-		if (type.IsClass)
-		{
-			return "class";
-		}
-
-		if (type.IsValueType)
-		{
-			return "struct";
-		}
-
-		if (type.IsInterface)
-		{
-			return "interface";
-		}
-
-		return type.IsEnum
-			? "enum"
-			: null;
-	}
-
-	/// <summary>
 	/// <c>True</c> when the value is the default value for its type.
 	/// </summary>
 	/// <remarks>
@@ -227,22 +204,6 @@ public static class GenericExtensions
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
 	public static bool IsNotDefault<T>([NotNullWhen(true)] this T value) => !value.IsDefault();
-
-	/// <summary>
-	/// Sets the value of a property via reflection.
-	/// </summary>
-	public static void SetPropertyValue<TTarget, TValue>(
-		this TTarget target,
-		string propertyName,
-		TValue value) where TTarget : notnull
-	{
-		if (target.GetType().GetProperty(propertyName) is not { } property)
-		{
-			return;
-		}
-
-		property.SetValue(target, value);
-	}
 
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
@@ -275,6 +236,7 @@ public static class GenericExtensions
 	/// <summary>
 	/// Adds property data.
 	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A diagnostic dump for the log")]
 	private static void AppendPropertyData<T>(
 		ref Utf16ValueStringBuilder builder,
 		string propertyName,

@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Helpers.Security;
+using DataProtection.Helpers;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;

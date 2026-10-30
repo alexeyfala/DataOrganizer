@@ -1,0 +1,71 @@
+using DataProtection.Enums;
+using System;
+
+namespace DataProtection.Helpers;
+
+/// <summary>
+/// The field a ciphertext belongs to, rendered as authenticated associated data.
+/// Only the purpose is authenticated, so ciphertexts of one purpose stay interchangeable.
+/// </summary>
+public readonly record struct ContentIdentity(ContentPurpose Purpose)
+{
+	#region Properties
+	/// <summary>
+	/// Identity of the data encryption key of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ClipboardDek { get; } = new(ContentPurpose.ClipboardDek);
+
+	/// <summary>
+	/// Identity of the journal of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ClipboardLog { get; } = new(ContentPurpose.ClipboardLog);
+
+	/// <summary>
+	/// Identity of the contents of a file.
+	/// </summary>
+	public static ContentIdentity Contents { get; } = new(ContentPurpose.Contents);
+
+	/// <summary>
+	/// Identity of the data encryption key of a password keeper.
+	/// </summary>
+	public static ContentIdentity Dek { get; } = new(ContentPurpose.Dek);
+
+	/// <summary>
+	/// Identity of the note of a file or of a folder.
+	/// </summary>
+	public static ContentIdentity Note { get; } = new(ContentPurpose.Note);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Size of the associated data: the label and the purpose byte.
+	/// </summary>
+	private const int AssociatedDataSize = LabelSize + 1;
+
+	/// <summary>
+	/// Size of <see cref="Label" />.
+	/// </summary>
+	private const int LabelSize = 20;
+
+	/// <summary>
+	/// Domain separation label; the layout is fixed length, so the parts can never be read ambiguously.
+	/// </summary>
+	private static ReadOnlySpan<byte> Label => "DataOrganizer.Aad.v1"u8;
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Renders the purpose as the associated data of an authenticated encryption.
+	/// </summary>
+	public byte[] ToAssociatedData()
+	{
+		byte[] result = new byte[AssociatedDataSize];
+
+		Label.CopyTo(result);
+
+		result[LabelSize] = (byte)Purpose;
+
+		return result;
+	}
+	#endregion
+}

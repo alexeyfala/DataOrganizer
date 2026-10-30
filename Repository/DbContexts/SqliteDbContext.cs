@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository.Converters;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Repository.DbContexts;
 
@@ -32,6 +33,7 @@ public class SqliteDbContext : DbContext
 
 	#region Methods
 	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "Runs only under the EF Core tools at design time")]
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
 		if (EF.IsDesignTime && !optionsBuilder.IsConfigured)
@@ -74,10 +76,12 @@ public class SqliteDbContext : DbContext
 		#endregion
 
 		#region Folder
+		// Stryker disable once Statement : the conventions of EF Core index the foreign key all the same
 		modelBuilder
 			.Entity<FolderEntity>()
 			.HasIndex(x => x.ParentId);
 
+		// Stryker disable once Statement : the conventions of EF Core find the same relationship
 		modelBuilder
 			.Entity<FolderEntity>()
 			.HasMany(x => x.Children)
@@ -90,10 +94,12 @@ public class SqliteDbContext : DbContext
 		#endregion
 
 		#region File
+		// Stryker disable once Statement : the conventions of EF Core index the foreign key all the same
 		modelBuilder
 			.Entity<FileEntity>()
 			.HasIndex(x => x.ParentId);
 
+		// Stryker disable once Statement : the conventions of EF Core find the same relationship
 		modelBuilder
 			.Entity<FileEntity>()
 			.HasMany(x => x.Hotkeys)
@@ -106,6 +112,7 @@ public class SqliteDbContext : DbContext
 		#endregion
 
 		#region Hotkey
+		// Stryker disable once Statement : the conventions of EF Core index the foreign key all the same
 		modelBuilder
 			.Entity<HotkeyEntity>()
 			.HasIndex(x => x.OwnerId);
@@ -124,11 +131,13 @@ public class SqliteDbContext : DbContext
 			.Entity<HotkeyEntity>()
 			.ToTable("Hotkeys");
 
+		// Stryker disable once Statement : the properties of a hotkey are plain, so field and property agree
 		modelBuilder
 			.Entity<HotkeyEntity>()
 			.UsePropertyAccessMode(PropertyAccessMode.Property);
 		#endregion
 
+		// Stryker disable once Statement : the base method does nothing
 		base.OnModelCreating(modelBuilder);
 	}
 	#endregion

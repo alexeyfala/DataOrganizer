@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces.Runtime;
+using AppInstance.Interfaces;
+using Hierarchy.Dto;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels.Hierarchy;

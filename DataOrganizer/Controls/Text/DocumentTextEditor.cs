@@ -8,19 +8,21 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Documents;
-using DataOrganizer.Enums.Documents;
-using DataOrganizer.Extensions.Documents;
-using DataOrganizer.Extensions.Text;
+using DataOrganizer.Extensions;
 using DataOrganizer.Extensions.Views;
-using DataOrganizer.Helpers.Text;
-using DataOrganizer.Services.Text;
+using DataOrganizer.Services;
+using EditorDocuments.Dto;
+using EditorDocuments.Enums;
+using EditorDocuments.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using TextMateSharp.Themes;
+using TextProcessing.Enums;
+using TextProcessing.Extensions;
+using TextProcessing.Helpers;
 
 namespace DataOrganizer.Controls.Text;
 

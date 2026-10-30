@@ -1,5 +1,6 @@
 using Repository.Enums;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Repository.Exceptions;
 
@@ -23,6 +24,7 @@ public sealed class DatabaseNotWritableException : Exception
 	{
 	}
 
+	[ExcludeFromCodeCoverage(Justification = "Only words the message")]
 	public DatabaseNotWritableException(DbConnectionStatus status, string operationName)
 		: base($"{operationName} is refused: the database is {status}.")
 	{

@@ -1,8 +1,8 @@
 using Avalonia.Threading;
-using DataOrganizer.Enums.Views;
-using DataOrganizer.Interfaces.Views;
 using System;
 using System.Threading.Tasks;
+using Threading.Enums;
+using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

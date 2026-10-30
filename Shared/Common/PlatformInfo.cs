@@ -1,5 +1,6 @@
 using Shared.Enums;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -8,6 +9,7 @@ namespace Shared.Common;
 /// <summary>
 /// Facts about the operating system the application runs on.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Depends on the operating system the tests run on")]
 public static class PlatformInfo
 {
 	#region Properties

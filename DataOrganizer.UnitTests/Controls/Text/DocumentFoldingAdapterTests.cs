@@ -2,10 +2,11 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Helpers.Text.FoldingStrategies;
-using DataOrganizer.UnitTests.Fakes;
 using System.Collections.Generic;
 using System.Linq;
+using TextProcessing.Dto;
+using TextProcessing.Helpers;
+using TextProcessing.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 

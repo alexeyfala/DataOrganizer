@@ -6,6 +6,7 @@ using NSubstitute;
 using Repository.IntegrationTests.Fixtures;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace Repository.IntegrationTests.Services.Database;
@@ -31,6 +32,52 @@ internal class DbMaintenanceTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DbMaintenance.EraseFreePagesOnceAsync" />: a closed connection is opened for the work and closed again
+	/// after it.
+	/// </summary>
+	[Test]
+	public async Task EraseFreePagesOnceAsync_Opens_A_Closed_Connection_And_Closes_It_Again()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection seed = file.Open())
+		{
+			FillAndClear(seed);
+		}
+
+		await using SqliteConnection connection = new(file.ConnectionString);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			dbContextService
+				.GetDbConnection()
+				.Returns(connection);
+
+			builder.RegisterInstance(dbContextService);
+		});
+
+		DbMaintenance sut = mock.Create<DbMaintenance>();
+
+		// Act
+		await sut.EraseFreePagesOnceAsync();
+
+		// Assert
+		connection.State
+			.Should()
+			.Be(ConnectionState.Closed);
+
+		await using SqliteConnection check = file.Open();
+
+		TempSqliteFile
+			.Read(check, VersionQuery)
+			.Should()
+			.Be(1L);
+	}
+
 	/// <summary>
 	/// <see cref="DbMaintenance.EraseFreePagesOnceAsync" />: rewrites a database that still holds free pages and stamps it.
 	/// </summary>

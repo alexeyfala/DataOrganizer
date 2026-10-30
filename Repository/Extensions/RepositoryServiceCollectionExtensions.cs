@@ -57,6 +57,7 @@ public static class RepositoryServiceCollectionExtensions
 	{
 		try
 		{
+			// Stryker disable once Boolean : settings of the connection, which a test would only copy
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{
 				DataSource = getDatabaseFilePath(provider),

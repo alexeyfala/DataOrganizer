@@ -4,14 +4,14 @@ using Avalonia;
 using Avalonia.Headless.NUnit;
 using Avalonia.Styling;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Settings;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Views;
 using Material.Colors;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using NSubstitute;
+using Settings.Dto;
+using Settings.Enums;
+using Settings.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

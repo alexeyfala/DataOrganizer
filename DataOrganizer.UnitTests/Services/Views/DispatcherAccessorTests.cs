@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Threading;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Services.Views;
 using NSubstitute;
 using System;
+using Threading.Enums;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 

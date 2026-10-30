@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Shared.Extensions;
 
+[ExcludeFromCodeCoverage(Justification = "Detects the test host itself")]
 public static class AppDomainExtensions
 {
 	#region Methods

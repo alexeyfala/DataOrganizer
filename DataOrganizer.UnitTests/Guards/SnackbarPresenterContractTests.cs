@@ -4,10 +4,10 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Notifications;
 using DataOrganizer.Services.Notifications;
 using DataOrganizer.UnitTests.Factories;
 using Material.Styles.Controls;
+using Notifications.Enums;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;

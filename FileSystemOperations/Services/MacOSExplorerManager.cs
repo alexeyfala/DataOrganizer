@@ -1,0 +1,42 @@
+using FileSystemOperations.Interfaces;
+using Shared.Common;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
+namespace FileSystemOperations.Services;
+
+/// <summary>
+/// Reveals files through the "open" command. Bringing an already opened Finder window
+/// to the front is not supported.
+/// </summary>
+[ExcludeFromCodeCoverage(Justification = "Starts the open command, runs only on macOS")]
+public sealed class MacOSExplorerManager : IExplorerManager
+{
+	#region Methods
+	/// <inheritdoc />
+	public bool TryForegroundFolder(string folderPath, string? selectItemPath = null) => false;
+
+	/// <inheritdoc />
+	public bool TryRevealFile(string filePath)
+	{
+		try
+		{
+			_ = Process.Start(PlatformInfo.FileOpener, GetReveal(filePath));
+
+			return true;
+		}
+		catch
+		{
+			// The opener is missing or refused to start — the caller falls back to the folder.
+			return false;
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Combines the path with the folder expansion argument.
+	/// </summary>
+	private static string GetReveal(string argument) => $@"-R ""{argument}""";
+	#endregion
+}

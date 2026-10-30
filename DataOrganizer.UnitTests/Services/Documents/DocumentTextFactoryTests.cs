@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services.Documents;
+using EditorDocuments.Interfaces;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 

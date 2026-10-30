@@ -6,11 +6,11 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Notifications;
-using DataOrganizer.Enums.Notifications;
 using Material.Ripple;
 using Material.Styles.Controls;
 using Material.Styles.Models;
+using Notifications.Dto;
+using Notifications.Enums;
 using System;
 using System.Linq;
 using System.Xml.Linq;
@@ -83,8 +83,10 @@ internal class SnackbarTextColorTests
 		window.Show();
 
 		// Act
+		// No duration: a timed snackbar starts a Material timer that outlives the test
+		// and takes the UI dispatcher from a pool thread.
 		SnackbarHost.Post(
-			new SnackbarModel(new SnackbarContent(text, level), TimeSpan.FromSeconds(5.0)),
+			new SnackbarModel(new SnackbarContent(text, level), TimeSpan.Zero),
 			host.HostName,
 			DispatcherPriority.Normal);
 

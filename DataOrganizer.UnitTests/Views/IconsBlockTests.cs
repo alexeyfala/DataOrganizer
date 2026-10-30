@@ -4,8 +4,8 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Views;
+using Hierarchy.Enums;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System.Linq;
@@ -57,6 +57,64 @@ internal class IconsBlockTests
 			.NotBeNullOrEmpty()
 			.And
 			.Be((string?)ToolTip.GetTip(icon));
+	}
+
+	/// <summary>
+	/// <see cref="IconsBlock.HasNote" />: the block of an object without a note builds no note view.
+	/// </summary>
+	[AvaloniaTest]
+	public void HasNote_Off_Builds_No_Note_View()
+	{
+		// Arrange
+		IconsBlock sut = new();
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		// Act
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetVisualDescendants().OfType<NoteView>()
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="IconsBlock.HasNote" />: a note that an object gets while its block is shown builds the visible note view.
+	/// </summary>
+	[AvaloniaTest]
+	public void HasNote_Set_Later_Builds_The_Note_View()
+	{
+		// Arrange
+		IconsBlock sut = new();
+
+		Window window = new()
+		{
+			Content = sut
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		sut.HasNote = true;
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		sut.GetVisualDescendants().OfType<NoteView>()
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsEffectivelyVisible
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

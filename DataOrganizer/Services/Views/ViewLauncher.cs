@@ -1,18 +1,19 @@
+using AppInstance.Interfaces;
+using AppInstance.Messages;
 using Avalonia.Controls;
+using Clipboard.Dto;
+using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions.Views;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Interfaces.Runtime;
-using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages.Runtime;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
+using DialogContracts.Dto;
+using Favorites.Dto;
 using Serilog;
+using Settings.Dto;
+using Settings.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Properties;
@@ -20,6 +21,8 @@ using System;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using WindowContracts.Enums;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

@@ -4,7 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
+	xmlns:encryption="using:Hierarchy.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -24,13 +24,19 @@
 			</Style>
 		</StackPanel.Styles>
 
-		<views:NoteView
-			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}"
-			IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
-			IsVisible="{Binding HasNote, Mode=OneWay}"
-			NoteItem="{Binding NoteItem, Mode=OneWay}"
-			NoteName="{Binding NoteName, Mode=OneWay}"
-			NoteReader="{Binding NoteReader, Mode=OneWay}" />
+		<!--  Built from the template on the first note shown, as a hidden control is never measured.  -->
+		<TemplatedControl IsVisible="{Binding HasNote, Mode=OneWay}">
+			<TemplatedControl.Template>
+				<ControlTemplate x:DataType="views:IconsBlock">
+					<views:NoteView
+						IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}"
+						IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
+						NoteItem="{Binding NoteItem, Mode=OneWay}"
+						NoteName="{Binding NoteName, Mode=OneWay}"
+						NoteReader="{Binding NoteReader, Mode=OneWay}" />
+				</ControlTemplate>
+			</TemplatedControl.Template>
+		</TemplatedControl>
 
 		<materialIcons:MaterialIcon
 			Classes="StatusIconStyle"

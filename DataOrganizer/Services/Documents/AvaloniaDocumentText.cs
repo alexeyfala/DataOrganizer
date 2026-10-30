@@ -1,5 +1,6 @@
 using AvaloniaEdit.Document;
 using DataOrganizer.Interfaces.Documents;
+using EditorDocuments.Interfaces;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;

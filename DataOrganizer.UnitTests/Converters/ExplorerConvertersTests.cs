@@ -1,9 +1,9 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataOrganizer.Dto.Entities;
-using DataOrganizer.Extensions.Hotkeys;
-using DataOrganizer.UnitTests.Factories;
+using GlobalHotkeys.Extensions;
+using GlobalHotkeys.UnitTests.Factories;
+using Hierarchy.Dto;
 using System.Globalization;
 using System.Linq;
 

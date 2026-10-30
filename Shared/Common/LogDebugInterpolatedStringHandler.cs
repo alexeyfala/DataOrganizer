@@ -1,5 +1,6 @@
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Shared.Common;
@@ -8,6 +9,7 @@ namespace Shared.Common;
 /// Interpolated string handler that builds the message only when <see cref="LogEventLevel.Debug" /> logging is enabled.
 /// </summary>
 [InterpolatedStringHandler]
+[ExcludeFromCodeCoverage(Justification = "Only skips formatting while debug logging is off")]
 public ref struct LogDebugInterpolatedStringHandler
 {
 	#region Data

@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 
 namespace Shared.UnitTests.Extensions;
 
@@ -8,6 +9,25 @@ namespace Shared.UnitTests.Extensions;
 internal class GenericExtensionsTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string[])" />: a read-only property is passed over, and the
+	/// writable ones are copied.
+	/// </summary>
+	[Test]
+	public void CopyPropertiesTo_Returns_New_Instance_Skipping_Read_Only_Properties()
+	{
+		// Arrange
+		PartlyWritable source = new() { Name = "alpha" };
+
+		// Act
+		PartlyWritable result = source.CopyPropertiesTo(["Missing", "Absent"]);
+
+		// Assert
+		result.Name
+			.Should()
+			.Be("alpha");
+	}
+
 	/// <summary>
 	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string[])" />: returns a new instance copying all properties except the ignored ones.
 	/// </summary>
@@ -18,7 +38,8 @@ internal class GenericExtensionsTests
 		Source source = new() { Name = "alpha", Number = 42, Note = "secret" };
 
 		// Act
-		Source result = source.CopyPropertiesTo(nameof(Source.Note));
+		// An array, as a single name would take the overload of one ignored property.
+		Source result = source.CopyPropertiesTo([nameof(Source.Note), nameof(Source.Number)]);
 
 		// Assert
 		result
@@ -31,7 +52,7 @@ internal class GenericExtensionsTests
 
 		result.Number
 			.Should()
-			.Be(42);
+			.Be(0);
 
 		result.Note
 			.Should()
@@ -168,7 +189,7 @@ internal class GenericExtensionsTests
 		Target target = new() { Name = "untouched", Number = -1, Comment = "untouched" };
 
 		// Act
-		source.CopyPropertiesTo<Source, Target>(target);
+		source.CopyPropertiesTo(target);
 
 		// Assert
 		target.Name
@@ -182,6 +203,27 @@ internal class GenericExtensionsTests
 		target.Comment
 			.Should()
 			.Be("untouched");
+	}
+
+	/// <summary>
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: a read-only property is passed over, and the writable
+	/// ones are copied.
+	/// </summary>
+	[Test]
+	public void CopyPropertiesTo_Same_Type_Skips_Read_Only_Properties()
+	{
+		// Arrange
+		PartlyWritable source = new() { Name = "alpha" };
+
+		PartlyWritable target = new();
+
+		// Act
+		source.CopyPropertiesTo(target);
+
+		// Assert
+		target.Name
+			.Should()
+			.Be("alpha");
 	}
 
 	/// <summary>
@@ -206,9 +248,63 @@ internal class GenericExtensionsTests
 			.Should()
 			.Be("initial");
 	}
+
+	/// <summary>
+	/// <see cref="GenericExtensions.IsNotDefault{T}" />: a value other than the default of its type is not the default.
+	/// </summary>
+	[TestCase(0, ExpectedResult = false)]
+	[TestCase(5, ExpectedResult = true)]
+	public bool IsNotDefault_Tells_A_Value_From_The_Default(int value)
+	{
+		return value.IsNotDefault();
+	}
+
+	/// <summary>
+	/// <see cref="GenericExtensions.ToEnumerable{T}(T, T[])" />: the value comes first, and the others follow in their order.
+	/// </summary>
+	[Test]
+	public void ToEnumerable_Puts_The_Value_Before_The_Others()
+	{
+		// Act
+		int[] result = [.. 1.ToEnumerable(2, 3)];
+
+		// Assert
+		result
+			.Should()
+			.Equal(1, 2, 3);
+	}
+
+	/// <summary>
+	/// <see cref="GenericExtensions.ToEnumerable{T}(T, IEnumerable{T})" />: the value comes first, and the sequence follows
+	/// in its order.
+	/// </summary>
+	[Test]
+	public void ToEnumerable_Puts_The_Value_Before_The_Sequence()
+	{
+		// Arrange
+		IEnumerable<int> others = [2, 3];
+
+		// Act
+		int[] result = [.. 1.ToEnumerable(others)];
+
+		// Assert
+		result
+			.Should()
+			.Equal(1, 2, 3);
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Object with a writable property and a read-only one, which a copy passes over.
+	/// </summary>
+	public sealed class PartlyWritable
+	{
+		public string? Name { get; set; }
+
+		public string Stamp { get; } = "fixed";
+	}
+
 	/// <summary>
 	/// Target with a read-only Name property to verify skip behaviour.
 	/// </summary>

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace Shared.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Works on the real file system, which tests do not touch")]
 public sealed class FileSystem : IFileSystem
 {
 	#region Data

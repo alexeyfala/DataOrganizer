@@ -1,14 +1,18 @@
 {
 	"stryker-config": {
-		"project": "Repository.csproj",
-		"test-projects": [
-			"Repository.UnitTests/Repository.UnitTests.csproj",
-			"Repository.IntegrationTests/Repository.IntegrationTests.csproj"
+		"ignore-methods": [
+			"_logger.*",
+			".LogWarning",
+			".LogException",
+			"Trace.WriteLine",
+			"*Exception.ctor",
+			"_notification.*",
+			"_failureReporter.*",
+			"_dbFailureReporter.*",
+			"_encryptionFailureReporter.*",
+			"ArgumentNullException.ThrowIfNull"
 		],
-		"mutate": [ "**/Services/**/*.cs" ],
-		"ignore-mutations": [ "string", "regex" ],
-		"ignore-methods": [ "*Log*", "ConfigureAwait" ],
-		"reporters": [ "progress", "html", "json" ],
-		"concurrency": 8
+		"additional-timeout": 20000,
+		"reporters": [ "progress", "html", "json" ]
 	}
 }

@@ -1,16 +1,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Dto.Dialogs;
-using DataOrganizer.Dto.Settings;
-using DataOrganizer.Helpers.Views;
-using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.Interfaces.Dialogs;
-using DataOrganizer.Interfaces.Documents;
-using DataOrganizer.Interfaces.Notepad;
-using DataOrganizer.Interfaces.Text;
-using DataOrganizer.Interfaces.Views;
+using Diagnostics.Interfaces;
+using DialogContracts.Constants;
+using DialogContracts.Dto;
+using DialogContracts.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
+using EditorDocuments.Interfaces;
+using NotepadDocuments.Interfaces;
+using Notifications.Constants;
+using Settings.Dto;
 using Shared.Properties;
 using System;
 using System.Collections;
@@ -20,6 +19,8 @@ using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using TextProcessing.Interfaces;
+using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

@@ -2,18 +2,19 @@
 	x:Class="DataOrganizer.Windows.NotepadWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogConstants="using:DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers.Views"
+	xmlns:interfaces="using:DataOrganizer.Interfaces"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
-	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
+	xmlns:notificationConstants="using:Notifications.Constants"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -60,13 +61,13 @@
 		<dialogHost:DialogHost
 			dialogHost:DialogHostStyle.CornerRadius="6.0"
 			CloseOnClickAway="True"
-			Identifier="{x:Static helpers:DialogHostIdentifiers.Notepad}">
+			Identifier="{x:Static dialogConstants:DialogHostIdentifiers.Notepad}">
 			<materialControls:SnackbarHost
 				x:Name="SnackbarHost"
-				HostName="{x:Static helpers:SnackbarHostIdentifiers.Notepad}"
+				HostName="{x:Static notificationConstants:SnackbarHostIdentifiers.Notepad}"
 				SnackbarHorizontalAlignment="Center">
 				<Interaction.Behaviors>
-					<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}, Key={x:Static helpers:SnackbarHostIdentifiers.Notepad}}" />
+					<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}, Key={x:Static notificationConstants:SnackbarHostIdentifiers.Notepad}}" />
 				</Interaction.Behaviors>
 
 				<controls:DocumentTabControl
