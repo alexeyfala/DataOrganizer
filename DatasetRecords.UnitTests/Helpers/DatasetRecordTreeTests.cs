@@ -436,6 +436,34 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetRecordTree.Move" />: a record dropped onto its own top edge stays where it is.
+	/// </summary>
+	[Test]
+	public void Move_Within_Collection_Leaves_A_Record_Dropped_On_Its_Own_Top_Edge()
+	{
+		// Arrange
+		ValueRecord a = new() { Value = "A" };
+
+		ValueRecord b = new() { Value = "B" };
+
+		ValueRecord c = new() { Value = "C" };
+
+		ObservableCollection<DatasetRecordBase> root = [a, b, c];
+
+		// Act: slot 1 is the top edge of "B" (index 1).
+		bool result = DatasetRecordTree.Move(root, b, root, 1);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		root
+			.Should()
+			.Equal(a, b, c);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetRecordTree.Move" />: dropping a record onto its own slot leaves the order unchanged, raises no
 	/// collection notification (the guard behind the anti-scroll-jump fix) and reports no move.
 	/// </summary>
@@ -526,6 +554,35 @@ internal class DatasetRecordTreeTests
 		root
 			.Should()
 			.Equal(c, a, b);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.Move" />: within one collection, a record moved toward the start takes the slot it was
+	/// dropped on.
+	/// </summary>
+	[Test]
+	public void Move_Within_Collection_Reorders_Up_To_The_Slot()
+	{
+		// Arrange
+		ValueRecord a = new() { Value = "A" };
+
+		ValueRecord b = new() { Value = "B" };
+
+		ValueRecord c = new() { Value = "C" };
+
+		ObservableCollection<DatasetRecordBase> root = [a, b, c];
+
+		// Act
+		bool result = DatasetRecordTree.Move(root, c, root, 1);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		root
+			.Should()
+			.Equal(a, c, b);
 	}
 
 	/// <summary>
@@ -994,6 +1051,42 @@ internal class DatasetRecordTreeTests
 		index
 			.Should()
 			.Be(2);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.TryResolveTarget" />: over the middle of a record inserts before it, as over its upper
+	/// half.
+	/// </summary>
+	[Test]
+	public void TryResolveTarget_Record_Middle_Inserts_Before()
+	{
+		// Arrange
+		ValueRecord dragged = new() { Value = "dragged" };
+
+		ValueRecord a = new() { Value = "A" };
+
+		ValueRecord b = new() { Value = "B" };
+
+		ObservableCollection<DatasetRecordBase> root = [a, b];
+
+		// Act
+		bool result = DatasetRecordTree.TryResolveTarget(
+			root,
+			dragged,
+			b,
+			0.5,
+			out _,
+			out _,
+			out DropPlacement placement);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		placement
+			.Should()
+			.Be(DropPlacement.Before);
 	}
 
 	/// <summary>

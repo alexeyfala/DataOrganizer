@@ -53,6 +53,7 @@ public static class DatasetRecordTree
 				return;
 			}
 
+			// Stryker disable once Equality : an empty group has nothing to delete, so the check only saves the call
 			if (item is RecordsGroup group && group.Children.Count > 0)
 			{
 				Delete(group.Children, record);
