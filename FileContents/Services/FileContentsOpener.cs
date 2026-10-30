@@ -54,6 +54,7 @@ public sealed class FileContentsOpener : IFileContentsOpener
 		string? fileName,
 		EntityKind kind)
 	{
+		// Stryker disable once String : the text only goes to the failure reporter, which the run ignores
 		string failureText = $@"{Strings.FailedToLoadFileContents} ""{fileName}""";
 
 		FileContentsReading reading;

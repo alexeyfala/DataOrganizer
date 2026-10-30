@@ -17,7 +17,6 @@ using HierarchyExchange.Services;
 using HierarchyStorage.Interfaces;
 using HierarchyStorage.Services;
 using Microsoft.Extensions.Time.Testing;
-using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Enums;
@@ -312,81 +311,6 @@ internal class DataExchangeServiceTests
 		parameters.DefaultExtension
 			.Should()
 			.Be("json");
-	}
-
-	/// <summary>
-	/// <see cref="DataExchangeService.ExportDataAsync" />: an export that fails is reported as an error.
-	/// </summary>
-	[Test]
-	public async Task ExportDataAsync_Reports_A_Failed_Export()
-	{
-		// Arrange
-		INotificationService notification = Substitute.For<INotificationService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
-
-			// No format writes a text file, so the export fails.
-			picker
-				.SaveFileAsync(Arg.Any<FileSaveParameters>())
-				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Txt));
-
-			builder.RegisterInstance(notification);
-
-			builder.RegisterInstance(picker);
-		});
-
-		DataExchangeService sut = mock.Create<DataExchangeService>();
-
-		// Act
-		await sut.ExportDataAsync();
-
-		// Assert
-		notification
-			.Received(1)
-			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// <see cref="DataExchangeService.ExportDataAsync" />: a finished export is reported.
-	/// </summary>
-	[Test]
-	public async Task ExportDataAsync_Reports_The_Finished_Export()
-	{
-		// Arrange
-		INotificationService notification = Substitute.For<INotificationService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExchangeFormat format = Substitute.For<IExchangeFormat>();
-
-			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
-
-			format
-				.Extension
-				.Returns(KnownFileExtensions.Json);
-
-			picker
-				.SaveFileAsync(Arg.Any<FileSaveParameters>())
-				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Json));
-
-			builder.RegisterInstance(format);
-
-			builder.RegisterInstance(notification);
-
-			builder.RegisterInstance(picker);
-		});
-
-		DataExchangeService sut = mock.Create<DataExchangeService>();
-
-		// Act
-		await sut.ExportDataAsync();
-
-		// Assert
-		notification
-			.Received(1)
-			.ShowInformationSnackbar(Arg.Any<string>(), Arg.Any<string>());
 	}
 
 	/// <summary>

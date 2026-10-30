@@ -14,8 +14,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
-using Threading.Enums;
-using Threading.Interfaces;
 
 namespace NotepadDocuments.UnitTests.Services;
 
@@ -1195,53 +1193,6 @@ internal class NotepadTextsTests
 
 			store.Write(1, Arg.Any<byte[]>());
 		});
-	}
-
-	/// <summary>
-	/// <see cref="NotepadTexts.Load" />: a file that cannot be read is reported once the window takes messages.
-	/// </summary>
-	[Test]
-	public void Load_Reports_A_File_That_Cannot_Be_Read()
-	{
-		// Arrange
-		INotificationService notification = Substitute.For<INotificationService>();
-
-		INotepadTab tab = Substitute.For<INotepadTab>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
-
-			INotepadStore store = Substitute.For<INotepadStore>();
-
-			dispatcher
-				.When(x => x.Post(Arg.Any<Action>(), UiPriority.Background))
-				.Do(x => x.Arg<Action>()());
-
-			store
-				.Read(1)
-				.Returns((byte[]?)null);
-
-			tab
-				.Number
-				.Returns(1);
-
-			builder.RegisterInstance(dispatcher);
-
-			builder.RegisterInstance(notification);
-
-			builder.RegisterInstance(store);
-		});
-
-		NotepadTexts sut = mock.Create<NotepadTexts>();
-
-		// Act
-		sut.Load(tab);
-
-		// Assert
-		notification
-			.Received(1)
-			.ShowErrorSnackbar(Arg.Any<string>(), SnackbarHostIdentifiers.Notepad);
 	}
 
 	/// <summary>

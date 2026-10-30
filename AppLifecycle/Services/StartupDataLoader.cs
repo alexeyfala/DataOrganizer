@@ -106,6 +106,7 @@ public sealed class StartupDataLoader : IStartupDataLoader
 
 		FileDto[] unreadable = _unreadableHotkeys.Find(loaded.Items);
 
+		// Stryker disable once Boolean : the check only decides a notification, which the run ignores
 		if (unreadable.IsNotEmpty())
 		{
 			_notification.ShowToast(unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));

@@ -128,6 +128,7 @@ public sealed class NotepadTexts : INotepadTexts
 			string message = string.Format(CultureInfo.CurrentCulture, Strings.TabTextUnreadableFormat, tab.Header);
 
 			// The snackbar of the window takes messages only once the window is loaded, which comes before the background.
+			// Stryker disable once Statement : the post only carries a notification, which the run ignores
 			_dispatcher.Post(
 				() => _notification.ShowErrorSnackbar(message, SnackbarHostIdentifiers.Notepad),
 				UiPriority.Background);

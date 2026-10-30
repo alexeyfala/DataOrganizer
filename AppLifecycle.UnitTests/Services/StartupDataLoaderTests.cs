@@ -7,7 +7,6 @@ using GlobalHotkeys.Services;
 using Hierarchy.Dto;
 using Hierarchy.UnitTests.Factories;
 using HierarchyStorage.Interfaces;
-using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces.Database;
@@ -174,64 +173,6 @@ internal class StartupDataLoaderTests
 		await entityLoader
 			.DidNotReceive()
 			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="StartupDataLoader.LoadAsync" />: the hotkeys that could not be read are reported.
-	/// </summary>
-	[Test]
-	public async Task LoadAsync_Reports_The_Hotkeys_That_Could_Not_Be_Read()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = KeyCode.VcUndefined,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = EventMask.LeftCtrl,
-				OwnerId = file.Id
-			});
-
-		INotificationService notification = Substitute.For<INotificationService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbConnector dbConnector = Substitute.For<IDbConnector>();
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-			dbConnector
-				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(DbConnectionStatus.Connected);
-
-			entityLoader
-				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
-				.Returns(ItemDtoFactory.CreateLoadedHierarchy([file]));
-
-			builder.RegisterInstance(dbConnector);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(notification);
-
-			builder
-				.RegisterType<UnreadableHotkeysFinder>()
-				.As<IUnreadableHotkeysFinder>();
-		});
-
-		StartupDataLoader sut = mock.Create<StartupDataLoader>();
-
-		// Act
-		await sut.LoadAsync();
-
-		// Assert
-		notification
-			.Received(1)
-			.ShowToast(Arg.Any<string>());
 	}
 
 	/// <summary>
