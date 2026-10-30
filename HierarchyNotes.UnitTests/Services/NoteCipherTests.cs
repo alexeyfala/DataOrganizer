@@ -385,6 +385,51 @@ internal class NoteCipherTests
 	}
 
 	/// <summary>
+	/// <see cref="NoteCipher.Decode" />: the decrypted buffer is zeroed once the text is read from it.
+	/// </summary>
+	[Test]
+	public void Decode_Zeroes_The_Decrypted_Buffer()
+	{
+		// Arrange
+		byte[] decrypted = Encoding.UTF8.GetBytes(RandomString.Create(20));
+
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper
+			.Children
+			.Add(file);
+
+		file.Parent = keeper;
+
+		file.Note = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
+				.Returns(decrypted);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		NoteCipher sut = mock.Create<NoteCipher>();
+
+		// Act
+		_ = sut.Decode(file);
+
+		// Assert
+		decrypted
+			.Should()
+			.AllSatisfy(x => x
+				.Should()
+				.Be(0));
+	}
+
+	/// <summary>
 	/// <see cref="NoteCipher.Encode" />: encrypts the note of an object that belongs to an unlocked password keeper.
 	/// </summary>
 	[Test]

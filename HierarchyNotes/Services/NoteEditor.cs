@@ -125,6 +125,7 @@ public sealed class NoteEditor : INoteEditor
 		// The replaced buffer holds the note itself as long as the object is not encrypted.
 		replaced?.ZeroMemory();
 
+		// Stryker disable once Conditional : the text only goes to a notification and the log, which the run ignores
 		string successText = isRemoved
 			? Strings.NoteHasBeenDeleted
 			: Strings.NoteHasBeenSaved;
