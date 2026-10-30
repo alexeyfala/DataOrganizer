@@ -111,6 +111,41 @@ internal class FileContentsOpenerTests
 	}
 
 	/// <summary>
+	/// <see cref="FileContentsOpener.OpenAsync" />: the report of a failed read names the file in quotes.
+	/// </summary>
+	[Test]
+	public async Task OpenAsync_Names_The_File_In_The_Failure_Report()
+	{
+		// Arrange
+		Guid fileId = Guid.NewGuid();
+
+		IDbFailureReporter failureReporter = Substitute.For<IDbFailureReporter>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsReader reader = Substitute.For<IFileContentsReader>();
+
+			reader
+				.ReadUnlockedAsync(fileId, null)
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(failureReporter);
+
+			builder.RegisterInstance(reader);
+		});
+
+		FileContentsOpener sut = mock.Create<FileContentsOpener>();
+
+		// Act
+		await sut.OpenAsync(fileId, null, "a.txt", EntityKind.File);
+
+		// Assert
+		failureReporter
+			.Received(1)
+			.Report(Arg.Any<Exception>(), Arg.Is<string>(static x => x.EndsWith(@" ""a.txt""", StringComparison.Ordinal)));
+	}
+
+	/// <summary>
 	/// <see cref="FileContentsOpener.OpenAsync" />: damaged contents and contents the key left closed give nothing back, and
 	/// each shows an error of its own.
 	/// </summary>

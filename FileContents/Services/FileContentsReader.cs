@@ -196,6 +196,7 @@ public sealed class FileContentsReader : IFileContentsReader
 		{
 			return _contentCipher.Decrypt(file, contents);
 		}
+		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
 		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
 		{
 			// The contents are read without a prompt, so the failure only reaches the log.

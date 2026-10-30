@@ -145,6 +145,7 @@ public sealed class FileTextReader : IFileTextReader
 				.Deserialize<FileEditorState>(json)
 				.Encoding;
 		}
+		// Stryker disable once Block : without the block the method returns null as well
 		catch (JsonException)
 		{
 			// A state that cannot be read holds no choice, and the editor writes a new one once the file opens.
