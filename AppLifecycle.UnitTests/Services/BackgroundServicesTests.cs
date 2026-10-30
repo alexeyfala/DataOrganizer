@@ -1,7 +1,9 @@
+using AppInstance.Interfaces;
 using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Clipboard.Interfaces;
+using DataProtection.Interfaces;
 using GlobalHotkeys.Interfaces;
 using NSubstitute;
 using Settings.Dto;
@@ -54,6 +56,42 @@ internal class BackgroundServicesTests
 	}
 
 	/// <summary>
+	/// <see cref="BackgroundServices.ApplySettingsAsync" />: the entries of a clipboard history that stays tracked are kept.
+	/// </summary>
+	[Test]
+	public async Task ApplySettingsAsync_Keeps_The_Entries_Of_A_Tracked_Clipboard_History()
+	{
+		// Arrange
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		settings.TrackClipboardHistory = true;
+
+		IClipboardLogRunner clipboardLog = Substitute.For<IClipboardLogRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			clipboardLog
+				.IsRunning
+				.Returns(true);
+
+			builder.RegisterInstance(clipboardLog);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		await sut.ApplySettingsAsync(
+			settings,
+			wasPersistingClipboard: false,
+			previousAutoLockMinutes: settings.AutoLockMinutes);
+
+		// Assert
+		await clipboardLog
+			.DidNotReceive()
+			.ClearEntriesAsync();
+	}
+
+	/// <summary>
 	/// <see cref="BackgroundServices.ApplySettingsAsync" />: the hotkey tracking stays off when the saved settings turn it
 	/// off.
 	/// </summary>
@@ -79,6 +117,45 @@ internal class BackgroundServicesTests
 		await hook
 			.DidNotReceiveWithAnyArgs()
 			.StartTrackingAsync();
+	}
+
+	/// <summary>
+	/// <see cref="BackgroundServices.ApplySettingsAsync" />: a clipboard history that was saved stops being saved once it
+	/// is no longer kept or no longer tracked.
+	/// </summary>
+	[TestCase(true, false, true, true)]
+	[TestCase(true, true, false, true)]
+	[TestCase(true, true, true, false)]
+	[TestCase(false, false, false, false)]
+	public async Task ApplySettingsAsync_Stops_Saving_The_Clipboard_History_Only_When_It_Is_No_Longer_Kept(
+		bool wasPersisting,
+		bool persist,
+		bool track,
+		bool expectedStop)
+	{
+		// Arrange
+		AppSettings settings = SettingsFactory.CreateSettings();
+
+		settings.PersistClipboardHistory = persist;
+
+		settings.TrackClipboardHistory = track;
+
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboardLogPersistence));
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		await sut.ApplySettingsAsync(
+			settings,
+			wasPersistingClipboard: wasPersisting,
+			previousAutoLockMinutes: settings.AutoLockMinutes);
+
+		// Assert
+		clipboardLogPersistence
+			.Received(expectedStop ? 1 : 0)
+			.DisablePersistence();
 	}
 
 	/// <summary>
@@ -112,6 +189,40 @@ internal class BackgroundServicesTests
 	}
 
 	/// <summary>
+	/// <see cref="BackgroundServices.RefreshAutoLock" />: without decrypted objects there is nothing to lock, so the
+	/// countdown stops.
+	/// </summary>
+	[Test]
+	public void RefreshAutoLock_Stops_The_Auto_Lock_Without_Decrypted_Objects()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionHierarchy sessionHierarchy = Substitute.For<ISessionHierarchy>();
+
+			sessionHierarchy
+				.Hierarchy
+				.Returns([]);
+
+			builder.RegisterInstance(autoLock);
+
+			builder.RegisterInstance(sessionHierarchy);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		sut.RefreshAutoLock();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
+	}
+
+	/// <summary>
 	/// <see cref="BackgroundServices.ResumeHotkeyTracking" />: the tracking stays off when the settings turn it off.
 	/// </summary>
 	[Test]
@@ -142,6 +253,39 @@ internal class BackgroundServicesTests
 		hook
 			.DidNotReceiveWithAnyArgs()
 			.StartTrackingAsync();
+	}
+
+	/// <summary>
+	/// <see cref="BackgroundServices.ResumeHotkeyTracking" />: the tracking starts again when the settings turn it on.
+	/// </summary>
+	[Test]
+	public void ResumeHotkeyTracking_Starts_The_Tracking_When_It_Is_On()
+	{
+		// Arrange
+		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
+
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		sut.ResumeHotkeyTracking();
+
+		// Assert
+		hook
+			.Received(1)
+			.StartTrackingAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -328,6 +472,28 @@ internal class BackgroundServicesTests
 		await hook
 			.Received(1)
 			.StopTrackingAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="BackgroundServices.StopAsync" />: the countdown of the auto-lock stops with the app.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Stops_The_Auto_Lock()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		BackgroundServices sut = mock.Create<BackgroundServices>();
+
+		// Act
+		await sut.StopAsync();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
 	}
 	#endregion
 
