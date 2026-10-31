@@ -387,13 +387,16 @@ internal class GlobalHookRunnerTests
 	}
 
 	/// <summary>
-	/// <see cref="GlobalHookRunner.StopAsync" />: logs a failure of the native hook instead of propagating it.
+	/// <see cref="GlobalHookRunner.StopAsync" />: a stop that reports a failure still ends only once the run of the hook
+	/// returns.
 	/// </summary>
 	[Test]
-	public async Task StopAsync_Logs_Exception_When_Stop_Fails()
+	public async Task StopAsync_Ends_Only_After_The_Hook_Run_Returns_When_Stop_Reports_A_Failure()
 	{
 		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
+		using ManualResetEventSlim released = new();
+
+		using ManualResetEventSlim running = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -401,7 +404,79 @@ internal class GlobalHookRunnerTests
 
 			hook
 				.IsRunning
-				.Returns(true);
+				.Returns(_ => running.IsSet);
+
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ =>
+				{
+					running.Set();
+
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+
+					released.Wait();
+				});
+
+			hook
+				.When(x => x.Stop())
+				.Do(_ => throw new HookException(UioHookResult.Failure));
+
+			builder.RegisterInstance(hook);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		await sut.StartAsync();
+
+		// Act
+		Task stopping = sut.StopAsync();
+
+		bool isOverBeforeTheRunReturns = stopping.IsCompleted;
+
+		released.Set();
+
+		await stopping;
+
+		// Assert
+		isOverBeforeTheRunReturns
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StopAsync" />: logs a failure of the native hook that keeps running instead of
+	/// propagating it.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Logs_Exception_When_Stop_Fails_And_The_Hook_Keeps_Running()
+	{
+		// Arrange
+		// Without a context the end of the wait runs on this thread, so the stop is over when the clock has moved.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		ILogger logger = Substitute.For<ILogger>();
+
+		using ManualResetEventSlim released = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+			// Not running when the start asks, running from then on.
+			hook
+				.IsRunning
+				.Returns(false, true);
+
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ =>
+				{
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+
+					released.Wait();
+				});
 
 			hook
 				.When(x => x.Stop())
@@ -410,20 +485,88 @@ internal class GlobalHookRunnerTests
 			builder.RegisterInstance(hook);
 
 			builder.RegisterInstance(logger);
+
+			builder.RegisterInstance<TimeProvider>(time);
 		});
 
 		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
 
+		await sut.StartAsync();
+
 		// Act
-		Func<Task> act = () => sut.StopAsync();
+		Task stopping = sut.StopAsync();
+
+		time.Advance(TimeSpan.FromSeconds(1));
+
+		await stopping;
+
+		released.Set();
 
 		// Assert
-		await act
-			.Should()
-			.NotThrowAsync();
-
 		logger
 			.Received(1)
+			.Error(Arg.Any<HookException>(), Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="GlobalHookRunner.StopAsync" />: a stop that reports a failure after the run of the hook has returned, as
+	/// libuiohook does when its hook thread ends between the two messages of a stop, is no error.
+	/// </summary>
+	[Test]
+	public async Task StopAsync_Logs_No_Exception_When_The_Hook_Run_Returns_Though_Stop_Fails()
+	{
+		// Arrange
+		ILogger logger = Substitute.For<ILogger>();
+
+		using ManualResetEventSlim released = new();
+
+		using ManualResetEventSlim running = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IGlobalHook hook = Substitute.For<IGlobalHook>();
+
+			hook
+				.IsRunning
+				.Returns(_ => running.IsSet);
+
+			hook
+				.When(x => x.Run(GlobalHookType.Keyboard))
+				.Do(_ =>
+				{
+					running.Set();
+
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+
+					released.Wait();
+				});
+
+			hook
+				.When(x => x.Stop())
+				.Do(_ =>
+				{
+					running.Reset();
+
+					released.Set();
+
+					throw new HookException(UioHookResult.Failure);
+				});
+
+			builder.RegisterInstance(hook);
+
+			builder.RegisterInstance(logger);
+		});
+
+		GlobalHookRunner sut = mock.Create<GlobalHookRunner>();
+
+		await sut.StartAsync();
+
+		// Act
+		await sut.StopAsync();
+
+		// Assert
+		logger
+			.DidNotReceive()
 			.Error(Arg.Any<HookException>(), Arg.Any<string>(), Arg.Any<string>());
 	}
 
