@@ -107,20 +107,15 @@ internal class TreeViewItemAutomationTests
 	/// </summary>
 	private static void Show(TreeViewItem row)
 	{
-		Window window = new()
+		TreeView treeView = new()
 		{
-			Content = new TreeView()
+			Items =
 			{
-				Items =
-				{
-					row
-				}
+				row
 			}
 		};
 
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
+		HeadlessWindow.Show(treeView);
 	}
 	#endregion
 }

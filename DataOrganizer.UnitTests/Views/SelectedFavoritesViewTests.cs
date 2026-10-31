@@ -365,21 +365,15 @@ internal class SelectedFavoritesViewTests
 			orderedCategoryIds: [],
 			selectedPairs: []);
 
-		Window window = new()
+		SelectedFavoritesView view = new()
 		{
-			Content = new SelectedFavoritesView
-			{
-				DataContext = viewModel
-			},
-			Height = 300.0,
-			Width = 600.0
+			DataContext = viewModel
 		};
 
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			view,
+			width: 600.0,
+			height: 300.0);
 	}
 	#endregion
 

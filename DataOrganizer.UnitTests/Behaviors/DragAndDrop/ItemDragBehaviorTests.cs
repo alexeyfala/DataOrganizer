@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.DragAndDrop;
@@ -135,18 +134,10 @@ internal class ItemDragBehaviorTests
 	/// </summary>
 	private static Window Show(Control element)
 	{
-		Window window = new()
-		{
-			Content = element,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			element,
+			width: 200.0,
+			height: 200.0);
 	}
 	#endregion
 }

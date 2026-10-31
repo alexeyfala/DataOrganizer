@@ -1,6 +1,5 @@
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
-using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
@@ -213,14 +212,7 @@ internal class TextEditorAutomationPeerTests
 			.GetBehaviors(editor)
 			.Add(new FluentThemeBehavior());
 
-		Window window = new()
-		{
-			Content = editor
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
+		HeadlessWindow.Show(editor);
 	}
 	#endregion
 }

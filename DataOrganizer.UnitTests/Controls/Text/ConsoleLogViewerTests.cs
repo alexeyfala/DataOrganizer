@@ -127,18 +127,7 @@ internal class ConsoleLogViewerTests
 			.GetBehaviors(viewer)
 			.Add(new FluentThemeBehavior());
 
-		Window window = new()
-		{
-			Content = viewer,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(viewer);
 	}
 	#endregion
 }

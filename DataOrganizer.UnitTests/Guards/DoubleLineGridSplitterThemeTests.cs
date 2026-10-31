@@ -294,18 +294,7 @@ internal class DoubleLineGridSplitterThemeTests
 			Grid.SetColumn(splitter, 1);
 		}
 
-		Window window = new()
-		{
-			Content = grid,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(grid);
 	}
 	#endregion
 }

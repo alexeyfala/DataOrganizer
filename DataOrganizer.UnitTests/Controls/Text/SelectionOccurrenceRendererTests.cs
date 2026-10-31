@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -344,16 +343,7 @@ internal class SelectionOccurrenceRendererTests
 			.GetBehaviors(editor)
 			.Add(new FluentThemeBehavior());
 
-		Window window = new()
-		{
-			Content = editor,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
+		HeadlessWindow.Show(editor);
 	}
 	#endregion
 }

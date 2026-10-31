@@ -7,7 +7,6 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.DragAndDrop;
@@ -1329,16 +1328,10 @@ internal class DatasetDropRecordInsideBehaviorTests
 	/// </summary>
 	private static void Show(Control element)
 	{
-		Window window = new()
-		{
-			Content = element,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
+		HeadlessWindow.Show(
+			element,
+			width: 200.0,
+			height: 200.0);
 	}
 	#endregion
 }

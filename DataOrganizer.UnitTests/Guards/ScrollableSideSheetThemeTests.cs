@@ -4,7 +4,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using Material.Styles.Controls;
@@ -53,7 +52,7 @@ internal class ScrollableSideSheetThemeTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		Border sheet = GetPart(sut, SheetPartName);
@@ -88,7 +87,7 @@ internal class ScrollableSideSheetThemeTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		content.Viewport.Height
@@ -118,7 +117,7 @@ internal class ScrollableSideSheetThemeTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		headerButton.IsEffectivelyEnabled
@@ -144,7 +143,7 @@ internal class ScrollableSideSheetThemeTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		Border sheet = GetPart(sut, SheetPartName);
@@ -170,7 +169,7 @@ internal class ScrollableSideSheetThemeTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetPart(sut, ScrimPartName).IsVisible
@@ -201,23 +200,6 @@ internal class ScrollableSideSheetThemeTests
 		ResourceDictionary resources = (ResourceDictionary)AvaloniaXamlLoader.Load(source);
 
 		return (ControlTheme)resources[ThemeKey]!;
-	}
-
-	/// <summary>
-	/// Shows the sheet in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static void Show(SideSheet sheet)
-	{
-		Window window = new()
-		{
-			Content = sheet,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
 	}
 	#endregion
 }

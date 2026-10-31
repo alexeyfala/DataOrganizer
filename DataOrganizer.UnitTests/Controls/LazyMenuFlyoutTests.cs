@@ -35,7 +35,7 @@ internal class LazyMenuFlyoutTests
 
 		Border target = new();
 
-		Show(target);
+		HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -81,7 +81,7 @@ internal class LazyMenuFlyoutTests
 
 		Border target = new();
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -127,7 +127,7 @@ internal class LazyMenuFlyoutTests
 
 		Border target = new();
 
-		Show(target);
+		HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -158,7 +158,7 @@ internal class LazyMenuFlyoutTests
 
 		Button target = new();
 
-		Window window = Show(new StackPanel
+		Window window = HeadlessWindow.Show(new StackPanel
 		{
 			Children =
 			{
@@ -202,7 +202,7 @@ internal class LazyMenuFlyoutTests
 
 		Border target = new();
 
-		Show(target);
+		HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -237,7 +237,7 @@ internal class LazyMenuFlyoutTests
 			DataContext = "first"
 		};
 
-		Show(target);
+		HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -276,7 +276,7 @@ internal class LazyMenuFlyoutTests
 			DataContext = "first"
 		};
 
-		Show(target);
+		HeadlessWindow.Show(target);
 
 		sut.ShowAt(target);
 
@@ -328,7 +328,7 @@ internal class LazyMenuFlyoutTests
 
 		under.PointerPressed += (_, _) => presses++;
 
-		Window window = Show(new Grid
+		Window window = HeadlessWindow.Show(new Grid
 		{
 			Children =
 			{
@@ -350,27 +350,6 @@ internal class LazyMenuFlyoutTests
 		presses
 			.Should()
 			.Be(1);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

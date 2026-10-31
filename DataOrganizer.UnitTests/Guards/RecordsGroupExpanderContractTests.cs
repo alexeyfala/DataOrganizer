@@ -6,7 +6,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
@@ -54,7 +53,7 @@ internal class RecordsGroupExpanderContractTests
 		Expander sut = CreateExpander();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		Path chevron = sut
@@ -78,7 +77,7 @@ internal class RecordsGroupExpanderContractTests
 		Expander sut = CreateExpander();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		ToggleButton button = sut
@@ -107,7 +106,7 @@ internal class RecordsGroupExpanderContractTests
 		Expander sut = CreateExpander();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetHeader(sut).Parent
@@ -129,7 +128,7 @@ internal class RecordsGroupExpanderContractTests
 		// Arrange
 		Expander sut = CreateExpander();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeader(sut));
 
@@ -203,25 +202,6 @@ internal class RecordsGroupExpanderContractTests
 			.GetVisualDescendants()
 			.OfType<Grid>()
 			.Single(static x => x.Name == HeaderName);
-	}
-
-	/// <summary>
-	/// Shows the expander in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Expander expander)
-	{
-		Window window = new()
-		{
-			Content = expander,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

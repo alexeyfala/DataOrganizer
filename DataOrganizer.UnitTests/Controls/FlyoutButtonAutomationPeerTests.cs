@@ -28,7 +28,7 @@ internal class FlyoutButtonAutomationPeerTests
 
 		ToolTip.SetTip(button, "Renames the tab");
 
-		Show(button);
+		HeadlessWindow.Show(button);
 
 		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(button);
 
@@ -57,7 +57,7 @@ internal class FlyoutButtonAutomationPeerTests
 
 		ToolTip.SetTip(button, tip);
 
-		Show(button);
+		HeadlessWindow.Show(button);
 
 		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(button);
 
@@ -68,21 +68,6 @@ internal class FlyoutButtonAutomationPeerTests
 		name
 			.Should()
 			.Be(tip);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the button in a window, so that the styles of the application name it.
-	/// </summary>
-	private static void Show(FlyoutButton button)
-	{
-		Window window = new()
-		{
-			Content = button
-		};
-
-		window.Show();
 	}
 	#endregion
 }

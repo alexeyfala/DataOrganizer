@@ -2,7 +2,6 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
@@ -37,7 +36,7 @@ internal class ScrollBarAutomationTests
 			.GetBehaviors(panel)
 			.Add(new FluentThemeBehavior());
 
-		Show(panel);
+		HeadlessWindow.Show(panel);
 
 		// Act
 		bool[] result = [.. GetParts(scrollBar).Select(static x => ControlAutomationPeer.CreatePeerForElement(x).IsControlElement())];
@@ -60,7 +59,7 @@ internal class ScrollBarAutomationTests
 		// Arrange
 		ScrollBar scrollBar = new();
 
-		Show(scrollBar);
+		HeadlessWindow.Show(scrollBar);
 
 		// Act
 		bool[] result = [.. GetParts(scrollBar).Select(static x => ControlAutomationPeer.CreatePeerForElement(x).IsControlElement())];
@@ -82,7 +81,7 @@ internal class ScrollBarAutomationTests
 		// Arrange
 		ScrollBar scrollBar = new();
 
-		Show(scrollBar);
+		HeadlessWindow.Show(scrollBar);
 
 		// Act
 		bool result = ControlAutomationPeer
@@ -106,21 +105,6 @@ internal class ScrollBarAutomationTests
 			.GetVisualDescendants()
 			.OfType<Control>()
 			.Where(static x => x is RepeatButton or Thumb)];
-	}
-
-	/// <summary>
-	/// Shows the content in a window and lets the layout settle.
-	/// </summary>
-	private static void Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
 	}
 	#endregion
 }

@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Views;
@@ -28,7 +27,7 @@ internal class TitleBarViewTests
 			ButtonContent = button
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.DataContext = dataContext;
@@ -54,7 +53,7 @@ internal class TitleBarViewTests
 
 		TitleBarView sut = new();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.Title = title;
@@ -74,7 +73,7 @@ internal class TitleBarViewTests
 		// Arrange
 		TitleBarView sut = new();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		// A click sets the current value, which keeps the binding in place.
@@ -95,7 +94,7 @@ internal class TitleBarViewTests
 		// Arrange
 		TitleBarView sut = new();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.Topmost = true;
@@ -115,7 +114,7 @@ internal class TitleBarViewTests
 		// Arrange
 		TitleBarView sut = new();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		// A click sets the current value, which keeps the binding in place.
@@ -136,7 +135,7 @@ internal class TitleBarViewTests
 		// Arrange
 		TitleBarView sut = new();
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.WindowState = WindowState.Maximized;
@@ -145,25 +144,6 @@ internal class TitleBarViewTests
 		sut.MaximizeButton.IsChecked
 			.Should()
 			.BeTrue();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the bar in a window and lets the layout settle.
-	/// </summary>
-	private static Window Show(TitleBarView bar)
-	{
-		Window window = new()
-		{
-			Content = bar
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

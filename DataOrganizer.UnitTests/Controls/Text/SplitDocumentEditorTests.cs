@@ -63,7 +63,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		ScrollMarkMargin scrollMarks = sut.SecondaryEditor!
 			.GetVisualDescendants()
@@ -95,7 +95,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(sut.SecondaryEditor!);
 
@@ -122,7 +122,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.SecondaryEditor!
 			.TextArea
@@ -151,7 +151,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.SecondaryEditor!
@@ -176,7 +176,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
 
@@ -217,7 +217,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
 
@@ -280,7 +280,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(sut.SecondaryEditor!);
 
@@ -316,7 +316,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
@@ -374,7 +374,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Document
@@ -400,7 +400,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.MouseWheel(window.CenterOf(sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
@@ -429,7 +429,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.MouseWheel(window.CenterOf(sut.SecondaryEditor!), new(0.0, 1.0), RawInputModifiers.Control);
 
@@ -456,7 +456,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.FontSize
@@ -484,7 +484,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Foreground
@@ -510,7 +510,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.IsReadOnly
@@ -536,7 +536,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.IsSensitive
@@ -557,7 +557,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new();
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.IsSplit = true;
@@ -582,7 +582,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
@@ -639,7 +639,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new();
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		double height = sut.PrimaryEditor.Bounds.Height;
 
@@ -673,7 +673,7 @@ internal class SplitDocumentEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
 
@@ -729,7 +729,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
 
@@ -789,7 +789,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		Vector offset = new(0.0, 200.0);
 
@@ -842,7 +842,7 @@ internal class SplitDocumentEditorTests
 		SplitDocumentEditor sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Bounds.Height
@@ -867,7 +867,7 @@ internal class SplitDocumentEditorTests
 
 		DockPanel.SetDock(button, Dock.Top);
 
-		Show(new DockPanel
+		HeadlessWindow.Show(new DockPanel
 		{
 			Children =
 			{
@@ -905,7 +905,7 @@ internal class SplitDocumentEditorTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
 
@@ -958,7 +958,7 @@ internal class SplitDocumentEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
 
@@ -1004,7 +1004,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.IsSplit = isSplit;
@@ -1033,7 +1033,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor activeEditor = isLowerActive ? sut.SecondaryEditor! : sut.PrimaryEditor;
 
@@ -1070,7 +1070,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
@@ -1106,7 +1106,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new();
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.PrimaryEditor.Focus();
@@ -1127,7 +1127,7 @@ internal class SplitDocumentEditorTests
 		SplitDocumentEditor sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no lower half.
@@ -1152,7 +1152,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Options.ShowEndOfLine
@@ -1178,7 +1178,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Options.ShowSpaces
@@ -1204,7 +1204,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.Options.ShowTabs
@@ -1230,7 +1230,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		double upperHeight = sut.PrimaryEditor.Bounds.Height;
@@ -1252,7 +1252,7 @@ internal class SplitDocumentEditorTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
@@ -1288,7 +1288,7 @@ internal class SplitDocumentEditorTests
 			SplitShare = 0.25
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.IsSplit = false;
@@ -1312,7 +1312,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetVisualDescendants().OfType<GridSplitter>().Single().Theme
@@ -1334,7 +1334,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.SyntaxLanguage
@@ -1360,7 +1360,7 @@ internal class SplitDocumentEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.PrimaryEditor.WordWrap
@@ -1436,25 +1436,6 @@ internal class SplitDocumentEditorTests
 			.LineTransformers
 			.OfType<TextMateColoringTransformer>()
 			.Any();
-	}
-
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

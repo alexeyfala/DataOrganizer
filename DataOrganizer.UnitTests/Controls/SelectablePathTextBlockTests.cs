@@ -51,7 +51,7 @@ internal class SelectablePathTextBlockTests
 			Path = LongPath
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		string result = ControlAutomationPeer
@@ -79,7 +79,7 @@ internal class SelectablePathTextBlockTests
 			Width = NarrowWidth
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.SelectAll();
 
@@ -115,7 +115,7 @@ internal class SelectablePathTextBlockTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		string[] lines = [.. sut.TextLayout.TextLines.Select(x => sut.Text!.Substring(x.FirstTextSourceIndex, x.Length))];
@@ -172,23 +172,6 @@ internal class SelectablePathTextBlockTests
 		sut.FontSize
 			.Should()
 			.Be(fontSize);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the control in a window and lets the layout settle.
-	/// </summary>
-	private static void Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
 	}
 	#endregion
 }

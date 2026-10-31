@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
 using DataOrganizer.UnitTests.Factories;
@@ -154,18 +153,10 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 	/// </summary>
 	private static Window Show(Control content)
 	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			content,
+			width: 200.0,
+			height: 200.0);
 	}
 	#endregion
 }

@@ -429,18 +429,7 @@ internal class BookmarkMarginTests
 			.GetBehaviors(editor)
 			.Add(new FluentThemeBehavior());
 
-		Window window = new()
-		{
-			Content = editor,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(editor);
 	}
 	#endregion
 }

@@ -954,18 +954,10 @@ internal class DatasetRecordDragBehaviorTests
 	/// </summary>
 	private static Window Show(Control element)
 	{
-		Window window = new()
-		{
-			Content = element,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			element,
+			width: 200.0,
+			height: 200.0);
 	}
 	#endregion
 
