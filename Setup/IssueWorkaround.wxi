@@ -36,15 +36,31 @@
 		Property="WixPerMachineFolder"
 		Value="[$(var.ProgramFilesFolder)][ApplicationFolderName]" />
 
+	<!--
+		WixUI_Advanced defaults per-user installs to "[LocalAppDataFolder]Apps\[ApplicationFolderName]".
+		Use the per-user Programs folder of Windows (FOLDERID_UserProgramFiles) instead.
+	-->
+	<CustomAction
+		Execute="immediate"
+		Id="WixSetDefaultPerUserFolderPrograms"
+		Property="WixPerUserFolder"
+		Value="[LocalAppDataFolder]Programs\[ApplicationFolderName]" />
+
 	<InstallExecuteSequence>
 		<Custom
 			Action="WixSetDefaultPerMachineFolderPerArch"
 			Before="WixSetPerMachineFolder" />
+		<Custom
+			Action="WixSetDefaultPerUserFolderPrograms"
+			Before="WixSetPerUserFolder" />
 	</InstallExecuteSequence>
 
 	<InstallUISequence>
 		<Custom
 			Action="WixSetDefaultPerMachineFolderPerArch"
 			Before="WixSetPerMachineFolder" />
+		<Custom
+			Action="WixSetDefaultPerUserFolderPrograms"
+			Before="WixSetPerUserFolder" />
 	</InstallUISequence>
 </Include>
