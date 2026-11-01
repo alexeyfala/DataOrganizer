@@ -1,0 +1,19 @@
+<!--
+	WixLocalization - https://docs.firegiant.com/wix/schema/wxl/wixlocalization
+-->
+
+<WixLocalization
+	Culture="en-us"
+	xmlns="http://wixtoolset.org/schemas/v4/wxl">
+	<String
+		Id="AutostartFeatureDescription"
+		Value="Adds !(wix.AppDisplayName) to the startup apps of Windows." />
+
+	<String
+		Id="AutostartFeatureTitle"
+		Value="Start !(wix.AppDisplayName) when Windows starts" />
+
+	<String
+		Id="LaunchApplication"
+		Value="Launch !(wix.AppDisplayName)" />
+</WixLocalization>

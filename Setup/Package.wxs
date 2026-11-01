@@ -15,11 +15,15 @@
 	UIRef - https://docs.firegiant.com/wix/schema/wxs/uiref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 	WixUI - https://docs.firegiant.com/wix/schema/ui/wixui
+	WixVariable - https://docs.firegiant.com/wix/schema/wxs/wixvariable
 -->
 
 <!--
 	Dialogs:
 	https://docs.firegiant.com/wix/tools/wixext/wixui
+
+	Launch after setup:
+	https://docs.firegiant.com/wix3/howtos/ui_and_localization/run_program_after_install
 -->
 
 <?include Predefines.wxi ?>
@@ -96,6 +100,20 @@
 		</InstallUISequence>
 
 		<!--
+			For a per-user choice WixUI_Advanced only sets the APPLICATIONFOLDER property. SetTargetPath moves
+			the folder itself too, as InstallDirDlg does for all users, so [#AppExe] points into it.
+		-->
+		<UI>
+			<Publish
+				Condition="WixAppFolder = &quot;WixPerUserFolder&quot;"
+				Control="Next"
+				Dialog="InstallScopeDlg"
+				Event="SetTargetPath"
+				Order="5"
+				Value="APPLICATIONFOLDER" />
+		</UI>
+
+		<!--
 			The Install button without the UAC shield ends a per-user choice. It hands the choice to
 			Windows Installer 5.0 as the per-user context of a dual-purpose package, which needs no UAC.
 		-->
@@ -115,6 +133,35 @@
 				Order="1"
 				Property="ALLUSERS"
 				Value="2" />
+		</UI>
+
+		<!--
+			The optional check box of the exit dialog starts the application, unchecked by default.
+			Explorer starts it, so it gets the rights of the signed-in user even from an elevated installer.
+		-->
+		<WixVariable
+			Id="AppDisplayName"
+			Value="$(var.AppDisplayName)" />
+
+		<Property
+			Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+			Value="!(loc.LaunchApplication)" />
+
+		<CustomAction
+			Directory="WindowsFolder"
+			ExeCommand="&quot;[WindowsFolder]explorer.exe&quot; &quot;[#AppExe]&quot;"
+			Execute="immediate"
+			Id="LaunchApplication"
+			Impersonate="yes"
+			Return="asyncNoWait" />
+
+		<UI>
+			<Publish
+				Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed"
+				Control="Finish"
+				Dialog="ExitDialog"
+				Event="DoAction"
+				Value="LaunchApplication" />
 		</UI>
 
 		<Property
@@ -156,6 +203,18 @@
 			Id="Main"
 			Title="$(var.AppDisplayName) Application">
 			<ComponentGroupRef Id="Components" />
+		</Feature>
+
+		<!--
+			Start at sign-in, off by default: its level is above the default INSTALLLEVEL of 1.
+		-->
+		<Feature
+			AllowAdvertise="no"
+			Description="!(loc.AutostartFeatureDescription)"
+			Id="Autostart"
+			Level="2"
+			Title="!(loc.AutostartFeatureTitle)">
+			<ComponentGroupRef Id="Autostart" />
 		</Feature>
 	</Package>
 </Wix>

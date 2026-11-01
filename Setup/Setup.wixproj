@@ -38,8 +38,16 @@
 	<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
-	<Exec Command="del /f $(OutputPath)\*.wixpdb" />
+	<!--
+		With .wxl files WiX builds into a culture subfolder. One culture is built at a time, so the MSI moves
+		up to the output folder, where Bundle and the release steps take it, and the subfolder with the .wixpdb goes.
+	-->
+	<PropertyGroup>
+	  <_CultureOutputDir>$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))\</_CultureOutputDir>
+	</PropertyGroup>
+	<Move SourceFiles="$(TargetPath)" DestinationFolder="$(TargetDir)" Condition="'$(_CultureOutputDir)' != '$(TargetDir)'" />
+	<RemoveDir Directories="$(_CultureOutputDir)" Condition="'$(_CultureOutputDir)' != '$(TargetDir)'" />
 	<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
-	<Exec Command="explorer /select,&quot;$(TargetPath)&quot;" IgnoreExitCode="true" Condition="'$(OpenOutputFolder)' != 'false'" />
+	<Exec Command="explorer /select,&quot;$(TargetDir)$(TargetFileName)&quot;" IgnoreExitCode="true" Condition="'$(OpenOutputFolder)' != 'false'" />
   </Target>
 </Project>

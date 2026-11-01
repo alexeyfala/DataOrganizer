@@ -68,7 +68,6 @@
 				<!-- Start Menu shortcut to run the program. -->
 				<Shortcut
 					Advertise="no"
-					Arguments="--pause"
 					Description="Launch $(var.FullName) application"
 					Icon="AppIcon"
 					Id="ApplicationStartMenuShortcut"
@@ -123,7 +122,6 @@
 				-->
 				<Shortcut
 					Advertise="no"
-					Arguments="--pause"
 					Description="Launch $(var.FullName) application"
 					Directory="DesktopFolder"
 					Icon="AppIcon"
@@ -139,6 +137,24 @@
 					Root="HKCU"
 					Type="integer"
 					Value="1" />
+			</Component>
+		</ComponentGroup>
+
+		<!--
+			Starts the application when a user signs in to Windows. HKMU follows the install
+			context: HKCU for the current user, HKLM for all users.
+		-->
+		<ComponentGroup
+			Directory="APPLICATIONFOLDER"
+			Id="Autostart">
+			<Component>
+				<RegistryValue
+					Key="Software\Microsoft\Windows\CurrentVersion\Run"
+					KeyPath="yes"
+					Name="$(var.AppName)"
+					Root="HKMU"
+					Type="string"
+					Value="&quot;[APPLICATIONFOLDER]$(var.AppName).exe&quot;" />
 			</Component>
 		</ComponentGroup>
 	</Fragment>
