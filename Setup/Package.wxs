@@ -10,6 +10,8 @@
 	Media - https://docs.firegiant.com/wix/schema/wxs/media
 	Package - https://docs.firegiant.com/wix/schema/wxs/package
 	Property - https://docs.firegiant.com/wix/schema/wxs/property
+	Publish - https://docs.firegiant.com/wix/schema/wxs/publish
+	UI - https://docs.firegiant.com/wix/schema/wxs/ui
 	UIRef - https://docs.firegiant.com/wix/schema/wxs/uiref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 	WixUI - https://docs.firegiant.com/wix/schema/ui/wixui
@@ -92,6 +94,28 @@
 				Action="WixSetDefaultPerUserFolderPrograms"
 				Before="WixSetPerUserFolder" />
 		</InstallUISequence>
+
+		<!--
+			The Install button without the UAC shield ends a per-user choice. It hands the choice to
+			Windows Installer 5.0 as the per-user context of a dual-purpose package, which needs no UAC.
+		-->
+		<UI>
+			<Publish
+				Condition="NOT Installed"
+				Control="InstallNoShield"
+				Dialog="FeaturesDlg"
+				Order="1"
+				Property="MSIINSTALLPERUSER"
+				Value="1" />
+
+			<Publish
+				Condition="NOT Installed"
+				Control="InstallNoShield"
+				Dialog="FeaturesDlg"
+				Order="1"
+				Property="ALLUSERS"
+				Value="2" />
+		</UI>
 
 		<Property
 			Id="ARPNOREPAIR"
