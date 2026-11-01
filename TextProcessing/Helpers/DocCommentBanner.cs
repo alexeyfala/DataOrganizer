@@ -41,6 +41,17 @@ internal static class DocCommentBanner
 	/// Tag of the summary as the banner shows it.
 	/// </summary>
 	private const string SummaryTag = "<summary>";
+
+	/// <summary>
+	/// Starts and ends of the comments, the sections of character data and the processing instructions, which the banner
+	/// leaves out whole, as Visual Studio does.
+	/// </summary>
+	private static readonly (string Start, string End)[] MarkupLeftOut =
+	[
+		("<!--", "-->"),
+		("<![CDATA[", "]]>"),
+		("<?", "?>")
+	];
 	#endregion
 
 	#region Methods
@@ -217,9 +228,9 @@ internal static class DocCommentBanner
 
 			if (character == '<' && index + 1 < content.Length && IsMarkupStart(content[index + 1]))
 			{
-				int end = FindTagEnd(content[index..]);
+				int end = FindMarkupEnd(content[index..]);
 
-				// A tag that stays open holds the rest of the summary.
+				// Markup that stays open holds the rest of the summary.
 				if (end < 0)
 				{
 					break;
@@ -227,8 +238,8 @@ internal static class DocCommentBanner
 
 				ReadOnlySpan<char> tag = content.Slice(index, end + 1);
 
-				// An empty element, such as a reference, stands for the values of its attributes; other tags are left out.
-				if (tag is [_, not ('/' or '!' or '?'), .., '/', '>'])
+				// An empty element, such as a reference, stands for the values of its attributes; other markup is left out.
+				if (tag is [_, not '/', .., '/', '>'])
 				{
 					length = AppendValues(banner, length, tag);
 				}
@@ -251,6 +262,28 @@ internal static class DocCommentBanner
 
 		// A long banner is cut with dots after it, as in Visual Studio.
 		return text.Length > MaxLength ? $"{text[..MaxLength].TrimEnd()} {Glyphs.ThreeDots}" : text.ToString();
+	}
+
+	/// <summary>
+	/// Returns the index of the last character of the markup at the start of a text: the end of a comment, a section of
+	/// character data or a processing instruction, whatever it holds, or else the bracket that closes a tag; -1 when the
+	/// markup stays open.
+	/// </summary>
+	private static int FindMarkupEnd(ReadOnlySpan<char> text)
+	{
+		foreach ((string start, string end) in MarkupLeftOut)
+		{
+			if (!text.StartsWith(start, StringComparison.Ordinal))
+			{
+				continue;
+			}
+
+			int endIndex = text[start.Length..].IndexOf(end, StringComparison.Ordinal);
+
+			return endIndex < 0 ? -1 : start.Length + endIndex + end.Length - 1;
+		}
+
+		return FindTagEnd(text);
 	}
 
 	/// <summary>
@@ -300,7 +333,6 @@ internal static class DocCommentBanner
 	/// </summary>
 	private static char ParseReference(ReadOnlySpan<char> number)
 	{
-
 		bool isParsed = number is ['x', .. var digits]
 			? ushort.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out ushort code)
 			: ushort.TryParse(number, NumberStyles.None, CultureInfo.InvariantCulture, out code);

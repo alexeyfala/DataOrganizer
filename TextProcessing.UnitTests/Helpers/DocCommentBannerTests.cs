@@ -139,6 +139,29 @@ internal class DocCommentBannerTests
 	}
 
 	/// <summary>
+	/// <see cref="DocCommentBanner.Create" />: comments, sections of character data and processing instructions are left
+	/// out whole, whatever they hold, as in Visual Studio.
+	/// </summary>
+	[TestCase("/// <summary>A <!-- <see cref=\"X\"/> --> B</summary>")]
+	[TestCase("/// <summary>A <!-- a > b --> B</summary>")]
+	[TestCase("/// <summary>A <!-- don't --> B</summary>")]
+	[TestCase("/// <summary>A <!-- \"q --> B</summary>")]
+	[TestCase("/// <summary>A <!----> B</summary>")]
+	[TestCase("/// <summary>A\n/// <!-- old <see cref=\"X\"/>\n/// --> B</summary>")]
+	[TestCase("/// <summary>A <![CDATA[x > y]]> B</summary>")]
+	[TestCase("/// <summary>A <?pi a > b?> B</summary>")]
+	public void Create_Leaves_Out_Comments_Character_Data_And_Instructions(string comment)
+	{
+		// Act
+		string? banner = DocCommentBanner.Create(Token, comment);
+
+		// Assert
+		banner
+			.Should()
+			.Be("/// <summary> A B");
+	}
+
+	/// <summary>
 	/// <see cref="DocCommentBanner.Create" />: the tags of the elements in the summary and its notes are left out, also
 	/// those whose names start with an underscore, and the text of the elements stays.
 	/// </summary>
@@ -232,6 +255,21 @@ internal class DocCommentBannerTests
 		banner
 			.Should()
 			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="DocCommentBanner.Create" />: a comment that stays open holds the rest of the summary.
+	/// </summary>
+	[Test]
+	public void Create_Stops_At_A_Comment_That_Stays_Open()
+	{
+		// Act
+		string? banner = DocCommentBanner.Create(Token, "/// <summary>A <!-- B -> C\n/// D</summary>");
+
+		// Assert
+		banner
+			.Should()
+			.Be("/// <summary> A");
 	}
 
 	/// <summary>
