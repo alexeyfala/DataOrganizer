@@ -2,13 +2,11 @@ using Avalonia;
 using Avalonia.Headless.NUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using System.Linq;
 using System.Reactive.Linq;
@@ -31,7 +29,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new("log Log logger LOG")
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.Select(0, 3);
 
@@ -96,7 +94,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = document
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		source.Select(0, 3);
 
@@ -129,7 +127,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new(string.Join('\n', Enumerable.Repeat("log", 1000)))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.Select(0, 3);
 
@@ -172,7 +170,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = document
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		source.Select(0, 3);
 
@@ -210,7 +208,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new(text)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.Select(start, length);
 
@@ -248,7 +246,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new(text)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.Select(start, length);
 
@@ -283,7 +281,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new("log  log\nlog  log\nlog  log")
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.Select(start, length);
 
@@ -312,7 +310,7 @@ internal class SelectionOccurrenceRendererTests
 			Document = new("log log")
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		editor.TextArea.Selection = new RectangleSelection(
 			editor.TextArea,
@@ -330,20 +328,6 @@ internal class SelectionOccurrenceRendererTests
 		occurrences
 			.Should()
 			.BeEmpty();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static void Show(TextEditor editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		HeadlessWindow.Show(editor);
 	}
 	#endregion
 }

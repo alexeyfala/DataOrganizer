@@ -45,7 +45,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -85,7 +85,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -129,7 +129,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -144,19 +144,6 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 		flyout.IsOpen
 			.Should()
 			.BeTrue();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		return HeadlessWindow.Show(
-			content,
-			width: 200.0,
-			height: 200.0);
 	}
 	#endregion
 }

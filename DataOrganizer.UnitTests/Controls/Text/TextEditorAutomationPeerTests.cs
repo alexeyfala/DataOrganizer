@@ -2,10 +2,8 @@ using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using System;
 using System.Threading.Tasks;
@@ -98,7 +96,7 @@ internal class TextEditorAutomationPeerTests
 		// Arrange
 		ConsoleLogViewer editor = new();
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(editor);
 
@@ -199,20 +197,6 @@ internal class TextEditorAutomationPeerTests
 		value
 			.Should()
 			.Be(text);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the editor in its theme in a window, so that its text area can take the focus.
-	/// </summary>
-	private static void Show(ConsoleLogViewer editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		HeadlessWindow.Show(editor);
 	}
 	#endregion
 }

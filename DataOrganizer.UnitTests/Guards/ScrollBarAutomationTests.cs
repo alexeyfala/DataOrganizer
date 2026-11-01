@@ -3,9 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.NUnit;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
@@ -31,12 +29,7 @@ internal class ScrollBarAutomationTests
 			}
 		};
 
-		// The text editors take the Fluent theme the same way.
-		Interaction
-			.GetBehaviors(panel)
-			.Add(new FluentThemeBehavior());
-
-		HeadlessWindow.Show(panel);
+		HeadlessWindow.ShowInFluentTheme(panel);
 
 		// Act
 		bool[] result = [.. GetParts(scrollBar).Select(static x => ControlAutomationPeer.CreatePeerForElement(x).IsControlElement())];

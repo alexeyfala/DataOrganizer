@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Behaviors.Styling;
 
 namespace DataOrganizer.UnitTests;
 
@@ -29,6 +31,19 @@ internal static class HeadlessWindow
 		Dispatcher.UIThread.RunJobs();
 
 		return window;
+	}
+
+	/// <summary>
+	/// Shows the content in the Fluent theme, as the text editors take it, in a window of a fixed size and lets the layout
+	/// settle.
+	/// </summary>
+	public static Window ShowInFluentTheme(Control content)
+	{
+		Interaction
+			.GetBehaviors(content)
+			.Add(new FluentThemeBehavior());
+
+		return Show(content);
 	}
 	#endregion
 }

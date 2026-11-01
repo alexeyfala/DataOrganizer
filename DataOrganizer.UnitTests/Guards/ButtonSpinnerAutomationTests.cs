@@ -2,9 +2,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
@@ -31,15 +29,15 @@ internal class ButtonSpinnerAutomationTests
 			}
 		};
 
-		// The console takes the Fluent theme this way; the editor toolbar keeps the theme of the application.
+		// The console takes the Fluent theme; the editor toolbar keeps the theme of the application.
 		if (isFluent)
 		{
-			Interaction
-				.GetBehaviors(panel)
-				.Add(new FluentThemeBehavior());
+			HeadlessWindow.ShowInFluentTheme(panel);
 		}
-
-		HeadlessWindow.Show(panel);
+		else
+		{
+			HeadlessWindow.Show(panel);
+		}
 
 		// Act
 		(string? Name, object? Tip)[] result =

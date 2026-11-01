@@ -80,7 +80,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.Add(sut);
 
 		// Act
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		// Assert
 		DragDrop.GetAllowDrop(element)
@@ -118,7 +118,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -166,7 +166,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -223,7 +223,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -279,7 +279,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -339,7 +339,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -400,7 +400,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -450,7 +450,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -506,7 +506,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -565,7 +565,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -628,7 +628,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -690,7 +690,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -765,7 +765,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -830,7 +830,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -890,7 +890,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -951,7 +951,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1055,7 +1055,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1115,7 +1115,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1182,7 +1182,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1246,7 +1246,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1304,7 +1304,7 @@ internal class DatasetDropRecordInsideBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		using DataTransfer data = new();
 
@@ -1319,19 +1319,6 @@ internal class DatasetDropRecordInsideBehaviorTests
 		AdornerLayer.GetAdornerLayer(element)!.Children.OfType<Border>()
 			.Should()
 			.BeEmpty();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows an element in a window and lays it out.
-	/// </summary>
-	private static void Show(Control element)
-	{
-		HeadlessWindow.Show(
-			element,
-			width: 200.0,
-			height: 200.0);
 	}
 	#endregion
 }

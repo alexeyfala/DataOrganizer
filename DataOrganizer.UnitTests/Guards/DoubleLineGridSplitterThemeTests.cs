@@ -57,7 +57,7 @@ internal class DoubleLineGridSplitterThemeTests
 		};
 
 		// Act
-		Show(sut);
+		GridSplitterHost.Show(sut);
 
 		// Assert
 		sut.GetVisualChildren().OfType<Panel>().Single().Background
@@ -79,10 +79,10 @@ internal class DoubleLineGridSplitterThemeTests
 		};
 
 		// Act
-		Show(sut);
+		GridSplitterHost.Show(sut);
 
 		// Assert
-		Size grip = GetPart(sut, GripPartName).Bounds.Size;
+		Size grip = GridSplitterHost.GetPart(sut, GripPartName).Bounds.Size;
 
 		grip.Width
 			.Should()
@@ -102,7 +102,7 @@ internal class DoubleLineGridSplitterThemeTests
 			Theme = GetTheme()
 		};
 
-		Window window = Show(sut);
+		Window window = GridSplitterHost.Show(sut);
 
 		// Act
 		window.MouseMove(window.CenterOf(sut));
@@ -110,9 +110,9 @@ internal class DoubleLineGridSplitterThemeTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		Border grip = GetPart(sut, GripPartName);
+		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
 
-		GetStyledValue(grip, Visual.OpacityProperty)
+		GridSplitterHost.GetStyledValue(grip, Visual.OpacityProperty)
 			.Should()
 			.Be(1.0);
 	}
@@ -131,12 +131,12 @@ internal class DoubleLineGridSplitterThemeTests
 		};
 
 		// Act
-		Show(sut);
+		GridSplitterHost.Show(sut);
 
 		// Assert
-		Border grip = GetPart(sut, GripPartName);
+		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
 
-		GetStyledValue(grip, Visual.OpacityProperty)
+		GridSplitterHost.GetStyledValue(grip, Visual.OpacityProperty)
 			.Should()
 			.Be(0.0);
 	}
@@ -154,7 +154,7 @@ internal class DoubleLineGridSplitterThemeTests
 			Theme = GetTheme()
 		};
 
-		Window window = Show(sut);
+		Window window = GridSplitterHost.Show(sut);
 
 		// Act
 		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
@@ -162,9 +162,9 @@ internal class DoubleLineGridSplitterThemeTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		Border grip = GetPart(sut, GripPartName);
+		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
 
-		GetStyledValue(grip, Border.BackgroundProperty)
+		GridSplitterHost.GetStyledValue(grip, Border.BackgroundProperty)
 			.Should()
 			.BeSameAs(Application.Current!.FindResource(PrimaryBrushKey));
 	}
@@ -183,10 +183,10 @@ internal class DoubleLineGridSplitterThemeTests
 		};
 
 		// Act
-		Show(sut);
+		GridSplitterHost.Show(sut);
 
 		// Assert
-		GetPart(sut, LinesPartName).BorderThickness
+		GridSplitterHost.GetPart(sut, LinesPartName).BorderThickness
 			.Should()
 			.Be(new Thickness(
 				horizontal: 1.0,
@@ -207,10 +207,10 @@ internal class DoubleLineGridSplitterThemeTests
 		};
 
 		// Act
-		Show(sut);
+		GridSplitterHost.Show(sut);
 
 		// Assert
-		GetPart(sut, LinesPartName).BorderThickness
+		GridSplitterHost.GetPart(sut, LinesPartName).BorderThickness
 			.Should()
 			.Be(new Thickness(
 				horizontal: 0.0,
@@ -230,7 +230,7 @@ internal class DoubleLineGridSplitterThemeTests
 			Theme = GetTheme()
 		};
 
-		Window window = Show(sut);
+		Window window = GridSplitterHost.Show(sut);
 
 		// Act
 		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
@@ -238,9 +238,9 @@ internal class DoubleLineGridSplitterThemeTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		Border lines = GetPart(sut, LinesPartName);
+		Border lines = GridSplitterHost.GetPart(sut, LinesPartName);
 
-		GetStyledValue(lines, Border.BorderBrushProperty)
+		GridSplitterHost.GetStyledValue(lines, Border.BorderBrushProperty)
 			.Should()
 			.BeSameAs(Application.Current!.FindResource(PrimaryBrushKey));
 	}
@@ -248,53 +248,8 @@ internal class DoubleLineGridSplitterThemeTests
 
 	#region Helpers
 	/// <summary>
-	/// Returns the part of the template of the splitter with the name.
-	/// </summary>
-	private static Border GetPart(GridSplitter splitter, string name)
-	{
-		return splitter
-			.GetVisualDescendants()
-			.OfType<Border>()
-			.Single(x => x.Name == name);
-	}
-
-	/// <summary>
-	/// Returns the value the styles give a property, which a transition reaches only later.
-	/// </summary>
-	private static T GetStyledValue<T>(AvaloniaObject target, StyledProperty<T> property) => target.GetBaseValue(property).Value;
-
-	/// <summary>
 	/// Returns the theme under test.
 	/// </summary>
 	private static ControlTheme GetTheme() => (ControlTheme)Application.Current!.FindResource(ThemeKey)!;
-
-	/// <summary>
-	/// Shows the splitter between two cells of a grid in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(GridSplitter splitter)
-	{
-		Grid grid = new()
-		{
-			Children =
-			{
-				splitter
-			}
-		};
-
-		if (splitter.ResizeDirection == GridResizeDirection.Rows)
-		{
-			grid.RowDefinitions = new("*,Auto,*");
-
-			Grid.SetRow(splitter, 1);
-		}
-		else
-		{
-			grid.ColumnDefinitions = new("*,Auto,*");
-
-			Grid.SetColumn(splitter, 1);
-		}
-
-		return HeadlessWindow.Show(grid);
-	}
 	#endregion
 }

@@ -43,7 +43,7 @@ internal class ItemDragBehaviorTests
 		// Arrange
 		ItemsControl list = CreateList(out Border row);
 
-		Window window = Show(list);
+		Window window = HeadlessWindow.Show(list);
 
 		IPointer? pointer = null;
 
@@ -74,7 +74,7 @@ internal class ItemDragBehaviorTests
 		// Arrange
 		ItemsControl list = CreateList(out Border row);
 
-		Window window = Show(list);
+		Window window = HeadlessWindow.Show(list);
 
 		window.MouseDown(Start, MouseButton.Left);
 
@@ -127,17 +127,6 @@ internal class ItemDragBehaviorTests
 			Background = Brushes.Transparent,
 			Height = RowHeight
 		};
-	}
-
-	/// <summary>
-	/// Shows an element in a window and lays it out.
-	/// </summary>
-	private static Window Show(Control element)
-	{
-		return HeadlessWindow.Show(
-			element,
-			width: 200.0,
-			height: 200.0);
 	}
 	#endregion
 }

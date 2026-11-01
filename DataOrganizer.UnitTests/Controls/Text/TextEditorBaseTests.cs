@@ -9,12 +9,10 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.UnitTests.Factories;
 using NSubstitute;
@@ -46,7 +44,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 3)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		TextView textView = sut.TextArea.TextView;
 
@@ -107,7 +105,7 @@ internal class TextEditorBaseTests
 			Document = new("\"word1\"    \"word2\"")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		Point point = sut.TextArea.TextView.GetColumnCenter(8);
 
@@ -137,7 +135,7 @@ internal class TextEditorBaseTests
 			Document = new("\"word1\"    \"word2\"")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		Point point = sut.TextArea.TextView.GetColumnCenter(3);
 
@@ -173,7 +171,7 @@ internal class TextEditorBaseTests
 			Document = new(text)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		Point point = sut.TextArea.TextView.GetColumnCenter(offset);
 
@@ -204,7 +202,7 @@ internal class TextEditorBaseTests
 			Document = new("\"word1\"    \"word2\"")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		Point point = sut.TextArea.TextView.GetColumnCenter(8);
 
@@ -237,7 +235,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.FindCommand.Execute(null);
@@ -274,7 +272,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.FindCommand.Execute(null);
@@ -298,7 +296,7 @@ internal class TextEditorBaseTests
 			FontSize = 14.0
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		RawInputModifiers modifiers = isCtrlPressed
 			? RawInputModifiers.Control
@@ -346,7 +344,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 3)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		TextView textView = sut.TextArea.TextView;
 
@@ -403,7 +401,7 @@ internal class TextEditorBaseTests
 			OccurrenceSource = formerSource.TextArea
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.OccurrenceSource = source.TextArea;
@@ -453,7 +451,7 @@ internal class TextEditorBaseTests
 			OccurrenceSource = source.TextArea
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		TextView textView = sut.TextArea.TextView;
 
@@ -509,7 +507,7 @@ internal class TextEditorBaseTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Assert
 		ScrollMarkMargin margin = sut
@@ -546,7 +544,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.ScrollToEndCommand.Execute(null);
@@ -577,7 +575,7 @@ internal class TextEditorBaseTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.ScrollToEndCommand.Execute(null);
 
@@ -608,7 +606,7 @@ internal class TextEditorBaseTests
 		TestTextEditor sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is none.
@@ -679,7 +677,7 @@ internal class TextEditorBaseTests
 			Document = new("log log")
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.Select(0, 3);
@@ -759,18 +757,6 @@ internal class TextEditorBaseTests
 		AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
 		Dispatcher.UIThread.RunJobs();
-	}
-
-	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(TestTextEditor editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		return HeadlessWindow.Show(editor);
 	}
 	#endregion
 
