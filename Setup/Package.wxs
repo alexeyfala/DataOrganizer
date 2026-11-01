@@ -1,7 +1,11 @@
 ﻿<!--
 	ComponentGroupRef - https://docs.firegiant.com/wix/schema/wxs/componentgroup
+	Custom - https://docs.firegiant.com/wix/schema/wxs/custom
+	CustomAction - https://docs.firegiant.com/wix/schema/wxs/customaction
 	Feature - https://docs.firegiant.com/wix/schema/wxs/feature
 	Icon - https://docs.firegiant.com/wix/schema/wxs/icon
+	InstallExecuteSequence - https://docs.firegiant.com/wix/schema/wxs/installexecutesequence
+	InstallUISequence - https://docs.firegiant.com/wix/schema/wxs/installuisequence
 	MajorUpgrade - https://docs.firegiant.com/wix/schema/wxs/majorupgrade
 	Media - https://docs.firegiant.com/wix/schema/wxs/media
 	Package - https://docs.firegiant.com/wix/schema/wxs/package
@@ -67,6 +71,28 @@
 			Id="WixAppFolder"
 			Value="WixPerMachineFolder" />
 
+		<!--
+			WixUI_Advanced defaults per-user installs to "[LocalAppDataFolder]Apps\[ApplicationFolderName]".
+			Use the per-user Programs folder of Windows (FOLDERID_UserProgramFiles) instead.
+		-->
+		<CustomAction
+			Execute="immediate"
+			Id="WixSetDefaultPerUserFolderPrograms"
+			Property="WixPerUserFolder"
+			Value="[LocalAppDataFolder]Programs\[ApplicationFolderName]" />
+
+		<InstallExecuteSequence>
+			<Custom
+				Action="WixSetDefaultPerUserFolderPrograms"
+				Before="WixSetPerUserFolder" />
+		</InstallExecuteSequence>
+
+		<InstallUISequence>
+			<Custom
+				Action="WixSetDefaultPerUserFolderPrograms"
+				Before="WixSetPerUserFolder" />
+		</InstallUISequence>
+
 		<Property
 			Id="ARPNOREPAIR"
 			Value="1" />
@@ -107,8 +133,5 @@
 			Title="$(var.AppDisplayName) Application">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
-
-		<!-- Fixes default folder used for per-machine installs for 64-bit installs -->
-		<?include IssueWorkaround.wxi ?>
 	</Package>
 </Wix>

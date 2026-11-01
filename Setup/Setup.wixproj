@@ -21,7 +21,6 @@
 	<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-	<Content Include="IssueWorkaround.wxi" />
 	<Content Include="Predefines.wxi" />
   </ItemGroup>
   <ItemGroup>

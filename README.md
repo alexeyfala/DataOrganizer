@@ -71,6 +71,16 @@ On macOS, run the platform host instead:
 dotnet run --project DataOrganizer.MacOS
 ```
 
+## Install Location
+
+The installers place the application here by default:
+
+```
+%ProgramFiles%/DataOrganizer/                                 (Windows, all users)
+%LOCALAPPDATA%/Programs/DataOrganizer/                        (Windows, current user)
+/Applications/DataOrganizer.app                               (macOS)
+```
+
 ## Data Storage
 
 All application data is stored locally:
