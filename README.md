@@ -78,8 +78,13 @@ The installers place the application here by default:
 ```
 %ProgramFiles%/DataOrganizer/                                 (Windows, all users)
 %LOCALAPPDATA%/Programs/DataOrganizer/                        (Windows, current user)
+/opt/com.alexeyfala.dataorganizer/                            (Linux, .deb and .rpm)
 /Applications/DataOrganizer.app                               (macOS)
 ```
+
+The AppImage (Linux) needs no installation: it runs from wherever the file is placed.
+
+A Flatpak (Linux) is kept by Flatpak itself, in `~/.local/share/flatpak/app/com.alexeyfala.dataorganizer/` for a `--user` install or `/var/lib/flatpak/app/com.alexeyfala.dataorganizer/` for a system-wide one.
 
 ## Data Storage
 
