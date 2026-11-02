@@ -14,6 +14,10 @@
 		Value="Запускать !(wix.AppDisplayName) вместе с Windows" />
 
 	<String
+		Id="DowngradeError"
+		Value="Уже установлена более новая версия !(wix.AppDisplayName)." />
+
+	<String
 		Id="LaunchApplication"
 		Value="Запустить !(wix.AppDisplayName)" />
 </WixLocalization>

@@ -37,7 +37,8 @@ Some projects only, by their folder names, separated by commas without spaces:
 The script pairs every project `X/X.csproj` with `X.UnitTests` and `X.IntegrationTests`, whichever
 exist, so a renamed or a new project is picked up as long as its test project carries the same name.
 A project without a test project of its own is skipped, and so is a project with Avalonia views (see
-below).
+below). So is `Setup.CustomActions`: it targets .NET Framework for the Windows Installer, and its tests
+compile its files instead of referencing it, while Stryker mutates only a referenced project.
 
 Only the project's own tests catch its mutants. The score then says how well the tests of the project
 pin its behaviour, not what the whole suite happens to notice. That is why the script starts Stryker

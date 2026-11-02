@@ -14,6 +14,10 @@
 		Value="Start !(wix.AppDisplayName) when Windows starts" />
 
 	<String
+		Id="DowngradeError"
+		Value="A newer version of !(wix.AppDisplayName) is already installed." />
+
+	<String
 		Id="LaunchApplication"
 		Value="Launch !(wix.AppDisplayName)" />
 </WixLocalization>

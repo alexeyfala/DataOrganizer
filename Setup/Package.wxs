@@ -1,4 +1,5 @@
-﻿<!--
+<!--
+	Binary - https://docs.firegiant.com/wix/schema/wxs/binary
 	ComponentGroupRef - https://docs.firegiant.com/wix/schema/wxs/componentgroup
 	Custom - https://docs.firegiant.com/wix/schema/wxs/custom
 	CustomAction - https://docs.firegiant.com/wix/schema/wxs/customaction
@@ -36,7 +37,7 @@
 		Name="$(var.FullName)"
 		UpgradeCode="$(var.UpgradeCode)"
 		Version="$(var.AppVersion)">
-		
+
 		<!--
 			This makes sure the .cab file is embedded in the .msi file;
 			otherwise, the .cab file is external and must be moved around with
@@ -55,6 +56,13 @@
 			Comments="$(var.AppDisplayName) installer. Copyright (c) 2026 $(var.Manufacturer). Licensed under $(var.License)."
 			Description="$(var.AppDisplayName) $(var.AppVersion) Setup"
 			Keywords="Installer, MSI, $(var.AppDisplayName)" />
+
+		<!--
+			A rebuild of the same version replaces the installed one instead of installing beside it.
+		-->
+		<MajorUpgrade
+			AllowSameVersionUpgrades="yes"
+			DowngradeErrorMessage="!(loc.DowngradeError)" />
 
 		<!--
 			https://docs.firegiant.com/wix3/wixui/dialog_reference/wixui_advanced
@@ -114,10 +122,33 @@
 		</UI>
 
 		<!--
+			The search of the dialogs for installed versions runs before the scope is chosen, so it sees only
+			installs for all users, and Windows Installer never repeats it. A per-user choice repeats it here.
+		-->
+		<Binary
+			Id="SetupCustomActions"
+			SourceFile="$(var.Setup.CustomActions.TargetDir)$(var.Setup.CustomActions.TargetName).CA.dll" />
+
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="FindPerUserRelatedProducts"
+			Execute="immediate"
+			Id="FindPerUserRelatedProducts"
+			Return="check" />
+
+		<!--
 			The Install button without the UAC shield ends a per-user choice. It hands the choice to
 			Windows Installer 5.0 as the per-user context of a dual-purpose package, which needs no UAC.
 		-->
 		<UI>
+			<Publish
+				Condition="NOT Installed"
+				Control="InstallNoShield"
+				Dialog="FeaturesDlg"
+				Event="DoAction"
+				Order="1"
+				Value="FindPerUserRelatedProducts" />
+
 			<Publish
 				Condition="NOT Installed"
 				Control="InstallNoShield"
