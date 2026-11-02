@@ -47,10 +47,10 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 64-bit (x64) only. Requirements follow the .NET 10 runtime:
 
 - **Windows** — Windows 10 version 1607 or later
-- **macOS** — macOS 12 (Monterey) or later on an Intel (x64) Mac; Apple Silicon (ARM64) Macs are not supported
 - **Linux** — a modern glibc-based distribution (e.g. Ubuntu 22.04+, Debian 12+, Fedora 42+); see [.NET 10 supported distributions](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md)
+- **macOS** — macOS 12 (Monterey) or later on an Intel (x64) Mac; on an Apple Silicon (ARM64) Mac it runs through Rosetta 2, which Apple supports for general apps up to macOS 27
 
-The portable builds and the macOS and Linux packages are self-contained: the .NET runtime is bundled inside. The Windows installer (`.msi`) is not: it needs the [.NET 10 Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) installed first.
+The portable builds and the Linux and macOS packages are self-contained: the .NET runtime is bundled inside. The Windows installer (`.msi`) is not: it needs the [.NET 10 Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) installed first.
 
 ## Platform Notes
 
