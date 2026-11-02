@@ -88,16 +88,6 @@
 					Target="[!AppExe]"
 					WorkingDirectory="APPLICATIONFOLDER" />
 
-				<!-- Start Menu shortcut to uninstall the program. -->
-				<Shortcut
-					Advertise="no"
-					Arguments="/x [ProductCode]"
-					Description="Uninstalls $(var.FullName)"
-					Icon="AppIcon"
-					Id="UninstallProduct"
-					Name="$(var.FullName) uninstall"
-					Target="[System64Folder]msiexec.exe" />
-
 				<!--
 					Define the key path for the parent component.  If the key
 					path is not present, the component is considered as not
