@@ -17,7 +17,7 @@ The portable builds and the macOS and Linux packages are self-contained — the 
 
 **Windows** — run the `.msi`, or unzip the portable archive and launch `DataOrganizer.exe`. The build is unsigned, so SmartScreen may warn: *More info → Run anyway*.
 
-**macOS** — the app is not signed or notarized, so Gatekeeper blocks it on first launch. Right-click the app → **Open** → **Open**, or clear the quarantine flag: `xattr -dr com.apple.quarantine DataOrganizer.app`. From the `.dmg`: drag the app to Applications. Portable: unzip and run the `.app`. Runs on Apple Silicon via Rosetta 2.
+**macOS** — the app is not signed or notarized, so Gatekeeper blocks it on first launch. Right-click the app → **Open** → **Open**, or clear the quarantine flag: `xattr -dr com.apple.quarantine DataOrganizer.app`. From the `.dmg`: drag the app to Applications. Portable: unzip and run the `.app`. Apple Silicon (ARM64) Macs are not supported.
 
 **Linux** — `.deb`: `sudo apt install ./dataorganizer_{version}-1_amd64.deb`. AppImage: `chmod +x DataOrganizer-{version}-1.x86_64.AppImage` then run it (on hosts without `libfuse2`, add `--appimage-extract-and-run`).
 
