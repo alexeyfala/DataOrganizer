@@ -1051,18 +1051,10 @@ internal class DatasetScrollBehaviorTests
 	/// </summary>
 	private static Window Show(ScrollViewer scrollViewer)
 	{
-		Window window = new()
-		{
-			Content = scrollViewer,
-			Height = 200.0,
-			Width = 300.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			scrollViewer,
+			width: 300.0,
+			height: 200.0);
 	}
 	#endregion
 }

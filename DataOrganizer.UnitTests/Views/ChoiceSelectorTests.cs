@@ -1266,25 +1266,19 @@ internal class ChoiceSelectorTests
 
 		selector.HorizontalAlignment = HorizontalAlignment.Left;
 
-		Window window = new()
+		DockPanel panel = new()
 		{
-			Content = new DockPanel
+			Children =
 			{
-				Children =
-				{
-					selector,
-					new TextBox()
-				}
-			},
-			Height = 600.0,
-			Width = 400.0
+				selector,
+				new TextBox()
+			}
 		};
 
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
+		return HeadlessWindow.Show(
+			panel,
+			width: 400.0,
+			height: 600.0);
 	}
 	#endregion
 }

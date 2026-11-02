@@ -205,7 +205,16 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 			_logger.LogInformation("Stop global keyboard hook");
 
-			_hook.Stop();
+			HookException? failure = null;
+
+			try
+			{
+				_hook.Stop();
+			}
+			catch (HookException ex)
+			{
+				failure = ex;
+			}
 
 			// The native hook shuts down asynchronously.
 			bool isStopped = await WaitForAsync(
@@ -213,12 +222,24 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 				token).ConfigureAwait(false);
 
 			// Stryker disable once Boolean,Block,Statement : the branch only keeps a warning out of the log
-			if (isStopped)
+			if (isStopped && failure is null)
 			{
 				return;
 			}
 
-			_logger.LogWarning("The global keyboard hook has not stopped in time");
+			if (failure is null)
+			{
+				_logger.LogWarning("The global keyboard hook has not stopped in time");
+			}
+			else if (isStopped)
+			{
+				// On Windows libuiohook reports a failed stop when its hook thread ends between the two messages of the stop.
+				_logger.LogInformation("The global keyboard hook has stopped though its stop reported a failure");
+			}
+			else
+			{
+				_logger.LogException(failure);
+			}
 		}
 		catch (Exception ex)
 		{

@@ -43,6 +43,28 @@ rm -rf Publish/Artifacts.Deb.amd64 && \
 ls -la Publish/*.deb
 ```
 
+> **WSL1 with Ubuntu 26.04.** `dpkg-deb` fails with `tar: ./opt/…: Cannot stat: Function not implemented`: the `tar` of Ubuntu 26.04 calls `openat2`, which the WSL1 kernel lacks. The same `tar` 1.35 built for Ubuntu 24.04 does not, so put it first on `PATH` for the build.
+>
+> **One-time setup (copy once):**
+>
+> ```bash
+> mkdir -p ~/.local/tar-noble/bin && \
+> curl -fsSL -o /tmp/tar-noble.deb \
+>   https://archive.ubuntu.com/ubuntu/pool/main/t/tar/tar_1.35+dfsg-3build1_amd64.deb && \
+> dpkg-deb --fsys-tarfile /tmp/tar-noble.deb | tar -xO ./usr/bin/tar > ~/.local/tar-noble/bin/tar && \
+> chmod +x ~/.local/tar-noble/bin/tar && \
+> rm /tmp/tar-noble.deb
+> ```
+>
+> **Build (copy once):**
+>
+> ```bash
+> cd "$DATAORG_REPO" && \
+> PATH="$HOME/.local/tar-noble/bin:$PATH" pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
+> rm -rf Publish/Artifacts.Deb.amd64 && \
+> ls -la Publish/*.deb
+> ```
+
 ### RPM (.rpm)
 
 One-time: `sudo apt install -y rpm`

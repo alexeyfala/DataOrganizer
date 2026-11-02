@@ -69,7 +69,7 @@ internal class TextBoxButtonTipTests
 			}
 		};
 
-		Show(panel);
+		HeadlessWindow.Show(panel);
 
 		// Text typed into a shown box makes the theme build the button then, apart from the template of the box.
 		if (isTypedLater)
@@ -124,7 +124,7 @@ internal class TextBoxButtonTipTests
 			}
 		};
 
-		Show(panel);
+		HeadlessWindow.Show(panel);
 
 		// A class bound to a state, as in the dialog of a key and a value, may come after the box is shown, and the
 		// theme then builds the toggle apart from the template of the box.
@@ -171,21 +171,6 @@ internal class TextBoxButtonTipTests
 			.GetVisualDescendants()
 			.OfType<T>()
 			.Single(x => x.Name == name);
-	}
-
-	/// <summary>
-	/// Shows the content in a window and lets the layout settle.
-	/// </summary>
-	private static void Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
 	}
 	#endregion
 }

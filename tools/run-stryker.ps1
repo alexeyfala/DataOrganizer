@@ -7,6 +7,8 @@
     Pairs every project X/X.csproj of the repository with X.UnitTests/X.UnitTests.csproj and
     X.IntegrationTests/X.IntegrationTests.csproj, whichever exist. A project without such a test
     project is skipped, and so is a project with Avalonia views (*.axaml): Stryker cannot build it.
+    A project whose test projects compile its files instead of referencing it is skipped too:
+    Stryker mutates only a referenced project.
 
     Each project runs from its own folder. From the repository root Stryker would find the solution
     and take every test project that depends on the project, whatever the command line says.
@@ -51,6 +53,11 @@ function Get-TestProjects([string]$name) {
     }
 }
 
+function Test-IsReferenced([string]$name, [string[]]$testProjects) {
+    $reference = [regex]::Escape("$name\$name.csproj")
+    $null -ne ($testProjects | Where-Object { (Get-Content $_ -Raw) -match $reference } | Select-Object -First 1)
+}
+
 function Test-HasViews([string]$folder) {
     $views = Get-ChildItem $folder -Recurse -File -Filter *.axaml |
         Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' } |
@@ -60,12 +67,17 @@ function Test-HasViews([string]$folder) {
 
 $pairs = @()
 $withViews = @()
+$unreferenced = @()
 foreach ($folder in Get-ChildItem $repoRoot -Directory) {
     if (-not (Test-Path (Join-Path $folder.FullName "$($folder.Name).csproj"))) {
         continue
     }
     $testProjects = @(Get-TestProjects $folder.Name)
     if ($testProjects.Count -eq 0) {
+        continue
+    }
+    if (-not (Test-IsReferenced $folder.Name $testProjects)) {
+        $unreferenced += $folder.Name
         continue
     }
     if (Test-HasViews $folder.FullName) {
@@ -82,13 +94,21 @@ if ($Project) {
         if ($name -in $withViews) {
             throw "$name has Avalonia views; Stryker cannot build it."
         }
+        if ($name -in $unreferenced) {
+            throw "$name is compiled into its tests, not referenced by them; Stryker cannot mutate it."
+        }
         if ($name -notin $pairs.Name) {
             throw "$name is not a project with its own test project."
         }
     }
     $pairs = @($pairs | Where-Object { $_.Name -in $Project })
-} elseif ($withViews) {
-    Write-Host "Skipped, as Stryker cannot build Avalonia views: $($withViews -join ', ')" -ForegroundColor Yellow
+} else {
+    if ($withViews) {
+        Write-Host "Skipped, as Stryker cannot build Avalonia views: $($withViews -join ', ')" -ForegroundColor Yellow
+    }
+    if ($unreferenced) {
+        Write-Host "Skipped, as their tests compile their files instead of referencing them: $($unreferenced -join ', ')" -ForegroundColor Yellow
+    }
 }
 
 # --- Read a report: the counts by status and the flips of the ConfigureAwait flag --

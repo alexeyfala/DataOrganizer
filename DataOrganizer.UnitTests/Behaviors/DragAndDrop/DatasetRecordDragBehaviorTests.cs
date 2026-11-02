@@ -81,7 +81,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -127,7 +127,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -169,7 +169,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -217,7 +217,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -307,7 +307,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(panel);
+		Window window = HeadlessWindow.Show(panel);
 
 		// Act
 		Drag(window, Start, OverTarget);
@@ -356,7 +356,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -395,7 +395,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -456,7 +456,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(panel);
+		Window window = HeadlessWindow.Show(panel);
 
 		// Act
 		Drag(window, Start, OverTarget);
@@ -492,7 +492,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -536,7 +536,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -594,7 +594,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(ancestor);
+		Window window = HeadlessWindow.Show(ancestor);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -649,7 +649,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Show(element);
+		HeadlessWindow.Show(element);
 
 		popup.Open();
 
@@ -696,7 +696,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -740,7 +740,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(element);
+		Window window = HeadlessWindow.Show(element);
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
@@ -817,7 +817,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(panel);
+		Window window = HeadlessWindow.Show(panel);
 
 		// Act
 		Drag(window, Start, OverTarget);
@@ -894,7 +894,7 @@ internal class DatasetRecordDragBehaviorTests
 			.GetBehaviors(element)
 			.Add(sut);
 
-		Window window = Show(panel);
+		Window window = HeadlessWindow.Show(panel);
 
 		// Act
 		Drag(window, Start, OverTarget);
@@ -947,25 +947,6 @@ internal class DatasetRecordDragBehaviorTests
 		topLevel.MouseUp(to, MouseButton.Left);
 
 		Dispatcher.UIThread.RunJobs();
-	}
-
-	/// <summary>
-	/// Shows an element in a window and lays it out.
-	/// </summary>
-	private static Window Show(Control element)
-	{
-		Window window = new()
-		{
-			Content = element,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 

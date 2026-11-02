@@ -62,6 +62,7 @@ dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
 dotnet test Repository.UnitTests/Repository.UnitTests.csproj
 dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
 dotnet test Settings.UnitTests/Settings.UnitTests.csproj
+dotnet test Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj
 dotnet test Shared.UnitTests/Shared.UnitTests.csproj
 dotnet test TextProcessing.UnitTests/TextProcessing.UnitTests.csproj
 dotnet test Threading.UnitTests/Threading.UnitTests.csproj

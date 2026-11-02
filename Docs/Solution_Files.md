@@ -30,7 +30,7 @@
       - ⚙️ [`config.yml`](../.github/ISSUE_TEMPLATE/config.yml) — forbids blank issues, sends questions to Discussions and vulnerabilities to the private advisory form.
       - ⚙️ [`feature_request.yml`](../.github/ISSUE_TEMPLATE/feature_request.yml) — feature request form, label `enhancement`.
     - 📁 **`workflows/`**
-      - ⚙️ [`ci.yml`](../.github/workflows/ci.yml) — builds the Desktop project and runs every test project on ubuntu, windows and macos. **Edit:** a test project was added — give it a step.
+      - ⚙️ [`ci.yml`](../.github/workflows/ci.yml) — builds the Desktop project and runs every test project on windows, ubuntu and macos. **Edit:** a test project was added — give it a step.
     - ⚙️ [`dependabot.yml`](../.github/dependabot.yml) — weekly NuGet and GitHub Actions updates, minor and patch in a single pull request. **Edit:** too many or too few updates arrive.
     - 📄 [`PULL_REQUEST_TEMPLATE.md`](../.github/PULL_REQUEST_TEMPLATE.md) — pull request description with a checklist.
     - ⚙️ [`release.yml`](../.github/release.yml) — categories and labels for the "Generate release notes" button; the `ignore-for-release` label hides a pull request. **Edit:** the set of labels changed.

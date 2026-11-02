@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
 using DataOrganizer.UnitTests.Factories;
@@ -46,7 +45,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -86,7 +85,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -130,7 +129,7 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 			Width = 50.0
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		ShowContextFlyoutOnDoubleTapBehavior sut = new();
 
@@ -145,27 +144,6 @@ internal class ShowContextFlyoutOnDoubleTapBehaviorTests
 		flyout.IsOpen
 			.Should()
 			.BeTrue();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

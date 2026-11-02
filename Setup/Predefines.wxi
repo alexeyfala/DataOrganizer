@@ -37,4 +37,8 @@
 		Guarantees the name is unique across all the setup project.
 	-->
 	<?define FullName = "$(var.AppName)-$(var.AppVersion)$(var.PlatformInName)$(var.ProgramConfig)"?>
+
+	<!-- Registry key of the application, and its value that keeps the install folder for the next version. -->
+	<?define AppRegistryKey = "Software\$(var.Manufacturer)\$(var.AppName)" ?>
+	<?define InstallFolderValueName = "InstallFolder" ?>
 </Include>

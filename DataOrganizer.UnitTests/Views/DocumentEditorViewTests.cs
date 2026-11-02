@@ -123,7 +123,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
@@ -157,7 +157,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -200,7 +200,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
@@ -233,7 +233,7 @@ internal class DocumentEditorViewTests
 		DocumentEditorView sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
@@ -263,7 +263,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
@@ -314,7 +314,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		ScrollViewer scrollViewer = GetScrollViewer(sut);
 
@@ -351,7 +351,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		FoldingSection block = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
 			.FoldingManager
@@ -384,7 +384,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentViewState state = new()
 		{
@@ -428,7 +428,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		foreach (FoldingSection block in GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
 			.FoldingManager
@@ -469,7 +469,7 @@ internal class DocumentEditorViewTests
 			WordWrap = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -526,7 +526,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
@@ -578,7 +578,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -627,7 +627,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		FoldingSection[] blocks = [.. GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
 			.FoldingManager
@@ -675,7 +675,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
@@ -722,7 +722,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = hasLanguage ? null : PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
@@ -757,7 +757,7 @@ internal class DocumentEditorViewTests
 		DocumentEditorView sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
@@ -780,7 +780,7 @@ internal class DocumentEditorViewTests
 			Document = new("A\r\nB\r\nC")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
 
@@ -824,7 +824,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).DefaultChoice
@@ -845,7 +845,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LanguageBlockName).DefaultChoice
@@ -869,7 +869,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LanguageBlockName).DefaultMark
@@ -890,7 +890,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.Dispose();
@@ -914,7 +914,7 @@ internal class DocumentEditorViewTests
 			DocumentFontSize = 14.0
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -939,7 +939,7 @@ internal class DocumentEditorViewTests
 			DocumentFontSize = 14.0
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		ButtonSpinner spinner = sut
 			.GetVisualDescendants()
@@ -968,7 +968,7 @@ internal class DocumentEditorViewTests
 			EncodingName = "Windows-1251"
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut
@@ -995,7 +995,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).SelectedChoice
@@ -1016,7 +1016,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).Caption
@@ -1041,7 +1041,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).FlyoutOpeningCommand
@@ -1063,7 +1063,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
@@ -1087,7 +1087,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		FoldingMargin margin = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor);
@@ -1125,7 +1125,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsEffectivelyEnabled
@@ -1146,7 +1146,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).IsReadOnly
@@ -1167,7 +1167,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).IsSensitive
@@ -1188,7 +1188,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).IsSplit
@@ -1209,7 +1209,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -1255,7 +1255,7 @@ internal class DocumentEditorViewTests
 		DocumentEditorView sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		string?[] expected = [null, .. SyntaxRegistry.Instance.Languages.Select(static x => x.Id)];
@@ -1276,7 +1276,7 @@ internal class DocumentEditorViewTests
 		DocumentEditorView sut = new();
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LineEndingBlockName).Choices!.Select(static x => x.Name)
@@ -1297,7 +1297,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -1319,7 +1319,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -1340,7 +1340,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.Content = null;
@@ -1366,7 +1366,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		// Act
 		window.Content = null;
@@ -1405,7 +1405,7 @@ internal class DocumentEditorViewTests
 			}
 		};
 
-		Show(tabs);
+		HeadlessWindow.Show(tabs);
 
 		await WaitForFirstFocus(sut);
 
@@ -1454,7 +1454,7 @@ internal class DocumentEditorViewTests
 			}
 		};
 
-		Show(new DockPanel
+		HeadlessWindow.Show(new DockPanel
 		{
 			Children =
 			{
@@ -1506,7 +1506,7 @@ internal class DocumentEditorViewTests
 			}
 		};
 
-		Show(tabs);
+		HeadlessWindow.Show(tabs);
 
 		await WaitForFirstFocus(sut);
 
@@ -1552,7 +1552,7 @@ internal class DocumentEditorViewTests
 			}
 		};
 
-		Show(tabs);
+		HeadlessWindow.Show(tabs);
 
 		await WaitForFirstFocus(sut);
 
@@ -1586,7 +1586,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
 		DocumentTextEditor other = new()
@@ -1617,7 +1617,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
 		using DocumentTextEditor other = new()
@@ -1650,7 +1650,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.FoldAllCommand.Execute(null);
@@ -1674,7 +1674,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -1704,7 +1704,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
@@ -1733,7 +1733,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.FoldAllCommand.Execute(null);
@@ -1759,7 +1759,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).ShowEndOfLine
@@ -1780,7 +1780,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).ShowSpaces
@@ -1801,7 +1801,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).ShowTabs
@@ -1821,7 +1821,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point start = window.CenterOf(sut.GetVisualDescendants().OfType<GridSplitter>().Single());
 
@@ -1856,7 +1856,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).SplitShare
@@ -1877,7 +1877,7 @@ internal class DocumentEditorViewTests
 			Document = new(PowerShellText)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Panel block = sut.GetControl<Panel>(CaretBlockName);
 
@@ -1908,7 +1908,7 @@ internal class DocumentEditorViewTests
 			EncodingName = "UTF-8"
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		ChoiceSelector block = sut.GetControl<ChoiceSelector>(EncodingBlockName);
 
@@ -1946,7 +1946,7 @@ internal class DocumentEditorViewTests
 			Document = new(string.Empty)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
@@ -1985,7 +1985,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).Choices
@@ -2006,7 +2006,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).IsVisible
@@ -2028,7 +2028,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
@@ -2056,7 +2056,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LineEndingBlockName).IsVisible
@@ -2082,7 +2082,7 @@ internal class DocumentEditorViewTests
 			IsReadOnly = true
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		ChoiceSelector block = sut.GetControl<ChoiceSelector>(LineEndingBlockName);
 
@@ -2118,7 +2118,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableTip
@@ -2142,7 +2142,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut
@@ -2168,7 +2168,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).SyntaxLanguage
@@ -2189,7 +2189,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(LanguageBlockName).SelectedChoice
@@ -2215,7 +2215,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		button.DataContext
@@ -2240,7 +2240,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<ChoiceSelector>(EncodingBlockName).UnavailableChoices
@@ -2262,7 +2262,7 @@ internal class DocumentEditorViewTests
 			Document = document
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.ViewState = new DocumentViewState
@@ -2313,7 +2313,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.ViewState = new DocumentViewState
 		{
@@ -2362,7 +2362,7 @@ internal class DocumentEditorViewTests
 			Document = new()
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		Vector offset = new(0.0, 500.0);
 
@@ -2418,7 +2418,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -2460,7 +2460,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.ViewState = new DocumentViewState
@@ -2498,7 +2498,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.ViewState = new DocumentViewState
@@ -2536,7 +2536,7 @@ internal class DocumentEditorViewTests
 			WordWrap = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -2589,7 +2589,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -2632,7 +2632,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
@@ -2673,7 +2673,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		Vector offset = new(0.0, 500.0);
 
@@ -2716,7 +2716,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		Vector offset = new(0.0, 500.0);
 
@@ -2762,7 +2762,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(source);
+		HeadlessWindow.Show(source);
 
 		DocumentTextEditor sourceEditor = source.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -2780,7 +2780,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.ViewState = source.ViewState;
@@ -2812,7 +2812,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.ViewState = new DocumentViewState
@@ -2859,7 +2859,7 @@ internal class DocumentEditorViewTests
 			IsSplit = true
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.Document = CreateDocument(lineCount: 100);
@@ -2910,7 +2910,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -2970,7 +2970,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetScrollViewer(sut).Offset
@@ -2993,7 +2993,7 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.Content = null;
 
@@ -3043,7 +3043,7 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
 
@@ -3100,7 +3100,7 @@ internal class DocumentEditorViewTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).WordWrap
@@ -3242,25 +3242,6 @@ internal class DocumentEditorViewTests
 			.LineTransformers
 			.OfType<TextMateColoringTransformer>()
 			.Any();
-	}
-
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 
 	/// <summary>

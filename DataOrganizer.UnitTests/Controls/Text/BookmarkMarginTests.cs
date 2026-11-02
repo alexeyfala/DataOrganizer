@@ -5,12 +5,10 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
@@ -41,7 +39,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -70,7 +68,7 @@ internal class BookmarkMarginTests
 			IsReadOnly = isReadOnly
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -105,7 +103,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -145,7 +143,7 @@ internal class BookmarkMarginTests
 			FontSize = 14.0
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -174,7 +172,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -201,7 +199,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -229,7 +227,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -264,7 +262,7 @@ internal class BookmarkMarginTests
 		};
 
 		// Act
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -285,7 +283,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Act
 		window.Content = null;
@@ -311,7 +309,7 @@ internal class BookmarkMarginTests
 			Document = CreateDocument(lineCount: 10)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		BookmarkMargin sut = GetMargin(editor);
 
@@ -418,29 +416,6 @@ internal class BookmarkMarginTests
 			.LeftMargins
 			.OfType<BookmarkMargin>()
 			.Single();
-	}
-
-	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(DocumentTextEditor editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		Window window = new()
-		{
-			Content = editor,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }
