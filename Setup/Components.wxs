@@ -42,6 +42,19 @@
 			</Component>
 
 			<!--
+				Keeps the install folder in the context of the install: HKCU for the current user, HKLM for all users.
+			-->
+			<Component>
+				<RegistryValue
+					Key="$(var.AppRegistryKey)"
+					KeyPath="yes"
+					Name="$(var.InstallFolderValueName)"
+					Root="HKMU"
+					Type="string"
+					Value="[APPLICATIONFOLDER]" />
+			</Component>
+
+			<!--
 				Include all other files and folders.
 			-->
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
@@ -98,7 +111,7 @@
 					Note: A key path must be unique across all components.
 				-->
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.AppName)"
+					Key="$(var.AppRegistryKey)"
 					KeyPath="yes"
 					Name="installed"
 					Root="HKCU"
@@ -131,7 +144,7 @@
 					WorkingDirectory="APPLICATIONFOLDER" />
 
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.AppName)"
+					Key="$(var.AppRegistryKey)"
 					KeyPath="yes"
 					Name="shortcut_installed"
 					Root="HKCU"

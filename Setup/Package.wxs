@@ -7,11 +7,14 @@
 	Icon - https://docs.firegiant.com/wix/schema/wxs/icon
 	InstallExecuteSequence - https://docs.firegiant.com/wix/schema/wxs/installexecutesequence
 	InstallUISequence - https://docs.firegiant.com/wix/schema/wxs/installuisequence
+	Launch - https://docs.firegiant.com/wix/schema/wxs/launch
 	MajorUpgrade - https://docs.firegiant.com/wix/schema/wxs/majorupgrade
 	Media - https://docs.firegiant.com/wix/schema/wxs/media
 	Package - https://docs.firegiant.com/wix/schema/wxs/package
 	Property - https://docs.firegiant.com/wix/schema/wxs/property
 	Publish - https://docs.firegiant.com/wix/schema/wxs/publish
+	RegistrySearch - https://docs.firegiant.com/wix/schema/wxs/registrysearch
+	SetProperty - https://docs.firegiant.com/wix/schema/wxs/setproperty
 	UI - https://docs.firegiant.com/wix/schema/wxs/ui
 	UIRef - https://docs.firegiant.com/wix/schema/wxs/uiref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
@@ -25,6 +28,9 @@
 
 	Launch after setup:
 	https://docs.firegiant.com/wix3/howtos/ui_and_localization/run_program_after_install
+
+	Remember Property pattern:
+	https://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/
 -->
 
 <?include Predefines.wxi ?>
@@ -108,6 +114,47 @@
 		</InstallUISequence>
 
 		<!--
+			The folder of an install is kept in the registry, and the next version offers it again (the Remember
+			Property pattern). The dialogs read it before the scope is chosen, so both contexts are read; without a value
+			the defaults of WixUI_Advanced stay.
+		-->
+		<Property
+			Id="REMEMBEREDPERMACHINEFOLDER"
+			Secure="yes">
+			<RegistrySearch
+				Key="$(var.AppRegistryKey)"
+				Name="$(var.InstallFolderValueName)"
+				Root="HKLM"
+				Type="raw" />
+		</Property>
+
+		<Property
+			Id="REMEMBEREDPERUSERFOLDER"
+			Secure="yes">
+			<RegistrySearch
+				Key="$(var.AppRegistryKey)"
+				Name="$(var.InstallFolderValueName)"
+				Root="HKCU"
+				Type="raw" />
+		</Property>
+
+		<SetProperty
+			Action="SetRememberedPerMachineFolder"
+			After="WixSetDefaultPerMachine64Folder"
+			Condition="REMEMBEREDPERMACHINEFOLDER"
+			Id="WixPerMachineFolder"
+			Sequence="both"
+			Value="[REMEMBEREDPERMACHINEFOLDER]" />
+
+		<SetProperty
+			Action="SetRememberedPerUserFolder"
+			After="WixSetDefaultPerUserFolderPrograms"
+			Condition="REMEMBEREDPERUSERFOLDER"
+			Id="WixPerUserFolder"
+			Sequence="both"
+			Value="[REMEMBEREDPERUSERFOLDER]" />
+
+		<!--
 			For a per-user choice WixUI_Advanced only sets the APPLICATIONFOLDER property. SetTargetPath moves
 			the folder itself too, as InstallDirDlg does for all users, so [#AppExe] points into it.
 		-->
@@ -122,8 +169,10 @@
 		</UI>
 
 		<!--
-			The search of the dialogs for installed versions runs before the scope is chosen, so it sees only
-			installs for all users, and Windows Installer never repeats it. A per-user choice repeats it here.
+			The search for installed versions sees one installation context, and in the dialogs it runs before the scope
+			is chosen, so it sees only installs for all users. The installation itself, before any change, repeats it for
+			a per-user choice and finds the installs of the other context, which a major upgrade cannot replace; the
+			launch conditions then refuse to install beside them. Silent installs get the same checks.
 		-->
 		<Binary
 			Id="SetupCustomActions"
@@ -136,19 +185,38 @@
 			Id="FindPerUserRelatedProducts"
 			Return="check" />
 
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="FindOtherScopeInstalls"
+			Execute="immediate"
+			Id="FindOtherScopeInstalls"
+			Return="check" />
+
+		<InstallExecuteSequence>
+			<Custom
+				Action="FindPerUserRelatedProducts"
+				After="FindRelatedProducts"
+				Condition="NOT Installed AND NOT ALLUSERS" />
+
+			<Custom
+				Action="FindOtherScopeInstalls"
+				After="FindPerUserRelatedProducts"
+				Condition="NOT Installed" />
+		</InstallExecuteSequence>
+
+		<Launch
+			Condition="NOT InstalledForAllUsers"
+			Message="!(loc.InstalledForAllUsersError)" />
+
+		<Launch
+			Condition="NOT InstalledForCurrentUser"
+			Message="!(loc.InstalledForCurrentUserError)" />
+
 		<!--
 			The Install button without the UAC shield ends a per-user choice. It hands the choice to
 			Windows Installer 5.0 as the per-user context of a dual-purpose package, which needs no UAC.
 		-->
 		<UI>
-			<Publish
-				Condition="NOT Installed"
-				Control="InstallNoShield"
-				Dialog="FeaturesDlg"
-				Event="DoAction"
-				Order="1"
-				Value="FindPerUserRelatedProducts" />
-
 			<Publish
 				Condition="NOT Installed"
 				Control="InstallNoShield"

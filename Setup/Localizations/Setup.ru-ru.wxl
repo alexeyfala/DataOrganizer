@@ -18,6 +18,14 @@
 		Value="Уже установлена более новая версия !(wix.AppDisplayName)." />
 
 	<String
+		Id="InstalledForAllUsersError"
+		Value="!(wix.AppDisplayName) уже установлен для всех пользователей. Перед установкой только для текущего пользователя его нужно удалить." />
+
+	<String
+		Id="InstalledForCurrentUserError"
+		Value="!(wix.AppDisplayName) уже установлен для текущего пользователя. Перед установкой для всех пользователей его нужно удалить." />
+
+	<String
 		Id="LaunchApplication"
 		Value="Запустить !(wix.AppDisplayName)" />
 </WixLocalization>

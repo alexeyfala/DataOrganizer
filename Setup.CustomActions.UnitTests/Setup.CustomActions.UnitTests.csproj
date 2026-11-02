@@ -29,6 +29,7 @@
 		The matching logic needs no installer session: its files are compiled into this project as they are.
 	-->
 	<ItemGroup>
+		<Compile Include="..\Setup.CustomActions\Enums\*.cs" Link="Enums\%(Filename)%(Extension)" />
 		<Compile Include="..\Setup.CustomActions\Helpers\*.cs" Link="Helpers\%(Filename)%(Extension)" />
 		<Compile Include="..\Setup.CustomActions\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
 	</ItemGroup>

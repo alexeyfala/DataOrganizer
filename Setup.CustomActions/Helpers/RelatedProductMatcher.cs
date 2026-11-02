@@ -11,13 +11,6 @@ namespace Setup.CustomActions.Helpers;
 /// </summary>
 public static class RelatedProductMatcher
 {
-	#region Data
-	/// <summary>
-	/// Separator of the product codes in the value of an action property.
-	/// </summary>
-	private const string ProductCodeSeparator = ";";
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Returns the value of each action property: the codes of its matching products other than
@@ -35,13 +28,7 @@ public static class RelatedProductMatcher
 
 		foreach (IGrouping<string, UpgradeRule> group in rules.GroupBy(static x => x.ActionProperty))
 		{
-			IEnumerable<string> productCodes = others
-				.Where(x => group.Any(rule => IsMatch(rule, x)))
-				.Select(static x => x.ProductCode);
-
-			properties[group.Key] = string.Join(
-				ProductCodeSeparator,
-				productCodes);
+			properties[group.Key] = ProductCodeList.Join(others.Where(x => group.Any(rule => IsMatch(rule, x))));
 		}
 
 		return properties;

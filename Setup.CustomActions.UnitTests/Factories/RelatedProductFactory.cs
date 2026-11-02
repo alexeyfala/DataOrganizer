@@ -1,3 +1,4 @@
+using Setup.CustomActions.Enums;
 using Setup.CustomActions.Models;
 using System;
 
@@ -17,16 +18,19 @@ internal static class RelatedProductFactory
 
 	#region Methods
 	/// <summary>
-	/// Returns an installed product of <see cref="UpgradeCode" /> unless another upgrade code is given.
+	/// Returns a product installed for one user with <see cref="UpgradeCode" />, unless another context or upgrade code
+	/// is given.
 	/// </summary>
 	public static RelatedProduct CreateProduct(
 		string productCode,
 		string version,
-		string upgradeCode = UpgradeCode)
+		string upgradeCode = UpgradeCode,
+		InstallScope scope = InstallScope.PerUser)
 	{
 		return new RelatedProduct
 		{
 			ProductCode = productCode,
+			Scope = scope,
 			UpgradeCode = upgradeCode,
 			Version = new Version(version)
 		};
