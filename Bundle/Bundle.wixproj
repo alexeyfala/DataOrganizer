@@ -38,9 +38,11 @@
 		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the
 		restore phase, which would drop Program.cs from the Desktop build (CS5001).
 		Build the dependency only in the build phase ($(MSBuildRestoreSessionId) is empty).
+		Inside Visual Studio a nested build only looks up the outputs of the references of Setup;
+		BuildingInsideVisualStudio=false makes it build them, as on the command line.
 	-->
 	<Target Name="BuildSetupDependency" Condition="'$(MSBuildRestoreSessionId)' == '' AND '$(DesignTimeBuild)' != 'true'">
-		<MSBuild Projects="..\Setup\Setup.wixproj" Properties="&#xD;&#xA;				 Configuration=$(Configuration);&#xD;&#xA;				 OpenOutputFolder=false;" />
+		<MSBuild Projects="..\Setup\Setup.wixproj" Properties="&#xD;&#xA;				 Configuration=$(Configuration);&#xD;&#xA;				 OpenOutputFolder=false;&#xD;&#xA;				 BuildingInsideVisualStudio=false;" />
 	</Target>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />

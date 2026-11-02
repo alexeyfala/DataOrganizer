@@ -15,9 +15,7 @@
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
-    <Project Path="Setup.CustomActions/Setup.CustomActions.csproj">
-      <Build Solution="*|Any CPU" Project="false" />
-    </Project>
+    <Project Path="Setup.CustomActions/Setup.CustomActions.csproj" />
     <Project Path="Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
