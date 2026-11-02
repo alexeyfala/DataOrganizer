@@ -7,11 +7,29 @@ using WixToolset.Dtf.WindowsInstaller;
 namespace Setup.CustomActions.Helpers;
 
 /// <summary>
-/// Matches installed products against the rows of the Upgrade table the way FindRelatedProducts does.
+/// Matches installed products against the rows of the Upgrade table the way FindRelatedProducts and
+/// MigrateFeatureStates do.
 /// </summary>
 public static class RelatedProductMatcher
 {
 	#region Methods
+	/// <summary>
+	/// Returns the newest product other than <paramref name="currentProductCode" /> that a row migrating feature states
+	/// matches, or <c>null</c> when none does.
+	/// </summary>
+	public static RelatedProduct? FindFeatureSource(
+		IReadOnlyCollection<UpgradeRule> rules,
+		IReadOnlyCollection<RelatedProduct> products,
+		string currentProductCode)
+	{
+		UpgradeRule[] migrating = [.. rules.Where(static x => x.Attributes.HasFlag(UpgradeAttributes.MigrateFeatures))];
+
+		return ExceptProduct(products, currentProductCode)
+			.Where(x => migrating.Any(rule => IsMatch(rule, x)))
+			.OrderByDescending(static x => x.Version)
+			.FirstOrDefault();
+	}
+
 	/// <summary>
 	/// Returns the value of each action property: the codes of its matching products other than
 	/// <paramref name="currentProductCode" />, joined by ';', or an empty string when none matches.
@@ -21,8 +39,7 @@ public static class RelatedProductMatcher
 		IReadOnlyCollection<RelatedProduct> products,
 		string currentProductCode)
 	{
-		RelatedProduct[] others = [.. products
-			.Where(x => !x.ProductCode.Equals(currentProductCode, StringComparison.OrdinalIgnoreCase))];
+		RelatedProduct[] others = [.. ExceptProduct(products, currentProductCode)];
 
 		Dictionary<string, string> properties = [];
 
@@ -36,6 +53,14 @@ public static class RelatedProductMatcher
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Returns the products other than the one being installed, whatever the case of its code.
+	/// </summary>
+	private static IEnumerable<RelatedProduct> ExceptProduct(IEnumerable<RelatedProduct> products, string productCode)
+	{
+		return products.Where(x => !x.ProductCode.Equals(productCode, StringComparison.OrdinalIgnoreCase));
+	}
+
 	/// <summary>
 	/// Returns whether a version is above the lower bound of a row, or equal to it when the bound includes itself.
 	/// </summary>

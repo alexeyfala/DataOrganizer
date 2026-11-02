@@ -34,6 +34,81 @@ internal class RelatedProductMatcherTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="RelatedProductMatcher.FindFeatureSource" />: a newer version, matched only by the row that detects a
+	/// downgrade, gives no feature states.
+	/// </summary>
+	[Test]
+	public void FindFeatureSource_Skips_A_Version_Matched_Without_Migration()
+	{
+		// Arrange
+		RelatedProduct[] products = [RelatedProductFactory.CreateProduct(FirstProductCode, "0.3.1")];
+
+		// Act
+		RelatedProduct? result = RelatedProductMatcher.FindFeatureSource(
+			UpgradeRuleFactory.CreateMajorUpgradeRules(PackageVersion),
+			products,
+			CurrentProductCode);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="RelatedProductMatcher.FindFeatureSource" />: the product being installed gives no feature states to
+	/// itself, whatever the case of its code.
+	/// </summary>
+	[Test]
+	public void FindFeatureSource_Skips_The_Product_Being_Installed()
+	{
+		// Arrange
+		RelatedProduct[] products =
+		[
+			RelatedProductFactory.CreateProduct(
+				CurrentProductCode.ToLowerInvariant(),
+				PackageVersion)
+		];
+
+		// Act
+		RelatedProduct? result = RelatedProductMatcher.FindFeatureSource(
+			UpgradeRuleFactory.CreateMajorUpgradeRules(PackageVersion),
+			products,
+			CurrentProductCode);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="RelatedProductMatcher.FindFeatureSource" />: of several versions the upgrade replaces, the newest one
+	/// gives the feature states.
+	/// </summary>
+	[Test]
+	public void FindFeatureSource_Takes_The_Newest_Replaced_Version()
+	{
+		// Arrange
+		RelatedProduct[] products =
+		[
+			RelatedProductFactory.CreateProduct(FirstProductCode, "0.2.0"),
+			RelatedProductFactory.CreateProduct(SecondProductCode, "0.2.9")
+		];
+
+		// Act
+		RelatedProduct? result = RelatedProductMatcher.FindFeatureSource(
+			UpgradeRuleFactory.CreateMajorUpgradeRules(PackageVersion),
+			products,
+			CurrentProductCode);
+
+		// Assert
+		result
+			.Should()
+			.Be(products[1]);
+	}
+
+	/// <summary>
 	/// <see cref="RelatedProductMatcher.Match" />: the codes of several matching products are joined in their order.
 	/// </summary>
 	[Test]

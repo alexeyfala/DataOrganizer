@@ -9,7 +9,7 @@ using WixToolset.Dtf.WindowsInstaller;
 namespace Setup.CustomActions;
 
 /// <summary>
-/// Custom actions that find the installed versions of the product.
+/// Custom actions that find the installed versions of the product and carry their feature states over.
 /// </summary>
 public static class RelatedProductsActions
 {
@@ -30,7 +30,7 @@ public static class RelatedProductsActions
 		return Run(
 			session,
 			nameof(FindOtherScopeInstalls),
-			() => FindOtherScopeProperties(session));
+			() => SetProperties(session, nameof(FindOtherScopeInstalls), FindOtherScopeProperties(session)));
 	}
 
 	/// <summary>
@@ -43,7 +43,20 @@ public static class RelatedProductsActions
 		return Run(
 			session,
 			nameof(FindPerUserRelatedProducts),
-			() => FindPerUserProperties(session));
+			() => SetProperties(session, nameof(FindPerUserRelatedProducts), FindPerUserProperties(session)));
+	}
+
+	/// <summary>
+	/// Repeats MigrateFeatureStates for a per-user choice: the dialogs carry the feature states over before the scope
+	/// is chosen, so only from installs for all users.
+	/// </summary>
+	[CustomAction]
+	public static ActionResult MigratePerUserFeatureStates(Session session)
+	{
+		return Run(
+			session,
+			nameof(MigratePerUserFeatureStates),
+			() => MigratePerUserFeatures(session));
 	}
 	#endregion
 
@@ -67,12 +80,9 @@ public static class RelatedProductsActions
 	{
 		UpgradeRule[] rules = ReadUpgradeRules(session.Database);
 
-		RelatedProduct[] products = [.. GetInstalledProducts(session, rules.Select(static x => x.UpgradeCode))
-			.Where(static x => x.Scope == InstallScope.PerUser)];
-
 		return RelatedProductMatcher.Match(
 			rules,
-			products,
+			GetPerUserProducts(session, rules),
 			session["ProductCode"]);
 	}
 
@@ -106,6 +116,15 @@ public static class RelatedProductsActions
 	}
 
 	/// <summary>
+	/// Returns the installs of the current user of the products of the Upgrade table.
+	/// </summary>
+	private static RelatedProduct[] GetPerUserProducts(Session session, IReadOnlyCollection<UpgradeRule> rules)
+	{
+		return [.. GetInstalledProducts(session, rules.Select(static x => x.UpgradeCode))
+			.Where(static x => x.Scope == InstallScope.PerUser)];
+	}
+
+	/// <summary>
 	/// Returns the context of the running install. Windows Installer clears ALLUSERS once it installs for one user.
 	/// </summary>
 	private static InstallScope GetScope(Session session)
@@ -113,6 +132,37 @@ public static class RelatedProductsActions
 		return string.IsNullOrEmpty(session["ALLUSERS"])
 			? InstallScope.PerUser
 			: InstallScope.PerMachine;
+	}
+
+	/// <summary>
+	/// Requests the feature states of the installed version of the current user that the package upgrades, if any.
+	/// </summary>
+	private static void MigratePerUserFeatures(Session session)
+	{
+		UpgradeRule[] rules = ReadUpgradeRules(session.Database);
+
+		RelatedProduct? source = RelatedProductMatcher.FindFeatureSource(
+			rules,
+			GetPerUserProducts(session, rules),
+			session["ProductCode"]);
+
+		if (source is null)
+		{
+			session.Log($"{nameof(MigratePerUserFeatureStates)}: no installed version to take the features from");
+
+			return;
+		}
+
+		Dictionary<string, InstallState> installedStates = session.Features.ToDictionary(
+			static x => x.Name,
+			x => new FeatureInstallation(x.Name, source.ProductCode).State);
+
+		foreach (KeyValuePair<string, InstallState> state in FeatureStateMigration.SelectStates(installedStates))
+		{
+			session.Features[state.Key].RequestState = state.Value;
+
+			session.Log($"{nameof(MigratePerUserFeatureStates)}: {state.Key} = {state.Value} from {source.ProductCode}");
+		}
 	}
 
 	/// <summary>
@@ -178,36 +228,45 @@ public static class RelatedProductsActions
 	}
 
 	/// <summary>
-	/// Sets the properties an action finds and logs each. A failure is logged, and the install goes on without them.
+	/// Runs the work of an action. A failure is logged, and the install goes on without its result.
 	/// </summary>
 	private static ActionResult Run(
 		Session session,
 		string actionName,
-		Func<IReadOnlyDictionary<string, string>> findProperties)
+		Action work)
 	{
 		try
 		{
-			IReadOnlyDictionary<string, string> properties = findProperties();
-
-			if (properties.Count == 0)
-			{
-				session.Log($"{actionName}: nothing found");
-			}
-
-			foreach (KeyValuePair<string, string> property in properties)
-			{
-				session[property.Key] = property.Value;
-
-				session.Log($"{actionName}: {property.Key} = '{property.Value}'");
-			}
+			work();
 		}
 		catch (Exception e)
 		{
-			// Without the search the install still goes on, only beside the installs it would have found
+			// Without the result the install still goes on, as it would without the action
 			session.Log($"{actionName} failed: {e}");
 		}
 
 		return ActionResult.Success;
+	}
+
+	/// <summary>
+	/// Sets the properties an action has found and logs each.
+	/// </summary>
+	private static void SetProperties(
+		Session session,
+		string actionName,
+		IReadOnlyDictionary<string, string> properties)
+	{
+		if (properties.Count == 0)
+		{
+			session.Log($"{actionName}: nothing found");
+		}
+
+		foreach (KeyValuePair<string, string> property in properties)
+		{
+			session[property.Key] = property.Value;
+
+			session.Log($"{actionName}: {property.Key} = '{property.Value}'");
+		}
 	}
 	#endregion
 }

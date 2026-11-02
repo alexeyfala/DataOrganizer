@@ -192,6 +192,27 @@
 			Id="FindOtherScopeInstalls"
 			Return="check" />
 
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="MigratePerUserFeatureStates"
+			Execute="immediate"
+			Id="MigratePerUserFeatureStates"
+			Return="check" />
+
+		<!--
+			The dialogs carry the feature states of an installed version over before the scope is chosen, so only from
+			installs for all users. A per-user choice takes them from the installed version of the current user.
+		-->
+		<UI>
+			<Publish
+				Condition="WixAppFolder = &quot;WixPerUserFolder&quot; AND NOT Installed"
+				Control="Next"
+				Dialog="InstallScopeDlg"
+				Event="DoAction"
+				Order="5"
+				Value="MigratePerUserFeatureStates" />
+		</UI>
+
 		<InstallExecuteSequence>
 			<Custom
 				Action="FindPerUserRelatedProducts"
