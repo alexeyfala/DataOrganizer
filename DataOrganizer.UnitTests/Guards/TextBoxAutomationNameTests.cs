@@ -26,7 +26,7 @@ internal class TextBoxAutomationNameTests
 
 		TextFieldAssist.SetLabel(textBox, label);
 
-		Show(textBox);
+		HeadlessWindow.Show(textBox);
 
 		// Act
 		string name = ControlAutomationPeer
@@ -53,7 +53,7 @@ internal class TextBoxAutomationNameTests
 			PlaceholderText = placeholder
 		};
 
-		Show(textBox);
+		HeadlessWindow.Show(textBox);
 
 		// Act
 		string name = ControlAutomationPeer
@@ -64,21 +64,6 @@ internal class TextBoxAutomationNameTests
 		name
 			.Should()
 			.Be(placeholder);
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Shows the text box in a window, so that the styles of the application name it.
-	/// </summary>
-	private static void Show(TextBox textBox)
-	{
-		Window window = new()
-		{
-			Content = textBox
-		};
-
-		window.Show();
 	}
 	#endregion
 }

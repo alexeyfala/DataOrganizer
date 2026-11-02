@@ -8,7 +8,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
@@ -18,7 +17,6 @@ using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
@@ -84,7 +82,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		window.RequestedThemeVariant = ThemeVariant.Light;
 
@@ -116,7 +114,7 @@ internal class DocumentTextEditorTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Assert
 		BookmarkMargin margin = sut
@@ -713,7 +711,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.Document = new(PowerShellText);
@@ -852,7 +850,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -952,7 +950,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.CaretOffset = sut.Document.GetLineByNumber(250).Offset;
 
@@ -995,7 +993,7 @@ internal class DocumentTextEditorTests
 			Gesture = new KeyGesture(Key.M, KeyModifiers.Control)
 		});
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1026,7 +1024,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1060,7 +1058,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1093,7 +1091,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1207,7 +1205,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1247,7 +1245,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1280,7 +1278,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -1343,7 +1341,7 @@ internal class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.Document.Insert(0, "New ");
 
@@ -1454,7 +1452,7 @@ internal class DocumentTextEditorTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.Bookmarks.Toggle(800);
 
@@ -1543,7 +1541,7 @@ internal class DocumentTextEditorTests
 			Document = CreateDocument(lineCount: 3)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.Bookmarks.Toggle(2);
 
@@ -1609,7 +1607,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		window.Height = 300.0;
 
@@ -1658,7 +1656,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1694,7 +1692,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1733,7 +1731,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1768,7 +1766,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = "xml"
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// The inner element starts after the indentation of its line.
 		FoldingSection block = GetFoldings(sut)[1];
@@ -1801,7 +1799,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		GetFoldings(sut)
 			.Single()
@@ -1835,7 +1833,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1872,7 +1870,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = "xml"
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		TextView textView = sut.TextArea.TextView;
 
@@ -1899,7 +1897,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1935,7 +1933,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -1967,7 +1965,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2020,7 +2018,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		window.Height = 300.0;
 
@@ -2075,7 +2073,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		window.Height = 300.0;
 
@@ -2131,7 +2129,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		window.Height = 300.0;
 
@@ -2181,7 +2179,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2226,7 +2224,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2264,7 +2262,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2296,7 +2294,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2329,7 +2327,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2420,7 +2418,7 @@ internal class DocumentTextEditorTests
 			Document = CreateDocument(lineCount: 3)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.Bookmarks.Toggle(2);
 
@@ -2669,7 +2667,7 @@ internal class DocumentTextEditorTests
 			Document = new("abcdef\nabcdef")
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.TextArea.Selection = new RectangleSelection(
@@ -2927,7 +2925,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		FoldingSection block = GetFoldings(sut).Single();
 
@@ -2964,7 +2962,7 @@ internal class DocumentTextEditorTests
 			Document = new(PowerShellText)
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		sut.SyntaxLanguage = PowerShellLanguage;
@@ -3082,9 +3080,9 @@ internal class DocumentTextEditorTests
 			Document = new(PowerShellText)
 		};
 
-		Show(lightEditor).RequestedThemeVariant = ThemeVariant.Light;
+		HeadlessWindow.ShowInFluentTheme(lightEditor).RequestedThemeVariant = ThemeVariant.Light;
 
-		Show(sut).RequestedThemeVariant = ThemeVariant.Dark;
+		HeadlessWindow.ShowInFluentTheme(sut).RequestedThemeVariant = ThemeVariant.Dark;
 
 		lightEditor.SyntaxLanguage = PowerShellLanguage;
 
@@ -3203,7 +3201,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new();
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		bool isFound = sut.TextArea.TextView.TryFindResource(typeof(ToolTip), out object? theme);
@@ -3246,7 +3244,7 @@ internal class DocumentTextEditorTests
 			Document = CreateDocument(lineCount: 3)
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.CaretOffset = sut.Document.GetLineByNumber(2).Offset;
 
@@ -3314,7 +3312,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -3345,7 +3343,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -3376,7 +3374,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -3462,7 +3460,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -3502,7 +3500,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.TextArea.Focus();
 
@@ -3721,7 +3719,7 @@ internal class DocumentTextEditorTests
 			Document = new("one tWo three")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		sut.Select(4, 3);
 
@@ -3896,7 +3894,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		GetFoldings(sut)[1].IsFolded = true;
 
@@ -3938,7 +3936,7 @@ internal class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		GetFoldings(sut)[1].IsFolded = true;
 
@@ -4183,29 +4181,6 @@ internal class DocumentTextEditorTests
 			0,
 			PointerPointProperties.None,
 			KeyModifiers.None));
-	}
-
-	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(DocumentTextEditor editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		Window window = new()
-		{
-			Content = editor,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 
 	/// <summary>

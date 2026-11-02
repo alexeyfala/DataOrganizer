@@ -1,0 +1,31 @@
+<!--
+	WixLocalization - https://docs.firegiant.com/wix/schema/wxl/wixlocalization
+-->
+
+<WixLocalization
+	Culture="ru-ru"
+	xmlns="http://wixtoolset.org/schemas/v4/wxl">
+	<String
+		Id="AutostartFeatureDescription"
+		Value="Добавляет !(wix.AppDisplayName) в автозагрузку Windows." />
+
+	<String
+		Id="AutostartFeatureTitle"
+		Value="Запускать !(wix.AppDisplayName) вместе с Windows" />
+
+	<String
+		Id="DowngradeError"
+		Value="Уже установлена более новая версия !(wix.AppDisplayName)." />
+
+	<String
+		Id="InstalledForAllUsersError"
+		Value="!(wix.AppDisplayName) уже установлен для всех пользователей. Перед установкой только для текущего пользователя его нужно удалить." />
+
+	<String
+		Id="InstalledForCurrentUserError"
+		Value="!(wix.AppDisplayName) уже установлен для текущего пользователя. Перед установкой для всех пользователей его нужно удалить." />
+
+	<String
+		Id="LaunchApplication"
+		Value="Запустить !(wix.AppDisplayName)" />
+</WixLocalization>

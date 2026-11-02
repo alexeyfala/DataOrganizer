@@ -41,7 +41,7 @@ internal class DocumentTabControlTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetRight(sut, GetAddButton(sut))
@@ -63,7 +63,7 @@ internal class DocumentTabControlTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetLeft(sut, GetAddButton(sut))
@@ -87,7 +87,7 @@ internal class DocumentTabControlTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		GetAddButton(sut).IsVisible
@@ -112,7 +112,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
@@ -140,7 +140,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
@@ -177,7 +177,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
@@ -221,7 +221,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
@@ -261,7 +261,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
@@ -296,7 +296,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.Click(window.CenterOf(GetHeaderText(sut, "first")), MouseButton.Right);
 
@@ -336,7 +336,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
 
@@ -376,7 +376,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetAddButton(sut));
 
@@ -408,7 +408,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetCloseButton(sut, 1));
 
@@ -465,7 +465,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 1;
 
@@ -497,7 +497,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 1;
 
@@ -530,7 +530,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 1;
 
@@ -561,7 +561,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.PreviousItem = "third";
 
@@ -589,7 +589,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 2;
 
@@ -619,7 +619,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.PreviousItem = "second";
 
@@ -646,7 +646,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 1;
 
@@ -677,7 +677,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "first"));
 
@@ -712,7 +712,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point from = window.CenterOf(GetCloseButton(sut, 0));
 
@@ -750,7 +750,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		sut.SelectedItem = dragged;
 
@@ -784,7 +784,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point from = window.CenterOf(GetHeaderText(sut, "third"));
 
@@ -820,7 +820,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Control container = sut.ContainerFromIndex(0)!;
 
@@ -873,7 +873,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point from = window.CenterOf(GetHeaderText(sut, "first"));
 
@@ -909,7 +909,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point from = window.CenterOf(GetHeaderText(sut, dragged));
 
@@ -1052,7 +1052,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
@@ -1084,7 +1084,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		TextBlock content = sut
 			.GetVisualDescendants()
@@ -1114,7 +1114,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.SelectedIndex = 1;
@@ -1141,7 +1141,7 @@ internal class DocumentTabControlTests
 			PreviousItem = "second"
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Act
 		sut.SelectedIndex = 2;
@@ -1169,7 +1169,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "second"));
 
@@ -1209,7 +1209,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second", "third"])
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.Show(sut);
 
 		Point point = window.CenterOf(GetHeaderText(sut, "third"));
 
@@ -1245,7 +1245,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 2;
 
@@ -1274,7 +1274,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 2;
 
@@ -1304,7 +1304,7 @@ internal class DocumentTabControlTests
 			ItemsSource = items
 		};
 
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		sut.SelectedIndex = 1;
 
@@ -1334,7 +1334,7 @@ internal class DocumentTabControlTests
 			ItemsSource = new ObservableCollection<string>(["first", "second"])
 		};
 
-		Show(new DockPanel
+		HeadlessWindow.Show(new DockPanel
 		{
 			Children =
 			{
@@ -1373,7 +1373,7 @@ internal class DocumentTabControlTests
 		};
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		IEnumerable<string?> texts = sut
@@ -1486,25 +1486,6 @@ internal class DocumentTabControlTests
 			0,
 			new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other),
 			KeyModifiers.None));
-	}
-
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

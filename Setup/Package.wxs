@@ -1,19 +1,36 @@
-﻿<!--
+<!--
+	Binary - https://docs.firegiant.com/wix/schema/wxs/binary
 	ComponentGroupRef - https://docs.firegiant.com/wix/schema/wxs/componentgroup
+	Custom - https://docs.firegiant.com/wix/schema/wxs/custom
+	CustomAction - https://docs.firegiant.com/wix/schema/wxs/customaction
 	Feature - https://docs.firegiant.com/wix/schema/wxs/feature
 	Icon - https://docs.firegiant.com/wix/schema/wxs/icon
+	InstallExecuteSequence - https://docs.firegiant.com/wix/schema/wxs/installexecutesequence
+	InstallUISequence - https://docs.firegiant.com/wix/schema/wxs/installuisequence
+	Launch - https://docs.firegiant.com/wix/schema/wxs/launch
 	MajorUpgrade - https://docs.firegiant.com/wix/schema/wxs/majorupgrade
 	Media - https://docs.firegiant.com/wix/schema/wxs/media
 	Package - https://docs.firegiant.com/wix/schema/wxs/package
 	Property - https://docs.firegiant.com/wix/schema/wxs/property
+	Publish - https://docs.firegiant.com/wix/schema/wxs/publish
+	RegistrySearch - https://docs.firegiant.com/wix/schema/wxs/registrysearch
+	SetProperty - https://docs.firegiant.com/wix/schema/wxs/setproperty
+	UI - https://docs.firegiant.com/wix/schema/wxs/ui
 	UIRef - https://docs.firegiant.com/wix/schema/wxs/uiref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 	WixUI - https://docs.firegiant.com/wix/schema/ui/wixui
+	WixVariable - https://docs.firegiant.com/wix/schema/wxs/wixvariable
 -->
 
 <!--
 	Dialogs:
 	https://docs.firegiant.com/wix/tools/wixext/wixui
+
+	Launch after setup:
+	https://docs.firegiant.com/wix3/howtos/ui_and_localization/run_program_after_install
+
+	Remember Property pattern:
+	https://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/
 -->
 
 <?include Predefines.wxi ?>
@@ -26,7 +43,7 @@
 		Name="$(var.FullName)"
 		UpgradeCode="$(var.UpgradeCode)"
 		Version="$(var.AppVersion)">
-		
+
 		<!--
 			This makes sure the .cab file is embedded in the .msi file;
 			otherwise, the .cab file is external and must be moved around with
@@ -45,6 +62,13 @@
 			Comments="$(var.AppDisplayName) installer. Copyright (c) 2026 $(var.Manufacturer). Licensed under $(var.License)."
 			Description="$(var.AppDisplayName) $(var.AppVersion) Setup"
 			Keywords="Installer, MSI, $(var.AppDisplayName)" />
+
+		<!--
+			A rebuild of the same version replaces the installed one instead of installing beside it.
+		-->
+		<MajorUpgrade
+			AllowSameVersionUpgrades="yes"
+			DowngradeErrorMessage="!(loc.DowngradeError)" />
 
 		<!--
 			https://docs.firegiant.com/wix3/wixui/dialog_reference/wixui_advanced
@@ -66,6 +90,199 @@
 		<Property
 			Id="WixAppFolder"
 			Value="WixPerMachineFolder" />
+
+		<!--
+			WixUI_Advanced defaults per-user installs to "[LocalAppDataFolder]Apps\[ApplicationFolderName]".
+			Use the per-user Programs folder of Windows (FOLDERID_UserProgramFiles) instead.
+		-->
+		<CustomAction
+			Execute="immediate"
+			Id="WixSetDefaultPerUserFolderPrograms"
+			Property="WixPerUserFolder"
+			Value="[LocalAppDataFolder]Programs\[ApplicationFolderName]" />
+
+		<InstallExecuteSequence>
+			<Custom
+				Action="WixSetDefaultPerUserFolderPrograms"
+				Before="WixSetPerUserFolder" />
+		</InstallExecuteSequence>
+
+		<InstallUISequence>
+			<Custom
+				Action="WixSetDefaultPerUserFolderPrograms"
+				Before="WixSetPerUserFolder" />
+		</InstallUISequence>
+
+		<!--
+			The folder of an install is kept in the registry, and the next version offers it again (the Remember
+			Property pattern). The dialogs read it before the scope is chosen, so both contexts are read; without a value
+			the defaults of WixUI_Advanced stay.
+		-->
+		<Property
+			Id="REMEMBEREDPERMACHINEFOLDER"
+			Secure="yes">
+			<RegistrySearch
+				Key="$(var.AppRegistryKey)"
+				Name="$(var.InstallFolderValueName)"
+				Root="HKLM"
+				Type="raw" />
+		</Property>
+
+		<Property
+			Id="REMEMBEREDPERUSERFOLDER"
+			Secure="yes">
+			<RegistrySearch
+				Key="$(var.AppRegistryKey)"
+				Name="$(var.InstallFolderValueName)"
+				Root="HKCU"
+				Type="raw" />
+		</Property>
+
+		<SetProperty
+			Action="SetRememberedPerMachineFolder"
+			After="WixSetDefaultPerMachine64Folder"
+			Condition="REMEMBEREDPERMACHINEFOLDER"
+			Id="WixPerMachineFolder"
+			Sequence="both"
+			Value="[REMEMBEREDPERMACHINEFOLDER]" />
+
+		<SetProperty
+			Action="SetRememberedPerUserFolder"
+			After="WixSetDefaultPerUserFolderPrograms"
+			Condition="REMEMBEREDPERUSERFOLDER"
+			Id="WixPerUserFolder"
+			Sequence="both"
+			Value="[REMEMBEREDPERUSERFOLDER]" />
+
+		<!--
+			For a per-user choice WixUI_Advanced only sets the APPLICATIONFOLDER property. SetTargetPath moves
+			the folder itself too, as InstallDirDlg does for all users, so [#AppExe] points into it.
+		-->
+		<UI>
+			<Publish
+				Condition="WixAppFolder = &quot;WixPerUserFolder&quot;"
+				Control="Next"
+				Dialog="InstallScopeDlg"
+				Event="SetTargetPath"
+				Order="5"
+				Value="APPLICATIONFOLDER" />
+		</UI>
+
+		<!--
+			The search for installed versions sees one installation context, and in the dialogs it runs before the scope
+			is chosen, so it sees only installs for all users. The installation itself, before any change, repeats it for
+			a per-user choice and finds the installs of the other context, which a major upgrade cannot replace; the
+			launch conditions then refuse to install beside them. Silent installs get the same checks.
+		-->
+		<Binary
+			Id="SetupCustomActions"
+			SourceFile="$(var.Setup.CustomActions.TargetDir)$(var.Setup.CustomActions.TargetName).CA.dll" />
+
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="FindPerUserRelatedProducts"
+			Execute="immediate"
+			Id="FindPerUserRelatedProducts"
+			Return="check" />
+
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="FindOtherScopeInstalls"
+			Execute="immediate"
+			Id="FindOtherScopeInstalls"
+			Return="check" />
+
+		<CustomAction
+			BinaryRef="SetupCustomActions"
+			DllEntry="MigratePerUserFeatureStates"
+			Execute="immediate"
+			Id="MigratePerUserFeatureStates"
+			Return="check" />
+
+		<!--
+			The dialogs carry the feature states of an installed version over before the scope is chosen, so only from
+			installs for all users. A per-user choice takes them from the installed version of the current user.
+		-->
+		<UI>
+			<Publish
+				Condition="WixAppFolder = &quot;WixPerUserFolder&quot; AND NOT Installed"
+				Control="Next"
+				Dialog="InstallScopeDlg"
+				Event="DoAction"
+				Order="5"
+				Value="MigratePerUserFeatureStates" />
+		</UI>
+
+		<InstallExecuteSequence>
+			<Custom
+				Action="FindPerUserRelatedProducts"
+				After="FindRelatedProducts"
+				Condition="NOT Installed AND NOT ALLUSERS" />
+
+			<Custom
+				Action="FindOtherScopeInstalls"
+				After="FindPerUserRelatedProducts"
+				Condition="NOT Installed" />
+		</InstallExecuteSequence>
+
+		<Launch
+			Condition="NOT InstalledForAllUsers"
+			Message="!(loc.InstalledForAllUsersError)" />
+
+		<Launch
+			Condition="NOT InstalledForCurrentUser"
+			Message="!(loc.InstalledForCurrentUserError)" />
+
+		<!--
+			The Install button without the UAC shield ends a per-user choice. It hands the choice to
+			Windows Installer 5.0 as the per-user context of a dual-purpose package, which needs no UAC.
+		-->
+		<UI>
+			<Publish
+				Condition="NOT Installed"
+				Control="InstallNoShield"
+				Dialog="FeaturesDlg"
+				Order="1"
+				Property="MSIINSTALLPERUSER"
+				Value="1" />
+
+			<Publish
+				Condition="NOT Installed"
+				Control="InstallNoShield"
+				Dialog="FeaturesDlg"
+				Order="1"
+				Property="ALLUSERS"
+				Value="2" />
+		</UI>
+
+		<!--
+			The optional check box of the exit dialog starts the application, unchecked by default.
+			Explorer starts it, so it gets the rights of the signed-in user even from an elevated installer.
+		-->
+		<WixVariable
+			Id="AppDisplayName"
+			Value="$(var.AppDisplayName)" />
+
+		<Property
+			Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+			Value="!(loc.LaunchApplication)" />
+
+		<CustomAction
+			Directory="WindowsFolder"
+			ExeCommand="&quot;[WindowsFolder]explorer.exe&quot; &quot;[#AppExe]&quot;"
+			Execute="immediate"
+			Id="LaunchApplication"
+			Impersonate="yes"
+			Return="asyncNoWait" />
+
+		<UI>
+			<Publish
+				Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed"
+				Control="Finish"
+				Dialog="ExitDialog"
+				Event="DoAction"
+				Value="LaunchApplication" />
+		</UI>
 
 		<Property
 			Id="ARPNOREPAIR"
@@ -108,7 +325,16 @@
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 
-		<!-- Fixes default folder used for per-machine installs for 64-bit installs -->
-		<?include IssueWorkaround.wxi ?>
+		<!--
+			Start at sign-in, off by default: its level is above the default INSTALLLEVEL of 1.
+		-->
+		<Feature
+			AllowAdvertise="no"
+			Description="!(loc.AutostartFeatureDescription)"
+			Id="Autostart"
+			Level="2"
+			Title="!(loc.AutostartFeatureTitle)">
+			<ComponentGroupRef Id="Autostart" />
+		</Feature>
 	</Package>
 </Wix>

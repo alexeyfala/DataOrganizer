@@ -9,13 +9,11 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.UnitTests.Factories;
@@ -55,7 +53,7 @@ internal class ScrollMarkMarginTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -95,7 +93,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -136,7 +134,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -182,7 +180,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -239,7 +237,7 @@ internal class ScrollMarkMarginTests
 			OccurrenceSource = source.TextArea
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -283,7 +281,7 @@ internal class ScrollMarkMarginTests
 				})))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -325,7 +323,7 @@ internal class ScrollMarkMarginTests
 			IsSensitive = true
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -375,7 +373,7 @@ internal class ScrollMarkMarginTests
 				})))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -430,7 +428,7 @@ internal class ScrollMarkMarginTests
 				})))
 		};
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -467,7 +465,7 @@ internal class ScrollMarkMarginTests
 		TestTextEditor editor = new();
 
 		// Act
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -485,7 +483,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		TestTextEditor editor = new();
 
-		Window window = Show(editor);
+		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Act
 		window.Content = null;
@@ -511,7 +509,7 @@ internal class ScrollMarkMarginTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -544,7 +542,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x == 500 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -586,7 +584,7 @@ internal class ScrollMarkMarginTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -616,7 +614,7 @@ internal class ScrollMarkMarginTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -656,7 +654,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -694,7 +692,7 @@ internal class ScrollMarkMarginTests
 		editor.Bookmarks.Toggle(500);
 
 		// Act
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Assert
 		GetShapes(Draw(GetMargin(editor)), GetBookmarkBrush())
@@ -725,7 +723,7 @@ internal class ScrollMarkMarginTests
 			OccurrenceSource = source.TextArea
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -754,7 +752,7 @@ internal class ScrollMarkMarginTests
 			Document = CreateDocument(lineCount: 1000)
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -787,7 +785,7 @@ internal class ScrollMarkMarginTests
 			Document = new(string.Join('\n', Enumerable.Repeat("needle", 2000)))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -821,7 +819,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x <= 3 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -860,7 +858,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		TestTextEditor editor = new();
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -898,7 +896,7 @@ internal class ScrollMarkMarginTests
 			Document = document
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -941,7 +939,7 @@ internal class ScrollMarkMarginTests
 				.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")))
 		};
 
-		Show(editor);
+		HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
@@ -1063,29 +1061,6 @@ internal class ScrollMarkMarginTests
 	/// Returns the tip of the margin.
 	/// </summary>
 	private static StackPanel GetTip(ScrollMarkMargin margin) => (StackPanel)ToolTip.GetTip(margin)!;
-
-	/// <summary>
-	/// Shows the editor in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(TextEditorBase editor)
-	{
-		Interaction
-			.GetBehaviors(editor)
-			.Add(new FluentThemeBehavior());
-
-		Window window = new()
-		{
-			Content = editor,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
-	}
 
 	/// <summary>
 	/// Waits until the margin draws a number of rows of occurrence marks.

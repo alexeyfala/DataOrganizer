@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.DragAndDrop;
@@ -44,7 +43,7 @@ internal class ItemDragBehaviorTests
 		// Arrange
 		ItemsControl list = CreateList(out Border row);
 
-		Window window = Show(list);
+		Window window = HeadlessWindow.Show(list);
 
 		IPointer? pointer = null;
 
@@ -75,7 +74,7 @@ internal class ItemDragBehaviorTests
 		// Arrange
 		ItemsControl list = CreateList(out Border row);
 
-		Window window = Show(list);
+		Window window = HeadlessWindow.Show(list);
 
 		window.MouseDown(Start, MouseButton.Left);
 
@@ -128,25 +127,6 @@ internal class ItemDragBehaviorTests
 			Background = Brushes.Transparent,
 			Height = RowHeight
 		};
-	}
-
-	/// <summary>
-	/// Shows an element in a window and lays it out.
-	/// </summary>
-	private static Window Show(Control element)
-	{
-		Window window = new()
-		{
-			Content = element,
-			Height = 200.0,
-			Width = 200.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

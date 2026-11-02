@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
 
     steps:
       - name: Checkout
@@ -107,6 +107,9 @@ jobs:
 
       - name: Test Settings.UnitTests
         run: dotnet test Settings.UnitTests/Settings.UnitTests.csproj --configuration Release
+
+      - name: Test Setup.CustomActions.UnitTests
+        run: dotnet test Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj --configuration Release
 
       - name: Test Shared.UnitTests
         run: dotnet test Shared.UnitTests/Shared.UnitTests.csproj --configuration Release

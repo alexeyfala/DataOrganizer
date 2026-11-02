@@ -3,10 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.UnitTests.Factories;
 using Serilog.Events;
@@ -38,7 +36,7 @@ internal class ConsoleLogViewerTests
 			Document = new("[INF]    Message")
 		};
 
-		Window window = Show(sut);
+		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
 		Point point = sut.TextArea.TextView.GetColumnCenter(7);
 
@@ -70,7 +68,7 @@ internal class ConsoleLogViewerTests
 			Document = document
 		};
 
-		Show(sut);
+		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
 		document.Insert(
@@ -116,29 +114,6 @@ internal class ConsoleLogViewerTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
-	}
-
-	/// <summary>
-	/// Shows the log viewer in its theme in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(ConsoleLogViewer viewer)
-	{
-		Interaction
-			.GetBehaviors(viewer)
-			.Add(new FluentThemeBehavior());
-
-		Window window = new()
-		{
-			Content = viewer,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

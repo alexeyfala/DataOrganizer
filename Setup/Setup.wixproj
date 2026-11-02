@@ -1,46 +1,59 @@
 ﻿<Project Sdk="WixToolset.Sdk/7.0.1">
-  <PropertyGroup>
-	<AcceptEula>wix7</AcceptEula>
-	<OutputName>$(MsiOutputName)</OutputName>
-	<OutputPath>..\Publish</OutputPath>
-	<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
-	<Cultures>$(SetupCulture)</Cultures>
-	<!--
+	<PropertyGroup>
+		<AcceptEula>wix7</AcceptEula>
+		<OutputName>$(MsiOutputName)</OutputName>
+		<OutputPath>..\Publish</OutputPath>
+		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
+		<Cultures>$(SetupCulture)</Cultures>
+		<!--
 			WIX1101 reports that the neutral language of e_sqlite3.dll was supplied by hand
 			rather than read from the file. That is deliberate and explained in Components.wxs:
 			the library ships no translation block, and without the value ICE60 fires instead.
 		-->
-	<SuppressSpecificWarnings>1101</SuppressSpecificWarnings>
-  </PropertyGroup>
-  <PropertyGroup>
-	<DefineConstants>$(DefineConstants);AppDisplayName=$(AppDisplayName)</DefineConstants>
-	<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-	<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-	<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-	<DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
-	<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-	<Content Include="IssueWorkaround.wxi" />
-	<Content Include="Predefines.wxi" />
-  </ItemGroup>
-  <ItemGroup>
-	<PackageReference Include="WixToolset.UI.wixext" Version="7.0.1" />
-  </ItemGroup>
-  <ItemGroup>
-	<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
-  </ItemGroup>
-  <Target Name="PreBuild" BeforeTargets="CoreCompile" DependsOnTargets="ResolveReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-	<PropertyGroup>
-	  <_DesktopPublishDir>@(_WixReferencedProjectOutputs->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
+		<SuppressSpecificWarnings>1101</SuppressSpecificWarnings>
+		<!--
+			ICE61 expects a major upgrade to remove only older versions. MajorUpgrade in Package.wxs
+			deliberately removes the same version too, so a rebuild replaces the installed one.
+		-->
+		<SuppressIces>ICE61</SuppressIces>
 	</PropertyGroup>
-	<!-- Generate the RTF license from the plain-text LICENSE. -->
-	<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File ..\tools\gen-license-rtf.ps1" WorkingDirectory="$(MSBuildProjectDirectory)" />
-	<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
-  </Target>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
-	<Exec Command="del /f $(OutputPath)\*.wixpdb" />
-	<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
-	<Exec Command="explorer /select,&quot;$(TargetPath)&quot;" IgnoreExitCode="true" Condition="'$(OpenOutputFolder)' != 'false'" />
-  </Target>
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);AppDisplayName=$(AppDisplayName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
+		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<Content Include="Predefines.wxi" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="WixToolset.UI.wixext" Version="7.0.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
+		<ProjectReference Include="..\Setup.CustomActions\Setup.CustomActions.csproj" />
+	</ItemGroup>
+	<Target Name="PreBuild" BeforeTargets="CoreCompile" DependsOnTargets="ResolveReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+		<PropertyGroup>
+			<_DesktopPublishDir>@(_WixReferencedProjectOutputs->WithMetadataValue('OriginalItemSpec', '..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj')->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
+		</PropertyGroup>
+		<!-- Generate the RTF license from the plain-text LICENSE. -->
+		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File ..\tools\gen-license-rtf.ps1" WorkingDirectory="$(MSBuildProjectDirectory)" />
+		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
+	</Target>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
+		<!--
+		With .wxl files WiX builds into a culture subfolder. One culture is built at a time, so the MSI moves
+		up to the output folder, where Bundle and the release steps take it, and the subfolder with the .wixpdb goes.
+	-->
+		<PropertyGroup>
+			<_CultureOutputDir>$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))\</_CultureOutputDir>
+		</PropertyGroup>
+		<Move SourceFiles="$(TargetPath)" DestinationFolder="$(TargetDir)" Condition="'$(_CultureOutputDir)' != '$(TargetDir)'" />
+		<RemoveDir Directories="$(_CultureOutputDir)" Condition="'$(_CultureOutputDir)' != '$(TargetDir)'" />
+		<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
+		<Exec Command="explorer /select,&quot;$(TargetDir)$(TargetFileName)&quot;" IgnoreExitCode="true" Condition="'$(OpenOutputFolder)' != 'false'" />
+	</Target>
 </Project>

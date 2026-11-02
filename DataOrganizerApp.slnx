@@ -15,6 +15,7 @@
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
+    <Project Path="Setup.CustomActions/Setup.CustomActions.csproj" />
     <Project Path="Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
@@ -158,6 +159,9 @@
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
     <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Deployment/">
+    <Project Path="Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/Documents/">
     <Project Path="DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj" />

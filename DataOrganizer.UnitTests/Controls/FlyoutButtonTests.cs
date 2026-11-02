@@ -37,7 +37,7 @@ internal class FlyoutButtonTests
 
 		Border target = new();
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		menu.ShowAt(target);
 
@@ -76,7 +76,7 @@ internal class FlyoutButtonTests
 			ContextFlyout = menu
 		};
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		menu.ShowAt(target);
 
@@ -123,7 +123,7 @@ internal class FlyoutButtonTests
 
 		Border target = new();
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		menu.ShowAt(target);
 
@@ -165,7 +165,7 @@ internal class FlyoutButtonTests
 			Child = sut
 		};
 
-		Window window = Show(new Panel
+		Window window = HeadlessWindow.Show(new Panel
 		{
 			Children =
 			{
@@ -214,7 +214,7 @@ internal class FlyoutButtonTests
 
 		Border target = new();
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		menu.ShowAt(target);
 
@@ -259,7 +259,7 @@ internal class FlyoutButtonTests
 
 		Border target = new();
 
-		Window window = Show(target);
+		Window window = HeadlessWindow.Show(target);
 
 		menu.ShowAt(target);
 
@@ -292,7 +292,7 @@ internal class FlyoutButtonTests
 		ToolTip.SetTip(sut, "Cut");
 
 		// Act
-		Show(sut);
+		HeadlessWindow.Show(sut);
 
 		// Assert
 		ToolTip.GetTip(sut)
@@ -323,7 +323,7 @@ internal class FlyoutButtonTests
 		};
 
 		// Act
-		Show(new StackPanel
+		HeadlessWindow.Show(new StackPanel
 		{
 			Orientation = Orientation.Vertical,
 			Children =
@@ -352,25 +352,6 @@ internal class FlyoutButtonTests
 			.Single(x => x.Text == button.Gesture);
 
 		return keys.TranslatePoint(new(keys.Bounds.Width, 0.0), button)?.X ?? 0.0;
-	}
-
-	/// <summary>
-	/// Shows the content in a window of a fixed size and lets the layout settle.
-	/// </summary>
-	private static Window Show(Control content)
-	{
-		Window window = new()
-		{
-			Content = content,
-			Height = 600.0,
-			Width = 800.0
-		};
-
-		window.Show();
-
-		Dispatcher.UIThread.RunJobs();
-
-		return window;
 	}
 	#endregion
 }

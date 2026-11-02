@@ -73,6 +73,23 @@
 		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Decrease}" />
 	</Style>
 
+	<!--
+		The expander of a tree row gets a tip, and through it a name, by its state.
+		It is the only toggle in the template of a row, so its type picks it in any theme.
+	-->
+	<Style Selector="TreeViewItem /template/ ToggleButton:unchecked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Expand}" />
+	</Style>
+
+	<Style Selector="TreeViewItem /template/ ToggleButton:checked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Collapse}" />
+	</Style>
+
+	<!--  A row without children keeps its expander, which Material only makes transparent, out of screen readers and UI Automation.  -->
+	<Style Selector="TreeViewItem:empty /template/ ToggleButton">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+	</Style>
+
 	<!--  The close button of the search panel of the text editors gets a tip, and through it a name.  -->
 	<styling:SearchPanelStyles />
 
