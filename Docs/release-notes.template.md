@@ -10,7 +10,7 @@
 | macOS (x64) | `DataOrganizer-{version}-osx-x64.dmg` | `DataOrganizer-{version}-osx-x64-portable.zip` |
 | Linux (x64) | `dataorganizer_{version}-1_amd64.deb` | `DataOrganizer-{version}-1.x86_64.AppImage` |
 
-All builds are self-contained — the .NET runtime is bundled, no separate install required.
+The portable builds and the macOS and Linux packages are self-contained — the .NET runtime is bundled, no separate install required. The Windows `.msi` needs the [.NET 10 Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) installed first.
 (The `-1` in the Linux file names is the package revision; bump it when re-packaging the same version.)
 
 ### Install & run
