@@ -3,6 +3,7 @@ using FileExecution.Interfaces;
 using Microsoft.Win32;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -46,6 +47,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <inheritdoc cref="IAppPickerPrompt" />
 	private readonly IAppPickerPrompt _appPickerPrompt;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 	#endregion
@@ -54,9 +58,12 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	public WindowsAppPickerService(
 		IAppPickerPrompt appPickerPrompt,
+		IFileSystem fileSystem,
 		ILogger logger)
 	{
 		_appPickerPrompt = appPickerPrompt;
+
+		_fileSystem = fileSystem;
 
 		_logger = logger;
 	}
@@ -170,36 +177,6 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		int nullTerminator = buffer.IndexOf('\0');
 
 		return new string(nullTerminator >= 0 ? buffer[..nullTerminator] : buffer);
-	}
-
-	/// <summary>
-	/// Reads display name, executable path and icon from a single
-	/// <see cref="IAssocHandler" />. Returns <c>null</c> when the handler is missing
-	/// the executable path (rare, but possible for partially-broken registry entries).
-	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
-	private static AssociatedAppInfo? TryBuildInfo(IAssocHandler handler)
-	{
-		int hr = handler.GetName(out string? appPath);
-
-		if (hr != HResultOk || string.IsNullOrEmpty(appPath))
-		{
-			return null;
-		}
-
-		hr = handler.GetUIName(out string? uiName);
-
-		if (hr != HResultOk || string.IsNullOrEmpty(uiName))
-		{
-			uiName = Path.GetFileNameWithoutExtension(appPath);
-		}
-
-		return new AssociatedAppInfo
-		{
-			AppName = uiName,
-			AppPath = appPath,
-			IconPng = TryLoadIcon(appPath)
-		};
 	}
 
 	/// <summary>
@@ -465,6 +442,42 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 				Marshal.ReleaseComObject(enumerator);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Reads display name, executable path and icon from a single <see cref="IAssocHandler" />; <c>null</c> when the
+	/// handler names no program file to start, as a packaged app does by giving its display name instead.
+	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
+	private AssociatedAppInfo? TryBuildInfo(IAssocHandler handler)
+	{
+		int hr = handler.GetName(out string? appPath);
+
+		if (hr != HResultOk || string.IsNullOrEmpty(appPath))
+		{
+			return null;
+		}
+
+		hr = handler.GetUIName(out string? uiName);
+
+		if (hr != HResultOk || string.IsNullOrEmpty(uiName))
+		{
+			uiName = Path.GetFileNameWithoutExtension(appPath);
+		}
+
+		if (!_fileSystem.FileExists(appPath))
+		{
+			_logger.LogDebug($@"Application ""{uiName}"" is not offered: it names no program file to start");
+
+			return null;
+		}
+
+		return new AssociatedAppInfo
+		{
+			AppName = uiName,
+			AppPath = appPath,
+			IconPng = TryLoadIcon(appPath)
+		};
 	}
 	#endregion
 
