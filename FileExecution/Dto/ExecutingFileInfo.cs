@@ -1,3 +1,4 @@
+using FileExecution.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,9 +24,9 @@ internal sealed class ExecutingFileInfo
 	public required string FilePath { get; init; }
 
 	/// <summary>
-	/// Process Id.
+	/// Process started to open the file; <c>null</c> when no process of its own started.
 	/// </summary>
-	public required int ProcessId { get; init; }
+	public required IExecutingFileProcess? Process { get; init; }
 
 	/// <summary>
 	/// Background change-tracking task; <see cref="Task.CompletedTask" /> for read-only files.

@@ -67,7 +67,7 @@ internal class UpdateNotifierTests
 
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>(), out _);
+			.OpenWithShell(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -149,7 +149,7 @@ internal class UpdateNotifierTests
 
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>(), out _);
+			.OpenWithShell(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -237,7 +237,7 @@ internal class UpdateNotifierTests
 
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>(), out _);
+			.OpenWithShell(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -289,7 +289,7 @@ internal class UpdateNotifierTests
 
 		processManager
 			.Received(1)
-			.StartProcess(ReleaseUrl, out _);
+			.OpenWithShell(ReleaseUrl);
 	}
 	#endregion
 }

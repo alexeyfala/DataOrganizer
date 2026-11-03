@@ -8,33 +8,22 @@ namespace FileExecution.Interfaces;
 public interface IProcessManager
 {
 	#region Methods
-	/// <inheritdoc cref="Process.Kill()" />
-	void KillProcess(int processId);
+	/// <summary>
+	/// Opens <paramref name="filePath" /> in the program the operating system assigns to it; <c>null</c> when no process
+	/// of its own started, as for a file the system hands to a program already running.
+	/// </summary>
+	IExecutingFileProcess? OpenFile(string filePath);
+
+	/// <summary>
+	/// Opens <paramref name="filePath" /> in <paramref name="appPath" />, passed to it as a single command-line argument;
+	/// <c>null</c> when the process did not start.
+	/// </summary>
+	IExecutingFileProcess? OpenFile(string appPath, string filePath);
 
 	/// <summary>
 	/// Opens <paramref name="target" />, a file or a URL, with the program the operating system assigns to it.
 	/// </summary>
 	void OpenWithShell(string target);
-
-	/// <summary>
-	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
-	/// </summary>
-	bool ProcessExists(int processId);
-
-	/// <summary>
-	/// Launches a file process depending on the operating system.<br />
-	/// When running a file without an extension, or when the system has no application
-	/// associated with the file, <paramref name="processId"/> will have the default value.
-	/// </summary>
-	bool StartProcess(string filePath, out int processId);
-
-	/// <summary>
-	/// Launches <paramref name="appPath" /> with <paramref name="fileArgument" /> passed
-	/// as a single command-line argument. Returns <c>True</c> and the PID of the new
-	/// process on success; <c>False</c> with default <paramref name="processId" /> when
-	/// the process did not start.
-	/// </summary>
-	bool StartProcess(string appPath, string fileArgument, out int processId);
 
 	/// <inheritdoc cref="Process.Start(string)" />
 	Process StartProcess(string fileName);
