@@ -10,6 +10,8 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
+using System.IO;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using WindowContracts.Interfaces;
@@ -184,6 +186,12 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
+			// On Windows the folder of a user is already closed to the other accounts by its access rights.
+			if (!OperatingSystem.IsWindows())
+			{
+				RestrictToOwner(_appEnvironment.AppDataDirectoryPath);
+			}
+
 			await _sandbox
 				.EraseAsync(token)
 				.ConfigureAwait(true);
@@ -259,6 +267,27 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 			await asyncDisposable
 				.DisposeAsync()
 				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Lets only the owner into <paramref name="directoryPath" />, so that the other accounts of the machine cannot read
+	/// the data; a failure only goes to the log.
+	/// </summary>
+	[UnsupportedOSPlatform("windows")]
+	private void RestrictToOwner(string directoryPath)
+	{
+		try
+		{
+			_fileSystem.SetUnixFileMode(
+				directoryPath,
+				UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+
+			_logger.LogInformation($@"Folder ""{directoryPath}"" is open to its owner only");
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 

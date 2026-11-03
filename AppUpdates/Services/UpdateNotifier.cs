@@ -66,7 +66,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			return;
 		}
 
-		_processManager.StartProcess(url, out _);
+		_processManager.OpenWithShell(url);
 	}
 	#endregion
 }

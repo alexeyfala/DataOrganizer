@@ -25,6 +25,12 @@ public class FileChangeTracker : IFileChangeTracker
 {
 	#region Data
 	/// <summary>
+	/// Checks in a row that may find the file missing or locked before tracking gives up: a program that saves through a
+	/// temporary file hides its file for a moment.
+	/// </summary>
+	private const int MaxMissedChecks = 3;
+
+	/// <summary>
 	/// Pause between two checks of the file.
 	/// </summary>
 	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(800.0);
@@ -83,16 +89,34 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		byte[] previousHash = parameters.PreviousHash;
 
+		int missedCount = 0;
+
 		try
 		{
 			while (!token.IsCancellationRequested)
 			{
-				if (await CheckOnceAsync(parameters, previousHash, token).ConfigureAwait(false) is not { } currentHash)
+				byte[]? currentHash = await CheckOnceAsync(
+					parameters,
+					previousHash,
+					missedCount < MaxMissedChecks,
+					token).ConfigureAwait(false);
+
+				if (currentHash is null)
 				{
 					return;
 				}
 
-				previousHash = currentHash;
+				// An empty hash marks a check that missed the file.
+				if (currentHash.Length == 0)
+				{
+					missedCount++;
+				}
+				else
+				{
+					missedCount = 0;
+
+					previousHash = currentHash;
+				}
 
 				await Task
 					.Delay(PollInterval, _timeProvider, token)
@@ -100,7 +124,11 @@ public class FileChangeTracker : IFileChangeTracker
 			}
 
 			// Tracking is being stopped: persist what changed just before that, while the key is still available.
-			await CheckOnceAsync(parameters, previousHash, CancellationToken.None).ConfigureAwait(false);
+			await CheckOnceAsync(
+				parameters,
+				previousHash,
+				mayMiss: false,
+				CancellationToken.None).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -117,20 +145,20 @@ public class FileChangeTracker : IFileChangeTracker
 
 	#region Helpers
 	/// <summary>
-	/// Compares the file against the previously seen state and persists it when it differs;
-	/// answers with the hash just seen, or <c>null</c> when tracking is to stop.
+	/// Compares the file against the previously seen state and persists it when it differs; answers with the hash just
+	/// seen, an empty hash when <paramref name="mayMiss" /> lets a missing or locked file pass, or <c>null</c> when
+	/// tracking is to stop.
 	/// </summary>
 	private async Task<byte[]?> CheckOnceAsync(
 		TrackChangesParameters parameters,
 		byte[] previousHash,
+		bool mayMiss,
 		CancellationToken token)
 	{
 		if (!_fileSystem.FileExists(parameters.FilePath))
 		{
 			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
-
-			return null;
+			return MissFile(parameters, mayMiss, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 		}
 
 		Stream fileStream;
@@ -141,12 +169,10 @@ public class FileChangeTracker : IFileChangeTracker
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogWarning($@"File ""{parameters.FileName}"" cannot be opened: {ex.Message}");
 
 			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
-
-			return null;
+			return MissFile(parameters, mayMiss, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
 
 		byte[] currentHash;
@@ -201,6 +227,24 @@ public class FileChangeTracker : IFileChangeTracker
 	private void CloseExecutingFile(TrackChangesParameters parameters)
 	{
 		_messenger.Send(new CloseExecutingFileMessage(parameters.File.Id));
+	}
+
+	/// <summary>
+	/// Answers a check that missed the file: an empty hash when <paramref name="mayMiss" /> lets it pass, otherwise shows
+	/// <paramref name="message" />, closes the file and answers <c>null</c>.
+	/// </summary>
+	private byte[]? MissFile(TrackChangesParameters parameters, bool mayMiss, string message)
+	{
+		if (!mayMiss)
+		{
+			PublishFailure(parameters, message);
+
+			return null;
+		}
+
+		_logger.LogWarning($@"File ""{parameters.FileName}"" is missing or locked, so it is checked again later");
+
+		return [];
 	}
 
 	/// <summary>

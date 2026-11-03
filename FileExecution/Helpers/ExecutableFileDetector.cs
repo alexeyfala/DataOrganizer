@@ -12,9 +12,9 @@ public static class ExecutableFileDetector
 	#region Data
 	// Stryker disable all : a list of extensions; a test per entry would copy it
 	/// <summary>
-	/// Case-insensitive set of file extensions whose double-click / shell-execute
-	/// action runs code on Windows, Linux or macOS. Covers direct executables,
-	/// shell / interpreted scripts, installers and shortcuts.
+	/// Case-insensitive set of file extensions whose double-click / shell-execute action runs code on Windows, Linux or
+	/// macOS: direct executables, shell / interpreted scripts, installers, shortcuts and every type Outlook blocks as a
+	/// level 1 attachment.
 	/// </summary>
 	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> ExecutableExtensions = new[]
 	{
@@ -72,6 +72,82 @@ public static class ExecutableFileDetector
 		".shs",					// Shell scrap object
 		".settingcontent-ms",	// Settings shortcut (runs the command from DeepLink)
 		".diagcab",				// Troubleshooting package
+		// The rest of the level 1 types that Outlook blocks in attachments
+		".ade",					// Access project extension
+		".adp",					// Access project
+		".apk",					// Android application package
+		".appcontent-ms",		// Windows application content
+		".asp",					// Active Server Page
+		".aspx",				// Active Server Page Extended
+		".asx",					// ASF redirector
+		".bas",					// BASIC source code
+		".bgi",					// Borland Graphics Interface
+		".cab",					// Windows cabinet archive
+		".cer",					// Security certificate
+		".cnt",					// Help Workshop contents
+		".crt",					// Certificate
+		".der",					// DER-encoded X.509 certificate
+		".fxp",					// FoxPro compiled program
+		".grp",					// Program group
+		".hlp",					// Windows Help file
+		".hpj",					// Help project
+		".htc",					// HTML component
+		".img",					// Disk image (mounts on open)
+		".iso",					// Optical disc image (mounts on open)
+		".its",					// Internet document set
+		".library-ms",			// Windows library description
+		".mad",					// Access module shortcut
+		".maf",					// Access shortcut
+		".mag",					// Access diagram shortcut
+		".mam",					// Access macro shortcut
+		".maq",					// Access query shortcut
+		".mar",					// Access report shortcut
+		".mas",					// Access stored procedures
+		".mat",					// Access table shortcut
+		".mau",					// Media attachment unit
+		".mav",					// Access view shortcut
+		".maw",					// Access data access page
+		".mcf",					// Media container format
+		".mda",					// Access add-in
+		".mdb",					// Access application or database
+		".mde",					// Access compiled database
+		".mdt",					// Access add-in data
+		".mdw",					// Access workgroup information
+		".mdz",					// Access wizard template
+		".mht",					// Web archive
+		".mhtml",				// Web archive
+		".msh1xml",				// Monad shell XML config
+		".msh2xml",				// Monad shell XML config
+		".mst",					// Windows Installer transform
+		".ops",					// Office profile settings
+		".osd",					// Open Software Description
+		".pcd",					// Visual Test script
+		".plg",					// Developer Studio build log
+		".prf",					// System settings file
+		".prg",					// Program file
+		".printerexport",		// Printer backup
+		".ps2",					// PowerShell script
+		".ps2xml",				// PowerShell XML config
+		".psc1",				// PowerShell console file
+		".psc2",				// PowerShell console file
+		".psdm1",				// PowerShell file
+		".pssc",				// PowerShell session configuration
+		".pst",					// Outlook data file
+		".search-ms",			// Saved search
+		".theme",				// Desktop theme
+		".tmp",					// Temporary file
+		".udl",					// Universal data link
+		".vb",					// Visual Basic source
+		".vbp",					// Visual Basic project
+		".vhd",					// Virtual hard disk (mounts on open)
+		".vhdx",				// Virtual hard disk (mounts on open)
+		".vsmacros",			// Visual Studio macro project
+		".vsw",					// Visio workspace
+		".webpnp",				// Internet printing file
+		".website",				// Pinned site shortcut
+		".wsb",					// Windows Sandbox configuration (runs its logon command)
+		".xbap",				// XAML browser application
+		".xnk",					// Exchange public folder shortcut
 	#endregion
 
 	#region Linux / Unix
@@ -109,6 +185,10 @@ public static class ExecutableFileDetector
 	#region Cross-platform interpreted scripts
 		".py",					// Python
 		".pyw",					// Python (no-console on Windows)
+		".pyc",					// Python compiled
+		".pyo",					// Python optimized compiled
+		".pyz",					// Python zip application
+		".pyzw",				// Python zip application (no-console on Windows)
 		".pl",					// Perl
 		".rb",					// Ruby
 		".lua",					// Lua

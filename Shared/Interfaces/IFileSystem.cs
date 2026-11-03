@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,8 +104,8 @@ public interface IFileSystem
 	bool IsFileLocked(string filePath);
 
 	/// <summary>
-	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent
-	/// writers (e.g. the user's editor) to modify the file while it is being observed.
+	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" /> and <see cref="FileShare.Delete" />,
+	/// allowing concurrent writers (e.g. the user's editor) to modify, replace or delete the file while it is being observed.
 	/// </summary>
 	/// <returns>
 	/// A <see cref="Stream" /> that <b>must support seeking</b> (<see cref="Stream.CanSeek" /> is
@@ -143,6 +144,10 @@ public interface IFileSystem
 	/// Adds/removes the <see cref="FileAttributes.ReadOnly" /> attribute to a file.
 	/// </summary>
 	void SetFileReadOnly(string filePath, bool isReadOnly);
+
+	/// <inheritdoc cref="File.SetUnixFileMode(string, UnixFileMode)" />
+	[UnsupportedOSPlatform("windows")]
+	void SetUnixFileMode(string path, UnixFileMode mode);
 
 	/// <summary>
 	/// Waits until <paramref name="filePath" /> is no longer locked by another

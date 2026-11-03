@@ -5,7 +5,6 @@ using Shared.Extensions;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace FileExecution.Services;
 
@@ -15,11 +14,24 @@ public sealed class ProcessManager : IProcessManager
 {
 	#region Methods
 	/// <inheritdoc />
-	public void KillProcess(int processId)
+	public IExecutingFileProcess? OpenFile(string filePath)
 	{
-		Process
-			.GetProcessById(processId)
-			.Kill();
+		return StartExecutingFileProcess(OperatingSystem.IsWindows()
+			? CreateWindowsProcess(filePath)
+			: CreateNonWindowsProcess(filePath));
+	}
+
+	/// <inheritdoc />
+	public IExecutingFileProcess? OpenFile(string appPath, string filePath)
+	{
+		return StartExecutingFileProcess(new()
+		{
+			StartInfo = new(appPath.SurroundWithQuotesIfNeeded())
+			{
+				Arguments = filePath.SurroundWithQuotesIfNeeded(),
+				UseShellExecute = false
+			}
+		});
 	}
 
 	/// <inheritdoc />
@@ -30,60 +42,6 @@ public sealed class ProcessManager : IProcessManager
 			FileName = target,
 			UseShellExecute = true
 		});
-	}
-
-	/// <inheritdoc />
-	public bool ProcessExists(int processId)
-	{
-		return Process
-			.GetProcesses()
-			.Any(x => x.Id == processId);
-	}
-
-	/// <inheritdoc />
-	public bool StartProcess(string filePath, out int processId)
-	{
-		using Process process = OperatingSystem.IsWindows()
-			? CreateWindowsProcess(filePath)
-			: CreateNonWindowsProcess(filePath);
-
-		if (process.Start())
-		{
-			processId = process.Id;
-
-			return true;
-		}
-
-		processId = default;
-
-		return false;
-	}
-
-	/// <inheritdoc />
-	public bool StartProcess(
-		string appPath,
-		string fileArgument,
-		out int processId)
-	{
-		using Process process = new()
-		{
-			StartInfo = new(appPath.SurroundWithQuotesIfNeeded())
-			{
-				Arguments = fileArgument.SurroundWithQuotesIfNeeded(),
-				UseShellExecute = false
-			}
-		};
-
-		if (process.Start())
-		{
-			processId = process.Id;
-
-			return true;
-		}
-
-		processId = default;
-
-		return false;
 	}
 
 	/// <inheritdoc />
@@ -115,5 +73,30 @@ public sealed class ProcessManager : IProcessManager
 			UseShellExecute = true
 		}
 	};
+
+	/// <summary>
+	/// Starts <paramref name="process" /> that opens a file and hands it over; <c>null</c>, with the process released, when
+	/// it did not start.
+	/// </summary>
+	private static ExecutingFileProcess? StartExecutingFileProcess(Process process)
+	{
+		try
+		{
+			if (process.Start())
+			{
+				return new(process);
+			}
+		}
+		catch
+		{
+			process.Dispose();
+
+			throw;
+		}
+
+		process.Dispose();
+
+		return null;
+	}
 	#endregion
 }

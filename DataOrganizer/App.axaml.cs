@@ -433,6 +433,8 @@ public sealed class App : Application
 
 			services.AddTransient<IAppResolver, WindowsAppResolver>();
 
+			services.AddTransient<IExecutingFileHolderFinder, WindowsExecutingFileHolderFinder>();
+
 			services.AddTransient<IExplorerManager, WindowsExplorerManager>();
 
 			services.AddTransient<IFileAssociationService, FileAssociationService>();
@@ -443,6 +445,8 @@ public sealed class App : Application
 		services.AddTransient<IAppPickerService, UnsupportedAppPickerService>();
 
 		services.AddTransient<IAppResolver, SystemAppResolver>();
+
+		services.AddTransient<IExecutingFileHolderFinder, UnsupportedExecutingFileHolderFinder>();
 
 		if (OperatingSystem.IsLinux())
 		{

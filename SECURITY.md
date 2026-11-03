@@ -62,7 +62,13 @@ The following are known and accepted, so there is no need to report them.
 - **Traces left by other applications.** A file opened externally is written
   decrypted into a sandbox folder and erased when it is closed, but the opening
   application keeps its own autosave and recovery copies, and the operating
-  system records the file name in recent items and jump lists.
+  system records the file name in recent items and jump lists. Closing the
+  file ends only a program the application can find: on Windows a program that
+  holds the file open, such as Word. A program that read the file and let it go
+  keeps its window open with the text after the file is erased: Notepad or an
+  image viewer on Windows, and any program on Linux and macOS, where only the
+  system opener (`xdg-open`, `open`) is started and ended, never the program it
+  launches.
 - **Notepad texts are plain text.** The text of every tab of the notepad lies
   unencrypted in the `Notepad` folder of the application data, written a
   moment after each pause in typing. Closing a tab erases its file, only as

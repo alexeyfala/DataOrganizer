@@ -42,8 +42,8 @@ internal class WindowsAppResolverTests
 			IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 			fileAssociation
-				.FindApplicationByExtension(".txt")
-				.Returns(@"C:\Apps\editor.exe");
+				.HasAssociatedApp(".txt")
+				.Returns(true);
 
 			builder.RegisterInstance(appPicker);
 
@@ -86,8 +86,8 @@ internal class WindowsAppResolverTests
 
 			// No program is associated with the extension.
 			fileAssociation
-				.FindApplicationByExtension(".txt")
-				.Returns((string?)null);
+				.HasAssociatedApp(".txt")
+				.Returns(false);
 
 			builder.RegisterInstance(appPicker);
 
@@ -106,12 +106,11 @@ internal class WindowsAppResolverTests
 	}
 
 	/// <summary>
-	/// <see cref="WindowsAppResolver.ResolveAsync" />: without an associated program, or with the "Open with" dialog of
-	/// Windows as one, the program the user picks opens the file.
+	/// <see cref="WindowsAppResolver.ResolveAsync" />: without an associated program the program the user picks opens the
+	/// file.
 	/// </summary>
-	[TestCase(null)]
-	[TestCase(@"C:\Windows\System32\OpenWith.exe")]
-	public async Task ResolveAsync_Returns_The_Picked_Program_Without_A_Usable_Association(string? associatedAppPath)
+	[Test]
+	public async Task ResolveAsync_Returns_The_Picked_Program_Without_An_Associated_Program()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -129,8 +128,8 @@ internal class WindowsAppResolverTests
 				});
 
 			fileAssociation
-				.FindApplicationByExtension(".txt")
-				.Returns(associatedAppPath);
+				.HasAssociatedApp(".txt")
+				.Returns(false);
 
 			builder.RegisterInstance(appPicker);
 

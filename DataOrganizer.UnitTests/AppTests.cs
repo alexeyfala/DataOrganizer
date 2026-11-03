@@ -222,6 +222,31 @@ internal partial class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the programs that hold a file opened in the operating system are looked for
+	/// only where the operating system can tell them.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Picks_The_File_Holder_Finder_Of_The_Operating_System()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		// Act
+		((App)Application.Current!).RegisterServices(services, []);
+
+		// Assert
+		services
+			.Should()
+			.ContainSingle(x => x.ServiceType == typeof(IExecutingFileHolderFinder))
+			.Which
+			.ImplementationType
+			.Should()
+			.Be(OperatingSystem.IsWindows()
+				? typeof(WindowsExecutingFileHolderFinder)
+				: typeof(UnsupportedExecutingFileHolderFinder));
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: every registered type can be built from the registrations
 	/// alone, so a missing one is named here instead of failing on the first resolve at startup.
 	/// </summary>
