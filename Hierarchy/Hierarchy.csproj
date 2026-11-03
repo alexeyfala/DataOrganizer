@@ -11,7 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="DynamicData" Version="9.5.0" />
-		<PackageReference Include="Mapster" Version="10.0.13" />
+		<PackageReference Include="Mapster" Version="10.0.14" />
 		<PackageReference Include="System.Reactive" Version="7.0.0" />
 	</ItemGroup>
 
