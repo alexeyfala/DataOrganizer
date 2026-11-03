@@ -38,6 +38,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="IExecutingFileHolderFinder" />
+	private readonly IExecutingFileHolderFinder _holderFinder;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -64,6 +67,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
+		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
 		INotificationService notification,
 		IProcessManager processManager,
@@ -75,6 +79,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_changeTracker = changeTracker;
 
 		_fileSystem = fileSystem;
+
+		_holderFinder = holderFinder;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -127,7 +133,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				id,
 				token).ConfigureAwait(false);
 
-			KillAndReleaseProcess(info.Process, id);
+			KillFileProcesses(info, id);
 
 			if (!_fileSystem.FileExists(info.FilePath))
 			{
@@ -211,7 +217,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 						id,
 						CancellationToken.None).ConfigureAwait(false);
 
-					KillAndReleaseProcess(info.Process, id);
+					KillFileProcesses(info, id);
 
 					if (!_fileSystem.FileExists(info.FilePath))
 					{
@@ -384,6 +390,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
+	/// Programs that hold <paramref name="filePath" /> open; empty when none is found or the search fails.
+	/// </summary>
+	private IExecutingFileProcess[] FindHolders(string filePath)
+	{
+		try
+		{
+			return _holderFinder.FindHolders(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return [];
+		}
+	}
+
+	/// <summary>
 	/// <c>True</c> after the service has been disposed.
 	/// </summary>
 	private bool IsDisposed() => Volatile.Read(ref _isDisposed);
@@ -419,6 +442,31 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			process.Dispose();
 		}
+	}
+
+	/// <summary>
+	/// Kills the programs that hold the file of <paramref name="info" /> open, or its started process when none is found;
+	/// the started process is released either way.
+	/// </summary>
+	private void KillFileProcesses(ExecutingFileInfo info, Guid fileId)
+	{
+		IExecutingFileProcess[] holders = FindHolders(info.FilePath);
+
+		if (holders.Length == 0)
+		{
+			KillAndReleaseProcess(info.Process, fileId);
+
+			return;
+		}
+
+		_logger.LogInformation($@"The file ""{fileId}"" is held by {holders.Length} process(es), which are killed instead of the started one.");
+
+		foreach (IExecutingFileProcess holder in holders)
+		{
+			KillAndReleaseProcess(holder, fileId);
+		}
+
+		info.Process?.Dispose();
 	}
 
 	/// <summary>

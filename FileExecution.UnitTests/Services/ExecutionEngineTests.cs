@@ -308,6 +308,148 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: the programs that hold the file are killed and released instead of the
+	/// started process, which is only released.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Kills_The_Programs_That_Hold_The_File()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess started = Substitute.For<IExecutingFileProcess>();
+
+		IExecutingFileProcess firstHolder = Substitute.For<IExecutingFileProcess>();
+
+		IExecutingFileProcess secondHolder = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(started);
+
+			holderFinder
+				.FindHolders(Arg.Any<string>())
+				.Returns([firstHolder, secondHolder]);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(holderFinder);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		firstHolder
+			.Received(1)
+			.Kill();
+
+		firstHolder
+			.Received(1)
+			.Dispose();
+
+		secondHolder
+			.Received(1)
+			.Kill();
+
+		secondHolder
+			.Received(1)
+			.Dispose();
+
+		started
+			.DidNotReceive()
+			.Kill();
+
+		started
+			.Received(1)
+			.Dispose();
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: when the search for the programs that hold the file fails, the started
+	/// process is killed as without a search.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Kills_The_Started_Process_When_The_Search_Fails()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess started = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(started);
+
+			holderFinder
+				.FindHolders(Arg.Any<string>())
+				.Throws(new InvalidOperationException());
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(holderFinder);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		started
+			.Received(1)
+			.Kill();
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: a file that is gone from the sandbox is not deleted again.
 	/// </summary>
 	[Test]
