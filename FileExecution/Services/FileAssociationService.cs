@@ -18,13 +18,27 @@ public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods
 	/// <inheritdoc />
-	public string? FindApplicationByExtension(string fileExtension)
+	public bool HasAssociatedApp(string fileExtension)
+	{
+		// A packaged app names no executable: the shell starts it through its DelegateExecute handler.
+		return QueryAssociation(AssocStr.Executable, fileExtension) is { } executablePath
+			? !executablePath.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase)
+			: QueryAssociation(AssocStr.DelegateExecute, fileExtension) is not null;
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Reads <paramref name="field" /> of the association of <paramref name="fileExtension" />; <c>null</c> when the type
+	/// has none, the "Unknown" type of Windows not counted.
+	/// </summary>
+	private static string? QueryAssociation(AssocStr field, string fileExtension)
 	{
 		uint length = 0;
 
 		uint result = AssocQueryString(
-			AssocF.None,
-			AssocStr.Executable,
+			AssocF.InitIgnoreUnknown,
+			field,
 			fileExtension,
 			null,
 			null,
@@ -38,8 +52,8 @@ public sealed partial class FileAssociationService : IFileAssociationService
 		char[] buffer = new char[length];
 
 		result = AssocQueryString(
-			AssocF.None,
-			AssocStr.Executable,
+			AssocF.InitIgnoreUnknown,
+			field,
 			fileExtension,
 			null,
 			buffer,
@@ -68,63 +82,32 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	#endregion
 
 	#region Nested Types
+	/// <summary>
+	/// Options of an association query, <c>ASSOCF</c> of the Windows SDK.
+	/// </summary>
 	[Flags]
 	private enum AssocF
 	{
-		None = 0,
-		Init_NoRemapIniFile = 0x1,
-		Init_ByExeName = 0x2,
-		Open_ByExeName = 0x4,
-		Init_DefaultToStar = 0x8,
-		Init_FixedProgId = 0x10,
-		Init_ForcedDefault = 0x20,
-		Init_NoUserSettings = 0x40,
-		Init_NotCachable = 0x80,
-		Xc_Noconsistent = 0x100,
-		Init_NoUserOverrides = 0x200,
-		Init_AnySchema = 0x400,
-		Init_SkipIfNoFile = 0x800,
-		Open_NewProcess = 0x1000,
-		Open_NoZoneChecks = 0x2000,
-		Open_RequireAssoc = 0x4000,
-		Init_NoExePath = 0x8000,
-		Init_IgnoreBaseClass = 0x10000,
-		Init_NoDefault = 0x20000,
-		Init_UserSetting = 0x40000,
-		Init_LocalMachineSetting = 0x80000,
-		Init_QueryOnly = 0x100000,
-		Init_NoUserChoice = 0x200000,
-		Init_IncludeRecommended = 0x400000,
-		Init_SkipIfNoHandler = 0x800000,
-		Init_NoRegistry = 0x1000000,
-		Init_NoDefaultIcon = 0x2000000,
-		Init_NoOpenWith = 0x4000000,
-		Init_NoInternetOpenWith = 0x8000000,
-		Init_NoInternetDefault = 0x10000000,
-		Init_NoInternetProtocols = 0x20000000,
-		Init_NoInternetFileTypes = 0x40000000
+		/// <summary>
+		/// The "Unknown" type of a file without an association fails the query instead of answering with it.
+		/// </summary>
+		InitIgnoreUnknown = 0x400
 	}
 
+	/// <summary>
+	/// Field of an association to read, <c>ASSOCSTR</c> of the Windows SDK.
+	/// </summary>
 	private enum AssocStr
 	{
-		Command = 1,
-		Executable,
-		FriendlyDocName,
-		FriendlyAppName,
-		DDECommand,
-		DDETopic,
-		InfoTip,
-		QuickTip,
-		TileInfo,
-		ContentType,
-		DefaultIcon,
-		ShellNewValue,
-		DisplayName,
-		EditFlags,
-		OpenWithList,
-		OpenWithProgids,
-		FileExt,
-		Max
+		/// <summary>
+		/// Executable of the open command.
+		/// </summary>
+		Executable = 2,
+
+		/// <summary>
+		/// Class of the COM object that runs the open command in place of an executable.
+		/// </summary>
+		DelegateExecute = 18
 	}
 	#endregion
 }

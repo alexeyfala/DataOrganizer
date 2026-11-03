@@ -965,12 +965,11 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.ExecuteAsync" />: without an associated program, or with the "Open with" dialog of
-	/// Windows as one, the file opens in the program the user picks.
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: without an associated program the file opens in the program the user
+	/// picks.
 	/// </summary>
-	[TestCase(null)]
-	[TestCase(@"C:\Windows\System32\OpenWith.exe")]
-	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_A_Usable_Association(string? associatedAppPath)
+	[Test]
+	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_An_Associated_Program()
 	{
 		// Arrange
 		IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -992,8 +991,8 @@ internal class ExecutionEngineTests
 				});
 
 			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(associatedAppPath);
+				.HasAssociatedApp(Arg.Any<string>())
+				.Returns(false);
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -1638,8 +1637,8 @@ internal class ExecutionEngineTests
 
 			// No program is associated with the extension.
 			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns((string?)null);
+				.HasAssociatedApp(Arg.Any<string>())
+				.Returns(false);
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
