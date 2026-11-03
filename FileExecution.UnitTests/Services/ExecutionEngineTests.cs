@@ -43,28 +43,21 @@ internal class ExecutionEngineTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
 			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
 
 			builder.RegisterInstance(processManager);
 
@@ -90,9 +83,13 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeTrue();
 
-		processManager
+		process
 			.DidNotReceive()
-			.KillProcess(Arg.Any<int>());
+			.Kill();
+
+		process
+			.DidNotReceive()
+			.Dispose();
 	}
 
 	/// <summary>
@@ -106,11 +103,13 @@ internal class ExecutionEngineTests
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -121,17 +120,8 @@ internal class ExecutionEngineTests
 				.Returns(true);
 
 			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -156,9 +146,9 @@ internal class ExecutionEngineTests
 		await sut.CloseAsync(dto.Id);
 
 		// Assert
-		processManager
+		process
 			.Received(1)
-			.KillProcess(Arg.Any<int>());
+			.Kill();
 
 		fileSystem
 			.Received(1)
@@ -174,70 +164,42 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: does nothing when the id is not currently executing.
+	/// <see cref="ExecutionEngine.CloseAsync" />: a process that cannot be killed is still released, and the file is
+	/// erased all the same.
 	/// </summary>
 	[Test]
-	public async Task CloseAsync_Does_Nothing_When_Id_Unknown()
-	{
-		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(processManager);
-		});
-
-		ExecutionEngine sut = mock.Create<ExecutionEngine>();
-
-		// Act
-		await sut.CloseAsync(Guid.NewGuid());
-
-		// Assert
-		processManager
-			.DidNotReceive()
-			.KillProcess(Arg.Any<int>());
-
-		fileSystem
-			.DidNotReceive()
-			.EraseAndDeleteFile(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: a process that has ended is not killed.
-	/// </summary>
-	[Test]
-	public async Task CloseAsync_Kills_No_Process_That_Has_Ended()
+	public async Task CloseAsync_Deletes_The_File_When_The_Kill_Fails()
 	{
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
 
-					return true;
-				});
-
-			// The process has ended by the time the file is closed.
 			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(false);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
+
+			process
+				.When(x => x.Kill())
+				.Throw(new InvalidOperationException());
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processManager);
 
@@ -259,9 +221,232 @@ internal class ExecutionEngineTests
 		await sut.CloseAsync(dto.Id);
 
 		// Assert
-		processManager
+		process
+			.Received(1)
+			.Dispose();
+
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: does nothing when the id is not currently executing.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Does_Nothing_When_Id_Unknown()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileSystem));
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		// Act
+		await sut.CloseAsync(Guid.NewGuid());
+
+		// Assert
+		fileSystem
 			.DidNotReceive()
-			.KillProcess(Arg.Any<int>());
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: a process that has ended is not killed.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Kills_No_Process_That_Has_Ended()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
+
+			// The process has ended by the time the file is closed.
+			process
+				.HasExited
+				.Returns(true);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		process
+			.DidNotReceive()
+			.Kill();
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: the programs that hold the file are killed and released instead of the
+	/// started process, which is only released.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Kills_The_Programs_That_Hold_The_File()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess started = Substitute.For<IExecutingFileProcess>();
+
+		IExecutingFileProcess firstHolder = Substitute.For<IExecutingFileProcess>();
+
+		IExecutingFileProcess secondHolder = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(started);
+
+			holderFinder
+				.FindHolders(Arg.Any<string>())
+				.Returns([firstHolder, secondHolder]);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(holderFinder);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		firstHolder
+			.Received(1)
+			.Kill();
+
+		firstHolder
+			.Received(1)
+			.Dispose();
+
+		secondHolder
+			.Received(1)
+			.Kill();
+
+		secondHolder
+			.Received(1)
+			.Dispose();
+
+		started
+			.DidNotReceive()
+			.Kill();
+
+		started
+			.Received(1)
+			.Dispose();
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: when the search for the programs that hold the file fails, the started
+	/// process is killed as without a search.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Kills_The_Started_Process_When_The_Search_Fails()
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess started = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(started);
+
+			holderFinder
+				.FindHolders(Arg.Any<string>())
+				.Throws(new InvalidOperationException());
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(holderFinder);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		started
+			.Received(1)
+			.Kill();
 	}
 
 	/// <summary>
@@ -315,6 +500,61 @@ internal class ExecutionEngineTests
 		fileSystem
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: the process started for the file is released, whether it still runs or
+	/// has ended.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Releases_The_Started_Process([Values] bool hasExited)
+	{
+		// Arrange
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			processManager
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
+
+			process
+				.HasExited
+				.Returns(hasExited);
+
+			builder.RegisterInstance(processManager);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		process
+			.Received(1)
+			.Dispose();
 	}
 
 	/// <summary>
@@ -393,8 +633,6 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
-
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
@@ -411,24 +649,9 @@ internal class ExecutionEngineTests
 				.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
-
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(processManager);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -464,13 +687,15 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -481,17 +706,8 @@ internal class ExecutionEngineTests
 				.Returns(true);
 
 			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
 
 			builder.RegisterInstance(sandbox);
 
@@ -515,9 +731,13 @@ internal class ExecutionEngineTests
 		await sut.DisposeAsync();
 
 		// Assert
-		processManager
+		process
 			.Received(1)
-			.KillProcess(Arg.Any<int>());
+			.Kill();
+
+		process
+			.Received(1)
+			.Dispose();
 
 		fileSystem
 			.Received(1)
@@ -648,15 +868,6 @@ internal class ExecutionEngineTests
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
@@ -699,7 +910,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.Received(1)
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -754,12 +965,11 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.ExecuteAsync" />: without an associated program, or with the "Open with" dialog of
-	/// Windows as one, the file opens in the program the user picks.
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: without an associated program the file opens in the program the user
+	/// picks.
 	/// </summary>
-	[TestCase(null)]
-	[TestCase(@"C:\Windows\System32\OpenWith.exe")]
-	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_A_Usable_Association(string? associatedAppPath)
+	[Test]
+	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_An_Associated_Program()
 	{
 		// Arrange
 		IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -781,17 +991,8 @@ internal class ExecutionEngineTests
 				});
 
 			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns(associatedAppPath);
-
-			processManager
-				.StartProcess(PickedAppPath, Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[2] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
+				.HasAssociatedApp(Arg.Any<string>())
+				.Returns(false);
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -829,7 +1030,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.Received(1)
-			.StartProcess(PickedAppPath, Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(PickedAppPath, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -850,8 +1051,6 @@ internal class ExecutionEngineTests
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
-
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
@@ -860,20 +1059,9 @@ internal class ExecutionEngineTests
 				.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
 				.Returns(Task.CompletedTask);
 
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(processManager);
 
 			builder.RegisterInstance(changeTracker);
 		});
@@ -979,7 +1167,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.Received(1)
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1066,7 +1254,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1089,15 +1277,6 @@ internal class ExecutionEngineTests
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
 
 			builder.RegisterInstance(sandbox);
 
@@ -1127,7 +1306,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.Received(1)
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1202,7 +1381,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.Received(1)
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1246,7 +1425,7 @@ internal class ExecutionEngineTests
 
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
+			.OpenFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1265,7 +1444,7 @@ internal class ExecutionEngineTests
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
@@ -1274,6 +1453,8 @@ internal class ExecutionEngineTests
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
+
+			IProcessManager processManager = Substitute.For<IProcessManager>();
 
 			sandbox
 				.GetFileDirectoryPath(dto.Id)
@@ -1285,17 +1466,8 @@ internal class ExecutionEngineTests
 				.Returns(writing.Task);
 
 			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
 
 			changeTracker
 				.TrackChangesAsync(Arg.Any<TrackChangesParameters>(), Arg.Do<CancellationToken>(x => trackerToken = x))
@@ -1339,9 +1511,13 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeTrue();
 
-		processManager
+		process
 			.Received(1)
-			.KillProcess(Arg.Any<int>());
+			.Kill();
+
+		process
+			.Received(1)
+			.Dispose();
 
 		// Once when the file is written, once when it is rolled back.
 		fileSystem
@@ -1367,7 +1543,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		CancellationToken trackerToken = default;
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1377,22 +1553,15 @@ internal class ExecutionEngineTests
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
+			IProcessManager processManager = Substitute.For<IProcessManager>();
+
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
 			processManager
-				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
-				.Returns(x =>
-				{
-					x[1] = RandomValues.CreateIntFrom10To100();
-
-					return true;
-				});
-
-			processManager
-				.ProcessExists(Arg.Any<int>())
-				.Returns(true);
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
 
 			changeTracker
 				.TrackChangesAsync(Arg.Any<TrackChangesParameters>(), Arg.Do<CancellationToken>(x => trackerToken = x))
@@ -1432,9 +1601,13 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeTrue();
 
-		processManager
+		process
 			.Received(1)
-			.KillProcess(Arg.Any<int>());
+			.Kill();
+
+		process
+			.Received(1)
+			.Dispose();
 	}
 
 	/// <summary>
@@ -1464,8 +1637,8 @@ internal class ExecutionEngineTests
 
 			// No program is associated with the extension.
 			fileAssociation
-				.FindApplicationByExtension(Arg.Any<string>())
-				.Returns((string?)null);
+				.HasAssociatedApp(Arg.Any<string>())
+				.Returns(false);
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -1509,11 +1682,11 @@ internal class ExecutionEngineTests
 
 		processManager
 			.DidNotReceiveWithAnyArgs()
-			.StartProcess(default!, default!, out _);
+			.OpenFile(default!, default!);
 
 		processManager
 			.DidNotReceiveWithAnyArgs()
-			.StartProcess(default!, out _);
+			.OpenFile(default!);
 	}
 
 	/// <summary>

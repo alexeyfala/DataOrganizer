@@ -173,6 +173,9 @@ public sealed class InMemoryFileSystem : IFileSystem
 	public void SetFileReadOnly(string filePath, bool isReadOnly) => throw new NotSupportedException();
 
 	/// <inheritdoc />
+	public void SetUnixFileMode(string path, UnixFileMode mode) => throw new NotSupportedException();
+
+	/// <inheritdoc />
 	public ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,

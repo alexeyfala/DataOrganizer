@@ -2,7 +2,6 @@ using FileExecution.Dto;
 using FileExecution.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,11 +45,9 @@ public sealed class WindowsAppResolver : IAppResolver
 	{
 		string fileName = Path.GetFileName(filePath);
 
-		string? appPath = _fileAssociation.FindApplicationByExtension(Path.GetExtension(fileName));
-
-		if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) == false)
+		if (_fileAssociation.HasAssociatedApp(Path.GetExtension(fileName)))
 		{
-			_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+			_logger.LogDebug($@"File ""{fileName}"" opens in the program the operating system assigns");
 
 			return new(IsCancelled: false, AppPath: null);
 		}

@@ -14,6 +14,7 @@ using FileExecution.Messages;
 using FileExecution.Services;
 using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
+using Notifications.Interfaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
@@ -133,6 +134,172 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file that stays locked through the checks that may miss it is
+	/// closed, and tracking stops.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Closes_The_File_That_Stays_Locked()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		StrongReferenceMessenger messenger = new();
+
+		Guid? receivedClosedId = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Throws(new IOException());
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(notification);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		Task tracking = sut.TrackChangesAsync(parameters);
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		Guid? closedIdBeforeLastCheck = receivedClosedId;
+
+		// Act
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Assert
+		// The first check and the two after it may miss the file, so only the third pause ends the tracking.
+		closedIdBeforeLastCheck
+			.Should()
+			.BeNull();
+
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
+
+		receivedClosedId
+			.Should()
+			.Be(parameters.File.Id);
+
+		// The failure is shown once, and nothing runs after it.
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file that stays missing through the checks that may miss it is
+	/// closed without an update, and tracking stops.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Closes_The_File_That_Stays_Missing()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+		StrongReferenceMessenger messenger = new();
+
+		Guid? receivedClosedId = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		Task tracking = sut.TrackChangesAsync(parameters);
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		Guid? closedIdBeforeLastCheck = receivedClosedId;
+
+		// Act
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Assert
+		// The first check and the two after it may miss the file, so only the third pause ends the tracking.
+		closedIdBeforeLastCheck
+			.Should()
+			.BeNull();
+
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
+
+		receivedClosedId
+			.Should()
+			.Be(parameters.File.Id);
+
+		await fileContentsWriter.DidNotReceive().WriteAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Guid?>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<FileContentsChange>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a check that fails closes the file, and tracking stops.
 	/// </summary>
 	[Test]
@@ -162,64 +329,6 @@ internal class FileChangeTrackerTests
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.ThrowsAsync(new IOException());
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-		});
-
-		FileChangeTracker sut = mock.Create<FileChangeTracker>();
-
-		TrackChangesParameters parameters = new()
-		{
-			PreviousHash = RandomValues.CreateBytes(32),
-			File = ItemDtoFactory.CreateFileDto(),
-			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
-		};
-
-		// Act
-		Task tracking = sut.TrackChangesAsync(parameters);
-
-		// Assert
-		// The tracking stops at once rather than waiting for the next check.
-		tracking.IsCompleted
-			.Should()
-			.BeTrue();
-
-		await tracking;
-
-		receivedClosedId
-			.Should()
-			.Be(parameters.File.Id);
-	}
-
-	/// <summary>
-	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file that cannot be read is closed, and tracking stops.
-	/// </summary>
-	[Test]
-	public async Task TrackChangesAsync_Closes_The_File_When_It_Cannot_Be_Read()
-	{
-		// Arrange
-		StrongReferenceMessenger messenger = new();
-
-		Guid? receivedClosedId = null;
-
-		object recipient = new();
-
-		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Throws(new IOException());
 
 			builder.RegisterInstance(fileSystem);
 
@@ -301,6 +410,87 @@ internal class FileChangeTrackerTests
 		stream.CanRead
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file that is back counts its missed checks anew, so a later
+	/// moment without it does not close it.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Counts_The_Missed_Checks_Anew_After_The_File_Is_Back()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		FakeTimeProvider time = new();
+
+		byte[] hash = RandomValues.CreateBytes(32);
+
+		StrongReferenceMessenger messenger = new();
+
+		Guid? receivedClosedId = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			// Three checks miss the file, one finds it, the next misses it again, and the last check after the stop finds it.
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false, false, false, true, false, true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(hash);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = hash,
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Act
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Assert
+		tracking.IsCompleted
+			.Should()
+			.BeFalse();
+
+		receivedClosedId
+			.Should()
+			.BeNull();
+
+		await cancellation.CancelAsync();
+
+		await tracking;
 	}
 
 	/// <summary>
@@ -465,84 +655,6 @@ internal class FileChangeTrackerTests
 			Arg.Any<byte[]>(),
 			Arg.Any<DateTime?>(),
 			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="FileChangeTracker.TrackChangesAsync" />: exits without throwing and without updating when the file no
-	/// longer exists, and closes it.
-	/// </summary>
-	[Test]
-	public async Task TrackChangesAsync_Exits_Gracefully_When_File_Disappears()
-	{
-		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		StrongReferenceMessenger messenger = new();
-
-		Guid? receivedClosedId = null;
-
-		object recipient = new();
-
-		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			byte[] contents = RandomValues.CreateBytes(32);
-
-			byte[] hash = RandomValues.CreateBytes(32);
-
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(contents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(hash);
-
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsWriter>()
-				.As<IFileContentsWriter>();
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-		});
-
-		FileChangeTracker sut = mock.Create<FileChangeTracker>();
-
-		TrackChangesParameters parameters = new()
-		{
-			PreviousHash = RandomValues.CreateBytes(32),
-			File = ItemDtoFactory.CreateFileDto(),
-			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
-		};
-
-		// Act
-		Func<Task> act = () => sut.TrackChangesAsync(parameters);
-
-		// Assert
-		await act
-			.Should()
-			.NotThrowAsync();
-
-		await dbAccess.DidNotReceive().UpdateFileContentsAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<byte[]>(),
-			Arg.Any<DateTime?>(),
-			Arg.Any<CancellationToken>());
-
-		receivedClosedId
-			.Should()
-			.Be(parameters.File.Id);
 	}
 
 	/// <summary>
@@ -899,6 +1011,152 @@ internal class FileChangeTrackerTests
 		receivedClosedId
 			.Should()
 			.Be(parameters.File.Id);
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the last check after the stop may not miss the file, so a file
+	/// missing then is reported.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Reports_A_File_Missing_At_The_Stop()
+	{
+		// Arrange
+		INotificationService notification = Substitute.For<INotificationService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(notification);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		// Act
+		// A stopped tracking makes only the last check.
+		await sut.TrackChangesAsync(parameters, new CancellationToken(canceled: true));
+
+		// Assert
+		notification
+			.Received(1)
+			.ShowErrorSnackbar(Arg.Any<string>(), Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a file missing for the checks that may miss it, as while a
+	/// program saves it through a temporary file, stays open, and its change is saved once it is back.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Saves_A_Change_After_The_File_Comes_Back()
+	{
+		// Arrange
+		using CancellationTokenSource cancellation = new();
+
+		FakeTimeProvider time = new();
+
+		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
+
+		StrongReferenceMessenger messenger = new();
+
+		Guid? receivedClosedId = null;
+
+		object recipient = new();
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			// The file comes back on the check that would otherwise close it.
+			fileSystem
+				.FileExists(Arg.Any<string>())
+				.Returns(false, false, false, true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(RandomValues.CreateBytes(32));
+
+			fileContentsWriter
+				.WriteAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Guid?>(),
+					Arg.Any<byte[]>(),
+					Arg.Any<FileContentsChange>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					cancellation.Cancel();
+
+					return new FileContentsWriting
+					{
+						Status = FileContentsWriteStatus.Written
+					};
+				});
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(fileContentsWriter);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			PreviousHash = RandomValues.CreateBytes(32),
+			File = ItemDtoFactory.CreateFileDto(),
+			FileName = RandomValues.CreateFileName(10),
+			FilePath = RandomValues.CreateFileName(10)
+		};
+
+		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Act
+		await Task.Run(() => time.Advance(PollInterval));
+
+		// Assert
+		tracking.IsCompleted
+			.Should()
+			.BeTrue();
+
+		await tracking;
+
+		await fileContentsWriter.Received(1).WriteAsync(
+			parameters.File.Id,
+			Arg.Any<Guid?>(),
+			Arg.Any<byte[]>(),
+			Arg.Any<FileContentsChange>(),
+			Arg.Any<CancellationToken>());
+
+		receivedClosedId
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>

@@ -38,6 +38,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="IExecutingFileHolderFinder" />
+	private readonly IExecutingFileHolderFinder _holderFinder;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -64,6 +67,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
+		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
 		INotificationService notification,
 		IProcessManager processManager,
@@ -75,6 +79,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_changeTracker = changeTracker;
 
 		_fileSystem = fileSystem;
+
+		_holderFinder = holderFinder;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -127,7 +133,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				id,
 				token).ConfigureAwait(false);
 
-			TryKillProcess(info.ProcessId);
+			KillFileProcesses(info, id);
 
 			if (!_fileSystem.FileExists(info.FilePath))
 			{
@@ -211,7 +217,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 						id,
 						CancellationToken.None).ConfigureAwait(false);
 
-					TryKillProcess(info.ProcessId);
+					KillFileProcesses(info, id);
 
 					if (!_fileSystem.FileExists(info.FilePath))
 					{
@@ -327,12 +333,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 				scope,
 				token).ConfigureAwait(false);
 
-			int processId = StartFileProcess(
+			IExecutingFileProcess? process = StartFileProcess(
 				app.AppPath,
 				filePath,
 				parameters.File.Id);
 
-			scope.OnRollback(() => TryKillProcess(processId));
+			scope.OnRollback(() => KillAndReleaseProcess(process, parameters.File.Id));
 
 			(CancellationTokenSource cancellation, Task trackerTask) = StartChangeTracker(
 				parameters,
@@ -346,7 +352,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				Cancellation = cancellation,
 				DirectoryPath = directoryPath,
 				FilePath = filePath,
-				ProcessId = processId,
+				Process = process,
 				TrackerTask = trackerTask
 			};
 
@@ -363,7 +369,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			scope.Commit();
 
 			_logger.LogInformation(
-				$@"The file ""{parameters.File.Id}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+				$@"The file ""{parameters.File.Id}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}{(process is null ? string.Empty : $" by process {process.Id}")}");
 
 			return true;
 		}
@@ -384,9 +390,84 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
+	/// Programs that hold <paramref name="filePath" /> open; empty when none is found or the search fails.
+	/// </summary>
+	private IExecutingFileProcess[] FindHolders(string filePath)
+	{
+		try
+		{
+			return _holderFinder.FindHolders(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return [];
+		}
+	}
+
+	/// <summary>
 	/// <c>True</c> after the service has been disposed.
 	/// </summary>
 	private bool IsDisposed() => Volatile.Read(ref _isDisposed);
+
+	/// <summary>
+	/// Kills <paramref name="process" /> unless it has ended, then releases it.
+	/// </summary>
+	private void KillAndReleaseProcess(IExecutingFileProcess? process, Guid fileId)
+	{
+		if (process is null)
+		{
+			return;
+		}
+
+		try
+		{
+			if (process.HasExited)
+			{
+				_logger.LogInformation($@"The process {process.Id} of the file ""{fileId}"" has already ended.");
+
+				return;
+			}
+
+			process.Kill();
+
+			_logger.LogInformation($@"The process {process.Id} of the file ""{fileId}"" is killed.");
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			process.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Kills the programs that hold the file of <paramref name="info" /> open, or its started process when none is found;
+	/// the started process is released either way.
+	/// </summary>
+	private void KillFileProcesses(ExecutingFileInfo info, Guid fileId)
+	{
+		IExecutingFileProcess[] holders = FindHolders(info.FilePath);
+
+		if (holders.Length == 0)
+		{
+			KillAndReleaseProcess(info.Process, fileId);
+
+			return;
+		}
+
+		_logger.LogInformation($@"The file ""{fileId}"" is held by {holders.Length} process(es), which are killed instead of the started one.");
+
+		foreach (IExecutingFileProcess holder in holders)
+		{
+			KillAndReleaseProcess(holder, fileId);
+		}
+
+		info.Process?.Dispose();
+	}
 
 	/// <summary>
 	/// Creates the sandbox directory and writes the file, applies the read-only
@@ -481,29 +562,29 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Starts the process that opens <paramref name="filePath" />: via
-	/// <paramref name="selectedAppPath" /> when provided, otherwise via shell-execute.
-	/// Returns the process id, or <c>default</c> if no process could be started.
+	/// Starts the process that opens <paramref name="filePath" />: via <paramref name="selectedAppPath" /> when provided,
+	/// otherwise in the program the operating system assigns; <c>null</c> when no process of its own started.
 	/// </summary>
-	private int StartFileProcess(
+	private IExecutingFileProcess? StartFileProcess(
 		string? selectedAppPath,
 		string filePath,
 		Guid fileId)
 	{
-		int processId;
-
-		// Stryker disable once Boolean : the one negation here leads to a branch that only writes to the log
 		if (selectedAppPath is not null)
 		{
-			_ = _processManager.StartProcess(selectedAppPath, filePath, out processId);
-		}
-		else if (!_processManager.StartProcess(filePath, out processId))
-		{
-			_logger.LogDebug(
-				$@"File ""{fileId}"" was opened without an associated process — no extension or no system association.");
+			return _processManager.OpenFile(selectedAppPath, filePath);
 		}
 
-		return processId;
+		IExecutingFileProcess? process = _processManager.OpenFile(filePath);
+
+		// Stryker disable once Equality : the branch only writes to the log
+		if (process is null)
+		{
+			_logger.LogDebug(
+				$@"File ""{fileId}"" was started without a process of its own: the operating system passed it to a program and gave no process back.");
+		}
+
+		return process;
 	}
 
 	/// <summary>
@@ -572,26 +653,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		try
 		{
 			_fileSystem.DeleteDirectory(directoryPath);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-	}
-
-	/// <summary>
-	/// Tries to kill the process by ID if it is not default.
-	/// </summary>
-	private void TryKillProcess(int processId)
-	{
-		if (processId.IsDefault() || !_processManager.ProcessExists(processId))
-		{
-			return;
-		}
-
-		try
-		{
-			_processManager.KillProcess(processId);
 		}
 		catch (Exception ex)
 		{

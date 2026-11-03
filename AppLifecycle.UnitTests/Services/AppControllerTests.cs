@@ -21,6 +21,8 @@ using Settings.UnitTests.Factories;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using TestSupport.Common;
@@ -177,6 +179,50 @@ internal class AppControllerTests
 
 			mainWindowLauncher.ShowMainWindow();
 		});
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: a data folder whose access rights cannot be changed does not stop the
+	/// launch.
+	/// </summary>
+	[Test]
+	[UnsupportedOSPlatform("windows")]
+	public async Task LaunchAppAsync_Goes_On_When_The_Data_Folder_Cannot_Be_Restricted()
+	{
+		// Arrange
+		IMainWindowLauncher mainWindowLauncher = Substitute.For<IMainWindowLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IStartupDataLoader startupData = Substitute.For<IStartupDataLoader>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
+			startupData
+				.LoadAsync(Arg.Any<CancellationToken>())
+				.Returns(LoadedHierarchy.Empty);
+
+			fileSystem
+				.When(x => x.SetUnixFileMode(Arg.Any<string>(), Arg.Any<UnixFileMode>()))
+				.Throw(new UnauthorizedAccessException());
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(startupData);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		mainWindowLauncher
+			.Received(1)
+			.ShowMainWindow();
 	}
 
 	/// <summary>
@@ -408,6 +454,52 @@ internal class AppControllerTests
 		mainWindowLauncher
 			.Received(1)
 			.ShowMainWindow();
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: on Linux and macOS only the owner may enter the data folder; Windows
+	/// leaves it to the access rights it already has.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Restricts_The_Data_Folder_To_Its_Owner()
+	{
+		// Arrange
+		string appDataFolder = TestPath.Combine("AppData", "DataOrganizer");
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.AppDataDirectoryPath
+				.Returns(appDataFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		if (OperatingSystem.IsWindows())
+		{
+			fileSystem
+				.ReceivedCalls()
+				.Should()
+				.NotContain(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode));
+
+			return;
+		}
+
+		fileSystem
+			.Received(1)
+			.SetUnixFileMode(appDataFolder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
 	}
 
 	/// <summary>
