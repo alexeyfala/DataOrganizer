@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -343,6 +344,10 @@ public sealed class FileSystem : IFileSystem
 			RemoveFileAttributes(filePath, attribute);
 		}
 	}
+
+	/// <inheritdoc />
+	[UnsupportedOSPlatform("windows")]
+	public void SetUnixFileMode(string path, UnixFileMode mode) => File.SetUnixFileMode(path, mode);
 
 	/// <inheritdoc />
 	public async ValueTask<bool> WaitUntilFileUnlockedAsync(

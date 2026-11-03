@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,6 +144,10 @@ public interface IFileSystem
 	/// Adds/removes the <see cref="FileAttributes.ReadOnly" /> attribute to a file.
 	/// </summary>
 	void SetFileReadOnly(string filePath, bool isReadOnly);
+
+	/// <inheritdoc cref="File.SetUnixFileMode(string, UnixFileMode)" />
+	[UnsupportedOSPlatform("windows")]
+	void SetUnixFileMode(string path, UnixFileMode mode);
 
 	/// <summary>
 	/// Waits until <paramref name="filePath" /> is no longer locked by another
