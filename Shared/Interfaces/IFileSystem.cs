@@ -104,8 +104,8 @@ public interface IFileSystem
 	bool IsFileLocked(string filePath);
 
 	/// <summary>
-	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent
-	/// writers (e.g. the user's editor) to modify the file while it is being observed.
+	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" /> and <see cref="FileShare.Delete" />,
+	/// allowing concurrent writers (e.g. the user's editor) to modify, replace or delete the file while it is being observed.
 	/// </summary>
 	/// <returns>
 	/// A <see cref="Stream" /> that <b>must support seeking</b> (<see cref="Stream.CanSeek" /> is

@@ -266,7 +266,7 @@ public sealed class FileSystem : IFileSystem
 		filePath,
 		FileMode.Open,
 		FileAccess.Read,
-		FileShare.ReadWrite);
+		FileShare.ReadWrite | FileShare.Delete);
 
 	/// <inheritdoc />
 	public Stream OpenSequentialRead(string filePath) => new FileStream(
