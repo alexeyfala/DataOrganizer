@@ -581,7 +581,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		if (process is null)
 		{
 			_logger.LogDebug(
-				$@"File ""{fileId}"" was opened without an associated process — no extension or no system association.");
+				$@"File ""{fileId}"" was started without a process of its own: the operating system passed it to a program and gave no process back.");
 		}
 
 		return process;
