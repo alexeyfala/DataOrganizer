@@ -3,9 +3,9 @@ using Autofac.Extras.Moq;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;
 using NSubstitute;
+using Shared.Common;
 using Shared.Enums;
 using Shared.Interfaces;
-using System;
 using System.IO;
 using TestSupport.Common;
 
@@ -16,9 +16,29 @@ internal class DirectoryAccessorTests
 {
 	#region Data
 	/// <summary>
+	/// Name of the folder the application is in.
+	/// </summary>
+	private const string AppFolderName = "Apps";
+
+	/// <summary>
+	/// Name of the entry assembly of the application.
+	/// </summary>
+	private const string AppName = "DataOrganizer";
+
+	/// <summary>
 	/// Name of the folder that holds the file.
 	/// </summary>
 	private const string FolderName = "Docs";
+
+	/// <summary>
+	/// Folder the application is in.
+	/// </summary>
+	private static readonly string AppFolder = TestPath.Combine(AppFolderName);
+
+	/// <summary>
+	/// Path of the shared <c>dotnet</c> host.
+	/// </summary>
+	private static readonly string DotnetHostPath = TestPath.Combine("dotnet", "dotnet");
 
 	/// <summary>
 	/// Path of the file to reveal.
@@ -33,34 +53,57 @@ internal class DirectoryAccessorTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on Windows the running program is revealed in its folder.
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: an AppImage is revealed itself, not the file in its temporary
+	/// mount that started the process.
 	/// </summary>
 	[Test]
-	public void OpenAppDirectory_On_Windows_Reveals_The_Running_Program()
+	public void OpenAppDirectory_In_An_AppImage_Reveals_The_AppImage()
 	{
 		// Arrange
-		string processPath = Environment.ProcessPath!;
+		string appImagePath = TestPath.Combine("Downloads", "DataOrganizer.AppImage");
 
 		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string mountedAppPath = TestPath.Combine("tmp", ".mount_DataOr", AppName);
+
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
+			appProcess
+				.GetEnvironmentVariable("APPIMAGE")
+				.Returns(appImagePath);
+
+			appProcess
+				.ProcessPath
+				.Returns(mountedAppPath);
+
 			fileSystem
-				.FileExists(processPath)
+				.FileExists(appImagePath)
+				.Returns(true);
+
+			fileSystem
+				.FileExists(mountedAppPath)
 				.Returns(true);
 
 			platform
 				.CurrentOS
-				.Returns(OperatingSystemKind.Windows);
+				.Returns(OperatingSystemKind.Linux);
+
+			platform
+				.IsLinux
+				.Returns(true);
 
 			// No real file manager may start from a test.
 			explorerManager
 				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
 				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
@@ -77,7 +120,288 @@ internal class DirectoryAccessorTests
 		// Assert
 		explorerManager
 			.Received(1)
-			.TryForegroundFolder(Path.GetDirectoryName(processPath)!, processPath);
+			.TryForegroundFolder(Path.GetDirectoryName(appImagePath)!, appImagePath);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: when no file of the application is found, its folder is opened.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_Opens_The_App_Folder_When_No_App_File_Is_Found()
+	{
+		// Arrange
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			appProcess
+				.EntryAssemblyName
+				.Returns(AppName);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.Linux);
+
+			platform
+				.IsLinux
+				.Returns(true);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, null);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: the program that started the process is revealed, also under a
+	/// name other than its assembly's, as a portable build has.
+	/// </summary>
+	[TestCase(OperatingSystemKind.Windows)]
+	[TestCase(OperatingSystemKind.Linux)]
+	public void OpenAppDirectory_Reveals_The_Program_That_Started_The_Process(OperatingSystemKind os)
+	{
+		// Arrange
+		string processPath = TestPath.Combine(AppFolderName, "DataOrganizer-0.3.0-portable");
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			appProcess
+				.EntryAssemblyName
+				.Returns(AppName);
+
+			appProcess
+				.ProcessPath
+				.Returns(processPath);
+
+			fileSystem
+				.FileExists(processPath)
+				.Returns(true);
+
+			platform
+				.CurrentOS
+				.Returns(os);
+
+			platform
+				.IsLinux
+				.Returns(os == OperatingSystemKind.Linux);
+
+			platform
+				.IsWindows
+				.Returns(os == OperatingSystemKind.Windows);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, processPath);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: under the shared <c>dotnet</c> host the program next to the
+	/// application is revealed, not the host.
+	/// </summary>
+	[TestCase(OperatingSystemKind.Windows, KnownFileExtensions.Exe)]
+	[TestCase(OperatingSystemKind.Linux, "")]
+	public void OpenAppDirectory_Under_The_Dotnet_Host_Reveals_The_App_Host(OperatingSystemKind os, string extension)
+	{
+		// Arrange
+		string appHostPath = TestPath.Combine(AppFolderName, AppName + extension);
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			appProcess
+				.EntryAssemblyName
+				.Returns(AppName);
+
+			appProcess
+				.ProcessPath
+				.Returns(DotnetHostPath);
+
+			// The host exists, so only its name keeps it from being revealed.
+			fileSystem
+				.FileExists(DotnetHostPath)
+				.Returns(true);
+
+			fileSystem
+				.FileExists(appHostPath)
+				.Returns(true);
+
+			platform
+				.CurrentOS
+				.Returns(os);
+
+			platform
+				.IsLinux
+				.Returns(os == OperatingSystemKind.Linux);
+
+			platform
+				.IsWindows
+				.Returns(os == OperatingSystemKind.Windows);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, appHostPath);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: under the shared <c>dotnet</c> host, without a program next to
+	/// the application, its entry assembly is revealed.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_Under_The_Dotnet_Host_Reveals_The_Entry_Assembly()
+	{
+		// Arrange
+		string assemblyPath = TestPath.Combine(AppFolderName, AppName + KnownFileExtensions.Dll);
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			appProcess
+				.EntryAssemblyName
+				.Returns(AppName);
+
+			appProcess
+				.ProcessPath
+				.Returns(DotnetHostPath);
+
+			// The host exists, so only its name keeps it from being revealed.
+			fileSystem
+				.FileExists(DotnetHostPath)
+				.Returns(true);
+
+			fileSystem
+				.FileExists(assemblyPath)
+				.Returns(true);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.Linux);
+
+			platform
+				.IsLinux
+				.Returns(true);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, assemblyPath);
 	}
 
 	/// <summary>
