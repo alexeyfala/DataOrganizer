@@ -198,6 +198,8 @@ internal class AppControllerTests
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
+			IPlatform platform = Substitute.For<IPlatform>();
+
 			// An empty tree read at launch, so that the launch goes on; a faked loader gives none and ends it.
 			startupData
 				.LoadAsync(Arg.Any<CancellationToken>())
@@ -207,9 +209,16 @@ internal class AppControllerTests
 				.When(x => x.SetUnixFileMode(Arg.Any<string>(), Arg.Any<UnixFileMode>()))
 				.Throw(new UnauthorizedAccessException());
 
+			// Linux or macOS, where the data folder gets restricted.
+			platform
+				.IsWindows
+				.Returns(false);
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(mainWindowLauncher);
+
+			builder.RegisterInstance(platform);
 
 			builder.RegisterInstance(startupData);
 		});
@@ -344,6 +353,90 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: on Linux and macOS only the owner may enter the data folder.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Off_Windows_Restricts_The_Data_Folder_To_Its_Owner()
+	{
+		// Arrange
+		string appDataFolder = TestPath.Combine("AppData", "DataOrganizer");
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appEnvironment
+				.AppDataDirectoryPath
+				.Returns(appDataFolder);
+
+			// Linux or macOS.
+			platform
+				.IsWindows
+				.Returns(false);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		// The call is found by its name: the member is not for Windows, while the test runs on every system.
+		fileSystem.ReceivedCalls()
+			.Should()
+			.ContainSingle(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode))
+			.Which
+			.GetArguments()
+			.Should()
+			.Equal(
+				appDataFolder,
+				UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: Windows leaves the data folder to the access rights it already has.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_On_Windows_Leaves_The_Data_Folder_Rights_Alone()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			platform
+				.IsWindows
+				.Returns(true);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		fileSystem.ReceivedCalls()
+			.Should()
+			.NotContain(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode));
+	}
+
+	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: the folders stored expanded and the object stored selected are in the
 	/// work session before the main window shows.
 	/// </summary>
@@ -454,52 +547,6 @@ internal class AppControllerTests
 		mainWindowLauncher
 			.Received(1)
 			.ShowMainWindow();
-	}
-
-	/// <summary>
-	/// <see cref="AppController.LaunchAppAsync" />: on Linux and macOS only the owner may enter the data folder; Windows
-	/// leaves it to the access rights it already has.
-	/// </summary>
-	[Test]
-	public async Task LaunchAppAsync_Restricts_The_Data_Folder_To_Its_Owner()
-	{
-		// Arrange
-		string appDataFolder = TestPath.Combine("AppData", "DataOrganizer");
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.AppDataDirectoryPath
-				.Returns(appDataFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder.RegisterInstance(fileSystem);
-		});
-
-		AppController sut = mock.Create<AppController>();
-
-		// Act
-		await sut.LaunchAppAsync();
-
-		// Assert
-		if (OperatingSystem.IsWindows())
-		{
-			fileSystem
-				.ReceivedCalls()
-				.Should()
-				.NotContain(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode));
-
-			return;
-		}
-
-		fileSystem
-			.Received(1)
-			.SetUnixFileMode(appDataFolder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
 	}
 
 	/// <summary>
@@ -747,6 +794,35 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: without a restart asked for, the exit starts nothing.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Starts_Nothing_Without_A_Restart()
+	{
+		// Arrange
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		_ = mock.Create<AppController>();
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		processManager
+			.DidNotReceive()
+			.StartProcess(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: once a restart is asked for, the exit starts the application
 	/// again after the session is released, and only then ends this one.
 	/// </summary>
@@ -795,36 +871,6 @@ internal class AppControllerTests
 			appShutdown.Shutdown();
 		});
 	}
-
-	/// <summary>
-	/// <see cref="AppController.Receive(ExitAppMessage)" />: without a restart asked for, the exit starts nothing.
-	/// </summary>
-	[Test]
-	public void Receive_ExitApp_Starts_Nothing_Without_A_Restart()
-	{
-		// Arrange
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		IProcessManager processManager = Substitute.For<IProcessManager>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(messenger);
-
-			builder.RegisterInstance(processManager);
-		});
-
-		_ = mock.Create<AppController>();
-
-		// Act
-		messenger.Send(new ExitAppMessage());
-
-		// Assert
-		processManager
-			.DidNotReceive()
-			.StartProcess(Arg.Any<string>());
-	}
-
 	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit stops the background services, closes the secondary
 	/// windows and the executing files and erases the sandbox before the application ends.

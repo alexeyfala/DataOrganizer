@@ -3,6 +3,7 @@ using Avalonia.Logging;
 using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -27,6 +28,9 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
+
 	/// <summary>
 	/// Sink of the log of Avalonia that was in place before this one, or <c>null</c> when there was none.
 	/// </summary>
@@ -34,7 +38,12 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	#endregion
 
 	#region Constructors
-	public AvaloniaLogForwarder(ILogger logger) => _logger = logger;
+	public AvaloniaLogForwarder(ILogger logger, IPlatform platform)
+	{
+		_logger = logger;
+
+		_platform = platform;
+	}
 	#endregion
 
 	#region Methods
@@ -200,7 +209,7 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 		string messageTemplate,
 		object?[] propertyValues)
 	{
-		if (level < MinimumLevel || (OperatingSystem.IsLinux() && IsIBusClosingNoise(area, messageTemplate)))
+		if (level < MinimumLevel || (_platform.IsLinux && IsIBusClosingNoise(area, messageTemplate)))
 		{
 			return;
 		}

@@ -3,7 +3,10 @@ using Autofac.Extras.Moq;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;
 using NSubstitute;
+using Shared.Enums;
 using Shared.Interfaces;
+using System;
+using System.IO;
 using TestSupport.Common;
 
 namespace FileSystemOperations.UnitTests.Services;
@@ -29,6 +32,54 @@ internal class DirectoryAccessorTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on Windows the running program is revealed in its folder.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_On_Windows_Reveals_The_Running_Program()
+	{
+		// Arrange
+		string processPath = Environment.ProcessPath!;
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			fileSystem
+				.FileExists(processPath)
+				.Returns(true);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.Windows);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(Path.GetDirectoryName(processPath)!, processPath);
+	}
+
 	/// <summary>
 	/// <see cref="DirectoryAccessor.RevealFile" />: a window that already shows the folder is brought forward with the
 	/// file selected, and no other window opens.

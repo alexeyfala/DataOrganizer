@@ -1,6 +1,7 @@
 using Diagnostics.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,6 +31,9 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
@@ -37,7 +41,12 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	#endregion
 
 	#region Constructors
-	public GlobalExceptionHandler(ILogger logger) => _logger = logger;
+	public GlobalExceptionHandler(ILogger logger, IPlatform platform)
+	{
+		_logger = logger;
+
+		_platform = platform;
+	}
 	#endregion
 
 	#region Event Handlers
@@ -58,8 +67,7 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 		// Stryker disable once Statement : the flag changes nothing without the policy that ends the process
 		e.SetObserved();
 
-		// Stryker disable once Block,Statement,Logical : reached on Linux only, while the mutation run is on Windows
-		if (OperatingSystem.IsLinux() && IsBenignDBusAccentColorFailure(e.Exception))
+		if (_platform.IsLinux && IsBenignDBusAccentColorFailure(e.Exception))
 		{
 			// Known Avalonia bug: DBusPlatformSettings reads the FreeDesktop appearance portal's
 			// accent color as a struct, but some portals return another
@@ -169,7 +177,6 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	/// <c>True</c> when the aggregated exception is exclusively composed of Avalonia's accent-color
 	/// read failures from the FreeDesktop appearance portal on Linux.
 	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Runs on Linux only, while the mutation run is on Windows")]
 	private static bool IsBenignDBusAccentColorFailure(AggregateException aggregate)
 	{
 		return AreAllLeaves(aggregate, x => IsPlatformSettingsFailure(x.StackTrace));

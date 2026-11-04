@@ -24,19 +24,25 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
 	#endregion
 
 	#region Constructors
 	public DirectoryAccessor(
 		IExplorerManager explorerManager,
 		IFileSystem fileSystem,
-		ILogger logger)
+		ILogger logger,
+		IPlatform platform)
 	{
 		_explorerManager = explorerManager;
 
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_platform = platform;
 	}
 	#endregion
 
@@ -46,7 +52,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			string? appTarget = PlatformInfo.CurrentOS switch
+			string? appTarget = _platform.CurrentOS switch
 			{
 				OperatingSystemKind.Windows => Environment.ProcessPath,
 				OperatingSystemKind.Linux => ResolveLinuxAppFile(),

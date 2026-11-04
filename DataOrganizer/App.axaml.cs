@@ -223,6 +223,7 @@ public sealed class App : Application
 		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();
 		services.AddTransient<IPasswordDekWrapper, EncryptionService>();
 		services.AddTransient<IPasswordPrompt, DialogService>();
+		services.AddTransient<IPlatform, Platform>();
 		services.AddTransient<IPngPainter, PngPainter>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();

@@ -19,7 +19,10 @@ using WindowContracts.Interfaces;
 namespace AppLifecycle.Services;
 
 /// <inheritdoc cref="IAppController" />
-public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, IRecipient<RestartAppMessage>
+public sealed class AppController :
+	IAppController,
+	IRecipient<ExitAppMessage>,
+	IRecipient<RestartAppMessage>
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
@@ -63,6 +66,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
+
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
 
 	/// <inheritdoc cref="IProcessManager" />
 	private readonly IProcessManager _processManager;
@@ -113,6 +119,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
+		IPlatform platform,
 		IProcessManager processManager,
 		ISecondaryWindowCloser secondaryWindowCloser,
 		IServiceProvider serviceProvider,
@@ -152,6 +159,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 
 		_options = options;
 
+		_platform = platform;
+
 		_processManager = processManager;
 
 		_sandbox = sandbox;
@@ -187,7 +196,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			// On Windows the folder of a user is already closed to the other accounts by its access rights.
-			if (!OperatingSystem.IsWindows())
+			if (!_platform.IsWindows)
 			{
 				RestrictToOwner(_appEnvironment.AppDataDirectoryPath);
 			}
