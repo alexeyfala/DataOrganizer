@@ -54,6 +54,7 @@ The portable builds and the Linux and macOS packages are self-contained: the .NE
 
 ## Platform Notes
 
+- **Windows** — after the `.msi` installs or updates the application, its first start can take up to about three minutes before a window appears: with Smart App Control in evaluation mode, Windows 11 checks each unsigned library of the application online. Later starts take a few seconds.
 - **Linux** — global hotkeys work without extra privileges in an X11 session. A Wayland session needs access to `/dev/input`, which is usually granted by a udev rule.
 - **macOS** — Control+Tab, which returns to the previously selected tab in the editor and the notepad, does not work: macOS keeps the key press for moving the focus between controls, and Avalonia UI does not pass it on to the application.
 
