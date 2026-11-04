@@ -76,6 +76,12 @@ Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publ
 explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
 ```
 
+On Linux, make the unpacked file executable: an archive made on Windows carries no execute bit.
+
+```bash
+chmod +x DataOrganizer-*
+```
+
 ### Portable — Debug
 
 Open a terminal in the `DataOrganizer.Desktop` project.
@@ -86,6 +92,12 @@ $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -
 tar -czf "../Publish/$name.tar.gz" -C ../Publish "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
 Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publish/THIRD-PARTY-NOTICES.txt"
 explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
+```
+
+On Linux, make the unpacked file executable: an archive made on Windows carries no execute bit.
+
+```bash
+chmod +x DataOrganizer-*
 ```
 
 ### Native installers — `.deb` / `.rpm` / AppImage / Flatpak (PupNet)
