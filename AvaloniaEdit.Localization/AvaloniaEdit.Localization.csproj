@@ -2,11 +2,13 @@
 
 	<!--
 		Builds the Russian satellite of AvaloniaEdit, ru/AvaloniaEdit.resources.dll, whose package ships English and
-		Chinese texts of the search panel only. The runtime finds a satellite by its name and culture, so the satellite
-		needs neither the version nor the public key of AvaloniaEdit.dll; the empty main assembly goes nowhere.
+		Chinese texts of the search panel only. The satellite needs the version of AvaloniaEdit.dll but not its public
+		key; the empty main assembly goes nowhere.
 	-->
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<!-- Assembly version of AvaloniaEdit.dll: a single-file build loads the satellite only when the two match. -->
+		<AvaloniaEditAssemblyVersion>12.0.0.0</AvaloniaEditAssemblyVersion>
 	</PropertyGroup>
 
 	<!--
@@ -33,6 +35,9 @@
 		<ItemGroup>
 			<SatelliteAttribute Include="System.Reflection.AssemblyCultureAttribute">
 				<_Parameter1>ru</_Parameter1>
+			</SatelliteAttribute>
+			<SatelliteAttribute Include="System.Reflection.AssemblyVersionAttribute">
+				<_Parameter1>$(AvaloniaEditAssemblyVersion)</_Parameter1>
 			</SatelliteAttribute>
 			<SatelliteReference Include="@(ReferencePath)" Condition="'%(Filename)' == 'System.Runtime'" />
 		</ItemGroup>
