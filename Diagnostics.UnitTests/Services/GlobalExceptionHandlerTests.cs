@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using Diagnostics.Services;
 using NSubstitute;
 using Serilog;
+using Shared.Interfaces;
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -93,7 +94,7 @@ internal class GlobalExceptionHandlerTests
 		sut.Dispose();
 
 		// Assert
-		DropFaultedTask(Guid.NewGuid().ToString());
+		DropFaultedTasks(new InvalidOperationException(Guid.NewGuid().ToString()));
 
 		logger
 			.ReceivedCalls()
@@ -217,36 +218,113 @@ internal class GlobalExceptionHandlerTests
 		// Act
 		sut.StartMonitoring();
 
-		DropFaultedTask(message);
+		DropFaultedTasks(new InvalidOperationException(message));
 
 		// Assert
 		logger.ReceivedCalls().SelectMany(static x => x.GetArguments()).OfType<Exception>().Select(static x => x.GetBaseException().Message)
 			.Should()
 			.Contain(message);
 	}
+
+	/// <summary>
+	/// <see cref="GlobalExceptionHandler.StartMonitoring" />: the failed read of the accent color, a known fault of Avalonia
+	/// on Linux, stays out of the log there and reaches it elsewhere, while another failure is logged on every system.
+	/// </summary>
+	[TestCase(false, true)]
+	[TestCase(true, false)]
+	public void StartMonitoring_Skips_The_Accent_Color_Failure_Only_On_Linux(bool isLinux, bool isLogged)
+	{
+		// Arrange
+		string accentColorMessage = Guid.NewGuid().ToString();
+
+		string otherMessage = Guid.NewGuid().ToString();
+
+		ILogger logger = Substitute.For<ILogger>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			platform
+				.IsLinux
+				.Returns(isLinux);
+
+			builder.RegisterInstance(logger);
+
+			builder.RegisterInstance(platform);
+		});
+
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
+
+		// Act
+		sut.StartMonitoring();
+
+		DropFaultedTasks(
+			new AccentColorReadException(accentColorMessage),
+			new InvalidOperationException(otherMessage));
+
+		// Assert
+		string[] logged = [.. logger
+			.ReceivedCalls()
+			.SelectMany(static x => x.GetArguments())
+			.OfType<Exception>()
+			.Select(static x => x.GetBaseException().Message)];
+
+		// The other failure shows that the collector reported the dropped tasks in this run.
+		logged
+			.Should()
+			.Contain(otherMessage);
+
+		logged.Contains(accentColorMessage)
+			.Should()
+			.Be(isLogged);
+	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Creates a faulted task in a frame of its own, so that nothing keeps it alive after the call.
+	/// Creates a task faulted with <paramref name="exception" /> in a frame of its own, so that nothing keeps it alive
+	/// after the call.
 	/// </summary>
 	[MethodImpl(MethodImplOptions.NoInlining)]
-	private static void CreateFaultedTask(string message)
+	private static void CreateFaultedTask(Exception exception)
 	{
-		_ = Task.FromException(new InvalidOperationException(message));
+		_ = Task.FromException(exception);
 	}
 
 	/// <summary>
-	/// Leaves a faulted task that nobody awaits and lets the collector finalize it, which reports its exception as
-	/// unobserved.
+	/// Leaves a faulted task per exception that nobody awaits and lets the collector finalize them, which reports their
+	/// exceptions as unobserved.
 	/// </summary>
-	private static void DropFaultedTask(string message)
+	private static void DropFaultedTasks(params Exception[] exceptions)
 	{
-		CreateFaultedTask(message);
+		foreach (Exception exception in exceptions)
+		{
+			CreateFaultedTask(exception);
+		}
 
 		GC.Collect();
 
 		GC.WaitForPendingFinalizers();
+	}
+	#endregion
+
+	#region Nested Types
+	/// <summary>
+	/// Failure raised inside Avalonia's reader of the FreeDesktop settings portal.
+	/// </summary>
+	private sealed class AccentColorReadException : Exception
+	{
+		#region Constructors
+		public AccentColorReadException(string message) : base(message)
+		{
+		}
+		#endregion
+
+		#region Properties
+		/// <inheritdoc />
+		public override string StackTrace => "   at Avalonia.FreeDesktop.DBusPlatformSettings.<ReadAccentColorAsync>d__9.MoveNext()";
+		#endregion
 	}
 	#endregion
 }

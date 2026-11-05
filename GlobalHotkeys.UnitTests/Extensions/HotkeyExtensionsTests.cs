@@ -6,7 +6,6 @@ using Hierarchy.UnitTests.Factories;
 using Repository.Dto;
 using SharpHook.Data;
 using System;
-using System.Linq;
 
 namespace GlobalHotkeys.UnitTests.Extensions;
 

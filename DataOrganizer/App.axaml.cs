@@ -147,6 +147,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IAppPickerPrompt, DialogService>();
+		services.AddTransient<IAppProcess, AppProcess>();
 		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
@@ -223,6 +224,7 @@ public sealed class App : Application
 		services.AddTransient<IOpenFilesCloser, OpenFilesCloser>();
 		services.AddTransient<IPasswordDekWrapper, EncryptionService>();
 		services.AddTransient<IPasswordPrompt, DialogService>();
+		services.AddTransient<IPlatform, Platform>();
 		services.AddTransient<IPngPainter, PngPainter>();
 		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();

@@ -5,6 +5,7 @@ using AwesomeAssertions;
 using DataOrganizer.Services;
 using NSubstitute;
 using Serilog;
+using Shared.Interfaces;
 using System;
 
 namespace DataOrganizer.UnitTests.Services;
@@ -212,15 +213,25 @@ internal class AvaloniaLogForwarderTests
 	/// <see cref="AvaloniaLogForwarder.Log(LogEventLevel, string, object, string)" />: the noise of IBus stays out of the
 	/// log of the application on Linux, the only system that brings it, and reaches the log elsewhere.
 	/// </summary>
-	[Test]
-	public void Log_Skips_The_IBus_Noise_Only_On_Linux()
+	[TestCase(false, 1)]
+	[TestCase(true, 0)]
+	public void Log_Skips_The_IBus_Noise_Only_On_Linux(bool isLinux, int writtenEntries)
 	{
 		// Arrange
-		int writtenEntries = OperatingSystem.IsLinux() ? 0 : 1;
-
 		ILogger logger = Substitute.For<ILogger>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			platform
+				.IsLinux
+				.Returns(isLinux);
+
+			builder.RegisterInstance(logger);
+
+			builder.RegisterInstance(platform);
+		});
 
 		AvaloniaLogForwarder sut = mock.Create<AvaloniaLogForwarder>();
 

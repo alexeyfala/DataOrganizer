@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace FileExecution.Interfaces;
@@ -25,7 +26,9 @@ public interface IProcessManager
 	/// </summary>
 	void OpenWithShell(string target);
 
-	/// <inheritdoc cref="Process.Start(string)" />
-	Process StartProcess(string fileName);
+	/// <summary>
+	/// Starts <paramref name="fileName" />, passing each of <paramref name="arguments" /> as one command-line argument.
+	/// </summary>
+	void StartProcess(string fileName, IReadOnlyList<string> arguments);
 	#endregion
 }
