@@ -19,11 +19,17 @@ using WindowContracts.Interfaces;
 namespace AppLifecycle.Services;
 
 /// <inheritdoc cref="IAppController" />
-public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, IRecipient<RestartAppMessage>
+public sealed class AppController :
+	IAppController,
+	IRecipient<ExitAppMessage>,
+	IRecipient<RestartAppMessage>
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IAppProcess" />
+	private readonly IAppProcess _appProcess;
 
 	/// <inheritdoc cref="IAppShutdown" />
 	private readonly IAppShutdown _appShutdown;
@@ -64,6 +70,9 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
+
 	/// <inheritdoc cref="IProcessManager" />
 	private readonly IProcessManager _processManager;
 
@@ -100,6 +109,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 	#region Constructors
 	public AppController(
 		IAppEnvironment appEnvironment,
+		IAppProcess appProcess,
 		IAppShutdown appShutdown,
 		IAppUptime appUptime,
 		IAvaloniaLogForwarder avaloniaLogForwarder,
@@ -113,6 +123,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		ILogger logger,
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
+		IPlatform platform,
 		IProcessManager processManager,
 		ISecondaryWindowCloser secondaryWindowCloser,
 		IServiceProvider serviceProvider,
@@ -125,6 +136,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
+
+		_appProcess = appProcess;
 
 		_appShutdown = appShutdown;
 
@@ -151,6 +164,8 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		_mainWindowLauncher = mainWindowLauncher;
 
 		_options = options;
+
+		_platform = platform;
 
 		_processManager = processManager;
 
@@ -187,7 +202,7 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			// On Windows the folder of a user is already closed to the other accounts by its access rights.
-			if (!OperatingSystem.IsWindows())
+			if (!_platform.IsWindows)
 			{
 				RestrictToOwner(_appEnvironment.AppDataDirectoryPath);
 			}
@@ -309,9 +324,14 @@ public sealed class AppController : IAppController, IRecipient<ExitAppMessage>, 
 		await ReleaseSessionAsync().ConfigureAwait(true);
 
 		// The new instance starts once this one has released its session.
-		if (_isRestartAsked && Environment.ProcessPath is { } path)
+		if (_isRestartAsked && _appProcess.ProcessPath is { Length: > 0 } path)
 		{
-			_processManager.StartProcess(path);
+			// The shared dotnet host runs the application from its entry assembly, so it gets that assembly again.
+			string[] arguments = _appProcess.IsRunByDotnetHost() && _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath
+				? [entryAssemblyPath]
+				: [];
+
+			_processManager.StartProcess(path, arguments);
 		}
 
 		_appShutdown.Shutdown();

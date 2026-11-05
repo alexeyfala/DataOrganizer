@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Threading;
@@ -28,10 +27,18 @@ public sealed class FileSystem : IFileSystem
 
 	/// <inheritdoc cref="IJsonSerializer" />
 	private readonly IJsonSerializer _jsonSerializer;
+
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
 	#endregion
 
 	#region Constructors
-	public FileSystem(IJsonSerializer jsonSerializer) => _jsonSerializer = jsonSerializer;
+	public FileSystem(IJsonSerializer jsonSerializer, IPlatform platform)
+	{
+		_jsonSerializer = jsonSerializer;
+
+		_platform = platform;
+	}
 	#endregion
 
 	#region Methods
@@ -244,11 +251,11 @@ public sealed class FileSystem : IFileSystem
 				FileAccess.Read,
 				FileShare.None);
 		}
-		catch (IOException ex) when (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && (ex.HResult & 0x0000FFFF) == 32)
+		catch (IOException ex) when (_platform.IsWindows && (ex.HResult & 0x0000FFFF) == 32)
 		{
 			return true;
 		}
-		catch (IOException) when (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		catch (IOException) when (!_platform.IsWindows)
 		{
 			// On Unix .NET maps FileShare.None to an advisory fcntl lock,
 			// so an IOException here means another process holds the lock.

@@ -8,7 +8,6 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection;
 
 namespace FileSystemOperations.Services;
 
@@ -16,6 +15,14 @@ namespace FileSystemOperations.Services;
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {
 	#region Data
+	/// <summary>
+	/// Environment variable an AppImage sets to its own path.
+	/// </summary>
+	private const string AppImageVariable = "APPIMAGE";
+
+	/// <inheritdoc cref="IAppProcess" />
+	private readonly IAppProcess _appProcess;
+
 	/// <inheritdoc cref="IExplorerManager" />
 	private readonly IExplorerManager _explorerManager;
 
@@ -24,19 +31,28 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
 	#endregion
 
 	#region Constructors
 	public DirectoryAccessor(
+		IAppProcess appProcess,
 		IExplorerManager explorerManager,
 		IFileSystem fileSystem,
-		ILogger logger)
+		ILogger logger,
+		IPlatform platform)
 	{
+		_appProcess = appProcess;
+
 		_explorerManager = explorerManager;
 
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_platform = platform;
 	}
 	#endregion
 
@@ -46,11 +62,10 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			string? appTarget = PlatformInfo.CurrentOS switch
+			string? appTarget = _platform.CurrentOS switch
 			{
-				OperatingSystemKind.Windows => Environment.ProcessPath,
-				OperatingSystemKind.Linux => ResolveLinuxAppFile(),
-				OperatingSystemKind.MacOS => ResolveMacOSBundle(),
+				OperatingSystemKind.Windows or OperatingSystemKind.Linux => ResolveAppFile(),
+				OperatingSystemKind.MacOS => ResolveMacOSBundle(_appProcess.BaseDirectory),
 				_ => throw new NotImplementedException()
 			};
 
@@ -60,7 +75,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			}
 			else
 			{
-				OpenDirectory(AppContext.BaseDirectory);
+				OpenDirectory(_appProcess.BaseDirectory);
 			}
 		}
 		catch (Exception ex)
@@ -140,14 +155,14 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	#region Helpers
 	/// <summary>
 	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
-	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
+	/// from <paramref name="baseDirectory" />; <c>null</c> when the app runs outside a bundle.
 	/// </summary>
 	[ExcludeFromCodeCoverage(Justification = "Runs on macOS only, while the mutation run is on Windows")]
-	private static string? ResolveMacOSBundle()
+	private static string? ResolveMacOSBundle(string baseDirectory)
 	{
 		const string bundleExtension = ".app";
 
-		DirectoryInfo? directory = new(AppContext.BaseDirectory);
+		DirectoryInfo? directory = new(baseDirectory);
 
 		while (directory is not null)
 		{
@@ -163,40 +178,44 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	}
 
 	/// <summary>
-	/// Resolves the application file to reveal on <see cref="OperatingSystemKind.Linux" /> — the native
-	/// apphost next to the app, falling back to the entry assembly; <c>null</c> when neither exists.
+	/// Resolves the application file to reveal on <see cref="OperatingSystemKind.Windows" /> and
+	/// <see cref="OperatingSystemKind.Linux" />; <c>null</c> when none exists.
 	/// </summary>
-	/// <remarks>
-	/// <see cref="Environment.ProcessPath" /> is unreliable here: launching through the shared
-	/// <c>dotnet</c> host points it at the muxer instead of the application.
-	/// </remarks>
-	[ExcludeFromCodeCoverage(Justification = "Runs on Linux only, while the mutation run is on Windows")]
-	private string? ResolveLinuxAppFile()
+	private string? ResolveAppFile()
 	{
-		Assembly? entryAssembly = Assembly.GetEntryAssembly();
-
-		string? appName = entryAssembly?
-			.GetName()
-			.Name;
-
-		if (!string.IsNullOrEmpty(appName))
+		// An AppImage runs from a temporary mount, so the file to show is the AppImage itself.
+		if (_platform.IsLinux
+			&& _appProcess.GetEnvironmentVariable(AppImageVariable) is { Length: > 0 } appImagePath
+			&& _fileSystem.FileExists(appImagePath))
 		{
-			string appHost = Path.Combine(AppContext.BaseDirectory, appName);
-
-			if (_fileSystem.FileExists(appHost))
-			{
-				return appHost;
-			}
+			return appImagePath;
 		}
 
-		string? entryLocation = entryAssembly?.Location;
-
-		if (!string.IsNullOrEmpty(entryLocation) && _fileSystem.FileExists(entryLocation))
+		// The shared dotnet host runs an application from its entry assembly and is not a file of the application.
+		if (_appProcess.ProcessPath is { Length: > 0 } processPath
+			&& !_appProcess.IsRunByDotnetHost()
+			&& _fileSystem.FileExists(processPath))
 		{
-			return entryLocation;
+			return processPath;
 		}
 
-		return null;
+		if (_appProcess.EntryAssemblyName is not { Length: > 0 } appName)
+		{
+			return null;
+		}
+
+		string appHostPath = Path.Combine(
+			_appProcess.BaseDirectory,
+			appName + (_platform.IsWindows ? KnownFileExtensions.Exe : string.Empty));
+
+		if (_fileSystem.FileExists(appHostPath))
+		{
+			return appHostPath;
+		}
+
+		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.FileExists(entryAssemblyPath)
+			? entryAssemblyPath
+			: null;
 	}
 	#endregion
 }

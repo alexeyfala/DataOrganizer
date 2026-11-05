@@ -7,6 +7,16 @@ public static class KnownFileExtensions
 {
 	#region Data
 	/// <summary>
+	/// The extension of a .NET assembly.
+	/// </summary>
+	public const string Dll = ".dll";
+
+	/// <summary>
+	/// The extension of a Windows executable.
+	/// </summary>
+	public const string Exe = ".exe";
+
+	/// <summary>
 	/// The extension of a Json file.
 	/// </summary>
 	public const string Json = ".json";

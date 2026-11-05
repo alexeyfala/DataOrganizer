@@ -14,11 +14,6 @@ public static class PlatformInfo
 {
 	#region Properties
 	/// <summary>
-	/// Current operating system.
-	/// </summary>
-	public static OperatingSystemKind CurrentOS { get; } = GetCurrentOS();
-
-	/// <summary>
 	/// The name of the program for opening files depending on the operating system.
 	/// </summary>
 	public static string FileOpener { get; } = GetFileOpener();
@@ -44,34 +39,23 @@ public static class PlatformInfo
 
 	#region Helpers
 	/// <summary>
-	/// Returns a value for <see cref="CurrentOS" />.
+	/// Returns the value for <see cref="FileOpener" />.
 	/// </summary>
-	private static OperatingSystemKind GetCurrentOS()
+	private static string GetFileOpener()
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return OperatingSystemKind.Windows;
+			return "explorer";
 		}
 
 		if (OperatingSystem.IsLinux())
 		{
-			return OperatingSystemKind.Linux;
+			return "xdg-open";
 		}
 
 		return OperatingSystem.IsMacOS()
-			? OperatingSystemKind.MacOS
-			: OperatingSystemKind.Unknown;
+			? "open"
+			: throw new NotImplementedException();
 	}
-
-	/// <summary>
-	/// Returns the value for <see cref="FileOpener" />.
-	/// </summary>
-	private static string GetFileOpener() => CurrentOS switch
-	{
-		OperatingSystemKind.Windows => "explorer",
-		OperatingSystemKind.Linux => "xdg-open",
-		OperatingSystemKind.MacOS => "open",
-		_ => throw new NotImplementedException()
-	};
 	#endregion
 }

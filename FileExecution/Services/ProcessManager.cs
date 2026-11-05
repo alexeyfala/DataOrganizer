@@ -2,7 +2,8 @@ using FileExecution.Interfaces;
 using Shared.Common;
 using Shared.Enums;
 using Shared.Extensions;
-using System;
+using Shared.Interfaces;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -12,11 +13,20 @@ namespace FileExecution.Services;
 [ExcludeFromCodeCoverage(Justification = "Starts and stops real processes")]
 public sealed class ProcessManager : IProcessManager
 {
+	#region Data
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
+	#endregion
+
+	#region Constructors
+	public ProcessManager(IPlatform platform) => _platform = platform;
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	public IExecutingFileProcess? OpenFile(string filePath)
 	{
-		return StartExecutingFileProcess(OperatingSystem.IsWindows()
+		return StartExecutingFileProcess(_platform.IsWindows
 			? CreateWindowsProcess(filePath)
 			: CreateNonWindowsProcess(filePath));
 	}
@@ -45,7 +55,10 @@ public sealed class ProcessManager : IProcessManager
 	}
 
 	/// <inheritdoc />
-	public Process StartProcess(string fileName) => Process.Start(fileName);
+	public void StartProcess(string fileName, IReadOnlyList<string> arguments)
+	{
+		using Process process = Process.Start(fileName, arguments);
+	}
 	#endregion
 
 	#region Helpers

@@ -5,6 +5,7 @@ using Serilog;
 using Settings.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -24,6 +25,9 @@ public sealed class StartupInfoLogger : IStartupInfoLogger
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IPlatform" />
+	private readonly IPlatform _platform;
+
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
 	#endregion
@@ -32,11 +36,14 @@ public sealed class StartupInfoLogger : IStartupInfoLogger
 	public StartupInfoLogger(
 		IAppSettingsStore settingsStore,
 		ICommandLineOptions options,
-		ILogger logger)
+		ILogger logger,
+		IPlatform platform)
 	{
 		_logger = logger;
 
 		_options = options;
+
+		_platform = platform;
 
 		_settingsStore = settingsStore;
 	}
@@ -62,17 +69,17 @@ public sealed class StartupInfoLogger : IStartupInfoLogger
 
 		builder.AppendLine($"{os} platform - {Environment.OSVersion.Platform}");
 
-		if (OperatingSystem.IsMacOS())
+		if (_platform.IsMacOS)
 		{
 			builder.AppendLine($"{os} type - macOS {Environment.OSVersion.Version}");
 		}
 
-		if (OperatingSystem.IsLinux())
+		if (_platform.IsLinux)
 		{
 			builder.AppendLine($"{os} type - Linux {Environment.OSVersion.Version}");
 		}
 
-		if (OperatingSystem.IsWindows())
+		if (_platform.IsWindows)
 		{
 			builder.AppendLine($"{os} type - {OSVersion.GetOperatingSystem()} {OSVersion.GetOSVersion().Version}");
 		}
