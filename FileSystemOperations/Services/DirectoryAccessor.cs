@@ -20,11 +20,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	/// </summary>
 	private const string AppImageVariable = "APPIMAGE";
 
-	/// <summary>
-	/// File name of the shared <c>dotnet</c> host.
-	/// </summary>
-	private const string DotnetHostName = "dotnet";
-
 	/// <inheritdoc cref="IAppProcess" />
 	private readonly IAppProcess _appProcess;
 
@@ -198,7 +193,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 		// The shared dotnet host runs an application from its entry assembly and is not a file of the application.
 		if (_appProcess.ProcessPath is { Length: > 0 } processPath
-			&& !string.Equals(Path.GetFileNameWithoutExtension(processPath), DotnetHostName, StringComparison.OrdinalIgnoreCase)
+			&& !_appProcess.IsRunByDotnetHost()
 			&& _fileSystem.FileExists(processPath))
 		{
 			return processPath;
@@ -218,9 +213,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			return appHostPath;
 		}
 
-		string entryAssemblyPath = Path.Combine(_appProcess.BaseDirectory, appName + KnownFileExtensions.Dll);
-
-		return _fileSystem.FileExists(entryAssemblyPath)
+		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.FileExists(entryAssemblyPath)
 			? entryAssemblyPath
 			: null;
 	}

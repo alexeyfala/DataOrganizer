@@ -3,6 +3,7 @@ using Shared.Common;
 using Shared.Enums;
 using Shared.Extensions;
 using Shared.Interfaces;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -54,7 +55,10 @@ public sealed class ProcessManager : IProcessManager
 	}
 
 	/// <inheritdoc />
-	public Process StartProcess(string fileName) => Process.Start(fileName);
+	public void StartProcess(string fileName, IReadOnlyList<string> arguments)
+	{
+		using Process process = Process.Start(fileName, arguments);
+	}
 	#endregion
 
 	#region Helpers

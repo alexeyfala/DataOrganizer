@@ -819,7 +819,7 @@ internal class AppControllerTests
 		// Assert
 		processManager
 			.DidNotReceive()
-			.StartProcess(Arg.Any<string>());
+			.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 	}
 
 	/// <summary>
@@ -840,6 +840,14 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			appProcess
+				.ProcessPath
+				.Returns(TestPath.Combine("Apps", "DataOrganizer"));
+
+			builder.RegisterInstance(appProcess);
+
 			builder.RegisterInstance(appShutdown);
 
 			builder.RegisterInstance(messenger);
@@ -859,14 +867,14 @@ internal class AppControllerTests
 		// Assert
 		processManager
 			.Received(1)
-			.StartProcess(Arg.Any<string>());
+			.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 
 		Received.InOrder(() =>
 		{
 			// AsTask uses the ValueTask of the call spec (CA2012)
 			((IAsyncDisposable)serviceProvider).DisposeAsync().AsTask();
 
-			processManager.StartProcess(Arg.Any<string>());
+			processManager.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 
 			appShutdown.Shutdown();
 		});
@@ -928,6 +936,58 @@ internal class AppControllerTests
 
 			appShutdown.Shutdown();
 		});
+	}
+
+	/// <summary>
+	/// <see cref="AppController.Receive(ExitAppMessage)" />: a restart under the shared <c>dotnet</c> host starts the host
+	/// again with the entry assembly of the application.
+	/// </summary>
+	[Test]
+	public void Receive_ExitApp_Under_The_Dotnet_Host_Starts_The_Entry_Assembly_Again()
+	{
+		// Arrange
+		string dotnetHostPath = TestPath.Combine("dotnet", "dotnet");
+
+		string entryAssemblyPath = TestPath.Combine("Apps", "DataOrganizer.dll");
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		IProcessManager processManager = Substitute.For<IProcessManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(TestPath.Combine("Apps"));
+
+			appProcess
+				.EntryAssemblyName
+				.Returns("DataOrganizer");
+
+			appProcess
+				.ProcessPath
+				.Returns(dotnetHostPath);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(messenger);
+
+			builder.RegisterInstance(processManager);
+		});
+
+		_ = mock.Create<AppController>();
+
+		messenger.Send(new RestartAppMessage());
+
+		// Act
+		messenger.Send(new ExitAppMessage());
+
+		// Assert
+		processManager
+			.Received(1)
+			.StartProcess(dotnetHostPath, Arg.Is<IReadOnlyList<string>>(x => x.Count == 1 && x[0] == entryAssemblyPath));
 	}
 	#endregion
 }

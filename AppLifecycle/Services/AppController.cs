@@ -28,6 +28,9 @@ public sealed class AppController :
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IAppProcess" />
+	private readonly IAppProcess _appProcess;
+
 	/// <inheritdoc cref="IAppShutdown" />
 	private readonly IAppShutdown _appShutdown;
 
@@ -106,6 +109,7 @@ public sealed class AppController :
 	#region Constructors
 	public AppController(
 		IAppEnvironment appEnvironment,
+		IAppProcess appProcess,
 		IAppShutdown appShutdown,
 		IAppUptime appUptime,
 		IAvaloniaLogForwarder avaloniaLogForwarder,
@@ -132,6 +136,8 @@ public sealed class AppController :
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
+
+		_appProcess = appProcess;
 
 		_appShutdown = appShutdown;
 
@@ -318,9 +324,14 @@ public sealed class AppController :
 		await ReleaseSessionAsync().ConfigureAwait(true);
 
 		// The new instance starts once this one has released its session.
-		if (_isRestartAsked && Environment.ProcessPath is { } path)
+		if (_isRestartAsked && _appProcess.ProcessPath is { Length: > 0 } path)
 		{
-			_processManager.StartProcess(path);
+			// The shared dotnet host runs the application from its entry assembly, so it gets that assembly again.
+			string[] arguments = _appProcess.IsRunByDotnetHost() && _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath
+				? [entryAssemblyPath]
+				: [];
+
+			_processManager.StartProcess(path, arguments);
 		}
 
 		_appShutdown.Shutdown();
