@@ -60,13 +60,17 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			fileSystem
 				.FileExists(FilePath)
 				.Returns(true);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -77,7 +81,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(FilePath);
 	}
@@ -89,13 +93,17 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy_Only_Once()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			fileSystem
 				.FileExists(FilePath)
 				.Returns(true);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -108,7 +116,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(FilePath);
 	}
@@ -120,9 +128,20 @@ internal class DatabaseBackupTests
 	public void Dispose_Skips_A_Missing_Copy()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileSystem));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.FileExists(FilePath)
+				.Returns(false);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance(fileSystem);
+		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
@@ -130,7 +149,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -144,15 +163,19 @@ internal class DatabaseBackupTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
 				.FileExists(FilePath)
 				.Returns(true);
 
-			fileSystem
+			fileEraser
 				.When(x => x.EraseAndDeleteFile(FilePath))
 				.Throw(new UnauthorizedAccessException());
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 		});

@@ -27,6 +27,8 @@ internal class DbMaintenanceTests
 	public void ErasePendingBackups_Erases_Nothing_Without_Leftovers()
 	{
 		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -38,6 +40,8 @@ internal class DbMaintenanceTests
 				.Returns(DatabaseFilePath);
 
 			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -52,7 +56,7 @@ internal class DbMaintenanceTests
 			.DidNotReceive()
 			.EnumerateFiles(Arg.Any<string>());
 
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -72,11 +76,13 @@ internal class DbMaintenanceTests
 			Path.Combine(directoryPath, "second.sqlite-journal")
 		];
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			dbContextService
 				.GetDbFilePath()
@@ -92,6 +98,8 @@ internal class DbMaintenanceTests
 
 			builder.RegisterInstance(dbContextService);
 
+			builder.RegisterInstance(fileEraser);
+
 			builder.RegisterInstance(fileSystem);
 		});
 
@@ -103,7 +111,7 @@ internal class DbMaintenanceTests
 		// Assert
 		foreach (string filePath in leftovers)
 		{
-			fileSystem
+			fileEraser
 				.Received(1)
 				.EraseAndDeleteFile(filePath);
 		}
@@ -122,11 +130,13 @@ internal class DbMaintenanceTests
 
 		string nextFilePath = Path.Combine(directoryPath, "next.sqlite");
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			dbContextService
 				.GetDbFilePath()
@@ -140,11 +150,13 @@ internal class DbMaintenanceTests
 				.EnumerateFiles(directoryPath)
 				.Returns([lockedFilePath, nextFilePath]);
 
-			fileSystem
+			fileEraser
 				.When(x => x.EraseAndDeleteFile(lockedFilePath))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -155,7 +167,7 @@ internal class DbMaintenanceTests
 		sut.ErasePendingBackups();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(nextFilePath);
 	}

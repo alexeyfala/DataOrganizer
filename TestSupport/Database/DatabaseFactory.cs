@@ -17,9 +17,13 @@ public static class DatabaseFactory
 	/// <summary>
 	/// Creates a <see cref="DatabaseBackup" /> over a random path.
 	/// </summary>
-	public static DatabaseBackup CreateDatabaseBackup(IFileSystem fileSystem)
+	public static DatabaseBackup CreateDatabaseBackup(IFileEraser fileEraser, IFileSystem fileSystem)
 	{
-		return new(RandomValues.CreateFileName(10), fileSystem, Logger.None);
+		return new(
+			RandomValues.CreateFileName(10),
+			fileEraser,
+			fileSystem,
+			Logger.None);
 	}
 
 	/// <summary>

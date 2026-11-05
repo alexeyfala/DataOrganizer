@@ -12,12 +12,14 @@ using DataProtection.Services;
 using DataProtection.UnitTests.Factories;
 using NSubstitute;
 using Shared.Interfaces;
+using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using TestSupport.Fakes;
+using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Clipboard.UnitTests.Services;
 
@@ -230,11 +232,23 @@ internal class ClipboardLogFormatCompatibilityTests
 	public async Task TryUnlockAsync_Opens_A_History_Recorded_By_An_Earlier_Build()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
-		files.Files[KeyPath] = Convert.FromHexString(KeyFile);
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
 
-		files.Files[BinPath] = Convert.FromHexString(BinFile);
+		files
+			.File
+			.WriteAllBytes(KeyPath, Convert.FromHexString(KeyFile));
+
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(BinPath, Convert.FromHexString(BinFile));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -246,8 +260,18 @@ internal class ClipboardLogFormatCompatibilityTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());

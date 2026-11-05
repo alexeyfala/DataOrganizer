@@ -394,7 +394,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -500,7 +500,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			dbImporter
 				.IsValidSqliteDatabase(filePath)
@@ -606,7 +606,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -716,7 +716,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -781,7 +781,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(picker);
 
@@ -830,7 +830,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -911,7 +911,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -999,7 +999,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1094,7 +1094,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
@@ -1178,7 +1178,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1247,7 +1247,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IDbImporter dbImporter = Substitute.For<IDbImporter>();
 
@@ -1304,7 +1304,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1520,7 +1520,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
@@ -1602,7 +1602,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1731,7 +1731,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			dbImporter
 				.IsValidSqliteDatabase(filePath)
@@ -1825,7 +1825,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -1911,7 +1911,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -2006,7 +2006,7 @@ internal class DataExchangeServiceTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -2068,7 +2068,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Restores_The_Backup_For_A_File_Of_Another_Type()
 	{
 		// Arrange
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>());
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>());
 
 		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -2130,7 +2130,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		string filePath = RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite);
 
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>());
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>());
 
 		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 

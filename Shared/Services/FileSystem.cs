@@ -3,7 +3,6 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -13,17 +12,22 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Shared.Services;
 
-[ExcludeFromCodeCoverage(Justification = "Works on the real file system, which tests do not touch")]
 public sealed class FileSystem : IFileSystem
 {
 	#region Data
 	/// <summary>
-	/// Extension of the file an atomic write is prepared in.
+	/// Size of the buffer of a sequential stream.
 	/// </summary>
-	private const string TemporaryFileExtension = ".tmp";
+	private const int SequentialBufferSize = 81920;
+
+	/// <summary>
+	/// File system the calls are passed to.
+	/// </summary>
+	private readonly LibraryFileSystem _fileSystem;
 
 	/// <inheritdoc cref="IJsonSerializer" />
 	private readonly IJsonSerializer _jsonSerializer;
@@ -33,8 +37,13 @@ public sealed class FileSystem : IFileSystem
 	#endregion
 
 	#region Constructors
-	public FileSystem(IJsonSerializer jsonSerializer, IPlatform platform)
+	public FileSystem(
+		LibraryFileSystem fileSystem,
+		IJsonSerializer jsonSerializer,
+		IPlatform platform)
 	{
+		_fileSystem = fileSystem;
+
 		_jsonSerializer = jsonSerializer;
 
 		_platform = platform;
@@ -55,27 +64,39 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void CreateDirectory(string directoryPath) => Directory.CreateDirectory(directoryPath);
+	public void CreateDirectory(string directoryPath)
+	{
+		_fileSystem
+			.Directory
+			.CreateDirectory(directoryPath);
+	}
 
 	/// <inheritdoc />
-	public Stream CreateSequentialWrite(string filePath) => new FileStream(
-		filePath,
-		FileMode.Create,
-		FileAccess.Write,
-		FileShare.None,
-		bufferSize: 81920,
-		options: FileOptions.Asynchronous);
+	public Stream CreateSequentialWrite(string filePath)
+	{
+		return _fileSystem
+			.FileStream
+			.New(
+				filePath,
+				FileMode.Create,
+				FileAccess.Write,
+				FileShare.None,
+				SequentialBufferSize,
+				FileOptions.Asynchronous);
+	}
 
 	/// <inheritdoc />
 	public void DeleteDirectory(string directoryPath, bool recursive = true)
 	{
-		Directory.Delete(directoryPath, recursive);
+		_fileSystem
+			.Directory
+			.Delete(directoryPath, recursive);
 	}
 
 	/// <inheritdoc />
 	public bool DirectoryExists([NotNullWhen(true)] string? directoryPath)
 	{
-		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
+		if (string.IsNullOrEmpty(directoryPath) || !_fileSystem.Directory.Exists(directoryPath))
 		{
 			return false;
 		}
@@ -94,7 +115,8 @@ public sealed class FileSystem : IFileSystem
 				return true;
 			}
 
-			return Directory
+			return _fileSystem
+				.Directory
 				.EnumerateDirectories(parentPath)
 				.Any(x => string.Equals(Path.GetFileName(x), directoryName, StringComparison.Ordinal));
 		}
@@ -109,107 +131,15 @@ public sealed class FileSystem : IFileSystem
 	/// <inheritdoc />
 	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
-		return Directory.EnumerateFiles(directoryPath);
-	}
-
-	/// <inheritdoc />
-	public void EraseAndDeleteDirectory(string directoryPath)
-	{
-		List<Exception> failures = [];
-
-		foreach (string filePath in Directory.EnumerateFiles(
-			directoryPath,
-			"*",
-			SearchOption.AllDirectories))
-		{
-			try
-			{
-				SetFileReadOnly(filePath, false);
-
-				EraseFile(filePath);
-			}
-			catch (Exception ex)
-			{
-				failures.Add(ex);
-			}
-		}
-
-		try
-		{
-			Directory.Delete(directoryPath, recursive: true);
-		}
-		catch (Exception ex)
-		{
-			failures.Add(ex);
-		}
-
-		if (failures.Count > 0)
-		{
-			throw new AggregateException(failures);
-		}
-	}
-
-	/// <inheritdoc />
-	public void EraseAndDeleteFile(
-		string filePath,
-		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passCount = IFileSystem.DefaultPassCount)
-	{
-		EraseFile(filePath, bufferSize, passCount);
-
-		File.Delete(filePath);
-	}
-
-	/// <inheritdoc />
-	public void EraseFile(
-		string filePath,
-		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passCount = IFileSystem.DefaultPassCount)
-	{
-		long fileLength = new FileInfo(filePath).Length;
-
-		// A buffer of the erase size is rented to keep it out of the large object heap.
-		byte[] buffer = ArrayPool<byte>
-			.Shared
-			.Rent((int)Math.Min(fileLength, bufferSize));
-
-		try
-		{
-			for (int i = 0; i < passCount; i++)
-			{
-				using FileStream stream = File.Open(
-					filePath,
-					FileMode.Open,
-					FileAccess.Write);
-
-				long position = 0;
-
-				while (position < fileLength)
-				{
-					int count = (int)Math.Min(buffer.Length, fileLength - position);
-
-					RandomNumberGenerator.Fill(buffer.AsSpan(0, count));
-
-					stream.Write(buffer, 0, count);
-
-					position += count;
-				}
-
-				// Without this the pass may never reach the medium: deleting the file afterwards
-				// lets the system drop the pending writes and leave the original content in place.
-				stream.Flush(flushToDisk: true);
-			}
-		}
-		finally
-		{
-			ArrayPool<byte>.Shared.Return(buffer);
-		}
+		return _fileSystem
+			.Directory
+			.EnumerateFiles(directoryPath);
 	}
 
 	/// <inheritdoc />
 	public bool FileExists([NotNullWhen(true)] string? filePath)
 	{
-		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+		if (string.IsNullOrEmpty(filePath) || !_fileSystem.File.Exists(filePath))
 		{
 			return false;
 		}
@@ -228,7 +158,8 @@ public sealed class FileSystem : IFileSystem
 				return false;
 			}
 
-			return Directory
+			return _fileSystem
+				.Directory
 				.EnumerateFiles(parentPath)
 				.Any(x => string.Equals(Path.GetFileName(x), fileName, StringComparison.Ordinal));
 		}
@@ -245,11 +176,13 @@ public sealed class FileSystem : IFileSystem
 	{
 		try
 		{
-			using FileStream stream = File.Open(
-				filePath,
-				FileMode.Open,
-				FileAccess.Read,
-				FileShare.None);
+			using Stream stream = _fileSystem
+				.File
+				.Open(
+					filePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.None);
 		}
 		catch (IOException ex) when (_platform.IsWindows && (ex.HResult & 0x0000FFFF) == 32)
 		{
@@ -269,32 +202,54 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public Stream OpenRead(string filePath) => File.Open(
-		filePath,
-		FileMode.Open,
-		FileAccess.Read,
-		FileShare.ReadWrite | FileShare.Delete);
+	public Stream OpenRead(string filePath)
+	{
+		return _fileSystem
+			.File
+			.Open(
+				filePath,
+				FileMode.Open,
+				FileAccess.Read,
+				FileShare.ReadWrite | FileShare.Delete);
+	}
 
 	/// <inheritdoc />
-	public Stream OpenSequentialRead(string filePath) => new FileStream(
-		filePath,
-		FileMode.Open,
-		FileAccess.Read,
-		FileShare.Read,
-		bufferSize: 81920,
-		options: FileOptions.Asynchronous | FileOptions.SequentialScan);
+	public Stream OpenSequentialRead(string filePath)
+	{
+		return _fileSystem
+			.FileStream
+			.New(
+				filePath,
+				FileMode.Open,
+				FileAccess.Read,
+				FileShare.Read,
+				SequentialBufferSize,
+				FileOptions.Asynchronous | FileOptions.SequentialScan);
+	}
 
 	/// <inheritdoc />
-	public byte[] ReadAllBytes(string filePath) => File.ReadAllBytes(filePath);
+	public byte[] ReadAllBytes(string filePath)
+	{
+		return _fileSystem
+			.File
+			.ReadAllBytes(filePath);
+	}
 
 	/// <inheritdoc />
 	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
 	{
-		return File.ReadAllBytesAsync(filePath, token);
+		return _fileSystem
+			.File
+			.ReadAllBytesAsync(filePath, token);
 	}
 
 	/// <inheritdoc />
-	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
+	public string ReadAllText(string filePath)
+	{
+		return _fileSystem
+			.File
+			.ReadAllText(filePath);
+	}
 
 	/// <inheritdoc />
 	public void SerializeToJsonFile<T>(
@@ -309,10 +264,10 @@ public sealed class FileSystem : IFileSystem
 
 		if (Path.GetDirectoryName(filePath) is { } parentDirectory)
 		{
-			Directory.CreateDirectory(parentDirectory);
+			CreateDirectory(parentDirectory);
 		}
 
-		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, JsonDefaults.Options));
+		WriteAllText(filePath, _jsonSerializer.Serialize(value, JsonDefaults.Options));
 
 		if (!isHidden)
 		{
@@ -323,38 +278,19 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void SetFileHidden(string filePath, bool isHidden)
-	{
-		const FileAttributes attribute = FileAttributes.Hidden;
-
-		if (isHidden)
-		{
-			AddFileAttributes(filePath, attribute);
-		}
-		else
-		{
-			RemoveFileAttributes(filePath, attribute);
-		}
-	}
+	public void SetFileHidden(string filePath, bool isHidden) => _fileSystem.SetFileHidden(filePath, isHidden);
 
 	/// <inheritdoc />
-	public void SetFileReadOnly(string filePath, bool isReadOnly)
-	{
-		const FileAttributes attribute = FileAttributes.ReadOnly;
-
-		if (isReadOnly)
-		{
-			AddFileAttributes(filePath, attribute);
-		}
-		else
-		{
-			RemoveFileAttributes(filePath, attribute);
-		}
-	}
+	public void SetFileReadOnly(string filePath, bool isReadOnly) => _fileSystem.SetFileReadOnly(filePath, isReadOnly);
 
 	/// <inheritdoc />
 	[UnsupportedOSPlatform("windows")]
-	public void SetUnixFileMode(string path, UnixFileMode mode) => File.SetUnixFileMode(path, mode);
+	public void SetUnixFileMode(string path, UnixFileMode mode)
+	{
+		_fileSystem
+			.File
+			.SetUnixFileMode(path, mode);
+	}
 
 	/// <inheritdoc />
 	public async ValueTask<bool> WaitUntilFileUnlockedAsync(
@@ -385,114 +321,20 @@ public sealed class FileSystem : IFileSystem
 		byte[] bytes,
 		CancellationToken token = default)
 	{
-		return File.WriteAllBytesAsync(filePath, bytes, token);
+		return _fileSystem
+			.File
+			.WriteAllBytesAsync(
+				filePath,
+				bytes,
+				token);
 	}
 
 	/// <inheritdoc />
-	public void WriteAllBytesAtomic(string filePath, byte[] bytes)
+	public void WriteAllText(string filePath, string? contents)
 	{
-		string temporaryFilePath = filePath + TemporaryFileExtension;
-
-		try
-		{
-			// The bytes reach the disk before the swap: a rename that outruns them publishes an empty file.
-			using (FileStream stream = new(
-				temporaryFilePath,
-				FileMode.Create,
-				FileAccess.Write,
-				FileShare.None,
-				bufferSize: 4096,
-				options: FileOptions.WriteThrough))
-			{
-				stream.Write(bytes);
-			}
-
-			File.Move(temporaryFilePath, filePath, overwrite: true);
-		}
-		catch
-		{
-			TryDeleteTemporaryFile(temporaryFilePath);
-
-			throw;
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task WriteAllBytesAtomicAsync(
-		string filePath,
-		byte[] bytes,
-		CancellationToken token = default)
-	{
-		string temporaryFilePath = filePath + TemporaryFileExtension;
-
-		try
-		{
-			// The bytes reach the disk before the swap: a rename that outruns them publishes an empty file.
-			await using (FileStream stream = new(
-				temporaryFilePath,
-				FileMode.Create,
-				FileAccess.Write,
-				FileShare.None,
-				bufferSize: 4096,
-				options: FileOptions.Asynchronous | FileOptions.WriteThrough))
-			{
-				await stream
-					.WriteAsync(bytes, token)
-					.ConfigureAwait(false);
-			}
-
-			File.Move(temporaryFilePath, filePath, overwrite: true);
-		}
-		catch
-		{
-			TryDeleteTemporaryFile(temporaryFilePath);
-
-			throw;
-		}
-	}
-
-	/// <inheritdoc />
-	public void WriteAllText(string filePath, string? contents) => File.WriteAllText(filePath, contents);
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Adds attributes <see cref="FileAttributes" /> to a file.
-	/// </summary>
-	private static void AddFileAttributes(string filePath, FileAttributes attributes)
-	{
-		FileAttributes current = File.GetAttributes(filePath);
-
-		current |= attributes;
-
-		File.SetAttributes(filePath, current);
-	}
-
-	/// <summary>
-	/// Removes the <see cref="FileAttributes" /> attribute from a file.
-	/// </summary>
-	private static void RemoveFileAttributes(string filePath, FileAttributes attributes)
-	{
-		FileAttributes current = File.GetAttributes(filePath);
-
-		current &= ~attributes;
-
-		File.SetAttributes(filePath, current);
-	}
-
-	/// <summary>
-	/// Removes the file an atomic write was prepared in.
-	/// </summary>
-	private static void TryDeleteTemporaryFile(string temporaryFilePath)
-	{
-		try
-		{
-			File.Delete(temporaryFilePath);
-		}
-		catch
-		{
-			// The write is reported as it failed; a leftover file must not replace that reason.
-		}
+		_fileSystem
+			.File
+			.WriteAllText(filePath, contents);
 	}
 	#endregion
 }

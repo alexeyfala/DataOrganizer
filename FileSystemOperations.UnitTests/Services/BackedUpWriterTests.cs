@@ -27,9 +27,11 @@ internal class BackedUpWriterTests
 	public async Task WriteAsync_Erases_The_Copy_After_The_Write()
 	{
 		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileSystem);
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileEraser, fileSystem);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -52,7 +54,7 @@ internal class BackedUpWriterTests
 		await sut.WriteAsync(() => Task.FromResult(true));
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(backup.FilePath);
 	}
@@ -70,7 +72,7 @@ internal class BackedUpWriterTests
 		{
 			backupService
 				.CreateBackupAsync(Arg.Any<CancellationToken>())
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(backupService);
 		});
@@ -107,7 +109,7 @@ internal class BackedUpWriterTests
 
 			backupService
 				.CreateBackupAsync(Arg.Any<CancellationToken>())
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			backupService
 				.RestoreFromBackupAsync(default!, default)
@@ -141,7 +143,7 @@ internal class BackedUpWriterTests
 	public async Task WriteAsync_Rolls_Back_A_Failed_Write([Values] bool doesWriteThrow)
 	{
 		// Arrange
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>());
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>());
 
 		IDbBackupService backupService = Substitute.For<IDbBackupService>();
 

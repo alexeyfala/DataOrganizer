@@ -23,6 +23,9 @@ public sealed class DbMaintenance : IDbMaintenance
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -33,10 +36,13 @@ public sealed class DbMaintenance : IDbMaintenance
 	#region Constructors
 	public DbMaintenance(
 		IDbContextService dbContextService,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		ILogger logger)
 	{
 		_dbContextService = dbContextService;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -120,7 +126,7 @@ public sealed class DbMaintenance : IDbMaintenance
 		{
 			try
 			{
-				_fileSystem.EraseAndDeleteFile(filePath);
+				_fileEraser.EraseAndDeleteFile(filePath);
 
 				_logger.LogInformation($@"Erased a leftover copy of the database ""{filePath}""");
 			}

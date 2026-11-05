@@ -416,7 +416,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -546,7 +546,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -630,7 +630,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -778,7 +778,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -947,7 +947,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -1122,9 +1122,11 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Erases_The_Database_Backup([Values] bool isUpdateFailing)
 	{
 		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileSystem);
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileEraser, fileSystem);
 
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
@@ -1204,7 +1206,7 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(backup.FilePath);
 	}
@@ -1294,7 +1296,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 
@@ -1446,7 +1448,7 @@ internal class FolderProtectionTests
 
 			dbBackupService
 				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentWriter);
 

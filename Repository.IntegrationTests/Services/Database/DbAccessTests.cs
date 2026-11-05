@@ -20,6 +20,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions;
+using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Repository.IntegrationTests.Services.Database;
 
@@ -71,8 +73,16 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
 				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -133,8 +143,16 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
 				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -189,8 +207,16 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
 				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -289,8 +315,16 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
 				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -333,9 +367,20 @@ internal class DbAccessTests
 
 		File.WriteAllBytes(file.FilePath, [.. "SQLite format 3\0"u8, .. new byte[84].AsSpan()]);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -357,9 +402,20 @@ internal class DbAccessTests
 		// Arrange
 		using TempSqliteFile file = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -388,9 +444,20 @@ internal class DbAccessTests
 
 		File.WriteAllBytes(file.FilePath, []);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -422,9 +489,20 @@ internal class DbAccessTests
 
 		File.WriteAllText(foreignFilePath, "A name is not a database.");
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
+				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -530,8 +608,16 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
 				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<LibraryFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();

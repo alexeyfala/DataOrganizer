@@ -60,6 +60,9 @@ public sealed class DbAccess :
 	/// <inheritdoc cref="IFileRepository" />
 	private readonly IFileRepository _fileRepository;
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -90,6 +93,7 @@ public sealed class DbAccess :
 		IDbMaintenance dbMaintenance,
 		IExplorerItemRepository explorerItemRepository,
 		IFileRepository fileRepository,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		IFolderRepository folderRepository,
 		IHotkeysRepository hotkeysRepository,
@@ -103,6 +107,8 @@ public sealed class DbAccess :
 		_explorerItemRepository = explorerItemRepository;
 
 		_fileRepository = fileRepository;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -337,6 +343,7 @@ public sealed class DbAccess :
 
 		return new DatabaseBackup(
 			backupFilePath,
+			_fileEraser,
 			_fileSystem,
 			_logger);
 	}

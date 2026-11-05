@@ -35,6 +35,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
 	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -66,6 +69,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	public ExecutionEngine(
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
@@ -77,6 +81,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_appResolver = appResolver;
 
 		_changeTracker = changeTracker;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -489,7 +495,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_fileSystem.SetFileReadOnly(filePath, false);
 
-			_fileSystem.EraseAndDeleteFile(filePath);
+			_fileEraser.EraseAndDeleteFile(filePath);
 		});
 
 		await _fileSystem
@@ -643,7 +649,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		try
 		{
-			_fileSystem.EraseAndDeleteFile(filePath);
+			_fileEraser.EraseAndDeleteFile(filePath);
 		}
 		catch (Exception ex)
 		{

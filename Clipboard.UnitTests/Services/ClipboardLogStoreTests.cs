@@ -14,15 +14,19 @@ using DataProtection.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
+using Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using TestSupport.Fakes;
 using TextProcessing.Constants;
+using IFile = System.IO.Abstractions.IFile;
+using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Clipboard.UnitTests.Services;
 
@@ -59,7 +63,7 @@ internal class ClipboardLogStoreTests
 	public async Task Dispose_Locks_The_Store_And_Stops_Saving()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -71,8 +75,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -100,9 +114,9 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeFalse();
 
-		files.Files
+		files.File.Exists(BinPath)
 			.Should()
-			.NotContainKey(BinPath);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -112,7 +126,7 @@ internal class ClipboardLogStoreTests
 	public async Task EraseAll_Overwrites_Both_Files()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -124,8 +138,20 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance(fileEraser);
+
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterInstance(files)
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -149,9 +175,12 @@ internal class ClipboardLogStoreTests
 		sut.EraseAll();
 
 		// Assert
-		files.ErasedFiles
-			.Should()
-			.Equal(BinPath, KeyPath);
+		Received.InOrder(() =>
+		{
+			fileEraser.EraseAndDeleteFile(BinPath);
+
+			fileEraser.EraseAndDeleteFile(KeyPath);
+		});
 	}
 
 	/// <summary>
@@ -161,7 +190,7 @@ internal class ClipboardLogStoreTests
 	public async Task EraseAll_Removes_Both_Files_And_Locks()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -173,8 +202,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -206,7 +245,7 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeFalse();
 
-		files.Files
+		files.Directory.EnumerateFiles(TestPath.Root, "*", SearchOption.AllDirectories)
 			.Should()
 			.BeEmpty();
 	}
@@ -218,7 +257,7 @@ internal class ClipboardLogStoreTests
 	public async Task EraseAll_Removes_The_Folder()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -230,8 +269,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -253,9 +302,9 @@ internal class ClipboardLogStoreTests
 		sut.EraseAll();
 
 		// Assert
-		files.Directories
+		files.Directory.Exists(HistoryFolder)
 			.Should()
-			.NotContain(HistoryFolder);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -265,7 +314,7 @@ internal class ClipboardLogStoreTests
 	public async Task EraseHistory_Removes_Log_But_Keeps_Key()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -277,8 +326,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -306,13 +365,13 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeTrue();
 
-		files.Files
+		files.File.Exists(KeyPath)
 			.Should()
-			.ContainKey(KeyPath);
+			.BeTrue();
 
-		files.Files
+		files.File.Exists(BinPath)
 			.Should()
-			.NotContainKey(BinPath);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -322,7 +381,7 @@ internal class ClipboardLogStoreTests
 	public async Task LoadEntriesAsync_Wipes_The_Plaintext()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardLog());
 
@@ -342,8 +401,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -352,7 +421,13 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// The key store is faked, so the stored bytes are never read as a real ciphertext.
-		files.Files[BinPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(BinPath, [1, 2, 3]);
 
 		// Act
 		await sut.LoadEntriesAsync(default);
@@ -370,7 +445,7 @@ internal class ClipboardLogStoreTests
 	public async Task LoadEntriesAsync_With_Unsupported_Version_Returns_Empty()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardLog
 		{
@@ -393,8 +468,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -409,7 +494,13 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// The key store is faked, so the stored bytes are never read as a real ciphertext.
-		files.Files[BinPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(BinPath, [1, 2, 3]);
 
 		// Act
 		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(default);
@@ -427,7 +518,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_Creates_A_Missing_Folder()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -439,8 +530,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -459,15 +560,17 @@ internal class ClipboardLogStoreTests
 		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// The folder disappears behind the back of the store.
-		files.Directories.Clear();
+		files
+			.Directory
+			.Delete(HistoryFolder, recursive: true);
 
 		// Act
 		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
-		files.Directories
+		files.Directory.Exists(HistoryFolder)
 			.Should()
-			.Contain(HistoryFolder);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -478,7 +581,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_Replaces_The_Log_Atomically()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -490,8 +593,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -513,13 +626,13 @@ internal class ClipboardLogStoreTests
 		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
-		files.AtomicWrites
+		files.Statistics.File.Methods
 			.Should()
-			.Contain(BinPath);
+			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(BinPath));
 
-		files.Files
+		files.File.Exists(BinPath)
 			.Should()
-			.ContainKey(BinPath);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -529,7 +642,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_Then_Unlock_In_New_Session_Restores_Entries()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -541,8 +654,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -574,8 +697,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -619,7 +752,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_Twice_Overwrites_Previous_Log()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -631,8 +764,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -666,8 +809,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -707,7 +860,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_When_Encryption_Fails_Writes_Nothing()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -735,8 +888,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -756,9 +919,9 @@ internal class ClipboardLogStoreTests
 		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
-		files.Files
+		files.File.Exists(BinPath)
 			.Should()
-			.NotContainKey(BinPath);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -813,7 +976,7 @@ internal class ClipboardLogStoreTests
 	public async Task SaveAsync_Without_Unlock_Writes_Nothing()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -825,8 +988,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -846,7 +1019,7 @@ internal class ClipboardLogStoreTests
 		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Assert
-		files.Files
+		files.Directory.EnumerateFiles(TestPath.Root, "*", SearchOption.AllDirectories)
 			.Should()
 			.BeEmpty();
 	}
@@ -861,7 +1034,7 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		const string text = "SomethingWorthHiding";
 
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -873,8 +1046,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -896,11 +1079,11 @@ internal class ClipboardLogStoreTests
 		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry(text)]);
 
 		// Assert
-		files.Files
+		files.File.Exists(BinPath)
 			.Should()
-			.ContainKey(BinPath);
+			.BeTrue();
 
-		files.Files[BinPath]
+		files.File.ReadAllBytes(BinPath)
 			.AsSpan()
 			.IndexOf(TextDefaults.Encoding.GetBytes(text))
 			.Should()
@@ -915,7 +1098,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_Creates_Key_When_None_Exists()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -927,8 +1110,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -964,9 +1157,9 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeTrue();
 
-		files.AtomicWrites
+		files.Statistics.File.Methods
 			.Should()
-			.Contain(KeyPath);
+			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(KeyPath));
 	}
 
 	/// <summary>
@@ -976,7 +1169,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_Creates_The_Folder_Of_A_New_Key()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -988,8 +1181,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1009,9 +1212,9 @@ internal class ClipboardLogStoreTests
 		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
 
 		// Assert
-		files.Directories
+		files.Directory.Exists(HistoryFolder)
 			.Should()
-			.Contain(HistoryFolder);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1022,11 +1225,17 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_Replaces_A_Rewrapped_Key_Atomically()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		// The store only asks whether a key file is there, and its bytes go to the substituted
 		// encryption below, so they never have to be a real key.
-		files.Files[KeyPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(KeyPath, [1, 2, 3]);
 
 		byte[] rewrapped = [9, 8, 7];
 
@@ -1054,8 +1263,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1078,11 +1297,11 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.Be(ClipboardLogStatus.Unlocked);
 
-		files.AtomicWrites
+		files.Statistics.File.Methods
 			.Should()
-			.Contain(KeyPath);
+			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(KeyPath));
 
-		files.Files[KeyPath]
+		files.File.ReadAllBytes(KeyPath)
 			.Should()
 			.BeEquivalentTo(rewrapped);
 	}
@@ -1095,11 +1314,17 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_When_An_Existing_Key_Cannot_Be_Read_Returns_Damaged()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		// The bytes of the key reach the substituted encryption below, which answers for them,
 		// so they never have to be a real key.
-		files.Files[KeyPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(KeyPath, [1, 2, 3]);
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
 		{
@@ -1117,8 +1342,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1149,11 +1384,17 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_When_Key_Unwrap_Is_Rejected_Returns_WrongPassword()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		// The bytes of the key reach the substituted encryption below, which answers for them,
 		// so they never have to be a real key.
-		files.Files[KeyPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(KeyPath, [1, 2, 3]);
 
 		using AutoMock second = AutoMock.GetLoose(builder =>
 		{
@@ -1171,8 +1412,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1203,7 +1454,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_When_Key_Wrap_Fails_Returns_Failed()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1225,8 +1476,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1249,9 +1510,9 @@ internal class ClipboardLogStoreTests
 			.Should()
 			.BeFalse();
 
-		files.Files
+		files.File.Exists(KeyPath)
 			.Should()
-			.NotContainKey(KeyPath);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1261,7 +1522,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_When_Log_Is_Rejected_Returns_Empty()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -1273,8 +1534,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1312,8 +1583,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1345,10 +1626,16 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_When_The_Key_Store_Refuses_The_Key_Returns_Failed()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		// The bytes of the key reach the substituted encryption below, which answers for them.
-		files.Files[KeyPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(KeyPath, [1, 2, 3]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1372,8 +1659,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
@@ -1399,7 +1696,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_With_Corrupt_Log_Returns_Empty()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -1411,8 +1708,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1433,7 +1740,13 @@ internal class ClipboardLogStoreTests
 			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 		}
 
-		files.Files[BinPath] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(BinPath, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 		// Act
 		using AutoMock second = AutoMock.GetLoose(builder =>
@@ -1446,8 +1759,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1483,7 +1806,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_With_Empty_Log_Returns_Empty()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -1495,8 +1818,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1517,7 +1850,13 @@ internal class ClipboardLogStoreTests
 			await writer.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 		}
 
-		files.Files[BinPath] = [];
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		files
+			.File
+			.WriteAllBytes(BinPath, []);
 
 		// Act
 		using AutoMock second = AutoMock.GetLoose(builder =>
@@ -1530,8 +1869,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1566,7 +1915,7 @@ internal class ClipboardLogStoreTests
 	public async Task TryUnlockAsync_With_Wrong_Password_Returns_WrongPassword()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using (AutoMock first = AutoMock.GetLoose(builder =>
 		{
@@ -1578,8 +1927,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
@@ -1609,8 +1968,18 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());

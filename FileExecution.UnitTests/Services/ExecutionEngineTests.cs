@@ -101,6 +101,8 @@ internal class ExecutionEngineTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
@@ -122,6 +124,8 @@ internal class ExecutionEngineTests
 			processManager
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -154,7 +158,7 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
@@ -173,12 +177,14 @@ internal class ExecutionEngineTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -198,6 +204,8 @@ internal class ExecutionEngineTests
 			process
 				.When(x => x.Kill())
 				.Throw(new InvalidOperationException());
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -225,7 +233,7 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.Dispose();
 
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -237,9 +245,9 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Does_Nothing_When_Id_Unknown()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileSystem));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileEraser));
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -247,7 +255,7 @@ internal class ExecutionEngineTests
 		await sut.CloseAsync(Guid.NewGuid());
 
 		// Assert
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -458,6 +466,8 @@ internal class ExecutionEngineTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -472,6 +482,8 @@ internal class ExecutionEngineTests
 			fileSystem
 				.FileExists(Arg.Any<string>())
 				.Returns(false);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -497,7 +509,7 @@ internal class ExecutionEngineTests
 			.DidNotReceive()
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -625,6 +637,8 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Waits_For_Locked_File_Then_Deletes()
 	{
 		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
@@ -651,6 +665,8 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(sandbox);
 
+			builder.RegisterInstance(fileEraser);
+
 			builder.RegisterInstance(fileSystem);
 		});
 
@@ -673,7 +689,7 @@ internal class ExecutionEngineTests
 			.Received()
 			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
 
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -685,7 +701,7 @@ internal class ExecutionEngineTests
 	public async Task DisposeAsync_Cleans_Up_Executing_Files()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
@@ -693,6 +709,8 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -710,6 +728,8 @@ internal class ExecutionEngineTests
 				.Returns(process);
 
 			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -739,7 +759,7 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.Dispose();
 
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
@@ -755,6 +775,8 @@ internal class ExecutionEngineTests
 	public async Task DisposeAsync_Leaves_A_File_That_Is_Gone_Alone()
 	{
 		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -769,6 +791,8 @@ internal class ExecutionEngineTests
 			fileSystem
 				.FileExists(Arg.Any<string>())
 				.Returns(false);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -794,7 +818,7 @@ internal class ExecutionEngineTests
 			.DidNotReceive()
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -1442,6 +1466,8 @@ internal class ExecutionEngineTests
 
 		string directoryPath = RandomValues.CreateDirectoryName();
 
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
@@ -1474,6 +1500,8 @@ internal class ExecutionEngineTests
 				.Returns(Task.CompletedTask);
 
 			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileEraser);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -1524,7 +1552,7 @@ internal class ExecutionEngineTests
 			.Received(2)
 			.SetFileReadOnly(Arg.Any<string>(), false);
 
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 

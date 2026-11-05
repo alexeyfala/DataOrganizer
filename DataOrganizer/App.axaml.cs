@@ -76,6 +76,7 @@ using SharpHook;
 using System;
 using System.Diagnostics;
 using System.IO;
+using Testably.Abstractions;
 using TextProcessing.Constants;
 using TextProcessing.Interfaces;
 using Threading.Interfaces;
@@ -151,6 +152,7 @@ public sealed class App : Application
 		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IAtomicFileWriter, AtomicFileWriter>();
 		services.AddTransient<IAutoLockControl, BackgroundServices>();
 		services.AddTransient<IAutoLockSettings, AutoLockSettings>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
@@ -192,10 +194,12 @@ public sealed class App : Application
 		services.AddTransient<IFileContentsOpener, FileContentsOpener>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
+		services.AddTransient<IFileEraser, FileEraser>();
 		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
 		services.AddTransient<IFileSystem, FileSystem>();
+		services.AddTransient<System.IO.Abstractions.IFileSystem, RealFileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFileTextCopier, FileTextCopier>();
 		services.AddTransient<IFileTextReader, FileTextReader>();

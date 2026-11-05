@@ -19,6 +19,9 @@ public sealed class DatabaseBackup : IDisposable
 	/// </summary>
 	private const string DirectoryName = "Backups";
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -34,10 +37,13 @@ public sealed class DatabaseBackup : IDisposable
 	#region Constructors
 	public DatabaseBackup(
 		string filePath,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		ILogger logger)
 	{
 		FilePath = filePath;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -84,7 +90,7 @@ public sealed class DatabaseBackup : IDisposable
 		{
 			if (_fileSystem.FileExists(FilePath))
 			{
-				_fileSystem.EraseAndDeleteFile(FilePath);
+				_fileEraser.EraseAndDeleteFile(FilePath);
 			}
 		}
 		catch (Exception ex)

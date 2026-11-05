@@ -29,6 +29,8 @@ internal class RepositoryServiceCollectionExtensionsTests
 		// Arrange
 		ServiceCollection services = [];
 
+		services.AddSingleton(Substitute.For<IFileEraser>());
+
 		services.AddSingleton(Substitute.For<IFileSystem>());
 
 		services.AddSingleton(Substitute.For<ILogger>());

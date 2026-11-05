@@ -1,5 +1,4 @@
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -15,22 +14,6 @@ namespace Shared.Interfaces;
 /// </summary>
 public interface IFileSystem
 {
-	#region Data
-	/// <summary>
-	/// Default buffer size for <see cref="EraseFile" />.
-	/// </summary>
-	public const int DefaultBufferSize = 4096;
-
-	/// <summary>
-	/// Default pass count for <see cref="EraseFile" />.
-	/// </summary>
-	/// <remarks>
-	/// A single pass: multiple passes are an HDD legacy, and on an SSD with wear leveling a rewrite
-	/// is not guaranteed to reach the same physical blocks anyway.
-	/// </remarks>
-	public const int DefaultPassCount = 1;
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Computes a hash of <see cref="Stream" /> content.
@@ -62,32 +45,6 @@ public interface IFileSystem
 
 	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
 	IEnumerable<string> EnumerateFiles(string directoryPath);
-
-	/// <summary>
-	/// Overwrites with random values the contents of every file of the folder and of its subfolders, then deletes the folder.
-	/// </summary>
-	/// <remarks>
-	/// The <see cref="FileAttributes.ReadOnly" /> sign is removed from every file.
-	/// A file that cannot be overwritten does not stop the others; the failures are reported through <see cref="AggregateException" />.
-	/// </remarks>
-	void EraseAndDeleteDirectory(string directoryPath);
-
-	/// <summary>
-	/// <inheritdoc cref="EraseFile" /><br />
-	/// <inheritdoc cref="File.Delete(string)" />
-	/// </summary>
-	void EraseAndDeleteFile(
-		string filePath,
-		in int bufferSize = DefaultBufferSize,
-		in int passCount = DefaultPassCount);
-
-	/// <summary>
-	/// Overwrites the file contents with random values.
-	/// </summary>
-	void EraseFile(
-		string filePath,
-		in int bufferSize = DefaultBufferSize,
-		in int passCount = DefaultPassCount);
 
 	/// <summary>
 	/// Determines whether a file exists in the file system, taking into account the case of the path.
@@ -162,18 +119,6 @@ public interface IFileSystem
 
 	/// <inheritdoc cref="File.WriteAllBytesAsync(string, byte[], CancellationToken)" />
 	Task WriteAllBytesAsync(
-		string filePath,
-		byte[] bytes,
-		CancellationToken token = default);
-
-	/// <inheritdoc cref="WriteAllBytesAtomicAsync" />
-	void WriteAllBytesAtomic(string filePath, byte[] bytes);
-
-	/// <summary>
-	/// Writes bytes into a temporary file and puts it in the place of <paramref name="filePath" />,
-	/// so a write that does not reach the disk leaves the previous contents untouched.
-	/// </summary>
-	Task WriteAllBytesAtomicAsync(
 		string filePath,
 		byte[] bytes,
 		CancellationToken token = default);

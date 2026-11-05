@@ -21,10 +21,16 @@ public sealed class NotepadStore : INotepadStore
 	/// </summary>
 	private const string TextFileExtension = ".txt";
 
+	/// <inheritdoc cref="IAtomicFileWriter" />
+	private readonly IAtomicFileWriter _atomicFileWriter;
+
 	/// <summary>
 	/// Directory the files of the texts live in.
 	/// </summary>
 	private readonly string _directoryPath;
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -44,6 +50,8 @@ public sealed class NotepadStore : INotepadStore
 	#region Constructors
 	public NotepadStore(
 		IAppEnvironment appEnvironment,
+		IAtomicFileWriter atomicFileWriter,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		IJsonSerializer jsonSerializer,
 		ILogger logger)
@@ -51,6 +59,10 @@ public sealed class NotepadStore : INotepadStore
 		_directoryPath = appEnvironment.NotepadDirectoryPath;
 
 		_settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(NotepadViewSettings));
+
+		_atomicFileWriter = atomicFileWriter;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -73,7 +85,7 @@ public sealed class NotepadStore : INotepadStore
 
 		try
 		{
-			_fileSystem.EraseAndDeleteFile(filePath);
+			_fileEraser.EraseAndDeleteFile(filePath);
 		}
 		catch (Exception ex)
 		{
@@ -152,7 +164,7 @@ public sealed class NotepadStore : INotepadStore
 		{
 			_fileSystem.CreateDirectory(_directoryPath);
 
-			_fileSystem.WriteAllBytesAtomic(GetFilePath(number), contents);
+			_atomicFileWriter.WriteAllBytes(GetFilePath(number), contents);
 
 			return true;
 		}
@@ -174,7 +186,7 @@ public sealed class NotepadStore : INotepadStore
 				_fileSystem.CreateDirectory(directoryPath);
 			}
 
-			_fileSystem.WriteAllBytesAtomic(
+			_atomicFileWriter.WriteAllBytes(
 				_settingsFilePath,
 				_jsonSerializer.SerializeToUtf8Bytes(settings, JsonDefaults.Options));
 		}

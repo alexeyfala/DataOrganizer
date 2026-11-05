@@ -12,8 +12,10 @@ using Shared.Services;
 using System;
 using System.IO;
 using System.Text;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using TestSupport.Fakes;
+using IFile = System.IO.Abstractions.IFile;
+using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace NotepadDocuments.UnitTests.Services;
 
@@ -65,7 +67,7 @@ internal class NotepadStoreTests
 	public void Erase_Leaves_A_Missing_File_Alone()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -77,8 +79,16 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance(fileEraser);
+
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterInstance(files)
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -88,9 +98,9 @@ internal class NotepadStoreTests
 		sut.Erase(2);
 
 		// Assert
-		files.ErasedFiles
-			.Should()
-			.BeEmpty();
+		fileEraser
+			.DidNotReceive()
+			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -100,9 +110,15 @@ internal class NotepadStoreTests
 	public void Erase_Takes_The_File_Of_The_Text_Away()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
-		files.Files[TabTwoTextPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(NotepadFolder);
+
+		files
+			.File
+			.WriteAllBytes(TabTwoTextPath, [1, 2, 3]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -114,8 +130,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -125,9 +151,9 @@ internal class NotepadStoreTests
 		sut.Erase(2);
 
 		// Assert
-		files.Files
+		files.File.Exists(TabTwoTextPath)
 			.Should()
-			.NotContainKey(TabTwoTextPath);
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -225,8 +251,22 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterType<InMemoryFileSystem>()
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -251,11 +291,17 @@ internal class NotepadStoreTests
 		// Arrange
 		string[] names = ["1.txt", "12.txt", "01.txt", "0.txt", "3.txt.tmp", "a.txt", "4.json", "5.TXT"];
 
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		foreach (string name in names)
 		{
-			files.Files[Path.Combine(NotepadFolder, name)] = [];
+			files
+				.Directory
+				.CreateDirectory(NotepadFolder);
+
+			files
+				.File
+				.WriteAllBytes(Path.Combine(NotepadFolder, name), []);
 		}
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -268,8 +314,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -301,8 +357,22 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterType<InMemoryFileSystem>()
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -365,9 +435,15 @@ internal class NotepadStoreTests
 	public void Read_Returns_The_Bytes_Of_The_Text()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
-		files.Files[TabTwoTextPath] = [1, 2, 3];
+		files
+			.Directory
+			.CreateDirectory(NotepadFolder);
+
+		files
+			.File
+			.WriteAllBytes(TabTwoTextPath, [1, 2, 3]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -379,8 +455,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -439,9 +525,15 @@ internal class NotepadStoreTests
 	public void ReadSettings_Returns_Nothing_When_The_Settings_Cannot_Be_Read()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
-		files.Files[SettingsPath] = Encoding.UTF8.GetBytes("""{ "SelectedTabNumber": 1, "Tabs": [""");
+		files
+			.Directory
+			.CreateDirectory(SettingsFolder);
+
+		files
+			.File
+			.WriteAllBytes(SettingsPath, Encoding.UTF8.GetBytes("""{ "SelectedTabNumber": 1, "Tabs": ["""));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -453,8 +545,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder
@@ -490,8 +592,22 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterType<InMemoryFileSystem>()
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -566,8 +682,22 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			// One file system for all the services, as they share one disk in the app.
 			builder
-				.RegisterType<InMemoryFileSystem>()
+				.RegisterType<MockFileSystem>()
+				.As<LibraryFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder
@@ -599,7 +729,7 @@ internal class NotepadStoreTests
 	public void Write_Makes_The_Folder_Of_The_Texts()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -611,8 +741,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -622,9 +762,9 @@ internal class NotepadStoreTests
 		sut.Write(3, [4, 5, 6]);
 
 		// Assert
-		files.Directories
+		files.Directory.Exists(NotepadFolder)
 			.Should()
-			.Contain(NotepadFolder);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -635,7 +775,7 @@ internal class NotepadStoreTests
 	public void Write_Puts_The_Bytes_In_Place_Atomically()
 	{
 		// Arrange
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -647,8 +787,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -662,11 +812,11 @@ internal class NotepadStoreTests
 			.Should()
 			.BeTrue();
 
-		files.AtomicWrites
+		files.Statistics.File.Methods
 			.Should()
-			.Equal(TabThreeTextPath);
+			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(TabThreeTextPath));
 
-		files.Files[TabThreeTextPath]
+		files.File.ReadAllBytes(TabThreeTextPath)
 			.Should()
 			.Equal(4, 5, 6);
 	}
@@ -682,19 +832,19 @@ internal class NotepadStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IAtomicFileWriter atomicFileWriter = Substitute.For<IAtomicFileWriter>();
 
 			appEnvironment
 				.NotepadDirectoryPath
 				.Returns(NotepadFolder);
 
-			fileSystem
-				.When(x => x.WriteAllBytesAtomic(TabThreeTextPath, Arg.Any<byte[]>()))
+			atomicFileWriter
+				.When(x => x.WriteAllBytes(TabThreeTextPath, Arg.Any<byte[]>()))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(atomicFileWriter);
 		});
 
 		NotepadStore sut = mock.Create<NotepadStore>();
@@ -734,19 +884,19 @@ internal class NotepadStoreTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IAtomicFileWriter atomicFileWriter = Substitute.For<IAtomicFileWriter>();
 
 			appEnvironment
 				.GetSettingsFilePath(nameof(NotepadViewSettings))
 				.Returns(SettingsPath);
 
-			fileSystem
-				.When(x => x.WriteAllBytesAtomic(SettingsPath, Arg.Any<byte[]>()))
+			atomicFileWriter
+				.When(x => x.WriteAllBytes(SettingsPath, Arg.Any<byte[]>()))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(atomicFileWriter);
 		});
 
 		NotepadStore sut = mock.Create<NotepadStore>();
@@ -773,7 +923,7 @@ internal class NotepadStoreTests
 			Tabs = []
 		};
 
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -785,8 +935,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder
@@ -800,9 +960,9 @@ internal class NotepadStoreTests
 		sut.WriteSettings(settings);
 
 		// Assert
-		files.Directories
+		files.Directory.Exists(SettingsFolder)
 			.Should()
-			.Contain(SettingsFolder);
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -828,7 +988,7 @@ internal class NotepadStoreTests
 			]
 		};
 
-		InMemoryFileSystem files = new();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -840,8 +1000,18 @@ internal class NotepadStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
+			builder.RegisterInstance<LibraryFileSystem>(files);
+
 			builder
-				.RegisterInstance(files)
+				.RegisterType<AtomicFileWriter>()
+				.As<IAtomicFileWriter>();
+
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<FileSystem>()
 				.As<IFileSystem>();
 
 			builder
@@ -855,9 +1025,9 @@ internal class NotepadStoreTests
 		sut.WriteSettings(settings);
 
 		// Assert
-		files.AtomicWrites
+		files.Statistics.File.Methods
 			.Should()
-			.Equal(SettingsPath);
+			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(SettingsPath));
 	}
 	#endregion
 }
