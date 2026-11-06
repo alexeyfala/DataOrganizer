@@ -50,17 +50,17 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 
@@ -115,13 +115,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -129,7 +129,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance<IFileSystem>(files);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 		});
@@ -185,13 +185,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -206,7 +206,7 @@ internal class ExecutionEngineTests
 				.As<IFileSystem>()
 				.SingleInstance();
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 		});
@@ -272,13 +272,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -287,7 +287,7 @@ internal class ExecutionEngineTests
 				.HasExited
 				.Returns(true);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 		});
@@ -332,7 +332,7 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
 
@@ -340,7 +340,7 @@ internal class ExecutionEngineTests
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(started);
 
@@ -348,7 +348,7 @@ internal class ExecutionEngineTests
 				.FindHolders(Arg.Any<string>())
 				.Returns([firstHolder, secondHolder]);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(holderFinder);
 
@@ -414,7 +414,7 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			IExecutingFileHolderFinder holderFinder = Substitute.For<IExecutingFileHolderFinder>();
 
@@ -422,7 +422,7 @@ internal class ExecutionEngineTests
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(started);
 
@@ -430,7 +430,7 @@ internal class ExecutionEngineTests
 				.FindHolders(Arg.Any<string>())
 				.Throws(new InvalidOperationException());
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(holderFinder);
 
@@ -536,13 +536,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -550,7 +550,7 @@ internal class ExecutionEngineTests
 				.HasExited
 				.Returns(hasExited);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 
@@ -724,13 +724,13 @@ internal class ExecutionEngineTests
 		{
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -743,7 +743,7 @@ internal class ExecutionEngineTests
 				.As<IFileSystem>()
 				.SingleInstance();
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -896,7 +896,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
@@ -912,7 +912,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -951,7 +951,7 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.SetAttributes(Arg.Any<string>(), Arg.Is<FileAttributes>(x => x.HasFlag(FileAttributes.ReadOnly) == isReadOnly));
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1018,7 +1018,7 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Opens_The_File_In_The_Picked_Program_Without_An_Associated_Program()
 	{
 		// Arrange
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1048,7 +1048,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileAssociation);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 
@@ -1077,7 +1077,7 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeTrue();
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenFile(PickedAppPath, Arg.Any<string>());
 	}
@@ -1165,7 +1165,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		TaskCompletionSource writing = new();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1187,7 +1187,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1215,7 +1215,7 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeFalse();
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1280,9 +1280,9 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Returns_False_After_Dispose()
 	{
 		// Arrange
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(processManager));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(processLauncher));
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -1303,7 +1303,7 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeFalse();
 
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1315,7 +1315,7 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Returns_False_When_Already_Executing()
 	{
 		// Arrange
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
@@ -1333,7 +1333,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1355,7 +1355,7 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeFalse();
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1370,7 +1370,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		TaskCompletionSource writing = new();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1392,7 +1392,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1431,7 +1431,7 @@ internal class ExecutionEngineTests
 
 		await disposing;
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1443,7 +1443,7 @@ internal class ExecutionEngineTests
 	public async Task ExecuteAsync_Returns_False_When_The_Wait_Is_Cancelled()
 	{
 		// Arrange
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1455,7 +1455,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(sandbox);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1475,7 +1475,7 @@ internal class ExecutionEngineTests
 			.Should()
 			.BeFalse();
 
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenFile(Arg.Any<string>());
 	}
@@ -1508,7 +1508,7 @@ internal class ExecutionEngineTests
 
 			IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(dto.Id)
@@ -1520,7 +1520,7 @@ internal class ExecutionEngineTests
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
 				.Returns(writing.Task);
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -1534,7 +1534,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(changeTracker);
 		});
@@ -1612,13 +1612,13 @@ internal class ExecutionEngineTests
 
 			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			processManager
+			processLauncher
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
@@ -1632,7 +1632,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(sandbox);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(changeTracker);
 
@@ -1682,7 +1682,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1712,7 +1712,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
 
@@ -1743,11 +1743,11 @@ internal class ExecutionEngineTests
 			.DidNotReceive()
 			.CreateDirectory(Arg.Any<string>());
 
-		processManager
+		processLauncher
 			.DidNotReceiveWithAnyArgs()
 			.OpenFile(default!, default!);
 
-		processManager
+		processLauncher
 			.DidNotReceiveWithAnyArgs()
 			.OpenFile(default!);
 	}

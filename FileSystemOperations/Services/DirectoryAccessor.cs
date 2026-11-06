@@ -5,8 +5,6 @@ using Shared.Enums;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Abstractions;
 
@@ -35,6 +33,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	/// <inheritdoc cref="IPlatform" />
 	private readonly IPlatform _platform;
+
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 	#endregion
 
 	#region Constructors
@@ -43,7 +44,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		IExplorerManager explorerManager,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IPlatform platform)
+		IPlatform platform,
+		IProcessLauncher processLauncher)
 	{
 		_appProcess = appProcess;
 
@@ -54,6 +56,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		_logger = logger;
 
 		_platform = platform;
+
+		_processLauncher = processLauncher;
 	}
 	#endregion
 
@@ -86,7 +90,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	}
 
 	/// <inheritdoc />
-	[ExcludeFromCodeCoverage(Justification = "Brings forward or starts the file manager of the system")]
 	public void OpenDirectory(string directoryPath)
 	{
 		try
@@ -103,9 +106,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 				_logger.LogException(ex);
 			}
 
-			Process.Start(
-				PlatformInfo.FileOpener,
-				directoryPath.SurroundWithQuotesIfNeeded());
+			_processLauncher.StartProcess(PlatformInfo.FileOpener, [directoryPath]);
 		}
 		catch (Exception ex)
 		{

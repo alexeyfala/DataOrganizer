@@ -834,13 +834,13 @@ internal class AppControllerTests
 		// Arrange
 		IMessenger messenger = new StrongReferenceMessenger();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(messenger);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		_ = mock.Create<AppController>();
@@ -849,7 +849,7 @@ internal class AppControllerTests
 		messenger.Send(new ExitAppMessage());
 
 		// Assert
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 	}
@@ -866,7 +866,7 @@ internal class AppControllerTests
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		IServiceProvider serviceProvider = Substitute.For<IServiceProvider, IAsyncDisposable>();
 
@@ -884,7 +884,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(messenger);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(serviceProvider);
 		});
@@ -897,7 +897,7 @@ internal class AppControllerTests
 		messenger.Send(new ExitAppMessage());
 
 		// Assert
-		processManager
+		processLauncher
 			.Received(1)
 			.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 
@@ -906,7 +906,7 @@ internal class AppControllerTests
 			// AsTask uses the ValueTask of the call spec (CA2012)
 			((IAsyncDisposable)serviceProvider).DisposeAsync().AsTask();
 
-			processManager.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
+			processLauncher.StartProcess(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
 
 			appShutdown.Shutdown();
 		});
@@ -984,7 +984,7 @@ internal class AppControllerTests
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1006,7 +1006,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(messenger);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		_ = mock.Create<AppController>();
@@ -1017,7 +1017,7 @@ internal class AppControllerTests
 		messenger.Send(new ExitAppMessage());
 
 		// Assert
-		processManager
+		processLauncher
 			.Received(1)
 			.StartProcess(dotnetHostPath, Arg.Is<IReadOnlyList<string>>(x => x.Count == 1 && x[0] == entryAssemblyPath));
 	}

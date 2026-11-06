@@ -1,8 +1,8 @@
 using FileSystemOperations.Interfaces;
 using Interop.UIAutomationClient;
 using Shared.Common;
+using Shared.Interfaces;
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -28,6 +28,13 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 	/// "user32.dll"
 	/// </summary>
 	private const string User32Dll = "user32.dll";
+
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
+	#endregion
+
+	#region Constructors
+	public WindowsExplorerManager(IProcessLauncher processLauncher) => _processLauncher = processLauncher;
 	#endregion
 
 	#region Methods
@@ -135,7 +142,7 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 	{
 		try
 		{
-			Process.Start(PlatformInfo.FileOpener, "/select, " + filePath);
+			_processLauncher.StartProcess(PlatformInfo.FileOpener, ["/select,", filePath]);
 
 			return true;
 		}

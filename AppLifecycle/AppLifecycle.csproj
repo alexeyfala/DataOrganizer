@@ -14,6 +14,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\AppUpdates\AppUpdates.csproj" />
+		<ProjectReference Include="..\FileExecution\FileExecution.csproj" />
 		<ProjectReference Include="..\GlobalHotkeys\GlobalHotkeys.csproj" />
 		<ProjectReference Include="..\HierarchyStorage\HierarchyStorage.csproj" />
 	</ItemGroup>

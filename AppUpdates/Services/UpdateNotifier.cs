@@ -1,7 +1,7 @@
 using AppUpdates.Dto;
 using AppUpdates.Interfaces;
-using FileExecution.Interfaces;
 using Shared.Helpers;
+using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Globalization;
@@ -14,8 +14,8 @@ namespace AppUpdates.Services;
 public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 
 	/// <inheritdoc cref="IUpdateCheckService" />
 	private readonly IUpdateCheckService _updateCheckService;
@@ -26,11 +26,11 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Constructors
 	public UpdateNotifier(
-		IProcessManager processManager,
+		IProcessLauncher processLauncher,
 		IUpdateCheckService updateCheckService,
 		IUpdatePrompt updatePrompt)
 	{
-		_processManager = processManager;
+		_processLauncher = processLauncher;
 
 		_updateCheckService = updateCheckService;
 
@@ -66,7 +66,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			return;
 		}
 
-		_processManager.OpenWithShell(url);
+		_processLauncher.OpenWithShell(url);
 	}
 	#endregion
 }

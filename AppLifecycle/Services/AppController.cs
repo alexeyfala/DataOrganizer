@@ -74,8 +74,8 @@ public sealed class AppController :
 	/// <inheritdoc cref="IPlatform" />
 	private readonly IPlatform _platform;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -125,7 +125,7 @@ public sealed class AppController :
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		IPlatform platform,
-		IProcessManager processManager,
+		IProcessLauncher processLauncher,
 		ISecondaryWindowCloser secondaryWindowCloser,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
@@ -168,7 +168,7 @@ public sealed class AppController :
 
 		_platform = platform;
 
-		_processManager = processManager;
+		_processLauncher = processLauncher;
 
 		_sandbox = sandbox;
 
@@ -336,7 +336,7 @@ public sealed class AppController :
 				? [entryAssemblyPath]
 				: [];
 
-			_processManager.StartProcess(path, arguments);
+			_processLauncher.StartProcess(path, arguments);
 		}
 
 		_appShutdown.Shutdown();

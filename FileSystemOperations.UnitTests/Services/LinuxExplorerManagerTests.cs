@@ -2,11 +2,19 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using FileSystemOperations.Services;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Testably.Abstractions.Testing;
+using TestSupport.Common;
 
 namespace FileSystemOperations.UnitTests.Services;
 
@@ -20,6 +28,16 @@ internal class LinuxExplorerManagerTests
 	private const string CommPath = "/proc/4242/comm";
 
 	/// <summary>
+	/// D-Bus tool of the dbus package, the second way to reveal a file.
+	/// </summary>
+	private const string DbusSend = "dbus-send";
+
+	/// <summary>
+	/// D-Bus tool of GLib, the first way to reveal a file.
+	/// </summary>
+	private const string Gdbus = "gdbus";
+
+	/// <summary>
 	/// Id of the process that owns the window.
 	/// </summary>
 	private const int Pid = 4242;
@@ -28,6 +46,11 @@ internal class LinuxExplorerManagerTests
 	/// Folder of the process in <c>/proc</c>.
 	/// </summary>
 	private const string ProcessFolder = "/proc/4242";
+
+	/// <summary>
+	/// Path of the file to reveal.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine("Docs", "notes.txt");
 	#endregion
 
 	#region Methods
@@ -182,6 +205,234 @@ internal class LinuxExplorerManagerTests
 	public bool TitleMatchesFolderName_Matches_Exact_And_Prefixed_Titles(string title, string folderName)
 	{
 		return LinuxExplorerManager.TitleMatchesFolderName(title, folderName);
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.TryRevealFile" />: when neither D-Bus tool reveals the file, the caller is told so.
+	/// </summary>
+	[Test]
+	public void TryRevealFile_Fails_When_Neither_Tool_Reveals_The_File()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			IProcessRunner processRunner = Substitute.For<IProcessRunner>();
+
+			files
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, []);
+
+			processRunner
+				.Run(Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Returns(1);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(processRunner);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.TryRevealFile(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.TryRevealFile" />: when gdbus fails or hangs, dbus-send reveals the file.
+	/// </summary>
+	[TestCase(1)]
+	[TestCase(null)]
+	public void TryRevealFile_Falls_Back_To_Dbus_Send_When_Gdbus_Fails(int? gdbusExitCode)
+	{
+		// Arrange
+		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, []);
+
+			processRunner
+				.Run(Gdbus, Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Returns(gdbusExitCode);
+
+			processRunner
+				.Run(DbusSend, Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Returns(0);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(processRunner);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.TryRevealFile(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		processRunner.Received(1).Run(
+			DbusSend,
+			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"array:string:{new Uri(FilePath).AbsoluteUri}")),
+			Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.TryRevealFile" />: without gdbus, dbus-send reveals the file.
+	/// </summary>
+	[Test]
+	public void TryRevealFile_Falls_Back_To_Dbus_Send_When_Gdbus_Is_Missing()
+	{
+		// Arrange
+		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, []);
+
+			processRunner
+				.Run(Gdbus, Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Throws(new Win32Exception());
+
+			processRunner
+				.Run(DbusSend, Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Returns(0);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(processRunner);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.TryRevealFile(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		processRunner.Received(1).Run(
+			DbusSend,
+			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"array:string:{new Uri(FilePath).AbsoluteUri}")),
+			Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.TryRevealFile" />: gdbus reveals the file, and dbus-send is not run.
+	/// </summary>
+	[Test]
+	public void TryRevealFile_Reveals_The_File_Through_Gdbus()
+	{
+		// Arrange
+		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, []);
+
+			processRunner
+				.Run(Gdbus, Arg.Any<IReadOnlyList<string>>(), Arg.Any<TimeSpan>())
+				.Returns(0);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(processRunner);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.TryRevealFile(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		processRunner.Received(1).Run(
+			Gdbus,
+			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"['{new Uri(FilePath).AbsoluteUri}']")),
+			Arg.Any<TimeSpan>());
+
+		processRunner.DidNotReceive().Run(
+			DbusSend,
+			Arg.Any<IReadOnlyList<string>>(),
+			Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.TryRevealFile" />: a file that is gone runs no tool.
+	/// </summary>
+	[Test]
+	public void TryRevealFile_Runs_No_Tool_For_A_File_That_Is_Gone()
+	{
+		// Arrange
+		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(processRunner);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.TryRevealFile(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		processRunner
+			.DidNotReceiveWithAnyArgs()
+			.Run(default!, default!, default);
 	}
 	#endregion
 

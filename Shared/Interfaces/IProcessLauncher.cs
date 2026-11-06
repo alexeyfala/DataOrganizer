@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 
-namespace FileExecution.Interfaces;
+namespace Shared.Interfaces;
 
 /// <summary>
-/// Provides a means of interacting with <see cref="Process" />.
+/// Starts processes without waiting for them to end.
 /// </summary>
-public interface IProcessManager
+public interface IProcessLauncher
 {
 	#region Methods
 	/// <summary>

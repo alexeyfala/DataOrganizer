@@ -54,8 +54,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -79,7 +79,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
 		INotificationService notification,
-		IProcessManager processManager,
+		IProcessLauncher processLauncher,
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
@@ -101,7 +101,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		_notification = notification;
 
-		_processManager = processManager;
+		_processLauncher = processLauncher;
 
 		_sandbox = sandbox;
 	}
@@ -588,10 +588,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		if (selectedAppPath is not null)
 		{
-			return _processManager.OpenFile(selectedAppPath, filePath);
+			return _processLauncher.OpenFile(selectedAppPath, filePath);
 		}
 
-		IExecutingFileProcess? process = _processManager.OpenFile(filePath);
+		IExecutingFileProcess? process = _processLauncher.OpenFile(filePath);
 
 		// Stryker disable once Equality : the branch only writes to the log
 		if (process is null)
