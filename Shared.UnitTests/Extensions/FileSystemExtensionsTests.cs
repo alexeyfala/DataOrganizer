@@ -74,10 +74,11 @@ internal class FileSystemExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder is found by its exact name.
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder is found by its exact name, with or without a trailing
+	/// separator.
 	/// </summary>
 	[Test]
-	public void DirectoryExists_Is_True_For_The_Exact_Name()
+	public void DirectoryExists_Is_True_For_The_Exact_Name([Values] bool hasTrailingSeparator)
 	{
 		// Arrange
 		MockFileSystem files = new();
@@ -86,8 +87,10 @@ internal class FileSystemExtensionsTests
 			.Directory
 			.CreateDirectory(Folder);
 
+		string path = hasTrailingSeparator ? Folder + Path.DirectorySeparatorChar : Folder;
+
 		// Act
-		bool result = files.DirectoryExists(Folder);
+		bool result = files.DirectoryExists(path);
 
 		// Assert
 		result

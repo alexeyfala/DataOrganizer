@@ -7,6 +7,8 @@ using Shared.Common;
 using Shared.Enums;
 using Shared.Interfaces;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace FileSystemOperations.UnitTests.Services;
@@ -70,7 +72,7 @@ internal class DirectoryAccessorTests
 
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -83,12 +85,20 @@ internal class DirectoryAccessorTests
 				.Returns(mountedAppPath);
 
 			fileSystem
-				.FileExists(appImagePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(appImagePath)!);
 
 			fileSystem
-				.FileExists(mountedAppPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(appImagePath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(mountedAppPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(mountedAppPath, []);
 
 			platform
 				.CurrentOS
@@ -107,7 +117,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -164,6 +174,12 @@ internal class DirectoryAccessorTests
 			builder.RegisterInstance(explorerManager);
 
 			builder.RegisterInstance(platform);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -194,7 +210,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -211,8 +227,12 @@ internal class DirectoryAccessorTests
 				.Returns(processPath);
 
 			fileSystem
-				.FileExists(processPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(processPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(processPath, []);
 
 			platform
 				.CurrentOS
@@ -235,7 +255,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -268,7 +288,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -286,12 +306,20 @@ internal class DirectoryAccessorTests
 
 			// The host exists, so only its name keeps it from being revealed.
 			fileSystem
-				.FileExists(DotnetHostPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(DotnetHostPath)!);
 
 			fileSystem
-				.FileExists(appHostPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(DotnetHostPath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(appHostPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(appHostPath, []);
 
 			platform
 				.CurrentOS
@@ -314,7 +342,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -346,7 +374,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -364,12 +392,20 @@ internal class DirectoryAccessorTests
 
 			// The host exists, so only its name keeps it from being revealed.
 			fileSystem
-				.FileExists(DotnetHostPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(DotnetHostPath)!);
 
 			fileSystem
-				.FileExists(assemblyPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(DotnetHostPath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(assemblyPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(assemblyPath, []);
 
 			platform
 				.CurrentOS
@@ -388,7 +424,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -416,11 +452,15 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			explorerManager
 				.TryForegroundFolder(FolderPath, FilePath)
@@ -433,7 +473,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -497,11 +537,15 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			explorerManager
 				.TryRevealFile(FilePath)
@@ -514,7 +558,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -550,6 +594,12 @@ internal class DirectoryAccessorTests
 				.Returns(true);
 
 			builder.RegisterInstance(explorerManager);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -579,11 +629,15 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			// No real file manager may start from a test.
 			explorerManager
@@ -592,7 +646,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -618,11 +672,11 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.DirectoryExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(FilePath);
 
 			explorerManager
 				.TryForegroundFolder(FolderPath, FilePath)
@@ -635,7 +689,7 @@ internal class DirectoryAccessorTests
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();

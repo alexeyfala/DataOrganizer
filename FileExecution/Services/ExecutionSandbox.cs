@@ -5,6 +5,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 

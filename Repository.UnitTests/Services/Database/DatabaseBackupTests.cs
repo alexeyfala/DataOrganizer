@@ -7,6 +7,8 @@ using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
@@ -19,6 +21,11 @@ internal class DatabaseBackupTests
 	/// Path of the database the copies are built from.
 	/// </summary>
 	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Folder the database and its copies live in.
+	/// </summary>
+	private static readonly string DatabaseFolder = TestPath.Combine("Database");
 
 	/// <summary>
 	/// Path of the copy used in the tests.
@@ -64,15 +71,19 @@ internal class DatabaseBackupTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
@@ -97,15 +108,19 @@ internal class DatabaseBackupTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
@@ -132,15 +147,12 @@ internal class DatabaseBackupTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(false);
-
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
@@ -165,11 +177,15 @@ internal class DatabaseBackupTests
 		{
 			IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
 
 			fileEraser
 				.When(x => x.EraseAndDeleteFile(FilePath))
@@ -177,7 +193,7 @@ internal class DatabaseBackupTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));

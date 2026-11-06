@@ -14,9 +14,11 @@ using NSubstitute.ReceivedExtensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace FileExecution.UnitTests.Services;
@@ -61,6 +63,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(processManager);
 
 			builder.RegisterInstance(sandbox);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -102,7 +107,7 @@ internal class ExecutionEngineTests
 
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
 
 		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
 
@@ -116,17 +121,13 @@ internal class ExecutionEngineTests
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
 			processManager
 				.OpenFile(Arg.Any<string>())
 				.Returns(process);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(processManager);
 
@@ -153,17 +154,17 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.Kill();
 
-		fileSystem
-			.Received(1)
-			.SetFileReadOnly(Arg.Any<string>(), false);
+		files.Statistics.File.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
 
 		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
-		fileSystem
-			.Received(1)
-			.DeleteDirectory(Arg.Any<string>(), Arg.Any<bool>());
+		files.Statistics.Directory.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IDirectory.Delete));
 	}
 
 	/// <summary>
@@ -182,8 +183,6 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -191,10 +190,6 @@ internal class ExecutionEngineTests
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
 
 			processManager
 				.OpenFile(Arg.Any<string>())
@@ -206,7 +201,10 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 
 			builder.RegisterInstance(processManager);
 
@@ -355,6 +353,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(holderFinder);
 
 			builder.RegisterInstance(sandbox);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -434,6 +435,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(holderFinder);
 
 			builder.RegisterInstance(sandbox);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -467,7 +471,9 @@ internal class ExecutionEngineTests
 
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
+
+		string directoryPath = RandomValues.CreateDirectoryName();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -475,16 +481,11 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
-
-			// The file is gone from the sandbox by the time it is closed.
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
+				.Returns(directoryPath);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(sandbox);
 		});
@@ -495,18 +496,24 @@ internal class ExecutionEngineTests
 		{
 			Contents = [],
 			File = dto,
-			IsReadOnly = true
+			IsReadOnly = false
 		};
 
 		await sut.ExecuteAsync(parameters);
+
+		// The file is gone from the sandbox by the time it is closed.
+		files
+			.Directory
+			.Delete(directoryPath, recursive: true);
 
 		// Act
 		await sut.CloseAsync(dto.Id);
 
 		// Assert
-		fileSystem
-			.DidNotReceive()
-			.SetFileReadOnly(Arg.Any<string>(), false);
+		// The one clearing of the sign is the write of a file that is not read-only; the gone copy is not touched again.
+		files.Statistics.File.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
 
 		fileEraser
 			.DidNotReceive()
@@ -546,6 +553,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(processManager);
 
 			builder.RegisterInstance(sandbox);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -599,6 +609,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(changeTracker);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -644,17 +657,11 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
 
 			fileLockChecker
 				.IsLocked(Arg.Any<string>())
@@ -670,7 +677,10 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileLockChecker);
 
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -712,8 +722,6 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			IProcessManager processManager = Substitute.For<IProcessManager>();
@@ -721,10 +729,6 @@ internal class ExecutionEngineTests
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(RandomValues.CreateDirectoryName());
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
 
 			processManager
 				.OpenFile(Arg.Any<string>())
@@ -734,7 +738,10 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 
 			builder.RegisterInstance(processManager);
 		});
@@ -780,7 +787,9 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
+
+		string directoryPath = RandomValues.CreateDirectoryName();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -788,16 +797,11 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
-
-			// The file is gone from the sandbox by the time the engine is disposed.
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
+				.Returns(directoryPath);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(sandbox);
 		});
@@ -808,18 +812,24 @@ internal class ExecutionEngineTests
 		{
 			Contents = [],
 			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
-			IsReadOnly = true
+			IsReadOnly = false
 		};
 
 		await sut.ExecuteAsync(parameters);
+
+		// The file is gone from the sandbox by the time the engine is disposed.
+		files
+			.Directory
+			.Delete(directoryPath, recursive: true);
 
 		// Act
 		await sut.DisposeAsync();
 
 		// Assert
-		fileSystem
-			.DidNotReceive()
-			.SetFileReadOnly(Arg.Any<string>(), false);
+		// The one clearing of the sign is the write of a file that is not read-only; the gone copy is not touched again.
+		files.Statistics.File.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
 
 		fileEraser
 			.DidNotReceive()
@@ -852,6 +862,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(changeTracker);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -924,16 +937,19 @@ internal class ExecutionEngineTests
 			.BeTrue();
 
 		fileSystem
+			.Directory
 			.Received(1)
 			.CreateDirectory(Arg.Any<string>());
 
 		await fileSystem
+			.File
 			.Received(1)
 			.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>());
 
 		fileSystem
+			.File
 			.Received(1)
-			.SetFileReadOnly(Arg.Any<string>(), isReadOnly);
+			.SetAttributes(Arg.Any<string>(), Arg.Is<FileAttributes>(x => x.HasFlag(FileAttributes.ReadOnly) == isReadOnly));
 
 		processManager
 			.Received(1)
@@ -971,6 +987,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(changeTracker);
 
 			builder.RegisterInstance(exceptionHandler);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1036,6 +1055,9 @@ internal class ExecutionEngineTests
 			builder
 				.RegisterType<WindowsAppResolver>()
 				.As<IAppResolver>();
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1157,6 +1179,7 @@ internal class ExecutionEngineTests
 
 			// The first call holds the engine while it writes the file.
 			fileSystem
+				.File
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
 				.Returns(writing.Task);
 
@@ -1217,6 +1240,7 @@ internal class ExecutionEngineTests
 				.Returns(RandomValues.CreateDirectoryName());
 
 			fileSystem
+				.File
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
 				.Throws(new IOException());
 
@@ -1360,6 +1384,7 @@ internal class ExecutionEngineTests
 
 			// The first call holds the engine while it writes the file.
 			fileSystem
+				.File
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
 				.Returns(writing.Task);
 
@@ -1491,6 +1516,7 @@ internal class ExecutionEngineTests
 
 			// The call holds the engine while it writes the file, and the dispose waits for it.
 			fileSystem
+				.File
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
 				.Returns(writing.Task);
 
@@ -1552,16 +1578,18 @@ internal class ExecutionEngineTests
 
 		// Once when the file is written, once when it is rolled back.
 		fileSystem
+			.File
 			.Received(2)
-			.SetFileReadOnly(Arg.Any<string>(), false);
+			.SetAttributes(Arg.Any<string>(), Arg.Is<FileAttributes>(x => !x.HasFlag(FileAttributes.ReadOnly)));
 
 		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
 		fileSystem
+			.Directory
 			.Received(1)
-			.DeleteDirectory(directoryPath, Arg.Any<bool>());
+			.Delete(directoryPath, true);
 	}
 
 	/// <summary>
@@ -1609,6 +1637,9 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(changeTracker);
 
 			builder.RegisterInstance(exceptionHandler);
+
+			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1708,6 +1739,7 @@ internal class ExecutionEngineTests
 			.BeFalse();
 
 		fileSystem
+			.Directory
 			.DidNotReceive()
 			.CreateDirectory(Arg.Any<string>());
 
@@ -1762,6 +1794,7 @@ internal class ExecutionEngineTests
 
 		// Assert
 		await fileSystem
+			.File
 			.Received(1)
 			.WriteAllBytesAsync(Path.Combine(directoryPath, "report_.txt"), Arg.Any<byte[]>());
 	}

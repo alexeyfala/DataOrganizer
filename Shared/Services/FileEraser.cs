@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
-using IFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Shared.Services;
 

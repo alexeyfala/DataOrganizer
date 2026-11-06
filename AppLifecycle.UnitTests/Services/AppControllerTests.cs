@@ -22,6 +22,7 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,6 +61,9 @@ internal class AppControllerTests
 				.SingleInstance();
 
 			builder.RegisterInstance(startupData);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -102,6 +106,9 @@ internal class AppControllerTests
 			builder.RegisterInstance(mainWindowLauncher);
 
 			builder.RegisterInstance(startupData);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -173,7 +180,7 @@ internal class AppControllerTests
 		// Assert
 		Received.InOrder(() =>
 		{
-			fileSystem.CreateDirectory(appDataFolder);
+			fileSystem.Directory.CreateDirectory(appDataFolder);
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
@@ -206,6 +213,7 @@ internal class AppControllerTests
 				.Returns(LoadedHierarchy.Empty);
 
 			fileSystem
+				.File
 				.When(x => x.SetUnixFileMode(Arg.Any<string>(), Arg.Any<UnixFileMode>()))
 				.Throw(new UnauthorizedAccessException());
 
@@ -277,6 +285,9 @@ internal class AppControllerTests
 				.SingleInstance();
 
 			builder.RegisterInstance(startupData);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -332,6 +343,9 @@ internal class AppControllerTests
 				.RegisterType<WorkSession>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -392,9 +406,9 @@ internal class AppControllerTests
 
 		// Assert
 		// The call is found by its name: the member is not for Windows, while the test runs on every system.
-		fileSystem.ReceivedCalls()
+		fileSystem.File.ReceivedCalls()
 			.Should()
-			.ContainSingle(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode))
+			.ContainSingle(static x => x.GetMethodInfo().Name == nameof(IFile.SetUnixFileMode))
 			.Which
 			.GetArguments()
 			.Should()
@@ -431,9 +445,9 @@ internal class AppControllerTests
 		await sut.LaunchAppAsync();
 
 		// Assert
-		fileSystem.ReceivedCalls()
+		fileSystem.File.ReceivedCalls()
 			.Should()
-			.NotContain(static x => x.GetMethodInfo().Name == nameof(IFileSystem.SetUnixFileMode));
+			.NotContain(static x => x.GetMethodInfo().Name == nameof(IFile.SetUnixFileMode));
 	}
 
 	/// <summary>
@@ -483,6 +497,9 @@ internal class AppControllerTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -532,6 +549,9 @@ internal class AppControllerTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -595,6 +615,9 @@ internal class AppControllerTests
 				.SingleInstance();
 
 			builder.RegisterInstance(startupData);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();
@@ -655,7 +678,13 @@ internal class AppControllerTests
 		// Arrange
 		IStartupInfoLogger startupInfo = Substitute.For<IStartupInfoLogger>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(startupInfo));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(startupInfo);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
+		});
 
 		AppController sut = mock.Create<AppController>();
 
@@ -697,6 +726,9 @@ internal class AppControllerTests
 			builder.RegisterInstance(startupData);
 
 			builder.RegisterInstance(startupInfo);
+
+			// Moq fakes the file system with no folders behind it, and the launch makes one.
+			builder.RegisterInstance(Substitute.For<IFileSystem>());
 		});
 
 		AppController sut = mock.Create<AppController>();

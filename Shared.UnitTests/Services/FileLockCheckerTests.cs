@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using IFileSystem = System.IO.Abstractions.IFileSystem;
 using TimeProvider = System.TimeProvider;
 
 namespace Shared.UnitTests.Services;

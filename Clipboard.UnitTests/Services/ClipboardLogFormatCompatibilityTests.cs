@@ -15,11 +15,11 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Clipboard.UnitTests.Services;
 
@@ -260,7 +260,7 @@ internal class ClipboardLogFormatCompatibilityTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -269,10 +269,6 @@ internal class ClipboardLogFormatCompatibilityTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 

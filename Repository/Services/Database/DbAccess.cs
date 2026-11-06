@@ -19,6 +19,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
@@ -323,7 +324,9 @@ public sealed class DbAccess :
 
 		string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
 
-		_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
+		_fileSystem
+			.Directory
+			.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
 
 		CopyDatabaseParameters parameters = new()
 		{
@@ -524,7 +527,13 @@ public sealed class DbAccess :
 			{
 				Span<byte> header = stackalloc byte[16];
 
-				using Stream stream = _fileSystem.OpenRead(filePath);
+				using Stream stream = _fileSystem
+					.File
+					.Open(
+						filePath,
+						FileMode.Open,
+						FileAccess.Read,
+						FileShare.ReadWrite | FileShare.Delete);
 
 				// Stryker disable once Equality : no SQLite file is as short as its header
 				if (stream.Length < 16)

@@ -1,10 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
@@ -29,7 +32,7 @@ internal class DbMaintenanceTests
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -43,7 +46,7 @@ internal class DbMaintenanceTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();
@@ -52,9 +55,9 @@ internal class DbMaintenanceTests
 		sut.ErasePendingBackups();
 
 		// Assert
-		fileSystem
-			.DidNotReceive()
-			.EnumerateFiles(Arg.Any<string>());
+		files.Statistics.Directory.Methods
+			.Should()
+			.NotContain(x => x.Name == nameof(IDirectory.EnumerateFiles));
 
 		fileEraser
 			.DidNotReceive()
@@ -82,25 +85,28 @@ internal class DbMaintenanceTests
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
 			dbContextService
 				.GetDbFilePath()
 				.Returns(DatabaseFilePath);
 
-			fileSystem
-				.DirectoryExists(directoryPath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(directoryPath);
 
-			fileSystem
-				.EnumerateFiles(directoryPath)
-				.Returns(leftovers);
+			foreach (string filePath in leftovers)
+			{
+				files
+					.File
+					.WriteAllBytes(filePath, [1]);
+			}
 
 			builder.RegisterInstance(dbContextService);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();
@@ -136,19 +142,23 @@ internal class DbMaintenanceTests
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
 			dbContextService
 				.GetDbFilePath()
 				.Returns(DatabaseFilePath);
 
-			fileSystem
-				.DirectoryExists(directoryPath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(directoryPath);
 
-			fileSystem
-				.EnumerateFiles(directoryPath)
-				.Returns([lockedFilePath, nextFilePath]);
+			files
+				.File
+				.WriteAllBytes(lockedFilePath, [1]);
+
+			files
+				.File
+				.WriteAllBytes(nextFilePath, [1]);
 
 			fileEraser
 				.When(x => x.EraseAndDeleteFile(lockedFilePath))
@@ -158,7 +168,7 @@ internal class DbMaintenanceTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();

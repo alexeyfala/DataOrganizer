@@ -13,6 +13,7 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -221,6 +222,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 
 		byte[] ciphertext = await _fileSystem
+			.File
 			.ReadAllBytesAsync(_historyFilePath, token)
 			.ConfigureAwait(false);
 
@@ -298,7 +300,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Ensures the clipboard history directory exists.
 	/// </summary>
-	private void EnsureDirectory() => _fileSystem.CreateDirectory(_directoryPath);
+	private void EnsureDirectory()
+	{
+		_fileSystem
+			.Directory
+			.CreateDirectory(_directoryPath);
+	}
 
 	/// <summary>
 	/// Removes the clipboard history directory if present.
@@ -313,7 +320,9 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				return;
 			}
 
-			_fileSystem.DeleteDirectory(_directoryPath);
+			_fileSystem
+				.Directory
+				.Delete(_directoryPath, recursive: true);
 		}
 		catch (Exception ex)
 		{
@@ -345,6 +354,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(PinnedBuffer password, CancellationToken token)
 	{
 		byte[] wrappedDek = await _fileSystem
+			.File
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 

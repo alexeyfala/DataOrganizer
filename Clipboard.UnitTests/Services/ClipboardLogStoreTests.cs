@@ -18,6 +18,7 @@ using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -26,7 +27,6 @@ using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TextProcessing.Constants;
 using IFile = System.IO.Abstractions.IFile;
-using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Clipboard.UnitTests.Services;
 
@@ -75,7 +75,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -84,10 +84,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -143,16 +139,12 @@ internal class ClipboardLogStoreTests
 			// One file system for all the services, as they share one disk in the app.
 			builder
 				.RegisterType<MockFileSystem>()
-				.As<LibraryFileSystem>()
+				.As<IFileSystem>()
 				.SingleInstance();
 
 			builder
 				.RegisterType<AtomicFileWriter>()
 				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -202,7 +194,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -211,10 +203,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -269,7 +257,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -278,10 +266,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -326,7 +310,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -335,10 +319,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -401,7 +381,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -410,10 +390,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -468,7 +444,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -477,10 +453,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -530,7 +502,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -539,10 +511,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -593,7 +561,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -602,10 +570,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -654,7 +618,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -663,10 +627,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -697,7 +657,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -706,10 +666,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -764,7 +720,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -773,10 +729,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -809,7 +761,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -818,10 +770,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -888,7 +836,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -897,10 +845,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -988,7 +932,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -997,10 +941,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1046,7 +986,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1055,10 +995,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1110,7 +1046,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1119,10 +1055,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1181,7 +1113,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1190,10 +1122,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1263,7 +1191,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1272,10 +1200,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1342,7 +1266,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1351,10 +1275,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1412,7 +1332,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1421,10 +1341,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1476,7 +1392,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1485,10 +1401,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1534,7 +1446,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1543,10 +1455,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1583,7 +1491,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1592,10 +1500,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1659,7 +1563,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1668,10 +1572,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.RegisterInstance(encryption);
 
@@ -1708,7 +1608,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1717,10 +1617,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1759,7 +1655,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1768,10 +1664,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1818,7 +1710,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1827,10 +1719,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1869,7 +1757,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1878,10 +1766,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1927,7 +1811,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1936,10 +1820,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 
@@ -1968,7 +1848,7 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance<LibraryFileSystem>(files);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder
 				.RegisterType<AtomicFileWriter>()
@@ -1977,10 +1857,6 @@ internal class ClipboardLogStoreTests
 			builder
 				.RegisterType<FileEraser>()
 				.As<IFileEraser>();
-
-			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
 
 			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
 

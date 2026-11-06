@@ -8,6 +8,7 @@ using Shared.Interfaces;
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 
 namespace NotepadDocuments.Services;
@@ -104,6 +105,7 @@ public sealed class NotepadStore : INotepadStore
 		try
 		{
 			return [.. _fileSystem
+				.Directory
 				.EnumerateFiles(_directoryPath)
 				.Select(GetNumber)
 				.OfType<int>()];
@@ -124,7 +126,7 @@ public sealed class NotepadStore : INotepadStore
 		try
 		{
 			return _fileSystem.FileExists(filePath)
-				? _fileSystem.ReadAllBytes(filePath)
+				? _fileSystem.File.ReadAllBytes(filePath)
 				: [];
 		}
 		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
@@ -146,7 +148,7 @@ public sealed class NotepadStore : INotepadStore
 
 		try
 		{
-			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.ReadAllBytes(_settingsFilePath));
+			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.File.ReadAllBytes(_settingsFilePath));
 		}
 		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
 		catch (Exception ex)
@@ -162,7 +164,9 @@ public sealed class NotepadStore : INotepadStore
 	{
 		try
 		{
-			_fileSystem.CreateDirectory(_directoryPath);
+			_fileSystem
+				.Directory
+				.CreateDirectory(_directoryPath);
 
 			_atomicFileWriter.WriteAllBytes(GetFilePath(number), contents);
 
@@ -183,7 +187,9 @@ public sealed class NotepadStore : INotepadStore
 		{
 			if (Path.GetDirectoryName(_settingsFilePath) is { } directoryPath)
 			{
-				_fileSystem.CreateDirectory(directoryPath);
+				_fileSystem
+					.Directory
+					.CreateDirectory(directoryPath);
 			}
 
 			_atomicFileWriter.WriteAllBytes(

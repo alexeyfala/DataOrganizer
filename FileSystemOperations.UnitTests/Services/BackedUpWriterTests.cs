@@ -10,8 +10,10 @@ using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Database;
 
 namespace FileSystemOperations.UnitTests.Services;
@@ -29,9 +31,9 @@ internal class BackedUpWriterTests
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
 
-		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileEraser, fileSystem);
+		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileEraser, files);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -41,9 +43,9 @@ internal class BackedUpWriterTests
 				.CreateBackupAsync(Arg.Any<CancellationToken>())
 				.Returns(backup);
 
-			fileSystem
-				.FileExists(backup.FilePath)
-				.Returns(true);
+			files
+				.File
+				.WriteAllBytes(backup.FilePath, [1]);
 
 			builder.RegisterInstance(backupService);
 		});

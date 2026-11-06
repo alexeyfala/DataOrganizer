@@ -1,10 +1,10 @@
 using AppInstance.Interfaces;
-using Shared.Interfaces;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using TextProcessing.Constants;
 
 namespace AppInstance.Services;
@@ -91,7 +91,9 @@ public sealed class InstanceRegistry : IInstanceRegistry
 				IAppEnvironment.GetAppDataDirectoryPath(),
 				LocksDirectoryName);
 
-			_fileSystem.CreateDirectory(directory);
+			_fileSystem
+				.Directory
+				.CreateDirectory(directory);
 
 			for (int number = 1; number <= MaxInstances; number++)
 			{

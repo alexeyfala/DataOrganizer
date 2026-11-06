@@ -8,8 +8,11 @@ using NSubstitute;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
+using TimeProvider = System.TimeProvider;
 
 namespace FileExecution.UnitTests.Services;
 
@@ -37,21 +40,21 @@ internal class ExecutionSandboxTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
 			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -87,15 +90,15 @@ internal class ExecutionSandboxTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
 			fileEraser
 				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
@@ -105,7 +108,7 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -154,15 +157,15 @@ internal class ExecutionSandboxTests
 
 			IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
 			fileEraser
 				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
@@ -180,7 +183,7 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -213,21 +216,17 @@ internal class ExecutionSandboxTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
-			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(false);
-
 			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileEraser);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder
 				.RegisterType<FakeTimeProvider>()

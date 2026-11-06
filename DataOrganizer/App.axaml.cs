@@ -76,6 +76,7 @@ using SharpHook;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using Testably.Abstractions;
 using TextProcessing.Constants;
 using TextProcessing.Interfaces;
@@ -199,8 +200,7 @@ public sealed class App : Application
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileLockChecker, FileLockChecker>();
 		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
-		services.AddTransient<IFileSystem, FileSystem>();
-		services.AddTransient<System.IO.Abstractions.IFileSystem, RealFileSystem>();
+		services.AddTransient<IFileSystem, RealFileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFileTextCopier, FileTextCopier>();
 		services.AddTransient<IFileTextReader, FileTextReader>();

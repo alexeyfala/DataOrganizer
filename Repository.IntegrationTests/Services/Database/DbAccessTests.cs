@@ -17,11 +17,11 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Testably.Abstractions;
-using LibraryFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Repository.IntegrationTests.Services.Database;
 
@@ -77,12 +77,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -147,12 +143,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -211,12 +203,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -319,12 +307,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -374,12 +358,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -409,12 +389,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -451,12 +427,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -496,12 +468,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -612,12 +580,8 @@ internal class DbAccessTests
 				.As<IFileEraser>();
 
 			builder
-				.RegisterType<FileSystem>()
-				.As<IFileSystem>();
-
-			builder
 				.RegisterType<RealFileSystem>()
-				.As<LibraryFileSystem>();
+				.As<IFileSystem>();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();

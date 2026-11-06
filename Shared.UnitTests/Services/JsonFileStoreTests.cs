@@ -4,9 +4,9 @@ using AwesomeAssertions;
 using Shared.Interfaces;
 using Shared.Services;
 using System.IO;
+using System.IO.Abstractions;
 using Testably.Abstractions.Testing;
 using TestSupport.Common;
-using IFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace Shared.UnitTests.Services;
 

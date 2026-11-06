@@ -4,6 +4,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 
 namespace Repository.Services.Database;

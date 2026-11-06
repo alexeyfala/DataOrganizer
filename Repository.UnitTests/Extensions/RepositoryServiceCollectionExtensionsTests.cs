@@ -11,6 +11,7 @@ using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Interfaces;
 using System;
+using System.IO.Abstractions;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Extensions;

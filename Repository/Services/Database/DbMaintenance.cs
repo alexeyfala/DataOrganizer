@@ -7,6 +7,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -122,7 +123,7 @@ public sealed class DbMaintenance : IDbMaintenance
 			return;
 		}
 
-		foreach (string filePath in _fileSystem.EnumerateFiles(directoryPath))
+		foreach (string filePath in _fileSystem.Directory.EnumerateFiles(directoryPath))
 		{
 			try
 			{

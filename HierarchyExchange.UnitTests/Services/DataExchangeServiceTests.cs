@@ -29,13 +29,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TestSupport.Database;
 using TestSupport.Models;
+using TimeProvider = System.TimeProvider;
 
 namespace HierarchyExchange.UnitTests.Services;
 
@@ -91,9 +94,7 @@ internal class DataExchangeServiceTests
 
 		ExplorerItemBase[] entities = [.. folders, .. files];
 
-		using MemoryStream stream = new();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem fileSystem = new();
 
 		IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -109,10 +110,6 @@ internal class DataExchangeServiceTests
 				.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, Arg.Any<CancellationToken>())
 				.Returns(files);
 
-			fileSystem
-				.CreateSequentialWrite(filePath)
-				.Returns(stream);
-
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
@@ -121,7 +118,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -138,12 +135,12 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		fileSystem
-			.Received(1)
-			.CreateSequentialWrite(filePath);
+		fileSystem.Statistics.FileStream.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IFileStreamFactory.New) && x.Parameters[0].Is(filePath));
 
 		await serializer.Received(1).SerializeAsync(
-			stream,
+			Arg.Is<Stream>(x => ((FileSystemStream)x).Name == fileSystem.Path.GetFullPath(filePath)),
 			Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)),
 			JsonDefaults.Options,
 			Arg.Any<CancellationToken>());
@@ -204,9 +201,7 @@ internal class DataExchangeServiceTests
 
 		ExplorerItemBase[] entities = [.. folders, .. files];
 
-		using MemoryStream stream = new();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem fileSystem = new();
 
 		IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
@@ -222,10 +217,6 @@ internal class DataExchangeServiceTests
 				.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, Arg.Any<CancellationToken>())
 				.Returns(files);
 
-			fileSystem
-				.CreateSequentialWrite(filePath)
-				.Returns(stream);
-
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
@@ -234,7 +225,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -251,13 +242,13 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		fileSystem
-			.Received(1)
-			.CreateSequentialWrite(filePath);
+		fileSystem.Statistics.FileStream.Methods
+			.Should()
+			.ContainSingle(x => x.Name == nameof(IFileStreamFactory.New) && x.Parameters[0].Is(filePath));
 
 		serializer
 			.Received(1)
-			.Serialize(stream, Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)));
+			.Serialize(Arg.Is<Stream>(x => ((FileSystemStream)x).Name == fileSystem.Path.GetFullPath(filePath)), Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)));
 	}
 
 	/// <summary>
@@ -322,7 +313,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem fileSystem = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -334,7 +325,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -357,9 +348,9 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		fileSystem
-			.DidNotReceive()
-			.CreateSequentialWrite(Arg.Any<string>());
+		fileSystem.Statistics.FileStream.Methods
+			.Should()
+			.NotContain(x => x.Name == nameof(IFileStreamFactory.New));
 
 		await dbBackupService
 			.DidNotReceive()
@@ -384,11 +375,13 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Xml);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -396,11 +389,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
@@ -416,7 +409,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -590,6 +583,8 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
 
 			importModePrompt
@@ -600,7 +595,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -608,11 +603,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -624,7 +619,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbImporter);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(importModePrompt);
 
@@ -708,21 +703,23 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -730,7 +727,7 @@ internal class DataExchangeServiceTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(default(ExplorerItemBase[]));
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 
@@ -822,21 +819,23 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Xml);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([importPath]);
 
 			dbBackupService
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
@@ -848,7 +847,7 @@ internal class DataExchangeServiceTests
 				.Deserialize<ExplorerItemBase[]>(Arg.Any<XDocument>())
 				.Returns(default(ExplorerItemBase[]));
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 
@@ -895,6 +894,8 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
 
 			importModePrompt
@@ -905,7 +906,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -913,11 +914,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -927,7 +928,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(importModePrompt);
 
@@ -989,11 +990,13 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1001,11 +1004,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -1015,7 +1018,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -1168,11 +1171,13 @@ internal class DataExchangeServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1180,11 +1185,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -1194,7 +1199,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -1294,11 +1299,13 @@ internal class DataExchangeServiceTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Xml);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1306,11 +1313,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
@@ -1324,7 +1331,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -1442,7 +1449,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Imports_Nothing_Without_A_Backup()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem fileSystem = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1461,7 +1468,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -1480,9 +1487,9 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeNull();
 
-		fileSystem
-			.DidNotReceive()
-			.OpenSequentialRead(Arg.Any<string>());
+		fileSystem.Statistics.FileStream.Methods
+			.Should()
+			.NotContain(x => x.Name == nameof(IFileStreamFactory.New));
 	}
 
 	/// <summary>
@@ -1586,6 +1593,8 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
 
 			importModePrompt
@@ -1596,7 +1605,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1604,11 +1613,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -1618,7 +1627,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(importModePrompt);
 
@@ -1809,6 +1818,8 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IImportModePrompt importModePrompt = Substitute.For<IImportModePrompt>();
 
 			importModePrompt
@@ -1819,7 +1830,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1827,11 +1838,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -1841,7 +1852,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(importModePrompt);
 
@@ -1901,11 +1912,13 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -1913,11 +1926,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -1941,7 +1954,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -1996,11 +2009,13 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			string importPath = RandomValues.CreateFileName(10, KnownFileExtensions.Xml);
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
 				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([importPath]);
 
 			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
 
@@ -2008,11 +2023,11 @@ internal class DataExchangeServiceTests
 				.CreateBackupAsync()
 				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(Arg.Any<string>())
-				.Returns(new MemoryStream());
+				.File
+				.WriteAllBytes(importPath, []);
 
 			XDocument document = new(new XElement(
 				"ArrayOfEntry",
@@ -2030,7 +2045,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(dbBackupService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(picker);
 

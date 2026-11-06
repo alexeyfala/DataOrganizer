@@ -9,11 +9,12 @@ using FileExecution.Messages;
 using Notifications.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using TextProcessing.Extensions;
@@ -165,7 +166,14 @@ public class FileChangeTracker : IFileChangeTracker
 
 		try
 		{
-			fileStream = _fileSystem.OpenRead(parameters.FilePath);
+			// Shared for writing and deleting, so the program the file is open in may change it while it is observed.
+			fileStream = _fileSystem
+				.File
+				.Open(
+					parameters.FilePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.ReadWrite | FileShare.Delete);
 		}
 		catch (Exception ex)
 		{
@@ -179,8 +187,8 @@ public class FileChangeTracker : IFileChangeTracker
 
 		try
 		{
-			currentHash = await _fileSystem
-				.ComputeStreamHashAsync(TrackChangesParameters.HashAlgorithm, fileStream, token)
+			currentHash = await CryptographicOperations
+				.HashDataAsync(TrackChangesParameters.HashAlgorithm, fileStream, token)
 				.ConfigureAwait(false);
 
 			if (!currentHash.SequenceEqual(previousHash))

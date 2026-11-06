@@ -28,9 +28,11 @@ using Repository.Services.Database;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TestSupport.Database;
 using TestSupport.Models;
@@ -1124,7 +1126,7 @@ internal class FolderProtectionTests
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem fileSystem = new();
 
 		DatabaseBackup backup = DatabaseFactory.CreateDatabaseBackup(fileEraser, fileSystem);
 
@@ -1149,8 +1151,8 @@ internal class FolderProtectionTests
 			}
 
 			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
+				.File
+				.WriteAllBytes(backup.FilePath, [1]);
 
 			IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 

@@ -20,14 +20,16 @@ public static class FileSystemExtensions
 			return false;
 		}
 
-		if (Path.GetDirectoryName(directoryPath) is not { } parentPath)
+		string trimmedPath = Path.TrimEndingDirectorySeparator(directoryPath);
+
+		if (Path.GetDirectoryName(trimmedPath) is not { } parentPath)
 		{
 			return true;
 		}
 
 		try
 		{
-			string directoryName = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+			string directoryName = Path.GetFileName(trimmedPath);
 
 			if (string.IsNullOrEmpty(directoryName))
 			{

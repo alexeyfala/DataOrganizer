@@ -10,6 +10,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -493,9 +494,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 		AsyncRollbackScope scope,
 		CancellationToken token)
 	{
-		scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+		scope.OnRollback(() => _fileSystem.Directory.Delete(directoryPath, recursive: true));
 
-		_fileSystem.CreateDirectory(directoryPath);
+		_fileSystem
+			.Directory
+			.CreateDirectory(directoryPath);
 
 		scope.OnRollback(() =>
 		{
@@ -505,6 +508,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		});
 
 		await _fileSystem
+			.File
 			.WriteAllBytesAsync(filePath, parameters.Contents, token)
 			.ConfigureAwait(false);
 
@@ -664,7 +668,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		try
 		{
-			_fileSystem.DeleteDirectory(directoryPath);
+			_fileSystem
+				.Directory
+				.Delete(directoryPath, recursive: true);
 		}
 		catch (Exception ex)
 		{

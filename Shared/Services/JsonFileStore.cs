@@ -3,7 +3,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
-using IFileSystem = System.IO.Abstractions.IFileSystem;
+using System.IO.Abstractions;
 
 namespace Shared.Services;
 

@@ -20,13 +20,15 @@ using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
 using Repository.Exceptions;
 using Repository.Interfaces.Database;
-using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
+using TimeProvider = System.TimeProvider;
 
 namespace FileExecution.UnitTests.Services;
 
@@ -38,6 +40,11 @@ internal class FileChangeTrackerTests
 	/// Mirrors the pause between two checks of the file.
 	/// </summary>
 	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(800.0);
+
+	/// <summary>
+	/// Path of the tracked file.
+	/// </summary>
+	private static readonly string TrackedFilePath = TestPath.Combine("tracked.txt");
 	#endregion
 
 	#region Methods
@@ -55,24 +62,18 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		byte[] previousHash = RandomValues.CreateBytes(32);
+		byte[] previousContents = RandomValues.CreateBytes(32);
+
+		byte[] previousHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, previousContents);
+
+		MockFileSystem files = new();
+
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, previousContents);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, RandomValues.CreateBytes(32));
-
 			dbAccess
 				.UpdateFileContentsAsync(
 					Arg.Any<Guid>(),
@@ -86,7 +87,7 @@ internal class FileChangeTrackerTests
 					return true;
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -104,10 +105,15 @@ internal class FileChangeTrackerTests
 			PreviousHash = previousHash,
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		// The first check sees the file as it was; the change comes while the tracking waits.
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
 		await Task.Run(() => time.Advance(PollInterval - TimeSpan.FromTicks(1)));
 
@@ -153,19 +159,24 @@ internal class FileChangeTrackerTests
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
 
+		MockFileSystem files = new();
+
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
+
+		// Another program keeps the file to itself.
+		using FileSystemStream holder = files
+			.File
+			.Open(
+				TrackedFilePath,
+				FileMode.Open,
+				FileAccess.ReadWrite,
+				FileShare.None);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Throws(new IOException());
-
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -181,7 +192,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		Task tracking = sut.TrackChangesAsync(parameters);
@@ -239,13 +250,10 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
-
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -261,7 +269,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		Task tracking = sut.TrackChangesAsync(parameters);
@@ -318,17 +326,32 @@ internal class FileChangeTrackerTests
 		{
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
+			MockFileSystem streams = new();
+
+			streams
+				.File
+				.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
+
+			// The file is there, under its name in the exact case.
 			fileSystem
-				.FileExists(Arg.Any<string>())
+				.File
+				.Exists(TrackedFilePath)
 				.Returns(true);
 
 			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
+				.Directory
+				.EnumerateFiles(TestPath.Root)
+				.Returns([TrackedFilePath]);
 
+			// The mock cannot fail a read, so the check gets a stream that cannot be read at all.
 			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.ThrowsAsync(new IOException());
+				.File
+				.Open(
+					TrackedFilePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.ReadWrite | FileShare.Delete)
+				.Returns(_ => streams.File.Open(TrackedFilePath, FileMode.Open, FileAccess.Write));
 
 			builder.RegisterInstance(fileSystem);
 
@@ -342,7 +365,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -369,37 +392,24 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Closes_The_Stream_After_A_Check()
 	{
 		// Arrange
-		MemoryStream stream = new(RandomValues.CreateBytes(32));
+		byte[] contents = RandomValues.CreateBytes(32);
 
-		byte[] hash = RandomValues.CreateBytes(32);
+		MockFileSystem files = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, contents);
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(stream);
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(hash);
-
-			builder.RegisterInstance(fileSystem);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IFileSystem>(files));
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = hash,
+			PreviousHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -407,9 +417,19 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, new CancellationToken(canceled: true));
 
 		// Assert
-		stream.CanRead
+		// The file can be taken alone, so no stream of the check holds it any more.
+		Action act = () => files
+			.File
+			.Open(
+				TrackedFilePath,
+				FileMode.Open,
+				FileAccess.ReadWrite,
+				FileShare.None)
+			.Dispose();
+
+		act
 			.Should()
-			.BeFalse();
+			.NotThrow();
 	}
 
 	/// <summary>
@@ -424,7 +444,7 @@ internal class FileChangeTrackerTests
 
 		FakeTimeProvider time = new();
 
-		byte[] hash = RandomValues.CreateBytes(32);
+		byte[] contents = RandomValues.CreateBytes(32);
 
 		StrongReferenceMessenger messenger = new();
 
@@ -434,24 +454,11 @@ internal class FileChangeTrackerTests
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
 
+		MockFileSystem files = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			// Three checks miss the file, one finds it, the next misses it again, and the last check after the stop finds it.
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false, false, false, true, false, true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(hash);
-
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -462,19 +469,28 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = hash,
+			PreviousHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
+		// Three checks miss the file, one finds it, the next misses it again, and the last check after the stop finds it.
 		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		await Task.Run(() => time.Advance(PollInterval));
 
 		await Task.Run(() => time.Advance(PollInterval));
 
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, contents);
+
 		await Task.Run(() => time.Advance(PollInterval));
+
+		files
+			.File
+			.Delete(TrackedFilePath);
 
 		// Act
 		await Task.Run(() => time.Advance(PollInterval));
@@ -487,6 +503,10 @@ internal class FileChangeTrackerTests
 		receivedClosedId
 			.Should()
 			.BeNull();
+
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, contents);
 
 		await cancellation.CancelAsync();
 
@@ -504,27 +524,19 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		byte[] expectedHash = RandomValues.CreateBytes(32);
+		byte[] contents = RandomValues.CreateBytes(32);
+
+		byte[] expectedHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] contents = RandomValues.CreateBytes(32);
+			MockFileSystem files = new();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, contents);
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(contents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(expectedHash);
-
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -544,7 +556,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = expectedHash,
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		cancellation.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -575,29 +587,15 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = RandomValues.CreateBytes(32);
-
 			byte[] currentContents = RandomValues.CreateBytes(32);
 
 			byte[] encryptedContents = RandomValues.CreateBytes(48);
 
-			byte[] currentHash = RandomValues.CreateBytes(32);
+			MockFileSystem files = new();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(
-					_ => new MemoryStream(previousContents),
-					_ => new MemoryStream(currentContents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(currentHash);
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, currentContents);
 
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
@@ -616,7 +614,7 @@ internal class FileChangeTrackerTests
 					return true;
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(contentCipher);
 
@@ -638,7 +636,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10),
+			FilePath = TrackedFilePath,
 			KeeperId = Guid.NewGuid()
 		};
 
@@ -671,26 +669,15 @@ internal class FileChangeTrackerTests
 
 		IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
 
+		MockFileSystem files = new();
+
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			int writes = 0;
-
-			byte[] lastHash = RandomValues.CreateBytes(32);
-
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
-
-			// Each check sees another change, and the last check after the stop sees none.
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32), lastHash, lastHash);
 
 			fileContentsWriter
 				.WriteAsync(
@@ -712,7 +699,7 @@ internal class FileChangeTrackerTests
 					};
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -726,10 +713,15 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
+		// Each check sees another change, and the last check after the stop sees none.
 		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
 		// Act
 		await Task.Run(() => time.Advance(PollInterval));
@@ -769,25 +761,13 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = RandomValues.CreateBytes(32);
-
 			byte[] currentContents = RandomValues.CreateBytes(32);
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(
-					_ => new MemoryStream(previousContents),
-					_ => new MemoryStream(currentContents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, currentContents);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -805,7 +785,7 @@ internal class FileChangeTrackerTests
 					return false;
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -827,7 +807,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		DateTime updatedAt = parameters.File.UpdatedAt;
@@ -861,19 +841,11 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
 			dbAccess
 				.UpdateFileContentsAsync(
@@ -883,7 +855,7 @@ internal class FileChangeTrackerTests
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -903,7 +875,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -936,8 +908,6 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = RandomValues.CreateBytes(32);
-
 			byte[] currentContents = RandomValues.CreateBytes(32);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -950,23 +920,13 @@ internal class FileChangeTrackerTests
 					Arg.Any<CancellationToken>())
 				.ThrowsAsync(new DatabaseNotWritableException(DbConnectionStatus.FileUnreadable, nameof(IDbAccess)));
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, currentContents);
 
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(
-					_ => new MemoryStream(previousContents),
-					_ => new MemoryStream(currentContents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
-
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -990,7 +950,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -1025,13 +985,10 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
-
-			builder.RegisterInstance(fileSystem);
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 
 			builder.RegisterInstance(notification);
 		});
@@ -1043,7 +1000,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -1078,23 +1035,10 @@ internal class FileChangeTrackerTests
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedId = message.FileId);
 
+		MockFileSystem files = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			// The file comes back on the check that would otherwise close it.
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false, false, false, true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(RandomValues.CreateBytes(32)));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
-
 			fileContentsWriter
 				.WriteAsync(
 					Arg.Any<Guid>(),
@@ -1112,7 +1056,7 @@ internal class FileChangeTrackerTests
 					};
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -1128,7 +1072,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
@@ -1136,6 +1080,11 @@ internal class FileChangeTrackerTests
 		await Task.Run(() => time.Advance(PollInterval));
 
 		await Task.Run(() => time.Advance(PollInterval));
+
+		// The file comes back, changed, on the check that would otherwise close it.
+		files
+			.File
+			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
 		// Act
 		await Task.Run(() => time.Advance(PollInterval));
@@ -1175,19 +1124,11 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream());
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, []);
 
 			dbAccess
 				.UpdateFileContentsAsync(
@@ -1202,7 +1143,7 @@ internal class FileChangeTrackerTests
 					return true;
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(contentCipher);
 
@@ -1224,7 +1165,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10),
+			FilePath = TrackedFilePath,
 			KeeperId = Guid.NewGuid()
 		};
 
@@ -1262,27 +1203,13 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = RandomValues.CreateBytes(32);
-
 			byte[] currentContents = RandomValues.CreateBytes(32);
 
-			byte[] currentHash = RandomValues.CreateBytes(32);
+			MockFileSystem files = new();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(
-					_ => new MemoryStream(previousContents),
-					_ => new MemoryStream(currentContents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(currentHash);
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, currentContents);
 
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -1292,7 +1219,7 @@ internal class FileChangeTrackerTests
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns((byte[]?)null);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(contentCipher);
 
@@ -1312,7 +1239,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10),
+			FilePath = TrackedFilePath,
 			KeeperId = Guid.NewGuid()
 		};
 
@@ -1353,27 +1280,13 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = RandomValues.CreateBytes(32);
-
 			byte[] currentContents = RandomValues.CreateBytes(32);
 
-			byte[] currentHash = RandomValues.CreateBytes(32);
+			MockFileSystem files = new();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(
-					_ => new MemoryStream(previousContents),
-					_ => new MemoryStream(currentContents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(currentHash);
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, currentContents);
 
 			dbAccess
 				.UpdateFileContentsAsync(
@@ -1388,7 +1301,7 @@ internal class FileChangeTrackerTests
 					return true;
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1406,7 +1319,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
@@ -1440,21 +1353,13 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
+
+			files
+				.File
+				.WriteAllBytes(TrackedFilePath, contents);
 
 			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
-
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
-
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(contents));
-
-			fileSystem
-				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(RandomValues.CreateBytes(32));
 
 			fileContentsWriter
 				.WriteAsync(
@@ -1473,7 +1378,7 @@ internal class FileChangeTrackerTests
 					Status = FileContentsWriteStatus.Written
 				});
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(fileContentsWriter);
 		});
@@ -1485,7 +1390,7 @@ internal class FileChangeTrackerTests
 			PreviousHash = RandomValues.CreateBytes(32),
 			File = ItemDtoFactory.CreateFileDto(),
 			FileName = RandomValues.CreateFileName(10),
-			FilePath = RandomValues.CreateFileName(10)
+			FilePath = TrackedFilePath
 		};
 
 		// Act
