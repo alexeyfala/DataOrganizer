@@ -21,7 +21,8 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+		<!-- Shown once among the solution items, not as a link in every project. -->
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Visible="false" />
 	</ItemGroup>
 
 	<PropertyGroup>
