@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Shared.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using Testably.Abstractions.Testing;
@@ -223,6 +224,104 @@ internal class FileEraserTests
 		files.Directory.Exists(Folder)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileEraser.EraseAndDeleteDirectory" />: a folder that cannot be deleted is reported after its files are
+	/// erased.
+	/// </summary>
+	[Test]
+	public void EraseAndDeleteDirectory_Reports_A_Folder_That_Cannot_Be_Deleted()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		files
+			.File
+			.WriteAllBytes(FilePath, RandomValues.CreateBytes(ContentsLength));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			_ = files
+				.Intercept
+				.Deleting(
+					FileSystemTypes.Directory,
+					_ => throw new IOException(),
+					predicate: x => x.Path == Folder);
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		FileEraser sut = mock.Create<FileEraser>();
+
+		// Act
+		Action act = () => sut.EraseAndDeleteDirectory(Folder);
+
+		// Assert
+		act
+			.Should()
+			.Throw<AggregateException>()
+			.Which
+			.InnerExceptions
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<IOException>();
+	}
+
+	/// <summary>
+	/// <see cref="FileEraser.EraseAndDeleteFile" />: the contents are overwritten with random bytes, so two equal files
+	/// get different ones.
+	/// </summary>
+	[Test]
+	public void EraseAndDeleteFile_Overwrites_With_Random_Bytes()
+	{
+		// Arrange
+		string secondFilePath = TestPath.Combine(FolderName, "c.bin");
+
+		byte[] contents = RandomValues.CreateBytes(ContentsLength);
+
+		Dictionary<string, byte[]> erased = [];
+
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		files
+			.File
+			.WriteAllBytes(FilePath, contents);
+
+		files
+			.File
+			.WriteAllBytes(secondFilePath, contents);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			_ = files
+				.Intercept
+				.Deleting(FileSystemTypes.File, x => erased[x.Path] = files.File.ReadAllBytes(x.Path));
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		FileEraser sut = mock.Create<FileEraser>();
+
+		// Act
+		sut.EraseAndDeleteFile(FilePath);
+
+		sut.EraseAndDeleteFile(secondFilePath);
+
+		// Assert
+		erased[FilePath]
+			.Should()
+			.NotEqual(erased[secondFilePath]);
 	}
 
 	/// <summary>

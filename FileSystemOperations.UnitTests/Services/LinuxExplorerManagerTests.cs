@@ -115,6 +115,43 @@ internal class LinuxExplorerManagerTests
 	}
 
 	/// <summary>
+	/// <see cref="LinuxExplorerManager.IsKnownFileManagerProcess" />: a process whose name cannot be read, as one that
+	/// ends between the check and the read, is no file manager.
+	/// </summary>
+	[Test]
+	public void IsKnownFileManagerProcess_Rejects_A_Process_Whose_Name_Cannot_Be_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The mock cannot fail a read, so a substitute stands in for the file system.
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.File
+				.Exists(CommPath)
+				.Returns(true);
+
+			fileSystem
+				.File
+				.ReadAllText(CommPath)
+				.Throws(new IOException());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.IsKnownFileManagerProcess(Pid);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="LinuxExplorerManager.ReadLongs" />: the data of a property of another format gives nothing.
 	/// </summary>
 	[Test]
@@ -256,6 +293,19 @@ internal class LinuxExplorerManagerTests
 	public void TryRevealFile_Falls_Back_To_Dbus_Send_When_Gdbus_Fails(int? gdbusExitCode)
 	{
 		// Arrange
+		string uri = new Uri(FilePath).AbsoluteUri;
+
+		string[] arguments =
+		[
+			"--session",
+			"--dest=org.freedesktop.FileManager1",
+			"--type=method_call",
+			"/org/freedesktop/FileManager1",
+			"org.freedesktop.FileManager1.ShowItems",
+			$"array:string:{uri}",
+			"string:"
+		];
+
 		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -295,7 +345,7 @@ internal class LinuxExplorerManagerTests
 
 		processRunner.Received(1).Run(
 			DbusSend,
-			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"array:string:{new Uri(FilePath).AbsoluteUri}")),
+			Arg.Is<IReadOnlyList<string>>(x => x.SequenceEqual(arguments)),
 			Arg.Any<TimeSpan>());
 	}
 
@@ -306,6 +356,19 @@ internal class LinuxExplorerManagerTests
 	public void TryRevealFile_Falls_Back_To_Dbus_Send_When_Gdbus_Is_Missing()
 	{
 		// Arrange
+		string uri = new Uri(FilePath).AbsoluteUri;
+
+		string[] arguments =
+		[
+			"--session",
+			"--dest=org.freedesktop.FileManager1",
+			"--type=method_call",
+			"/org/freedesktop/FileManager1",
+			"org.freedesktop.FileManager1.ShowItems",
+			$"array:string:{uri}",
+			"string:"
+		];
+
 		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -345,7 +408,7 @@ internal class LinuxExplorerManagerTests
 
 		processRunner.Received(1).Run(
 			DbusSend,
-			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"array:string:{new Uri(FilePath).AbsoluteUri}")),
+			Arg.Is<IReadOnlyList<string>>(x => x.SequenceEqual(arguments)),
 			Arg.Any<TimeSpan>());
 	}
 
@@ -356,6 +419,22 @@ internal class LinuxExplorerManagerTests
 	public void TryRevealFile_Reveals_The_File_Through_Gdbus()
 	{
 		// Arrange
+		string uri = new Uri(FilePath).AbsoluteUri;
+
+		string[] arguments =
+		[
+			"call",
+			"--session",
+			"--dest",
+			"org.freedesktop.FileManager1",
+			"--object-path",
+			"/org/freedesktop/FileManager1",
+			"--method",
+			"org.freedesktop.FileManager1.ShowItems",
+			$"['{uri}']",
+			""
+		];
+
 		IProcessRunner processRunner = Substitute.For<IProcessRunner>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -391,7 +470,7 @@ internal class LinuxExplorerManagerTests
 
 		processRunner.Received(1).Run(
 			Gdbus,
-			Arg.Is<IReadOnlyList<string>>(x => x.Contains($"['{new Uri(FilePath).AbsoluteUri}']")),
+			Arg.Is<IReadOnlyList<string>>(x => x.SequenceEqual(arguments)),
 			Arg.Any<TimeSpan>());
 
 		processRunner.DidNotReceive().Run(

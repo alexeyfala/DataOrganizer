@@ -340,6 +340,41 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a database that a connection holds open is still accepted.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Accepts_A_Database_A_Connection_Holds_Open()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		using SqliteConnection connection = file.Open();
+
+		TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = sut.IsValidSqliteDatabase(file.FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a file that starts like a database and holds nothing else of one is
 	/// refused.
 	/// </summary>

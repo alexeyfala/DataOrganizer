@@ -54,28 +54,20 @@ public static class FileSystemExtensions
 	/// </summary>
 	public static bool FileExists(this IFileSystem fileSystem, [NotNullWhen(true)] string? filePath)
 	{
+		// Stryker disable once Logical : equivalent: the listing below finds no file that the quick check misses
 		if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
 		{
 			return false;
-		}
-
-		if (Path.GetDirectoryName(filePath) is not { } parentPath)
-		{
-			return true;
 		}
 
 		try
 		{
 			string fileName = Path.GetFileName(filePath);
 
-			if (string.IsNullOrEmpty(fileName))
-			{
-				return false;
-			}
-
+			// An existing file always has a parent folder and a name.
 			return fileSystem
 				.Directory
-				.EnumerateFiles(parentPath)
+				.EnumerateFiles(Path.GetDirectoryName(filePath)!)
 				.Any(x => string.Equals(Path.GetFileName(x), fileName, StringComparison.Ordinal));
 		}
 		catch (Exception ex)

@@ -2529,52 +2529,52 @@ internal class DbAccessTests
 
 		folders
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					EncryptedDek = (byte[]?)encryptedDek,
-					Id = keeper.Id,
+					keeper.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				},
 				new
 				{
 					EncryptedDek = (byte[]?)null,
-					Id = subfolder.Id,
+					subfolder.Id,
 					Note = subfolderNote,
 					UpdatedAt = updatedAt
 				}
-			});
+			]);
 
 		FileEntity[] files = await sut.GetAllFilesAsync(OptionalFileProperties.Contents);
 
 		files
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					Contents = notedContents,
-					Id = noted.Id,
+					noted.Id,
 					Note = notedNote,
 					UpdatedAt = updatedAt
 				},
 				new
 				{
 					Contents = unnotedContents,
-					Id = unnoted.Id,
+					unnoted.Id,
 					Note = oldNote,
 					UpdatedAt = updatedAt
 				},
 				new
 				{
 					Contents = oldContents,
-					Id = untouched.Id,
+					untouched.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				}
-			});
+			]);
 	}
 	#endregion
 

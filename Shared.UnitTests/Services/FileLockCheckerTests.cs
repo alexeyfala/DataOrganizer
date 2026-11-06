@@ -33,40 +33,39 @@ internal class FileLockCheckerTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="FileLockChecker.IsLocked" />: a file nobody holds is free.
+	/// <see cref="FileLockChecker.IsLocked" />: on Windows only a sharing violation counts as a lock; another failure,
+	/// such as a missing file, comes through.
 	/// </summary>
 	[Test]
-	public void IsLocked_Is_False_For_A_Free_File()
+	public void IsLocked_Counts_Only_A_Sharing_Violation_As_A_Lock_On_Windows()
 	{
 		// Arrange
-		MockFileSystem files = new();
-
-		files
-			.File
-			.WriteAllBytes(FilePath, [1]);
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IPlatform platform = Substitute.For<IPlatform>();
 
 			platform
 				.IsWindows
-				.Returns(OperatingSystem.IsWindows());
-
-			builder.RegisterInstance<IFileSystem>(files);
+				.Returns(true);
 
 			builder.RegisterInstance(platform);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		FileLockChecker sut = mock.Create<FileLockChecker>();
 
 		// Act
-		bool result = sut.IsLocked(FilePath);
+		Func<bool> act = () => sut.IsLocked(FilePath);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeFalse();
+			.Throw<FileNotFoundException>();
 	}
 
 	/// <summary>
@@ -117,6 +116,43 @@ internal class FileLockCheckerTests
 	}
 
 	/// <summary>
+	/// <see cref="FileLockChecker.IsLocked" />: a file nobody holds is free.
+	/// </summary>
+	[Test]
+	public void IsLocked_Is_False_For_A_Free_File()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.File
+			.WriteAllBytes(FilePath, [1]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			platform
+				.IsWindows
+				.Returns(OperatingSystem.IsWindows());
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(platform);
+		});
+
+		FileLockChecker sut = mock.Create<FileLockChecker>();
+
+		// Act
+		bool result = sut.IsLocked(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FileLockChecker.IsLocked" />: a holder that keeps the file to itself locks it.
 	/// </summary>
 	[Test]
@@ -144,6 +180,51 @@ internal class FileLockCheckerTests
 			platform
 				.IsWindows
 				.Returns(OperatingSystem.IsWindows());
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(platform);
+		});
+
+		FileLockChecker sut = mock.Create<FileLockChecker>();
+
+		// Act
+		bool result = sut.IsLocked(FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FileLockChecker.IsLocked" />: on Unix a holder that keeps the file to itself locks it as well.
+	/// </summary>
+	[Test]
+	public void IsLocked_Reports_An_Exclusive_Holder_On_Unix()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.File
+			.WriteAllBytes(FilePath, [1]);
+
+		using FileSystemStream holder = files
+			.File
+			.Open(
+				FilePath,
+				FileMode.Open,
+				FileAccess.ReadWrite,
+				FileShare.None);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			platform
+				.IsWindows
+				.Returns(false);
 
 			builder.RegisterInstance<IFileSystem>(files);
 

@@ -239,13 +239,22 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogStore.EraseAll" />: the folder of the history goes too.
+	/// <see cref="ClipboardLogStore.EraseAll" />: the folder of the history goes too, with a file it does not know.
 	/// </summary>
 	[Test]
 	public async Task EraseAll_Removes_The_Folder()
 	{
 		// Arrange
 		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		// A save cut short leaves its temporary file behind.
+		files
+			.File
+			.WriteAllBytes(Path.Combine(HistoryFolder, "history.bin.tmp"), [1]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

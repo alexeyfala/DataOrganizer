@@ -1,7 +1,10 @@
 using AwesomeAssertions;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shared.Extensions;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
@@ -56,6 +59,35 @@ internal class FileSystemExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder whose parent cannot be listed is not found.
+	/// </summary>
+	[Test]
+	public void DirectoryExists_Is_False_When_The_Parent_Cannot_Be_Listed()
+	{
+		// Arrange
+		// The mock cannot fail a listing, so a substitute stands in for the file system.
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		fileSystem
+			.Directory
+			.Exists(Folder)
+			.Returns(true);
+
+		fileSystem
+			.Directory
+			.EnumerateDirectories(TestPath.Root)
+			.Throws(new UnauthorizedAccessException());
+
+		// Act
+		bool result = fileSystem.DirectoryExists(Folder);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FileSystemExtensions.DirectoryExists" />: no path means no folder.
 	/// </summary>
 	[Test]
@@ -74,11 +106,11 @@ internal class FileSystemExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder is found by its exact name, with or without a trailing
-	/// separator.
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder is found by its exact name, with or without trailing
+	/// separators.
 	/// </summary>
 	[Test]
-	public void DirectoryExists_Is_True_For_The_Exact_Name([Values] bool hasTrailingSeparator)
+	public void DirectoryExists_Is_True_For_The_Exact_Name([Values(0, 1, 2)] int trailingSeparators)
 	{
 		// Arrange
 		MockFileSystem files = new();
@@ -87,7 +119,7 @@ internal class FileSystemExtensionsTests
 			.Directory
 			.CreateDirectory(Folder);
 
-		string path = hasTrailingSeparator ? Folder + Path.DirectorySeparatorChar : Folder;
+		string path = Folder + new string(Path.DirectorySeparatorChar, trailingSeparators);
 
 		// Act
 		bool result = files.DirectoryExists(path);
@@ -143,6 +175,35 @@ internal class FileSystemExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="FileSystemExtensions.FileExists" />: a file whose folder cannot be listed is not found.
+	/// </summary>
+	[Test]
+	public void FileExists_Is_False_When_The_Folder_Cannot_Be_Listed()
+	{
+		// Arrange
+		// The mock cannot fail a listing, so a substitute stands in for the file system.
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		fileSystem
+			.File
+			.Exists(NestedFilePath)
+			.Returns(true);
+
+		fileSystem
+			.Directory
+			.EnumerateFiles(Folder)
+			.Throws(new UnauthorizedAccessException());
+
+		// Act
+		bool result = fileSystem.FileExists(NestedFilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FileSystemExtensions.FileExists" />: no path means no file.
 	/// </summary>
 	[Test]
@@ -161,7 +222,7 @@ internal class FileSystemExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="FileSystemExtensions.FileExists" />: a file is found by its exact name.
+	/// <see cref="FileSystemExtensions.FileExists" />: a file is found by its exact name among the other files of its folder.
 	/// </summary>
 	[Test]
 	public void FileExists_Is_True_For_The_Exact_Name()
@@ -176,6 +237,10 @@ internal class FileSystemExtensionsTests
 		files
 			.File
 			.WriteAllBytes(NestedFilePath, [1]);
+
+		files
+			.File
+			.WriteAllBytes(TestPath.Combine(FolderName, "b.txt"), [2]);
 
 		// Act
 		bool result = files.FileExists(NestedFilePath);

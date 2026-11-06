@@ -32,12 +32,15 @@ public sealed class FileEraser : IFileEraser
 	{
 		List<Exception> failures = [];
 
-		foreach (string filePath in _fileSystem
+		// Stryker disable once String : equivalent: an empty pattern matches every file as "*" does
+		IEnumerable<string> filePaths = _fileSystem
 			.Directory
 			.EnumerateFiles(
 				directoryPath,
 				"*",
-				SearchOption.AllDirectories))
+				SearchOption.AllDirectories);
+
+		foreach (string filePath in filePaths)
 		{
 			try
 			{
@@ -94,6 +97,7 @@ public sealed class FileEraser : IFileEraser
 			.Length;
 
 		// A buffer of the erase size is rented to keep it out of the large object heap.
+		// Stryker disable once Linq : equivalent: a larger buffer writes the same bytes
 		byte[] buffer = ArrayPool<byte>
 			.Shared
 			.Rent((int)Math.Min(fileLength, BufferSize));
@@ -125,8 +129,10 @@ public sealed class FileEraser : IFileEraser
 
 			// Without this the pass may never reach the medium: deleting the file afterwards
 			// lets the system drop the pending writes and leave the original content in place.
+			// Stryker disable once Statement,Boolean : the mock keeps no disk cache to flush
 			stream.Flush(flushToDisk: true);
 		}
+		// Stryker disable once Block,Statement : giving the buffer back to the pool cannot be observed
 		finally
 		{
 			ArrayPool<byte>

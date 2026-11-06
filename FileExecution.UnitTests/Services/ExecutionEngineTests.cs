@@ -103,6 +103,8 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
 	{
 		// Arrange
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
+
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
@@ -119,7 +121,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
+				.Returns(directoryPath);
 
 			processLauncher
 				.OpenFile(Arg.Any<string>())
@@ -162,9 +164,10 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.EraseAndDeleteFile(Arg.Any<string>());
 
-		files.Statistics.Directory.Methods
+		// The eraser is a substitute, so the file is still there and goes with the folder.
+		files.Directory.Exists(directoryPath)
 			.Should()
-			.ContainSingle(x => x.Name == nameof(IDirectory.Delete));
+			.BeFalse();
 	}
 
 	/// <summary>

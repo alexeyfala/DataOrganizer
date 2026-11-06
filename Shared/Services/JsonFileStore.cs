@@ -35,6 +35,7 @@ public sealed class JsonFileStore : IJsonFileStore
 		{
 			return _jsonSerializer.Deserialize<T>(_fileSystem.File.ReadAllText(filePath));
 		}
+		// Stryker disable once Block : equivalent: an emptied block returns the same default
 		catch (Exception)
 		{
 			// A missing or malformed file leaves the caller with its defaults.

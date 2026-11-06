@@ -84,6 +84,7 @@ public abstract class SerializedExchangeFormatBase : IExchangeFormat
 	{
 		ExplorerItemBase[]? entities;
 
+		// Stryker disable once Bitwise : equivalent: the options only tune the reading, the bytes stay the same
 		await using (Stream stream = _fileSystem
 			.FileStream
 			.New(

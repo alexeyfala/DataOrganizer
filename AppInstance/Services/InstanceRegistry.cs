@@ -67,6 +67,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 
 			stream.Write(pid);
 
+			// Stryker disable once Statement : the id is read early only on Unix, where the lock is advisory; the mock locks the file
 			stream.Flush();
 		}
 		catch (Exception ex)

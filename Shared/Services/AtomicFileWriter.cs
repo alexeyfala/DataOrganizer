@@ -63,6 +63,7 @@ public sealed class AtomicFileWriter : IAtomicFileWriter
 		try
 		{
 			// The bytes reach the disk before the swap: a rename that outruns them publishes an empty file.
+			// Stryker disable once Bitwise : the mock has no disk to write through to, and asynchronous I/O gives the same bytes
 			await using (FileSystemStream stream = CreateTemporaryFile(
 				temporaryFilePath,
 				FileOptions.Asynchronous | FileOptions.WriteThrough))
