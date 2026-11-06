@@ -197,6 +197,7 @@ public sealed class App : Application
 		services.AddTransient<IFileEraser, FileEraser>();
 		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
+		services.AddTransient<IFileLockChecker, FileLockChecker>();
 		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<System.IO.Abstractions.IFileSystem, RealFileSystem>();
@@ -213,6 +214,7 @@ public sealed class App : Application
 		services.AddTransient<IHotkeyTrackingControl, BackgroundServices>();
 		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IImportScenario, ImportScenario>();
+		services.AddTransient<IJsonFileStore, JsonFileStore>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();

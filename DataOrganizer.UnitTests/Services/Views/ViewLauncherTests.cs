@@ -976,10 +976,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -992,7 +992,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1141,10 +1141,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -1157,7 +1157,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1216,10 +1216,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -1232,7 +1232,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1349,10 +1349,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -1365,7 +1365,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1417,10 +1417,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -1433,7 +1433,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1504,10 +1504,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -1520,7 +1520,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -1606,7 +1606,7 @@ internal class ViewLauncherTests
 	public void CreateEditorWindow_Saves_Settings_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
@@ -1630,7 +1630,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -1649,15 +1649,13 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<EditorWindowSettings>(x => x.IsTopmost),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			WindowKind.Editor,
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1675,16 +1673,15 @@ internal class ViewLauncherTests
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<CopyHistory>()
@@ -1879,7 +1876,7 @@ internal class ViewLauncherTests
 	public void CreateEditorWindow_Saves_The_Navigation_Column_Width_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
@@ -1903,7 +1900,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -1922,10 +1919,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<EditorWindowSettings>(x => x.NavigationColumnWidth == 222.0),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1935,7 +1931,7 @@ internal class ViewLauncherTests
 	public void CreateEditorWindow_Saves_The_Read_Only_Mode_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
@@ -1959,7 +1955,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -1978,10 +1974,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<EditorWindowSettings>(x => x.IsReadOnly),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1991,7 +1986,7 @@ internal class ViewLauncherTests
 	public void CreateEditorWindow_Saves_The_State_Of_A_Maximized_Window_When_It_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
@@ -2015,7 +2010,7 @@ internal class ViewLauncherTests
 				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
 				.Returns(editorWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -2034,10 +2029,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<EditorWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -2343,10 +2337,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -2359,7 +2353,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -2546,10 +2540,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -2562,7 +2556,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -2668,10 +2662,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -2684,7 +2678,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -2732,10 +2726,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -2748,7 +2742,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -2800,10 +2794,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -2816,7 +2810,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -2909,7 +2903,7 @@ internal class ViewLauncherTests
 	public void CreateFavoritesWindow_Saves_Settings_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		// The favorites live as long as the test, as the window saves them when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
@@ -2940,7 +2934,7 @@ internal class ViewLauncherTests
 				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -2981,15 +2975,13 @@ internal class ViewLauncherTests
 			.Should()
 			.BeEmpty();
 
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Any<FavoritesWindowSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			WindowKind.Favorites,
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -3025,13 +3017,12 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<FavoritesViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => savedCategoryId = call.Arg<FavoritesViewSettings>().SelectedCategoryId);
 
 			viewFactory
@@ -3042,7 +3033,7 @@ internal class ViewLauncherTests
 				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -3120,10 +3111,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -3140,7 +3131,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -3331,10 +3322,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -3351,7 +3342,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -3488,10 +3479,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -3508,7 +3499,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -3616,7 +3607,7 @@ internal class ViewLauncherTests
 	public async Task ShowClipboardLogWindowAsync_Saves_Settings_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
@@ -3649,7 +3640,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(new Window());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -3668,10 +3659,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Any<ClipboardLogWindowSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -3700,15 +3690,14 @@ internal class ViewLauncherTests
 		{
 			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<ClipboardLogWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
 			viewFactory
@@ -3723,7 +3712,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(new Window());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -3779,15 +3768,14 @@ internal class ViewLauncherTests
 		{
 			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<ClipboardLogWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
 			viewFactory
@@ -3802,7 +3790,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(new Window());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -3963,10 +3951,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
+			jsonFileStore
+				.Read<WindowKind>(Arg.Any<string>())
 				.Returns(WindowKind.Editor);
 
 			viewFactory
@@ -3979,7 +3967,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4024,10 +4012,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
+			jsonFileStore
+				.Read<WindowKind>(Arg.Any<string>())
 				.Returns(WindowKind.Favorites);
 
 			viewFactory
@@ -4040,7 +4028,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4097,10 +4085,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<NotepadWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -4117,7 +4105,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4191,10 +4179,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<NotepadWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -4211,7 +4199,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4701,10 +4689,10 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<NotepadWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<NotepadWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -4721,7 +4709,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4771,15 +4759,14 @@ internal class ViewLauncherTests
 		{
 			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<NotepadWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => captured = call.Arg<NotepadWindowSettings>());
 
 			viewFactory
@@ -4794,7 +4781,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(new Window());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -4909,7 +4896,7 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Saves_The_Settings_When_The_Window_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
@@ -4943,7 +4930,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<WindowSettingsStore>()
@@ -4960,10 +4947,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Any<NotepadWindowSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -4973,7 +4959,7 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Saves_The_State_Of_A_Maximized_Window_When_It_Closes()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		NotepadWindow window = new(new NotepadViewModel(
 			Substitute.For<IConfirmationPrompt>(),
@@ -5005,7 +4991,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(new Window());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -5026,10 +5012,9 @@ internal class ViewLauncherTests
 		window.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<NotepadWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -5217,14 +5202,13 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 			// The settings are cleared once written, so they are read at the write.
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<FavoritesViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call =>
 				{
 					FavoritesViewSettings settings = call.Arg<FavoritesViewSettings>();
@@ -5254,7 +5238,7 @@ internal class ViewLauncherTests
 				.FindMainWindow()
 				.Returns(favoritesWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -5327,16 +5311,15 @@ internal class ViewLauncherTests
 		// The favorites live as long as the test, as the window saves them when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<CopyHistory>()
@@ -5712,16 +5695,15 @@ internal class ViewLauncherTests
 		// The editor lives as long as the test, as the window saves it when it closes.
 		using AutoMock windowMock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<CopyHistoryViewSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => savedItemId = call.Arg<CopyHistoryViewSettings>().SelectedItemId);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder
 				.RegisterType<CopyHistory>()

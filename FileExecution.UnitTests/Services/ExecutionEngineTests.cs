@@ -11,7 +11,6 @@ using Notifications.Interfaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
-using Serilog;
 using Shared.Interfaces;
 using System;
 using System.IO;
@@ -639,12 +638,14 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileLockChecker fileLockChecker = Substitute.For<IFileLockChecker>();
 
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox
@@ -655,17 +656,19 @@ internal class ExecutionEngineTests
 				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
-			fileSystem
-				.IsFileLocked(Arg.Any<string>())
+			fileLockChecker
+				.IsLocked(Arg.Any<string>())
 				.Returns(true);
 
-			fileSystem
-				.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
+			fileLockChecker
+				.WaitUntilUnlockedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(true);
 
 			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance(fileLockChecker);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -685,9 +688,9 @@ internal class ExecutionEngineTests
 		await sut.CloseAsync(dto.Id);
 
 		// Assert
-		await fileSystem
+		await fileLockChecker
 			.Received()
-			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
+			.WaitUntilUnlockedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
 		fileEraser
 			.Received(1)

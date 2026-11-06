@@ -12,12 +12,177 @@ internal class FileSystemExtensionsTests
 {
 	#region Data
 	/// <summary>
+	/// Name of the folder the checked file lives in.
+	/// </summary>
+	private const string FolderName = "dir";
+
+	/// <summary>
 	/// Path of the file the attributes are set on.
 	/// </summary>
 	private static readonly string FilePath = TestPath.Combine("a.txt");
+
+	/// <summary>
+	/// Folder the checked file lives in.
+	/// </summary>
+	private static readonly string Folder = TestPath.Combine(FolderName);
+
+	/// <summary>
+	/// Path of the checked file.
+	/// </summary>
+	private static readonly string NestedFilePath = TestPath.Combine(FolderName, "a.txt");
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder named in another case is not found.
+	/// </summary>
+	[Test]
+	public void DirectoryExists_Is_False_For_The_Name_In_Another_Case()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		// Act
+		bool result = files.DirectoryExists(TestPath.Combine(FolderName.ToUpperInvariant()));
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: no path means no folder.
+	/// </summary>
+	[Test]
+	public void DirectoryExists_Is_False_Without_A_Path([Values(null, "")] string? path)
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		// Act
+		bool result = files.DirectoryExists(path);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: a folder is found by its exact name.
+	/// </summary>
+	[Test]
+	public void DirectoryExists_Is_True_For_The_Exact_Name()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		// Act
+		bool result = files.DirectoryExists(Folder);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.DirectoryExists" />: the root has no name to compare and is found.
+	/// </summary>
+	[Test]
+	public void DirectoryExists_Is_True_For_The_Root()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		// Act
+		bool result = files.DirectoryExists(TestPath.Root);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.FileExists" />: a file named in another case is not found.
+	/// </summary>
+	[Test]
+	public void FileExists_Is_False_For_The_Name_In_Another_Case()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		files
+			.File
+			.WriteAllBytes(NestedFilePath, [1]);
+
+		// Act
+		bool result = files.FileExists(TestPath.Combine(FolderName, "A.TXT"));
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.FileExists" />: no path means no file.
+	/// </summary>
+	[Test]
+	public void FileExists_Is_False_Without_A_Path([Values(null, "")] string? path)
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		// Act
+		bool result = files.FileExists(path);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FileSystemExtensions.FileExists" />: a file is found by its exact name.
+	/// </summary>
+	[Test]
+	public void FileExists_Is_True_For_The_Exact_Name()
+	{
+		// Arrange
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		files
+			.File
+			.WriteAllBytes(NestedFilePath, [1]);
+
+		// Act
+		bool result = files.FileExists(NestedFilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// <see cref="FileSystemExtensions.SetFileHidden" />: the sign is added and the other attributes stay.
 	/// </summary>

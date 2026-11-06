@@ -70,20 +70,19 @@ internal class AppSettingsStoreTests
 	public void Save_Serializes_Settings_To_File()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(jsonFileStore));
 
-		AppSettingsStore sut = mock.Create<AppSettingsStore>(TypedParameter.From(fileSystem));
+		AppSettingsStore sut = mock.Create<AppSettingsStore>();
 
 		// Act
 		sut.Save();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
-			Arg.Any<AppSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+		jsonFileStore
+			.Received(1)
+			.Write(sut.Settings, Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -95,7 +94,7 @@ internal class AppSettingsStoreTests
 		// Arrange
 		string expectedPath = TestPath.Combine("Settings", $"{nameof(AppSettings)}.json");
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -105,7 +104,7 @@ internal class AppSettingsStoreTests
 				.GetSettingsFilePath(Arg.Any<string>())
 				.Returns(expectedPath);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(appEnvironment);
 		});
@@ -116,9 +115,9 @@ internal class AppSettingsStoreTests
 		sut.Save();
 
 		// Assert
-		fileSystem
+		jsonFileStore
 			.Received(1)
-			.SerializeToJsonFile(Arg.Any<AppSettings>(), expectedPath, false);
+			.Write(Arg.Any<AppSettings>(), expectedPath);
 	}
 
 	/// <summary>
@@ -150,13 +149,13 @@ internal class AppSettingsStoreTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<AppSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<AppSettings>(Arg.Any<string>())
 				.Returns(settings);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 		});
 
 		// Act

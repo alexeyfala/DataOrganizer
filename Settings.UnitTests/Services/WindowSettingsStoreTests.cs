@@ -40,15 +40,15 @@ internal class WindowSettingsStoreTests
 				.GetSettingsFilePath(nameof(CopyHistoryViewSettings))
 				.Returns(CopyHistorySettingsPath);
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<CopyHistoryViewSettings>(CopyHistorySettingsPath)
+			jsonFileStore
+				.Read<CopyHistoryViewSettings>(CopyHistorySettingsPath)
 				.Returns(settings);
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 		});
 
 		WindowSettingsStore sut = mock.Create<WindowSettingsStore>();
@@ -63,8 +63,7 @@ internal class WindowSettingsStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="WindowSettingsStore.Write{T}" />: the settings go over the file named after their type, which stays
-	/// visible.
+	/// <see cref="WindowSettingsStore.Write{T}" />: the settings go over the file named after their type.
 	/// </summary>
 	[Test]
 	public void Write_Writes_The_File_Named_After_The_Settings()
@@ -72,7 +71,7 @@ internal class WindowSettingsStoreTests
 		// Arrange
 		CopyHistoryViewSettings settings = new();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -84,7 +83,7 @@ internal class WindowSettingsStoreTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 		});
 
 		WindowSettingsStore sut = mock.Create<WindowSettingsStore>();
@@ -93,9 +92,9 @@ internal class WindowSettingsStoreTests
 		sut.Write(settings);
 
 		// Assert
-		fileSystem
+		jsonFileStore
 			.Received(1)
-			.SerializeToJsonFile(settings, CopyHistorySettingsPath, false);
+			.Write(settings, CopyHistorySettingsPath);
 	}
 	#endregion
 }

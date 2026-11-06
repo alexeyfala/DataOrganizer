@@ -58,10 +58,10 @@ internal class ConsoleWindowHostTests
 				Y = 90
 			};
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ConsoleWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ConsoleWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -74,7 +74,7 @@ internal class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -144,10 +144,10 @@ internal class ConsoleWindowHostTests
 				Y = 50000
 			};
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ConsoleWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ConsoleWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -160,7 +160,7 @@ internal class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -278,10 +278,10 @@ internal class ConsoleWindowHostTests
 				Y = 90
 			};
 
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			serializer
-				.DeserializeFromFile<ConsoleWindowSettings>(Arg.Any<string>())
+			jsonFileStore
+				.Read<ConsoleWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -294,7 +294,7 @@ internal class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(serializer);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -386,13 +386,12 @@ internal class ConsoleWindowHostTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-			fileSystem
-				.When(x => x.SerializeToJsonFile(
+			jsonFileStore
+				.When(x => x.Write(
 					Arg.Any<ConsoleWindowSettings>(),
-					Arg.Any<string>(),
-					Arg.Any<bool>()))
+					Arg.Any<string>()))
 				.Do(call => captured = call.Arg<ConsoleWindowSettings>());
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -405,7 +404,7 @@ internal class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -460,7 +459,7 @@ internal class ConsoleWindowHostTests
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -474,7 +473,7 @@ internal class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(jsonFileStore);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -493,10 +492,9 @@ internal class ConsoleWindowHostTests
 		consoleWindow.Close();
 
 		// Assert
-		fileSystem.Received(1).SerializeToJsonFile(
+		jsonFileStore.Received(1).Write(
 			Arg.Is<ConsoleWindowSettings>(x => x.WindowState == WindowShowState.Maximized),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<string>());
 	}
 	#endregion
 }

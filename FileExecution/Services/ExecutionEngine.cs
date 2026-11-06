@@ -38,6 +38,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IFileEraser" />
 	private readonly IFileEraser _fileEraser;
 
+	/// <inheritdoc cref="IFileLockChecker" />
+	private readonly IFileLockChecker _fileLockChecker;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -70,6 +73,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
 		IFileEraser fileEraser,
+		IFileLockChecker fileLockChecker,
 		IFileSystem fileSystem,
 		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
@@ -83,6 +87,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_changeTracker = changeTracker;
 
 		_fileEraser = fileEraser;
+
+		_fileLockChecker = fileLockChecker;
 
 		_fileSystem = fileSystem;
 
@@ -146,7 +152,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
-			if (_fileSystem.IsFileLocked(info.FilePath))
+			if (_fileLockChecker.IsLocked(info.FilePath))
 			{
 				_logger.LogWarning($@"File ""{id}"" is locked by another process, waiting it to be released.");
 
@@ -157,8 +163,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 				// Stryker disable once Statement : the cap shows only after a real wait of ten seconds
 				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
 
-				bool unlocked = await _fileSystem
-					.WaitUntilFileUnlockedAsync(info.FilePath, token: cancellation.Token)
+				bool unlocked = await _fileLockChecker
+					.WaitUntilUnlockedAsync(info.FilePath, cancellation.Token)
 					.ConfigureAwait(false);
 
 				// Stryker disable once Boolean : both branches only write to the log

@@ -1,11 +1,89 @@
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 
 namespace Shared.Extensions;
 
 public static class FileSystemExtensions
 {
 	#region Methods
+	/// <summary>
+	/// Determines whether a folder exists whose name matches the last segment of the path in its exact case.
+	/// </summary>
+	public static bool DirectoryExists(this IFileSystem fileSystem, [NotNullWhen(true)] string? directoryPath)
+	{
+		if (string.IsNullOrEmpty(directoryPath) || !fileSystem.Directory.Exists(directoryPath))
+		{
+			return false;
+		}
+
+		if (Path.GetDirectoryName(directoryPath) is not { } parentPath)
+		{
+			return true;
+		}
+
+		try
+		{
+			string directoryName = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+			if (string.IsNullOrEmpty(directoryName))
+			{
+				return true;
+			}
+
+			return fileSystem
+				.Directory
+				.EnumerateDirectories(parentPath)
+				.Any(x => string.Equals(Path.GetFileName(x), directoryName, StringComparison.Ordinal));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Determines whether a file exists whose name matches the last segment of the path in its exact case.
+	/// </summary>
+	public static bool FileExists(this IFileSystem fileSystem, [NotNullWhen(true)] string? filePath)
+	{
+		if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
+		{
+			return false;
+		}
+
+		if (Path.GetDirectoryName(filePath) is not { } parentPath)
+		{
+			return true;
+		}
+
+		try
+		{
+			string fileName = Path.GetFileName(filePath);
+
+			if (string.IsNullOrEmpty(fileName))
+			{
+				return false;
+			}
+
+			return fileSystem
+				.Directory
+				.EnumerateFiles(parentPath)
+				.Any(x => string.Equals(Path.GetFileName(x), fileName, StringComparison.Ordinal));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.Hidden" /> attribute to a file.
 	/// </summary>

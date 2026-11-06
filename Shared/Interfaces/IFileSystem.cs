@@ -1,4 +1,3 @@
-using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -55,12 +54,6 @@ public interface IFileSystem
 	bool FileExists([NotNullWhen(true)] string? filePath);
 
 	/// <summary>
-	/// <c>True</c> when the file is locked by another process. <br />
-	/// <see href="https://code-maze.com/csharp-how-to-check-if-a-file-is-in-use" />
-	/// </summary>
-	bool IsFileLocked(string filePath);
-
-	/// <summary>
 	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" /> and <see cref="FileShare.Delete" />,
 	/// allowing concurrent writers (e.g. the user's editor) to modify, replace or delete the file while it is being observed.
 	/// </summary>
@@ -88,16 +81,6 @@ public interface IFileSystem
 	string ReadAllText(string filePath);
 
 	/// <summary>
-	/// Serializes an object into a Json string, saving it to a file using <see cref="System.Text.Json" />.
-	/// </summary>
-	void SerializeToJsonFile<T>(T value, string filePath, bool isHidden);
-
-	/// <summary>
-	/// Adds/removes the <see cref="FileAttributes.Hidden" /> attribute to a file.
-	/// </summary>
-	void SetFileHidden(string filePath, bool isHidden);
-
-	/// <summary>
 	/// Adds/removes the <see cref="FileAttributes.ReadOnly" /> attribute to a file.
 	/// </summary>
 	void SetFileReadOnly(string filePath, bool isReadOnly);
@@ -105,17 +88,6 @@ public interface IFileSystem
 	/// <inheritdoc cref="File.SetUnixFileMode(string, UnixFileMode)" />
 	[UnsupportedOSPlatform("windows")]
 	void SetUnixFileMode(string path, UnixFileMode mode);
-
-	/// <summary>
-	/// Waits until <paramref name="filePath" /> is no longer locked by another
-	/// process (or no longer exists). Returns <c>True</c> in that case, or
-	/// <c>False</c> if <paramref name="token" /> was cancelled while the file
-	/// was still locked. Never throws on cancellation.
-	/// </summary>
-	ValueTask<bool> WaitUntilFileUnlockedAsync(
-		string filePath,
-		ILogger? logger = null,
-		CancellationToken token = default);
 
 	/// <inheritdoc cref="File.WriteAllBytesAsync(string, byte[], CancellationToken)" />
 	Task WriteAllBytesAsync(
