@@ -134,6 +134,118 @@ internal class DirectoryAccessorTests
 	}
 
 	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on macOS an application outside a bundle has its folder
+	/// opened.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_On_MacOS_Opens_The_App_Folder_Outside_A_Bundle()
+	{
+		// Arrange
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.MacOS);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(platform);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, null);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on macOS the bundle the application runs in is revealed, not
+	/// the folder of its program inside the bundle.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_On_MacOS_Reveals_The_App_Bundle()
+	{
+		// Arrange
+		string bundlePath = TestPath.Combine(AppFolderName, AppName + ".app");
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The base folder of a .NET application ends with a separator.
+			string programFolder = Path.Combine(bundlePath, "Contents", "MacOS") + Path.DirectorySeparatorChar;
+
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			MockFileSystem fileSystem = new();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(programFolder);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(programFolder);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.MacOS);
+
+			// No real file manager may start from a test.
+			explorerManager
+				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
+				.Returns(true);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, bundlePath);
+	}
+
+	/// <summary>
 	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: when no file of the application is found, its folder is opened.
 	/// </summary>
 	[Test]

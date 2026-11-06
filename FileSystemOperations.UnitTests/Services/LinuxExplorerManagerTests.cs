@@ -1,15 +1,96 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using FileSystemOperations.Services;
 using System;
+using System.IO.Abstractions;
 using System.Runtime.InteropServices;
 using System.Text;
+using Testably.Abstractions.Testing;
 
 namespace FileSystemOperations.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LinuxExplorerManager)}"" type")]
 internal class LinuxExplorerManagerTests
 {
+	#region Data
+	/// <summary>
+	/// Entry of the process in <c>/proc</c> that holds its name.
+	/// </summary>
+	private const string CommPath = "/proc/4242/comm";
+
+	/// <summary>
+	/// Id of the process that owns the window.
+	/// </summary>
+	private const int Pid = 4242;
+
+	/// <summary>
+	/// Folder of the process in <c>/proc</c>.
+	/// </summary>
+	private const string ProcessFolder = "/proc/4242";
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.IsKnownFileManagerProcess" />: the name of the process is compared with the
+	/// names of the known file managers exactly, without the line break that ends it.
+	/// </summary>
+	[TestCase("nautilus", ExpectedResult = true)]
+	[TestCase("Thunar", ExpectedResult = true)]
+	[TestCase("bash", ExpectedResult = false)]
+	[TestCase("NAUTILUS", ExpectedResult = false)]
+	public bool IsKnownFileManagerProcess_Matches_The_Exact_Name_Of_A_File_Manager(string name)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(ProcessFolder);
+
+			// The kernel ends the name with a line break.
+			files
+				.File
+				.WriteAllText(CommPath, name + "\n");
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		return sut.IsKnownFileManagerProcess(Pid);
+	}
+
+	/// <summary>
+	/// <see cref="LinuxExplorerManager.IsKnownFileManagerProcess" />: a process that is gone is no file manager.
+	/// </summary>
+	[Test]
+	public void IsKnownFileManagerProcess_Rejects_A_Process_That_Is_Gone()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// An empty disk: the process has no entry in /proc.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
+
+		LinuxExplorerManager sut = mock.Create<LinuxExplorerManager>();
+
+		// Act
+		bool result = sut.IsKnownFileManagerProcess(Pid);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// <see cref="LinuxExplorerManager.ReadLongs" />: the data of a property of another format gives nothing.
 	/// </summary>

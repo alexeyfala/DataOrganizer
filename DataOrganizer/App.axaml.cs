@@ -422,7 +422,10 @@ public sealed class App : Application
 			.GetRequiredService<IAppEnvironment>()
 			.DatabaseDirectoryPath;
 
-		Directory.CreateDirectory(directoryPath);
+		provider
+			.GetRequiredService<IFileSystem>()
+			.Directory
+			.CreateDirectory(directoryPath);
 
 		return Path.Combine(
 			directoryPath,

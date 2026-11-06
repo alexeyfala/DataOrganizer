@@ -155,30 +155,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	#region Helpers
 	/// <summary>
-	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
-	/// from <paramref name="baseDirectory" />; <c>null</c> when the app runs outside a bundle.
-	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Runs on macOS only, while the mutation run is on Windows")]
-	private static string? ResolveMacOSBundle(string baseDirectory)
-	{
-		const string bundleExtension = ".app";
-
-		DirectoryInfo? directory = new(baseDirectory);
-
-		while (directory is not null)
-		{
-			if (directory.Name.EndsWith(bundleExtension, StringComparison.OrdinalIgnoreCase))
-			{
-				return directory.FullName;
-			}
-
-			directory = directory.Parent;
-		}
-
-		return null;
-	}
-
-	/// <summary>
 	/// Resolves the application file to reveal on <see cref="OperatingSystemKind.Windows" /> and
 	/// <see cref="OperatingSystemKind.Linux" />; <c>null</c> when none exists.
 	/// </summary>
@@ -217,6 +193,31 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.FileExists(entryAssemblyPath)
 			? entryAssemblyPath
 			: null;
+	}
+
+	/// <summary>
+	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
+	/// from <paramref name="baseDirectory" />; <c>null</c> when the app runs outside a bundle.
+	/// </summary>
+	private string? ResolveMacOSBundle(string baseDirectory)
+	{
+		const string bundleExtension = ".app";
+
+		IDirectoryInfo? directory = _fileSystem
+			.DirectoryInfo
+			.New(baseDirectory);
+
+		while (directory is not null)
+		{
+			if (directory.Name.EndsWith(bundleExtension, StringComparison.OrdinalIgnoreCase))
+			{
+				return directory.FullName;
+			}
+
+			directory = directory.Parent;
+		}
+
+		return null;
 	}
 	#endregion
 }

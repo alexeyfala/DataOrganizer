@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -120,6 +121,16 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		"krusader"
 	];
 	// Stryker restore all
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+	#endregion
+
+	#region Constructors
+	public LinuxExplorerManager(IFileSystem fileSystem)
+	{
+		_fileSystem = fileSystem;
+	}
 	#endregion
 
 	#region Methods
@@ -246,7 +257,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	public bool TryRevealFile(string filePath)
 	{
-		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+		if (string.IsNullOrEmpty(filePath) || !_fileSystem.File.Exists(filePath))
 		{
 			return false;
 		}
@@ -336,6 +347,42 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			&& title.AsSpan(0, folderName.Length).Equals(folderName.AsSpan(), StringComparison.Ordinal)
 			&& title[folderName.Length] == ' ';
 	}
+
+	/// <summary>
+	/// Checks whether the process owning the window is a known file manager
+	/// (filters out unrelated apps that might happen to have matching titles).
+	/// </summary>
+	internal bool IsKnownFileManagerProcess(int pid)
+	{
+		try
+		{
+			string commPath = $"/proc/{pid}/comm";
+
+			if (!_fileSystem.File.Exists(commPath))
+			{
+				return false;
+			}
+
+			string comm = _fileSystem
+				.File
+				.ReadAllText(commPath)
+				.Trim();
+
+			foreach (string knownComm in KnownFileManagerComms)
+			{
+				if (comm.Equals(knownComm, StringComparison.Ordinal))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		catch
+		{
+			return false;
+		}
+	}
 	#endregion
 
 	#region Helpers
@@ -391,42 +438,6 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			AtomString,
 			WholePropertyLength,
 			ReadUtf8);
-	}
-
-	/// <summary>
-	/// Checks whether the process owning the window is a known file manager
-	/// (filters out unrelated apps that might happen to have matching titles).
-	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
-	private static bool IsKnownFileManagerProcess(int pid)
-	{
-		try
-		{
-			string commPath = $"/proc/{pid}/comm";
-
-			if (!File.Exists(commPath))
-			{
-				return false;
-			}
-
-			string comm = File
-				.ReadAllText(commPath)
-				.Trim();
-
-			foreach (string knownComm in KnownFileManagerComms)
-			{
-				if (comm.Equals(knownComm, StringComparison.Ordinal))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-		catch
-		{
-			return false;
-		}
 	}
 
 	/// <summary>
