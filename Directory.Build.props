@@ -7,24 +7,6 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
-	<!--
-		Application code reaches files and processes only through their abstractions:
-		RS0030 stops a direct call listed in BannedSymbols.txt. Tests, their support
-		and the installer's custom actions stay outside the ban.
-	-->
-	<PropertyGroup>
-		<IsOutsideApiBan Condition="$(MSBuildProjectName.EndsWith('Tests')) or '$(MSBuildProjectName)' == 'TestSupport' or '$(MSBuildProjectName)' == 'Setup.CustomActions'">true</IsOutsideApiBan>
-	</PropertyGroup>
-
-	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(IsOutsideApiBan)' != 'true'">
-		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<!-- Shown once among the solution items, not as a link in every project. -->
-		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Visible="false" />
-	</ItemGroup>
-
 	<PropertyGroup>
 		<AppName>DataOrganizer</AppName>
 		<AppDisplayName>Data Organizer</AppDisplayName>

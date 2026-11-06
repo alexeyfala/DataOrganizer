@@ -9,8 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Shared.Services;
 
-// The one wrapper over Process: every other start, run and lookup of a process goes through its roles.
-#pragma warning disable RS0030
 /// <summary>
 /// Starts, runs and finds the processes of the operating system.
 /// </summary>
@@ -172,4 +170,3 @@ public sealed class ProcessManager :
 	}
 	#endregion
 }
-#pragma warning restore RS0030

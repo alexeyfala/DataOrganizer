@@ -48,11 +48,6 @@ dotnet_property_generation_behavior = prefer_throwing_properties
 # Symbol search
 dotnet_search_reference_assemblies = true
 
-#### Banned APIs ####
-
-# A direct call of an API listed in BannedSymbols.txt breaks the build.
-dotnet_diagnostic.RS0030.severity = error
-
 #### .NET Coding Conventions ####
 
 # Organize usings

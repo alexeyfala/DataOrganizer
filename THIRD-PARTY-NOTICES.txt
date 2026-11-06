@@ -601,7 +601,6 @@ License of vscode-swift:
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
   * Microsoft.Bcl.HashCode 6.0.0 - Copyright (c) Microsoft
-  * Microsoft.CodeAnalysis.BannedApiAnalyzers 5.6.0 - Copyright (c) Microsoft
   * Microsoft.Data.Sqlite.Core 10.0.14 - Copyright (c) Microsoft
   * Microsoft.EntityFrameworkCore 10.0.14 - Copyright (c) Microsoft
   * Microsoft.EntityFrameworkCore.Abstractions 10.0.14 - Copyright (c) Microsoft
