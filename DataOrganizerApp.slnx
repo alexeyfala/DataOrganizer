@@ -102,6 +102,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="BannedSymbols.txt" />
     <File Path="Directory.Build.props" />
     <File Path="README.md" />
     <File Path="Settings.XamlStyler" />

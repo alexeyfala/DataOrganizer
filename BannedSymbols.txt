@@ -10,6 +10,30 @@ T:System.IO.FileInfo;Use IFileSystem.FileInfo
 T:System.IO.FileStream;Use IFileSystem.FileStream
 T:System.IO.FileSystemWatcher;Use IFileSystem.FileSystemWatcher
 
+// Other APIs that open a file by its path: open the stream through IFileSystem and pass it on.
+M:Avalonia.Media.Imaging.Bitmap.#ctor(System.String);Pass a stream opened through IFileSystem
+M:Avalonia.Media.Imaging.Bitmap.Save(System.String,System.Nullable{System.Int32});Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.Boolean);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.IO.FileStreamOptions);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean,System.Int32);Pass a stream opened through IFileSystem
+M:System.IO.StreamReader.#ctor(System.String,System.Text.Encoding,System.Boolean,System.IO.FileStreamOptions);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String,System.Boolean);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String,System.Boolean,System.Text.Encoding);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String,System.Boolean,System.Text.Encoding,System.Int32);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String,System.IO.FileStreamOptions);Pass a stream opened through IFileSystem
+M:System.IO.StreamWriter.#ctor(System.String,System.Text.Encoding,System.IO.FileStreamOptions);Pass a stream opened through IFileSystem
+M:System.Xml.Linq.XDocument.Load(System.String);Pass a stream opened through IFileSystem
+M:System.Xml.Linq.XDocument.Load(System.String,System.Xml.Linq.LoadOptions);Pass a stream opened through IFileSystem
+M:System.Xml.Linq.XDocument.Save(System.String);Pass a stream opened through IFileSystem
+M:System.Xml.Linq.XDocument.Save(System.String,System.Xml.Linq.SaveOptions);Pass a stream opened through IFileSystem
+M:System.Xml.XmlReader.Create(System.String);Pass a stream opened through IFileSystem
+M:System.Xml.XmlReader.Create(System.String,System.Xml.XmlReaderSettings);Pass a stream opened through IFileSystem
+M:System.Xml.XmlReader.Create(System.String,System.Xml.XmlReaderSettings,System.Xml.XmlParserContext);Pass a stream opened through IFileSystem
+
 // Processes: IProcessLauncher, IProcessRunner and IProcessFinder of Shared.
 M:System.Diagnostics.Process.#ctor;Use IProcessLauncher or IProcessRunner
 M:System.Diagnostics.Process.GetProcessById(System.Int32);Use IProcessFinder

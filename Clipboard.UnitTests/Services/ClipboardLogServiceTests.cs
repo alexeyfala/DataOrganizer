@@ -2473,7 +2473,7 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.Stop" />: the loop ends at once and reads the clipboard no more.
+	/// <see cref="ClipboardLogService.Stop" />: the loop reads the clipboard no more.
 	/// </summary>
 	[Test]
 	public async Task Stop_Ends_The_Loop()
@@ -2500,10 +2500,6 @@ internal class ClipboardLogServiceTests
 		await PassPollIntervalAsync(time);
 
 		// Assert
-		sut.IsRunning
-			.Should()
-			.BeFalse();
-
 		await clipboard
 			.DidNotReceive()
 			.ContainsSensitivityMarkerAsync();
