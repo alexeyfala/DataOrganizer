@@ -482,6 +482,8 @@ public sealed class App : Application
 			Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
 			$"{AppInfo.AppName}_Critical_Errors{KnownFileExtensions.Txt}");
 
+		// The services may be the very thing that failed, so the report reaches the file and the shell directly.
+#pragma warning disable RS0030
 		File.AppendAllText(
 			filePath,
 			$"[{DateTime.Now}] {ex.Message} → {SerilogExtensions.GetSourceInfo()}" + Environment.NewLine);
@@ -491,6 +493,7 @@ public sealed class App : Application
 			FileName = filePath,
 			UseShellExecute = true
 		});
+#pragma warning restore RS0030
 	}
 
 	/// <summary>

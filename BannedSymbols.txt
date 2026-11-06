@@ -1,0 +1,27 @@
+// Calls the application makes only through its abstractions (RS0030, see Directory.Build.props).
+// Format: a documentation comment ID, then the message after a semicolon.
+
+// Files and folders: System.IO.Abstractions.IFileSystem of Testably.
+T:System.IO.Directory;Use IFileSystem.Directory
+T:System.IO.DirectoryInfo;Use IFileSystem.DirectoryInfo
+T:System.IO.DriveInfo;Use IFileSystem.DriveInfo
+T:System.IO.File;Use IFileSystem.File
+T:System.IO.FileInfo;Use IFileSystem.FileInfo
+T:System.IO.FileStream;Use IFileSystem.FileStream
+T:System.IO.FileSystemWatcher;Use IFileSystem.FileSystemWatcher
+
+// Processes: IProcessLauncher, IProcessRunner and IProcessFinder of Shared.
+M:System.Diagnostics.Process.#ctor;Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.GetProcessById(System.Int32);Use IProcessFinder
+M:System.Diagnostics.Process.GetProcessById(System.Int32,System.String);Use IProcessFinder
+M:System.Diagnostics.Process.GetProcesses;Use IProcessFinder
+M:System.Diagnostics.Process.GetProcesses(System.String);Use IProcessFinder
+M:System.Diagnostics.Process.GetProcessesByName(System.String);Use IProcessFinder
+M:System.Diagnostics.Process.GetProcessesByName(System.String,System.String);Use IProcessFinder
+M:System.Diagnostics.Process.Start;Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.Diagnostics.ProcessStartInfo);Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.String);Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.Collections.Generic.IEnumerable{System.String});Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String);Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String,System.Security.SecureString,System.String);Use IProcessLauncher or IProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String,System.String,System.Security.SecureString,System.String);Use IProcessLauncher or IProcessRunner
