@@ -1,12 +1,4 @@
 <Project>
-	<!--
-		Runs the IDE code-style analyzers during the build, so a naming rule from
-		.editorconfig is reported by the compiler and not only inside the IDE.
-	-->
-	<PropertyGroup>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	</PropertyGroup>
-
 	<PropertyGroup>
 		<AppName>DataOrganizer</AppName>
 		<AppDisplayName>Data Organizer</AppDisplayName>
@@ -18,6 +10,14 @@
 		<OutputBaseName>$(AppName)-$(AppVersion)</OutputBaseName>
 		<MsiOutputName>$(OutputBaseName)-win-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>en-us</SetupCulture>
+	</PropertyGroup>
+
+	<!--
+		Runs the IDE code-style analyzers during the build, so a naming rule from
+		.editorconfig is reported by the compiler and not only inside the IDE.
+	-->
+	<PropertyGroup>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<!--
