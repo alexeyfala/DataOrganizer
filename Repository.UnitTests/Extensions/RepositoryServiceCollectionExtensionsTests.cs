@@ -11,6 +11,7 @@ using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Interfaces;
 using System;
+using System.IO.Abstractions;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Extensions;
@@ -28,6 +29,8 @@ internal class RepositoryServiceCollectionExtensionsTests
 	{
 		// Arrange
 		ServiceCollection services = [];
+
+		services.AddSingleton(Substitute.For<IFileEraser>());
 
 		services.AddSingleton(Substitute.For<IFileSystem>());
 

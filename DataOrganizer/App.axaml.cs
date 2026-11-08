@@ -76,6 +76,8 @@ using SharpHook;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions;
 using TextProcessing.Constants;
 using TextProcessing.Interfaces;
 using Threading.Interfaces;
@@ -151,6 +153,7 @@ public sealed class App : Application
 		services.AddTransient<IAppShutdown, DesktopAccessor>();
 		services.AddTransient<IAppThemeService, AppThemeService>();
 		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IAtomicFileWriter, AtomicFileWriter>();
 		services.AddTransient<IAutoLockControl, BackgroundServices>();
 		services.AddTransient<IAutoLockSettings, AutoLockSettings>();
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
@@ -192,10 +195,12 @@ public sealed class App : Application
 		services.AddTransient<IFileContentsOpener, FileContentsOpener>();
 		services.AddTransient<IFileContentsReader, FileContentsReader>();
 		services.AddTransient<IFileContentsWriter, FileContentsWriter>();
+		services.AddTransient<IFileEraser, FileEraser>();
 		services.AddTransient<IFileExecutionScenario, FileExecutionScenario>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
+		services.AddTransient<IFileLockChecker, FileLockChecker>();
 		services.AddTransient<IFilePreviewReader, FilePreviewReader>();
-		services.AddTransient<IFileSystem, FileSystem>();
+		services.AddTransient<IFileSystem, RealFileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFileTextCopier, FileTextCopier>();
 		services.AddTransient<IFileTextReader, FileTextReader>();
@@ -209,6 +214,7 @@ public sealed class App : Application
 		services.AddTransient<IHotkeyTrackingControl, BackgroundServices>();
 		services.AddTransient<IImportModePrompt, DialogService>();
 		services.AddTransient<IImportScenario, ImportScenario>();
+		services.AddTransient<IJsonFileStore, JsonFileStore>();
 		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperDekWriter, KeeperDekWriter>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
@@ -226,7 +232,9 @@ public sealed class App : Application
 		services.AddTransient<IPasswordPrompt, DialogService>();
 		services.AddTransient<IPlatform, Platform>();
 		services.AddTransient<IPngPainter, PngPainter>();
-		services.AddTransient<IProcessManager, ProcessManager>();
+		services.AddTransient<IProcessFinder, ProcessManager>();
+		services.AddTransient<IProcessLauncher, ProcessManager>();
+		services.AddTransient<IProcessRunner, ProcessManager>();
 		services.AddTransient<IProcessTerminator, ProcessTerminator>();
 		services.AddTransient<IProtectionScenarios, ProtectionScenarios>();
 		services.AddTransient<ISampleSeeder, SampleSeeder>();
@@ -416,7 +424,10 @@ public sealed class App : Application
 			.GetRequiredService<IAppEnvironment>()
 			.DatabaseDirectoryPath;
 
-		Directory.CreateDirectory(directoryPath);
+		provider
+			.GetRequiredService<IFileSystem>()
+			.Directory
+			.CreateDirectory(directoryPath);
 
 		return Path.Combine(
 			directoryPath,

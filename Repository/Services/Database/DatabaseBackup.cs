@@ -4,6 +4,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 
 namespace Repository.Services.Database;
@@ -18,6 +19,9 @@ public sealed class DatabaseBackup : IDisposable
 	/// Folder the copies live in, next to the database.
 	/// </summary>
 	private const string DirectoryName = "Backups";
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -34,10 +38,13 @@ public sealed class DatabaseBackup : IDisposable
 	#region Constructors
 	public DatabaseBackup(
 		string filePath,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		ILogger logger)
 	{
 		FilePath = filePath;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -82,9 +89,11 @@ public sealed class DatabaseBackup : IDisposable
 
 		try
 		{
-			if (_fileSystem.FileExists(FilePath))
+			if (_fileSystem
+				.File
+				.Exists(FilePath))
 			{
-				_fileSystem.EraseAndDeleteFile(FilePath);
+				_fileEraser.EraseAndDeleteFile(FilePath);
 			}
 		}
 		catch (Exception ex)

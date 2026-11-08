@@ -3,11 +3,11 @@ using FileExecution.Interfaces;
 using Microsoft.Win32;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -465,7 +465,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			uiName = Path.GetFileNameWithoutExtension(appPath);
 		}
 
-		if (!_fileSystem.FileExists(appPath))
+		if (!_fileSystem
+			.File
+			.Exists(appPath))
 		{
 			_logger.LogDebug($@"Application ""{uiName}"" is not offered: it names no program file to start");
 

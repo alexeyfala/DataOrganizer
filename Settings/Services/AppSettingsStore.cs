@@ -18,21 +18,18 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
+	/// <inheritdoc cref="IJsonFileStore" />
+	private readonly IJsonFileStore _jsonFileStore;
 	#endregion
 
 	#region Constructors
-	public AppSettingsStore(
-		IAppEnvironment appEnvironment,
-		IFileSystem fileSystem,
-		IJsonSerializer jsonSerializer)
+	public AppSettingsStore(IAppEnvironment appEnvironment, IJsonFileStore jsonFileStore)
 	{
 		_appEnvironment = appEnvironment;
 
-		_fileSystem = fileSystem;
+		_jsonFileStore = jsonFileStore;
 
-		Settings = LoadFromFile(jsonSerializer);
+		Settings = LoadFromFile();
 	}
 	#endregion
 
@@ -41,13 +38,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	public void Overwrite(AppSettings value) => value.CopyPropertiesTo(Settings);
 
 	/// <inheritdoc />
-	public void Save()
-	{
-		_fileSystem.SerializeToJsonFile(
-			Settings,
-			GetFilePath(),
-			false);
-	}
+	public void Save() => _jsonFileStore.Write(Settings, GetFilePath());
 	#endregion
 
 	#region Helpers
@@ -60,9 +51,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	/// Loads <see cref="AppSettings" /> data from a file.
 	/// Falls back to the default settings when the file is missing or malformed.
 	/// </summary>
-	private AppSettings LoadFromFile(IJsonSerializer jsonSerializer)
+	private AppSettings LoadFromFile()
 	{
-		return jsonSerializer.DeserializeFromFile<AppSettings>(GetFilePath()) is { } settings && settings.IsNotDefault()
+		return _jsonFileStore.Read<AppSettings>(GetFilePath()) is { } settings && settings.IsNotDefault()
 			? settings
 			: IAppSettingsStore.CreateDefaultSettings();
 	}

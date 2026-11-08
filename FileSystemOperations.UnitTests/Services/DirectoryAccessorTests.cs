@@ -3,10 +3,16 @@ using Autofac.Extras.Moq;
 using FileSystemOperations.Interfaces;
 using FileSystemOperations.Services;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shared.Common;
 using Shared.Enums;
 using Shared.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace FileSystemOperations.UnitTests.Services;
@@ -70,7 +76,7 @@ internal class DirectoryAccessorTests
 
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -83,12 +89,20 @@ internal class DirectoryAccessorTests
 				.Returns(mountedAppPath);
 
 			fileSystem
-				.FileExists(appImagePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(appImagePath)!);
 
 			fileSystem
-				.FileExists(mountedAppPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(appImagePath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(mountedAppPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(mountedAppPath, []);
 
 			platform
 				.CurrentOS
@@ -98,16 +112,11 @@ internal class DirectoryAccessorTests
 				.IsLinux
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
-				.Returns(true);
-
 			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -121,6 +130,108 @@ internal class DirectoryAccessorTests
 		explorerManager
 			.Received(1)
 			.TryForegroundFolder(Path.GetDirectoryName(appImagePath)!, appImagePath);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on macOS an application outside a bundle has its folder
+	/// opened.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_On_MacOS_Opens_The_App_Folder_Outside_A_Bundle()
+	{
+		// Arrange
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(AppFolder);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.MacOS);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(platform);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, null);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenAppDirectory" />: on macOS the bundle the application runs in is revealed, not
+	/// the folder of its program inside the bundle.
+	/// </summary>
+	[Test]
+	public void OpenAppDirectory_On_MacOS_Reveals_The_App_Bundle()
+	{
+		// Arrange
+		string bundlePath = TestPath.Combine(AppFolderName, AppName + ".app");
+
+		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The base folder of a .NET application ends with a separator.
+			string programFolder = Path.Combine(bundlePath, "Contents", "MacOS") + Path.DirectorySeparatorChar;
+
+			IAppProcess appProcess = Substitute.For<IAppProcess>();
+
+			MockFileSystem fileSystem = new();
+
+			IPlatform platform = Substitute.For<IPlatform>();
+
+			appProcess
+				.BaseDirectory
+				.Returns(programFolder);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(programFolder);
+
+			platform
+				.CurrentOS
+				.Returns(OperatingSystemKind.MacOS);
+
+			builder.RegisterInstance(appProcess);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
+
+			builder.RegisterInstance(platform);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenAppDirectory();
+
+		// Assert
+		explorerManager
+			.Received(1)
+			.TryForegroundFolder(AppFolder, bundlePath);
 	}
 
 	/// <summary>
@@ -154,16 +265,17 @@ internal class DirectoryAccessorTests
 				.IsLinux
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
-				.Returns(true);
-
 			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
 			builder.RegisterInstance(platform);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -194,7 +306,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -211,8 +323,12 @@ internal class DirectoryAccessorTests
 				.Returns(processPath);
 
 			fileSystem
-				.FileExists(processPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(processPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(processPath, []);
 
 			platform
 				.CurrentOS
@@ -226,16 +342,11 @@ internal class DirectoryAccessorTests
 				.IsWindows
 				.Returns(os == OperatingSystemKind.Windows);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
-				.Returns(true);
-
 			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -268,7 +379,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -286,12 +397,20 @@ internal class DirectoryAccessorTests
 
 			// The host exists, so only its name keeps it from being revealed.
 			fileSystem
-				.FileExists(DotnetHostPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(DotnetHostPath)!);
 
 			fileSystem
-				.FileExists(appHostPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(DotnetHostPath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(appHostPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(appHostPath, []);
 
 			platform
 				.CurrentOS
@@ -305,16 +424,11 @@ internal class DirectoryAccessorTests
 				.IsWindows
 				.Returns(os == OperatingSystemKind.Windows);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
-				.Returns(true);
-
 			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -346,7 +460,7 @@ internal class DirectoryAccessorTests
 		{
 			IAppProcess appProcess = Substitute.For<IAppProcess>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			IPlatform platform = Substitute.For<IPlatform>();
 
@@ -364,12 +478,20 @@ internal class DirectoryAccessorTests
 
 			// The host exists, so only its name keeps it from being revealed.
 			fileSystem
-				.FileExists(DotnetHostPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(DotnetHostPath)!);
 
 			fileSystem
-				.FileExists(assemblyPath)
-				.Returns(true);
+				.File
+				.WriteAllBytes(DotnetHostPath, []);
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(assemblyPath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(assemblyPath, []);
 
 			platform
 				.CurrentOS
@@ -379,16 +501,11 @@ internal class DirectoryAccessorTests
 				.IsLinux
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), Arg.Any<string?>())
-				.Returns(true);
-
 			builder.RegisterInstance(appProcess);
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(platform);
 		});
@@ -405,6 +522,97 @@ internal class DirectoryAccessorTests
 	}
 
 	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenDirectory" />: a window that already shows the folder is brought forward, and no
+	/// file manager starts.
+	/// </summary>
+	[Test]
+	public void OpenDirectory_Brings_An_Open_Window_Of_The_Folder_Forward()
+	{
+		// Arrange
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+			explorerManager
+				.TryForegroundFolder(FolderPath)
+				.Returns(true);
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(processLauncher);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenDirectory(FolderPath);
+
+		// Assert
+		processLauncher
+			.DidNotReceiveWithAnyArgs()
+			.StartProcess(default!, default!);
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenDirectory" />: without a window that shows the folder, the file manager of the
+	/// system starts with the folder.
+	/// </summary>
+	[Test]
+	public void OpenDirectory_Starts_The_File_Manager_When_No_Window_Shows_The_Folder()
+	{
+		// Arrange
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(processLauncher));
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenDirectory(FolderPath);
+
+		// Assert
+		processLauncher.Received(1).StartProcess(
+			PlatformInfo.FileOpener,
+			Arg.Is<IReadOnlyList<string>>(x => x.SequenceEqual(new[] { FolderPath })));
+	}
+
+	/// <summary>
+	/// <see cref="DirectoryAccessor.OpenDirectory" />: when the windows of the file manager cannot be searched, it still
+	/// starts with the folder.
+	/// </summary>
+	[Test]
+	public void OpenDirectory_Starts_The_File_Manager_When_The_Windows_Cannot_Be_Searched()
+	{
+		// Arrange
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
+
+			explorerManager
+				.TryForegroundFolder(FolderPath)
+				.Throws(new InvalidOperationException());
+
+			builder.RegisterInstance(explorerManager);
+
+			builder.RegisterInstance(processLauncher);
+		});
+
+		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
+
+		// Act
+		sut.OpenDirectory(FolderPath);
+
+		// Assert
+		processLauncher.Received(1).StartProcess(
+			PlatformInfo.FileOpener,
+			Arg.Is<IReadOnlyList<string>>(x => x.SequenceEqual(new[] { FolderPath })));
+	}
+
+	/// <summary>
 	/// <see cref="DirectoryAccessor.RevealFile" />: a window that already shows the folder is brought forward with the
 	/// file selected, and no other window opens.
 	/// </summary>
@@ -416,24 +624,23 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			explorerManager
 				.TryForegroundFolder(FolderPath, FilePath)
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
-
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -460,15 +667,7 @@ internal class DirectoryAccessorTests
 		// Arrange
 		IExplorerManager explorerManager = Substitute.For<IExplorerManager>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
-
-			builder.RegisterInstance(explorerManager);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(explorerManager));
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
 
@@ -497,24 +696,23 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			explorerManager
 				.TryRevealFile(FilePath)
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
-
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -544,12 +742,13 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
-
 			builder.RegisterInstance(explorerManager);
+
+			// An empty disk: the file is not there.
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -579,20 +778,19 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(Path.GetDirectoryName(FilePath)!);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();
@@ -618,24 +816,19 @@ internal class DirectoryAccessorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.DirectoryExists(FilePath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(FilePath);
 
 			explorerManager
 				.TryForegroundFolder(FolderPath, FilePath)
 				.Returns(true);
 
-			// No real file manager may start from a test.
-			explorerManager
-				.TryForegroundFolder(Arg.Any<string>(), null)
-				.Returns(true);
-
 			builder.RegisterInstance(explorerManager);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 		});
 
 		DirectoryAccessor sut = mock.Create<DirectoryAccessor>();

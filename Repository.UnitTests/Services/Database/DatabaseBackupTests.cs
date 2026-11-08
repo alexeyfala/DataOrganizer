@@ -7,6 +7,8 @@ using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
@@ -19,6 +21,11 @@ internal class DatabaseBackupTests
 	/// Path of the database the copies are built from.
 	/// </summary>
 	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Folder the database and its copies live in.
+	/// </summary>
+	private static readonly string DatabaseFolder = TestPath.Combine("Database");
 
 	/// <summary>
 	/// Path of the copy used in the tests.
@@ -60,15 +67,23 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			MockFileSystem files = new();
 
-			builder.RegisterInstance(fileSystem);
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
@@ -77,7 +92,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(FilePath);
 	}
@@ -89,15 +104,23 @@ internal class DatabaseBackupTests
 	public void Dispose_Erases_The_Copy_Only_Once()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			MockFileSystem files = new();
 
-			builder.RegisterInstance(fileSystem);
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
@@ -108,7 +131,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(FilePath);
 	}
@@ -120,9 +143,17 @@ internal class DatabaseBackupTests
 	public void Dispose_Skips_A_Missing_Copy()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(fileSystem));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileEraser);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
 
@@ -130,7 +161,7 @@ internal class DatabaseBackupTests
 		sut.Dispose();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -144,17 +175,25 @@ internal class DatabaseBackupTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
-			fileSystem
-				.FileExists(FilePath)
-				.Returns(true);
+			MockFileSystem files = new();
 
-			fileSystem
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			fileEraser
 				.When(x => x.EraseAndDeleteFile(FilePath))
 				.Throw(new UnauthorizedAccessException());
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));

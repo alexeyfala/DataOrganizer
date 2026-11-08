@@ -10,10 +10,12 @@ using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using SharpHook.Data;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TestSupport.Models;
 
@@ -27,6 +29,11 @@ internal class XmlExchangeFormatTests
 	/// The path of the exchange file.
 	/// </summary>
 	private static readonly string FilePath = TestPath.Combine("exchange", "organizer.xml");
+
+	/// <summary>
+	/// Folder the exchange file lives in.
+	/// </summary>
+	private static readonly string Folder = TestPath.Combine("exchange");
 	#endregion
 
 	#region Methods
@@ -44,8 +51,6 @@ internal class XmlExchangeFormatTests
 
 		ExplorerItemBase[] entities = [.. folders, .. files];
 
-		using MemoryStream stream = new();
-
 		IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -60,15 +65,15 @@ internal class XmlExchangeFormatTests
 				.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, Arg.Any<CancellationToken>())
 				.Returns(files);
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.CreateSequentialWrite(FilePath)
-				.Returns(stream);
+				.Directory
+				.CreateDirectory(Folder);
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});
@@ -81,7 +86,7 @@ internal class XmlExchangeFormatTests
 		// Assert
 		serializer
 			.Received(1)
-			.Serialize(stream, Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)));
+			.Serialize(Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath), Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)));
 	}
 
 	/// <summary>
@@ -93,11 +98,15 @@ internal class XmlExchangeFormatTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(FilePath)
-				.Returns(new MemoryStream());
+				.Directory
+				.CreateDirectory(Folder);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
@@ -110,7 +119,7 @@ internal class XmlExchangeFormatTests
 				.Deserialize<ExplorerItemBase[]>(Arg.Any<XDocument>())
 				.Returns(default(ExplorerItemBase[]));
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});
@@ -138,11 +147,15 @@ internal class XmlExchangeFormatTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(FilePath)
-				.Returns(new MemoryStream());
+				.Directory
+				.CreateDirectory(Folder);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			XDocument document = new(new XElement(
 				"ArrayOfEntry",
@@ -158,7 +171,7 @@ internal class XmlExchangeFormatTests
 				.Deserialize<ExplorerItemBase[]>(Arg.Do<XDocument>(x => code = x.Descendants(nameof(HotkeyEntity.Code)).Single().Value))
 				.Returns([]);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});
@@ -188,27 +201,29 @@ internal class XmlExchangeFormatTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			MemoryStream stream = new();
-
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(FilePath)
-				.Returns(stream);
+				.Directory
+				.CreateDirectory(Folder);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			XDocument document = new(new XElement("ArrayOfEntry"));
 
 			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
 			serializer
-				.LoadDocumentAsync(stream, Arg.Any<CancellationToken>())
+				.LoadDocumentAsync(Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath), Arg.Any<CancellationToken>())
 				.Returns(document);
 
 			serializer
 				.Deserialize<ExplorerItemBase[]>(document)
 				.Returns([files[0], folders[0], files[1], folders[1]]);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});

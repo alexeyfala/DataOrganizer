@@ -1,8 +1,9 @@
 using FileSystemOperations.Interfaces;
+using Shared.Interfaces;
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -46,11 +47,6 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	private const long EventMask = (1L << 19) | (1L << 20);
 
 	/// <summary>
-	/// Time budget for a single D-Bus reveal call before it is abandoned.
-	/// </summary>
-	private const int FileManager1CallTimeoutMs = 5000;
-
-	/// <summary>
 	/// Freedesktop <c>org.freedesktop.FileManager1.ShowItems</c> method — opens a file manager
 	/// with the given items selected.
 	/// </summary>
@@ -80,6 +76,11 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// Length in 32-bit units that reads a window property whole.
 	/// </summary>
 	private const int WholePropertyLength = 0xFFFFFF;
+
+	/// <summary>
+	/// Time budget for a single D-Bus reveal call before it is abandoned.
+	/// </summary>
+	private static readonly TimeSpan FileManager1CallTimeout = TimeSpan.FromSeconds(5);
 
 	// Stryker disable all : a list of process names; a test per entry would copy it
 	/// <summary>
@@ -120,6 +121,21 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		"krusader"
 	];
 	// Stryker restore all
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="IProcessRunner" />
+	private readonly IProcessRunner _processRunner;
+	#endregion
+
+	#region Constructors
+	public LinuxExplorerManager(IFileSystem fileSystem, IProcessRunner processRunner)
+	{
+		_fileSystem = fileSystem;
+
+		_processRunner = processRunner;
+	}
 	#endregion
 
 	#region Methods
@@ -243,10 +259,11 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	}
 
 	/// <inheritdoc />
-	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
 	public bool TryRevealFile(string filePath)
 	{
-		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+		if (string.IsNullOrEmpty(filePath) || !_fileSystem
+			.File
+			.Exists(filePath))
 		{
 			return false;
 		}
@@ -336,6 +353,44 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			&& title.AsSpan(0, folderName.Length).Equals(folderName.AsSpan(), StringComparison.Ordinal)
 			&& title[folderName.Length] == ' ';
 	}
+
+	/// <summary>
+	/// Checks whether the process owning the window is a known file manager
+	/// (filters out unrelated apps that might happen to have matching titles).
+	/// </summary>
+	internal bool IsKnownFileManagerProcess(int pid)
+	{
+		try
+		{
+			string commPath = $"/proc/{pid}/comm";
+
+			if (!_fileSystem
+				.File
+				.Exists(commPath))
+			{
+				return false;
+			}
+
+			string comm = _fileSystem
+				.File
+				.ReadAllText(commPath)
+				.Trim();
+
+			foreach (string knownComm in KnownFileManagerComms)
+			{
+				if (comm.Equals(knownComm, StringComparison.Ordinal))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		catch
+		{
+			return false;
+		}
+	}
 	#endregion
 
 	#region Helpers
@@ -391,42 +446,6 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			AtomString,
 			WholePropertyLength,
 			ReadUtf8);
-	}
-
-	/// <summary>
-	/// Checks whether the process owning the window is a known file manager
-	/// (filters out unrelated apps that might happen to have matching titles).
-	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
-	private static bool IsKnownFileManagerProcess(int pid)
-	{
-		try
-		{
-			string commPath = $"/proc/{pid}/comm";
-
-			if (!File.Exists(commPath))
-			{
-				return false;
-			}
-
-			string comm = File
-				.ReadAllText(commPath)
-				.Trim();
-
-			foreach (string knownComm in KnownFileManagerComms)
-			{
-				if (comm.Equals(knownComm, StringComparison.Ordinal))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-		catch
-		{
-			return false;
-		}
 	}
 
 	/// <summary>
@@ -521,47 +540,12 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// Invokes <c>FileManager1.ShowItems</c> through the given D-Bus command-line tool;
 	/// returns whether the call completed successfully.
 	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Talks to the Linux desktop, which tests do not run")]
-	private static bool TryCallShowItems(string executable, string[] arguments)
+	private bool TryCallShowItems(string executable, string[] arguments)
 	{
 		try
 		{
-			ProcessStartInfo startInfo = new()
-			{
-				FileName = executable,
-				UseShellExecute = false,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				CreateNoWindow = true
-			};
-
-			foreach (string argument in arguments)
-			{
-				startInfo.ArgumentList.Add(argument);
-			}
-
-			using Process? process = Process.Start(startInfo);
-
-			if (process is null)
-			{
-				return false;
-			}
-
-			// The call returns once the file manager accepts the request; abandon a missing or stuck tool.
-			if (!process.WaitForExit(FileManager1CallTimeoutMs))
-			{
-				try
-				{
-					process.Kill(entireProcessTree: true);
-				}
-				catch
-				{
-				}
-
-				return false;
-			}
-
-			return process.ExitCode == 0;
+			// The call returns once the file manager accepts the request; a stuck tool is abandoned.
+			return _processRunner.Run(executable, arguments, FileManager1CallTimeout) == 0;
 		}
 		catch
 		{

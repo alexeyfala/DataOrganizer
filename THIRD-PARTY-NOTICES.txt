@@ -639,6 +639,9 @@ License of vscode-swift:
   * System.Drawing.Common 10.0.14 - Copyright (c) Microsoft
   * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
   * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) Microsoft
+  * Testably.Abstractions 10.4.0 - Copyright (c) Testably
+  * Testably.Abstractions.FileSystem.Interface 10.4.0 - Copyright (c) Testably
+  * Testably.Abstractions.Interface 10.4.0 - Copyright (c) Testably
   * TextMateSharp 2.0.3 - Copyright (c) Daniel Peñalba
   * TextMateSharp.Grammars 2.0.3 - Copyright (c) Daniel Peñalba
   * Tmds.DBus.Protocol 0.94.1 - Copyright (c) Tom Deseyn

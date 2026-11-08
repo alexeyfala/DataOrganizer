@@ -17,24 +17,38 @@ using Repository.Services;
 using Repository.Services.Database;
 using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TestSupport.Database;
 using TestSupport.Dto;
 using TestSupport.Models;
+using TimeProvider = System.TimeProvider;
 
 namespace Repository.UnitTests.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the database file.
+	/// </summary>
+	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Folder the database file lives in.
+	/// </summary>
+	private static readonly string DatabaseFolder = TestPath.Combine("Database");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="DbAccess.AddEntityAsync" />: a failed save leaves no entity tracked for the next save to write.
@@ -473,6 +487,11 @@ internal class DbAccessTests
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -509,7 +528,15 @@ internal class DbAccessTests
 		// Arrange
 		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -536,7 +563,15 @@ internal class DbAccessTests
 		// Arrange
 		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -566,6 +601,11 @@ internal class DbAccessTests
 				.ThrowsAsync(new OperationCanceledException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -593,11 +633,20 @@ internal class DbAccessTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
+
 			fileSystem
-				.FileExists(Arg.Any<string>())
+				.File
+				.Exists(DatabaseFilePath)
 				.Throws(new IOException());
+
+			builder.RegisterInstance(dbContextService);
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -629,7 +678,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem files = new();
 
 			dbContextService
 				.CanConnectAsync(Arg.Any<CancellationToken>())
@@ -639,17 +688,22 @@ internal class DbAccessTests
 				.HasMigrations()
 				.Returns(true);
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(true);
+			dbContextService
+				.GetDbFilePath()
+				.Returns(DatabaseFilePath);
 
-			fileSystem
-				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(new byte[32]));
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			// Zeros in place of the header of SQLite.
+			files
+				.File
+				.WriteAllBytes(DatabaseFilePath, new byte[32]);
 
 			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -688,6 +742,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -729,6 +788,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(folderRepository);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -838,6 +902,11 @@ internal class DbAccessTests
 				.ThrowsAsync(new IOException());
 
 			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -890,7 +959,7 @@ internal class DbAccessTests
 	public async Task CreateBackupAsync_Returns_Null_Without_A_Database_File()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -900,13 +969,9 @@ internal class DbAccessTests
 				.GetDbFilePath()
 				.Returns(TestPath.Combine("Database", "DataOrganizer.sqlite"));
 
-			fileSystem
-				.FileExists(Arg.Any<string>())
-				.Returns(false);
-
 			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -919,9 +984,9 @@ internal class DbAccessTests
 			.Should()
 			.BeNull();
 
-		fileSystem
-			.DidNotReceive()
-			.CreateDirectory(Arg.Any<string>());
+		files.Statistics.Directory.Methods
+			.Should()
+			.NotContain(x => x.Name == nameof(IDirectory.CreateDirectory));
 	}
 
 	/// <summary>
@@ -2505,52 +2570,52 @@ internal class DbAccessTests
 
 		folders
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					EncryptedDek = (byte[]?)encryptedDek,
-					Id = keeper.Id,
+					keeper.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				},
 				new
 				{
 					EncryptedDek = (byte[]?)null,
-					Id = subfolder.Id,
+					subfolder.Id,
 					Note = subfolderNote,
 					UpdatedAt = updatedAt
 				}
-			});
+			]);
 
 		FileEntity[] files = await sut.GetAllFilesAsync(OptionalFileProperties.Contents);
 
 		files
 			.Should()
-			.BeEquivalentTo(new[]
-			{
+			.BeEquivalentTo(
+			[
 				new
 				{
 					Contents = notedContents,
-					Id = noted.Id,
+					noted.Id,
 					Note = notedNote,
 					UpdatedAt = updatedAt
 				},
 				new
 				{
 					Contents = unnotedContents,
-					Id = unnoted.Id,
+					unnoted.Id,
 					Note = oldNote,
 					UpdatedAt = updatedAt
 				},
 				new
 				{
 					Contents = oldContents,
-					Id = untouched.Id,
+					untouched.Id,
 					Note = oldNote,
 					UpdatedAt = before
 				}
-			});
+			]);
 	}
 	#endregion
 

@@ -10,6 +10,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
 	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
+	/// <inheritdoc cref="IFileLockChecker" />
+	private readonly IFileLockChecker _fileLockChecker;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -47,8 +54,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notification;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -66,17 +73,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 	public ExecutionEngine(
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
+		IFileEraser fileEraser,
+		IFileLockChecker fileLockChecker,
 		IFileSystem fileSystem,
 		IExecutingFileHolderFinder holderFinder,
 		ILogger logger,
 		INotificationService notification,
-		IProcessManager processManager,
+		IProcessLauncher processLauncher,
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_appResolver = appResolver;
 
 		_changeTracker = changeTracker;
+
+		_fileEraser = fileEraser;
+
+		_fileLockChecker = fileLockChecker;
 
 		_fileSystem = fileSystem;
 
@@ -88,7 +101,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		_notification = notification;
 
-		_processManager = processManager;
+		_processLauncher = processLauncher;
 
 		_sandbox = sandbox;
 	}
@@ -135,39 +148,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			KillFileProcesses(info, id);
 
-			if (!_fileSystem.FileExists(info.FilePath))
-			{
-				return;
-			}
+			await WaitUntilReleasedAsync(info.FilePath, id, token).ConfigureAwait(false);
 
-			if (_fileSystem.IsFileLocked(info.FilePath))
-			{
-				_logger.LogWarning($@"File ""{id}"" is locked by another process, waiting it to be released.");
-
-				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-				const int timeout = 10;
-
-				// Stryker disable once Statement : the cap shows only after a real wait of ten seconds
-				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
-
-				bool unlocked = await _fileSystem
-					.WaitUntilFileUnlockedAsync(info.FilePath, token: cancellation.Token)
-					.ConfigureAwait(false);
-
-				// Stryker disable once Boolean : both branches only write to the log
-				if (unlocked)
-				{
-					_logger.LogInformation($@"File ""{id}"" is released.");
-				}
-				else
-				{
-					_logger.LogWarning(
-						$@"File ""{id}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
-				}
-			}
-
-			TryDeleteFile(info.FilePath, info.DirectoryPath);
+			TryEraseDirectory(info.DirectoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -219,12 +202,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 					KillFileProcesses(info, id);
 
-					if (!_fileSystem.FileExists(info.FilePath))
-					{
-						continue;
-					}
-
-					TryDeleteFile(info.FilePath, info.DirectoryPath);
+					TryEraseDirectory(info.DirectoryPath);
 				}
 				catch (Exception ex)
 				{
@@ -481,18 +459,21 @@ public sealed class ExecutionEngine : IExecutionEngine
 		AsyncRollbackScope scope,
 		CancellationToken token)
 	{
-		scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+		scope.OnRollback(() => _fileSystem.Directory.Delete(directoryPath, recursive: true));
 
-		_fileSystem.CreateDirectory(directoryPath);
+		_fileSystem
+			.Directory
+			.CreateDirectory(directoryPath);
 
 		scope.OnRollback(() =>
 		{
 			_fileSystem.SetFileReadOnly(filePath, false);
 
-			_fileSystem.EraseAndDeleteFile(filePath);
+			_fileEraser.EraseAndDeleteFile(filePath);
 		});
 
 		await _fileSystem
+			.File
 			.WriteAllBytesAsync(filePath, parameters.Contents, token)
 			.ConfigureAwait(false);
 
@@ -572,10 +553,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		if (selectedAppPath is not null)
 		{
-			return _processManager.OpenFile(selectedAppPath, filePath);
+			return _processLauncher.OpenFile(selectedAppPath, filePath);
 		}
 
-		IExecutingFileProcess? process = _processManager.OpenFile(filePath);
+		IExecutingFileProcess? process = _processLauncher.OpenFile(filePath);
 
 		// Stryker disable once Equality : the branch only writes to the log
 		if (process is null)
@@ -628,31 +609,20 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Tries to delete a file and the folder containing it.
+	/// Tries to erase and delete the folder of a file, if present, with the files other programs left beside it.
 	/// </summary>
-	private void TryDeleteFile(string filePath, string directoryPath)
+	private void TryEraseDirectory(string directoryPath)
 	{
 		try
 		{
-			_fileSystem.SetFileReadOnly(filePath, false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
+			if (!_fileSystem
+				.Directory
+				.Exists(directoryPath))
+			{
+				return;
+			}
 
-		try
-		{
-			_fileSystem.EraseAndDeleteFile(filePath);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-
-		try
-		{
-			_fileSystem.DeleteDirectory(directoryPath);
+			_fileEraser.EraseAndDeleteDirectory(directoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -684,6 +654,52 @@ public sealed class ExecutionEngine : IExecutionEngine
 			}
 
 			return default;
+		}
+	}
+
+	/// <summary>
+	/// Waits up to ten seconds for another process to release <paramref name="filePath" />; a failed check only goes to
+	/// the log, so the folder is erased all the same.
+	/// </summary>
+	private async Task WaitUntilReleasedAsync(string filePath, Guid fileId, CancellationToken token)
+	{
+		try
+		{
+			// A file gone from the sandbox has no lock to wait for, but its folder may still hold files of the program.
+			if (!_fileSystem
+				.File
+				.Exists(filePath) || !_fileLockChecker.IsLocked(filePath))
+			{
+				return;
+			}
+
+			_logger.LogWarning($@"File ""{fileId}"" is locked by another process, waiting it to be released.");
+
+			using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+			const int timeout = 10;
+
+			// Stryker disable once Statement : the cap shows only after a real wait of ten seconds
+			cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
+
+			bool unlocked = await _fileLockChecker
+				.WaitUntilUnlockedAsync(filePath, cancellation.Token)
+				.ConfigureAwait(false);
+
+			// Stryker disable once Boolean : both branches only write to the log
+			if (unlocked)
+			{
+				_logger.LogInformation($@"File ""{fileId}"" is released.");
+			}
+			else
+			{
+				_logger.LogWarning(
+					$@"File ""{fileId}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 	#endregion

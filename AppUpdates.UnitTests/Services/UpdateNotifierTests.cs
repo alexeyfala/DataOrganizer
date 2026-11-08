@@ -3,8 +3,8 @@ using AppUpdates.Interfaces;
 using AppUpdates.Services;
 using Autofac;
 using Autofac.Extras.Moq;
-using FileExecution.Interfaces;
 using NSubstitute;
+using Shared.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +34,7 @@ internal class UpdateNotifierTests
 
 		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -50,7 +50,7 @@ internal class UpdateNotifierTests
 
 			builder.RegisterInstance(updateCheckService);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(prompt);
 		});
@@ -65,7 +65,7 @@ internal class UpdateNotifierTests
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenWithShell(Arg.Any<string>());
 	}
@@ -120,7 +120,7 @@ internal class UpdateNotifierTests
 		// Arrange
 		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -132,7 +132,7 @@ internal class UpdateNotifierTests
 
 			builder.RegisterInstance(updateCheckService);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(prompt);
 		});
@@ -147,7 +147,7 @@ internal class UpdateNotifierTests
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenWithShell(Arg.Any<string>());
 	}
@@ -208,7 +208,7 @@ internal class UpdateNotifierTests
 
 		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -220,7 +220,7 @@ internal class UpdateNotifierTests
 
 			builder.RegisterInstance(updateCheckService);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(prompt);
 		});
@@ -235,7 +235,7 @@ internal class UpdateNotifierTests
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenWithShell(Arg.Any<string>());
 	}
@@ -256,7 +256,7 @@ internal class UpdateNotifierTests
 
 		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -272,7 +272,7 @@ internal class UpdateNotifierTests
 
 			builder.RegisterInstance(updateCheckService);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(prompt);
 		});
@@ -287,7 +287,7 @@ internal class UpdateNotifierTests
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Is<string>(static x => x != null && x.Contains("0.2.0")), Arg.Any<CancellationToken>());
 
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenWithShell(ReleaseUrl);
 	}

@@ -3,8 +3,8 @@ using HierarchyExchange.Interfaces;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces.Database;
-using Shared.Interfaces;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +17,11 @@ namespace HierarchyExchange.Services;
 public abstract class SerializedExchangeFormatBase : IExchangeFormat
 {
 	#region Data
+	/// <summary>
+	/// Size of the buffer of the streams the document is written to and read from.
+	/// </summary>
+	private const int SequentialBufferSize = 81920;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -61,7 +66,15 @@ public abstract class SerializedExchangeFormatBase : IExchangeFormat
 
 		// Streaming serialization: the document goes directly to the file without being
 		// materialized as a string in memory.
-		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
+		await using Stream stream = _fileSystem
+			.FileStream
+			.New(
+				filePath,
+				FileMode.Create,
+				FileAccess.Write,
+				FileShare.None,
+				SequentialBufferSize,
+				FileOptions.Asynchronous);
 
 		await WriteDocumentAsync(stream, [.. folders.Concat<ExplorerItemBase>(files)], token).ConfigureAwait(false);
 	}
@@ -71,7 +84,16 @@ public abstract class SerializedExchangeFormatBase : IExchangeFormat
 	{
 		ExplorerItemBase[]? entities;
 
-		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
+		// Stryker disable once Bitwise : equivalent: the options only tune the reading, the bytes stay the same
+		await using (Stream stream = _fileSystem
+			.FileStream
+			.New(
+				filePath,
+				FileMode.Open,
+				FileAccess.Read,
+				FileShare.Read,
+				SequentialBufferSize,
+				FileOptions.Asynchronous | FileOptions.SequentialScan))
 		{
 			entities = await ReadDocumentAsync(stream, token).ConfigureAwait(false);
 		}

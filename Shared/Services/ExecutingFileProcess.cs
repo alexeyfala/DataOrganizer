@@ -1,8 +1,8 @@
-using FileExecution.Interfaces;
+using Shared.Interfaces;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace FileExecution.Services;
+namespace Shared.Services;
 
 /// <inheritdoc cref="IExecutingFileProcess" />
 [ExcludeFromCodeCoverage(Justification = "Wraps a real process")]

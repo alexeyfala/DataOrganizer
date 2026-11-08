@@ -6,8 +6,8 @@ using Clipboard.Interfaces;
 using Clipboard.Models;
 using Clipboard.UnitTests.Factories;
 using DataOrganizer.ViewModels.Windows;
-using FileExecution.Interfaces;
 using NSubstitute;
+using Shared.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -357,7 +357,7 @@ internal class ClipboardLogViewModelTests
 	public void OpenUrlCommand_Ignores_An_Entry_That_Is_Not_A_Link()
 	{
 		// Arrange
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -369,7 +369,7 @@ internal class ClipboardLogViewModelTests
 
 			builder.RegisterInstance(clipboardLog);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -378,7 +378,7 @@ internal class ClipboardLogViewModelTests
 		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateTextEntry("https://example.com/", [1]));
 
 		// Assert
-		processManager
+		processLauncher
 			.DidNotReceive()
 			.OpenWithShell(Arg.Any<string>());
 	}
@@ -393,7 +393,7 @@ internal class ClipboardLogViewModelTests
 		// Arrange
 		const string url = "https://example.com/";
 
-		IProcessManager processManager = Substitute.For<IProcessManager>();
+		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -405,7 +405,7 @@ internal class ClipboardLogViewModelTests
 
 			builder.RegisterInstance(clipboardLog);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -414,7 +414,7 @@ internal class ClipboardLogViewModelTests
 		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateUrlEntry(url));
 
 		// Assert
-		processManager
+		processLauncher
 			.Received(1)
 			.OpenWithShell(url);
 	}
@@ -432,19 +432,19 @@ internal class ClipboardLogViewModelTests
 		{
 			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			IProcessManager processManager = Substitute.For<IProcessManager>();
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
 			clipboardLog
 				.Entries
 				.Returns([]);
 
-			processManager
+			processLauncher
 				.When(x => x.OpenWithShell(url))
 				.Throw(new Win32Exception());
 
 			builder.RegisterInstance(clipboardLog);
 
-			builder.RegisterInstance(processManager);
+			builder.RegisterInstance(processLauncher);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();

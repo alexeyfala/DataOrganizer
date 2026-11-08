@@ -11,6 +11,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,8 +74,8 @@ public sealed class AppController :
 	/// <inheritdoc cref="IPlatform" />
 	private readonly IPlatform _platform;
 
-	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processManager;
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -124,7 +125,7 @@ public sealed class AppController :
 		IMainWindowLauncher mainWindowLauncher,
 		IMessenger messenger,
 		IPlatform platform,
-		IProcessManager processManager,
+		IProcessLauncher processLauncher,
 		ISecondaryWindowCloser secondaryWindowCloser,
 		IServiceProvider serviceProvider,
 		ISessionHierarchy sessionHierarchy,
@@ -167,7 +168,7 @@ public sealed class AppController :
 
 		_platform = platform;
 
-		_processManager = processManager;
+		_processLauncher = processLauncher;
 
 		_sandbox = sandbox;
 
@@ -199,7 +200,9 @@ public sealed class AppController :
 
 			_avaloniaLogForwarder.StartForwarding();
 
-			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
+			_fileSystem
+				.Directory
+				.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			// On Windows the folder of a user is already closed to the other accounts by its access rights.
 			if (!_platform.IsWindows)
@@ -294,9 +297,11 @@ public sealed class AppController :
 	{
 		try
 		{
-			_fileSystem.SetUnixFileMode(
-				directoryPath,
-				UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+			_fileSystem
+				.File
+				.SetUnixFileMode(
+					directoryPath,
+					UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
 
 			_logger.LogInformation($@"Folder ""{directoryPath}"" is open to its owner only");
 		}
@@ -331,7 +336,7 @@ public sealed class AppController :
 				? [entryAssemblyPath]
 				: [];
 
-			_processManager.StartProcess(path, arguments);
+			_processLauncher.StartProcess(path, arguments);
 		}
 
 		_appShutdown.Shutdown();

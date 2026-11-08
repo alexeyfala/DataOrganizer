@@ -13,6 +13,7 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -30,7 +31,9 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(HistoryKeyId);
 
 	/// <inheritdoc />
-	public bool KeyFileExists => _fileSystem.FileExists(_keyFilePath);
+	public bool KeyFileExists => _fileSystem
+		.File
+		.Exists(_keyFilePath);
 	#endregion
 
 	#region Data
@@ -54,16 +57,22 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private static readonly Guid HistoryKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 
+	/// <inheritdoc cref="IAtomicFileWriter" />
+	private readonly IAtomicFileWriter _atomicFileWriter;
+
+	/// <inheritdoc cref="IDekRewrapper" />
+	private readonly IDekRewrapper _dekRewrapper;
+
 	/// <summary>
 	/// Absolute path to the directory both files live in.
 	/// </summary>
 	private readonly string _directoryPath;
 
-	/// <inheritdoc cref="IDekRewrapper" />
-	private readonly IDekRewrapper _dekRewrapper;
-
 	/// <inheritdoc cref="IPasswordDekWrapper" />
 	private readonly IPasswordDekWrapper _encryption;
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -88,13 +97,19 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	#region Constructors
 	public ClipboardLogStore(
 		IAppEnvironment appEnvironment,
+		IAtomicFileWriter atomicFileWriter,
 		IDekRewrapper dekRewrapper,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IPasswordDekWrapper encryption,
 		[FromKeyedServices(SessionKeyStoreKey)] ISessionKeyStore sessionKeyStore)
 	{
+		_atomicFileWriter = atomicFileWriter;
+
 		_dekRewrapper = dekRewrapper;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -119,10 +134,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public void EraseAll()
 	{
-		TryEraseFile(_historyFilePath);
-
-		TryEraseFile(_keyFilePath);
-
 		TryEraseDirectory();
 
 		Dispose();
@@ -151,8 +162,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 			EnsureDirectory();
 
-			await _fileSystem
-				.WriteAllBytesAtomicAsync(_historyFilePath, ciphertext, token)
+			await _atomicFileWriter
+				.WriteAllBytesAsync(_historyFilePath, ciphertext, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -169,7 +180,9 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
-		bool hasKey = _fileSystem.FileExists(_keyFilePath);
+		bool hasKey = _fileSystem
+			.File
+			.Exists(_keyFilePath);
 
 		try
 		{
@@ -203,12 +216,15 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(CancellationToken token)
 	{
-		if (!_fileSystem.FileExists(_historyFilePath))
+		if (!_fileSystem
+			.File
+			.Exists(_historyFilePath))
 		{
 			return [];
 		}
 
 		byte[] ciphertext = await _fileSystem
+			.File
 			.ReadAllBytesAsync(_historyFilePath, token)
 			.ConfigureAwait(false);
 
@@ -274,8 +290,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		EnsureDirectory();
 
-		await _fileSystem
-			.WriteAllBytesAtomicAsync(_keyFilePath, wrappedDek, token)
+		await _atomicFileWriter
+			.WriteAllBytesAsync(_keyFilePath, wrappedDek, token)
 			.ConfigureAwait(false);
 
 		return _sessionKeyStore.Unlock(HistoryKeyId, dek)
@@ -286,22 +302,28 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Ensures the clipboard history directory exists.
 	/// </summary>
-	private void EnsureDirectory() => _fileSystem.CreateDirectory(_directoryPath);
+	private void EnsureDirectory()
+	{
+		_fileSystem
+			.Directory
+			.CreateDirectory(_directoryPath);
+	}
 
 	/// <summary>
-	/// Removes the clipboard history directory if present.
+	/// Erases the clipboard history directory with every file in it, if present.
 	/// </summary>
 	private void TryEraseDirectory()
 	{
 		try
 		{
-			// Stryker disable once Block,Statement : equivalent: deleting a missing folder only adds a log line
-			if (!_fileSystem.DirectoryExists(_directoryPath))
+			if (!_fileSystem
+				.Directory
+				.Exists(_directoryPath))
 			{
 				return;
 			}
 
-			_fileSystem.DeleteDirectory(_directoryPath);
+			_fileEraser.EraseAndDeleteDirectory(_directoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -316,9 +338,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (_fileSystem.FileExists(filePath))
+			if (_fileSystem
+				.File
+				.Exists(filePath))
 			{
-				_fileSystem.EraseAndDeleteFile(filePath);
+				_fileEraser.EraseAndDeleteFile(filePath);
 			}
 		}
 		catch (Exception ex)
@@ -333,6 +357,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(PinnedBuffer password, CancellationToken token)
 	{
 		byte[] wrappedDek = await _fileSystem
+			.File
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
@@ -353,7 +378,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				dek,
 				password,
 				ContentIdentity.ClipboardDek,
-				(rewrapped, writeToken) => _fileSystem.WriteAllBytesAtomicAsync(_keyFilePath, rewrapped, writeToken),
+				(rewrapped, writeToken) => _atomicFileWriter.WriteAllBytesAsync(_keyFilePath, rewrapped, writeToken),
 				token)
 			.ConfigureAwait(false);
 

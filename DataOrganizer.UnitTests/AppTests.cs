@@ -50,7 +50,7 @@ internal partial class AppTests
 	[
 		typeof(App).Assembly,
 		typeof(DbAccess).Assembly,
-		typeof(FileSystem).Assembly
+		typeof(FileEraser).Assembly
 	];
 	#endregion
 

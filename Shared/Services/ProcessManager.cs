@@ -1,17 +1,22 @@
-using FileExecution.Interfaces;
 using Shared.Common;
 using Shared.Enums;
 using Shared.Extensions;
 using Shared.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace FileExecution.Services;
+namespace Shared.Services;
 
-/// <inheritdoc cref="IProcessManager" />
+/// <summary>
+/// Starts, runs and finds the processes of the operating system.
+/// </summary>
 [ExcludeFromCodeCoverage(Justification = "Starts and stops real processes")]
-public sealed class ProcessManager : IProcessManager
+public sealed class ProcessManager :
+	IProcessFinder,
+	IProcessLauncher,
+	IProcessRunner
 {
 	#region Data
 	/// <inheritdoc cref="IPlatform" />
@@ -23,6 +28,20 @@ public sealed class ProcessManager : IProcessManager
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public IExecutingFileProcess? FindById(int processId)
+	{
+		try
+		{
+			return new ExecutingFileProcess(Process.GetProcessById(processId));
+		}
+		catch (ArgumentException)
+		{
+			// No process of that id runs.
+			return null;
+		}
+	}
+
 	/// <inheritdoc />
 	public IExecutingFileProcess? OpenFile(string filePath)
 	{
@@ -52,6 +71,44 @@ public sealed class ProcessManager : IProcessManager
 			FileName = target,
 			UseShellExecute = true
 		});
+	}
+
+	/// <inheritdoc />
+	public int? Run(string fileName, IReadOnlyList<string> arguments, TimeSpan timeout)
+	{
+		using Process process = new()
+		{
+			StartInfo = new(fileName, arguments)
+			{
+				CreateNoWindow = true,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				UseShellExecute = false
+			}
+		};
+
+		process.Start();
+
+		// The output is read and dropped, so that a full pipe cannot stall the process.
+		process.BeginErrorReadLine();
+
+		process.BeginOutputReadLine();
+
+		if (process.WaitForExit(timeout))
+		{
+			return process.ExitCode;
+		}
+
+		try
+		{
+			process.Kill(entireProcessTree: true);
+		}
+		catch
+		{
+			// The process has ended meanwhile.
+		}
+
+		return null;
 	}
 
 	/// <inheritdoc />
