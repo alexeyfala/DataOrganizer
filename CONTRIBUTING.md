@@ -88,6 +88,11 @@ dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCatego
 - Write source-code comments in **English**.
 - Match the patterns already used in the surrounding code (naming, structure,
   MVVM conventions).
+- Work with files and folders through the `IFileSystem` interface of
+  [Testably.Abstractions](https://github.com/Testably/Testably.Abstractions), not through `File`,
+  `Directory` or `FileInfo`, and start, run or find processes through `IProcessLauncher`,
+  `IProcessRunner` and `IProcessFinder`, not through `Process`. Test code that works with files
+  on the `MockFileSystem` of Testably.
 - Keep changes focused; unrelated changes belong in separate pull requests.
 - Adding a non-code file — a config, a document, a packaging input? Describe it in
   [`Docs/Solution_Files.md`](Docs/Solution_Files.md); a guard test fails the run when a file
