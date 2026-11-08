@@ -1,7 +1,4 @@
-using Serilog;
-using Shared.Extensions;
 using Shared.Interfaces;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -30,21 +27,6 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 	public ValueTask<T?> DeserializeAsync<T>(Stream utf8Json, CancellationToken token = default)
 	{
 		return JsonSerializer.DeserializeAsync<T>(utf8Json, cancellationToken: token);
-	}
-
-	/// <inheritdoc />
-	public T? DeserializeFromFile<T>(string filePath, ILogger? logger = null)
-	{
-		try
-		{
-			return Deserialize<T>(File.ReadAllText(filePath));
-		}
-		catch (Exception ex)
-		{
-			logger?.LogException(ex, false);
-
-			return default;
-		}
 	}
 
 	/// <inheritdoc />

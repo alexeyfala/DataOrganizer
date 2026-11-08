@@ -8,6 +8,7 @@ using Shared.Interfaces;
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 
 namespace NotepadDocuments.Services;
@@ -21,10 +22,16 @@ public sealed class NotepadStore : INotepadStore
 	/// </summary>
 	private const string TextFileExtension = ".txt";
 
+	/// <inheritdoc cref="IAtomicFileWriter" />
+	private readonly IAtomicFileWriter _atomicFileWriter;
+
 	/// <summary>
 	/// Directory the files of the texts live in.
 	/// </summary>
 	private readonly string _directoryPath;
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -44,6 +51,8 @@ public sealed class NotepadStore : INotepadStore
 	#region Constructors
 	public NotepadStore(
 		IAppEnvironment appEnvironment,
+		IAtomicFileWriter atomicFileWriter,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		IJsonSerializer jsonSerializer,
 		ILogger logger)
@@ -51,6 +60,10 @@ public sealed class NotepadStore : INotepadStore
 		_directoryPath = appEnvironment.NotepadDirectoryPath;
 
 		_settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(NotepadViewSettings));
+
+		_atomicFileWriter = atomicFileWriter;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -66,14 +79,16 @@ public sealed class NotepadStore : INotepadStore
 	{
 		string filePath = GetFilePath(number);
 
-		if (!_fileSystem.FileExists(filePath))
+		if (!_fileSystem
+			.File
+			.Exists(filePath))
 		{
 			return;
 		}
 
 		try
 		{
-			_fileSystem.EraseAndDeleteFile(filePath);
+			_fileEraser.EraseAndDeleteFile(filePath);
 		}
 		catch (Exception ex)
 		{
@@ -84,7 +99,9 @@ public sealed class NotepadStore : INotepadStore
 	/// <inheritdoc />
 	public int[] FindNumbers()
 	{
-		if (!_fileSystem.DirectoryExists(_directoryPath))
+		if (!_fileSystem
+			.Directory
+			.Exists(_directoryPath))
 		{
 			return [];
 		}
@@ -92,6 +109,7 @@ public sealed class NotepadStore : INotepadStore
 		try
 		{
 			return [.. _fileSystem
+				.Directory
 				.EnumerateFiles(_directoryPath)
 				.Select(GetNumber)
 				.OfType<int>()];
@@ -111,8 +129,8 @@ public sealed class NotepadStore : INotepadStore
 
 		try
 		{
-			return _fileSystem.FileExists(filePath)
-				? _fileSystem.ReadAllBytes(filePath)
+			return _fileSystem.File.Exists(filePath)
+				? _fileSystem.File.ReadAllBytes(filePath)
 				: [];
 		}
 		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
@@ -127,14 +145,16 @@ public sealed class NotepadStore : INotepadStore
 	/// <inheritdoc />
 	public NotepadViewSettings? ReadSettings()
 	{
-		if (!_fileSystem.FileExists(_settingsFilePath))
+		if (!_fileSystem
+			.File
+			.Exists(_settingsFilePath))
 		{
 			return null;
 		}
 
 		try
 		{
-			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.ReadAllBytes(_settingsFilePath));
+			return _jsonSerializer.Deserialize<NotepadViewSettings>(_fileSystem.File.ReadAllBytes(_settingsFilePath));
 		}
 		// Stryker disable once Block : without the block the method returns null as well, and only the log goes
 		catch (Exception ex)
@@ -150,9 +170,11 @@ public sealed class NotepadStore : INotepadStore
 	{
 		try
 		{
-			_fileSystem.CreateDirectory(_directoryPath);
+			_fileSystem
+				.Directory
+				.CreateDirectory(_directoryPath);
 
-			_fileSystem.WriteAllBytesAtomic(GetFilePath(number), contents);
+			_atomicFileWriter.WriteAllBytes(GetFilePath(number), contents);
 
 			return true;
 		}
@@ -171,10 +193,12 @@ public sealed class NotepadStore : INotepadStore
 		{
 			if (Path.GetDirectoryName(_settingsFilePath) is { } directoryPath)
 			{
-				_fileSystem.CreateDirectory(directoryPath);
+				_fileSystem
+					.Directory
+					.CreateDirectory(directoryPath);
 			}
 
-			_fileSystem.WriteAllBytesAtomic(
+			_atomicFileWriter.WriteAllBytes(
 				_settingsFilePath,
 				_jsonSerializer.SerializeToUtf8Bytes(settings, JsonDefaults.Options));
 		}

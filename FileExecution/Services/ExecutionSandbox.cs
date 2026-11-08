@@ -5,6 +5,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,9 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -40,11 +44,14 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	#region Constructors
 	public ExecutionSandbox(
 		IAppEnvironment appEnvironment,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		ILogger logger,
 		TimeProvider timeProvider)
 	{
 		_appEnvironment = appEnvironment;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -67,7 +74,9 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	{
 		for (int attempt = 1; attempt <= MaxAttemptCount; attempt++)
 		{
-			if (!_fileSystem.DirectoryExists(DirectoryPath))
+			if (!_fileSystem
+				.Directory
+				.Exists(DirectoryPath))
 			{
 				return;
 			}
@@ -81,7 +90,7 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 
 			try
 			{
-				_fileSystem.EraseAndDeleteDirectory(DirectoryPath);
+				_fileEraser.EraseAndDeleteDirectory(DirectoryPath);
 
 				_logger.LogInformation($@"Folder ""{DirectoryPath}"" is erased");
 

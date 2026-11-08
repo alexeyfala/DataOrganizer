@@ -11,39 +11,25 @@ public sealed class WindowSettingsStore : IWindowSettingsStore
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="IJsonSerializer" />
-	private readonly IJsonSerializer _jsonSerializer;
+	/// <inheritdoc cref="IJsonFileStore" />
+	private readonly IJsonFileStore _jsonFileStore;
 	#endregion
 
 	#region Constructors
-	public WindowSettingsStore(
-		IAppEnvironment appEnvironment,
-		IFileSystem fileSystem,
-		IJsonSerializer jsonSerializer)
+	public WindowSettingsStore(IAppEnvironment appEnvironment, IJsonFileStore jsonFileStore)
 	{
 		_appEnvironment = appEnvironment;
 
-		_fileSystem = fileSystem;
-
-		_jsonSerializer = jsonSerializer;
+		_jsonFileStore = jsonFileStore;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public T? Read<T>() => _jsonSerializer.DeserializeFromFile<T>(GetFilePath<T>());
+	public T? Read<T>() => _jsonFileStore.Read<T>(GetFilePath<T>());
 
 	/// <inheritdoc />
-	public void Write<T>(T settings)
-	{
-		_fileSystem.SerializeToJsonFile(
-			settings,
-			GetFilePath<T>(),
-			false);
-	}
+	public void Write<T>(T settings) => _jsonFileStore.Write(settings, GetFilePath<T>());
 	#endregion
 
 	#region Helpers

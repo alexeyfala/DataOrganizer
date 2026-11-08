@@ -5,9 +5,8 @@ using Shared.Enums;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace FileSystemOperations.Services;
 
@@ -34,6 +33,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	/// <inheritdoc cref="IPlatform" />
 	private readonly IPlatform _platform;
+
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
 	#endregion
 
 	#region Constructors
@@ -42,7 +44,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		IExplorerManager explorerManager,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IPlatform platform)
+		IPlatform platform,
+		IProcessLauncher processLauncher)
 	{
 		_appProcess = appProcess;
 
@@ -53,6 +56,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		_logger = logger;
 
 		_platform = platform;
+
+		_processLauncher = processLauncher;
 	}
 	#endregion
 
@@ -85,7 +90,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	}
 
 	/// <inheritdoc />
-	[ExcludeFromCodeCoverage(Justification = "Brings forward or starts the file manager of the system")]
 	public void OpenDirectory(string directoryPath)
 	{
 		try
@@ -102,9 +106,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 				_logger.LogException(ex);
 			}
 
-			Process.Start(
-				PlatformInfo.FileOpener,
-				directoryPath.SurroundWithQuotesIfNeeded());
+			_processLauncher.StartProcess(PlatformInfo.FileOpener, [directoryPath]);
 		}
 		catch (Exception ex)
 		{
@@ -119,7 +121,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		{
 			// The target may be a file or, on macOS, an .app bundle (a directory) — accept both.
 			if (string.IsNullOrEmpty(filePath)
-				|| (!_fileSystem.FileExists(filePath) && !_fileSystem.DirectoryExists(filePath)))
+				|| (!_fileSystem
+					.File
+					.Exists(filePath) && !_fileSystem.Directory.Exists(filePath)))
 			{
 				if (Path.GetDirectoryName(filePath) is { Length: > 0 } fallbackDirectory)
 				{
@@ -154,30 +158,6 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	#region Helpers
 	/// <summary>
-	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
-	/// from <paramref name="baseDirectory" />; <c>null</c> when the app runs outside a bundle.
-	/// </summary>
-	[ExcludeFromCodeCoverage(Justification = "Runs on macOS only, while the mutation run is on Windows")]
-	private static string? ResolveMacOSBundle(string baseDirectory)
-	{
-		const string bundleExtension = ".app";
-
-		DirectoryInfo? directory = new(baseDirectory);
-
-		while (directory is not null)
-		{
-			if (directory.Name.EndsWith(bundleExtension, StringComparison.OrdinalIgnoreCase))
-			{
-				return directory.FullName;
-			}
-
-			directory = directory.Parent;
-		}
-
-		return null;
-	}
-
-	/// <summary>
 	/// Resolves the application file to reveal on <see cref="OperatingSystemKind.Windows" /> and
 	/// <see cref="OperatingSystemKind.Linux" />; <c>null</c> when none exists.
 	/// </summary>
@@ -186,7 +166,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		// An AppImage runs from a temporary mount, so the file to show is the AppImage itself.
 		if (_platform.IsLinux
 			&& _appProcess.GetEnvironmentVariable(AppImageVariable) is { Length: > 0 } appImagePath
-			&& _fileSystem.FileExists(appImagePath))
+			&& _fileSystem.File.Exists(appImagePath))
 		{
 			return appImagePath;
 		}
@@ -194,7 +174,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		// The shared dotnet host runs an application from its entry assembly and is not a file of the application.
 		if (_appProcess.ProcessPath is { Length: > 0 } processPath
 			&& !_appProcess.IsRunByDotnetHost()
-			&& _fileSystem.FileExists(processPath))
+			&& _fileSystem.File.Exists(processPath))
 		{
 			return processPath;
 		}
@@ -208,14 +188,41 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			_appProcess.BaseDirectory,
 			appName + (_platform.IsWindows ? KnownFileExtensions.Exe : string.Empty));
 
-		if (_fileSystem.FileExists(appHostPath))
+		if (_fileSystem
+			.File
+			.Exists(appHostPath))
 		{
 			return appHostPath;
 		}
 
-		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.FileExists(entryAssemblyPath)
+		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.File.Exists(entryAssemblyPath)
 			? entryAssemblyPath
 			: null;
+	}
+
+	/// <summary>
+	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
+	/// from <paramref name="baseDirectory" />; <c>null</c> when the app runs outside a bundle.
+	/// </summary>
+	private string? ResolveMacOSBundle(string baseDirectory)
+	{
+		const string bundleExtension = ".app";
+
+		IDirectoryInfo? directory = _fileSystem
+			.DirectoryInfo
+			.New(baseDirectory);
+
+		while (directory is not null)
+		{
+			if (directory.Name.EndsWith(bundleExtension, StringComparison.OrdinalIgnoreCase))
+			{
+				return directory.FullName;
+			}
+
+			directory = directory.Parent;
+		}
+
+		return null;
 	}
 	#endregion
 }

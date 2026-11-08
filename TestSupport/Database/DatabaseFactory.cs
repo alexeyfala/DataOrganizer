@@ -4,6 +4,7 @@ using Serilog.Core;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using TestSupport.Common;
 
 namespace TestSupport.Database;
@@ -17,9 +18,13 @@ public static class DatabaseFactory
 	/// <summary>
 	/// Creates a <see cref="DatabaseBackup" /> over a random path.
 	/// </summary>
-	public static DatabaseBackup CreateDatabaseBackup(IFileSystem fileSystem)
+	public static DatabaseBackup CreateDatabaseBackup(IFileEraser fileEraser, IFileSystem fileSystem)
 	{
-		return new(RandomValues.CreateFileName(10), fileSystem, Logger.None);
+		return new(
+			TestPath.Combine(RandomValues.CreateFileName(10)),
+			fileEraser,
+			fileSystem,
+			Logger.None);
 	}
 
 	/// <summary>

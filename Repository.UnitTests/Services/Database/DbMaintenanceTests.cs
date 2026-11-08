@@ -1,10 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using NSubstitute;
 using Repository.Interfaces.Database;
 using Repository.Services.Database;
 using Shared.Interfaces;
 using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
 namespace Repository.UnitTests.Services.Database;
@@ -27,7 +30,9 @@ internal class DbMaintenanceTests
 	public void ErasePendingBackups_Erases_Nothing_Without_Leftovers()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		MockFileSystem files = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -39,7 +44,9 @@ internal class DbMaintenanceTests
 
 			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();
@@ -48,11 +55,11 @@ internal class DbMaintenanceTests
 		sut.ErasePendingBackups();
 
 		// Assert
-		fileSystem
-			.DidNotReceive()
-			.EnumerateFiles(Arg.Any<string>());
+		files.Statistics.Directory.Methods
+			.Should()
+			.NotContain(x => x.Name == nameof(IDirectory.EnumerateFiles));
 
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
@@ -72,27 +79,34 @@ internal class DbMaintenanceTests
 			Path.Combine(directoryPath, "second.sqlite-journal")
 		];
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
+			MockFileSystem files = new();
+
 			dbContextService
 				.GetDbFilePath()
 				.Returns(DatabaseFilePath);
 
-			fileSystem
-				.DirectoryExists(directoryPath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(directoryPath);
 
-			fileSystem
-				.EnumerateFiles(directoryPath)
-				.Returns(leftovers);
+			foreach (string filePath in leftovers)
+			{
+				files
+					.File
+					.WriteAllBytes(filePath, [1]);
+			}
 
 			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();
@@ -103,7 +117,7 @@ internal class DbMaintenanceTests
 		// Assert
 		foreach (string filePath in leftovers)
 		{
-			fileSystem
+			fileEraser
 				.Received(1)
 				.EraseAndDeleteFile(filePath);
 		}
@@ -122,31 +136,39 @@ internal class DbMaintenanceTests
 
 		string nextFilePath = Path.Combine(directoryPath, "next.sqlite");
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
+			MockFileSystem files = new();
+
 			dbContextService
 				.GetDbFilePath()
 				.Returns(DatabaseFilePath);
 
-			fileSystem
-				.DirectoryExists(directoryPath)
-				.Returns(true);
+			files
+				.Directory
+				.CreateDirectory(directoryPath);
 
-			fileSystem
-				.EnumerateFiles(directoryPath)
-				.Returns([lockedFilePath, nextFilePath]);
+			files
+				.File
+				.WriteAllBytes(lockedFilePath, [1]);
 
-			fileSystem
+			files
+				.File
+				.WriteAllBytes(nextFilePath, [1]);
+
+			fileEraser
 				.When(x => x.EraseAndDeleteFile(lockedFilePath))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(dbContextService);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
 		});
 
 		DbMaintenance sut = mock.Create<DbMaintenance>();
@@ -155,7 +177,7 @@ internal class DbMaintenanceTests
 		sut.ErasePendingBackups();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(nextFilePath);
 	}

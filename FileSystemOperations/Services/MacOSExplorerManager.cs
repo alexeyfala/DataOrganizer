@@ -1,7 +1,6 @@
 using FileSystemOperations.Interfaces;
 using Shared.Common;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using Shared.Interfaces;
 
 namespace FileSystemOperations.Services;
 
@@ -9,9 +8,17 @@ namespace FileSystemOperations.Services;
 /// Reveals files through the "open" command. Bringing an already opened Finder window
 /// to the front is not supported.
 /// </summary>
-[ExcludeFromCodeCoverage(Justification = "Starts the open command, runs only on macOS")]
 public sealed class MacOSExplorerManager : IExplorerManager
 {
+	#region Data
+	/// <inheritdoc cref="IProcessLauncher" />
+	private readonly IProcessLauncher _processLauncher;
+	#endregion
+
+	#region Constructors
+	public MacOSExplorerManager(IProcessLauncher processLauncher) => _processLauncher = processLauncher;
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	public bool TryForegroundFolder(string folderPath, string? selectItemPath = null) => false;
@@ -21,7 +28,7 @@ public sealed class MacOSExplorerManager : IExplorerManager
 	{
 		try
 		{
-			_ = Process.Start(PlatformInfo.FileOpener, GetReveal(filePath));
+			_processLauncher.StartProcess(PlatformInfo.FileOpener, ["-R", filePath]);
 
 			return true;
 		}
@@ -31,12 +38,5 @@ public sealed class MacOSExplorerManager : IExplorerManager
 			return false;
 		}
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Combines the path with the folder expansion argument.
-	/// </summary>
-	private static string GetReveal(string argument) => $@"-R ""{argument}""";
 	#endregion
 }

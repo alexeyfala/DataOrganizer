@@ -8,8 +8,11 @@ using NSubstitute;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
+using TimeProvider = System.TimeProvider;
 
 namespace FileExecution.UnitTests.Services;
 
@@ -31,23 +34,27 @@ internal class ExecutionSandboxTests
 	public async Task EraseAsync_Erases_The_Folder()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -60,7 +67,7 @@ internal class ExecutionSandboxTests
 		await sut.EraseAsync();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteDirectory(DirectoryPath);
 	}
@@ -77,27 +84,31 @@ internal class ExecutionSandboxTests
 
 		FakeTimeProvider time = new();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
-			fileSystem
+			fileEraser
 				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
 				.Throw(new IOException());
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -109,7 +120,7 @@ internal class ExecutionSandboxTests
 
 		// Assert
 		// The second attempt waits for the pause.
-		fileSystem
+		fileEraser
 			.Received(1)
 			.EraseAndDeleteDirectory(DirectoryPath);
 
@@ -124,7 +135,7 @@ internal class ExecutionSandboxTests
 
 		await task;
 
-		fileSystem
+		fileEraser
 			.Received(10)
 			.EraseAndDeleteDirectory(DirectoryPath);
 	}
@@ -144,17 +155,19 @@ internal class ExecutionSandboxTests
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(DirectoryPath);
 
 			fileSystem
-				.DirectoryExists(DirectoryPath)
-				.Returns(true);
+				.Directory
+				.CreateDirectory(DirectoryPath);
 
-			fileSystem
+			fileEraser
 				.When(x => x.EraseAndDeleteDirectory(DirectoryPath))
 				.Do(_ =>
 				{
@@ -168,7 +181,9 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -195,11 +210,13 @@ internal class ExecutionSandboxTests
 	public async Task EraseAsync_Skips_A_Missing_Folder()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			MockFileSystem fileSystem = new();
 
 			appEnvironment
 				.SandboxDirectoryPath
@@ -207,7 +224,9 @@ internal class ExecutionSandboxTests
 
 			builder.RegisterInstance(appEnvironment);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -220,7 +239,7 @@ internal class ExecutionSandboxTests
 		await sut.EraseAsync();
 
 		// Assert
-		fileSystem
+		fileEraser
 			.DidNotReceive()
 			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}

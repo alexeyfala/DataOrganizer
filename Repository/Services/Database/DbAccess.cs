@@ -19,6 +19,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
@@ -57,6 +58,9 @@ public sealed class DbAccess :
 	/// <inheritdoc cref="IExplorerItemRepository" />
 	private readonly IExplorerItemRepository _explorerItemRepository;
 
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
 	/// <inheritdoc cref="IFileRepository" />
 	private readonly IFileRepository _fileRepository;
 
@@ -90,6 +94,7 @@ public sealed class DbAccess :
 		IDbMaintenance dbMaintenance,
 		IExplorerItemRepository explorerItemRepository,
 		IFileRepository fileRepository,
+		IFileEraser fileEraser,
 		IFileSystem fileSystem,
 		IFolderRepository folderRepository,
 		IHotkeysRepository hotkeysRepository,
@@ -103,6 +108,8 @@ public sealed class DbAccess :
 		_explorerItemRepository = explorerItemRepository;
 
 		_fileRepository = fileRepository;
+
+		_fileEraser = fileEraser;
 
 		_fileSystem = fileSystem;
 
@@ -230,7 +237,9 @@ public sealed class DbAccess :
 
 			TryErasePendingBackups();
 
-			bool hasDatabaseFile = _fileSystem.FileExists(_dbContextService.GetDbFilePath());
+			bool hasDatabaseFile = _fileSystem
+				.File
+				.Exists(_dbContextService.GetDbFilePath());
 
 			DbConnectionStatus status = hasDatabaseFile
 				? await GetSchemaStatusAsync(token).ConfigureAwait(false)
@@ -310,14 +319,18 @@ public sealed class DbAccess :
 
 		string dbFilePath = GetDbFilePath();
 
-		if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
+		if (!_fileSystem
+			.File
+			.Exists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 		{
 			return null;
 		}
 
 		string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
 
-		_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
+		_fileSystem
+			.Directory
+			.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
 
 		CopyDatabaseParameters parameters = new()
 		{
@@ -330,13 +343,16 @@ public sealed class DbAccess :
 		CopyDatabase(parameters);
 
 		// Stryker disable once Block,Statement : the backup API writes the file or throws
-		if (!_fileSystem.FileExists(backupFilePath))
+		if (!_fileSystem
+			.File
+			.Exists(backupFilePath))
 		{
 			return null;
 		}
 
 		return new DatabaseBackup(
 			backupFilePath,
+			_fileEraser,
 			_fileSystem,
 			_logger);
 	}
@@ -517,7 +533,13 @@ public sealed class DbAccess :
 			{
 				Span<byte> header = stackalloc byte[16];
 
-				using Stream stream = _fileSystem.OpenRead(filePath);
+				using Stream stream = _fileSystem
+					.File
+					.Open(
+						filePath,
+						FileMode.Open,
+						FileAccess.Read,
+						FileShare.ReadWrite | FileShare.Delete);
 
 				// Stryker disable once Equality : no SQLite file is as short as its header
 				if (stream.Length < 16)

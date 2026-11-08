@@ -1,9 +1,9 @@
 using System;
 
-namespace FileExecution.Interfaces;
+namespace Shared.Interfaces;
 
 /// <summary>
-/// Process started to open a file in the operating system, held so that a kill can only reach it and never a process
+/// Process that opens or holds a file in the operating system, held so that a kill can only reach it and never a process
 /// that took its id.
 /// </summary>
 public interface IExecutingFileProcess : IDisposable

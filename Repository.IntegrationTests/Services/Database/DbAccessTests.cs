@@ -17,9 +17,11 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions;
 
 namespace Repository.IntegrationTests.Services.Database;
 
@@ -71,7 +73,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
-				.RegisterType<FileSystem>()
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -133,7 +139,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
-				.RegisterType<FileSystem>()
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -189,7 +199,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
-				.RegisterType<FileSystem>()
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -289,7 +303,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
-				.RegisterType<FileSystem>()
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
 				.As<IFileSystem>();
 		});
 
@@ -322,6 +340,41 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a database that a connection holds open is still accepted.
+	/// </summary>
+	[Test]
+	public void IsValidSqliteDatabase_Accepts_A_Database_A_Connection_Holds_Open()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		using SqliteConnection connection = file.Open();
+
+		TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = sut.IsValidSqliteDatabase(file.FilePath);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.IsValidSqliteDatabase" />: a file that starts like a database and holds nothing else of one is
 	/// refused.
 	/// </summary>
@@ -333,9 +386,16 @@ internal class DbAccessTests
 
 		File.WriteAllBytes(file.FilePath, [.. "SQLite format 3\0"u8, .. new byte[84].AsSpan()]);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -357,9 +417,16 @@ internal class DbAccessTests
 		// Arrange
 		using TempSqliteFile file = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -388,9 +455,16 @@ internal class DbAccessTests
 
 		File.WriteAllBytes(file.FilePath, []);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -422,9 +496,16 @@ internal class DbAccessTests
 
 		File.WriteAllText(foreignFilePath, "A name is not a database.");
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<FileSystem>()
-			.As<IFileSystem>());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
+				.As<IFileSystem>();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -530,7 +611,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder
-				.RegisterType<FileSystem>()
+				.RegisterType<FileEraser>()
+				.As<IFileEraser>();
+
+			builder
+				.RegisterType<RealFileSystem>()
 				.As<IFileSystem>();
 		});
 

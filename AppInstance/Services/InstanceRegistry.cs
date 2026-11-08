@@ -1,16 +1,14 @@
 using AppInstance.Interfaces;
-using Shared.Interfaces;
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using TextProcessing.Constants;
 
 namespace AppInstance.Services;
 
 /// <inheritdoc cref="IInstanceRegistry" />
-[ExcludeFromCodeCoverage(Justification = "Locks files in the data folder of the app, which tests do not touch")]
 public sealed class InstanceRegistry : IInstanceRegistry
 {
 	#region Properties
@@ -36,7 +34,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	/// The exclusive lock held for the whole session; releasing it frees the slot.
 	/// A field keeps the stream alive so the finalizer cannot close the handle early.
 	/// </summary>
-	private readonly FileStream? _lock;
+	private readonly FileSystemStream? _lock;
 	#endregion
 
 	#region Constructors
@@ -57,7 +55,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	/// <summary>
 	/// Overwrites the lock file with the current process id for diagnostics.
 	/// </summary>
-	private static void WritePidMarker(FileStream stream)
+	private static void WritePidMarker(FileSystemStream stream)
 	{
 		try
 		{
@@ -69,6 +67,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 
 			stream.Write(pid);
 
+			// Stryker disable once Statement : the id is read early only on Unix, where the lock is advisory; the mock locks the file
 			stream.Flush();
 		}
 		catch (Exception ex)
@@ -81,7 +80,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	/// Claims the lowest free instance slot by holding an exclusive lock on its file.
 	/// Falls back to slot 1 without a lock when the registry directory is unusable.
 	/// </summary>
-	private int ClaimSlot(out FileStream? lockStream)
+	private int ClaimSlot(out FileSystemStream? lockStream)
 	{
 		lockStream = null;
 
@@ -91,7 +90,9 @@ public sealed class InstanceRegistry : IInstanceRegistry
 				IAppEnvironment.GetAppDataDirectoryPath(),
 				LocksDirectoryName);
 
-			_fileSystem.CreateDirectory(directory);
+			_fileSystem
+				.Directory
+				.CreateDirectory(directory);
 
 			for (int number = 1; number <= MaxInstances; number++)
 			{
@@ -101,11 +102,13 @@ public sealed class InstanceRegistry : IInstanceRegistry
 				{
 					// FileShare.None fails while a live instance holds the slot
 					// (native share mode on Windows, flock on Unix).
-					FileStream stream = new(
-						path,
-						FileMode.OpenOrCreate,
-						FileAccess.ReadWrite,
-						FileShare.None);
+					FileSystemStream stream = _fileSystem
+						.FileStream
+						.New(
+							path,
+							FileMode.OpenOrCreate,
+							FileAccess.ReadWrite,
+							FileShare.None);
 
 					WritePidMarker(stream);
 

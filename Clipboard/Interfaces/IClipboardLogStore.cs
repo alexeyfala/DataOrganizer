@@ -28,7 +28,7 @@ public interface IClipboardLogStore : IDisposable
 
 	#region Methods
 	/// <summary>
-	/// Erases both the journal and the wrapped key, and forgets the in-session key.
+	/// Erases the journal, the wrapped key and any other file of their folder, and forgets the in-session key.
 	/// </summary>
 	void EraseAll();
 

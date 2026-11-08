@@ -1,4 +1,3 @@
-using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -29,12 +28,6 @@ public interface IJsonSerializer
 	/// of an intermediate string in memory.
 	/// </summary>
 	ValueTask<T?> DeserializeAsync<T>(Stream utf8Json, CancellationToken token = default);
-
-	/// <summary>
-	/// Deserializes the Json content of a file into <typeparamref name="T"/>.<br />
-	/// Returns the default value for type <typeparamref name="T"/> if an exception occurs during deserialization.
-	/// </summary>
-	T? DeserializeFromFile<T>(string filePath, ILogger? logger = null);
 
 	/// <summary>
 	/// Serializes data into a Json string.

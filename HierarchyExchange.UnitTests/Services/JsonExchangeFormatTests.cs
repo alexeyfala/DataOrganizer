@@ -10,9 +10,11 @@ using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Interfaces;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TestSupport.Models;
 
@@ -26,6 +28,11 @@ internal class JsonExchangeFormatTests
 	/// The path of the exchange file.
 	/// </summary>
 	private static readonly string FilePath = TestPath.Combine("exchange", "organizer.json");
+
+	/// <summary>
+	/// Folder the exchange file lives in.
+	/// </summary>
+	private static readonly string Folder = TestPath.Combine("exchange");
 	#endregion
 
 	#region Methods
@@ -43,8 +50,6 @@ internal class JsonExchangeFormatTests
 
 		ExplorerItemBase[] entities = [.. folders, .. files];
 
-		using MemoryStream stream = new();
-
 		IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -59,15 +64,15 @@ internal class JsonExchangeFormatTests
 				.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, Arg.Any<CancellationToken>())
 				.Returns(files);
 
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.CreateSequentialWrite(FilePath)
-				.Returns(stream);
+				.Directory
+				.CreateDirectory(Folder);
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});
@@ -79,7 +84,7 @@ internal class JsonExchangeFormatTests
 
 		// Assert
 		await serializer.Received(1).SerializeAsync(
-			stream,
+			Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath),
 			Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)),
 			JsonDefaults.Options,
 			Arg.Any<CancellationToken>());
@@ -94,11 +99,15 @@ internal class JsonExchangeFormatTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(FilePath)
-				.Returns(new MemoryStream());
+				.Directory
+				.CreateDirectory(Folder);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
@@ -107,7 +116,7 @@ internal class JsonExchangeFormatTests
 				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(default(ExplorerItemBase[]));
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});
@@ -137,21 +146,23 @@ internal class JsonExchangeFormatTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			MemoryStream stream = new();
-
-			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+			MockFileSystem fileSystem = new();
 
 			fileSystem
-				.OpenSequentialRead(FilePath)
-				.Returns(stream);
+				.Directory
+				.CreateDirectory(Folder);
+
+			fileSystem
+				.File
+				.WriteAllBytes(FilePath, []);
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.DeserializeAsync<ExplorerItemBase[]>(stream, Arg.Any<CancellationToken>())
+				.DeserializeAsync<ExplorerItemBase[]>(Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath), Arg.Any<CancellationToken>())
 				.Returns([files[0], folders[0], files[1], folders[1]]);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance<IFileSystem>(fileSystem);
 
 			builder.RegisterInstance(serializer);
 		});

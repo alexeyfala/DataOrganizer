@@ -1,9 +1,9 @@
 using FileExecution.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -55,11 +55,19 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IProcessFinder" />
+	private readonly IProcessFinder _processFinder;
 	#endregion
 
 	#region Constructors
 	[ExcludeFromCodeCoverage(Justification = "Asks the Windows Restart Manager, runs only on Windows")]
-	public WindowsExecutingFileHolderFinder(ILogger logger) => _logger = logger;
+	public WindowsExecutingFileHolderFinder(ILogger logger, IProcessFinder processFinder)
+	{
+		_logger = logger;
+
+		_processFinder = processFinder;
+	}
 	#endregion
 
 	#region Methods
@@ -82,16 +90,15 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 				continue;
 			}
 
-			try
+			// A process that has ended since the query leaves nothing to kill.
+			if (_processFinder.FindById(processId) is not { } holder)
 			{
-				holders.Add(new ExecutingFileProcess(Process.GetProcessById(processId)));
+				continue;
+			}
 
-				_logger.LogDebug($@"Process {processId} ""{appName}"" holds the file.");
-			}
-			catch (ArgumentException)
-			{
-				// The process has ended since the query, so there is nothing to kill.
-			}
+			holders.Add(holder);
+
+			_logger.LogDebug($@"Process {processId} ""{appName}"" holds the file.");
 		}
 
 		return [.. holders];
