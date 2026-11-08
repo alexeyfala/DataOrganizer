@@ -116,10 +116,52 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogStore.EraseAll" />: the journal and the key are overwritten before they go, not only deleted.
+	/// <see cref="ClipboardLogStore.EraseAll" />: the folder of the history is erased whole, so a file left beside the
+	/// journal and the key is overwritten too.
 	/// </summary>
 	[Test]
-	public async Task EraseAll_Overwrites_Both_Files()
+	public void EraseAll_Erases_The_Whole_Folder()
+	{
+		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(HistoryFolder);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+			appEnvironment
+				.ClipboardHistoryDirectoryPath
+				.Returns(HistoryFolder);
+
+			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// Act
+		sut.EraseAll();
+
+		// Assert
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(HistoryFolder);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.EraseAll" />: with no folder of the history there is nothing to erase.
+	/// </summary>
+	[Test]
+	public void EraseAll_Leaves_A_Missing_Folder_Alone()
 	{
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
@@ -136,43 +178,21 @@ internal class ClipboardLogStoreTests
 
 			builder.RegisterInstance(fileEraser);
 
-			// One file system for all the services, as they share one disk in the app.
 			builder
 				.RegisterType<MockFileSystem>()
 				.As<IFileSystem>()
 				.SingleInstance();
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
-
-			builder
-				.RegisterType<EncryptionService>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
-
-		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-
-		await sut.SaveAsync([ClipboardEntryFactory.CreateTextEntry("data")]);
 
 		// Act
 		sut.EraseAll();
 
 		// Assert
-		Received.InOrder(() =>
-		{
-			fileEraser.EraseAndDeleteFile(BinPath);
-
-			fileEraser.EraseAndDeleteFile(KeyPath);
-		});
+		fileEraser
+			.DidNotReceive()
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>

@@ -180,7 +180,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				}
 			}
 
-			TryDeleteFile(info.FilePath, info.DirectoryPath);
+			TryEraseDirectory(info.DirectoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -237,7 +237,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 						continue;
 					}
 
-					TryDeleteFile(info.FilePath, info.DirectoryPath);
+					TryEraseDirectory(info.DirectoryPath);
 				}
 				catch (Exception ex)
 				{
@@ -644,33 +644,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Tries to delete a file and the folder containing it.
+	/// Tries to erase and delete the folder of a file, with the files other programs left beside it.
 	/// </summary>
-	private void TryDeleteFile(string filePath, string directoryPath)
+	private void TryEraseDirectory(string directoryPath)
 	{
 		try
 		{
-			_fileSystem.SetFileReadOnly(filePath, false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-
-		try
-		{
-			_fileEraser.EraseAndDeleteFile(filePath);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-
-		try
-		{
-			_fileSystem
-				.Directory
-				.Delete(directoryPath, recursive: true);
+			_fileEraser.EraseAndDeleteDirectory(directoryPath);
 		}
 		catch (Exception ex)
 		{

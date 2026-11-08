@@ -97,82 +97,8 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: kills the process, clears the read-only flag, erases the file and deletes its directory.
-	/// </summary>
-	[Test]
-	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
-	{
-		// Arrange
-		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
-
-		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
-
-		IFileEraser fileEraser = Substitute.For<IFileEraser>();
-
-		MockFileSystem files = new();
-
-		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
-
-			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
-
-			sandbox
-				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(directoryPath);
-
-			processLauncher
-				.OpenFile(Arg.Any<string>())
-				.Returns(process);
-
-			builder.RegisterInstance(fileEraser);
-
-			builder.RegisterInstance<IFileSystem>(files);
-
-			builder.RegisterInstance(processLauncher);
-
-			builder.RegisterInstance(sandbox);
-		});
-
-		ExecutionEngine sut = mock.Create<ExecutionEngine>();
-
-		ExecuteFileParameters parameters = new()
-		{
-			Contents = [],
-			File = dto,
-			// A read-only file is the case where clearing the flag is what lets the erase happen at all.
-			IsReadOnly = true
-		};
-
-		await sut.ExecuteAsync(parameters);
-
-		// Act
-		await sut.CloseAsync(dto.Id);
-
-		// Assert
-		process
-			.Received(1)
-			.Kill();
-
-		files.Statistics.File.Methods
-			.Should()
-			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
-
-		fileEraser
-			.Received(1)
-			.EraseAndDeleteFile(Arg.Any<string>());
-
-		// The eraser is a substitute, so the file is still there and goes with the folder.
-		files.Directory.Exists(directoryPath)
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: a process that cannot be killed is still released, and the file is
-	/// erased all the same.
+	/// <see cref="ExecutionEngine.CloseAsync" />: a process that cannot be killed is still released, and the folder of the
+	/// file is erased all the same.
 	/// </summary>
 	[Test]
 	public async Task CloseAsync_Deletes_The_File_When_The_Kill_Fails()
@@ -235,7 +161,7 @@ internal class ExecutionEngineTests
 
 		fileEraser
 			.Received(1)
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -257,7 +183,73 @@ internal class ExecutionEngineTests
 		// Assert
 		fileEraser
 			.DidNotReceive()
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: kills the process and erases the folder of the file whole, with the files
+	/// the program left beside it.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Erases_The_Folder_Of_The_File()
+	{
+		// Arrange
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		IExecutingFileProcess process = Substitute.For<IExecutingFileProcess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(directoryPath);
+
+			processLauncher
+				.OpenFile(Arg.Any<string>())
+				.Returns(process);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+
+			builder.RegisterInstance(processLauncher);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		process
+			.Received(1)
+			.Kill();
+
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(directoryPath);
 	}
 
 	/// <summary>
@@ -464,7 +456,7 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: a file that is gone from the sandbox is not deleted again.
+	/// <see cref="ExecutionEngine.CloseAsync" />: a file that is gone from the sandbox is not erased again.
 	/// </summary>
 	[Test]
 	public async Task CloseAsync_Leaves_A_File_That_Is_Gone_Alone()
@@ -513,14 +505,9 @@ internal class ExecutionEngineTests
 		await sut.CloseAsync(dto.Id);
 
 		// Assert
-		// The one clearing of the sign is the write of a file that is not read-only; the gone copy is not touched again.
-		files.Statistics.File.Methods
-			.Should()
-			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
-
 		fileEraser
 			.DidNotReceive()
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -707,7 +694,7 @@ internal class ExecutionEngineTests
 
 		fileEraser
 			.Received(1)
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -774,7 +761,7 @@ internal class ExecutionEngineTests
 
 		fileEraser
 			.Received(1)
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 
 		sut.IsExecuting(dto.Id)
 			.Should()
@@ -782,7 +769,7 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.DisposeAsync" />: a file that is gone from the sandbox is not deleted again.
+	/// <see cref="ExecutionEngine.DisposeAsync" />: a file that is gone from the sandbox is not erased again.
 	/// </summary>
 	[Test]
 	public async Task DisposeAsync_Leaves_A_File_That_Is_Gone_Alone()
@@ -829,14 +816,9 @@ internal class ExecutionEngineTests
 		await sut.DisposeAsync();
 
 		// Assert
-		// The one clearing of the sign is the write of a file that is not read-only; the gone copy is not touched again.
-		files.Statistics.File.Methods
-			.Should()
-			.ContainSingle(x => x.Name == nameof(IFile.SetAttributes) && x.Parameters[1].Is<FileAttributes>(a => !a.HasFlag(FileAttributes.ReadOnly)));
-
 		fileEraser
 			.DidNotReceive()
-			.EraseAndDeleteFile(Arg.Any<string>());
+			.EraseAndDeleteDirectory(Arg.Any<string>());
 	}
 
 	/// <summary>

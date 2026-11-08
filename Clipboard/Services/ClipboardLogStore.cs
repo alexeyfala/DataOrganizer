@@ -132,10 +132,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public void EraseAll()
 	{
-		TryEraseFile(_historyFilePath);
-
-		TryEraseFile(_keyFilePath);
-
 		TryEraseDirectory();
 
 		Dispose();
@@ -308,21 +304,18 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	}
 
 	/// <summary>
-	/// Removes the clipboard history directory if present.
+	/// Erases the clipboard history directory with every file in it, if present.
 	/// </summary>
 	private void TryEraseDirectory()
 	{
 		try
 		{
-			// Stryker disable once Block,Statement : equivalent: deleting a missing folder only adds a log line
 			if (!_fileSystem.DirectoryExists(_directoryPath))
 			{
 				return;
 			}
 
-			_fileSystem
-				.Directory
-				.Delete(_directoryPath, recursive: true);
+			_fileEraser.EraseAndDeleteDirectory(_directoryPath);
 		}
 		catch (Exception ex)
 		{
